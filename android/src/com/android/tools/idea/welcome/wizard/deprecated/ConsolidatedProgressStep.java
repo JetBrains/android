@@ -16,8 +16,11 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.welcome.install.WizardException;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,13 +32,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Step to show installation progress for long running operations contributed by other paths.
  */
-public class ConsolidatedProgressStep extends ProgressStep {
+public class ConsolidatedProgressStep extends AbstractProgressStep {
   private final AtomicBoolean myIsBusy = new AtomicBoolean(false);
   private final DynamicWizardHost myHost;
   private List<? extends AndroidStudioWizardPath> myPaths;
 
-  public ConsolidatedProgressStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host) {
-    super(disposable, "Downloading Components");
+  public ConsolidatedProgressStep(
+    @NotNull Disposable disposable,
+    @NotNull DynamicWizardHost host,
+    @NotNull FirstRunWizardTracker tracker
+  ) {
+    super(disposable, "Downloading Components", tracker);
     myHost = host;
   }
 
@@ -54,8 +61,12 @@ public class ConsolidatedProgressStep extends ProgressStep {
     myHost.runSensitiveOperation(getProgressIndicator(), true, new Runnable() {
       @Override
       public void run() {
+        boolean wasSuccess = false;
+        myTracker.trackInstallingComponentsStarted();
+
         try {
           doLongRunningOperation(ConsolidatedProgressStep.this);
+          wasSuccess = true;
         }
         catch (WizardException e) {
           Logger.getInstance(getClass()).error(e);
@@ -63,13 +74,21 @@ public class ConsolidatedProgressStep extends ProgressStep {
           print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);
         }
         finally {
+          if (ConsolidatedProgressStep.this.isCanceled()) {
+            myTracker.trackInstallingComponentsFinished(SdkInstallationResult.CANCELED);
+          } else if (wasSuccess) {
+            myTracker.trackInstallingComponentsFinished(SdkInstallationResult.SUCCESS);
+          } else {
+            myTracker.trackInstallingComponentsFinished(SdkInstallationResult.ERROR);
+          }
+
           myIsBusy.set(false);
         }
       }
     });
   }
 
-  private void doLongRunningOperation(@NotNull final ProgressStep progressStep) throws WizardException {
+  private void doLongRunningOperation(@NotNull final AbstractProgressStep progressStep) throws WizardException {
     for (AndroidStudioWizardPath path : myPaths) {
       if (progressStep.isCanceled()) {
         break;
@@ -88,5 +107,10 @@ public class ConsolidatedProgressStep extends ProgressStep {
   @Override
   public boolean isStepVisible() {
     return myPaths != null && !myPaths.isEmpty();
+  }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SDK;
   }
 }

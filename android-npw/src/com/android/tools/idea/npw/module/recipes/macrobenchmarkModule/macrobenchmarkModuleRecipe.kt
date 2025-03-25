@@ -43,14 +43,17 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   newModule: ModuleTemplateData,
   useGradleKts: Boolean,
   targetModule: Module,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
 ) {
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project)
-  val targetModuleAndroidModel = projectBuildModel?.getModuleBuildModel(targetModule)?.android() ?: return
+  val targetModuleAndroidModel =
+    projectBuildModel?.getModuleBuildModel(targetModule)?.android() ?: return
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
   val targetModuleBuildTypes = targetModuleAndroidModel.buildTypes()
-  val targetApplicationId = targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
-  val benchmarkBuildTypeName = getUniqueBuildTypeName(BENCHMARK_BUILD_TYPE_NAME, targetModuleBuildTypes.map { it.name() })
+  val targetApplicationId =
+    targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
+  val benchmarkBuildTypeName =
+    getUniqueBuildTypeName(BENCHMARK_BUILD_TYPE_NAME, targetModuleBuildTypes.map { it.name() })
 
   val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
 
@@ -65,17 +68,16 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
     newModule = newModule,
     useGradleKts = useGradleKts,
     macrobenchmarkMinRev = MACROBENCHMARK_MIN_REV,
-    buildGradleContent = macrobenchmarksBuildGradle(
-      newModule = newModule,
-      useGradleKts = useGradleKts,
-      targetModule = targetModule,
-      flavors = flavors,
-      benchmarkBuildTypeName = benchmarkBuildTypeName,
-      useVersionCatalog = useVersionCatalog
-    ),
-    customizeModule = {
-      createTestClasses(newModule, targetApplicationId)
-    }
+    buildGradleContent =
+      macrobenchmarksBuildGradle(
+        newModule = newModule,
+        useGradleKts = useGradleKts,
+        targetModule = targetModule,
+        flavors = flavors,
+        benchmarkBuildTypeName = benchmarkBuildTypeName,
+        useVersionCatalog = useVersionCatalog,
+      ),
+    customizeModule = { createTestClasses(newModule, targetApplicationId) },
   )
 }
 
@@ -110,9 +112,7 @@ fun getUniqueBuildTypeName(buildTypeName: String, buildTypes: List<String>): Str
   return uniqueName
 }
 
-/**
- * Creates new build type with [buildTypeName] to the specified [targetModuleModel].
- */
+/** Creates new build type with [buildTypeName] to the specified [targetModuleModel]. */
 @VisibleForTesting
 fun RecipeExecutor.addBuildTypeToTargetBuildGradle(
   projectBuildModel: ProjectBuildModel,
@@ -123,7 +123,8 @@ fun RecipeExecutor.addBuildTypeToTargetBuildGradle(
   if (this is FindReferencesRecipeExecutor) return
 
   // Release buildType should implicitly exist
-  val releaseBuildType: BuildTypeModel = targetModuleModel.buildTypes().first { it.name() == "release" }
+  val releaseBuildType: BuildTypeModel =
+    targetModuleModel.buildTypes().first { it.name() == "release" }
 
   val newBuildType = targetModuleModel.addBuildType(buildTypeName, releaseBuildType)
 
@@ -144,9 +145,7 @@ fun RecipeExecutor.addBuildTypeToTargetBuildGradle(
   projectBuildModel.applyChanges()
 }
 
-/**
- * TODO(b/269582562): Can be replaced with isProfileable since AGP 8.0
- */
+/** TODO(b/269582562): Can be replaced with isProfileable since AGP 8.0 */
 @VisibleForTesting
 fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module) {
   // Only do the actions for the default executor, not when just finding references.
@@ -159,7 +158,7 @@ fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module) {
 
   val androidModel = com.android.tools.idea.model.AndroidModel.get(androidFacet) ?: return
   // if it's older API, add targetApi flag to the manifest
-  val needsTargetFlag = !androidModel.minSdkVersion.isGreaterOrEqualThan(AndroidVersion.VersionCodes.Q)
+  val needsTargetFlag = !androidModel.minSdkVersion.isAtLeast(AndroidVersion.VersionCodes.Q)
 
   mergeXml(appAndroidManifest(needsTargetFlag), primaryManifest.toIoFile())
 }
@@ -167,10 +166,17 @@ fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module) {
 @VisibleForTesting
 fun RecipeExecutor.createTestClasses(moduleData: ModuleTemplateData, targetApplicationId: String) {
   val language = moduleData.projectTemplateData.language
-  val benchmarksContent = when (language) {
-    Language.Kotlin -> exampleMacrobenchmarkKt(EXAMPLE_BENCHMARK_NAME, moduleData.packageName, targetApplicationId)
-    Language.Java -> exampleMacrobenchmarkJava(EXAMPLE_BENCHMARK_NAME, moduleData.packageName, targetApplicationId)
-  }
+  val benchmarksContent =
+    when (language) {
+      Language.Kotlin ->
+        exampleMacrobenchmarkKt(EXAMPLE_BENCHMARK_NAME, moduleData.packageName, targetApplicationId)
+      Language.Java ->
+        exampleMacrobenchmarkJava(
+          EXAMPLE_BENCHMARK_NAME,
+          moduleData.packageName,
+          targetApplicationId,
+        )
+    }
   val benchmarksFile = moduleData.srcDir.resolve("$EXAMPLE_BENCHMARK_NAME.${language.extension}")
   save(benchmarksContent, benchmarksFile)
   open(benchmarksFile)

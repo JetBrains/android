@@ -21,6 +21,7 @@ import com.android.tools.configurations.ConfigurationListener.CFG_LOCALE
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 
 private const val TEXT = "Preview Right to Left"
 private const val DESCRIPTION = "Text direction setting in the editor"
@@ -29,7 +30,10 @@ private const val DESCRIPTION = "Text direction setting in the editor"
 class RtlAction : ToggleAction(TEXT, DESCRIPTION, null) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  override fun displayTextInToolbar(): Boolean = true
+  override fun update(e: AnActionEvent) {
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+    super.update(e)
+  }
 
   override fun isSelected(e: AnActionEvent) =
     e.getData(CONFIGURATIONS)?.firstOrNull()?.fullConfig?.layoutDirectionQualifier?.value ==

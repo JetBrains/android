@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
@@ -30,10 +29,12 @@ import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.ConfigurationParamsBuilder
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.TestStringTable
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -44,6 +45,7 @@ import java.util.concurrent.ScheduledExecutorService
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import org.jetbrains.android.facet.AndroidFacet
+import org.mockito.kotlin.mock
 
 // Fake system packageHash
 const val SYSTEM_PKG = -2
@@ -57,6 +59,48 @@ fun model(
   scheduler: ScheduledExecutorService? = null,
   body: InspectorModelDescriptor.() -> Unit,
 ) = InspectorModelDescriptor(disposable, project, scheduler).also(body).build(treeSettings)
+
+fun viewWindow(
+  rootViewDrawId: Long,
+  x: Int = 0,
+  y: Int = 0,
+  width: Int = 0,
+  height: Int = 0,
+  rootViewQualifiedName: String = CLASS_VIEW,
+  layoutFlags: Int = 0,
+  isXr: Boolean = false,
+  body: InspectorViewDescriptor.() -> Unit = {},
+): ViewAndroidWindow {
+  val root =
+    InspectorViewDescriptor(
+        rootViewDrawId,
+        rootViewQualifiedName,
+        x,
+        y,
+        width,
+        height,
+        null,
+        null,
+        "",
+        layoutFlags,
+        null,
+      )
+      .also(body)
+      .build()
+
+  val layoutEvent =
+    LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply { this.isXr = isXr }.build()
+
+  return ViewAndroidWindow(
+    notificationModel = mock(),
+    skiaParser = mock(),
+    root = root,
+    event = layoutEvent,
+    folderConfiguration = mock(),
+    isInterrupted = { false },
+    logEvent = {},
+  )
+}
 
 fun window(
   windowId: Any,

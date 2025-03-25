@@ -54,7 +54,7 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
       return UsageTarget.EMPTY_ARRAY;
     }
     resourceReferencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, contextElement);
-    return new UsageTarget[]{new PsiElement2UsageTargetAdapter(resourceReferencePsiElement)};
+    return new UsageTarget[]{new PsiElement2UsageTargetAdapter(resourceReferencePsiElement, true)};
   }
 
   @AnyThread
@@ -69,6 +69,6 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
       return UsageTarget.EMPTY_ARRAY;
     }
     referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, psiElement);
-    return new UsageTarget[]{new PsiElement2UsageTargetAdapter(referencePsiElement)};
+    return new UsageTarget[]{new PsiElement2UsageTargetAdapter(referencePsiElement, true)};
   }
 }

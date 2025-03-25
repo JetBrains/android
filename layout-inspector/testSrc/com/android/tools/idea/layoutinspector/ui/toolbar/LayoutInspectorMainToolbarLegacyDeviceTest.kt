@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar
 
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -29,8 +30,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.impl.model.util.FakeAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -99,6 +100,11 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
         layoutInspectorRule.inspector,
         fakeAction,
       )
+    FakeUi(
+      toolbar.component,
+      createFakeWindow = true,
+      parentDisposable = projectRule.testRootDisposable,
+    )
     return toolbar
   }
 
@@ -113,13 +119,12 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
   private fun getPresentation(button: ActionButton): Presentation {
     val presentation = Presentation()
     val event =
-      AnActionEvent(
-        null,
+      AnActionEvent.createEvent(
         DataManager.getInstance().getDataContext(button),
-        "LayoutInspector.MainToolbar",
         presentation,
-        ActionManager.getInstance(),
-        0,
+        "LayoutInspector.MainToolbar",
+        ActionUiKind.NONE,
+        null,
       )
     button.action.update(event)
     return presentation

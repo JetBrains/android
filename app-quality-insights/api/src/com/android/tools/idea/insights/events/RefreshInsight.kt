@@ -16,26 +16,37 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
-class RefreshInsight(private val contextSharingOverride: Boolean) : ChangeEvent {
+private const val REGENERATING_INSIGHT = "Regenerating insight..."
+
+class RefreshInsight(private val regenerateWithContext: Boolean) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     val issue = state.selectedIssue
-    val event = state.selectedEvent
 
-    return if (issue == null || event == null) {
+    return if (issue == null) {
       StateTransition(state, Action.NONE)
     } else {
       StateTransition(
-        state.copy(currentInsight = LoadingState.Loading),
-        Action.FetchInsight(issue.id, issue.issueDetails.fatality, event, contextSharingOverride),
+        state.copy(
+          currentInsight =
+            LoadingState.Loading(if (regenerateWithContext) REGENERATING_INSIGHT else "")
+        ),
+        Action.FetchInsight(
+          issue.id,
+          state.selectedVariant?.id,
+          issue.issueDetails.fatality,
+          issue.sampleEvent,
+        ),
       )
     }
   }

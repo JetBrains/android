@@ -22,11 +22,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN
+import com.intellij.openapi.actionSystem.ActionUiKind.Companion.NONE
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -52,7 +53,7 @@ class LayoutQualifierDropdownMenuTest {
     val config = manager.getConfiguration(file)
 
     whenever(surface.configurations).thenReturn(ImmutableList.of(config))
-    context = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    context = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface)
   }
 
   @Test
@@ -113,15 +114,7 @@ class LayoutQualifierDropdownMenuTest {
     waitForResourceRepositoryUpdates(projectRule.module)
 
     val presentation = Presentation()
-    val event =
-      AnActionEvent(
-        null,
-        context,
-        ActionPlaces.UNKNOWN,
-        presentation,
-        ActionManager.getInstance(),
-        0,
-      )
+    val event = AnActionEvent.createEvent(context, presentation, UNKNOWN, NONE, null)
 
     val action1 = LayoutQualifierDropdownMenu(file)
     action1.update(event)

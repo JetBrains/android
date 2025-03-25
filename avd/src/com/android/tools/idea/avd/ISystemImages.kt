@@ -25,21 +25,30 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import kotlin.time.Duration.Companion.days
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 
 private sealed class SystemImageLoadingEvent
@@ -59,6 +68,13 @@ internal data class SystemImageState(
   companion object {
     val INITIAL = SystemImageState(false, false, persistentListOf(), null)
   }
+}
+
+@Service(Service.Level.APP)
+internal class SystemImageStateService(val coroutineScope: CoroutineScope) {
+  val systemImageStateFlow =
+    ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler(), null)
+      .stateIn(coroutineScope, SharingStarted.Eagerly, SystemImageState.INITIAL)
 }
 
 internal object ISystemImages {
@@ -81,7 +97,7 @@ internal object ISystemImages {
 
     // Transform callbacks from RepoManager to SystemImageLoadingEvents that are processed serially.
     return callbackFlow {
-        repoManager.loadSynchronously(
+        repoManager.load(
           1.days.inWholeMilliseconds,
           listOf(RepoLoadedListener { trySend(LocalImagesLoaded) }),
           listOf(RepoLoadedListener { trySend(RemoteImagesLoaded) }),
@@ -123,15 +139,38 @@ internal fun ISystemImage.getServices(): Services {
   return Services.ANDROID_OPEN_SOURCE
 }
 
-internal fun ISystemImage.isRecommendedForHost(): Boolean =
+internal fun ISystemImage.isSupported(): Boolean = imageWarnings().isEmpty()
+
+private fun ISystemImage.incompatibleArchitectureWarning(): String? =
   when (osArchitecture) {
-    CpuArchitecture.X86_64 -> Abi.getEnum(primaryAbiType) in listOf(Abi.X86_64, Abi.X86)
+    CpuArchitecture.X86_64 ->
+      when (Abi.getEnum(primaryAbiType)) {
+        in listOf(Abi.X86_64, Abi.X86) -> null
+        in listOf(Abi.ARMEABI, Abi.ARMEABI_V7A, Abi.ARM64_V8A) ->
+          "ARM images will run very slowly on x86 hosts."
+        else -> "Compatibility with $primaryAbiType images is unknown."
+      }
     // An ARM host can only run ARM64 images (not 32-bit ARM).
     CpuArchitecture.X86_ON_ARM,
-    CpuArchitecture.ARM -> Abi.getEnum(primaryAbiType) == Abi.ARM64_V8A
+    CpuArchitecture.ARM ->
+      when (Abi.getEnum(primaryAbiType)) {
+        Abi.ARM64_V8A -> null
+        in listOf(Abi.ARMEABI, Abi.ARMEABI_V7A) ->
+          if (SystemInfo.isMac) "32-bit ARM images are not supported on Apple Silicon."
+          else "Compatibility with $primaryAbiType images is unknown."
+        in listOf(Abi.X86_64, Abi.X86) -> "$primaryAbiType images are not supported on ARM hosts."
+        else -> "Compatibility with $primaryAbiType images is unknown."
+      }
     // We don't support 32-bit x86 hosts.
-    else -> false
+    else -> "The Android Emulator requires a 64-bit host."
   }
 
-internal fun ISystemImage.isRecommended(): Boolean =
-  isRecommendedForHost() && !SystemImageTags.isAtd(tags)
+private fun ISystemImage.atdWarning(): String? =
+  "Automated Test Device (ATD) images are intended for headless testing only."
+    .takeIf { SystemImageTags.isAtd(tags) }
+
+internal fun ISystemImage.imageWarnings(): List<String> =
+  listOfNotNull(incompatibleArchitectureWarning(), atdWarning())
+
+internal fun ISystemImage?.allAbiTypes(): PersistentList<String> =
+  if (this == null) persistentListOf() else abiTypes.toPersistentList().plus(translatedAbiTypes)

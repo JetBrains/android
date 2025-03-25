@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.tokens;
 
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.rendering.BuildTargetReference;
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices;
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
 import com.google.idea.blaze.android.projectsystem.BazelToken;
 import com.intellij.openapi.Disposable;
@@ -50,6 +51,18 @@ public class BazelBuildSystemFilePreviewServices
         throw new UnsupportedOperationException();
       }
     };
+  }
+
+  @Override
+  public @NotNull RenderingServices getRenderingServices(
+    @NotNull BazelBuildTargetReference buildTargetReference) {
+    return null;
+  }
+
+  @Override
+  public @NotNull ApplicationLiveEditServices getApplicationLiveEditServices(
+    @NotNull BazelBuildTargetReference buildTargetReference) {
+    return null;
   }
 
   @Override

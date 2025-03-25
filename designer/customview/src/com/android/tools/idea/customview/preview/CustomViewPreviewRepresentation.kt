@@ -69,7 +69,6 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.BiFunction
 import javax.swing.JComponent
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
@@ -224,7 +223,7 @@ class CustomViewPreviewRepresentation(
   private val surface = view.surface
 
   /** [WorkBench] used to contain all the preview elements. */
-  private val workbench = view.workbench
+  @VisibleForTesting val workbench = view.workbench
 
   @Volatile private var lastBuildStartedNanos = 0L
 
@@ -409,11 +408,9 @@ class CustomViewPreviewRepresentation(
               customPreviewXml,
               config,
             )
-            .withXmlProvider(
-              BiFunction { project, _ ->
-                AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile
-              }
-            )
+            .withXmlProvider { project, _ ->
+              AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile
+            }
             .withComponentRegistrar(NlComponentRegistrar)
             .build()
             .apply { displaySettings.setDisplayName(className) }
@@ -430,7 +427,7 @@ class CustomViewPreviewRepresentation(
 
       // Load and set preview size if exists for this custom view
       withContext(uiThread) {
-        persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let {
+        persistenceManager.getList(dimensionsPropertyNameForClass(className))?.let {
           previewDimensions ->
           configuration.updateScreenSize(
             previewDimensions[0].toInt(),
@@ -440,7 +437,8 @@ class CustomViewPreviewRepresentation(
         }
 
         surface.models.forEach { surface.removeModel(it) }
-        surface.addAndRenderModel(model).await()
+        val newSceneManager = surface.addModelWithoutRender(model).await()
+        newSceneManager.requestRenderAndWait()
         surface.activate()
 
         stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)

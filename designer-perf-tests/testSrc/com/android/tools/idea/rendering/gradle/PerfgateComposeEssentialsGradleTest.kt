@@ -174,8 +174,8 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
           .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)
           .onOptionsChanged()
       }
-      delayUntilCondition(500, 5.seconds) { previewView.galleryMode != null }
-      previewView.galleryMode!!.triggerSelectionChange(
+      delayUntilCondition(500, 5.seconds) { previewView.focusMode != null }
+      previewView.focusMode!!.triggerSelectionChange(
         SimpleDataContext.builder()
           .add(getComposePreviewManagerKeyForTests(), composePreviewRepresentation)
           .build(),

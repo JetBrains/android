@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.ui.save.PostSaveAction
+import com.android.tools.idea.ui.save.SaveConfiguration
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.service
 import com.intellij.util.xmlb.XmlSerializerUtil
 import java.awt.Dimension
 import kotlin.math.roundToInt
@@ -32,15 +34,18 @@ private const val DEFAULT_RESOLUTION_PERCENT = 100
 @State(name = "ScreenRecorderOptions", storages = [Storage("screenRecorderOptions.xml")])
 internal class ScreenRecorderPersistentOptions : PersistentStateComponent<ScreenRecorderPersistentOptions> {
 
-  var bitRateMbps = DEFAULT_BIT_RATE_MBPS
+  var bitRateMbps: Int = DEFAULT_BIT_RATE_MBPS
   var resolutionPercent: Int = DEFAULT_RESOLUTION_PERCENT
-  var showTaps = false
-  var useEmulatorRecording = true
+  var showTaps: Boolean = false
+  var useEmulatorRecording: Boolean = true
+  var saveLocation: String = SaveConfiguration.DEFAULT_SAVE_LOCATION
+  var filenameTemplate: String = "Screen_recording_%Y%M%D_%H%m%S"
+  var postSaveAction: PostSaveAction = PostSaveAction.OPEN
+  var recordingCount: Int = 0
 
   companion object {
     @JvmStatic
-    fun getInstance(): ScreenRecorderPersistentOptions =
-      ApplicationManager.getApplication().getService(ScreenRecorderPersistentOptions::class.java)
+    fun getInstance(): ScreenRecorderPersistentOptions = service<ScreenRecorderPersistentOptions>()
   }
 
   override fun getState(): ScreenRecorderPersistentOptions = this

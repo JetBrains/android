@@ -1,9 +1,10 @@
 package com.android.tools.idea.module
 
-import com.android.testutils.MockitoKt.mock
 import com.intellij.openapi.module.Module
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ModuleKeyManagerTest {
   @Test

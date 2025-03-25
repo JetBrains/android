@@ -60,7 +60,7 @@
     double_literal
   ]
 
-  implements("assignment|block|factory")=[
+  implements("assignment|block|factory_property_receiver|factory_receiver|property_simple_factory")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry"
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner"
   ]
@@ -69,14 +69,28 @@
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement"
      "com.intellij.psi.NavigatablePsiElement"
   ]
-  implements("factory|property|literal")=[
+  implements("property|literal")=[
      "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue"
   ]
-  implements("factory|embedded_factory")=[
-       "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory"
+  implements("property_simple_factory|embedded_factory")=[
+     "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory"
   ]
-  implements("property")=[
+  implements("property|assignable_property")=[
      "com.intellij.psi.ContributedReferenceHost"
+  ]
+  implements("assignable_property")=[
+     "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement"
+  ]
+
+  // DeclarativeReceiverPrefixed<T>
+  implements("property")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed<DeclarativeProperty>"]
+  implements("assignable_property")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed<DeclarativeAssignableProperty>"]
+  implements("property_receiver")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed<DeclarativePropertyReceiver>"]
+  implements("factory_receiver")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverBasedFactory<DeclarativeFactoryReceiver>"]
+  implements("factory_property_receiver")=["com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverBasedFactory<DeclarativePropertyReceiver>"]
+
+  implements("property|property_receiver")=[
+    "com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValueFieldOwner"
   ]
 }
 
@@ -88,9 +102,17 @@ assignment ::= lvalue OP_EQ rvalue {
    pin=2
    methods=[
       getValue
+      getIdentifier
+      factory_receiver=""
+      factory_property_receiver=""
    ]
 }
-private lvalue ::= identifier
+private lvalue ::= assignable_property
+
+assignable_property ::= assignable_qualified | assignable_bare {methods=[getField getReceiver getReference getReferences]}
+assignable_qualified ::= assignable_property OP_DOT identifier {extends=assignable_property pin=2}
+assignable_bare ::= identifier {extends=assignable_property}
+
 identifier ::= token {
    methods=[
      getName
@@ -99,13 +121,15 @@ identifier ::= token {
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierMixin"
 }
 
-literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean {
-methods=[getValue]
+literal ::= multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null {
+  methods=[getValue]
 }
 private rvalue ::= factory | property | literal
-property ::= qualified | bare {methods=[getField getReceiver getReference getReferences]}
+
+property ::= qualified | bare { methods=[getField getReceiver getReference getReferences] }
 qualified ::= property OP_DOT identifier {extends=property pin=2}
 bare ::= identifier {extends=property}
+
 block ::= block_head block_group {
    methods=[
      getIdentifier
@@ -119,7 +143,8 @@ block_group ::= OP_LBRACE block_entries? newline_block_entries* OP_RBRACE {
    methods=[
        getEntries
        getBlockEntriesStart
-       factory=""
+       factory_receiver=""
+       factory_property_receiver=""
        assignment=""
        block=""
    ]
@@ -135,12 +160,36 @@ private private_factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {
 embedded_factory ::= private_factory { // part of block - cannot be independent
    mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
 }
-factory ::= private_factory {
-   mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+
+private factory ::=  factory_receiver | factory_property_receiver
+
+factory_property_receiver ::= property_receiver OP_DOT property_simple_factory {
+  mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+  methods=[getReceiver getArgumentsList getIdentifier]
 }
+property_simple_factory ::= private_factory {
+  mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+}
+
+property_receiver ::= qualified_receiver | bare_receiver {methods=[getField getReceiver]}
+// fail parse attempt if next identifier is part of function call
+qualified_receiver ::= property_receiver <<notBeforeLParen (OP_DOT identifier)>> {
+  extends=property_receiver methods=[getIdentifier] pin=2
+}
+bare_receiver ::= identifier {extends=property_receiver}
+factory_receiver ::= receiver_prefixed_factory | simple_factory  {
+  mixin="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFactoryMixin"
+}
+receiver_prefixed_factory ::= factory_receiver OP_DOT private_factory {
+  extends=factory_receiver pin=2 methods=[getReceiver]
+}
+simple_factory ::= private_factory {
+  extends=factory_receiver methods=[getReceiver]
+}
+
 argumentsList ::= (argument (OP_COMMA argument)*)? {
    methods=[getArguments]
 }
 argument ::= (identifier OP_EQ)? rvalue {
-   methods=[getValue factory="" literal="" property=""]
+   methods=[getValue literal="" property="" factory_receiver="" factory_property_receiver=""]
 }

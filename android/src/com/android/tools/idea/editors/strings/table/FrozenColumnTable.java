@@ -331,8 +331,7 @@ public class FrozenColumnTable<M extends TableModel> {
   public final int[] getSelectedModelRows() {
     int[] indexes = myFrozenTable.getSelectedRows();
     assert Arrays.equals(indexes, myScrollableTable.getSelectedRows());
-
-    return indexes;
+    return Arrays.stream(indexes).map(index -> convertRowIndexToModel(index)).toArray();
   }
 
   public final int getSelectedRowCount() {

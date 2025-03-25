@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:kotlin.bzl", "kotlin_library", "kotlin_test")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 # managed by go/iml_to_build
 iml_module(
@@ -28,6 +28,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
@@ -51,6 +52,7 @@ kotlin_library(
         "//tools/adt/idea/render-resources:tools.render-resources",
         "//tools/adt/idea/rendering:tools.rendering",
         "//tools/base/common:tools.common",
+        "//tools/base/environment-services:tools.environment-services",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/resource-repository:tools.resource-repository",
         "//tools/base/sdk-common:tools.sdk-common",

@@ -17,5 +17,5 @@ package com.android.tools.idea.serverflags
 
 object ServerFlagServiceEmpty : ServerFlagService {
   override val configurationVersion: Long = -1
-  override val names: List<String> = emptyList()
+  override val flagAssignments: Map<String, Int> = emptyMap()
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.settings
 
 import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.intellij.openapi.options.Configurable
@@ -26,7 +27,7 @@ import com.intellij.ui.EditorTextField
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.GridBag
-import org.jetbrains.annotations.VisibleForTesting
+import java.awt.Dimension
 import java.awt.GridBagConstraints.NORTHWEST
 import java.awt.GridBagConstraints.WEST
 import java.awt.GridBagLayout
@@ -37,6 +38,7 @@ import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
 import kotlin.LazyThreadSafetyMode.NONE
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val MAX_BUFFER_SIZE_MB = 100
 private const val MAX_BUFFER_SIZE_KB = 1024 * MAX_BUFFER_SIZE_MB
@@ -47,7 +49,11 @@ internal class LogcatApplicationSettingsConfigurable(
 ) : Configurable, Configurable.NoScroll {
   @VisibleForTesting
   internal val cycleBufferSizeTextField =
-    JTextField(10).apply { text = (logcatSettings.bufferSize / 1024).toString() }
+    JTextField().apply {
+      text = (logcatSettings.bufferSize / 1024).toString()
+      minimumSize = Dimension(JBUIScale.scale(130), minimumSize.height)
+      preferredSize = minimumSize
+    }
 
   @VisibleForTesting
   internal val defaultFilterTextField =
@@ -63,10 +69,17 @@ internal class LogcatApplicationSettingsConfigurable(
     }
 
   // VisibleForTesting
-  internal val ignoreTagsTextField by lazy(NONE) { IgnoreTagsTextField(logcatSettings.ignoredTags) }
+  internal val ignoreTagsTextField by
+  lazy(NONE) { IgnoreValuesTextField(logcatSettings.ignoredTags, LogcatPresenter::getTags) }
+
+  // VisibleForTesting
+  internal val ignoreAppsTextField by
+  lazy(NONE) {
+    IgnoreValuesTextField(logcatSettings.ignoredApps, LogcatPresenter::getPackageNames)
+  }
 
   @VisibleForTesting
-  internal val ignoreTagsNote =
+  internal val ignoreValuesNote =
     JLabel(LogcatBundle.message("logcat.settings.ignore.tags.note")).apply {
       foreground = JBColor.red
     }
@@ -133,8 +146,17 @@ internal class LogcatApplicationSettingsConfigurable(
           ignoreTagsTextField.component,
           gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine(),
         )
-        add(ignoreTagsNote, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
-        ignoreTagsNote.isVisible =
+        add(
+          JLabel(LogcatBundle.message("logcat.settings.ignore.apps.label")),
+          gridBag.nextLine().next().anchor(WEST),
+        )
+        add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+        add(
+          ignoreAppsTextField.component,
+          gridBag.next().anchor(WEST).fillCellHorizontally().weightx(1.0).coverLine(),
+        )
+        add(ignoreValuesNote, gridBag.nextLine().setColumn(2).coverLine().anchor(WEST).pady(10))
+        ignoreValuesNote.isVisible =
           LogcatToolWindowFactory.logcatPresenters.flatMap { it.getTags() }.isEmpty()
 
         add(
@@ -149,6 +171,7 @@ internal class LogcatApplicationSettingsConfigurable(
 
   private fun updateWarningLabel() {
     val value = getBufferSizeKb()
+    @Suppress("UnstableApiUsage")
     cyclicBufferSizeWarningLabel.text =
       when {
         value == null || !isValidBufferSize(value) ->
@@ -168,13 +191,14 @@ internal class LogcatApplicationSettingsConfigurable(
   override fun isModified(): Boolean {
     val bufferSizeKb = getBufferSizeKb()
     return (bufferSizeKb != null &&
-      isValidBufferSize(bufferSizeKb) &&
-      bufferSizeKb != logcatSettings.bufferSize / 1024) ||
-      defaultFilterTextField.text != logcatSettings.defaultFilter ||
-      mostRecentlyUsedFilterIsDefaultCheckbox.isSelected !=
-        logcatSettings.mostRecentlyUsedFilterIsDefault ||
-      filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete ||
-      ignoreTagsTextField.getIgnoredTags() != logcatSettings.ignoredTags
+            isValidBufferSize(bufferSizeKb) &&
+            bufferSizeKb != logcatSettings.bufferSize / 1024) ||
+           defaultFilterTextField.text != logcatSettings.defaultFilter ||
+           mostRecentlyUsedFilterIsDefaultCheckbox.isSelected !=
+           logcatSettings.mostRecentlyUsedFilterIsDefault ||
+           filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete ||
+           ignoreTagsTextField.getIgnoredValues() != logcatSettings.ignoredTags ||
+           ignoreAppsTextField.getIgnoredValues() != logcatSettings.ignoredApps
   }
 
   override fun apply() {
@@ -183,7 +207,8 @@ internal class LogcatApplicationSettingsConfigurable(
     logcatSettings.mostRecentlyUsedFilterIsDefault =
       mostRecentlyUsedFilterIsDefaultCheckbox.isSelected
     logcatSettings.filterHistoryAutocomplete = filterHistoryAutocompleteCheckbox.isSelected
-    logcatSettings.ignoredTags = ignoreTagsTextField.getIgnoredTags()
+    logcatSettings.ignoredTags = ignoreTagsTextField.getIgnoredValues()
+    logcatSettings.ignoredApps = ignoreAppsTextField.getIgnoredValues()
 
     LogcatToolWindowFactory.logcatPresenters.forEach { it.applyLogcatSettings(logcatSettings) }
   }

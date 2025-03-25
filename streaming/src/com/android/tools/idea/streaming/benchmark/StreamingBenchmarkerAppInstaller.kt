@@ -23,6 +23,7 @@ import com.android.adblib.tools.UninstallResult
 import com.android.adblib.tools.install
 import com.android.adblib.tools.uninstall
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.downloads.UrlFileCache
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressIndicator
@@ -125,7 +126,7 @@ internal class StreamingBenchmarkerAppInstallerImpl(
     else {
       // Installed Studio.
       try {
-        apkFile = UrlFileCache.getInstance(project).get(APK_URL, 12.hours.inWholeMilliseconds, indicator) { Base64.getDecoder().wrap(it) }
+        apkFile = UrlFileCache.getInstance(project).get(APK_URL, 12.hours, indicator) { Base64.getDecoder().wrap(it) }.await()
       }
       catch (e: Exception) {
         logger.error(e)

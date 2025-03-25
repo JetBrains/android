@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.swing.popup
 
-import com.android.testutils.MockitoKt.mock
+import org.mockito.kotlin.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.Disposable
@@ -162,9 +162,9 @@ class FakeBalloon(
   }
 
   private fun show() {
-    listeners.forEach { it.beforeShown(mock()) }
     component.setBounds(0, 0, 500, 1000)
     ui = FakeUi(component, createFakeWindow = true, parentDisposable = this)
+    listeners.forEach { it.beforeShown(mock()) }
     if (requestFocus) {
       val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
       originalFocusOwner = focusManager?.focusOwner

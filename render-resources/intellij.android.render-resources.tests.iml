@@ -15,6 +15,10 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />

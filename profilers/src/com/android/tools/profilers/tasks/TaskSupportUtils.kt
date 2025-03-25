@@ -35,11 +35,14 @@ object TaskSupportUtils {
   }
 
   fun doesDeviceSupportProfilingTaskFromProcessStart(taskType: ProfilerTaskType, featureLevel: Int): Boolean =
+    featureLevel >= getProcessStartMinApi(taskType)
+
+  fun getProcessStartMinApi(taskType: ProfilerTaskType): Int =
     when (taskType) {
       ProfilerTaskType.SYSTEM_TRACE,
       ProfilerTaskType.CALLSTACK_SAMPLE,
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> featureLevel >= 26
-      ProfilerTaskType.NATIVE_ALLOCATIONS -> featureLevel >= 29
-      else -> false
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> 26
+      ProfilerTaskType.NATIVE_ALLOCATIONS -> 29
+      else -> Integer.MAX_VALUE
     }
 }

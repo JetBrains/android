@@ -28,6 +28,8 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidxSupportArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
+    <debugger.fieldVisibilityProvider implementation="com.android.tools.idea.debug.AndroidFieldVisibilityProvider"/>
+    <debugger.dexBytecodeInspector implementation="com.android.tools.idea.debug.DexBytecodeInspectorImpl"/>
 
     <debuggerClassFilterProvider implementation="com.android.tools.idea.debug.AndroidDebuggerClassesFilterProvider"/>
     <xdebugger.settings implementation="com.android.tools.idea.debug.AndroidDebuggerSettings"/>
@@ -41,6 +43,7 @@
 
   <projectListeners>
     <listener class="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerProjectListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    <listener class="com.android.tools.idea.debug.DebugSessionCache$DebugSessionCacheListener" topic="com.intellij.debugger.impl.DebuggerManagerListener"/>
   </projectListeners>
 
 </idea-plugin>

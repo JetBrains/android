@@ -18,12 +18,14 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.android.tools.idea.diagnostics.heap.ComponentsSet.UNCATEGORIZED_CATEGORY_LABEL;
 import static com.android.tools.idea.diagnostics.heap.ComponentsSet.UNCATEGORIZED_COMPONENT_LABEL;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
+import static com.intellij.openapi.application.ApplicationManager.getApplication;
+import static com.intellij.testFramework.UsefulTestCase.assertSize;
+import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static org.junit.Assert.assertThat;
 
 import com.android.annotations.NonNull;
 import com.android.test.testutils.TestUtils;
 import com.android.testutils.classloader.SingleClassLoader;
-import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.TruncatingStringBuilder;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
@@ -32,11 +34,13 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
-import com.intellij.testFramework.PlatformLiteFixture;
+import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.DisposableRule;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.TriConsumer;
 import com.intellij.util.containers.WeakList;
 import java.io.IOException;
@@ -61,16 +65,20 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.AssumptionViolatedException;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
-public class HeapAnalyzerTest extends PlatformLiteFixture {
+public class HeapAnalyzerTest {
+
+  @ClassRule
+  public static ApplicationRule appRule = new ApplicationRule();
+
+  @Rule
+  public DisposableRule disposableRule = new DisposableRule();
 
   @Before
   public void setUp() throws Exception {
-    super.setUp();
-    initApplication();
-    getApplication().registerService(PropertiesComponent.class, new PropertiesComponentMock());
-    getApplication().registerService(HeapSnapshotTraverseService.class, new HeapSnapshotTraverseService());
     HeapSnapshotTraverseService.getInstance().loadObjectTaggingAgent();
   }
 
@@ -589,7 +597,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                           "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray",
                                                           "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2"));
     FakeCrushReporter crushReporter = new FakeCrushReporter();
-    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+    ServiceContainerUtil.replaceService(getApplication(), StudioCrashReporter.class, crushReporter, disposableRule.getDisposable());
 
     WeakList<Object> roots = new WeakList<>();
     roots.add(new ReferenceToObjectArray(new int[]{1}, new int[]{2}, new int[]{3}));
@@ -619,7 +627,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         Collections.emptyList(),
                                                         Collections.emptyList());
     FakeCrushReporter crushReporter = new FakeCrushReporter();
-    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+    ServiceContainerUtil.replaceService(getApplication(), StudioCrashReporter.class, crushReporter, disposableRule.getDisposable());
 
     List<String> strings = new LinkedList<>();
     strings.add("hello1");
@@ -654,7 +662,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
                                                         Collections.emptyList());
     FakeCrushReporter crushReporter = new FakeCrushReporter();
-    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+    ServiceContainerUtil.replaceService(getApplication(), StudioCrashReporter.class, crushReporter, disposableRule.getDisposable());
 
     WeakList<Object> roots = new WeakList<>();
     B b = new B();
@@ -691,7 +699,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
                                                         Collections.emptyList());
     FakeCrushReporter crushReporter = new FakeCrushReporter();
-    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+    ServiceContainerUtil.replaceService(getApplication(), StudioCrashReporter.class, crushReporter, disposableRule.getDisposable());
 
     WeakList<Object> roots = new WeakList<>();
     B b = new B();
@@ -701,7 +709,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     D d3 = new D(b2);
 
     roots.add(d1);
-    roots.add(List.of(d2));
+    List<Object> l = List.of(d2);
+    roots.add(l);
     roots.add(d3);
 
     Disposer.register(d1, b);
@@ -718,6 +727,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     serializedExtendedReport = replaceNewlines(serializedExtendedReport);
     assertExtendedMemoryReport("testDisposedObjectsInExtendedReport", serializedExtendedReport);
     assertExtendedMemoryReportSummary("testDisposedObjectsInExtendedReport", serializedExtendedReport);
+    // JVM collects the list in rare cases, so lets hold it
+    Assert.assertEquals(1, l.size());
   }
 
   @Test
@@ -740,7 +751,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"),
                                                         Collections.emptyList());
     FakeCrushReporter crushReporter = new FakeCrushReporter();
-    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+    ServiceContainerUtil.replaceService(getApplication(), StudioCrashReporter.class, crushReporter, disposableRule.getDisposable());
 
     WeakList<Object> roots = new WeakList<>();
     A a = new A(new B());
@@ -786,13 +797,14 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
                                                         Collections.emptyList());
     FakeCrushReporter crushReporter = new FakeCrushReporter();
-    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+    ServiceContainerUtil.replaceService(getApplication(), StudioCrashReporter.class, crushReporter, disposableRule.getDisposable());
 
     WeakList<Object> roots = new WeakList<>();
     B b = new B();
     D d = new D(b, new B());
 
-    roots.add(List.of(d, "test"));
+    List<Object> l = List.of(d, "test");
+    roots.add(l);
 
     Disposer.dispose(b);
 
@@ -806,6 +818,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     serializedExtendedReport = replaceNewlines(serializedExtendedReport);
     assertExtendedMemoryReport("testEssentialNominatedTypesInSummary", serializedExtendedReport);
     assertExtendedMemoryReportSummary("testEssentialNominatedTypesInSummary", serializedExtendedReport);
+    // JVM collects the list in rare cases, so lets hold it
+    Assert.assertEquals(2, l.size());
   }
 
   @Test
@@ -829,7 +843,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
       /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
     FakeCrushReporter crushReporter = new FakeCrushReporter();
-    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+    ServiceContainerUtil.replaceService(getApplication(), StudioCrashReporter.class, crushReporter, disposableRule.getDisposable());
 
     WeakList<Object> roots = new WeakList<>();
     SingleClassLoader sampleClassLoader = new SingleClassLoader(SampleClass.class.getName());
@@ -872,7 +886,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
                                                         Collections.emptyList());
     FakeCrushReporter crushReporter = new FakeCrushReporter();
-    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+    ServiceContainerUtil.replaceService(getApplication(), StudioCrashReporter.class, crushReporter, disposableRule.getDisposable());
 
     WeakList<Object> roots = new WeakList<>();
     Object[] objects = new Object[22];
@@ -1048,6 +1062,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                           .getObjectsCount());
   }
 
+  @Test
   public void testPlatformObjectsTracking() {
     ComponentsSet componentsSet = new ComponentsSet();
 

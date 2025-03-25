@@ -533,10 +533,6 @@ LIBRARY_TABLE
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
         component                     : org.hamcrest:hamcrest-core:1.3
-    - library                     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
@@ -707,7 +703,6 @@ MODULE                        : My_First_App
                                 kotlinCompilerPluginClasspathRelease    : <empty>
                                 kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                                 kotlinKlibCommonizerClasspath : <empty>
-                                kotlinNativeBundleConfiguration         : <empty>
                                 kotlinNativeCompilerPluginClasspath     : <empty>
                                 lintChecks                    : <empty>
                                 lintPublish                   : <empty>
@@ -926,7 +921,6 @@ MODULE                        : My_First_App
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1036,6 +1030,11 @@ MODULE                        : My_First_App
                             qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : My_First_App.app
     GradleModuleModel
         agpVersion                    : 8.1.0
@@ -1054,14 +1053,14 @@ MODULE                        : My_First_App.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
     ProjectPath                   : :app
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : true
@@ -1104,6 +1103,7 @@ MODULE                        : My_First_App.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.firstapp
         testApplicationId             : com.example.firstapp.test
@@ -1111,7 +1111,7 @@ MODULE                        : My_First_App.app
     - basicVariant:               : release
         applicationId                 : com.example.firstapp
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1128,8 +1128,8 @@ MODULE                        : My_First_App.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1298,8 +1298,8 @@ MODULE                        : My_First_App.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -1425,13 +1425,11 @@ MODULE                        : My_First_App.app
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -1552,13 +1550,11 @@ MODULE                        : My_First_App.app
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -1568,7 +1564,6 @@ MODULE                        : My_First_App.app
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                         module                        : <ROOT>/firstapp-:app:mysharedlibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             androidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
                 ApplicationId                 : com.example.firstapp
@@ -1706,13 +1701,11 @@ MODULE                        : My_First_App.app
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -1757,7 +1750,6 @@ MODULE                        : My_First_App.app
                     - provided                    : androidx.vectordrawable:vectordrawable:1.0.1@aar
                     - provided                    : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                     - provided                    : androidx.viewpager:viewpager:1.0.0@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
@@ -1896,13 +1888,11 @@ MODULE                        : My_First_App.app
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -2027,13 +2017,11 @@ MODULE                        : My_First_App.app
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                         androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             javaLibrary                   : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -2046,13 +2034,11 @@ MODULE                        : My_First_App.app
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>/firstapp-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             androidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
                             androidLibrary                : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             module                        : <ROOT>/firstapp-:app:mysharedlibrary-MAIN
                         module                        : <ROOT>/firstapp-:app:mysharedlibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             androidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -2081,15 +2067,6 @@ MODULE                        : My_First_App.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2108,15 +2085,6 @@ MODULE                        : My_First_App.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2135,18 +2103,14 @@ MODULE                        : My_First_App.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -2183,14 +2147,14 @@ MODULE                        : My_First_App.app.mysharedlibrary
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
     ProjectPath                   : :app:mysharedlibrary
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : false
@@ -2233,12 +2197,13 @@ MODULE                        : My_First_App.app.mysharedlibrary
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.mysharedlibrary.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2252,8 +2217,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2412,8 +2377,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             ConsumerProguardFiles         : <ROOT>/shared/mysharedlibrary/consumer-rules.pro
@@ -2538,13 +2503,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -2661,13 +2624,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -2801,13 +2762,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -2925,13 +2884,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -2940,7 +2897,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         javaLibrary                   : androidx.arch.core:core-common:2.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         module                        : <ROOT>/firstapp-:app:mysharedlibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             androidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
                 ApplicationId                 : com.example.mysharedlibrary.test
@@ -3076,13 +3032,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -3203,13 +3157,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         androidLibrary                : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             androidLibrary                : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             androidLibrary                : androidx.legacy:legacy-support-core-ui:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
                         javaLibrary                   : androidx.collection:collection:1.0.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.0.0@jar
@@ -3221,7 +3173,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>/firstapp-:app:mysharedlibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             androidLibrary                : androidx.appcompat:appcompat:1.0.2@aar
                 MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -3250,15 +3201,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3277,15 +3219,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3304,18 +3237,14 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.4/kotlinx-coroutines-core-jvm-1.6.4.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

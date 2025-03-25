@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.viewWindow
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -135,6 +136,110 @@ class InspectorModelTest {
     assertThat(newNodes.keys).containsExactlyElementsIn(origNodes.keys.plus(VIEW3))
     assertThat(children(origNodes[VIEW1]!!)).containsExactly(newNodes[VIEW3] ?: fail())
     assertSingleRoot(model, FakeTreeSettings())
+  }
+
+  @Test
+  fun testXrWindow() {
+    val largeWindowWidth = WINDOWS_GAP * 10
+    val smallWindowWidth = WINDOWS_GAP
+    val windowHeight = 5
+
+    val model = model(disposable) {}
+    val window1 =
+      viewWindow(
+        rootViewDrawId = ROOT,
+        x = 0,
+        y = 0,
+        width = largeWindowWidth,
+        height = windowHeight,
+        isXr = true,
+      ) {
+        view(VIEW1, 0, 0, 2, 2, qualifiedName = "view1")
+      }
+    val window2 =
+      viewWindow(
+        rootViewDrawId = ROOT2,
+        x = 0,
+        y = 0,
+        width = largeWindowWidth,
+        height = windowHeight,
+        isXr = true,
+      ) {
+        view(VIEW2, 0, 0, 2, 2, qualifiedName = "view2")
+      }
+    val window3 =
+      viewWindow(
+        rootViewDrawId = ROOT3,
+        x = 0,
+        y = 0,
+        width = smallWindowWidth,
+        height = windowHeight,
+        isXr = true,
+      ) {
+        view(VIEW3, 0, 0, 2, 2, qualifiedName = "view3")
+      }
+    val window4 =
+      viewWindow(
+        rootViewDrawId = ROOT4,
+        x = 0,
+        y = 0,
+        width = smallWindowWidth,
+        height = windowHeight,
+        isXr = true,
+      ) {
+        view(VIEW4, 0, 0, 2, 2, qualifiedName = "view4")
+      }
+    var isModified = false
+    model.addModificationListener { _, _, structuralChange -> isModified = structuralChange }
+
+    model.update(window1, listOf(ROOT), 0)
+    assertThat(isModified).isTrue()
+
+    val nodes1 = model.root.flattenedList().associateBy { it.drawId }
+    assertThat(nodes1).hasSize(3)
+    assertThat(nodes1[ROOT]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes1[ROOT]!!.layoutBounds.y).isEqualTo(0)
+    assertThat(nodes1[VIEW1]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes1[VIEW1]!!.layoutBounds.y).isEqualTo(0)
+
+    model.update(window2, listOf(ROOT, ROOT2), 1)
+
+    val nodes2 = model.root.flattenedList().associateBy { it.drawId }
+    assertThat(nodes2).hasSize(5)
+    assertThat(nodes2[ROOT]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes2[ROOT]!!.layoutBounds.y).isEqualTo(0)
+    assertThat(nodes2[VIEW1]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes2[VIEW1]!!.layoutBounds.y).isEqualTo(0)
+
+    assertThat(nodes2[ROOT2]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes2[ROOT2]!!.layoutBounds.y).isEqualTo(WINDOWS_GAP + windowHeight - 1)
+    assertThat(nodes2[VIEW2]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes2[VIEW2]!!.layoutBounds.y).isEqualTo(WINDOWS_GAP + windowHeight - 1)
+
+    model.update(window3, listOf(ROOT, ROOT2, ROOT3), 2)
+    model.update(window4, listOf(ROOT, ROOT2, ROOT3, ROOT4), 3)
+
+    val nodes3 = model.root.flattenedList().associateBy { it.drawId }
+    assertThat(nodes3).hasSize(9)
+    assertThat(nodes3[ROOT]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[ROOT]!!.layoutBounds.y).isEqualTo(0)
+    assertThat(nodes3[VIEW1]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[VIEW1]!!.layoutBounds.y).isEqualTo(0)
+
+    assertThat(nodes3[ROOT2]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[ROOT2]!!.layoutBounds.y).isEqualTo(WINDOWS_GAP + windowHeight - 1)
+    assertThat(nodes3[VIEW2]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[VIEW2]!!.layoutBounds.y).isEqualTo(WINDOWS_GAP + windowHeight - 1)
+
+    assertThat(nodes3[ROOT3]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[ROOT3]!!.layoutBounds.y).isEqualTo((2 * WINDOWS_GAP) + (2 * windowHeight))
+    assertThat(nodes3[VIEW3]!!.layoutBounds.x).isEqualTo(0)
+    assertThat(nodes3[VIEW3]!!.layoutBounds.y).isEqualTo((2 * WINDOWS_GAP) + (2 * windowHeight))
+
+    assertThat(nodes3[ROOT4]!!.layoutBounds.x).isEqualTo(WINDOWS_GAP + smallWindowWidth)
+    assertThat(nodes3[ROOT4]!!.layoutBounds.y).isEqualTo((2 * WINDOWS_GAP) + (2 * windowHeight))
+    assertThat(nodes3[VIEW4]!!.layoutBounds.x).isEqualTo(WINDOWS_GAP + smallWindowWidth)
+    assertThat(nodes3[VIEW4]!!.layoutBounds.y).isEqualTo((2 * WINDOWS_GAP) + (2 * windowHeight))
   }
 
   @Test
@@ -632,29 +737,77 @@ class InspectorModelTest {
   }
 
   @Test
-  fun testListenersAreInvokedWithLastValue() {
-    val model = model(disposable) { view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") }
+  fun testListenersAreInvoked() {
+    val model =
+      model(disposable) {
+        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+          view(VIEW1) { view(VIEW2) { view(VIEW3) } }
+        }
+      }
+    val root = model[ROOT]
+    val view1 = model[VIEW1]
+    val view2 = model[VIEW2]
+    val view3 = model[VIEW3]
 
     // Selection
-    model.setSelection(model[ROOT], SelectionOrigin.INTERNAL)
-    val observedSelectedNodes = mutableListOf<ViewNode?>()
+    model.setSelection(root, SelectionOrigin.INTERNAL)
+    val observedSelectedNodes = mutableListOf<Triple<ViewNode?, ViewNode?, SelectionOrigin>>()
 
     model.addSelectionListener { oldNode, newNode, origin ->
-      assertThat(oldNode).isEqualTo(newNode)
-      assertThat(origin).isEqualTo(SelectionOrigin.INTERNAL)
-      observedSelectedNodes.add(newNode)
+      observedSelectedNodes.add(Triple(oldNode, newNode, origin))
     }
-    assertThat(observedSelectedNodes).containsExactly(model[ROOT])
+    assertThat(observedSelectedNodes).containsExactly(Triple(root, root, SelectionOrigin.INTERNAL))
+
+    model.setSelection(view2, SelectionOrigin.COMPONENT_TREE)
+    assertThat(observedSelectedNodes)
+      .containsExactly(
+        Triple(root, root, SelectionOrigin.INTERNAL),
+        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
+      )
+
+    model.setSelection(view3, SelectionOrigin.INTERNAL)
+    assertThat(observedSelectedNodes)
+      .containsExactly(
+        Triple(root, root, SelectionOrigin.INTERNAL),
+        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
+        Triple(view2, view3, SelectionOrigin.INTERNAL),
+      )
+
+    model.setSelection(view3, SelectionOrigin.INTERNAL)
+    assertThat(observedSelectedNodes)
+      .containsExactly(
+        Triple(root, root, SelectionOrigin.INTERNAL),
+        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
+        Triple(view2, view3, SelectionOrigin.INTERNAL),
+        Triple(view3, view3, SelectionOrigin.INTERNAL),
+      )
+
+    model.setSelection(null, SelectionOrigin.COMPONENT_TREE)
+    assertThat(observedSelectedNodes)
+      .containsExactly(
+        Triple(root, root, SelectionOrigin.INTERNAL),
+        Triple(root, view2, SelectionOrigin.COMPONENT_TREE),
+        Triple(view2, view3, SelectionOrigin.INTERNAL),
+        Triple(view3, view3, SelectionOrigin.INTERNAL),
+        Triple(view3, null, SelectionOrigin.COMPONENT_TREE),
+      )
 
     // Hover
-    model.hoveredNode = model[ROOT]
-    val observedHoverNode = mutableListOf<ViewNode?>()
+    model.hoveredNode = view1
+    val observedHoverNodes = mutableListOf<Pair<ViewNode?, ViewNode?>>()
 
-    model.addHoverListener { oldNode, newNode ->
-      assertThat(oldNode).isEqualTo(newNode)
-      observedHoverNode.add(newNode)
-    }
-    assertThat(observedHoverNode).containsExactly(model[ROOT])
+    model.addHoverListener { oldNode, newNode -> observedHoverNodes.add(Pair(oldNode, newNode)) }
+    assertThat(observedHoverNodes).containsExactly(Pair(view1, view1))
+
+    model.hoveredNode = view2
+    assertThat(observedHoverNodes).containsExactly(Pair(view1, view1), Pair(view1, view2))
+
+    model.hoveredNode = view2
+    assertThat(observedHoverNodes).containsExactly(Pair(view1, view1), Pair(view1, view2))
+
+    model.hoveredNode = null
+    assertThat(observedHoverNodes)
+      .containsExactly(Pair(view1, view1), Pair(view1, view2), Pair(view2, null))
 
     // Modification
     val newWindow = window(VIEW2, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType")

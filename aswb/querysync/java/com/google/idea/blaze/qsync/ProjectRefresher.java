@@ -21,6 +21,7 @@ import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
+import com.google.idea.blaze.qsync.query.QuerySpec;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -33,15 +34,21 @@ public class ProjectRefresher {
 
   private final VcsStateDiffer vcsDiffer;
   private final Path workspaceRoot;
+  private final QuerySpec.QueryStrategy queryStrategy;
   private final Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier;
+  private final Supplier<Boolean> runQueryInWorkspaceExperiment;
 
   public ProjectRefresher(
       VcsStateDiffer vcsDiffer,
       Path workspaceRoot,
-      Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier) {
+      QuerySpec.QueryStrategy queryStrategy,
+      Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier,
+      Supplier<Boolean> runQueryInWorkspaceExperiment) {
     this.vcsDiffer = vcsDiffer;
     this.workspaceRoot = workspaceRoot;
+    this.queryStrategy = queryStrategy;
     this.latestProjectSnapshotSupplier = latestProjectSnapshotSupplier;
+    this.runQueryInWorkspaceExperiment = runQueryInWorkspaceExperiment;
   }
 
   public RefreshOperation startFullUpdate(
@@ -50,8 +57,9 @@ public class ProjectRefresher {
       Optional<VcsState> vcsState,
       Optional<String> bazelVersion) {
     Path effectiveWorkspaceRoot =
-        vcsState.flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot);
-    return new FullProjectUpdate(context, effectiveWorkspaceRoot, spec, vcsState, bazelVersion);
+      runQueryInWorkspaceExperiment.get() ? workspaceRoot : (
+        vcsState.flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot));
+    return new FullProjectUpdate(context, effectiveWorkspaceRoot, spec, vcsState, bazelVersion, queryStrategy);
   }
 
   public RefreshOperation startPartialRefresh(
@@ -94,7 +102,8 @@ public class ProjectRefresher {
     // TODO(mathewi) check affected.isIncomplete() and offer (or just do?) a full sync in that case.
 
     Path effectiveWorkspaceRoot =
-        params.latestVcsState.flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot);
+      runQueryInWorkspaceExperiment.get() ? workspaceRoot : (
+        params.latestVcsState.flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot));
     return new PartialProjectRefresh(
         effectiveWorkspaceRoot,
         params.currentProject,

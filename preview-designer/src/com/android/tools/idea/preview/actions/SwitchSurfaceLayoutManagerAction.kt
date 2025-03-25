@@ -22,10 +22,9 @@ import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -33,15 +32,19 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 
-/** [DropDownAction] that allows switching the layout manager in the surface. */
+/**
+ * [DropDownAction] that allows switching the layout manager in the surface. Only add if there is
+ * more than one option.
+ */
 class SwitchSurfaceLayoutManagerAction(
   layoutManagers: List<SurfaceLayoutOption>,
   private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
 ) : DropDownAction("Switch Layout", "Changes the layout of the preview elements.", null) {
 
-  private val enabledIcon = AllIcons.Debugger.RestoreLayout
-  private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
+  private val enabledIcon = StudioIcons.Common.LAYOUT
+  private val disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.LAYOUT)
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutOption) :
     ToggleAction(option.displayName) {
@@ -65,12 +68,12 @@ class SwitchSurfaceLayoutManagerAction(
 
     private fun updateMode(dataContext: DataContext) {
       dataContext.getData(DESIGN_SURFACE)?.let {
-        PreviewCanvasTracker.getInstance(it).logSwitchLayout(option.layoutManager)
+        PreviewCanvasTracker.getInstance(it).logSwitchLayout(option.layoutType)
       }
       val manager = dataContext.findPreviewManager(PreviewModeManager.KEY) ?: return
 
-      if (option == GALLERY_LAYOUT_OPTION) {
-        // If turning on Gallery layout option - it should be set in preview.
+      if (option == FOCUS_MODE_LAYOUT_OPTION) {
+        // If turning on Focus layout option - it should be set in preview.
         // TODO (b/292057010) If group filtering is enabled - first element in this group
         // should be selected.
         val element =
@@ -80,9 +83,9 @@ class SwitchSurfaceLayoutManagerAction(
             ?.value
             ?.asCollection()
             ?.firstOrNull()
-        manager.setMode(PreviewMode.Gallery(element))
-      } else if (manager.mode.value is PreviewMode.Gallery) {
-        // When switching from Gallery mode to Default layout mode - need to set back
+        manager.setMode(PreviewMode.Focus(element))
+      } else if (manager.mode.value is PreviewMode.Focus) {
+        // When switching from Focus mode to Default layout mode - need to set back
         // Default preview mode.
         manager.setMode(PreviewMode.Default(option))
       } else {
@@ -93,11 +96,7 @@ class SwitchSurfaceLayoutManagerAction(
 
   init {
     templatePresentation.isHideGroupIfEmpty = true
-
-    // We will only add the actions and be visible if there are more than one option
-    if (layoutManagers.size > 1) {
-      layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
-    }
+    layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

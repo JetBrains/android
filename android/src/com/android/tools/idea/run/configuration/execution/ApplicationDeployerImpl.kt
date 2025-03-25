@@ -22,8 +22,7 @@ import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
-import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkFileUnit
 import com.android.tools.idea.run.ApkInfo
@@ -36,15 +35,16 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
+import com.intellij.util.messages.Topic
 
 
 class ApplicationDeployerImpl(private val project: Project, private val stats: RunStats) : ApplicationDeployer {
   private val LOG = Logger.getInstance(this::class.java)
-  private val installPathProvider: Computable<String> = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
 
-  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
+  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Full deploy on $device")
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(device, app)
+
     // Add packages to the deployment,
     val deployTask = DeployTask(
       project,
@@ -53,7 +53,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       deployOptions.installOnAllUsers,
       deployOptions.alwaysInstallWithPm,
       deployOptions.allowAssumeVerified,
-      installPathProvider)
+      hasMakeBeforeRun)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -61,15 +61,18 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
   override fun applyChangesDeploy(device: IDevice,
                                   app: ApkInfo,
                                   deployOptions: DeployOptions,
+                                  hasMakeBeforeRun: Boolean,
                                   indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Apply Changes on $device")
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(device, app)
+
     val deployTask = ApplyChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN,
       deployOptions.alwaysInstallWithPm,
       deployOptions.allowAssumeVerified,
-      installPathProvider)
+      hasMakeBeforeRun)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -77,15 +80,18 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
   override fun applyCodeChangesDeploy(device: IDevice,
                                       app: ApkInfo,
                                       deployOptions: DeployOptions,
+                                      hasMakeBeforeRun: Boolean,
                                       indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Apply Code Changes on $device")
+    project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(device, app)
+
     val deployTask = ApplyCodeChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN,
       deployOptions.alwaysInstallWithPm,
       deployOptions.allowAssumeVerified,
-      installPathProvider)
+      hasMakeBeforeRun)
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -112,9 +118,9 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       // Check if a baseline profile fit the device
       for (bpSet in app.baselineProfiles) {
           if (device.version.apiLevel in bpSet.minApi..bpSet.maxApi) {
-            for (bp in bpSet.baselineProfiles) {
+            for (bpFile in bpSet.baselineProfileFiles) {
               val artifactDetailBuilder = ArtifactDetail.newBuilder()
-              artifactDetailBuilder.setSize(bp.length())
+              artifactDetailBuilder.setSize(bpFile.length())
               artifactDetailBuilder.setType(ArtifactDetail.ArtifactType.BASELINE_PROFILE)
               addArtifact(artifactDetailBuilder)
             }
@@ -142,3 +148,10 @@ class AdbCommandCaptureLoggerWithConsole(logger: Logger, val console: ConsoleVie
   }
 }
 
+interface ApplicationDeployListener {
+  fun beforeDeploy(device : IDevice, apkInfo : ApkInfo)
+  companion object {
+    @JvmField
+    val TOPIC = Topic("Notification on application deployment", ApplicationDeployListener::class.java)
+  }
+}

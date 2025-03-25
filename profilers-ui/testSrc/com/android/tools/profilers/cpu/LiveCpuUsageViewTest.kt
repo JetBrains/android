@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.TreeWalker
@@ -40,6 +39,7 @@ import com.android.tools.profilers.StageWithToolbarView
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.CpuUsageView
 import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -48,6 +48,7 @@ import com.intellij.testFramework.EdtRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
@@ -239,7 +240,7 @@ class LiveCpuUsageViewTest {
     cpuProfilerLiveView.populateUi(rangeTooltipComponentFirst)
     cpuProfilerLiveView.populateUi(rangeTooltipComponentFirst);
     val binder = ViewBinder<StageView<*>, TooltipModel, TooltipView>()
-    val stage = MockitoKt.mock<StreamingStage>()
+    val stage = mock<StreamingStage>()
     cpuProfilerLiveView.registerTooltip(binder, rangeTooltipComponentFirst, stage)
     val items = myComponents.allContextMenuItems
 

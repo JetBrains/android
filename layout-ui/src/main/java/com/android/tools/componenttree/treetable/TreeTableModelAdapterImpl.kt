@@ -69,19 +69,16 @@ class TreeTableModelAdapterImpl(
   }
 
   private fun fireActualTableDataChangeEvent() {
-    table.treeTableSelectionModel.update {
-      if (lastPathCollapsed != null) {
-        // Avoid the row selection in super.fireTableDataChanged()
-        // Since that would cause the row selection below to not notify the TreeTableSelectionModel.
-        table.clearSelection()
-      }
-      super.fireTableDataChanged()
-    }
+    table.treeTableSelectionModel.update { super.fireTableDataChanged() }
     if (lastPathCollapsed != null) {
       // When a tree is collapsed, we missed a selection event. Apply the selection here. See
       // b/360803450.
       val row = tree.getRowForPath(lastPathCollapsed)
-      table.selectionModel.addSelectionInterval(row, row)
+      if (!tree.selectionRows.contains(row)) {
+        table.selectionModel.addSelectionInterval(row, row)
+      } else {
+        table.treeTableSelectionModel.fireSelectionChanged()
+      }
       lastPathCollapsed = null
     }
   }

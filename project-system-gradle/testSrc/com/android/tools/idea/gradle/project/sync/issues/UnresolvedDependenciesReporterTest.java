@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -70,12 +71,14 @@ public class UnresolvedDependenciesReporterTest extends HeavyPlatformTestCase {
     final var messages = myReporter.report(syncIssue, getModule(), null);
 
     assertSize(1, messages);
-    final var message = messages.get(0);
+    final var message = messages.get(0).getSyncMessage();
     assertEquals(expected, message.getMessage());
 
 
-    assertSize(1 + 1 /* affected modules */, messages.get(0).getQuickFixes());
-    assertInstanceOf(messages.get(0).getQuickFixes().get(0), ShowSyncIssuesDetailsHyperlink.class);
+    assertSize(1 + 1 /* affected modules */, message.getQuickFixes());
+    assertInstanceOf(message.getQuickFixes().get(0), ShowSyncIssuesDetailsHyperlink.class);
+
+    assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(getModule()));
 
     assertEquals(
       ImmutableList.of(
@@ -84,7 +87,7 @@ public class UnresolvedDependenciesReporterTest extends HeavyPlatformTestCase {
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_SYNC_ISSUES_DETAILS_HYPERLINK)
           .build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
   }
 
   /**
@@ -107,11 +110,13 @@ public class UnresolvedDependenciesReporterTest extends HeavyPlatformTestCase {
     final var messages = myReporter.report(syncIssue, getModule(), null);
 
     assertSize(1, messages);
-    final var message = messages.get(0);
+    final var message = messages.get(0).getSyncMessage();
     assertEquals(expected, message.getMessage());
 
-    assertSize(1 + 1 /* affected modules */, messages.get(0).getQuickFixes());
-    assertInstanceOf(messages.get(0).getQuickFixes().get(0), DisableOfflineModeHyperlink.class);
+    assertSize(1 + 1 /* affected modules */, message.getQuickFixes());
+    assertInstanceOf(message.getQuickFixes().get(0), DisableOfflineModeHyperlink.class);
+
+    assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(getModule()));
 
     assertEquals(
       ImmutableList.of(
@@ -120,7 +125,7 @@ public class UnresolvedDependenciesReporterTest extends HeavyPlatformTestCase {
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.DISABLE_OFFLINE_MODE_HYPERLINK)
           .build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
   }
 
   /**
@@ -141,14 +146,16 @@ public class UnresolvedDependenciesReporterTest extends HeavyPlatformTestCase {
     final var messages = myReporter.report(syncIssue, getModule(), null);
 
     assertSize(1, messages);
-    final var message = messages.get(0);
+    final var message = messages.get(0).getSyncMessage();
     assertEquals(expected, message.getMessage());
 
     assertSize(1 /* go to module */ + 0, message.getQuickFixes());
 
+    assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(getModule()));
+
     assertEquals(
       ImmutableList.of(
         GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY).build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, ImmutableList.of(message)));
   }
 }

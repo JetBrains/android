@@ -1,4 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M4.76525 3.76525C3.05362 4.62235 1.69959 6.13846 1 8C2.1 10.927 4.818 13 8 13C9.67087 13 11.2138 12.4284 12.4617 11.4617L10.9238 9.92379C10.2976 10.8732 9.22156 11.5 8 11.5C7.07182 11.4997 6.18174 11.1309 5.52542 10.4746C4.8691 9.81826 4.50027 8.92818 4.5 8C4.5 6.77844 5.12685 5.7024 6.07621 5.07621L4.76525 3.76525ZM7.53117 4.53117L6.22185 3.22185C6.79187 3.07685 7.38734 3 8 3C11.182 3 13.9 5.073 15 8C14.65 8.93142 14.1361 9.77636 13.4955 10.4955L11.4688 8.46883C11.4894 8.31546 11.5 8.15896 11.5 8C11.5 6.068 9.932 4.5 8 4.5C7.84104 4.5 7.68454 4.51061 7.53117 4.53117ZM7.17617 6.17617C6.48173 6.48931 6 7.18694 6 8C6 9.107 6.893 10 8 10C8.81306 10 9.51068 9.51827 9.82383 8.82383L7.17617 6.17617Z" fill="#6E6E6E"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M2 1L1 2L14 15L15 14L2 1Z" fill="#6E6E6E"/>
-</svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.132 3.48C2.193 4.48.618 6.146 0 8c1 3 4.5 5.5 8 5.5 1.651 0 3.303-.557 4.692-1.46l-.725-.724C10.76 12.059 9.365 12.5 8 12.5c-1.518 0-3.072-.546-4.366-1.446C2.445 10.227 1.533 9.142 1.066 8c.467-1.142 1.379-2.227 2.568-3.054a8.473 8.473 0 011.245-.718l-.747-.747zM6.23 5.579a3 3 0 104.193 4.193l-.72-.72A1.999 1.999 0 016 8c0-.72.38-1.35.95-1.702l-.72-.72zm2.157.46l-.979-.98a3 3 0 013.534 3.534l-.978-.978a2.002 2.002 0 00-1.577-1.577zm4.568 4.568c.901-.754 1.593-1.66 1.98-2.606-.467-1.142-1.379-2.227-2.568-3.054C11.072 4.046 9.518 3.5 8 3.5c-.629 0-1.264.094-1.884.267l-.797-.797A8.16 8.16 0 018 2.5c3.5 0 7 2.5 8 5.5-.412 1.237-1.25 2.389-2.336 3.315l-.71-.71z" fill="#6C707E"/><path d="M2 2l12 12" stroke="#6C707E" stroke-linecap="round"/></svg>

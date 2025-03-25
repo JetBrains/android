@@ -24,8 +24,8 @@ import com.android.manifmerger.MergingReport;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
@@ -99,7 +99,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   private String[] getErrorHtml() throws Exception {
-    Module mainModule = ModuleSystemUtil.getMainModule(myAndroidFacet.getModule());
+    Module mainModule = LinkedAndroidModuleGroupUtilsKt.getMainModule(myAndroidFacet.getModule());
     return getErrorHtml(mainModule);
   }
 

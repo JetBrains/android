@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.ZoomController
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
@@ -55,17 +54,12 @@ import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.GroupedListSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.layout.option.ListLayoutManager
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.loadPreferredMode
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.savePreferredMode
-import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.google.common.collect.ImmutableList
@@ -76,20 +70,16 @@ import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.scale.JBUIScale.sysScale
 import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.image.BufferedImage
+import java.util.function.Consumer
 import java.util.function.Supplier
 import java.util.stream.Collectors
-import javax.swing.JLayeredPane
-import javax.swing.JPanel
-import kotlin.math.max
 import kotlin.math.min
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 
 /**
@@ -109,13 +99,16 @@ internal constructor(
       >,
   interactableProvider: (DesignSurface<LayoutlibSceneManager>) -> Interactable,
   interactionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> InteractionHandler,
-  actionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler,
+  actionHandlerProvider:
+    (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<
+        DesignSurface<LayoutlibSceneManager>
+      >,
   private val delegateDataProvider: DataProvider?,
   selectionModel: SelectionModel,
   zoomControlsPolicy: ZoomControlsPolicy,
   private val supportedActionsProvider: Supplier<ImmutableSet<NlSupportedActions>>,
   private val shouldRenderErrorsPanel: Boolean,
-  shouldZoomOnFirstComponentResize: Boolean,
+  waitForRenderBeforeRestoringZoom: Boolean,
   issueProviderFactory: (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider,
   nlDesignSurfacePositionableContentLayoutManager: NlDesignSurfacePositionableContentLayoutManager,
 ) :
@@ -128,36 +121,17 @@ internal constructor(
     actionHandlerProvider,
     selectionModel,
     zoomControlsPolicy,
-    shouldZoomOnFirstComponentResize,
+    waitForRenderBeforeRestoringZoom,
   ),
   NlDiagnosticKey {
 
-  /**
-   * [EditorNotificationPanel] to indicate List mode is deprecated. It should only be visible if
-   * List is selected.
-   *
-   * TODO(b/369564706): remove this banner when List mode is removed
-   */
-  private val listDeprecationBanner =
-    object : EditorNotificationPanel(Status.Warning) {
-      init {
-        text = "List mode will be deprecated in the next release. Please use Grid mode if possible."
-        isVisible = false
-      }
-    }
-
   init {
-    val deprecationBannerPanel =
-      JPanel(BorderLayout()).apply {
-        add(listDeprecationBanner, BorderLayout.NORTH)
-        isOpaque = false
-      }
-    layeredPane.add(deprecationBannerPanel, JLayeredPane.DEFAULT_LAYER)
     viewport.addChangeListener {
       val scroller = viewportScroller
       viewportScroller = null
       scroller?.scroll(viewport)
     }
+    scope.launch { sceneViewPanel.organizationState.collect { notifyPanningChanged() } }
   }
 
   var screenViewProvider: ScreenViewProvider = loadPreferredMode()
@@ -168,7 +142,7 @@ internal constructor(
 
         for (manager in sceneManagers) {
           manager.updateSceneViews()
-          manager.requestRenderAsync()
+          manager.requestRender()
         }
         revalidateScrollArea()
       }
@@ -183,6 +157,8 @@ internal constructor(
 
   /** The rotation degree of the surface to simulate the phone rotation. */
   var rotateSurfaceDegree: Float = Float.NaN
+
+  var colorBlindMode: ColorBlindMode = ColorBlindMode.NONE
 
   private val sceneViewLayoutManager: NlDesignSurfacePositionableContentLayoutManager
     get() = sceneViewPanel.layout as NlDesignSurfacePositionableContentLayoutManager
@@ -215,13 +191,6 @@ internal constructor(
         this,
       )
       .apply {
-        scope.launch {
-          beforeZoomChange.collect { zoomType ->
-            if (zoomType == ZoomType.FIT) {
-              sceneViewLayoutManager.clearCachedGroups()
-            }
-          }
-        }
         // TODO(b/330155137): Move setOnScaleListener to Kotlin flow
         setOnScaleListener(this@NlDesignSurface)
         screenScalingFactor = sysScale(this@NlDesignSurface).toDouble()
@@ -244,17 +213,12 @@ internal constructor(
     revalidateScrollArea()
   }
 
-  @UiThread
-  fun updateLayoutDeprecationBannerVisibility(visible: Boolean) {
-    listDeprecationBanner.isVisible = visible
-  }
-
   /** Triggers a re-inflation and re-render, but it doesn't wait for it to finish. */
   override fun forceRefresh() {
     scope.launch {
       sceneManagers.forEach {
         it.sceneRenderConfiguration.needsInflation.set(true)
-        it.requestRenderAsync()
+        it.requestRender()
       }
     }
   }
@@ -290,19 +254,6 @@ internal constructor(
       if (setAsDefault) savePreferredMode(it)
     }
     screenViewProvider = newScreenViewProvider
-  }
-
-  /**
-   * Update the color-blind mode in the [ScreenViewProvider] for this surface and make sure to
-   * update all the SceneViews in this surface to reflect the change.
-   */
-  fun setColorBlindMode(mode: ColorBlindMode) {
-    screenViewProvider.colorBlindFilter = mode
-    for (manager in sceneManagers) {
-      manager.updateSceneViews()
-      manager.requestRenderAsync()
-    }
-    revalidateScrollArea()
   }
 
   override fun shouldRenderErrorsPanel(): Boolean {
@@ -409,7 +360,7 @@ internal constructor(
       .launch {
         sceneManagers.forEach {
           it.sceneRenderConfiguration.needsInflation.set(true)
-          it.requestRenderAsync().await()
+          it.requestRenderAndWait()
         }
       }
       .invokeOnCompletion { refreshProgressIndicator.processFinish() }
@@ -421,6 +372,10 @@ internal constructor(
 
   override val layoutManagerSwitcher: LayoutManagerSwitcher?
     get() = sceneViewPanel.layout as? LayoutManagerSwitcher
+
+  override val shouldStoreScale: Boolean
+    // Checks if store the current scale in the settings preferences.
+    get() = sceneViewLayoutManager.currentLayoutOption.value.shouldStoreScale
 
   override fun scrollToCenter(list: List<NlComponent>) {
     val view = focusedSceneView ?: return
@@ -566,27 +521,15 @@ internal constructor(
     val scrollPosition = pannable.scrollPosition
     var focusPoint = update.focusPoint
 
-    val layoutManager = sceneViewLayoutManager.currentLayout.value.layoutManager
-
-    // If layout is a vertical list layout
-    val isGroupedListLayout =
-      layoutManager is GroupedListSurfaceLayoutManager || layoutManager is ListLayoutManager
     // If layout is grouped grid layout.
     val isGroupedGridLayout =
-      layoutManager is GroupedGridSurfaceLayoutManager || layoutManager is GridLayoutManager
+      sceneViewLayoutManager.currentLayoutOption.value.layoutType ==
+        SurfaceLayoutOption.LayoutType.OrganizationGrid
 
-    if (isGroupedListLayout) {
-      viewportScroller =
-        createScrollerForGroupedSurfaces(
-          port,
-          update,
-          scrollPosition,
-          Point(scrollPosition.x, max(0, focusPoint.y)),
-        )
-    } else if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
+    if (isGroupedGridLayout && StudioFlags.SCROLLABLE_ZOOM_ON_GRID.get()) {
       viewportScroller =
         createScrollerForGroupedSurfaces(port, update, scrollPosition, scrollPosition)
-    } else if (layoutManager !is GridSurfaceLayoutManager) {
+    } else {
       if (focusPoint.x < 0 || focusPoint.y < 0) {
         focusPoint = Point(port.viewportComponent.width / 2, port.viewportComponent.height / 2)
       }
@@ -663,5 +606,16 @@ internal constructor(
     super.uiDataSnapshot(sink)
     sink[LAYOUT_PREVIEW_HANDLER_KEY] = layoutPreviewHandler
     DataSink.uiDataSnapshot(sink, delegateDataProvider)
+  }
+
+  fun getGlobalImageTransformation(): Consumer<BufferedImage>? {
+    return colorBlindMode.imageTransform
+  }
+
+  fun resetColorBlindMode() {
+    colorBlindMode = ColorBlindMode.NONE
+    for (manager in sceneManagers) {
+      manager.model.configuration.imageTransformation = null
+    }
   }
 }

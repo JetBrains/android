@@ -28,6 +28,13 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.getFqNameByDirectory
 import org.jetbrains.uast.UMethod
@@ -63,28 +70,29 @@ object AnnotationFilePreviewElementFinder : ComposeFilePreviewElementFinder {
       COMPOSABLE_ANNOTATION_FQ_NAME,
       COMPOSABLE_ANNOTATION_NAME,
     ) { methods ->
-      val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
-      val previewElements = previewNodes.filterIsInstance<PsiComposePreviewElement>().distinct()
+      flow {
+        val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
+        val previewElements = previewNodes.filterIsInstance<PsiComposePreviewElement>().toSet()
 
-      if (previewElements.any()) {
-        getPsiFileSafely(project, vFile)?.let { psiFile ->
-          MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
-            .logEvent(
-              MultiPreviewEvent(
-                previewNodes.filterIsInstance<MultiPreviewNode>(),
-                "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}",
+        if (previewElements.firstOrNull() != null) {
+          getPsiFileSafely(project, vFile)?.let { psiFile ->
+            MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
+              .logEvent(
+                MultiPreviewEvent(
+                  previewNodes.filterIsInstance<MultiPreviewNode>().toList(),
+                  "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}",
+                )
               )
-            )
+          }
         }
+        emitAll(previewElements.asFlow())
       }
-
-      previewElements
     }
   }
 
   @VisibleForTesting
   internal fun getPreviewNodes(methods: List<UMethod>, includeAllNodes: Boolean) =
-    methods.asSequence().flatMap {
+    methods.asFlow().flatMapConcat {
       ProgressManager.checkCanceled()
       getPreviewNodes(it, includeAllNodes = includeAllNodes)
     }

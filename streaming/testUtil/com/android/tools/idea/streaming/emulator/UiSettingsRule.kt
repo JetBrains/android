@@ -19,6 +19,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbDeviceServices
 import com.android.adblib.testing.FakeAdbSession
 import com.android.ide.common.resources.configuration.LocaleQualifier
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
@@ -27,6 +28,7 @@ import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.disposable
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.runBlocking
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -130,7 +132,7 @@ class UiSettingsRule : ExternalResource() {
   }
 
   fun createAndStartEmulator(api: Int = 33): FakeEmulator {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, api = api)
+    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api))
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val emulatorController = getControllerOf(emulator)
@@ -139,7 +141,7 @@ class UiSettingsRule : ExternalResource() {
   }
 
   fun createAndStartWatchEmulator(api: Int = 33): FakeEmulator {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = api)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api))
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val emulatorController = getControllerOf(emulator)
@@ -149,7 +151,7 @@ class UiSettingsRule : ExternalResource() {
 
   fun getControllerOf(emulator: FakeEmulator): EmulatorController {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     val emulatorController = emulators.single { emulator.serialNumber == it.emulatorId.serialNumber }
     return emulatorController
   }

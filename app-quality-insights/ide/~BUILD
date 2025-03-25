@@ -50,6 +50,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[module, test]",
@@ -75,6 +76,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "@intellij//:intellij.platform.vcs.impl[test]",
         "@intellij//:intellij.platform.vcs.dvcs.impl[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 

@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createGradleBuildModel;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.PROJECT_DIR;
+import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.PROJECT_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -183,20 +185,18 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   public void setModuleDirectory(@NotNull String modulePath, @NotNull File moduleDir) {
     String projectKey = "project('" + modulePath + "')";
     String projectDirPropertyName = projectKey + "." + PROJECT_DIR;
-    // If the property already exists on file then delete it and then re-create with a new value.
-    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
-    if (projectProperties != null) {
-      projectProperties.removeProperty(PROJECT_DIR);
+
+    GradleNameElement projectKeyName = GradleNameElement.fake(projectKey);
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.ensureNamedPropertyElement(PROJECT_PROPERTIES, projectKeyName);
+    GradleDslMethodCall currentElement = projectProperties.getPropertyElement(PROJECT_DIR, GradleDslMethodCall.class);
+    if (currentElement != null) {
+      projectProperties.removeProperty(currentElement);
     }
 
-    // If the property has already been set by this method, remove it and recreate it.
-    myGradleDslFile.removeProperty(projectDirPropertyName);
-
-    // Create the GradleDslMethodCall that represents that method.
     GradleNameElement gradleNameElement = GradleNameElement.fake(projectDirPropertyName);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(myGradleDslFile, gradleNameElement, FILE_METHOD_NAME);
     methodCall.setExternalSyntax(ASSIGNMENT);
-    myGradleDslFile.setNewElement(methodCall);
+    projectProperties.setNewElement(methodCall);
 
     // Make the method call new File(rootDir, <PATH>) if possible.
     String dirPath = moduleDir.getAbsolutePath();
@@ -282,7 +282,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     }
     GradleBuildFile dslFile =
       myGradleDslFile.getContext().getOrCreateBuildFile(buildFile, modulePath.substring(modulePath.lastIndexOf(':') + 1), false);
-    return new GradleBuildModelImpl(dslFile);
+    return createGradleBuildModel(dslFile);
   }
 
   @Nullable

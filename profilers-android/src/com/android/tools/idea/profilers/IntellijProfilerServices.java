@@ -58,6 +58,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.DoNotAskOption;
+import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -248,20 +250,19 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
   @Override
   public boolean openOkCancelDialog(@NotNull String message, @NotNull String title, @NotNull Consumer<Boolean> doNotShowSettingSaver) {
-    return Messages.OK ==
-           Messages.showOkCancelDialog(message, title, "OK", "Cancel", Messages.getInformationIcon(),
-                                       new DialogWrapper.DoNotAskOption.Adapter() {
-                                         @Override
-                                         public void rememberChoice(boolean isSelected, int exitCode) {
-                                           doNotShowSettingSaver.accept(isSelected);
-                                         }
+    return MessageDialogBuilder.okCancel(title, message).icon(Messages.getInformationIcon()).doNotAsk(
+      new DoNotAskOption.Adapter() {
+        @Override
+        public void rememberChoice(boolean isSelected, int exitCode) {
+          doNotShowSettingSaver.accept(isSelected);
+        }
 
-                                         @NotNull
-                                         @Override
-                                         public String getDoNotShowMessage() {
-                                           return "Do not show again";
-                                         }
-                                       });
+        @NotNull
+        @Override
+        public String getDoNotShowMessage() {
+          return "Do not show again";
+        }
+      }).ask(myProject); // ask() returns true if user selects "OK", false if "Cancel"
   }
 
   @Override

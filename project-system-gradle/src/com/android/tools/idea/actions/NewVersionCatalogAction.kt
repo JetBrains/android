@@ -18,10 +18,11 @@ package com.android.tools.idea.actions
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VERSION_CATALOG_FILE_ADDED
@@ -66,8 +67,12 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
     return super.createFile(name, templateName, dir)?.also { createdElement ->
       val project = createdElement.project
       UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
-        override fun undo() = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_UNDONE)
-        override fun redo() = GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_MODIFIER_ACTION_REDONE)
+        override fun undo() {
+          project.getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
+        }
+        override fun redo() {
+          project.getSyncManager().requestSyncProject(TRIGGER_MODIFIER_ACTION_REDONE.toReason())
+        }
       })
       val task = object : Task.WithResult<Pair<ProjectBuildModel, GradleSettingsModel?>, Exception>(project, "Parsing Build Files", true) {
         override fun compute(indicator: ProgressIndicator): Pair<ProjectBuildModel, GradleSettingsModel?> {
@@ -97,7 +102,7 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
         it.putIfAbsent("libs", "gradle/libs.versions.toml")
       }
 
-      val baseName = createdElement.name.removeSuffix(".versions.toml")
+      val baseName = createdElement.name.removeSuffix(EXT_VERSIONS_TOML)
       var candidateName = baseName
       if (current[baseName] == "gradle/${createdElement.name}") {
         // do nothing: already set up.  (Common case is adding libs.versions.toml to a project previously not using Version Catalogs)
@@ -117,8 +122,7 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
   }
 
   override fun postProcess(createdElement: PsiFile, templateName: String?, customProperties: MutableMap<String, String>?) {
-    val project = createdElement.project
-    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_VERSION_CATALOG_FILE_ADDED)
+    createdElement.project.getSyncManager().requestSyncProject(TRIGGER_VERSION_CATALOG_FILE_ADDED.toReason())
   }
 
   override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder) {

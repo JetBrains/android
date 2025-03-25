@@ -18,7 +18,11 @@ package com.android.tools.idea.uibuilder.scene
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
+import com.android.tools.rendering.RenderService
 import com.intellij.openapi.diagnostic.Logger
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 val LOG = Logger.getInstance("Accessibility")
 
@@ -104,11 +108,21 @@ fun ViewInfo.getAccessibilityText() =
  * [AccessibilityNodeInfo] does not exist, but viewObject is a [View], this creates an
  * [AccessibilityNodeInfo] for that [View] first.
  */
-fun ViewInfo.getAccessibilitySourceId(): Long {
+fun ViewInfo.getAccessibilitySourceId(): Long =
   if (accessibilityObject != null) {
-    return (accessibilityObject as AccessibilityNodeInfo).sourceNodeId
+    (accessibilityObject as AccessibilityNodeInfo).sourceNodeId
   } else {
-    val node = (viewObject as? View)?.createAccessibilityNodeInfo() ?: return -1
-    return node.sourceNodeId
+    try {
+      RenderService.getRenderAsyncActionExecutor()
+        .runAsyncActionWithTimeout<Long>(250, TimeUnit.MILLISECONDS, RenderingTopic.NOT_SPECIFIED) {
+          val node =
+            (viewObject as? View)?.createAccessibilityNodeInfo()
+              ?: return@runAsyncActionWithTimeout -1
+          return@runAsyncActionWithTimeout node.sourceNodeId
+        }
+        .get()
+    } catch (e: TimeoutException) {
+      LOG.warn("Timeout while retrieving the sourceNodeId", e)
+      -1
+    }
   }
-}

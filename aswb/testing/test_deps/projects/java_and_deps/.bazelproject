@@ -1,0 +1,7 @@
+
+directories:
+  java_and_deps/project
+
+android_sdk_platform: android-34
+
+

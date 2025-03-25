@@ -22,7 +22,8 @@ import org.jetbrains.kotlin.config.ApiVersion
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean, targetApi: Int) {
   if (androidX) {
-    val dependency = if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:+"
+    val dependency =
+      if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:+"
     val minRev = if (targetApi < 31) "1.6.0" else "1.9.0"
     addDependency(dependency, minRev = minRev)
   }
@@ -32,20 +33,31 @@ fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
   addClasspathDependency("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
 }
 
-fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, targetApi: Int, noKtx: Boolean = false) {
+fun RecipeExecutor.addKotlinIfNeeded(
+  data: ProjectTemplateData,
+  targetApi: Int,
+  noKtx: Boolean = false,
+) {
   if (data.language == Language.Kotlin) {
     setKotlinVersion(data.kotlinVersion)
-    applyPlugin("org.jetbrains.kotlin.android", data.kotlinVersion)
+    addPlugin(
+      "org.jetbrains.kotlin.android",
+      "org.jetbrains.kotlin:kotlin-gradle-plugin",
+      data.kotlinVersion,
+    )
     addKotlinDependencies(data.androidXSupport && !noKtx, targetApi)
 
     val kotlinVersion = ApiVersion.parse(data.kotlinVersion)
     if (kotlinVersion != null && kotlinVersion < ApiVersion.KOTLIN_1_8) {
       // This is to avoid the class duplication from different kotlin-stdlib versions
-      // See https://kotlinlang.org/docs/whatsnew18.html#usage-of-the-latest-kotlin-stdlib-version-in-transitive-dependencies
+      // See
+      // https://kotlinlang.org/docs/whatsnew18.html#usage-of-the-latest-kotlin-stdlib-version-in-transitive-dependencies
       // for more details.
-      // Adding this solves duplicated classes issues in kotlin-stdlib in following possible scenario
+      // Adding this solves duplicated classes issues in kotlin-stdlib in following possible
+      // scenario
       // 1. - When Kotlin gradle plugin < 1.8 (e.g. 1.7.20)
-      //    - When the app has transitive dependency to kotlin-stdlib:1.8.0 (e.g. "androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
+      //    - When the app has transitive dependency to kotlin-stdlib:1.8.0 (e.g.
+      // "androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
       addPlatformDependency("org.jetbrains.kotlin:kotlin-bom:1.8.0")
     }
   }

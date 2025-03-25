@@ -1,7 +1,5 @@
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.FakeJBPopup
@@ -26,6 +24,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class InlayPresentationUtilsKtTest {
@@ -45,7 +45,7 @@ class InlayPresentationUtilsKtTest {
   }
 
   private val editor
-    get() = console.editor
+    get() = console.editor!!
 
   @Test
   fun `check tooltip`() {

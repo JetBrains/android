@@ -97,7 +97,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   protected ProcessHandler startProcess() throws ExecutionException {
     Project project = getConfiguration().getProject();
 
-    BlazeCommand.Builder blazeCommand;
     BuildInvoker invoker =
         Blaze.getBuildSystemProvider(project)
             .getBuildSystem()
@@ -107,39 +106,50 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
                 getExecutorType(),
                 getConfiguration().getTargetKind());
     BlazeTestUiSession testUiSession = null;
-    if (TargetKindUtil.isLocalTest(getConfiguration().getTargetKind())
-        && !invoker.getCommandRunner().canUseCli()
-        && getExecutorType().isDebugType()) {
-      File downloadDir = getDownloadDir();
-      WorkspaceRoot workspaceRoot =
-          new WorkspaceRoot(
-              new File(downloadDir, WorkspaceRoot.fromProject(project).directory().getName()));
-      ImmutableList.Builder<String> commandBuilder =
-          ImmutableList.<String>builder()
-              .add("env")
-              .add("-")
-              .add(JAVA_RUNFILES_ENV + downloadDir.getAbsolutePath());
-
-      // android_local_tests need additional env variables
-      if (TargetKindUtil.isAndroidLocalTest(getConfiguration().getTargetKind())) {
-        commandBuilder
-            .add(TEST_TIMEOUT_ENV + "300")
-            .add(TEST_SIZE_ENV + "medium")
-            .add(
-                TEST_DIAGNOSTICS_OUTPUT_DIR_ENV
-                    + downloadDir.getAbsolutePath()
-                    + TEST_DIAGNOSTICS_OUTPUT_DIR);
-      }
-      commandBuilder
-          .add(getEntryPointScript())
-          .add(debugPortFlag(false, getState(getConfiguration()).getDebugPortState().port));
-      if (TargetKindUtil.isAndroidLocalTest(getConfiguration().getTargetKind())
-          && BlazeCommandRunnerExperiments.USE_SINGLEJAR_FOR_DEBUGGING.getValue()) {
-        commandBuilder.add("--singlejar");
-      }
-      return getScopedProcessHandler(project, commandBuilder.build(), workspaceRoot);
+    boolean debuggingLocalTest =
+        TargetKindUtil.isLocalTest(getConfiguration().getTargetKind())
+            && getExecutorType().isDebugType();
+    if (debuggingLocalTest && !invoker.getCommandRunner().canUseCli()) {
+      return startProcessRunfilesCase(project);
     }
+    return startProcessBazelCliCase(invoker, project, testUiSession);
+  }
 
+  private ProcessHandler startProcessRunfilesCase(Project project) throws ExecutionException {
+    File downloadDir = getDownloadDir();
+    WorkspaceRoot workspaceRoot =
+        new WorkspaceRoot(
+            new File(downloadDir, WorkspaceRoot.fromProject(project).directory().getName()));
+    ImmutableList.Builder<String> commandBuilder =
+        ImmutableList.<String>builder()
+            .add("env")
+            .add("-")
+            .add(JAVA_RUNFILES_ENV + downloadDir.getAbsolutePath());
+
+    // android_local_tests need additional env variables
+    if (TargetKindUtil.isAndroidLocalTest(getConfiguration().getTargetKind())) {
+      commandBuilder
+          .add(TEST_TIMEOUT_ENV + "300")
+          .add(TEST_SIZE_ENV + "medium")
+          .add(
+              TEST_DIAGNOSTICS_OUTPUT_DIR_ENV
+                  + downloadDir.getAbsolutePath()
+                  + TEST_DIAGNOSTICS_OUTPUT_DIR);
+    }
+    commandBuilder
+        .add(getEntryPointScript())
+        .add(debugPortFlag(false, getState(getConfiguration()).getDebugPortState().port));
+    if (TargetKindUtil.isAndroidLocalTest(getConfiguration().getTargetKind())
+        && BlazeCommandRunnerExperiments.USE_SINGLEJAR_FOR_DEBUGGING.getValue()) {
+      commandBuilder.add("--singlejar");
+    }
+    return getScopedProcessHandler(project, commandBuilder.build(), workspaceRoot);
+  }
+
+  private ProcessHandler startProcessBazelCliCase(
+      BuildInvoker invoker, Project project, BlazeTestUiSession testUiSession)
+      throws ExecutionException {
+    BlazeCommand.Builder blazeCommand;
     try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
       if (useTestUi()
           && BlazeTestEventsHandler.targetsSupported(project, getConfiguration().getTargets())) {

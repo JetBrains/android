@@ -15,6 +15,8 @@
  */
 package com.android.tools.screensharing;
 
+import static android.system.OsConstants.EXIT_FAILURE;
+
 import android.annotation.SuppressLint;
 import android.util.Log;
 
@@ -27,7 +29,8 @@ public class Main {
       System.load("/data/local/tmp/.studio/libscreen-sharing-agent.so");
     }
     catch (Throwable e) {
-      Log.e(ATTRIBUTION_TAG, "Unable to load libscreen-sharing-agent.so - " + e.getMessage());
+      Log.wtf(ATTRIBUTION_TAG, "Unable to load libscreen-sharing-agent.so", e);
+      System.exit(EXIT_FAILURE);
     }
     nativeMain(args);
   }

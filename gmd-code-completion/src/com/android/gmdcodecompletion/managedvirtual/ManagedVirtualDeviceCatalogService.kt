@@ -102,7 +102,7 @@ class ManagedVirtualDeviceCatalogService
         // Obtain all devices from Device Manager except custom managed devices
         val allDevices =
           DeviceManager.createInstance(AndroidLocationsSingleton, AndroidLocationsSingleton.prefsLocation, iLogger)
-            ?.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
+            ?.getDevices(EnumSet.of(DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR))
         allDevices?.forEach { device ->
           if (!device.isDeprecated) {
             deviceCatalog.devices[device.displayName] = AndroidDeviceInfo(

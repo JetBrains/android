@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
@@ -31,6 +29,8 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class AndroidWatchFaceRunConfigurationProducerTest {
 

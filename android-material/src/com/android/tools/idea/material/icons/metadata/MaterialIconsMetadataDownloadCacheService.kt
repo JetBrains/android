@@ -19,14 +19,12 @@ import com.android.tools.idea.material.icons.common.BundledMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.SdkMetadataUrlProvider
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getMetadata
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.Semaphore
 import java.io.File
 import java.net.URL
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
-import java.util.function.Supplier
 
 /**
  * Application Service that caches a [MaterialIconsMetadataDownloadService].
@@ -36,7 +34,6 @@ import java.util.function.Supplier
  */
 @Service
 class MaterialIconsMetadataDownloadCacheService {
-
   private var cachedMetadataDownloadService: MaterialIconsMetadataDownloadService? = null
 
   /**
@@ -55,7 +52,13 @@ class MaterialIconsMetadataDownloadCacheService {
     // Return the fallback URL for the metadata if there's no Sdk directory.
     val downloadDir = File(FileUtil.getTempDirectory())
     if (!downloadDir.isDirectory) {
-      return CompletableFuture.completedFuture(getMetadata(fallbackMetadataURL))
+      val metadataResult = getMetadata(fallbackMetadataURL)
+      return if (metadataResult.isSuccess) {
+        CompletableFuture.completedFuture(metadataResult.getOrNull()!!)
+      }
+      else {
+        CompletableFuture.failedFuture(metadataResult.exceptionOrNull()!!)
+      }
     }
     return getDownloadService(downloadDir, fallbackMetadataURL).refreshAndGetMetadata(fallbackMetadataURL)
   }
@@ -72,15 +75,25 @@ class MaterialIconsMetadataDownloadCacheService {
  * and returns the **refreshed** metadata object. Note that it doesn't guarantee that the metadata was properly downloaded.
  */
 private fun MaterialIconsMetadataDownloadService.refreshAndGetMetadata(fallbackMetadataURL: URL): CompletableFuture<MaterialIconsMetadata> {
-  val semaphore = Semaphore().apply { down() }
-  val onComplete = semaphore::up
+  val completableFuture = CompletableFuture<Void>()
+  val onComplete = Runnable {
+    completableFuture.complete(null)
+  }
   refresh(onComplete, onComplete, false)
-
-  return CompletableFuture.supplyAsync(Supplier {
-    // Wait for async refresh to complete, then ask the service for the metadata.
-    semaphore.waitFor(TimeUnit.MINUTES.toMillis(1L))
-    return@Supplier getMetadata(this.getLatestMetadataUrl()).takeUnless { it === MaterialIconsMetadata.EMPTY }
-                    // Fallback URL should not fail
-                    ?: getMetadata(fallbackMetadataURL)
-  }, AppExecutorUtil.getAppExecutorService())
+  return completableFuture
+    .thenApplyAsync({
+                      val metadataResult = getMetadata(this.getLatestMetadataUrl())
+                      // Wait for async refresh to complete, then ask the service for the metadata.
+                      return@thenApplyAsync when {
+                        metadataResult.isSuccess -> metadataResult.getOrThrow()
+                        // Fallback URL should not fail
+                        else -> {
+                          metadataResult.exceptionOrNull()?.let {
+                            Logger.getInstance(MaterialIconsMetadataDownloadService::class.java)
+                              .warn("Error downloading icons metadata", it)
+                          }
+                          getMetadata(fallbackMetadataURL).getOrThrow()
+                        }
+                      }
+    }, AppExecutorUtil.getAppExecutorService())
 }

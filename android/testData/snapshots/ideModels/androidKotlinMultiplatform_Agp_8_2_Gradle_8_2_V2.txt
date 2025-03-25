@@ -152,7 +152,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/androidLib
-                buildDir                      : <ROOT>/androidLib/build [-]
+                buildDir                      : <ROOT>/androidLib/build
                 buildFile                     : <ROOT>/androidLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -713,7 +713,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/kmpFirstLib
-                buildDir                      : <ROOT>/kmpFirstLib/build [-]
+                buildDir                      : <ROOT>/kmpFirstLib/build
                 buildFile                     : <ROOT>/kmpFirstLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -808,7 +808,6 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathAndroidUnitTest      : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -820,7 +819,7 @@ MODULE                        : Kotlin_Multiplatform
                         metadataCompilationImplementation       : <empty>
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-kotlin-sources.jar [-]
                         unitTestKotlinScriptDef       : <empty>
                         unitTestKotlinScriptDefExtensions       : <empty>
                     - additionalArtifacts         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
@@ -836,7 +835,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/kmpJvmOnly
-                buildDir                      : <ROOT>/kmpJvmOnly/build [-]
+                buildDir                      : <ROOT>/kmpJvmOnly/build
                 buildFile                     : <ROOT>/kmpJvmOnly/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -869,6 +868,7 @@ MODULE                        : Kotlin_Multiplatform
                         commonTestRuntimeOnly         : <empty>
                         default                       : <empty>
                         - jvmApiElements              : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                        - jvmApiElements-published    : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                         jvmCompilationApi             : <empty>
                         jvmCompilationCompileOnly     : <empty>
                         jvmCompilationImplementation  : <empty>
@@ -885,7 +885,9 @@ MODULE                        : Kotlin_Multiplatform
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
+                        - jvmSourcesElements-published          : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm-sources.jar [-]
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -908,7 +910,6 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -918,7 +919,7 @@ MODULE                        : Kotlin_Multiplatform
                         metadataCompilationImplementation       : <empty>
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-kotlin-sources.jar [-]
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
                     - additionalArtifacts         : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-metadata.jar [-]
@@ -935,12 +936,12 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/kmpSecondLib
-                buildDir                      : <ROOT>/kmpSecondLib/build [-]
+                buildDir                      : <ROOT>/kmpSecondLib/build
                 buildFile                     : <ROOT>/kmpSecondLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
-                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    sourceCompatibility           : 11
+                    targetCompatibility           : 11
                     - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
                     - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                     configurationArtifacts
@@ -993,6 +994,7 @@ MODULE                        : Kotlin_Multiplatform
                         coreLibraryDesugaring         : <empty>
                         default                       : <empty>
                         - jvmApiElements              : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - jvmApiElements-published    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         jvmCompilationApi             : <empty>
                         jvmCompilationCompileOnly     : <empty>
                         jvmCompilationImplementation  : <empty>
@@ -1009,7 +1011,9 @@ MODULE                        : Kotlin_Multiplatform
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
+                        - jvmSourcesElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -1033,7 +1037,6 @@ MODULE                        : Kotlin_Multiplatform
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1045,7 +1048,7 @@ MODULE                        : Kotlin_Multiplatform
                         metadataCompilationImplementation       : <empty>
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-kotlin-sources.jar [-]
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
                     - additionalArtifacts         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
@@ -1056,6 +1059,31 @@ MODULE                        : Kotlin_Multiplatform
                             qName                         : :kmpSecondLib:jvmTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                jvmTest                       : jvmTest (DefaultExternalTask)
+                    qName                         : :kmpJvmOnly:jvmTest
+                testAndroidUnitTest           : testAndroidUnitTest (DefaultExternalTask)
+                    qName                         : :kmpFirstLib:testAndroidUnitTest
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
+                testTypeoneModeoneDebugUnitTest         : testTypeoneModeoneDebugUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypeoneModeoneDebugUnitTest
+                testTypeoneModeoneReleaseUnitTest       : testTypeoneModeoneReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypeoneModeoneReleaseUnitTest
+                testTypeoneModetwoDebugUnitTest         : testTypeoneModetwoDebugUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypeoneModetwoDebugUnitTest
+                testTypeoneModetwoReleaseUnitTest       : testTypeoneModetwoReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypeoneModetwoReleaseUnitTest
+                testTypetwoModeoneDebugUnitTest         : testTypetwoModeoneDebugUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypetwoModeoneDebugUnitTest
+                testTypetwoModeoneReleaseUnitTest       : testTypetwoModeoneReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypetwoModeoneReleaseUnitTest
+                testTypetwoModetwoDebugUnitTest         : testTypetwoModetwoDebugUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypetwoModetwoDebugUnitTest
+                testTypetwoModetwoReleaseUnitTest       : testTypetwoModetwoReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :androidLib:testTypetwoModetwoReleaseUnitTest
 MODULE                        : Kotlin_Multiplatform.androidLib
     GradleModuleModel
         agpVersion                    : 8.2.0
@@ -1074,16 +1102,16 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ApiLevel                      : 21
             ApiString                     : 21
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :androidLib
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
-    BuildFolder                   : <ROOT>/androidLib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    CompileTarget                 : android-34
+    BuildFolder                   : <ROOT>/androidLib/build
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
     Namespace                     : com.example.androidlib
@@ -1124,6 +1152,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : typeoneModeoneDebug
         testApplicationId             : com.example.androidlib.test
         buildType                     : debug
@@ -1146,7 +1175,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         buildType                     : release
     FlavorDimensions              : type
     FlavorDimensions              : mode
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1156,8 +1185,8 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1519,8 +1548,8 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionNameSuffix             :
             ProductFlavors                : typeone
             ProductFlavors                : modetwo
@@ -1530,9 +1559,9 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 AssembleTaskName              : assembleTypeoneModetwoDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateTypeoneModetwoDebugSources
-                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebug/R.jar [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/classes [-]
+                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebug/R.jar
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/classes
                 VariantSourceProvider
                     Name                          : typeoneModetwoDebug
                     Manifest                      : <ROOT>/androidLib/src/typeoneModetwoDebug/AndroidManifest.xml [-]
@@ -1564,7 +1593,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleTypeoneModetwoDebug
-                GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
+                GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug
                 DesugaredMethodFiles          : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
@@ -1677,16 +1706,16 @@ MODULE                        : Kotlin_Multiplatform.app
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : Kotlin Multiplatform
     Namespace                     : com.example.app
@@ -1727,6 +1756,7 @@ MODULE                        : Kotlin_Multiplatform.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
@@ -1734,7 +1764,7 @@ MODULE                        : Kotlin_Multiplatform.app
     - basicVariant:               : release
         applicationId                 : com.example.app
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1747,8 +1777,8 @@ MODULE                        : Kotlin_Multiplatform.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1915,8 +1945,8 @@ MODULE                        : Kotlin_Multiplatform.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -2134,9 +2164,9 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     ProjectPath                   : :kmpFirstLib
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
-    CompileTarget                 : android-<SDK_VERSION>
-    BuildFolder                   : <ROOT>/kmpFirstLib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    CompileTarget                 : android-34
+    BuildFolder                   : <ROOT>/kmpFirstLib/build
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
     Namespace                     : com.example.kmpfirstlib
@@ -2177,9 +2207,10 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : androidMain
         testApplicationId             : com.example.kmpfirstlib.test
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     DefaultSourceProvider
         SourceProvider
             Name                          : androidMain
@@ -2852,9 +2883,9 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
     ProjectPath                   : :kmpSecondLib
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
-    CompileTarget                 : android-<SDK_VERSION>
-    BuildFolder                   : <ROOT>/kmpSecondLib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    CompileTarget                 : android-34
+    BuildFolder                   : <ROOT>/kmpSecondLib/build
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
     Namespace                     : com.example.kmpsecondlib
@@ -2894,8 +2925,9 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : androidMain
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     DefaultSourceProvider
         SourceProvider
             Name                          : androidMain
@@ -3071,7 +3103,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 1.8
                     moduleName                    : kmpSecondLib
                     noReflect                     : true
                     noStdlib                      : true
@@ -3150,7 +3182,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test
                     jvmDefault                    : disable
-                    jvmTarget                     : 17
+                    jvmTarget                     : 1.8
                     moduleName                    : kmpSecondLib_test
                     noReflect                     : true
                     noStdlib                      : true

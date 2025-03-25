@@ -54,6 +54,7 @@ import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
@@ -100,7 +101,6 @@ import java.util.Collections
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
-import kotlin.collections.set
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -411,6 +411,44 @@ class AppInspectionInspectorClientTest {
         enableBitmapScreenshotReceived.await(TIMEOUT, TIMEOUT_UNIT)
       }
     }
+
+  @Test
+  fun enableXrInspectionTrueWhenFlagEnabled() {
+    val prev = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.get()
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.override(true)
+
+    runBlocking {
+      val latch = ReportingCountDownLatch(1)
+      inspectionRule.viewInspector.listenWhen({ it.hasEnableXrInspectionCommand() }) { command ->
+        assertThat(command.enableXrInspectionCommand.enable).isTrue()
+        latch.countDown()
+      }
+
+      inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+      latch.await(TIMEOUT, TIMEOUT_UNIT)
+    }
+
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.override(prev)
+  }
+
+  @Test
+  fun enableXrInspectionFalseWhenFlagDisabled() {
+    val prev = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.get()
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.override(false)
+
+    runBlocking {
+      val latch = ReportingCountDownLatch(1)
+      inspectionRule.viewInspector.listenWhen({ it.hasEnableXrInspectionCommand() }) { command ->
+        throw IllegalStateException("EnableXrInspection command should not be sent.")
+      }
+      inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { latch.countDown() }
+
+      inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+      latch.await(TIMEOUT, TIMEOUT_UNIT)
+    }
+
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.override(prev)
+  }
 
   @Test
   fun statsInitializedWhenConnectedA() {
@@ -1225,7 +1263,8 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
           setConnectionFactory { _, _ -> this }
         }
 
-        override fun findAvd(avdId: String) = if (avdId == avdInfo.name) avdInfo else null
+        override fun findAvdWithFolder(avdFolder: Path) =
+          if (avdFolder == avdInfo.dataFolderPath) avdInfo else null
 
         fun resetFactory() {
           resetConnectionFactory()
@@ -1314,7 +1353,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,
       "myAvd-$apiLevel",
-      "/android/avds/myAvd-$apiLevel",
+      "/android/avds/myAvd-$apiLevel.avd",
     )
 
     return processDescriptor

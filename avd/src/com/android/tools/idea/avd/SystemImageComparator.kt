@@ -17,10 +17,13 @@ package com.android.tools.idea.avd
 
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.SystemImageTags.ALL_TABLET_TAGS
+import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.collections.immutable.plus
 
 /** Sorts system images by preference: least preferred to most */
 internal object SystemImageComparator :
-  Comparator<ISystemImage> by (compareBy<ISystemImage> { it.isRecommended() }
+  Comparator<ISystemImage> by (compareBy<ISystemImage> { it.isSupported() }
     .thenBy { it.isForTablet() }
     .thenByDescending { it.androidVersion.isPreview }
     .thenBy { it.androidVersion.featureLevel }
@@ -31,7 +34,7 @@ internal object SystemImageComparator :
     .thenByDescending { it.getOtherTagCount() }
     .thenByDescending { it.`package`.displayName })
 
-private fun ISystemImage.isForTablet() = tags.contains(SystemImageTags.TABLET_TAG)
+private fun ISystemImage.isForTablet() = SystemImageTags.isTabletImage(tags)
 
 /**
  * Returns the number of tags that haven't otherwise been considered by the comparator. The more of
@@ -41,17 +44,17 @@ private fun ISystemImage.isForTablet() = tags.contains(SystemImageTags.TABLET_TA
 private fun ISystemImage.getOtherTagCount() = tags.count { it !in ACCOUNTED_FOR_TAGS }
 
 private val ACCOUNTED_FOR_TAGS =
-  setOf(
-    SystemImageTags.ANDROID_TV_TAG,
-    SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG,
-    SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG,
-    SystemImageTags.AUTOMOTIVE_TAG,
-    SystemImageTags.CHROMEOS_TAG,
-    SystemImageTags.DESKTOP_TAG,
-    SystemImageTags.GOOGLE_APIS_TAG,
-    SystemImageTags.GOOGLE_APIS_X86_TAG,
-    SystemImageTags.GOOGLE_TV_TAG,
-    SystemImageTags.PLAY_STORE_TAG,
-    SystemImageTags.TABLET_TAG,
-    SystemImageTags.WEAR_TAG,
-  )
+  persistentSetOf(
+      SystemImageTags.ANDROID_TV_TAG,
+      SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG,
+      SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG,
+      SystemImageTags.AUTOMOTIVE_TAG,
+      SystemImageTags.CHROMEOS_TAG,
+      SystemImageTags.DESKTOP_TAG,
+      SystemImageTags.GOOGLE_APIS_TAG,
+      SystemImageTags.GOOGLE_APIS_X86_TAG,
+      SystemImageTags.GOOGLE_TV_TAG,
+      SystemImageTags.PLAY_STORE_TAG,
+      SystemImageTags.WEAR_TAG,
+    )
+    .plus(ALL_TABLET_TAGS)

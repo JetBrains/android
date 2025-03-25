@@ -99,6 +99,8 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
 
     a.add(new CreateTypedResourceFileAction(ResourceType.FONT.getDisplayName(), ResourceFolderType.FONT, false, false));
 
+    a.add(new CreateTypedResourceFileAction(ResourceType.RAW.getDisplayName(), ResourceFolderType.RAW, false, false));
+
     myMajorAction = a;
     add(a);
     for (CreateTypedResourceFileAction subaction : a.getSubactions()) {

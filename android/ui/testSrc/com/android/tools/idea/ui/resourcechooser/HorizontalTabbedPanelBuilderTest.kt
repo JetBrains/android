@@ -16,13 +16,18 @@
 package com.android.tools.idea.ui.resourcechooser
 
 import com.intellij.testFramework.HeavyPlatformTestCase
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.awt.Dimension
 import java.lang.IllegalArgumentException
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
 
+@RunWith(JUnit4::class)
 class HorizontalTabbedPanelBuilderTest : HeavyPlatformTestCase() {
 
+  @Test
   fun testSize() {
     run {
       // Test single component case
@@ -55,6 +60,7 @@ class HorizontalTabbedPanelBuilderTest : HeavyPlatformTestCase() {
     }
   }
 
+  @Test
   fun testExceptionWhenComponentAddedTwice() {
     assertThrows(IllegalArgumentException::class.java) {
       val builder = HorizontalTabbedPanelBuilder()

@@ -35,6 +35,7 @@ namespace {
 
 constexpr int MAX_SUBSEQUENT_ERRORS = 5;
 constexpr int MIN_VIDEO_RESOLUTION = 128;
+constexpr int64_t INITIAL_FRAME_TIMEOUT_MILLIS = 200;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
 constexpr int MAX_FRAME_RATE = 60;
 constexpr int REDUCED_FRAME_RATE = 30;  // Frame rate used for watches.
@@ -47,7 +48,6 @@ constexpr char const* AMEDIAFORMAT_KEY_COLOR_STANDARD = "color-standard";  // In
 constexpr int COLOR_STANDARD_BT601_NTSC = 4;  // See android.media.MediaFormat.COLOR_STANDARD_BT601_NTSC.
 constexpr double SQRT_2 = 1.41421356237;
 constexpr double SQRT_10 = 3.16227766017;
-constexpr int SOCKET_TIMEOUT_MICROS = 10000000;
 
 // Rounds the given number to the closest on logarithmic scale value of the for n * 10^k,
 // where n is one of 1, 2 or 5 and k is integer number.
@@ -148,11 +148,11 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
 }  // namespace
 
 DisplayStreamer::DisplayStreamer(int32_t display_id, const CodecInfo* codec_info, Size max_video_resolution,
-                                 int32_t initial_video_orientation, int32_t max_bit_rate, int socket_fd)
+                                 int32_t initial_video_orientation, int32_t max_bit_rate, SocketWriter* writer)
     : display_rotation_watcher_(this),
       display_id_(display_id),
       codec_info_(codec_info),
-      writer_(socket_fd, "video"),
+      writer_(writer),
       bit_rate_(max_bit_rate > 0 ? max_bit_rate : DEFAULT_BIT_RATE),
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation) {
@@ -212,7 +212,7 @@ void DisplayStreamer::Run() {
   }
 
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
-  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};
+  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = frame_number_};
   bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
 
@@ -303,7 +303,11 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
   bool request_sync_frame = true;
   while (continue_streaming && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec_, StringPrintf("Display %d: ", display_id_));
-    if (!codec_buffer.Deque(-1)) {
+    if (frame_number_ == initial_frame_number_) {
+      Log::D("Display %d: calling AMediaCodec_dequeueOutputBuffer", display_id_);
+    }
+    int64_t timeout = frame_number_ == initial_frame_number_ ? INITIAL_FRAME_TIMEOUT_MILLIS * 1000 : -1;
+    if (!codec_buffer.Deque(timeout)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
         ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
         Log::Fatal(exitCode, "Display %d: too many video encoder errors:\n%s", display_id_,
@@ -323,8 +327,8 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
       continue;
     }
 
-    if (packet_header->frame_number == 0) {
-      Log::D("Display %d: first video frame produced by the encoder", display_id_) ;
+    if (frame_number_ == initial_frame_number_) {
+      Log::D("Display %d: video frame #%d produced by the encoder", display_id_, frame_number_ + 1) ;
     }
 
     if (request_sync_frame) {
@@ -349,14 +353,14 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("Display %d: writing video packet: %s", display_id_, packet_header->ToDebugString().c_str());
     }
-    auto res = writer_.Write(packet_header, VideoPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size(), SOCKET_TIMEOUT_MICROS);
+    auto res = writer_->Write(packet_header, VideoPacketHeader::SIZE, codec_buffer.buffer(), codec_buffer.size());
     if (res == SocketWriter::Result::SUCCESS_AFTER_BLOCKING) {
       request_sync_frame = true;
     } else if (res != SocketWriter::Result::SUCCESS) {
       continue_streaming = false;
     }
     if (!codec_buffer.IsConfig()) {
-      packet_header->frame_number++;
+      packet_header->frame_number = ++frame_number_;
     }
     bit_rate_reduced_ = false;
     packet_header->flags &= ~VideoPacketHeader::FLAG_BIT_RATE_REDUCED;
@@ -366,17 +370,18 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
 
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
   Log::D("Display %d: setting video orientation %d", display_id_, orientation);
+  SessionEnvironment& session_environment = Agent::GetSessionEnvironment();
   if (orientation == CURRENT_DISPLAY_ORIENTATION) {
     unique_lock lock(mutex_);
     if (video_orientation_ >= 0) {
-      Agent::session_environment().RestoreAccelerometerRotation();
+      session_environment.RestoreAccelerometerRotation();
       video_orientation_ = -1;
       StopCodecUnlocked();
     }
     return;
   }
 
-  Agent::session_environment().DisableAccelerometerRotation();
+  session_environment.DisableAccelerometerRotation();
 
   Jni jni = Jvm::GetJni();
   bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni, display_id_);
@@ -437,6 +442,7 @@ void DisplayStreamer::DeleteCodec() {
 
 void DisplayStreamer::StartCodecUnlocked() {
   Log::D("Display %d: starting codec", display_id_);
+  initial_frame_number_ = frame_number_;
   media_status_t status = AMediaCodec_start(codec_);
   if (status != AMEDIA_OK) {
     Log::Fatal(VIDEO_ENCODER_START_ERROR, "Display %d: AMediaCodec_start returned %d", display_id_, status);

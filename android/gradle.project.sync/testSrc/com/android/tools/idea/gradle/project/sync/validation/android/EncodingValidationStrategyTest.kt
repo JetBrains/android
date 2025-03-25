@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.validation.android
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.InternedModels
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
@@ -33,6 +32,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.charset.Charset
 

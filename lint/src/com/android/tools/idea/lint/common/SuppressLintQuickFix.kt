@@ -24,6 +24,7 @@ import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
+import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.codeInspection.SuppressionUtilCore

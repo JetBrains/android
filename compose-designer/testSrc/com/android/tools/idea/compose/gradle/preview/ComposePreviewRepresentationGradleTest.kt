@@ -17,16 +17,20 @@ package com.android.tools.idea.compose.gradle.preview
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.delayUntilCondition
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
+import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.getPsiFile
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
@@ -38,6 +42,7 @@ import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.getDefaultPreviewQuality
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.testing.deleteLine
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
@@ -147,7 +152,14 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  fun `panel renders correctly first time`() {
+  fun `panel renders correctly first time`() = runBlocking {
+    withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+    delayUntilCondition(100, 5.seconds) {
+      fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 5
+    }
+
+    val output = fakeUi.render()
+
     assertEquals(
       """
         DefaultPreview
@@ -162,8 +174,6 @@ class ComposePreviewRepresentationGradleTest {
         .filter { it.isShowing }
         .joinToString("\n") { it.displayName },
     )
-
-    val output = fakeUi.render()
 
     val defaultPreviewSceneViewPeerPanel =
       fakeUi.findComponent<SceneViewPeerPanel> { it.displayName == "DefaultPreview" }!!
@@ -242,15 +252,19 @@ class ComposePreviewRepresentationGradleTest {
         FileDocumentManager.getInstance().saveAllDocuments()
       }
     }
-    withContext(uiThread) { fakeUi.root.validate() }
+    withContext(uiThread) { fakeUi.findComponent<SceneViewPanel>()?.doLayout() }
+    projectRule.validate()
+
+    delayUntilCondition(100, 2.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().size == 4 }
+
+    val allSceneViewPeerPanels = fakeUi.findAllComponents<SceneViewPeerPanel>()
+    val sceneViewPeerPanelsText =
+      allSceneViewPeerPanels.joinToString(", ") { "${it.displayName} showing=${it.isShowing}" }
 
     assertEquals(
+      "Unexpected visible panels. Current is '$sceneViewPeerPanelsText'",
       listOf("DefaultPreview", "MyPreviewWithInline", "OnlyATextNavigation", "TwoElementsPreview"),
-      fakeUi
-        .findAllComponents<SceneViewPeerPanel>()
-        .filter { it.isShowing }
-        .map { it.displayName }
-        .sorted(),
+      allSceneViewPeerPanels.filter { it.isShowing }.map { it.displayName }.sorted(),
     )
   }
 
@@ -283,7 +297,14 @@ class ComposePreviewRepresentationGradleTest {
         }
       }
 
+      fakeUi.findComponent<SceneViewPanel>()!!.setNoComposeHeadersForTests()
+
       projectRule.validate()
+
+      withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+      delayUntilCondition(100, 5.seconds) {
+        fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 6
+      }
 
       assertEquals(
         """
@@ -314,6 +335,11 @@ class ComposePreviewRepresentationGradleTest {
       }
 
       projectRule.validate()
+      withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+      delayUntilCondition(100, 5.seconds) {
+        "DefaultPreview - newName" ==
+          fakeUi.findAllComponents<SceneViewPeerPanel>().first().displayName
+      }
 
       assertEquals(
         """
@@ -538,7 +564,219 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  fun testPreviewRenderQuality_zoom() =
+  fun `test zoom-to-fit when enable Focus mode`() = runBlocking {
+    val defaultModeScale = 1.5
+    previewView.mainSurface.zoomController.setScale(defaultModeScale)
+
+    val previewElements =
+      previewView.mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val selectedPreviewElement = previewElements.single { "DefaultPreview" in it.methodFqn }
+
+    // Ensures that the current mode is Default and the zoom is not a zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+    assertTrue(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Start Focus mode.
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
+      composePreviewRepresentation.setMode(PreviewMode.Focus(selectedPreviewElement))
+    }
+    delayUntilCondition(delayPerIterationMs = 500, timeout = 10.seconds) {
+      composePreviewRepresentation.mode.value is PreviewMode.Focus
+    }
+    // FakeUi doesn't call the designSurface.resize() callback needed to call the [notifyZoomToFit]
+    // when the render has finished. We need then to do notify the resize manually.
+    previewView.mainSurface.notifyComponentResizedForTest()
+    delayUntilCondition(delayPerIterationMs = 250) {
+      !previewView.mainSurface.zoomController.canZoomToFit()
+    }
+
+    // Focus mode should be in zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Focus)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Change the scale of the surface.
+    previewView.mainSurface.zoomController.zoom(ZoomType.OUT)
+    previewView.mainSurface.zoomController.zoom(ZoomType.OUT)
+
+    // Stop Focus mode.
+    switchToDefaultMode()
+
+    // Check that the surface of the default mode is unchanged.
+    delayUntilCondition(delayPerIterationMs = 250) {
+      previewView.mainSurface.zoomController.scale == defaultModeScale
+    }
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+    assertEquals(defaultModeScale, previewView.mainSurface.zoomController.scale, 0.001)
+  }
+
+  @Test
+  fun `test zoom-to-fit when switch Focus tabs`() = runBlocking {
+    val defaultModeScale = 1.5
+    previewView.mainSurface.zoomController.setScale(defaultModeScale)
+
+    val previewElements =
+      previewView.mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val firstPreviewElement = previewElements.single { "DefaultPreview" in it.methodFqn }
+    val secondSelectedPreviewElement =
+      previewElements.single { "MyPreviewWithInline" in it.methodFqn }
+
+    // Ensures that the current mode is Default and the zoom is not a zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+    assertTrue(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Start Focus mode with the first tab.
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
+      composePreviewRepresentation.setMode(PreviewMode.Focus(firstPreviewElement))
+    }
+    delayUntilCondition(delayPerIterationMs = 500, timeout = 10.seconds) {
+      composePreviewRepresentation.mode.value is PreviewMode.Focus
+    }
+    previewView.mainSurface.notifyComponentResizedForTest()
+    delayUntilCondition(delayPerIterationMs = 250) {
+      !previewView.mainSurface.zoomController.canZoomToFit()
+    }
+
+    // Focus mode first tab should be in zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Focus)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Change the scale of the first tab.
+    previewView.mainSurface.zoomController.zoom(ZoomType.IN)
+    previewView.mainSurface.zoomController.zoom(ZoomType.IN)
+    previewView.mainSurface.zoomController.zoom(ZoomType.IN)
+
+    // Because of the zoom change now we would be able to zoom-to-fit again.
+    assertTrue(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Switch to second tab of Focus mode.
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
+      composePreviewRepresentation.setMode(PreviewMode.Focus(secondSelectedPreviewElement))
+    }
+
+    previewView.mainSurface.notifyComponentResizedForTest()
+    previewView.mainSurface.notifyLayoutCreatedForTest()
+    delayUntilCondition(delayPerIterationMs = 250) {
+      !previewView.mainSurface.zoomController.canZoomToFit()
+    }
+
+    // Focus mode second tab should be in zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Focus)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+  }
+
+  @Test
+  fun `test zoom-to-fit when enable Animation inspection mode`() = runBlocking {
+    val defaultModeScale = 1.5
+    previewView.mainSurface.zoomController.setScale(defaultModeScale)
+
+    val previewElements =
+      previewView.mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val selectedPreviewElement = previewElements.single { "DefaultPreview" in it.methodFqn }
+
+    // Ensures that the current mode is Default and the zoom is not a zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+    assertTrue(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Start Animation inspection.
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
+      composePreviewRepresentation.setMode(PreviewMode.AnimationInspection(selectedPreviewElement))
+    }
+    delayUntilCondition(delayPerIterationMs = 500, timeout = 10.seconds) {
+      composePreviewRepresentation.mode.value is PreviewMode.AnimationInspection
+    }
+    // FakeUi doesn't call the designSurface.resize() callback needed to call the [notifyZoomToFit]
+    // when the render has finished. We need then to do notify the resize manually.
+    previewView.mainSurface.notifyComponentResizedForTest()
+    delayUntilCondition(delayPerIterationMs = 250) {
+      !previewView.mainSurface.zoomController.canZoomToFit()
+    }
+
+    // Animation inspection mode should be in zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.AnimationInspection)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Change the scale of the surface.
+    previewView.mainSurface.zoomController.zoom(ZoomType.OUT)
+    previewView.mainSurface.zoomController.zoom(ZoomType.OUT)
+
+    // Stop Animation inspection mode.
+    switchToDefaultMode()
+
+    // Check that the surface of the default mode is unchanged.
+    delayUntilCondition(delayPerIterationMs = 250) {
+      previewView.mainSurface.zoomController.scale == defaultModeScale
+    }
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+    assertEquals(defaultModeScale, previewView.mainSurface.zoomController.scale, 0.001)
+  }
+
+  @Test
+  fun `test zoom-to-fit on when enable Interactive Preview mode`() = runBlocking {
+    val defaultModeScale = 1.5
+    previewView.mainSurface.zoomController.setScale(defaultModeScale)
+
+    val previewElements =
+      previewView.mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val selectedPreviewElement = previewElements.single { "DefaultPreview" in it.methodFqn }
+
+    // Ensures that the current mode is Default and the zoom is not a zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+    assertTrue(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Start Interactive Preview mode.
+    startInteractiveMode(selectedPreviewElement)
+
+    // Interactive Preview mode should be in zoom-to-fit scale.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Interactive)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+
+    // Change the scale of the surface.
+    previewView.mainSurface.zoomController.zoom(ZoomType.OUT)
+    previewView.mainSurface.zoomController.zoom(ZoomType.OUT)
+
+    // Stop Interactive Preview mode.
+    switchToDefaultMode()
+
+    // Check that the surface of the default mode is unchanged.
+    delayUntilCondition(delayPerIterationMs = 250) {
+      previewView.mainSurface.zoomController.scale == defaultModeScale
+    }
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+    assertEquals(defaultModeScale, previewView.mainSurface.zoomController.scale, 0.001)
+
+    // Start Interactive Preview mode.
+    startInteractiveMode(selectedPreviewElement)
+
+    // Interactive Preview again and should be in zoom-to-fit scale again.
+    assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Interactive)
+    assertFalse(previewView.mainSurface.zoomController.canZoomToFit())
+  }
+
+  private suspend fun startInteractiveMode(
+    selectedPreviewElement: PsiComposePreviewElementInstance
+  ) {
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 35.seconds) {
+      composePreviewRepresentation.setMode(PreviewMode.Interactive(selectedPreviewElement))
+    }
+    delayUntilCondition(delayPerIterationMs = 500, timeout = 10.seconds) {
+      composePreviewRepresentation.mode.value is PreviewMode.Interactive
+    }
+    delayUntilCondition(delayPerIterationMs = 250) {
+      !previewView.mainSurface.zoomController.canZoomToFit()
+    }
+  }
+
+  private suspend fun switchToDefaultMode() {
+    projectRule.runAndWaitForRefresh(
+      expectedRefreshType = ComposePreviewRefreshType.NORMAL,
+      failOnTimeout = true,
+    ) {
+      composePreviewRepresentation.setMode(PreviewMode.Default())
+    }
+  }
+
+  @Test
+  fun testPreviewRenderQuality_zoom() {
     projectRule.runWithRenderQualityEnabled {
       var firstPreview: SceneViewPeerPanel? = null
       // zoom and center to one preview (quality change refresh should happen)
@@ -606,9 +844,10 @@ class ComposePreviewRepresentationGradleTest {
           .lastRenderQuality,
       )
     }
+  }
 
   @Test
-  fun testPreviewRenderQuality_lifecycle() =
+  fun testPreviewRenderQuality_lifecycle() {
     projectRule.runWithRenderQualityEnabled {
       var firstPreview: SceneViewPeerPanel? = null
       // zoom and center to one preview (quality change refresh should happen)
@@ -672,4 +911,5 @@ class ComposePreviewRepresentationGradleTest {
           .lastRenderQuality,
       )
     }
+  }
 }

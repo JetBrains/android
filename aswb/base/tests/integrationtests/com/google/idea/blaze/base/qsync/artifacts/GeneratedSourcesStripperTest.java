@@ -3,7 +3,7 @@ package com.google.idea.blaze.base.qsync.artifacts;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.io.ByteSource;
-import com.google.idea.testing.java.CompatLightJavaCodeInsightFixtureTestCase4;
+import com.google.idea.testing.java.LightJavaCodeInsightFixtureTestCase4Concrete;
 import java.nio.charset.StandardCharsets;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class GeneratedSourcesStripperTest extends CompatLightJavaCodeInsightFixtureTestCase4 {
+public class GeneratedSourcesStripperTest extends LightJavaCodeInsightFixtureTestCase4Concrete {
 
   GeneratedSourcesStripper gcs;
 

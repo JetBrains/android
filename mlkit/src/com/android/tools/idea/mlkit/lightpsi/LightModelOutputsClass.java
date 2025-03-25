@@ -34,7 +34,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiType;
@@ -71,7 +70,7 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   public static final String TAG_GROUP_METHOD = "group method";
 
   @NotNull
-  private final PsiClass containingClass;
+  private final LightModelClass containingClass;
   @NotNull
   private final String qualifiedName;
   @NotNull
@@ -80,14 +79,13 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
   private final APIVersion myAPIVersion;
   private final boolean myGenerateFallbackApiOnly;
 
-  public LightModelOutputsClass(@NotNull Module module, @NotNull ModelInfo modelInfo, @NotNull PsiClass containingClass) {
-    super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
+  public LightModelOutputsClass(@NotNull Module module, @NotNull ModelInfo modelInfo, @NotNull LightModelClass containingClass) {
+    super(containingClass, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
+
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlNames.OUTPUTS);
     this.containingClass = containingClass;
     myAPIVersion = APIVersion.fromProject(module.getProject());
     myGenerateFallbackApiOnly = myAPIVersion.generateFallbackApiOnly(modelInfo.getMinParserVersion());
-
-    setModuleInfo(module, false);
 
     // Caches getter methods for output class.
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
@@ -171,13 +169,6 @@ public class LightModelOutputsClass extends AndroidLightClassBase {
       .setNavigationElement(this);
     method.setOriginInfo(TAG_GROUP_METHOD);
     return method;
-  }
-
-
-  @NotNull
-  @Override
-  public PsiClass getContainingClass() {
-    return containingClass;
   }
 
   @NotNull

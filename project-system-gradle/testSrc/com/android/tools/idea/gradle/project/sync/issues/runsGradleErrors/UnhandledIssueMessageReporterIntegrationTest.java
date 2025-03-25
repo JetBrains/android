@@ -67,7 +67,7 @@ public class UnhandledIssueMessageReporterIntegrationTest extends AndroidGradleT
 
     assertSize(1, messages);
 
-    final var message = messages.get(0);
+    final var message = messages.get(0).getSyncMessage();
     assertEquals(MessageType.WARNING, message.getType());
     assertThat(String.join("", message.getMessage())).contains(expectedText);
 
@@ -78,13 +78,15 @@ public class UnhandledIssueMessageReporterIntegrationTest extends AndroidGradleT
     VirtualFile file = ((OpenFileDescriptor)message.getNavigatable()).getFile();
     assertSame(buildFile, file);
 
+    assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
     assertEquals(
       ImmutableList.of(
         GradleSyncIssue.newBuilder()
           .setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
           .build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
+      SyncIssueUsageReporter.createGradleSyncIssues(0, ImmutableList.of(message)));
   }
 
   public void testReportWithoutBuildFile() throws Exception {
@@ -106,15 +108,17 @@ public class UnhandledIssueMessageReporterIntegrationTest extends AndroidGradleT
 
     assertSize(1, messages);
 
-    final var message = messages.get(0);
+    final var message = messages.get(0).getSyncMessage();
     assertEquals(MessageType.WARNING, message.getType());
     assertEquals(expectedText, message.getMessage());
 
     assertEquals(NonNavigatable.INSTANCE, message.getNavigatable());
 
+    assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
     assertEquals(
       ImmutableList.of(
         GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE).build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
+      SyncIssueUsageReporter.createGradleSyncIssues(0, ImmutableList.of(message)));
   }
 }

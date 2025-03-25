@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Unmodifiable;
 /**
  * Provide Gradle specific abstraction over a {@link PsiElement}s.
  */
-public interface GradleDslElement extends AnchorProvider {
+public interface GradleDslElement extends GradleDslAnchorProvider {
   void setParsedClosureElement(@NotNull GradleDslClosure closure);
 
   void setNewClosureElement(@Nullable GradleDslClosure closureElement);
@@ -116,6 +116,9 @@ public interface GradleDslElement extends AnchorProvider {
 
   void setPsiElement(@Nullable PsiElement psiElement);
 
+  // is called once child.psiElement assigned a new value
+  void childPsiUpdated(@NotNull GradleDslElement childElement);
+
   @NotNull
   ExternalNameSyntax getExternalSyntax();
 
@@ -134,7 +137,7 @@ public interface GradleDslElement extends AnchorProvider {
   List<GradleReferenceInjection> getResolvedVariables();
 
   @Nullable
-  GradleDslElement getAnchor();
+  GradleDslAnchor getAnchor();
 
   /**
    * Creates the {@link PsiElement} by adding this element to the .gradle file.

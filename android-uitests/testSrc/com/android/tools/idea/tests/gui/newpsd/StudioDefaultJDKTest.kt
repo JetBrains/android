@@ -29,7 +29,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 
 @RunWith(GuiTestRemoteRunner::class)
 class StudioDefaultJDKTest {
@@ -97,7 +96,7 @@ class StudioDefaultJDKTest {
       ide.robot().pressAndReleaseKey(KeyEvent.VK_COMMA)
       ide.robot().releaseKey(KeyEvent.VK_META);
     } else {
-      ide.invokeMenuPath("File", "Settings...")
+      ide.invokeMenuPath("File", "Settings\u2026")
     }
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 

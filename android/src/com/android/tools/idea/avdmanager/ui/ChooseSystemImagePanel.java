@@ -289,10 +289,8 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     // TODO: http://b/326294450 - Try doing this in device and system image declarations
-    if (!Device.isTablet(device)) {
-      if (imageTags.contains(SystemImageTags.TABLET_TAG)) {
-        return false;
-      }
+    if (!Device.isTablet(device) && SystemImageTags.isTabletImage(imageTags)) {
+      return false;
     }
 
     // Unknown/generic device?
@@ -305,7 +303,8 @@ public class ChooseSystemImagePanel extends JPanel
              && !SystemImageTags.isWearImage(imageTags)
              && !SystemImageTags.isAutomotiveImage(imageTags)
              && !imageTags.contains(SystemImageTags.DESKTOP_TAG)
-             && !imageTags.contains(SystemImageTags.CHROMEOS_TAG);
+             && !imageTags.contains(SystemImageTags.CHROMEOS_TAG)
+             && !imageTags.contains(SystemImageTags.XR_TAG);
     }
 
     // 4K TV requires at least S (API 31)
@@ -443,13 +442,13 @@ public class ChooseSystemImagePanel extends JPanel
     onSystemImageSelected.consume(mySystemImage);
   }
 
-  private static boolean isBaseExtensionLevelForDeviceType(@NotNull AndroidVersion androidVersion,
+  static boolean isBaseExtensionLevelForDeviceType(@NotNull AndroidVersion androidVersion,
                                                            @NotNull List<IdDisplay> tags) {
-    if (SystemImageTags.isAutomotiveImage(tags) && androidVersion.getApiLevel() == UPSIDE_DOWN_CAKE) {
-      // Automotive udc devices should be placed in RECOMMENDED tab when the extension level is 9
-      return androidVersion.getExtensionLevel() == 9;
-    }
-    return androidVersion.isBaseExtension() || androidVersion.getExtensionLevel() == null;
+    return androidVersion.isBaseExtension()
+           || androidVersion.getExtensionLevel() == null
+           // Automotive udc devices should be placed in RECOMMENDED tab when the extension level is 9
+           || (SystemImageTags.isAutomotiveImage(tags) && androidVersion.getApiLevel() == UPSIDE_DOWN_CAKE
+                && androidVersion.getExtensionLevel() == 9);
   }
 
   @Override

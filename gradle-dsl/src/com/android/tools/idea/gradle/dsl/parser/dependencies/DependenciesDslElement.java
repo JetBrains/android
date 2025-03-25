@@ -31,6 +31,9 @@ public class DependenciesDslElement extends GradleDslElementList implements Desc
   public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES =
     new PropertiesElementDescription<>("dependencies", DependenciesDslElement.class, DependenciesDslElement::new);
 
+  public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES_DCL =
+    new PropertiesElementDescription<>("dependenciesDcl", DependenciesDslElement.class, DependenciesDslElement::new);
+
   @Override
   public @NotNull PropertiesElementDescription<DependenciesDslElement> getDescription() {
     return DEPENDENCIES;

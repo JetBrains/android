@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dcl.lang.ide.color
 
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFileType
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeHighlighter
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFileType
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighter
 import com.intellij.openapi.options.colors.AttributesDescriptor
@@ -27,8 +27,8 @@ import javax.swing.Icon
 
 class DeclarativeColorSettingsPage : ColorSettingsPage {
 
-  private val attributesDescriptors = DeclarativeColor.values().map { it.attributesDescriptor }.toTypedArray()
-  private val tagToDescriptorMap = DeclarativeColor.values().associateBy({ it.name }, { it.textAttributesKey })
+  private val attributesDescriptors = DeclarativeColor.entries.map { it.attributesDescriptor }.toTypedArray()
+  private val tagToDescriptorMap = DeclarativeColor.entries.associateBy({ it.name }, { it.textAttributesKey })
   private val highlighterDemoText = """
     <COMMENT>// one line comment</COMMENT>
     <BLOCK_COMMENT>/* block comment */</BLOCK_COMMENT>

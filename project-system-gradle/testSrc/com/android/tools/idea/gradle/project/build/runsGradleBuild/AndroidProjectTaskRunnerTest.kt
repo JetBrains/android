@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.build.runsGradleBuild
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.hookExecuteTasks

@@ -1303,6 +1303,11 @@ MODULE                        : navgraph
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : navgraph.app
     GradleModuleModel
         agpVersion                    : 4.2.0
@@ -1321,8 +1326,8 @@ MODULE                        : navgraph.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -1371,6 +1376,7 @@ MODULE                        : navgraph.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.navgraph
         testApplicationId             : com.example.navgraph.test
@@ -1395,8 +1401,8 @@ MODULE                        : navgraph.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1569,8 +1575,8 @@ MODULE                        : navgraph.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.example.navgraph
@@ -1984,8 +1990,8 @@ MODULE                        : navgraph.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
@@ -2034,6 +2040,7 @@ MODULE                        : navgraph.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
         buildType                     : debug
@@ -2052,8 +2059,8 @@ MODULE                        : navgraph.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2216,8 +2223,8 @@ MODULE                        : navgraph.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.example.lib

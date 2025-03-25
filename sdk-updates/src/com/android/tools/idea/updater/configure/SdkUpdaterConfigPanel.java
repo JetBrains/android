@@ -32,14 +32,20 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.android.tools.idea.sdk.wizard.SetupSdkApplicationService;
+import com.android.tools.idea.ui.ApplicationUtils;
+import com.android.tools.idea.welcome.install.SdkComponentInstaller;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
@@ -50,9 +56,12 @@ import com.google.common.collect.TreeMultimap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
@@ -78,10 +87,12 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -98,6 +109,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -224,7 +237,10 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myDownloader = downloader;
     mySettings = settings;
 
-    mySelectedSdkLocation.set(getSdkLocation());
+    Collection<File> sdkLocations = getSdkLocations();
+    if (!sdkLocations.isEmpty()) {
+      mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
+    }
     mySelectedSdkLocation.addListener(() -> ApplicationManager.getApplication().invokeLater(this::reset));
 
     ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
@@ -261,8 +277,28 @@ public class SdkUpdaterConfigPanel implements Disposable {
     return mySelectedSdkLocation.get().orElse(null);
   }
 
-  private static Optional<File> getSdkLocation() {
-    return Optional.ofNullable(IdeSdks.getInstance().getAndroidSdkPath());
+  @NotNull
+  private static Collection<File> getSdkLocations() {
+    File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
+    if (androidHome != null) {
+      return ImmutableList.of(androidHome);
+    }
+
+    Set<File> locations = new HashSet<>();
+    // We don't check Projects.isGradleProject(project) because it may return false if the last sync failed, even if it is a
+    // Gradle project.
+    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+      List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
+
+      for (AndroidFacet facet : facets) {
+        AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(facet.getModule());
+        AndroidSdkData sdkData = androidPlatform == null ? null : androidPlatform.getSdkData();
+        if (sdkData != null) {
+          locations.add(sdkData.getLocationFile());
+        }
+      }
+    }
+    return locations;
   }
 
   private void setUpSingleSdkChooser() {
@@ -270,13 +306,32 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-        SelectSdkDialog.createDownloadingComponentsStepDialog(mySdkLocationTextField.getText(), s -> {
-          mySelectedSdkLocation.setValue(s);
-          refresh(false);
-        });
+        boolean useDeprecatedWizard = !StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED.get();
+        SetupSdkApplicationService.getInstance().showSdkSetupWizard(
+          mySdkLocationTextField.getText(),
+          (sdkLocation) -> {
+            onSdkLocationUpdated(sdkLocation);
+            return null;
+          },
+          new SdkComponentInstaller(),
+          new FirstRunWizardTracker(SetupWizardEvent.SetupWizardMode.SDK_SETUP, useDeprecatedWizard),
+          useDeprecatedWizard
+        );
       }
     });
     mySdkLocationTextField.setEditable(false);
+  }
+
+  private void onSdkLocationUpdated(File newSdkLocation) {
+    File currentSdkLocation = IdeSdks.getInstance().getAndroidSdkPath();
+
+    if (!FileUtil.filesEqual(currentSdkLocation, newSdkLocation)) {
+      setAndroidSdkLocation(newSdkLocation);
+    }
+    mySelectedSdkLocation.setValue(newSdkLocation);
+
+    // Pick up changes done by the wizard.
+    refresh(false);
   }
 
   private void setUpDiskCleanupLink() {
@@ -344,6 +399,10 @@ public class SdkUpdaterConfigPanel implements Disposable {
   @Override
   public void dispose() {
     myBindingsManager.releaseAll();
+  }
+
+  private static void setAndroidSdkLocation(final File sdkLocation) {
+    ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> IdeSdks.getInstance().setAndroidSdkPath(sdkLocation));
   }
 
   /**
@@ -429,7 +488,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
           return;
         }
 
-        if (e.getCause() == FocusEvent.Cause.TRAVERSAL_BACKWARD) {
+        boolean traversalBackward = "TRAVERSAL_BACKWARD".equals(getCause(e));
+        if (traversalBackward) {
           backwardAction.doAction(table);
         }
         else {
@@ -437,6 +497,23 @@ public class SdkUpdaterConfigPanel implements Disposable {
         }
       }
     });
+  }
+
+  @Nullable
+  private static String getCause(@NotNull FocusEvent event) {
+    try {
+      // TODO: replace this with event.getCause() when JDK8 is no longer supported
+      Method getCause = event.getClass().getDeclaredMethod("getCause");
+      Object enumValue = getCause.invoke(event);
+      if (enumValue == null) {
+        return null;
+      }
+      return enumValue.toString();
+    }
+    catch (ReflectiveOperationException ex) {
+      Logger.getInstance(SdkUpdaterConfigPanel.class).warn(ex);
+      return null;
+    }
   }
 
   /**
@@ -469,11 +546,13 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null, progressRunner, myDownloader, mySettings);
+        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+              progressRunner, myDownloader, mySettings);
     }
     else {
       myConfigurable.getRepoManager()
-        .load(0, ImmutableList.of(myLocalUpdater), null, null, progressRunner, null, mySettings);
+        .load(0, ImmutableList.of(myLocalUpdater), null, null,
+              progressRunner, null, mySettings);
     }
   }
 
@@ -534,10 +613,16 @@ public class SdkUpdaterConfigPanel implements Disposable {
    */
   public void reset() {
     refresh(true);
-    Optional<File> sdkLocation = getSdkLocation();
-    sdkLocation.ifPresent(file -> mySdkLocationTextField.setText(file.getPath()));
-    myCleanupDiskLink.setEnabled(sdkLocation.isPresent());
-
+    Collection<File> sdkLocations = getSdkLocations();
+    if (sdkLocations.size() == 1) {
+      mySdkLocationTextField.setText(sdkLocations.iterator().next().getPath());
+    }
+    if (sdkLocations.isEmpty()) {
+      myCleanupDiskLink.setEnabled(false);
+    }
+    else {
+      myCleanupDiskLink.setEnabled(true);
+    }
     myPlatformComponentsPanel.reset();
     myToolComponentsPanel.reset();
     myUpdateSitesPanel.reset();

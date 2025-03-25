@@ -18,8 +18,10 @@ package com.android.tools.idea.gradle.dcl.lang.ide.formatting
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_GROUP
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_PROPERTY_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LINE_COMMENT
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
 import com.intellij.formatting.ASTBlock
 import com.intellij.formatting.Alignment
 import com.intellij.formatting.Block
@@ -64,7 +66,7 @@ class DeclarativeFormatBlock(
     ctx.spacingBuilder.getSpacing(this, child1, child2)
 
   override fun getChildAttributes(newChildIndex: Int): ChildAttributes {
-    return if (TokenSet.create(BLOCK_GROUP).contains(node.getElementType())) {
+    return if (TokenSet.create(BLOCK_GROUP).contains(node.elementType)) {
       ChildAttributes(Indent.getNormalIndent(), null)
     }
     else ChildAttributes(Indent.getNoneIndent(), null)
@@ -81,7 +83,7 @@ class DeclarativeFormatBlock(
     return when (node.elementType) {
       is IFileElementType -> Indent.getNoneIndent()
       BLOCK_GROUP -> when (child.elementType) {
-        ASSIGNMENT, FACTORY, BLOCK, LINE_COMMENT -> Indent.getNormalIndent()
+        ASSIGNMENT, RECEIVER_PREFIXED_FACTORY, FACTORY_PROPERTY_RECEIVER, SIMPLE_FACTORY, BLOCK, LINE_COMMENT -> Indent.getNormalIndent()
         else -> Indent.getNoneIndent()
       }
 

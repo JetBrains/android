@@ -23,9 +23,9 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.TestActionEvent
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.never
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.never
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 
 class ActivateSelectionActionTest : NavTestCase() {
   fun testActivateSelectionAction() {

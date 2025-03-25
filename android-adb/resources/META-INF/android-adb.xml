@@ -28,9 +28,14 @@
         serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorService"
     />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.DeviceCableMonitor"/>
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.DeviceStateReporter"/>
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.AdbServerStatusReporter"/>
     <postStartupActivity implementation="com.android.tools.idea.adblib.AdbLibApplicationService$MyStartupActivity"/>
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider"/>
     <notificationGroup id="ADB Logs" displayType="NONE"/>
+    <notificationGroup id="Adb Service" displayType="BALLOON"/>
+    <notificationGroup id="Android Devices (Balloon)" displayType="BALLOON"/>
+    <notificationGroup id="Android Device Speed Warning" displayType="BALLOON"/>
   </extensions>
 
   <extensionPoints>

@@ -17,11 +17,12 @@ package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.getMinApiStartTaskErrorMessage
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 
@@ -57,9 +58,17 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
   override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = NativeAllocationsTaskArgs(false,
                                                                                                artifact as HeapProfdSessionArtifact)
 
-  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
-    SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_NATIVE_RECORDING)
-    && device.featureLevel >= AndroidVersion.VersionCodes.Q
+  override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
+    val requiredDeviceLevel = AndroidVersion.VersionCodes.Q
+    val isDeviceSupported = device.featureLevel >= requiredDeviceLevel
+
+    if (isDeviceSupported) {
+      return null
+    }
+
+    return StartTaskSelectionError(StartTaskSelectionError.StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+                                   getMinApiStartTaskErrorMessage(requiredDeviceLevel))
+  }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) = artifact is HeapProfdSessionArtifact
 

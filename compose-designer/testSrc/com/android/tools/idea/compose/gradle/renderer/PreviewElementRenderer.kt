@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.preview.rendering.createRenderTaskFutureForTest
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.applyTo
 import com.android.tools.preview.config.getDefaultPreviewDevice

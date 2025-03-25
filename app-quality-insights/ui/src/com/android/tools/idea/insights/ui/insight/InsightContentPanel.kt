@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
+import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.experiments.ExperimentGroup
+import com.android.tools.idea.insights.mapReady
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
-import com.android.tools.idea.studiobot.StudioBot as Gemini
+import com.android.tools.idea.insights.ui.insight.onboarding.EnableInsightPanel
+import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -36,30 +42,33 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons.StudioBot
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Graphics
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import javax.swing.JButton
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jdesktop.swingx.VerticalLayout
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val CONTENT_CARD = "content"
 private const val EMPTY_CARD = "empty"
-private const val TOS_NOT_ACCEPTED = "tos_not_accepted"
+private const val ONBOARDING_REQUIRED = "onboarding_required"
 
 private const val RESOURCE_EXHAUSTED_MESSAGE =
   "Quota exceeded for quota metric 'Duet Task API requests' and limit 'Duet Task API requests per day per user'"
 private const val TEMPORARY_KILL_SWITCH_MESSAGE = "Cannot process request for disabled experience"
+
+@VisibleForTesting const val GEMINI_NOT_AVAILABLE = "Gemini is not available"
+
+private const val GENERATING_INSIGHT = "Generating insight..."
 
 /** [JPanel] that is shown in the [InsightToolWindow] when an insight is available. */
 class InsightContentPanel(
@@ -68,20 +77,25 @@ class InsightContentPanel(
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
-  enableInsightHandler: () -> Unit,
-  onRefresh: (Boolean) -> Unit,
 ) : JPanel(), DataProvider, Disposable {
 
   private val cardLayout = CardLayout()
 
-  private val insightTextPane = InsightTextPane()
-  private val feedbackPanel = InsightFeedbackPanel()
-  private val insightBottomPanel = InsightBottomPanel(controller.project) { onRefresh(it) }
+  private val insightTextPane = InsightTextPane(controller.project)
+
+  private val insightBottomPanel = InsightBottomPanel(controller, scope, currentInsightFlow)
 
   private val insightPanel =
-    JPanel(VerticalLayout()).apply {
+    JPanel(VerticalLayout(JBUI.scale(8))).apply {
+      if (
+        AppInsightsExperimentFetcher.instance.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT) !=
+          Experiment.UNKNOWN
+      ) {
+        add(InsightDisclaimerPanel(controller, scope, currentInsightFlow))
+      }
       add(insightTextPane)
-      add(feedbackPanel)
+
+      border = JBUI.Borders.empty(15)
     }
 
   private val insightScrollPanel =
@@ -101,43 +115,21 @@ class InsightContentPanel(
       add(scrollPane, BorderLayout.CENTER)
     }
 
+  private val selectedConnectionFlow =
+    controller.state
+      .map { state -> state.connections.selected }
+      .stateIn(scope, SharingStarted.Eagerly, null)
+
   private val enableInsightPanel =
-    JPanel(GridBagLayout()).apply {
-      val enableInsightEmptyText =
-        AppInsightsStatusText(this) { true }
-          .apply {
-            appendText("Insights require Gemini", EMPTY_STATE_TITLE_FORMAT)
-            appendLine(
-              "You can setup Gemini and enable insights via button below",
-              EMPTY_STATE_TEXT_FORMAT,
-              null,
-            )
-          }
-
-      val button =
-        JButton("Enable Insights", StudioBot.LOGO).apply {
-          addActionListener { enableInsightHandler() }
-          isFocusable = false
-        }
-
-      val gbc =
-        GridBagConstraints().apply {
-          gridx = 0
-          gridy = 0
-        }
-
-      add(enableInsightEmptyText.component, gbc)
-
-      gbc.apply { gridy = 1 }
-      add(enableInsightEmptyText.secondaryComponent, gbc)
-
-      gbc.apply { gridy = 3 }
-      add(button, gbc)
-    }
+    EnableInsightPanel(
+      scope,
+      selectedConnectionFlow,
+      controller.aiInsightToolkit.aiInsightOnboardingProvider,
+    )
 
   private val loadingPanel =
     JBLoadingPanel(BorderLayout(), this).apply {
-      setLoadingText("Generating insight...")
+      setLoadingText(GENERATING_INSIGHT)
       border = JBUI.Borders.empty()
       add(insightScrollPanel, BorderLayout.CENTER)
       add(insightBottomPanel, BorderLayout.SOUTH)
@@ -150,7 +142,7 @@ class InsightContentPanel(
       override fun update(e: AnActionEvent) {
         // This action is never visible
         e.presentation.isEnabledAndVisible = false
-        if (emptyStateText.text == "Gemini is disabled" && Gemini.getInstance().isAvailable()) {
+        if (enableInsightPanel.isVisible && GeminiPluginApi.getInstance().isAvailable()) {
           controller.refreshInsight(false)
         }
       }
@@ -160,18 +152,6 @@ class InsightContentPanel(
 
   private val emptyOrErrorPanel: JPanel =
     object : JPanel() {
-      init {
-        val toolbar =
-          ActionManager.getInstance()
-            .createActionToolbar(
-              "GeminiOnboardingObserver",
-              DefaultActionGroup(geminiOnboardingObserverAction),
-              true,
-            )
-        toolbar.targetComponent = this
-        add(toolbar.component)
-      }
-
       override fun paint(g: Graphics) {
         super.paint(g)
         emptyStateText.paint(this, g)
@@ -186,12 +166,23 @@ class InsightContentPanel(
     Disposer.register(parentDisposable, this)
     layout = cardLayout
 
+    val toolbar =
+      ActionManager.getInstance()
+        .createActionToolbar(
+          "ContextSharingObserver",
+          DefaultActionGroup(geminiOnboardingObserverAction),
+          true,
+        )
+    toolbar.targetComponent = enableInsightPanel
+    enableInsightPanel.add(toolbar.component)
+
     add(loadingPanel, CONTENT_CARD)
     add(emptyOrErrorPanel, EMPTY_CARD)
-    add(enableInsightPanel, TOS_NOT_ACCEPTED)
+    add(enableInsightPanel, ONBOARDING_REQUIRED)
 
     scope.launch {
       currentInsightFlow
+        .mapReady { insight -> insight?.rawInsight }
         .distinctUntilChanged()
         .onEach { reset() }
         .collect { aiInsight ->
@@ -208,8 +199,8 @@ class InsightContentPanel(
                   showEmptyCard()
                 }
                 else -> {
-                  val insight = aiInsight.value!!
-                  if (insight.rawInsight.isEmpty()) {
+                  val insightText = aiInsight.value!!
+                  if (insightText.isEmpty()) {
                     emptyStateText.apply {
                       clear()
                       appendText("No insights", EMPTY_STATE_TITLE_FORMAT)
@@ -221,7 +212,7 @@ class InsightContentPanel(
                     }
                     showEmptyCard()
                   } else {
-                    insightTextPane.text = insight.rawInsight
+                    insightTextPane.text = insightText
                     showContentCard()
                   }
                 }
@@ -229,20 +220,29 @@ class InsightContentPanel(
             }
             is LoadingState.Loading -> {
               insightTextPane.text = ""
+              if (aiInsight.message.isNotEmpty()) {
+                loadingPanel.setLoadingText(aiInsight.message)
+              } else {
+                loadingPanel.setLoadingText(GENERATING_INSIGHT)
+              }
               showContentCard(true)
             }
             // Gemini plugin disabled or scope is not authorized
             is LoadingState.Unauthorized -> {
-              emptyStateText.apply {
-                clear()
-                appendText("Gemini is disabled", EMPTY_STATE_TITLE_FORMAT)
-                appendLine(
-                  "To see insights, please enable and authorize the Gemini plugin",
-                  EMPTY_STATE_TEXT_FORMAT,
-                  null,
-                )
+              if (LoginFeature.getExtensionByName("Gemini") == null) {
+                emptyStateText.apply {
+                  clear()
+                  appendText(GEMINI_NOT_AVAILABLE, EMPTY_STATE_TITLE_FORMAT)
+                  appendLine(
+                    "To see insights, please enable the Gemini plugin in Settings > Plugins",
+                    EMPTY_STATE_TEXT_FORMAT,
+                    null,
+                  )
+                }
+                showEmptyCard()
+              } else {
+                showOnboardingCard()
               }
-              showEmptyCard()
             }
             // Permission denied message is confusing. Provide a generic message
             is LoadingState.PermissionDenied -> {
@@ -250,7 +250,7 @@ class InsightContentPanel(
               showEmptyCard()
             }
             is LoadingState.TosNotAccepted -> {
-              showToSCard()
+              showOnboardingCard()
             }
             is LoadingState.UnsupportedOperation -> {
               emptyStateText.apply {
@@ -280,13 +280,11 @@ class InsightContentPanel(
             is LoadingState.UnknownFailure -> {
               val detailsMessage =
                 aiInsight.status?.detailsList?.firstOrNull()?.value?.toStringUtf8() ?: ""
-              val cause =
-                aiInsight.cause?.message ?: aiInsight.message ?: "An unknown failure occurred"
               val message =
                 if (detailsMessage.contains(TEMPORARY_KILL_SWITCH_MESSAGE)) {
                   "Insights feature is temporarily unavailable, check back later."
                 } else {
-                  cause
+                  aiInsight.getCauseMessageOrDefault()
                 }
               emptyStateText.apply {
                 clear()
@@ -296,12 +294,10 @@ class InsightContentPanel(
               showEmptyCard()
             }
             is LoadingState.Failure -> {
-              val cause =
-                aiInsight.cause?.message ?: aiInsight.message ?: "An unknown failure occurred"
               emptyStateText.apply {
                 clear()
                 appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
-                appendLine(cause, EMPTY_STATE_TEXT_FORMAT, null)
+                appendLine(aiInsight.getCauseMessageOrDefault(), EMPTY_STATE_TEXT_FORMAT, null)
               }
               showEmptyCard()
             }
@@ -311,7 +307,6 @@ class InsightContentPanel(
   }
 
   private fun reset() {
-    feedbackPanel.resetFeedback()
     enableInsightPanel.isVisible = false
   }
 
@@ -320,8 +315,8 @@ class InsightContentPanel(
   private fun showContentCard(startLoading: Boolean = false) =
     showCard(CONTENT_CARD, startLoading).also { isEmptyStateTextVisible = false }
 
-  private fun showToSCard() =
-    showCard(TOS_NOT_ACCEPTED, false).also { isEmptyStateTextVisible = false }
+  private fun showOnboardingCard() =
+    showCard(ONBOARDING_REQUIRED, false).also { isEmptyStateTextVisible = false }
 
   private fun showCard(card: String, startLoading: Boolean) {
     if (startLoading) {

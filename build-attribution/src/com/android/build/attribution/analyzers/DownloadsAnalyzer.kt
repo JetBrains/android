@@ -186,7 +186,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
   }
 
   companion object {
-    fun detectRepository(uri: URI): Repository = KnownRepository.values().find { it.matches(uri) } ?: OtherRepository(uri.authority!!)
+    fun detectRepository(uri: URI): Repository = KnownRepository.entries.find { it.matches(uri) } ?: OtherRepository(uri.authority ?: "")
   }
 
   sealed interface Repository {

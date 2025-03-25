@@ -18,7 +18,6 @@ package com.android.tools.idea.diagnostics.hprof.action
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.diagnostics.hprof.analysis.LiveInstanceStats
-import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
 import com.android.tools.idea.diagnostics.report.HeapReportProperties
 import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
@@ -28,6 +27,7 @@ import com.android.tools.idea.ui.GuiTestingService
 import com.android.utils.TraceUtils
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.HeapReportEvent
+import com.intellij.diagnostic.hprof.util.HeapDumpAnalysisNotificationGroup
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager

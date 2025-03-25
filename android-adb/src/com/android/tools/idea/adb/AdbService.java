@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb;
 
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
+import static com.android.tools.idea.flags.StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE_USAGE_TRACKER;
 import static com.android.tools.idea.flags.StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER;
 import static com.android.tools.idea.flags.StudioFlags.JDWP_SCACHE;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
@@ -25,6 +26,7 @@ import com.android.adblib.CoroutineScopeCache;
 import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
+import com.android.ddmlib.AdbDelegateUsageTracker;
 import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AdbVersion;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -44,6 +46,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -81,10 +84,7 @@ import org.jetbrains.annotations.TestOnly;
  * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
 @Service
-public final class AdbService implements Disposable,
-                                         AdbOptionsService.AdbOptionsListener,
-                                         AndroidDebugBridge.IDebugBridgeChangeListener,
-                                         AndroidDebugBridge.IDeviceChangeListener {
+public final class AdbService implements Disposable {
   @TestOnly
   public static boolean disabled = false;
 
@@ -137,36 +137,15 @@ public final class AdbService implements Disposable,
   private boolean myAllowMdnsOpenscreen = true;
 
   /**
-   * Tracks whether we have shown the notification popup about ADB crashing during initialization.
-   * We use a static variable to ensure we show the notification only once per Android Studio session.
-   */
-  private boolean myInitializationErrorShown = false;
-
-  /**
    * Anticipated adb version for ADB_MDNS_OPENSCREEN option fix.
    */
   private static final String MDNS_OPENSCREEN_FIX_ADB_VERSION = "1.0.42";
 
-  @Override
-  public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
-  }
+  private final @NotNull MyDebugBridgeChangeListener myDebugBridgeChangeListener = new MyDebugBridgeChangeListener();
 
-  @Override
-  public void deviceConnected(@NotNull IDevice device) {
-    logDeviceConnectionStatus(device);
-  }
+  private final @NotNull MyDeviceChangeListener myDeviceChangeListener = new MyDeviceChangeListener();
 
-  @Override
-  public void deviceDisconnected(@NotNull IDevice device) {
-    logDeviceConnectionStatus(device);
-  }
-
-  @Override
-  public void deviceChanged(@NotNull IDevice device, int changeMask) {
-    if ((changeMask & IDevice.CHANGE_STATE) != 0) {
-      logDeviceConnectionStatus(device);
-    }
-  }
+  private final @NotNull MyAdbOptionsListener myAdbOptionsListener = new MyAdbOptionsListener();
 
   private void logDeviceConnectionStatus(@NotNull IDevice device) {
     if (device.isOnline()) {
@@ -174,52 +153,6 @@ public final class AdbService implements Disposable,
     } else {
       LOG.info(String.format("Device [%s] is offline (device state is `%s`)", device.getSerialNumber(), device.getState()));
     }
-  }
-
-  @Override
-  public void initializationError(@NotNull Exception exception) {
-    // b/217251994 - ADB crashes when ADB_MDNS_OPENSCREEN is set on certain Windows configs.
-    // Work around by disabling ADB_MDNS_OPENSCREEN and notifying the user that ADB WiFi is disabled.
-    if (!SystemInfo.isWindows ||
-        !(AdbOptionsService.getInstance().getAdbServerMdnsBackend() == AdbServerMdnsBackend.OPENSCREEN) ||
-        !(exception instanceof IOException) ||
-        !exception.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
-      return;
-    }
-
-    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
-    if (bridge == null) {
-      return;
-    }
-
-    AdbVersion version = bridge.getCurrentAdbVersion();
-    if (version == null || version.compareTo(AdbVersion.parseFrom(MDNS_OPENSCREEN_FIX_ADB_VERSION)) >= 0) {
-      return;
-    }
-
-    Log.w("Remote shutdown of adb host was detected, attempting to restart server without MDNS Openscreen.", exception);
-    String helpMessage = String.format(
-      "Error initializing adb with MDNS Openscreen enabled.\n" +
-      "Attempting restart adb with option disabled.\n" +
-      "Try updating to a newer version of ADB (%s or later).",
-      MDNS_OPENSCREEN_FIX_ADB_VERSION);
-    Notification notification = NotificationGroup.balloonGroup("Adb Service")
-      .createNotification(helpMessage, NotificationType.WARNING)
-      .setImportant(true);
-    Arrays.stream(ProjectManager.getInstance().getOpenProjects()).forEach(notification::notify);
-
-    myAllowMdnsOpenscreen = false;
-
-    if (!myInitializationErrorShown) {
-      PopupUtil.showBalloonForActiveComponent(helpMessage, MessageType.WARNING);
-      myInitializationErrorShown = true;
-    }
-    try {
-      terminateDdmlib();
-    }
-    catch (TimeoutException ignored) {
-    }
-    // Leave until next getBridge caller to reinitialize.
   }
 
   public static AdbService getInstance() {
@@ -325,9 +258,9 @@ public final class AdbService implements Disposable,
   @Override
   public void dispose() {
     LOG.info("Disposing AdbService");
-    AndroidDebugBridge.removeDebugBridgeChangeListener(this);
-    AndroidDebugBridge.removeDeviceChangeListener(this);
-    AdbOptionsService.getInstance().removeListener(this);
+    AndroidDebugBridge.removeDebugBridgeChangeListener(myDebugBridgeChangeListener);
+    AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
+    AdbOptionsService.getInstance().removeListener(myAdbOptionsListener);
     try {
       mySequentialExecutor.submit(() -> {
         myImplementation.terminate();
@@ -353,17 +286,6 @@ public final class AdbService implements Disposable,
     }
   }
 
-  /**
-   * Queues an options changed notification on EXECUTOR. Only called by {@link AdbOptionsService}.
-   */
-  @Override
-  public void optionsChanged() {
-    if (disabled) {
-      return;
-    }
-    mySequentialExecutor.execute(myImplementation::optionsChanged);
-  }
-
   private AdbService() {
     // Synchronize ddmlib log level with the corresponding IDEA log level
     String defaultLogLevel = AdbLogOutput.SystemLogRedirecter.getLogger().isTraceEnabled()
@@ -376,9 +298,9 @@ public final class AdbService implements Disposable,
 
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
 
-    AdbOptionsService.getInstance().addListener(this);
-    AndroidDebugBridge.addDebugBridgeChangeListener(this);
-    AndroidDebugBridge.addDeviceChangeListener(this);
+    AdbOptionsService.getInstance().addListener(myAdbOptionsListener);
+    AndroidDebugBridge.addDebugBridgeChangeListener(myDebugBridgeChangeListener);
+    AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener);
 
     // TODO Also connect to adblib
     AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
@@ -441,9 +363,16 @@ public final class AdbService implements Disposable,
       switch (AdbOptionsService.getInstance().getAdbServerMdnsBackend()) {
         case OPENSCREEN -> options.withEnv("ADB_MDNS_OPENSCREEN", "1");
         case BONJOUR -> options.withEnv("ADB_MDNS_OPENSCREEN", "0");
+        case DISABLED -> options.withEnv("ADB_MDNS", "0");
         case DEFAULT -> {
         }
       }
+    }
+
+    switch (AdbOptionsService.getInstance().getAdbServerBurstMode()) {
+      case ENABLED ->  options.withEnv("ADB_BURST_MODE", "1");
+      case DISABLED ->  options.withEnv("ADB_BURST_MODE", "0");
+      case DEFAULT -> {}
     }
 
     getInstance().myAllowMdnsOpenscreen = true;
@@ -465,6 +394,9 @@ public final class AdbService implements Disposable,
     options.setIDeviceUsageTracker(ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER.get() ?
                                    getIDeviceUsageTracker() :
                                    null);
+    if (ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE_USAGE_TRACKER.get()) {
+      options.setAdbDelegateUsageTracker(getAdbDelegateUsageTracker());
+    }
     return options.build();
   }
 
@@ -498,6 +430,19 @@ public final class AdbService implements Disposable,
     return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get()
                                                                         ? IDeviceUsageTrackerImpl.Companion.forAdblibIDeviceWrapper(session)
                                                                         : IDeviceUsageTrackerImpl.Companion.forDeviceImpl(session));
+  }
+
+
+  @NotNull
+  private static final CoroutineScopeCache.Key<AdbDelegateUsageTracker> ADB_DELEGATE_USAGE_TRACKER_KEY =
+    new CoroutineScopeCache.Key<>("AdbDelegateUsageTracker for AndroidDebugBridge migration to adblib");
+
+  @NotNull
+  private static AdbDelegateUsageTracker getAdbDelegateUsageTracker() {
+    AdbSession session = AdbLibApplicationService.getInstance().getSession();
+    return session.getCache().getOrPut(ADB_DELEGATE_USAGE_TRACKER_KEY, () -> StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()
+                                                                        ? AdbDelegateUsageTrackerImpl.Companion.forAdbLibAndroidDebugBridge(session)
+                                                                        : AdbDelegateUsageTrackerImpl.Companion.forAndroidDebugBridgeImpl(session));
   }
 
   /**
@@ -611,6 +556,99 @@ public final class AdbService implements Disposable,
 
       LOG.info("Restart adb server");
       getAndroidDebugBridge(myAdbExecutableFile);
+    }
+  }
+
+  private class MyDebugBridgeChangeListener implements AndroidDebugBridge.IDebugBridgeChangeListener {
+    /**
+     * Tracks whether we have shown the notification popup about ADB crashing during initialization.
+     * We use a static variable to ensure we show the notification only once per Android Studio session.
+     */
+    private boolean myInitializationErrorShown = false;
+
+    @Override
+    public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
+    }
+
+    @Override
+    public void initializationError(@NotNull Exception exception) {
+      // b/217251994 - ADB crashes when ADB_MDNS_OPENSCREEN is set on certain Windows configs.
+      // Work around by disabling ADB_MDNS_OPENSCREEN and notifying the user that ADB WiFi is disabled.
+      if (!SystemInfo.isWindows ||
+          !(AdbOptionsService.getInstance().getAdbServerMdnsBackend() == AdbServerMdnsBackend.OPENSCREEN) ||
+          !(exception instanceof IOException) ||
+          !exception.getMessage().startsWith("An existing connection was forcibly closed by the remote host")) {
+        return;
+      }
+
+      AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+      if (bridge == null) {
+        return;
+      }
+
+      AdbVersion version = bridge.getCurrentAdbVersion();
+      if (version == null || version.compareTo(AdbVersion.parseFrom(MDNS_OPENSCREEN_FIX_ADB_VERSION)) >= 0) {
+        return;
+      }
+
+      Log.w("Remote shutdown of adb host was detected, attempting to restart server without MDNS Openscreen.", exception);
+      String helpMessage = String.format(
+        "Error initializing adb with MDNS Openscreen enabled.\n" +
+        "Attempting restart adb with option disabled.\n" +
+        "Try updating to a newer version of ADB (%s or later).",
+        MDNS_OPENSCREEN_FIX_ADB_VERSION);
+      NotificationGroup notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Adb Service");
+      if (notificationGroup != null) {
+        Notification notification = notificationGroup
+          .createNotification(helpMessage, NotificationType.WARNING)
+          .setImportant(true);
+        Arrays.stream(ProjectManager.getInstance().getOpenProjects()).forEach(notification::notify);
+      }
+
+      myAllowMdnsOpenscreen = false;
+
+      if (!myInitializationErrorShown) {
+        PopupUtil.showBalloonForActiveComponent(helpMessage, MessageType.WARNING);
+        myInitializationErrorShown = true;
+      }
+      try {
+        terminateDdmlib();
+      }
+      catch (TimeoutException ignored) {
+      }
+      // Leave until next getBridge caller to reinitialize.
+    }
+  }
+
+  private class MyDeviceChangeListener implements AndroidDebugBridge.IDeviceChangeListener {
+    @Override
+    public void deviceConnected(@NotNull IDevice device) {
+      logDeviceConnectionStatus(device);
+    }
+
+    @Override
+    public void deviceDisconnected(@NotNull IDevice device) {
+      logDeviceConnectionStatus(device);
+    }
+
+    @Override
+    public void deviceChanged(@NotNull IDevice device, int changeMask) {
+      if ((changeMask & IDevice.CHANGE_STATE) != 0) {
+        logDeviceConnectionStatus(device);
+      }
+    }
+  }
+
+  private class MyAdbOptionsListener implements AdbOptionsService.AdbOptionsListener {
+    /**
+     * Queues an options changed notification on EXECUTOR. Only called by {@link AdbOptionsService}.
+     */
+    @Override
+    public void optionsChanged() {
+      if (disabled) {
+        return;
+      }
+      mySequentialExecutor.execute(myImplementation::optionsChanged);
     }
   }
 }

@@ -17,8 +17,10 @@ package com.android.tools.fonts;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.fonts.FontQueryParserError;
 import com.android.ide.common.fonts.MutableFontDetail;
-import com.android.ide.common.fonts.QueryParser;
+import com.android.ide.common.fonts.ParseResult;
+import com.android.ide.common.fonts.QueryResolver;
 import com.android.tools.environment.Logger;
 import java.io.InputStream;
 import org.xml.sax.Attributes;
@@ -35,6 +37,8 @@ import java.util.Map;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 
 /**
  * Parse a font xml file.
@@ -44,11 +48,11 @@ import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 public class FontFamilyParser {
 
   @NonNull
-  public static QueryParser.ParseResult parseFontFamily(@NonNull InputStream xmlStream, @NonNull String fileName) {
+  public static ParseResult parseFontFamily(@NonNull InputStream xmlStream, @NonNull String fileName) {
     try {
       return parseFontReference(xmlStream, fileName);
     }
-    catch (QueryParser.FontQueryParserError ex) {
+    catch (FontQueryParserError ex) {
       return new ParseErrorResult(ex.getMessage());
     }
     catch (SAXException | ParserConfigurationException | IOException ex) {
@@ -58,7 +62,7 @@ public class FontFamilyParser {
     }
   }
 
-  private static QueryParser.ParseResult parseFontReference(@NonNull InputStream xmlStream, @NonNull String fileName)
+  private static ParseResult parseFontReference(@NonNull InputStream xmlStream, @NonNull String fileName)
     throws SAXException, ParserConfigurationException, IOException {
     SAXParserFactory factory = SAXParserFactory.newInstance();
     factory.setNamespaceAware(true);
@@ -68,7 +72,7 @@ public class FontFamilyParser {
     return handler.getResult();
   }
 
-  static class ParseErrorResult extends QueryParser.ParseResult {
+  static class ParseErrorResult extends ParseResult {
     private final String myMessage;
 
     ParseErrorResult(@NonNull String message) {
@@ -91,14 +95,14 @@ public class FontFamilyParser {
     private static final String ATTR_FONT_STYLE = "fontStyle";
 
     private final String myFileName;
-    private QueryParser.ParseResult myResult;
+    private ParseResult myResult;
 
     private FontFamilyHandler(@NonNull String fileName) {
       myFileName = fileName;
     }
 
     @NonNull
-    private QueryParser.ParseResult getResult() {
+    private ParseResult getResult() {
       if (myResult == null) {
         myResult = new ParseErrorResult("The font file is empty");
       }
@@ -115,9 +119,9 @@ public class FontFamilyParser {
         case FONT:
           String fontName = getAttributeValue(attributes, ATTR_FONT);
           int weight = parseInt(getAttributeValue(attributes, ATTR_FONT_WEIGHT), -1);
-          int width = parseInt(getAttributeValue(attributes, ATTR_FONT_WIDTH), DEFAULT_WIDTH);
+          float width = parseFloat(getAttributeValue(attributes, ATTR_FONT_WIDTH), DEFAULT_WIDTH);
           String fontStyle = getAttributeValue(attributes, ATTR_FONT_STYLE);
-          boolean italics = parseFontStyle(fontStyle);
+          float italics = parseFontStyle(fontStyle);
           boolean hasExplicitStyle = fontStyle != null;
           myResult = addFont(fontName, weight, width, italics, hasExplicitStyle);
           break;
@@ -143,7 +147,7 @@ public class FontFamilyParser {
      * or the file may be a font family definition which combines several font tags.
      */
     @Nullable
-    private QueryParser.ParseResult parseQuery(@Nullable String authority, @Nullable String query) {
+    private ParseResult parseQuery(@Nullable String authority, @Nullable String query) {
       // If there already is an error condition stop
       if (myResult instanceof ParseErrorResult) {
         return myResult;
@@ -162,10 +166,10 @@ public class FontFamilyParser {
       if (query == null) {
         return new ParseErrorResult("The <" + FONT_FAMILY + "> tag must contain a " + ATTR_QUERY + " attribute");
       }
-      return QueryParser.parseDownloadableFont(authority, query);
+      return QueryResolver.parseDownloadableFont(authority, query);
     }
 
-    private QueryParser.ParseResult addFont(@Nullable String fontName, int weight, int width, boolean italics, boolean hasExplicitStyle) {
+    private ParseResult addFont(@Nullable String fontName, int weight, float width, float italics, boolean hasExplicitStyle) {
       if (myResult instanceof ParseErrorResult) {
         return myResult;
       }
@@ -184,7 +188,7 @@ public class FontFamilyParser {
     }
   }
 
-  public static class CompoundFontResult extends QueryParser.ParseResult {
+  public static class CompoundFontResult extends ParseResult {
     private Map<String, MutableFontDetail> myFonts;
 
     CompoundFontResult() {
@@ -196,8 +200,8 @@ public class FontFamilyParser {
       return myFonts;
     }
 
-    private void addFont(@NonNull String fontName, int weight, int width, boolean italics, boolean hasExplicitStyle) {
-      myFonts.put(fontName, new MutableFontDetail(weight, width, italics, hasExplicitStyle));
+    private void addFont(@NonNull String fontName, int weight, float width, float italics, boolean hasExplicitStyle) {
+      myFonts.put(fontName, new MutableFontDetail(fontName, weight, width, italics, hasExplicitStyle));
     }
   }
 
@@ -206,14 +210,26 @@ public class FontFamilyParser {
       return defaultValue;
     }
     try {
-      return Math.round(Float.parseFloat(intAsString));
+      return Integer.parseInt(intAsString);
     }
     catch (NumberFormatException ex) {
       return defaultValue;
     }
   }
 
-  static boolean parseFontStyle(@Nullable String fontStyle) {
-    return fontStyle != null && fontStyle.startsWith("italic");
+  static float parseFloat(@Nullable String floatAsString, float defaultValue) {
+    if (floatAsString == null) {
+      return defaultValue;
+    }
+    try {
+      return Float.parseFloat(floatAsString);
+    }
+    catch (NumberFormatException ex) {
+      return defaultValue;
+    }
+  }
+
+  static float parseFontStyle(@Nullable String fontStyle) {
+    return fontStyle != null && fontStyle.startsWith("italic") ? ITALICS : NORMAL;
   }
 }

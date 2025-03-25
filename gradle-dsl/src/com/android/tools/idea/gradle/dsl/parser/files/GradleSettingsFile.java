@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.ElementState;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -32,10 +33,14 @@ import com.android.tools.idea.gradle.dsl.parser.settings.PluginManagementDslElem
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
+import static com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement.DEFAULTS_DSL_ELEMENT;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 public class GradleSettingsFile extends GradleScriptFile {
   public GradleSettingsFile(@NotNull VirtualFile file,
@@ -62,10 +67,20 @@ public class GradleSettingsFile extends GradleScriptFile {
     {"plugins", PluginsDslElement.PLUGINS},
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
+  public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_DECLARATIVE_MAP = Stream.of(new Object[][]{
+    {"dependencyResolutionManagement", DependencyResolutionManagementDslElement.DEPENDENCY_RESOLUTION_MANAGEMENT},
+    {"pluginManagement", PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT},
+    {"defaults", DEFAULTS_DSL_ELEMENT},
+    {"plugins", PluginsDslElement.PLUGINS},
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
   @Override
   public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
+    if(kind == GradleDslNameConverter.Kind.DECLARATIVE)
+      return CHILD_PROPERTIES_DECLARATIVE_MAP;
+
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

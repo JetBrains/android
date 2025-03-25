@@ -2156,6 +2156,11 @@ MODULE                        : project
                                             qName                         : :nested2:trans:deep2:testReleaseUnitTest
                         sourceSetModel                : DefaultGradleSourceSetModel
                         taskModel                     : DefaultGradleTaskModel
+                            tasks
+                                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                    qName                         : :nested2:trans:deep2:testDebugUnitTest
+                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                    qName                         : :nested2:trans:deep2:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2393,12 +2398,55 @@ MODULE                        : project
                             qName                         : :nested2:testBasicDebugUnitTest
                         testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testBasicReleaseUnitTest
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:deep:testDebugUnitTest
                         testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testPaidDebugUnitTest
                         testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testPaidReleaseUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:deep:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :jav:test
+                testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarDebugUnitTest
+                testBasicBarReleaseUnitTest   : testBasicBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarReleaseUnitTest
+                testBasicBarSpecialReleaseUnitTest      : testBasicBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarSpecialReleaseUnitTest
+                testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testBasicDebugUnitTest
+                testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarDebugUnitTest
+                testBasicOtherBarReleaseUnitTest        : testBasicOtherBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarReleaseUnitTest
+                testBasicOtherBarSpecialReleaseUnitTest : testBasicOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarSpecialReleaseUnitTest
+                testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testBasicReleaseUnitTest
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :dyn_feature:testDebugUnitTest
+                testPaidBarDebugUnitTest      : testPaidBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarDebugUnitTest
+                testPaidBarReleaseUnitTest    : testPaidBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarReleaseUnitTest
+                testPaidBarSpecialReleaseUnitTest       : testPaidBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarSpecialReleaseUnitTest
+                testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testPaidDebugUnitTest
+                testPaidOtherBarDebugUnitTest : testPaidOtherBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarDebugUnitTest
+                testPaidOtherBarReleaseUnitTest         : testPaidOtherBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarReleaseUnitTest
+                testPaidOtherBarSpecialReleaseUnitTest  : testPaidOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarSpecialReleaseUnitTest
+                testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testPaidReleaseUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :dyn_feature:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -2417,8 +2465,8 @@ MODULE                        : project.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -2467,6 +2515,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : basicBarDebug
         applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
         testApplicationId             : com.example.psd.sample.app.default.test
@@ -2535,8 +2584,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2785,8 +2834,8 @@ MODULE                        : project.app
                 ApiLevel                      : 10
                 ApiString                     : 10
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             TestInstrumentationRunnerArguments
                 a                             : AAA
                 b                             : BBB
@@ -3066,8 +3115,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             MaxSdkVersion                 : 26
             VersionCode                   : 1
             VersionNameSuffix             : vns
@@ -4012,6 +4061,7 @@ MODULE                        : project.dyn_feature
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.dyn_feature.test
         buildType                     : debug
@@ -4288,8 +4338,8 @@ MODULE                        : project.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
@@ -4338,6 +4388,7 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.projectwithappandlib.lib.test
         buildType                     : debug
@@ -4355,8 +4406,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -4524,8 +4575,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact
@@ -5368,6 +5419,7 @@ MODULE                        : project.nested1
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.test
         buildType                     : debug
@@ -5678,6 +5730,7 @@ MODULE                        : project.nested1.deep
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.deep.test
         buildType                     : debug
@@ -5998,6 +6051,7 @@ MODULE                        : project.nested2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : basicDebug
         testApplicationId             : com.example.nested2.test
         buildType                     : debug
@@ -6460,6 +6514,7 @@ MODULE                        : project.nested2.deep
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.deep.test
         buildType                     : debug
@@ -6782,6 +6837,7 @@ MODULE                        : project.nested2.trans.deep2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.trans.deep2.test
         buildType                     : debug

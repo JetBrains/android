@@ -89,4 +89,8 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
       arg instanceof GradleDslMethodCall
       && "files".equals(arg.getName()));
   }
+
+  @Override
+  @Nullable
+  public String getAccessMethodName() { return VERSION_CATALOG.namedObjectAssociatedName; }
 }

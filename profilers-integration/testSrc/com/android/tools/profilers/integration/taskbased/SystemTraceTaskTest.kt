@@ -15,11 +15,30 @@
  */
 package com.android.tools.profilers.integration.taskbased
 
-import com.android.tools.asdriver.tests.Emulator
-import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.asdriver.tests.AndroidStudio
+import com.android.tools.profilers.integration.ProfilersTaskTestBase
+
 import org.junit.Test
 
-class SystemTraceTaskTest : ProfilersTestBase() {
+class SystemTraceTaskTest : ProfilersTaskTestBase() {
+
+  override fun selectTask(studio: AndroidStudio) {
+    selectSystemTraceTask(studio)
+  }
+
+  override fun verifyTaskStarted(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
+    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+start\\s+succeeded\$", 120)
+  }
+
+  override fun verifyTaskStopped(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+stop\\s+succeeded\$", 300)
+    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+contains\\s+system\\s+trace\\s+data\$", 600)
+  }
+
+  override fun verifyUIComponents(studio: AndroidStudio) {
+    studio.waitForComponentByClass("CpuAnalysisSummaryTab", "FullTraceSummaryDetailsView")
+  }
 
   /**
    * Validate system trace task workflow is working.
@@ -40,37 +59,5 @@ class SystemTraceTaskTest : ProfilersTestBase() {
    *  6. Verify UI components after capture is parsed.
    */
   @Test
-  fun test() {
-    taskBasedProfiling(
-      systemImage = Emulator.SystemImage.API_33,
-      deployApp = true,
-      testFunction = { studio, _ ->
-        // Selecting the device.
-        selectDevice(studio)
-
-        // Selecting the process id which consists of `minapp`
-        selectProcess(studio)
-
-        // Selecting callstack sample task.
-        selectSystemTraceTask(studio)
-
-        // Select Process start to "Now"
-        setProfilingStartingPointToNow(studio)
-
-        // Starting task, assuming that the default is set to "Now"
-        startTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
-        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+start\\s+succeeded\$", 120)
-        Thread.sleep(4000)
-
-        stopTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+stop\\s+succeeded\$", 300)
-
-        // Verify if the cpu capture is parsed.
-        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+contains\\s+system\\s+trace\\s+data\$", 600)
-
-        studio.waitForComponentByClass("CpuAnalysisSummaryTab", "FullTraceSummaryDetailsView")
-      }
-    )
-  }
+  fun test() = testTask()
 }

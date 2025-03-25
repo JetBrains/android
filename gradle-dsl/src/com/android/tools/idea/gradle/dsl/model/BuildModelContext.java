@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES;
 import static com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModelKt.getGradleVersionCatalogFiles;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
+import static com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement.DEFAULTS_DSL_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.android.tools.idea.gradle.dsl.parser.semantics.DescribedGradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.settings.DefaultsDslElement;
 import com.android.tools.idea.gradle.dsl.utils.BuildScriptUtil;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
@@ -233,6 +234,7 @@ public final class BuildModelContext {
       if (!isApplied) {
         GradleSettingsModel gradleSettingsModel = getSettingsModel(buildDslFile);
         populateWithParentModuleSubProjectsProperties(buildDslFile, gradleSettingsModel);
+        populateDeclarativeSoftwareTypes(buildDslFile, gradleSettingsModel);
       }
       populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
       buildDslFile.parse();
@@ -251,6 +253,7 @@ public final class BuildModelContext {
         populateWithParentModuleSubProjectsProperties(result, gradleSettingsModel);
         populateSiblingDslFileWithGradlePropertiesFile(result);
         populateVersionCatalogFiles(gradleSettingsModel);
+        populateDeclarativeSoftwareTypes(result, gradleSettingsModel);
         result.parse();
       });
       putBuildFile(file.getUrl(), result);
@@ -312,15 +315,6 @@ public final class BuildModelContext {
       .ifPresent(myVersionCatalogFiles::add);
   }
 
-  private Optional<GradleVersionCatalogFile> checkVersionCatalog(String filePath, String name) {
-    @SystemIndependent String fromPath = toSystemIndependentName(filePath);
-    // based on getBaseDir - same as GradleModelSource
-    @SystemIndependent String rootPath = getBaseDirPath(getProject()).getPath();
-    @SystemIndependent String path = String.join("/", rootPath, fromPath);
-    VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
-    return checkVersionCatalog(versionCatalogFile, name);
-  }
-
   private Optional<GradleVersionCatalogFile> checkVersionCatalog(VirtualFile versionCatalogFile, String name) {
     if (versionCatalogFile == null) return Optional.empty();
     return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
@@ -362,32 +356,47 @@ public final class BuildModelContext {
     }
     GradleSettingsFile settingsFile = getOrCreateSettingsFile(maybeSettingsFile);
     GradleSettingsModel model = new GradleSettingsModelImpl(settingsFile);
-    if (isSettingsFileUnsuitable(buildDslFile, maybeSettingsFile, model)) {
+    if (!canBuildUseSettingsModel(buildDslFile, maybeSettingsFile, model)) {
       return null;
     }
     return model;
   }
 
   /**
-   * @return `true` if the build file and the settings file are located in different directories, but a module of the build file is not a
-   * subproject of the build the settings file belongs to. In such a case, the module could be an included build and cannot use
-   * a settings file of its composite build.
+   * @return `true` if the settings file either:
+   * - is located in the build directory
+   * - includes the build as a subproject via `include(":myBuild")`
+   * It should return `false` if the settings file includes the build as a part of a composite build via `includeBuild("myBuild")`.
+   * In this case, the build should have another settings model, because it cannot use version catalogs from this one.
    */
-  private static boolean isSettingsFileUnsuitable(
+  private static boolean canBuildUseSettingsModel(
     @NotNull GradleBuildFile buildFile,
     @NotNull VirtualFile settingsFile,
     @NotNull GradleSettingsModel model
   ) {
     VirtualFile buildDirectory = buildFile.getFile().getParent();
     VirtualFile settingsDirectory = settingsFile.getParent();
-    if (!buildDirectory.equals(settingsDirectory)) {
-      String modulePath = ":" + VfsUtilCore.getRelativePath(buildDirectory, settingsDirectory, ':');
-      // the settings file is unsuitable if it doesn't contain `include("$modulePath")` call
-      if (!model.modulePaths().contains(modulePath)) {
-        return true;
+    if (buildDirectory.equals(settingsDirectory)) return true;
+    // check if the build was added in the settings file as a subproject via `include(":subproject:path")`
+    String modulePath = ":" + VfsUtilCore.getRelativePath(buildDirectory, settingsDirectory, ':');
+    return model.modulePaths().contains(modulePath);
+  }
+
+  private void populateDeclarativeSoftwareTypes(@NotNull GradleBuildFile buildDslFile,
+                                                 @Nullable GradleSettingsModel gradleSettingsModel){
+    if (gradleSettingsModel == null) return;
+
+    String modulePath = gradleSettingsModel.moduleWithDirectory(buildDslFile.getDirectoryPath());
+    if (modulePath == null) {
+      return;
+    }
+    GradleSettingsModelImpl settingsModel = (GradleSettingsModelImpl)gradleSettingsModel;
+    DefaultsDslElement defaultsDslElement = settingsModel.myGradleSettingsFile.getPropertyElement(DEFAULTS_DSL_ELEMENT);
+    if (defaultsDslElement != null) {
+      for (GradleDslElement entry : defaultsDslElement.getPropertyElements().values()) {
+        buildDslFile.addAppliedProperty(dslTreeCopy(entry, buildDslFile));
       }
     }
-    return false;
   }
 
   private void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile,
@@ -400,11 +409,9 @@ public final class BuildModelContext {
     }
 
     GradleBuildModel parentModuleModel = gradleSettingsModel.getParentModuleModel(modulePath);
-    if (!(parentModuleModel instanceof GradleBuildModelImpl)) {
+    if (!(parentModuleModel instanceof GradleBuildModelImpl parentModuleModelImpl)) {
       return;
     }
-
-    GradleBuildModelImpl parentModuleModelImpl = (GradleBuildModelImpl)parentModuleModel;
 
     GradleBuildFile parentModuleDslFile = parentModuleModelImpl.myGradleBuildFile;
     buildDslFile.setParentModuleBuildFile(parentModuleDslFile);
@@ -417,8 +424,7 @@ public final class BuildModelContext {
     buildDslFile.addAppliedProperty(subProjectsDslElement);
     for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
       GradleDslElement element = entry.getValue();
-      if (element instanceof ApplyDslElement) {
-        ApplyDslElement subProjectsApply = (ApplyDslElement)element;
+      if (element instanceof ApplyDslElement subProjectsApply) {
         ApplyDslElement myApply = new ApplyDslElement(buildDslFile, buildDslFile);
         buildDslFile.setParsedElement(myApply);
         for (GradleDslElement appliedElement : subProjectsApply.getAllElements()) {
@@ -449,7 +455,7 @@ public final class BuildModelContext {
       // repositories by identity, even though they have block-nature.  For now, this will do: we implement the
       // DescribedGradlePropertiesDslElement interface incrementally on elements where there is an observable problem if it is not
       // implemented.
-      PropertiesElementDescription description = ((DescribedGradlePropertiesDslElement<?>)element).getDescription();
+      PropertiesElementDescription<?> description = ((DescribedGradlePropertiesDslElement<?>)element).getDescription();
       GradlePropertiesDslElement myProperties = description.constructor.construct(parent, GradleNameElement.copy(element.getNameElement()));
       result = myProperties;
       seen.put(element, result);

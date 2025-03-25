@@ -93,7 +93,7 @@ public class MockBlazeVcsHandlerProvider implements BlazeVcsHandlerProvider {
     }
 
     @Override
-    public Optional<VcsState> vcsStateForSourceUri(String sourceUri) {
+    public Optional<VcsState> vcsStateForWorkspaceStatus(Map<String, String> workspaceStatus) {
       return Optional.empty();
     }
 

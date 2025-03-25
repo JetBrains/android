@@ -4,11 +4,11 @@ plugins {
 }
 android {
     namespace 'template.test.pkg.shared'
-    compileSdkVersion 34
+    compileSdkVersion 35
 
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -16,7 +16,6 @@ android {
         jvmTarget = '1.8'
     }
 }
-
 dependencies {
     implementation libs.androidx.media
 }

@@ -19,28 +19,23 @@ package org.jetbrains.android.dom.inspections
 
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.imports.AndroidMavenImportFix
-import com.android.tools.idea.imports.MavenClassRegistryManager
+import com.android.tools.idea.imports.MavenClassRegistry
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.refactoring.isAndroidx
 
-/**
- * Returns a collection of [LocalQuickFix] by querying
- * [MavenClassRegistryManager.getMavenClassRegistry].
- */
-internal fun MavenClassRegistryManager.collectFixesFromMavenClassRegistry(
+/** Returns a collection of [LocalQuickFix] by querying [MavenClassRegistry]. */
+internal fun MavenClassRegistry.collectFixesFromMavenClassRegistry(
   className: String,
   project: Project,
   completionFileType: FileType?,
 ): List<LocalQuickFix> {
   val useAndroidX = project.isAndroidx()
 
-  return getMavenClassRegistry()
-    .findLibraryData(className, null, useAndroidX, completionFileType)
-    .map {
-      val resolvedArtifact =
-        if (useAndroidX) AndroidxNameUtils.getCoordinateMapping(it.artifact) else it.artifact
-      AndroidMavenImportFix(className, resolvedArtifact, it.version)
-    }
+  return findLibraryData(className, null, useAndroidX, completionFileType).map {
+    val resolvedArtifact =
+      if (useAndroidX) AndroidxNameUtils.getCoordinateMapping(it.artifact) else it.artifact
+    AndroidMavenImportFix(this, className, resolvedArtifact, it.version)
+  }
 }

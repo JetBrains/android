@@ -15,6 +15,7 @@ kt_jvm_library(
     ],
     deps = [
         ":java",
+        "//tools/adt/idea/aswb/aswb/testdata/projects/gencode_twowaydeps/external:interface",
     ],
 )
 

@@ -27,4 +27,13 @@ public interface AndroidSqlFunctionCallExpression extends AndroidSqlExpression {
   @NotNull
   List<AndroidSqlExpression> getExpressionList();
 
+  @Nullable
+  AndroidSqlFilterClause getFilterClause();
+
+  @Nullable
+  AndroidSqlOrderClause getOrderClause();
+
+  @Nullable
+  AndroidSqlOverClause getOverClause();
+
 }

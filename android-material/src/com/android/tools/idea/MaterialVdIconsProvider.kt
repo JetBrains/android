@@ -33,7 +33,6 @@ import com.android.tools.idea.material.icons.download.updateIconsAtDir
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadataDownloadCacheService
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getIconsSdkTargetPath
-import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getMetadata
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.hasMetadataFileInSdkPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -86,21 +85,20 @@ class MaterialVdIconsProvider {
                             iconsUrlProvider: MaterialIconsUrlProvider? = null,
                             onNewIconsAvailable: @UiThread () -> Unit = {}) {
       val metadataUrl = (metadataUrlProvider ?: getMetadataUrlProvider()).getMetadataUrl()
-      val metadata = metadataUrl?.let { getMetadata(it) }
-      when {
-        metadata == null -> {
-          LOG.warn("No metadata for material icons.")
-          refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
-        }
-        metadata === MaterialIconsMetadata.EMPTY || metadata.families.isEmpty() -> {
-          LOG.warn("Empty metadata for material icons.")
-          refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
-        }
-        else -> {
-          loadMaterialVdIcons(
-            metadata, iconsUrlProvider ?: getIconsUrlProvider(), refreshUiCallback, onNewIconsAvailable, parentDisposable)
-        }
+      val metadataParseResult = metadataUrl?.let { MaterialIconsMetadata.parse(it) } ?: Result.success(MaterialIconsMetadata.EMPTY)
+
+      if (metadataParseResult.isSuccess && metadataParseResult.getOrThrow() === MaterialIconsMetadata.EMPTY) {
+        LOG.warn("Empty metadata for material icons.")
+        refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
       }
+
+      if (metadataParseResult.isFailure) {
+        // Simply log the error
+        LOG.warn("Failed to load metadata", metadataParseResult.exceptionOrNull())
+      }
+
+      loadMaterialVdIcons(
+        metadataParseResult.getOrDefault(MaterialIconsMetadata.EMPTY), iconsUrlProvider ?: getIconsUrlProvider(), refreshUiCallback, onNewIconsAvailable, parentDisposable)
     }
   }
 }
@@ -154,7 +152,7 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
           copyBundledIcons(metadata, icons)
 
           // Then, download the most recent metadata file and any new icons.
-          iconsUpdated = updateMetadataAndIcons(metadata)
+          iconsUpdated = updateMetadataAndIcons(metadata, iconsUrlProvider)
         }
         catch (_: ProcessCanceledException) {}
         catch (t: Throwable) {
@@ -192,14 +190,14 @@ private fun getIconsUrlProvider(): MaterialIconsUrlProvider {
 @WorkerThread
 private fun copyBundledIcons(
   metadata: MaterialIconsMetadata,
-  icons: MaterialVdIcons,
+  loadedIcons: MaterialVdIcons,
 ) {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
     LOG.warn("No Android Sdk folder, can't copy material icons.")
     return
   }
-  MaterialIconsCopyHandler(metadata, icons).copyTo(targetPath)
+  MaterialIconsCopyHandler(metadata, loadedIcons).copyTo(targetPath)
 }
 
 /**
@@ -208,6 +206,7 @@ private fun copyBundledIcons(
 @WorkerThread
 private fun updateMetadataAndIcons(
   existingMetadata: MaterialIconsMetadata,
+  iconsUrlProvider: MaterialIconsUrlProvider,
 ): Boolean {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
@@ -217,5 +216,6 @@ private fun updateMetadataAndIcons(
   val newMetadata = ApplicationManager.getApplication().getService(MaterialIconsMetadataDownloadCacheService::class.java)
     .getMetadata()
     .getCancellable()
-  return updateIconsAtDir(existingMetadata, newMetadata, targetPath.toPath())
+
+  return updateIconsAtDir(existingMetadata, newMetadata, targetPath.toPath(), iconsUrlProvider)
 }

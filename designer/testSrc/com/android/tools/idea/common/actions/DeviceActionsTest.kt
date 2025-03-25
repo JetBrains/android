@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
@@ -49,7 +50,8 @@ class NextDeviceActionTest {
     val configManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val config = configManager.getConfiguration(file.virtualFile)
 
-    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(config))
+
     val setDeviceActions = getSetDeviceActions(dataContext)
 
     val firstDevice = setDeviceActions.first().device
@@ -82,7 +84,7 @@ class PreviousDeviceActionTest {
     val configManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val config = configManager.getConfiguration(file.virtualFile)
 
-    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(config))
     val setDeviceActions = getSetDeviceActions(dataContext)
 
     val lastDevice = setDeviceActions.last().device

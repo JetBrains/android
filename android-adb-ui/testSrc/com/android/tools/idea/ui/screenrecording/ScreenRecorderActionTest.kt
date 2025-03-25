@@ -16,9 +16,6 @@
 package com.android.tools.idea.ui.screenrecording
 
 import com.android.adblib.testing.FakeAdbSession
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -33,6 +30,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyInt
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /**
  * Tests for [ScreenRecorderAction]

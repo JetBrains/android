@@ -60,6 +60,7 @@ class SupportedWearTileAnimationManager(
   playbackControls: PlaybackControls,
   updateTimelineElementsCallback: suspend () -> Unit,
   parentScope: CoroutineScope,
+  private val setClockTime: suspend (Int, Boolean) -> Unit,
 ) :
   SupportedAnimationManager(
     getCurrentTime,
@@ -102,6 +103,7 @@ class SupportedWearTileAnimationManager(
 
   override suspend fun syncAnimationWithState() {
     executeInRenderSession(true) { animationState.updateAnimation(animation) }
+    setClockTime(getCurrentTime(), false)
   }
 }
 
@@ -110,10 +112,10 @@ private fun ProtoAnimation.createStateManager(
 ): WearTileAnimationState<*> {
   return when (type) {
     TYPE.INT -> {
-      WearTileIntState(startValueInt, endValueInt)
+      WearTileIntState(tracker, startValueInt, endValueInt)
     }
     TYPE.FLOAT -> {
-      WearTileFloatState(startValueFloat, endValueFloat)
+      WearTileFloatState(tracker, startValueFloat, endValueFloat)
     }
     TYPE.COLOR -> {
       WearTileColorPickerState(

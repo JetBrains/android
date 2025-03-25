@@ -19,6 +19,7 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.testing.WaitForIndexRule
+import com.android.tools.idea.testing.moveCaretToEnd
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
@@ -29,9 +30,10 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import java.awt.datatransfer.DataFlavor
+import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
-import java.awt.datatransfer.DataFlavor
 
 /** Tests for [CopyMessageTextAction] */
 @RunsInEdt
@@ -39,7 +41,8 @@ class CopyMessageTextActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),  logcatEditorRule, EdtRule())
+  @get:Rule
+  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule())
 
   private val editor
     get() = logcatEditorRule.editor
@@ -178,6 +181,20 @@ class CopyMessageTextActionTest {
     """
           .trimIndent()
       )
+  }
+
+  @Test
+  fun caretOnLineBreak_doesNotThrow() {
+    val event = testActionEvent(editor)
+    logcatEditorRule.putLogcatMessages(logcatMessage(message = "Message 1"))
+    editor.moveCaretToEnd()
+    val action = CopyMessageTextAction()
+
+    try {
+      action.update(event)
+    } catch (e: Throwable) {
+      fail("Expected not to throw", e)
+    }
   }
 }
 

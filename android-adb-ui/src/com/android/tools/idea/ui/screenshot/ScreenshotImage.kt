@@ -19,6 +19,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
 import java.awt.Dimension
 import java.awt.image.BufferedImage
+import kotlin.math.roundToInt
 
 class ScreenshotImage(
   val image: BufferedImage,
@@ -27,10 +28,9 @@ class ScreenshotImage(
   private val displayInfo: String = "",
 ) {
 
-  val width
+  val width: Int
     get() = image.width
-
-  val height
+  val height: Int
     get() = image.height
 
   // True is the display is round.
@@ -41,18 +41,18 @@ class ScreenshotImage(
   // e.g. Android TV, report fictitious display density.
   val displayDensity: Double = computeDisplayDensity()
 
-  val isWear
+  val isWear: Boolean
     get() = deviceType == DeviceType.WEAR
 
   /**
-   * Returns the rotated screenshot.
+   * Returns the rotated and scaled screenshot.
    */
-  fun rotated(rotationQuadrants: Int): ScreenshotImage {
-    if (rotationQuadrants == 0) {
+  fun rotatedAndScaled(rotationQuadrants: Int = 0, scale: Double = 1.0): ScreenshotImage {
+    if (rotationQuadrants == 0 && scale == 1.0) {
       return this
     }
     return ScreenshotImage(
-      image = ImageUtils.rotateByQuadrants(image, rotationQuadrants),
+      image = ImageUtils.rotateByQuadrantsAndScale(image, rotationQuadrants, (width * scale).roundToInt(), (height * scale).roundToInt()),
       screenshotRotationQuadrants = (screenshotRotationQuadrants + rotationQuadrants) and 0x03,
       displayInfo = displayInfo,
       deviceType = deviceType)
@@ -63,7 +63,7 @@ class ScreenshotImage(
     return try {
       Dimension(width.toInt(), height.toInt())
     }
-    catch (e: NumberFormatException) {
+    catch (_: NumberFormatException) {
       null
     }
   }
@@ -73,7 +73,7 @@ class ScreenshotImage(
     return try {
       density.toDouble()
     }
-    catch (e: NumberFormatException) {
+    catch (_: NumberFormatException) {
       Double.NaN
     }
   }

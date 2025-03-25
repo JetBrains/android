@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -69,8 +70,6 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?) :
 
   private val displayText = generateLayoutAndQualifierTitle(file)
 
-  override fun displayTextInToolbar(): Boolean = true
-
   override fun isPerformableWithoutActionButton(): Boolean = true
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -84,6 +83,7 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?) :
         screenViewProvider == NlScreenViewProvider.BLUEPRINT ||
         screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE
     e.presentation.setText(displayText, false)
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   public override fun updateActions(context: DataContext): Boolean {

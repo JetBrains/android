@@ -15,8 +15,6 @@
  */
 package com.android.tools.compose.code.completion
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.compose.COMPOSE_UI_PACKAGE
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -45,6 +43,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Test for [ComposeModifierCompletionContributor]. */
 @RunWith(JUnit4::class)

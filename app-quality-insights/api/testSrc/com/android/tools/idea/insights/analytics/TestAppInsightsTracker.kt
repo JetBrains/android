@@ -73,7 +73,13 @@ object TestAppInsightsTracker : AppInsightsTracker {
     mode: ConnectionMode,
     issueId: String,
     eventId: String,
-    isFetched: Boolean,
+  ) = Unit
+
+  override fun logEventsFetched(
+    unanonymizedAppId: String,
+    issueId: String,
+    crashType: FailureType,
+    isFirstFetch: Boolean,
   ) = Unit
 
   override fun logInsightSentiment(
@@ -86,5 +92,6 @@ object TestAppInsightsTracker : AppInsightsTracker {
     unanonymizedAppId: String,
     crashType: FailureType,
     insight: AiInsight,
+    contextLimit: Int,
   ) = Unit
 }

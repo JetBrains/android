@@ -21,9 +21,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
 import com.android.tools.idea.editors.strings.model.StringResourceKey
@@ -32,12 +29,11 @@ import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.TestActionEvent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,6 +41,9 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class RemoveKeysActionTest {
@@ -65,8 +64,7 @@ class RemoveKeysActionTest {
         .add(CommonDataKeys.PROJECT, projectRule.project)
         .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
         .build()
-    event =
-      AnActionEvent(null, dataContext, "place", Presentation(), ActionManager.getInstance(), 0)
+    event = TestActionEvent.createTestEvent(dataContext)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -109,8 +107,7 @@ class RemoveKeysActionTest {
 
     removeKeysAction.actionPerformed(event)
 
-    verify(panel)
-      .deleteSelectedKeys()
+    verify(panel).deleteSelectedKeys()
   }
 
   companion object {

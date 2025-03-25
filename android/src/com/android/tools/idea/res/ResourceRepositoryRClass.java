@@ -57,9 +57,11 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
 
   @NotNull private final ResourcesSource mySource;
 
-  public ResourceRepositoryRClass(@NotNull PsiManager psiManager, @NotNull ResourcesSource source) {
+  protected ResourceRepositoryRClass(@NotNull PsiManager psiManager,
+                                     @NotNull ResourcesSource source,
+                                     @NotNull AndroidLightClassModuleInfo moduleInfo) {
     // TODO(b/110188226): Update the file package name when the module's package name changes.
-    super(psiManager, source.getPackageName());
+    super(psiManager, source.getPackageName(), moduleInfo);
     mySource = source;
   }
 

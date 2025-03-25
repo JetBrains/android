@@ -42,6 +42,17 @@ public interface BlazeCommandRunner {
       throws BuildException;
 
   /**
+   * Runs a blaze build command, parses the build results into a {@link BlazeBuildOutputs} object
+   * using the given {@link BuildResultHelper}.
+   */
+  BlazeBuildOutputs.Legacy runLegacy(
+    Project project,
+    BlazeCommand.Builder blazeCommandBuilder,
+    BuildResultHelper buildResultHelper,
+    BlazeContext context)
+    throws BuildException;
+
+  /**
    * Runs a blaze test command, parses the test results into a {@link BlazeTestResults} object using
    * the given {@link BuildResultHelper}.
    */

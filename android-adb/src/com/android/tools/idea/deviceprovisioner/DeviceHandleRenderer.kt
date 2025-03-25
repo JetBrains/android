@@ -29,10 +29,7 @@ import javax.swing.ListModel
 object DeviceHandleRenderer {
   /** Renders the given [DeviceHandle] to a [ColoredTextContainer]. */
   @JvmStatic
-  fun renderDevice(
-    component: ColoredTextContainer,
-    device: DeviceHandle,
-  ) {
+  fun renderDevice(component: ColoredTextContainer, device: DeviceHandle) {
     renderDevice(component, device, device.state.properties.title, false)
   }
 
@@ -44,7 +41,7 @@ object DeviceHandleRenderer {
   fun renderDevice(
     component: ColoredTextContainer,
     device: DeviceHandle,
-    allDevices: Iterable<DeviceHandle>
+    allDevices: Iterable<DeviceHandle>,
   ) {
     val name = device.state.properties.title
     val isDuplicated = allDevices.any { it != device && it.state.properties.title == name }
@@ -56,7 +53,7 @@ object DeviceHandleRenderer {
     component: ColoredTextContainer,
     device: DeviceHandle,
     name: String,
-    isDuplicated: Boolean
+    isDuplicated: Boolean,
   ) {
     component.setIcon(device.state.properties.icon)
     component.append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
@@ -65,13 +62,13 @@ object DeviceHandleRenderer {
       null ->
         component.append(
           " [${device.state.javaClass.simpleName}]",
-          SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES
+          SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES,
         )
       DeviceState.ONLINE -> {}
       else ->
         component.append(
           " [${titleCase(deviceState.toString())}]",
-          SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES
+          SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES,
         )
     }
 
@@ -85,7 +82,7 @@ object DeviceHandleRenderer {
     device.state.properties.androidVersion?.let {
       component.append(
         " ${it.getFullReleaseName(includeApiLevel = false, includeCodeName = true)}",
-        SimpleTextAttributes.GRAY_ATTRIBUTES
+        SimpleTextAttributes.GRAY_ATTRIBUTES,
       )
     }
   }
@@ -98,7 +95,7 @@ class DeviceHandleListCellRenderer : ColoredListCellRenderer<DeviceHandle>() {
     value: DeviceHandle?,
     index: Int,
     selected: Boolean,
-    hasFocus: Boolean
+    hasFocus: Boolean,
   ) {
     value ?: return
 
@@ -111,7 +108,9 @@ fun <T> ListModel<T>.toIterable(): Iterable<T> =
     override fun iterator(): Iterator<T> =
       object : Iterator<T> {
         var index = 0
+
         override fun hasNext(): Boolean = index < size
+
         override fun next(): T = getElementAt(index++)
       }
   }

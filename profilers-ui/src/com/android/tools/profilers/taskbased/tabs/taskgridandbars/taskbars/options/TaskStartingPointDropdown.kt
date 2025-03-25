@@ -40,11 +40,10 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
                               isProfilingProcessFromProcessStartEnabled: Boolean,
                               isSelectedProcessAlive: Boolean,
                               processStartDisabledReason: StartTaskSelectionError?) {
-  val isDropdownEnabled = isProfilingProcessFromNowEnabled || isProfilingProcessFromProcessStartEnabled
 
   Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP)) {
     EllipsisText(text = TaskBasedUxStrings.STARTING_POINT_DROPDOWN_TITLE)
-    Dropdown(modifier = Modifier.testTag("TaskStartingPointDropdown"), enabled = isDropdownEnabled, menuContent = {
+    Dropdown(modifier = Modifier.testTag("TaskStartingPointDropdown"), menuContent = {
       selectableItem(enabled = isProfilingProcessFromNowEnabled,
                      selected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
                      onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW) }) {
@@ -61,7 +60,8 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
         }
         else {
           Tooltip(tooltip = {
-            Text(processStartDisabledReason?.let { TaskBasedUxStrings.getStartTaskErrorMessage(it) } ?: "Option unavailable")
+            Text(processStartDisabledReason?.let { TaskBasedUxStrings.getStartTaskErrorMessage(it.starTaskSelectionErrorCode) }
+                 ?: "Option unavailable")
           }) {
             TaskStartingFromProcessStartOption(false, isSelectedProcessAlive, Modifier.testTag("TaskStartingPointOption"))
           }
@@ -69,7 +69,7 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
       }
     }) {
       when (profilingProcessStartingPoint) {
-        TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED -> DropdownOptionText(primaryText = "Please select a starting point",
+        TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED -> DropdownOptionText(primaryText = "Not specified",
                                                                                          secondaryText = null, isEnabled = false)
         TaskHomeTabModel.ProfilingProcessStartingPoint.NOW -> TaskStartingPointFromNowOption(isProfilingProcessFromNowEnabled)
         TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START -> TaskStartingFromProcessStartOption(

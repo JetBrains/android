@@ -28,6 +28,7 @@ import com.android.tools.idea.npw.module.recipes.addTestDependencies
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.res.values.stringsXml
 import com.android.tools.idea.npw.module.recipes.gitignore
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -39,9 +40,10 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   downloadInstallKind: DownloadInstallKind,
   deviceFeatures: Collection<DeviceFeatureModel>,
   useGradleKts: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
 ) {
-  val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = moduleData
+  val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) =
+    moduleData
   val apis = moduleData.apis
   val (buildApi, targetApi, minApi, _) = apis
   val useAndroidX = moduleData.projectTemplateData.androidXSupport
@@ -51,9 +53,14 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   val packageName = moduleData.packageName
   val baseFeature = moduleData.baseFeature!!
 
-  val manifestXml = androidManifestXml(
-    fusing.toString(), isInstantModule, projectSimpleName, downloadInstallKind, deviceFeatures
-  )
+  val manifestXml =
+    androidManifestXml(
+      fusing.toString(),
+      isInstantModule,
+      projectSimpleName,
+      downloadInstallKind,
+      deviceFeatures,
+    )
 
   createDirectory(srcOut)
   addIncludeToSettings(name)
@@ -72,12 +79,18 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       useAndroidX = useAndroidX,
       baseFeatureName = baseFeature.name,
       formFactorNames = projectData.includedFormFactorNames,
-      useVersionCatalog = useVersionCatalog
-    ), moduleOut.resolve(buildFile)
+      useVersionCatalog = useVersionCatalog,
+    ),
+    moduleOut.resolve(buildFile),
   )
 
-  applyPlugin("com.android.dynamic-feature", projectData.agpVersion)
+  addPlugin(
+    "com.android.dynamic-feature",
+    "com.android.tools.build:gradle",
+    projectData.agpVersion.toString(),
+  )
   addKotlinIfNeeded(projectData, targetApi = targetApi.api)
+  setJavaKotlinCompileOptions(language == Language.Kotlin)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))
@@ -89,5 +102,8 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   if (isInstantModule) {
     mergeXml(baseAndroidManifestXml(), baseFeature.dir.resolve("src/main/$FN_ANDROID_MANIFEST_XML"))
   }
-  mergeXml(stringsXml(dynamicFeatureTitle, projectSimpleName), baseFeature.resDir.resolve("values/strings.xml"))
+  mergeXml(
+    stringsXml(dynamicFeatureTitle, projectSimpleName),
+    baseFeature.resDir.resolve("values/strings.xml"),
+  )
 }

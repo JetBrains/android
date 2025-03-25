@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -28,14 +24,18 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
-import kotlin.test.assertFalse
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ComposePreviewRepresentationProviderTest {
   private val projectRule = ComposeProjectRule()

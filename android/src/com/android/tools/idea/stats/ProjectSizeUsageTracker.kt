@@ -34,6 +34,7 @@ import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.backend.observation.Observation
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
@@ -83,6 +84,7 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
 
   override fun run() {
     project.coroutineScope.launch {
+      Observation.awaitConfiguration(project)
       withBackgroundProgress(project, "Computing project size", true) {
         val builder = AndroidStudioEvent
           .newBuilder()

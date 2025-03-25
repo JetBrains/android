@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.experiments.Experiment
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.SortedSet
@@ -78,8 +79,17 @@ interface AppInsightsCache {
   /** Removes the note matching [NoteId] from the cache. */
   fun removeNote(connection: Connection, noteId: NoteId)
 
-  /** Gets the cached [AiInsight] if one exists. */
-  fun getAiInsight(connection: Connection, issueId: IssueId): AiInsight?
+  /**
+   * Gets the cached [AiInsight] if one exists.
+   *
+   * TODO(b/378563731): cache insights by context data in addition to issueId.
+   */
+  fun getAiInsight(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    experiment: Experiment,
+  ): AiInsight?
 
   /**
    * Puts an [AiInsight] in the cache.
@@ -87,7 +97,15 @@ interface AppInsightsCache {
    * If [clearExistingCacheEntries] is specified, clears all cached insights. This is used to force
    * the client to re-fetch an insight.
    */
-  fun putAiInsight(connection: Connection, issueId: IssueId, aiInsight: AiInsight)
+  fun putAiInsight(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    aiInsight: AiInsight,
+  )
+
+  /** Removes the cached entry of an issue. */
+  fun removeIssue(connection: Connection, issueId: IssueId)
 }
 
 private const val MAXIMUM_ISSUES_CACHE_SIZE = 1000L
@@ -101,10 +119,12 @@ private data class IssueDetailsValue(
   fun toIssue() = AppInsightsIssue(issueDetails, sampleEvents.first(), state)
 }
 
+private data class AiInsightKey(val variantId: String?, val codeContextExperiment: Experiment)
+
 private data class CacheValue(
   val issueDetails: IssueDetailsValue?,
   val notes: List<Note>?,
-  val aiInsight: AiInsight?,
+  val aiInsights: Map<AiInsightKey, AiInsight>,
 )
 
 // TODO(b/249510375): persist cache
@@ -173,7 +193,7 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
         CacheValue(
           oldValue?.issueDetails.reconcileWith(newIssue),
           oldValue?.notes,
-          oldValue?.aiInsight,
+          oldValue?.aiInsights ?: emptyMap(),
         )
       }
     }
@@ -223,20 +243,38 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
     }
   }
 
-  override fun getAiInsight(connection: Connection, issueId: IssueId): AiInsight? {
+  override fun getAiInsight(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    experiment: Experiment,
+  ): AiInsight? {
     return compositeIssuesCache
       .getIfPresent(connection)
       ?.getIfPresent(issueId)
-      ?.aiInsight
+      ?.aiInsights
+      ?.get(AiInsightKey(variantId, experiment))
       ?.copy(isCached = true)
   }
 
-  override fun putAiInsight(connection: Connection, issueId: IssueId, aiInsight: AiInsight) {
+  override fun putAiInsight(
+    connection: Connection,
+    issueId: IssueId,
+    variantId: String?,
+    aiInsight: AiInsight,
+  ) {
     val issuesCache = getOrCreateIssuesCache(connection).asMap()
     issuesCache.compute(issueId) { _, oldValue ->
-      var cacheValue = oldValue ?: CacheValue(null, null, null)
-      cacheValue.copy(aiInsight = aiInsight)
+      var cacheValue = oldValue ?: CacheValue(null, null, emptyMap())
+      cacheValue.copy(
+        aiInsights =
+          cacheValue.aiInsights.plus(AiInsightKey(variantId, aiInsight.experiment) to aiInsight)
+      )
     }
+  }
+
+  override fun removeIssue(connection: Connection, issueId: IssueId) {
+    compositeIssuesCache.getIfPresent(connection)?.invalidate(issueId)
   }
 
   private fun IssueDetailsValue?.reconcileWith(issue: AppInsightsIssue): IssueDetailsValue {

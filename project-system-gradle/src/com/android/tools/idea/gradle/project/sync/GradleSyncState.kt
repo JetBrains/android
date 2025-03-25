@@ -16,17 +16,16 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.progress.Cancellation
 import com.intellij.openapi.project.Project
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import org.gradle.util.GradleVersion
 
 enum class GradleSyncNeededReason {
-  EXTERNAL_BUILD_FILES_CHANGED,
   GRADLE_BUILD_FILES_CHANGED,
   GRADLE_JVM_CONFIG_CHANGED
 }
@@ -58,9 +57,9 @@ interface GradleSyncState {
   fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection
 
   companion object {
-    @JvmField
-    val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = Cancellation.forceNonCancellableSectionInClassInitializer {
-      NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
+    @JvmStatic
+    val JDK_LOCATION_WARNING_NOTIFICATION_GROUP: NotificationGroup by lazy {
+      NotificationGroupManager.getInstance().getNotificationGroup("JDK Location different to JAVA_HOME")
     }
 
     /**
@@ -88,19 +87,19 @@ interface GradleSyncState {
     @JvmStatic
     fun getInstance(project: Project): GradleSyncState =
       project.getService(GradleSyncState::class.java)
-        ?: if (ApplicationManager.getApplication().isUnitTestMode) object : GradleSyncState {
-          override val isSyncInProgress: Boolean = false
-          override val externalSystemTaskId: ExternalSystemTaskId? = null
-          override val lastSyncFinishedTimeStamp: Long = -1
-          override val lastSyncedGradleVersion: GradleVersion? = null
-          override fun lastSyncFailed(): Boolean = false
-          override fun isSyncNeeded(): ThreeState = ThreeState.NO
-          override fun getSyncNeededReason(): GradleSyncNeededReason? = null
-          override fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection {
-            error("Not supported in unit test mode")
-          }
+      ?: if (ApplicationManager.getApplication().isUnitTestMode) object : GradleSyncState {
+        override val isSyncInProgress: Boolean = false
+        override val externalSystemTaskId: ExternalSystemTaskId? = null
+        override val lastSyncFinishedTimeStamp: Long = -1
+        override val lastSyncedGradleVersion: GradleVersion? = null
+        override fun lastSyncFailed(): Boolean = false
+        override fun isSyncNeeded(): ThreeState = ThreeState.NO
+        override fun getSyncNeededReason(): GradleSyncNeededReason? = null
+        override fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection {
+          error("Not supported in unit test mode")
         }
-        else error("GradleSyncState service is not registered.")
+      }
+      else error("GradleSyncState service is not registered.")
   }
 }
 

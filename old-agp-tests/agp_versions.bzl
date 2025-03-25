@@ -3,11 +3,8 @@
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list")
 
 COMMON_DATA = [
-    "//prebuilts/studio/layoutlib:build.prop",
+    "//prebuilts/studio/layoutlib:runtime",
     "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    "//prebuilts/studio/layoutlib/data:native_libs",
-    "//prebuilts/studio/layoutlib/data/fonts",
-    "//prebuilts/studio/layoutlib/data/icu",
     "//prebuilts/studio/sdk:cmake",
     "//prebuilts/studio/sdk:docs",
     "//prebuilts/studio/sdk:licenses",
@@ -155,11 +152,11 @@ def _local_old_agp_test_update_kwargs(
         **kwargs):
     jdk_data = []
     if "1.8" in additional_jdks:
-        jdk_data.append("//prebuilts/studio/jdk:jdk_1_8")
+        jdk_data.append("//prebuilts/studio/jdk/jdk8:jdk_runtime_files")
     if "11" in additional_jdks:
-        jdk_data.append("//prebuilts/studio/jdk/jdk11")
+        jdk_data.append("//prebuilts/studio/jdk/jdk11:jdk_runtime_files")
     if "17" in additional_jdks:
-        jdk_data.append("//prebuilts/studio/jdk:jdk17")
+        jdk_data.append("//prebuilts/studio/jdk/jdk17:jdk_runtime_files")
 
     kwargs.update(
         agp_version = agp_version,

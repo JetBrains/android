@@ -13,7 +13,7 @@ MODULE                        : project
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -724,7 +724,7 @@ MODULE                        : project
         qName                         : project
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -753,7 +753,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -1372,7 +1371,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -1588,7 +1586,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -1734,7 +1731,6 @@ MODULE                        : project
                                 _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                                 _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                                 _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                                 _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                                 _internal-unified-test-platform-core    : <empty>
                                 _internal-unified-test-platform-launcher          : <empty>
@@ -1857,7 +1853,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -2003,7 +1998,6 @@ MODULE                        : project
                                 _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                                 _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                                 _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                                 _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                                 _internal-unified-test-platform-core    : <empty>
                                 _internal-unified-test-platform-launcher          : <empty>
@@ -2149,7 +2143,6 @@ MODULE                        : project
                                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                                         _internal-unified-test-platform-core    : <empty>
                                         _internal-unified-test-platform-launcher          : <empty>
@@ -2260,6 +2253,11 @@ MODULE                        : project
                                             qName                         : :nested2:trans:deep2:testReleaseUnitTest
                         sourceSetModel                : DefaultGradleSourceSetModel
                         taskModel                     : DefaultGradleTaskModel
+                            tasks
+                                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                                    qName                         : :nested2:trans:deep2:testDebugUnitTest
+                                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                                    qName                         : :nested2:trans:deep2:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2274,7 +2272,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -2508,12 +2505,55 @@ MODULE                        : project
                             qName                         : :nested2:testBasicDebugUnitTest
                         testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testBasicReleaseUnitTest
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:deep:testDebugUnitTest
                         testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testPaidDebugUnitTest
                         testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
                             qName                         : :nested2:testPaidReleaseUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :nested2:deep:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :jav:test
+                testBasicBarDebugUnitTest     : testBasicBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarDebugUnitTest
+                testBasicBarReleaseUnitTest   : testBasicBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarReleaseUnitTest
+                testBasicBarSpecialReleaseUnitTest      : testBasicBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicBarSpecialReleaseUnitTest
+                testBasicDebugUnitTest        : testBasicDebugUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testBasicDebugUnitTest
+                testBasicOtherBarDebugUnitTest          : testBasicOtherBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarDebugUnitTest
+                testBasicOtherBarReleaseUnitTest        : testBasicOtherBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarReleaseUnitTest
+                testBasicOtherBarSpecialReleaseUnitTest : testBasicOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testBasicOtherBarSpecialReleaseUnitTest
+                testBasicReleaseUnitTest      : testBasicReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testBasicReleaseUnitTest
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :dyn_feature:testDebugUnitTest
+                testPaidBarDebugUnitTest      : testPaidBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarDebugUnitTest
+                testPaidBarReleaseUnitTest    : testPaidBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarReleaseUnitTest
+                testPaidBarSpecialReleaseUnitTest       : testPaidBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidBarSpecialReleaseUnitTest
+                testPaidDebugUnitTest         : testPaidDebugUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testPaidDebugUnitTest
+                testPaidOtherBarDebugUnitTest : testPaidOtherBarDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarDebugUnitTest
+                testPaidOtherBarReleaseUnitTest         : testPaidOtherBarReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarReleaseUnitTest
+                testPaidOtherBarSpecialReleaseUnitTest  : testPaidOtherBarSpecialReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testPaidOtherBarSpecialReleaseUnitTest
+                testPaidReleaseUnitTest       : testPaidReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :nested2:testPaidReleaseUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :dyn_feature:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -2532,14 +2572,14 @@ MODULE                        : project.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -2582,6 +2622,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : basicBarDebug
         applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
         testApplicationId             : com.example.psd.sample.app.default.test
@@ -2624,7 +2665,7 @@ MODULE                        : project.app
         buildType                     : specialRelease
     FlavorDimensions              : foo
     FlavorDimensions              : bar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     DynamicFeatures               : :dyn_feature
     ViewBindingOptions
         Enabled                       : false
@@ -2650,8 +2691,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2887,8 +2928,8 @@ MODULE                        : project.app
                 ApiLevel                      : 10
                 ApiString                     : 10
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             TestInstrumentationRunnerArguments
                 a                             : AAA
                 b                             : BBB
@@ -3159,8 +3200,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             MaxSdkVersion                 : 26
             VersionCode                   : 1
             VersionNameSuffix             : vns
@@ -4049,7 +4090,7 @@ MODULE                        : project.dyn_feature
     ProjectPath                   : :dyn_feature
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4092,12 +4133,13 @@ MODULE                        : project.dyn_feature
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.dyn_feature.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     BaseFeature                   : :app
     ViewBindingOptions
         Enabled                       : false
@@ -4354,14 +4396,14 @@ MODULE                        : project.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4404,12 +4446,13 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.projectwithappandlib.lib.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4421,8 +4464,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -4582,8 +4625,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact
@@ -5377,7 +5420,7 @@ MODULE                        : project.nested1
     ProjectPath                   : :nested1
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/nested1/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -5420,12 +5463,13 @@ MODULE                        : project.nested1
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5673,7 +5717,7 @@ MODULE                        : project.nested1.deep
     ProjectPath                   : :nested1:deep
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -5716,12 +5760,13 @@ MODULE                        : project.nested1.deep
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.deep.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5979,7 +6024,7 @@ MODULE                        : project.nested2
     ProjectPath                   : :nested2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/nested2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -6022,6 +6067,7 @@ MODULE                        : project.nested2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : basicDebug
         testApplicationId             : com.example.nested2.test
         buildType                     : debug
@@ -6033,7 +6079,7 @@ MODULE                        : project.nested2
     - basicVariant:               : paidRelease
         buildType                     : release
     FlavorDimensions              : foo
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -6417,7 +6463,7 @@ MODULE                        : project.nested2.deep
     ProjectPath                   : :nested2:deep
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -6460,12 +6506,13 @@ MODULE                        : project.nested2.deep
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.deep.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -6725,7 +6772,7 @@ MODULE                        : project.nested2.trans.deep2
     ProjectPath                   : :nested2:trans:deep2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -6768,12 +6815,13 @@ MODULE                        : project.nested2.trans.deep2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.trans.deep2.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig

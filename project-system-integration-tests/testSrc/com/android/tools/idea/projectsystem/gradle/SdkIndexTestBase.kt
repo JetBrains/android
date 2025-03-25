@@ -72,16 +72,19 @@ open class SdkIndexTestBase {
       // Check that the snapshot now exists
       assertWithMessage("SDK index snapshot ($indexPath) should exist after opening build file").that(indexPath.exists()).isTrue()
       // Check lint caused SDK Index to look for issues
+      println("Checking that ${expectedIssues.size} issues were created")
       val expectedHeaders = mutableSetOf<String>()
       for (issue in expectedIssues) {
         val escapedIssueHeader = ".*IdeGooglePlaySdkIndex - ${Pattern.quote(issue[0])}$"
         expectedHeaders.add(issue[0])
+        println("  Looking for header \"$escapedIssueHeader\"")
         system.installation.ideaLog.waitForMatchingLine(escapedIssueHeader, null, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
         for (line in issue.drop(1)) {
           val escapedLine = "${Pattern.quote(line)}$"
           system.installation.ideaLog.waitForMatchingLine(escapedLine, null, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
         }
       }
+      println("Found all headers, checking that the lines are correct")
       // Now check that only expected issues were present and that the expected lines after them were included
       val foundHeaders: MutableSet<String> = mutableSetOf()
       while (true) {
@@ -93,6 +96,7 @@ open class SdkIndexTestBase {
           for (issue in expectedIssues) {
             if (header == issue[0]) {
               // Confirm the expected lines follow
+              println("  Checking issue: \"$header\"")
               var allLinesFound = true
               for (line in issue.drop(1)) {
                 val escapedLine = "${Pattern.quote(line)}$"
@@ -100,6 +104,7 @@ open class SdkIndexTestBase {
                   system.installation.ideaLog.waitForMatchingLine(escapedLine, timeoutBetweenIssuesSeconds, TimeUnit.SECONDS)
                 }
                 catch (unexpected: InterruptedException) {
+                  println("    Could not find line \"$line\"")
                   allLinesFound = false
                   break
                 }
@@ -116,7 +121,8 @@ open class SdkIndexTestBase {
         }
       }
       beforeClose?.invoke()
-      assertThat(foundHeaders).isEqualTo(expectedHeaders)
+      // Sort them before comparing so it is easier to debug
+      assertThat(foundHeaders.sorted()).isEqualTo(expectedHeaders.sorted())
     }
   }
 

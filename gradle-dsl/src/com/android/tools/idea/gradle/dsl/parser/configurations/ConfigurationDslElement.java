@@ -81,4 +81,8 @@ public class ConfigurationDslElement extends GradleDslBlockElement implements Gr
   public boolean isInsignificantIfEmpty() {
     return false;
   }
+
+  @Override
+  @Nullable
+  public String getAccessMethodName() { return CONFIGURATION.namedObjectAssociatedName; }
 }

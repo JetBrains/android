@@ -15,175 +15,324 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
-import com.android.AndroidXConstants
-import com.android.SdkConstants
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_ID
-import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.getRoot
-import com.android.tools.idea.uibuilder.model.viewInfo
-import com.google.common.collect.ImmutableList
+import com.android.tools.idea.rendering.RenderTestUtil
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.rendering.RenderTask
+import com.android.tools.visuallint.analyzers.OverlapAnalyzer
+import com.intellij.openapi.application.ApplicationManager
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class OverlapAnalyzerTest : LayoutTestCase() {
+class OverlapAnalyzerTest {
 
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
+
+  @Before
+  fun setup() {
+    RenderTestUtil.beforeRenderTestCase()
+  }
+
+  @After
+  fun tearDown() {
+    ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
+  }
+
+  @Test
   fun testTextHiddenIndex() {
     // Text hidden because image is defined after text
-    val model =
-      model(
-          "is_hidden.xml",
-          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-            .withBounds(0, 0, 200, 200)
-            .withMockView()
-            .children(
-              component(SdkConstants.TEXT_VIEW)
-                .withBounds(0, 0, 200, 200)
-                .withAttribute(ANDROID_URI, ATTR_ID, "@id/text_view")
-                .withMockView(android.widget.TextView::class.java),
-              component(SdkConstants.IMAGE_VIEW)
-                .withAttribute(ANDROID_URI, ATTR_ID, "@id/image_view")
-                .withBounds(0, 0, 200, 200)
-                .withMockView(),
-            ),
-        )
-        .build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(1, issues.size)
-    assertEquals("text_view <TextView> is covered by image_view <ImageView>", issues[0].message)
+    @Language("XML")
+    val content =
+      """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+              android:id="@+id/text_view"
+              android:layout_width="200dp"
+              android:layout_height="200dp"
+              android:text="Text"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+            <ImageView
+              android:id="@+id/image_view"
+              android:layout_width="200dp"
+              android:layout_height="200dp"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+         </AbsoluteLayout>"""
+
+    val file = projectRule.fixture.addFileToProject("res/layout/is_hidden.xml", content).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+
+    RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
+      task.setDecorations(false)
+      try {
+        val result = task.render().get()
+        val issues = OverlapAnalyzer.findIssues(result, configuration)
+        assertEquals(1, issues.size)
+        assertEquals("text_view <TextView> is covered by image_view <ImageView>", issues[0].message)
+      } catch (ex: java.lang.Exception) {
+        throw RuntimeException(ex)
+      }
+    }
   }
 
+  @Test
   fun testTextShownIndex() {
     // Text shown because image is defined before text
-    val model =
-      model(
-          "is_hidden.xml",
-          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-            .withBounds(0, 0, 200, 200)
-            .withMockView()
-            .children(
-              component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 200, 200).withMockView(),
-              component(SdkConstants.TEXT_VIEW)
-                .withBounds(0, 0, 200, 200)
-                .withMockView(android.widget.TextView::class.java),
-            ),
-        )
-        .build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(0, issues.size)
+    @Language("XML")
+    val content =
+      """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+              android:id="@+id/image_view"
+              android:layout_width="200dp"
+              android:layout_height="200dp"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+            <TextView
+              android:id="@+id/text_view"
+              android:layout_width="200dp"
+              android:layout_height="200dp"
+              android:text="Text"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+         </AbsoluteLayout>"""
+
+    val file =
+      projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+
+    RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
+      task.setDecorations(false)
+      try {
+        val result = task.render().get()
+        val issues = OverlapAnalyzer.findIssues(result, configuration)
+        assertEquals(0, issues.size)
+      } catch (ex: java.lang.Exception) {
+        throw RuntimeException(ex)
+      }
+    }
   }
 
+  @Test
   fun testTextHiddenElevation() {
     // Text hidden because image has higher elevation than text, even tho text view is defined
     // later.
-    val model =
-      model(
-          "is_hidden.xml",
-          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-            .withBounds(0, 0, 200, 200)
-            .withMockView()
-            .children(
-              component(SdkConstants.IMAGE_VIEW)
-                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "20dp")
-                .withBounds(0, 0, 200, 200)
-                .withMockView(),
-              component(SdkConstants.TEXT_VIEW)
-                .withBounds(0, 0, 200, 200)
-                .withAttribute(ANDROID_URI, ATTR_ID, "@+id/text_view")
-                .withMockView(android.widget.TextView::class.java),
-            ),
-        )
-        .build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(1, issues.size)
-    assertEquals("text_view <TextView> is covered by ImageView", issues[0].message)
+    @Language("XML")
+    val content =
+      """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+              android:layout_width="200dp"
+              android:layout_height="200dp"
+              android:layout_x="0dp"
+              android:layout_y="0dp"
+              android:elevation="20dp"/>
+
+            <TextView
+              android:id="@+id/text_view"
+              android:layout_width="200dp"
+              android:layout_height="200dp"
+              android:text="Text"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+         </AbsoluteLayout>"""
+
+    val file = projectRule.fixture.addFileToProject("res/layout/is_hidden.xml", content).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+
+    RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
+      task.setDecorations(false)
+      try {
+        val result = task.render().get()
+        val issues = OverlapAnalyzer.findIssues(result, configuration)
+        assertEquals(1, issues.size)
+        assertEquals("text_view <TextView> is covered by ImageView", issues[0].message)
+      } catch (ex: java.lang.Exception) {
+        throw RuntimeException(ex)
+      }
+    }
   }
 
+  @Test
   fun testTextShownElevation() {
     // Text shown because text has higher elevation
-    val model =
-      model(
-          "is_hidden.xml",
-          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-            .withBounds(0, 0, 200, 200)
-            .withMockView()
-            .children(
-              component(SdkConstants.TEXT_VIEW)
-                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "25dp")
-                .withBounds(0, 0, 200, 200)
-                .withMockView(android.widget.TextView::class.java),
-              component(SdkConstants.IMAGE_VIEW)
-                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION, "20dp")
-                .withBounds(0, 0, 200, 200)
-                .withMockView(),
-            ),
-        )
-        .build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(0, issues.size)
+    @Language("XML")
+    val content =
+      """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+              android:layout_width="200dp"
+              android:layout_height="200dp"
+              android:text="Text"
+              android:layout_x="0dp"
+              android:layout_y="0dp"
+              android:elevation="25dp"/>
+
+            <ImageView
+              android:layout_width="200dp"
+              android:layout_height="200dp"
+              android:layout_x="0dp"
+              android:layout_y="0dp"
+              android:elevation="20dp"/>
+
+         </AbsoluteLayout>"""
+
+    val file =
+      projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+
+    RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
+      task.setDecorations(false)
+      try {
+        val result = task.render().get()
+        val issues = OverlapAnalyzer.findIssues(result, configuration)
+        assertEquals(0, issues.size)
+      } catch (ex: java.lang.Exception) {
+        throw RuntimeException(ex)
+      }
+    }
   }
 
+  @Test
   fun testTextHidden60Percent() {
-    // Text hidden because image is defined after text
-    val model =
-      model(
-          "is_hidden.xml",
-          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-            .withBounds(0, 0, 200, 200)
-            .withMockView()
-            .children(
-              component(SdkConstants.TEXT_VIEW)
-                .withBounds(0, 0, 100, 100)
-                .withMockView(android.widget.TextView::class.java),
-              component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 60, 100).withMockView(),
-            ),
-        )
-        .build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(1, issues.size)
+    // Text hidden because image is covering 60%
+    @Language("XML")
+    val content =
+      """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+              android:layout_width="100dp"
+              android:layout_height="100dp"
+              android:text="Text"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+            <ImageView
+              android:layout_width="60dp"
+              android:layout_height="100dp"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+         </AbsoluteLayout>"""
+
+    val file = projectRule.fixture.addFileToProject("res/layout/is_hidden.xml", content).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+
+    RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
+      task.setDecorations(false)
+      try {
+        val result = task.render().get()
+        val issues = OverlapAnalyzer.findIssues(result, configuration)
+        assertEquals(1, issues.size)
+      } catch (ex: java.lang.Exception) {
+        throw RuntimeException(ex)
+      }
+    }
   }
 
+  @Test
   fun testTextHidden40Percent() {
-    // Text hidden because image is defined after text
-    val model =
-      model(
-          "is_hidden.xml",
-          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-            .withBounds(0, 0, 200, 200)
-            .withMockView()
-            .children(
-              component(SdkConstants.TEXT_VIEW)
-                .withBounds(0, 0, 100, 100)
-                .withMockView(android.widget.TextView::class.java),
-              component(SdkConstants.IMAGE_VIEW).withBounds(0, 0, 40, 100).withMockView(),
-            ),
-        )
-        .build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(0, issues.size)
+    // Text not hidden because image is only covering 40%
+    @Language("XML")
+    val content =
+      """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+              android:layout_width="100dp"
+              android:layout_height="100dp"
+              android:text="Text"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+            <ImageView
+              android:layout_width="40dp"
+              android:layout_height="100dp"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+         </AbsoluteLayout>"""
+
+    val file =
+      projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+
+    RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
+      task.setDecorations(false)
+      try {
+        val result = task.render().get()
+        val issues = OverlapAnalyzer.findIssues(result, configuration)
+        assertEquals(0, issues.size)
+      } catch (ex: java.lang.Exception) {
+        throw RuntimeException(ex)
+      }
+    }
   }
 
+  @Test
   fun testNoOverlap() {
-    val model =
-      model(
-          "no_overlap.xml",
-          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-            .withBounds(0, 0, 200, 200)
-            .withMockView()
-            .children(
-              component(SdkConstants.TEXT_VIEW)
-                .withBounds(0, 0, 20, 20)
-                .withMockView(android.widget.TextView::class.java),
-              component(SdkConstants.IMAGE_VIEW).withBounds(160, 160, 30, 30).withMockView(),
-            ),
-        )
-        .build()
-    val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = OverlapAnalyzer.findIssues(renderResult, model)
-    assertEquals(0, issues.size)
+    @Language("XML")
+    val content =
+      """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+              android:layout_width="20dp"
+              android:layout_height="20dp"
+              android:text="Text"
+              android:layout_x="0dp"
+              android:layout_y="0dp"/>
+
+            <ImageView
+              android:layout_width="30dp"
+              android:layout_height="30dp"
+              android:layout_x="160dp"
+              android:layout_y="160dp"/>
+
+         </AbsoluteLayout>"""
+
+    val file =
+      projectRule.fixture.addFileToProject("res/layout/is_not_hidden.xml", content).virtualFile
+    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+
+    RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
+      task.setDecorations(false)
+      try {
+        val result = task.render().get()
+        val issues = OverlapAnalyzer.findIssues(result, configuration)
+        assertEquals(0, issues.size)
+      } catch (ex: java.lang.Exception) {
+        throw RuntimeException(ex)
+      }
+    }
   }
 }

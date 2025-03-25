@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("UnstableApiUsage")
+
 package com.android.tools.idea.compose.gradle.preview
 
 import com.android.flags.junit.FlagRule
@@ -20,7 +22,10 @@ import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel
+import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
+import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.gradle.waitForRender
@@ -36,12 +41,12 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.android.tools.idea.uibuilder.visual.visuallint.AtfAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.ButtonSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.LongTextAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.TextFieldSizeAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.ui.IdeUiService
@@ -159,6 +164,7 @@ class RenderErrorTest {
   fun testSceneViewWithRenderErrors() =
     runBlocking(workerThread) {
       StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(true)
+      fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
@@ -179,6 +185,7 @@ class RenderErrorTest {
       val actions = sceneViewPanelWithErrors.getToolbarActions()
       // 4 actions expected: ui check, animation, interactive and deploy to device
       assertEquals(4, actions.size)
+
       // All actions should be invisible when there are render errors
       assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
     }
@@ -187,6 +194,7 @@ class RenderErrorTest {
   fun testSceneViewWithRenderErrorsWithNoKeepImageOnError() =
     runBlocking(workerThread) {
       StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(false)
+      fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
@@ -207,6 +215,7 @@ class RenderErrorTest {
       val actions = sceneViewPanelWithErrors.getToolbarActions()
       // 4 actions expected: ui check, animation, interactive and deploy to device
       assertEquals(4, actions.size)
+
       // All actions should be invisible when there are render errors
       assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
     }
@@ -214,6 +223,7 @@ class RenderErrorTest {
   @Test
   fun testSceneViewWithoutRenderErrors() =
     runBlocking(workerThread) {
+      fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithoutRenderErrors")
 
       lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel
@@ -236,17 +246,11 @@ class RenderErrorTest {
       val actions = sceneViewPanelWithoutErrors.getToolbarActions()
       // 4 actions expected: ui check mode, animation, interactive and deploy to device
       assertEquals(4, actions.size)
-      // The visible/invisible state before the update shouldn't affect the final result
-      for (visibleBefore in listOf(true, false)) {
-        // The animation preview action shouldn't be visible because the preview being used doesn't
-        // contain animations, but the interactive, ui check and deploy to device actions should be
-        // visible as there are no render errors.
-        val visibleActionCount = if (StudioFlags.COMPOSE_UI_CHECK_MODE.get()) 3 else 2
-        assertEquals(
-          visibleActionCount,
-          countVisibleActions(actions, sceneViewPanelWithoutErrors),
-        )
-      }
+
+      // The animation preview action shouldn't be visible because the preview being used doesn't
+      // contain animations, but the interactive, ui check and deploy to device actions should be
+      // visible as there are no render errors.
+      assertEquals(3, countVisibleActions(actions, sceneViewPanelWithoutErrors))
     }
 
   @Test
@@ -314,47 +318,93 @@ class RenderErrorTest {
     runVisualLintErrorsForModel("PreviewWithLongText")
   }
 
+  @Test
+  fun testSwitchLayoutWithoutRenderErrors() =
+    runBlocking(workerThread) {
+      lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel
+
+      // We ensure we are starting from a non-Focus mode.
+      assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Default)
+
+      // Render the Preview of the current mode.
+      withContext(uiThread) {
+        waitForRender(fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(), timeout = 2.minutes)
+        fakeUi.root.validate()
+      }
+
+      // We ensure there are no render errors for the preview we want to open in Focus mode
+      val previewToOpenInFocusMode = "PreviewWithoutRenderErrors"
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        panels
+          .firstOrNull { it.displayName == previewToOpenInFocusMode }
+          ?.also { sceneViewPanelWithoutErrors = it } != null
+      }
+      assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
+
+      // We can now switch to Focus mode selecting [previewToOpenInFocusMode] and waiting for
+      // render and refresh.
+      setPreviewModeAndWaitForRefresh(previewToOpenInFocusMode) { PreviewMode.Focus(it) }
+
+      // Wait to render the selected preview that is now in Focus mode.
+      // Notice Focus Mode shows only one item per tab and we shouldn't have more than one item.
+      withContext(uiThread) {
+        waitForRender(setOf(sceneViewPanelWithoutErrors), timeout = 2.minutes)
+        fakeUi.root.validate()
+      }
+
+      // Update the sceneViewPanel.
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        panels
+          .singleOrNull { it.displayName == previewToOpenInFocusMode }
+          ?.also { sceneViewPanelWithoutErrors = it } != null
+      }
+
+      // Ensure we are in Focus mode
+      assertTrue(composePreviewRepresentation.mode.value is PreviewMode.Focus)
+
+      // The selected sceneViewPanel shouldn't have render errors.
+      assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        !composePreviewRepresentation.status().hasErrorsAndNeedsBuild
+      }
+      assertFalse(composePreviewRepresentation.status().hasErrorsAndNeedsBuild)
+    }
+
   private fun countVisibleActions(
     actions: List<AnAction>,
     sceneViewPeerPanel: SceneViewPeerPanel,
   ): Int {
-    val dataContext = IdeUiService.getInstance().createUiDataContext(sceneViewPeerPanel)
-    val visibleActions = Utils.expandActionGroup(
-      DefaultActionGroup(actions), PresentationFactory(),
-      dataContext, ActionPlaces.UNKNOWN, ActionUiKind.NONE)
+    val dataContext = runInEdtAndGet {
+      IdeUiService.getInstance().createUiDataContext(sceneViewPeerPanel)
+    }
+    val visibleActions =
+      Utils.expandActionGroup(
+        DefaultActionGroup(actions),
+        PresentationFactory(),
+        dataContext,
+        ActionPlaces.UNKNOWN,
+        ActionUiKind.TOOLBAR,
+      )
     return visibleActions.size
   }
 
-  private fun SceneViewPeerPanel.getToolbarActions(): List<AnAction> =
-    (sceneViewTopPanel.components.filterIsInstance<ActionToolbarImpl>().single().actionGroup
-        as DefaultActionGroup)
-      .childActionsOrStubs
-      .filterIsInstance<DefaultActionGroup>()
+  private fun SceneViewPeerPanel.getToolbarActions(): List<AnAction> {
+    val showToolbarActionsActionGroup =
+      (sceneViewTopPanel.components.filterIsInstance<ActionToolbarImpl>().single().actionGroup
+          as DefaultActionGroup)
+        .childActionsOrStubs
+        .single() as SceneViewTopPanel.ShowActionGroupInPopupAction
+    return showToolbarActionsActionGroup.actionGroup.childActionsOrStubs
+      .filterIsInstance<ShowGroupUnderConditionWrapper>()
       .single()
-      .childActionsOrStubs
+      .getChildren(null)
       .toList()
+  }
 
   private suspend fun startUiCheckForModel(model: String) {
-    lateinit var uiCheckElement: ComposePreviewElementInstance<*>
-
-    delayUntilCondition(250, timeout = 1.minutes) {
-      previewView.mainSurface.models
-        .firstOrNull { it.displaySettings.modelDisplayName.value == model }
-        ?.dataContext
-        ?.previewElement()
-        ?.also { uiCheckElement = it } != null
+    setPreviewModeAndWaitForRefresh(model) {
+      PreviewMode.UiCheck(baseInstance = UiCheckInstance(it, isWearPreview = false))
     }
-
-    val onRefreshCompletable = previewView.getOnRefreshCompletable()
-
-    composePreviewRepresentation.setMode(
-      PreviewMode.UiCheck(
-        baseInstance = UiCheckInstance(uiCheckElement, isWearPreview = false),
-        atfChecksEnabled = true,
-        visualLintingEnabled = true,
-      )
-    )
-    onRefreshCompletable.join()
 
     // Once we enable Ui Check we need to render again since we are now showing the selected preview
     // with the different analyzers of Ui Check (for example screen sizes, colorblind check etc).
@@ -362,6 +412,23 @@ class RenderErrorTest {
       waitForRender(fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(), timeout = 2.minutes)
       fakeUi.root.validate()
     }
+  }
+
+  private suspend fun setPreviewModeAndWaitForRefresh(
+    modelName: String,
+    previewModeProvider: (ComposePreviewElementInstance<*>) -> PreviewMode,
+  ) {
+    lateinit var previewElement: ComposePreviewElementInstance<*>
+    delayUntilCondition(250, timeout = 1.minutes) {
+      previewView.mainSurface.models
+        .firstOrNull { it.displaySettings.modelDisplayName.value == modelName }
+        ?.dataProvider
+        ?.previewElement()
+        ?.also { previewElement = it } != null
+    }
+    val onRefreshCompletable = previewView.getOnRefreshCompletable()
+    composePreviewRepresentation.setMode(previewModeProvider(previewElement))
+    onRefreshCompletable.join()
   }
 
   private suspend fun stopUiCheck() {

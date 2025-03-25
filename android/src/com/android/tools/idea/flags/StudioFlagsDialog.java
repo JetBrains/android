@@ -188,7 +188,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
     // Add flags components (by group)
     myGroupedFlags.asMap().entrySet().stream()
       .filter(flag -> {
-        return isAndroidStudio || shouldBeIncludedInIDEA(flag);
+        return isAndroidStudio || shouldBeIncludedInIdea(flag);
       })
       .sorted(Comparator.comparing(entry -> entry.getKey().getDisplayName()))
       .forEach(entry -> {
@@ -244,8 +244,8 @@ public final class StudioFlagsDialog extends DialogWrapper {
           namePanel.add(id);
           flagPanel.add(namePanel);
           flagPanel.add(description);
-          if (flag.getDefaultValueDescription() != null) {
-            JBLabel defaultValueDescription = new JBLabel(flag.getDefaultValueDescription());
+          if (!flag.getDefault().getExplanation().isEmpty()) {
+            JBLabel defaultValueDescription = new JBLabel(flag.getDefault().getExplanation());
             defaultValueDescription.setIcon(AllIcons.General.BalloonInformation);
             defaultValueDescription.setOpaque(true);
             flagPanel.add(defaultValueDescription);
@@ -273,16 +273,18 @@ public final class StudioFlagsDialog extends DialogWrapper {
     }
   }
 
-  private static boolean shouldBeIncludedInIDEA(Map.Entry<FlagGroup, Collection<Flag<?>>> flag) {
-    String flagName = flag.getKey().getDisplayName();
-    List<String> flagGroupsToExclude = List.of("App Insights", "Cloud Integration", "Firebase Test Lab", "Gemini", "Google Login");
-
-    return !ContainerUtil.exists(flagGroupsToExclude, flagName::contains);
+  private static boolean shouldBeIncludedInIdea(Map.Entry<FlagGroup, Collection<Flag<?>>> flag) {
+    return switch (flag.getKey().getName()) {
+      case "appinsights", "cloud", "firebasetestlab", "google.login", "studiobot" -> false;
+      default -> true;
+    };
   }
 
   @SuppressWarnings("HardCodedStringLiteral")
   private @NotNull @NlsContexts.Label String normalizeFlagText(@NlsContexts.Label String flagText) {
-    if (IdeInfo.getInstance().isAndroidStudio()) return flagText;
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      return flagText;
+    }
 
     String productName = ApplicationNamesInfo.getInstance().getFullProductName();
     return flagText.replace("Android Studio", productName).replace("Studio", productName);

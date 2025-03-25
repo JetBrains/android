@@ -15,6 +15,11 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />

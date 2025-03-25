@@ -18,31 +18,36 @@ package com.android.tools.idea.avd
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
 
-internal interface DeviceNameValidator {
-  fun uniquify(name: String): String
+internal class DeviceNameValidator(
+  private val currentDisplayNames: Set<String>,
+  private val currentName: String? = null,
+) {
+  private val endingNumberRegex = Regex("""\((\d+)\)$""")
 
-  fun validate(name: String): String?
-}
-
-internal class DeviceNameValidatorImpl(avdManager: AvdManager, val currentName: String? = null) :
-  DeviceNameValidator {
-  private val currentDisplayNames = avdManager.allAvds.map { it.displayName }.toSet()
-
-  override fun uniquify(name: String): String {
-    var suffix = 1
+  fun uniquify(name: String): String {
+    val matchResult = endingNumberRegex.find(name)
+    var suffix = matchResult?.groupValues?.get(1)?.toInt() ?: 1
+    val baseName =
+      if (matchResult == null) name + " " else name.substring(0, matchResult.range.start)
     var candidate = name
     while (candidate in currentDisplayNames) {
-      candidate = "$name (${++suffix})"
+      candidate = "$baseName(${++suffix})"
     }
     return candidate
   }
 
-  override fun validate(name: String): String? =
+  fun validate(name: String): String? =
     when {
       name == currentName -> null
+      name.isBlank() -> "The name cannot be blank."
       !AvdNames.isValid(name) ->
         "The AVD name can contain only the characters " + AvdNames.humanReadableAllowedCharacters()
       name.trim() in currentDisplayNames -> "An AVD with this name already exists."
       else -> null
     }
+
+  companion object {
+    fun createForAvdManager(avdManager: AvdManager, currentName: String? = null) =
+      DeviceNameValidator(avdManager.allAvds.map { it.displayName }.toSet(), currentName)
+  }
 }

@@ -29,7 +29,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.tools.idea.adb.FakeAdbServiceRule
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
@@ -217,7 +217,7 @@ class FakeScreenSharingAgentRule : TestRule {
   private class FakeDeviceHandle(private val device: FakeDevice) : DeviceHandle {
     override val id = DeviceId("Fake", false, device.serialNumber)
 
-    override val scope = AndroidCoroutineScope(device.agent)
+    override val scope = device.agent.createCoroutineScope()
 
     override val stateFlow = MutableStateFlow(createConnectedDeviceState())
 

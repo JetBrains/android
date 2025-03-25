@@ -72,30 +72,6 @@ parser.add_argument(
     "--vendor_file",
     help="File with vendor element data to add to plugin.xml",
 )
-parser.add_argument(
-    "--since_build_numbers",
-    metavar="KEY=VALUE",
-    nargs="+",
-    help=("List of key-value pairs to map plugin api versions to the since "
-          "build number to be used for it in plugin.xml"),
-)
-parser.add_argument(
-    "--until_build_numbers",
-    metavar="KEY=VALUE",
-    nargs="+",
-    help=("List of key-value pairs to map plugin api versions to the until "
-          "build number to be used for it in plugin.xml"),
-)
-
-
-def parse_key_value_items(items):
-  """Parse key-value parameters and returns them in a dict."""
-  res = {}
-  for item in items:
-    item_pair = item.split("=", 1)
-    key = item_pair[0].strip()
-    res[key] = item_pair[1]
-  return res
 
 
 def _read_changelog(changelog_file):
@@ -122,52 +98,6 @@ def _read_vendor(vendor_file):
                      len(vendor_elements))
   return vendor_elements[0]
 
-
-def _strip_product_code(api_version):
-  """Strips the product code from the api version string."""
-  match = re.match(r"^([A-Z]+-)?([0-9]+)((\.[0-9]+)*)", api_version)
-  if match is None:
-    raise ValueError("Invalid build number: " + api_version)
-
-  return match.group(2) + match.group(3)
-
-
-def _parse_major_version(api_version):
-  """Extracts the major version number from a full api version string."""
-  match = re.match(r"^([A-Z]+-)?([0-9]+)((\.[0-9]+)*)", api_version)
-  if match is None:
-    raise ValueError("Invalid build number: " + api_version)
-
-  return match.group(2)
-
-
-def _strip_build_number(api_version):
-  """Removes the build number component from a full api version string.
-
-  If there are more than 2 version number components, return the first 2
-  components.
-
-  Some IDEs do not report their full build version to JetBrains, so plugins
-  built against a version with more components may not be discoverable even in
-  a compatible IDE version.
-
-  Args:
-    api_version: A version string containing the main version and build number.
-
-  Returns:
-    The first two components of the version string.
-
-  Raise:
-    ValueError: An incorrectly formatted version string.
-  """
-  if re.match(r"^([A-Z]+-)?([0-9]+)(\.[0-9]+)+$", api_version):
-    return ".".join(api_version.split(".")[:2])
-  else:
-    raise ValueError("Unsupported API version %s - the version must be of " %
-                     api_version +
-                     "the form <alphanum>.<num>, with at least two components.")
-
-
 def main():
   args = parser.parse_args()
 
@@ -176,20 +106,15 @@ def main():
   else:
     dom = minidom.parseString("<idea-plugin/>")
 
-  since_build_numbers = {}
-  until_build_numbers = {}
-  if args.since_build_numbers:
-    since_build_numbers = parse_key_value_items(args.since_build_numbers)
-
-  if args.until_build_numbers:
-    until_build_numbers = parse_key_value_items(args.until_build_numbers)
-
-  is_eap = False
   with open(args.api_version_txt) as f:
+    # api_version formatted as AI-xxx.yyy.zzz.www.__BUILD_NUMBER__
+    # for example: AI-242.23339.11.2422.__BUILD_NUMBER__
     api_version = f.readline().strip()
     if api_version.endswith(" EAP"):
-      is_eap = True
+      # remove the EAP suffix if present
       api_version = api_version[:-4]
+    # remove AI- prefix
+    api_version = api_version[3:]
   new_elements = []
 
   idea_plugin = dom.documentElement
@@ -204,17 +129,18 @@ def main():
     version_element = dom.createElement("version")
     new_elements.append(version_element)
 
-    version_value = None
+    build_number = None
     if args.version:
-      version_value = args.version
+      build_number = args.version
     else:
       with open(args.version_file) as f:
-        version_value = f.read().strip()
-    # Since we may release different versions that target different plugin api
-    # versions simultaneously, we append the name of the api_version to the
-    # plugin version.
-    version_text = dom.createTextNode(version_value + "-api-version-" +
-                                      _parse_major_version(api_version))
+        build_number = f.read().strip()
+
+    # Since we are releasing a single version of the plugin from a given build
+    # then using the build number is enough.
+    # for example: the plugin version will be 12480590
+    # if built for Android Studio AI-242.23339.11.2422.12480590
+    version_text = dom.createTextNode(build_number)
     version_element.appendChild(version_text)
 
   if args.stamp_since_build or args.stamp_until_build:
@@ -224,36 +150,17 @@ def main():
     idea_version_element = dom.createElement("idea-version")
     new_elements.append(idea_version_element)
 
-    if is_eap:
-      # IU211.6693.111 >> since_build=211.6693 and until_build=211.6693.*
-      build_version = _strip_build_number(
-          _strip_product_code(api_version))
-    else:
-      # IU211.6693.111 >> since_build=211 and until_build=211.*
-      build_version = _parse_major_version(api_version)
+    # use only the first 3 components from api_version in
+    # compatibility range because of b/298233757
+    idea_version = ".".join(api_version.split(".")[:3])
 
     if args.stamp_since_build:
-      if build_version in since_build_numbers.keys():
-        idea_version_element.setAttribute("since-build",
-                                          since_build_numbers[build_version])
-      else:
-        idea_version_element.setAttribute("since-build", build_version)
+      idea_version_element.setAttribute("since-build", idea_version)
 
     if args.stamp_until_build:
-      if build_version in until_build_numbers.keys():
-        idea_version_element.setAttribute("until-build",
-                                          until_build_numbers[build_version])
-      else:
-        idea_version_element.setAttribute("until-build", build_version + ".*")
+      idea_version_element.setAttribute("until-build", idea_version)
 
-  if args.changelog_file:
-    if idea_plugin.getElementsByTagName("change-notes"):
-      raise ValueError("change-notes element already in plugin.xml")
-    changelog_element = dom.createElement("change-notes")
-    changelog_text = _read_changelog(args.changelog_file)
-    changelog_cdata = dom.createCDATASection(changelog_text)
-    changelog_element.appendChild(changelog_cdata)
-    new_elements.append(changelog_element)
+  # TODO(b/349186243): add changelog to plugin.xml
 
   if args.plugin_id:
     if idea_plugin.getElementsByTagName("id"):

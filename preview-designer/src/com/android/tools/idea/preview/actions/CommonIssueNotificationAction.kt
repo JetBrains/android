@@ -18,7 +18,6 @@ package com.android.tools.idea.preview.actions
 import com.android.tools.adtui.status.InformationPopup
 import com.android.tools.adtui.status.InformationPopupImpl
 import com.android.tools.adtui.status.IssueNotificationAction
-import com.android.tools.adtui.status.actionLink
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
@@ -27,10 +26,7 @@ import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.needsBuild
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -114,106 +110,76 @@ fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): I
       previewStatusNotification is PreviewStatus.FastPreviewFailed &&
         project.fastPreviewManager.isAutoDisabled
 
-    with(dataContext) {
-      val linksList =
-        listOfNotNull(
-          createTitleActionLink(fileProvider),
-          createErrorsActionLink(previewStatusNotification),
-          createReenableFastPreviewActionLink(isAutoDisabled),
-          createDisableFastPreviewActionLink(isAutoDisabled),
-          createFastPreviewFailedActionLink(previewStatusNotification),
-        )
-      return@let InformationPopupImpl(
-          title = null,
-          description = previewStatusNotification.description,
-          additionalActions =
-            listOf(
-              ToggleFastPreviewAction(
-                fastPreviewSurfaceProvider = { dataContext ->
-                  dataContext.findPreviewManager(FastPreviewSurface.KEY)
-                }
-              )
-            ),
-          links = linksList,
-        )
-        .also { newPopup ->
-          // Register the data provider of the popup to be the same as the one used in the toolbar.
-          // This allows for actions within the popup to query for things like the Editor even
-          // when the Editor is not directly related to the popup.
-          // We ensure that only EDT safe requests are passed to the dataContext and others are
-          // simply not returned. If, for example, a PSI request is made, the caller will make sure
-          // to first grab the BGT_DATA_PROVIDER and then send the request. The BGT_DATA_PROVIDER
-          // will respond to any requests since it's safe from the threading perspective.
-          DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
-            return@registerDataProvider when (dataId) {
-              PlatformCoreDataKeys.BGT_DATA_PROVIDER.name ->
-                DataProvider { dataContext.getData(it) }
-              PlatformCoreDataKeys.PROJECT.name,
-              PlatformCoreDataKeys.MODULE.name,
-              PlatformCoreDataKeys.EDITOR.name,
-              PlatformCoreDataKeys.CONTEXT_COMPONENT.name,
-              PlatformCoreDataKeys.FILE_EDITOR.name -> dataContext.getData(dataId)
-              else -> null
+    val linksList =
+      listOfNotNull(
+        createTitleActionLink(fileProvider),
+        createErrorsActionLink(previewStatusNotification),
+        createReenableFastPreviewActionLink(isAutoDisabled),
+        createDisableFastPreviewActionLink(isAutoDisabled),
+        createFastPreviewFailedActionLink(previewStatusNotification),
+      )
+    return@let InformationPopupImpl(
+      title = null,
+      description = previewStatusNotification.description,
+      additionalActions =
+        listOf(
+          ToggleFastPreviewAction(
+            fastPreviewSurfaceProvider = { dataContext ->
+              dataContext.findPreviewManager(FastPreviewSurface.KEY)
             }
-          }
-        }
-    }
+          )
+        ),
+      links = linksList,
+    )
   }
 }
 
-private fun DataContext.createFastPreviewFailedActionLink(
+private fun createFastPreviewFailedActionLink(
   previewStatusNotification: PreviewStatus
 ): AnActionLink? =
   previewStatusNotification
     .takeIf { it is PreviewStatus.FastPreviewFailed }
     ?.let {
-      actionLink(
+      AnActionLink(
         text = message("fast.preview.disabled.notification.show.details.action.title"),
-        action = ShowEventLogAction(),
-        delegateDataContext = this,
+        anAction = ShowEventLogAction(),
       )
     }
 
-private fun DataContext.createDisableFastPreviewActionLink(isAutoDisabled: Boolean): AnActionLink? =
+private fun createDisableFastPreviewActionLink(isAutoDisabled: Boolean): AnActionLink? =
   isAutoDisabled
     .takeIf { it }
     ?.let {
-      actionLink(
+      AnActionLink(
         text = message("fast.preview.disabled.notification.stop.autodisable.action.title"),
-        action = ReEnableFastPreview(false),
-        delegateDataContext = this,
+        anAction = ReEnableFastPreview(false),
       )
     }
 
-private fun DataContext.createReenableFastPreviewActionLink(
-  isAutoDisabled: Boolean
-): AnActionLink? =
+private fun createReenableFastPreviewActionLink(isAutoDisabled: Boolean): AnActionLink? =
   isAutoDisabled
     .takeIf { it }
     ?.let {
-      actionLink(
+      AnActionLink(
         text = message("fast.preview.disabled.notification.reenable.action.title"),
-        action = ReEnableFastPreview(),
-        delegateDataContext = this,
+        anAction = ReEnableFastPreview(),
       )
     }
 
-private fun DataContext.createErrorsActionLink(it: PreviewStatus): AnActionLink? =
+private fun createErrorsActionLink(it: PreviewStatus): AnActionLink? =
   when (it) {
     is PreviewStatus.SyntaxError,
-    PreviewStatus.RenderIssues ->
-      actionLink(message("action.view.problems"), ShowProblemsPanel(), this)
+    PreviewStatus.RenderIssues -> AnActionLink(message("action.view.problems"), ShowProblemsPanel())
     else -> null
   }
 
-private fun DataContext.createTitleActionLink(fileProvider: KFunction0<PsiFile?>): AnActionLink =
-  actionLink(
+private fun createTitleActionLink(fileProvider: KFunction0<PsiFile?>): AnActionLink =
+  AnActionLink(
     text =
       message("action.build.and.refresh.title").replace("&&", "&") +
         getBuildAndRefreshShortcut().asString(),
     // Remove any ampersand escaping for tooltips (not needed in these links)
-    action = BuildAndRefresh(fileProvider),
-    delegateDataContext = this,
+    anAction = BuildAndRefresh(fileProvider),
   )
 
 /** Common [IssueNotificationAction] that can be used for most previews. */

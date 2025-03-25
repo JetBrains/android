@@ -15,13 +15,6 @@
   -->
 <idea-plugin>
   <actions>
-      <action id="Blaze.ImportProject2"
-          class="com.google.idea.blaze.base.wizard2.BlazeImportProjectAction"
-          icon="BlazeIcons.Logo">
-        <add-to-group group-id="FileOpenGroup" anchor="first"/>
-        <add-to-group group-id="WelcomeScreen.QuickStart" anchor="before"
-            relative-to-action="Vcs.VcsClone"/>
-      </action>
     <action id="MakeBlazeProject"
       class="com.google.idea.blaze.base.actions.BlazeMakeProjectAction"
       text="Compile Project"
@@ -103,11 +96,6 @@
       text="Export Run Configurations"
       icon="AllIcons.ToolbarDecorator.Export">
     </action>
-    <action id="Blaze.FileGitHubIssueAction"
-        class="com.google.idea.blaze.base.actions.FileGitHubIssueAction"
-        text="File an issue on GitHub"
-        icon="BlazeIcons.Logo">
-    </action>
     <action id="Blaze.NewPackageAction"
       class="com.google.idea.blaze.base.ide.NewBlazePackageAction"
       text="New Package">
@@ -146,6 +134,8 @@
         class="com.google.idea.blaze.base.qsync.action.AddToProjectAction"
         text="Add to project"
         icon="AllIcons.General.Add" />
+    <action id="Blaze.ResetQuerySync" class="com.google.idea.blaze.base.qsync.action.ResetQuerySyncAction" text="Reset Sync and Code Analysis State" />
+
 
     <group id="Blaze.MainMenuActionGroup" class="com.google.idea.blaze.base.actions.BlazeMenuGroup" popup="true">
       <add-to-group group-id="MainMenu" anchor="before" relative-to-action="HelpMenu"/>
@@ -179,7 +169,7 @@
       <group id="Blaze.MenuGroupsBookmark"/>
       <separator/>
       <reference ref="Blaze.ExportRunConfigurations"/>
-      <reference ref="Blaze.FileGitHubIssueAction"/>
+      <reference ref="Blaze.ResetQuerySync" />
       <!--Add single menu items anchored after this bookmark-->
       <group id="Blaze.MenuFooter"/>
     </group>
@@ -227,7 +217,6 @@
     <postStartupActivity implementation="com.google.idea.blaze.base.project.DisableAndroidFrameworkActivity"/>
     <postStartupActivity implementation="com.google.idea.blaze.base.formatter.ExternalFormatterCodeStyleManager$Installer"/>
     <postStartupActivity implementation="com.google.idea.blaze.base.prefetch.PrefetchProjectInitializer" />
-
 
     <toolWindow id="Blaze"
         anchor="bottom"
@@ -348,7 +337,6 @@
 
     <additionalTextAttributes scheme="Default" file="resources/colorSchemes/BuildDefault.xml"/>
     <typedHandler implementation="com.google.idea.blaze.base.lang.buildfile.completion.BuildCompletionAutoPopupHandler"/>
-    <projectOpenProcessor implementation="com.google.idea.blaze.base.project.BlazeProjectOpenProcessor"/>
     <projectViewNodeDecorator implementation="com.google.idea.blaze.base.syncstatus.SyncStatusNodeDecorator"/>
     <projectViewNodeDecorator implementation="com.google.idea.blaze.base.syncstatus.QuerySyncNodeDecorator"/>
     <editorTabColorProvider implementation="com.google.idea.blaze.base.syncstatus.SyncStatusEditorTabColorProvider"/>
@@ -373,6 +361,7 @@
     <notificationGroup displayType="BALLOON" id="AddToProject" />
     <notificationGroup displayType="STICKY_BALLOON" id="QuerySyncPromo" />
     <notificationGroup displayType="BALLOON" id="QuerySyncBuild" />
+    <cachesInvalidator implementation="com.google.idea.blaze.base.qsync.action.ResetQuerySyncAction$CacheInvalidator"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -418,7 +407,7 @@
     <codeStyleSettingsProvider implementation="com.google.idea.blaze.base.lang.buildfile.formatting.BuildCodeStyleSettingsProvider"/>
     <editor.backspaceModeOverride language="BUILD" implementationClass="com.intellij.codeInsight.editorActions.SmartBackspaceDisabler"/>
     <filetype.stubBuilder filetype="BUILD" implementationClass="com.google.idea.blaze.base.lang.buildfile.stubs.BuildFileStubBuilder"/>
-    <editorNotificationProvider implementation="com.google.idea.blaze.base.lang.AdditionalLanguagesHelper"/>
+    <editorNotificationProvider implementation="com.google.idea.blaze.base.lang.LegacyAdditionalLanguagesHelper"/>
     <editorNotificationProvider implementation="com.google.idea.blaze.base.dependencies.ExternalFileProjectManagementHelper"/>
     <usageTypeProvider implementation="com.google.idea.blaze.base.lang.buildfile.findusages.BuildUsageTypeProvider"/>
     <renameInputValidator implementation="com.google.idea.blaze.base.lang.buildfile.refactor.TargetRenameValidator"/>
@@ -446,11 +435,11 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.base.lang.buildfile.DumbAnnotator" interface="com.google.idea.blaze.base.lang.buildfile.validation.BuildAnnotator"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.base.lang.buildfile.Annotator" interface="com.google.idea.blaze.base.lang.buildfile.validation.BuildAnnotator"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BlazeConsoleLineProcessorProvider" interface="com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.SyncStatusContributor" interface="com.google.idea.blaze.base.syncstatus.SyncStatusContributor"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.SyncStatusContributor" interface="com.google.idea.blaze.base.syncstatus.LegacySyncStatusContributor"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BuildResultHelperProvider"
                     interface="com.google.idea.blaze.base.command.buildresult.BuildResultHelperProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.OutputArtifactParser"
-                    interface="com.google.idea.blaze.base.command.buildresult.OutputArtifactParser"/>
+                    interface="com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.RemoteOutputArtifactParser"
                     interface="com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact$Parser"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BuildBatchingService"
@@ -541,7 +530,7 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.BinaryContextProvider" interface="com.google.idea.blaze.base.run.producers.BinaryContextProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.HeuristicTestIdentifier" interface="com.google.idea.blaze.base.run.producers.HeuristicTestIdentifier"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.OutputsProvider" interface="com.google.idea.blaze.base.model.OutputsProvider"/>
-    <extensionPoint qualifiedName="com.google.idea.blaze.LibraryToTargetResolver" interface="com.google.idea.blaze.base.model.LibraryToTargetResolver"/>
+    <extensionPoint qualifiedName="com.google.idea.blaze.LibraryToTargetResolver" interface="com.google.idea.blaze.base.model.LegacyLibraryToTargetResolver"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.VcsSyncListener" interface="com.google.idea.blaze.base.vcs.VcsSyncListener"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.CommonMacroContributor" interface="com.google.idea.blaze.base.lang.buildfile.completion.CommonMacroContributor"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.BinaryPathRemapper" interface="com.google.idea.blaze.base.async.process.BinaryPathRemapper"/>
@@ -623,7 +612,7 @@
         implementation="com.google.idea.blaze.base.run.producers.AllInDirectoryRecursiveTestContextProvider"
         id="AllInDirectoryRecursiveTestContextProvider"
         order="last"/>
-    <OutputArtifactParser implementation="com.google.idea.blaze.base.command.buildresult.OutputArtifactParser$LocalFileParser"/>
+    <OutputArtifactParser implementation="com.google.idea.blaze.base.command.buildresult.LocalFileParser"/>
     <BuildBatchingService implementation="com.google.idea.blaze.base.sync.sharding.LexicographicTargetSharder" order="last"/>
     <TargetShardSizeLimit implementation="com.google.idea.blaze.base.sync.sharding.ArgMaxShardSizeLimit"/>
     <VcsSyncListener implementation="com.google.idea.blaze.base.prefetch.PrefetchVcsSyncListener"/>

@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.customview.preview
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -50,23 +48,23 @@ class CustomViewPreviewRepresentationTest {
       )
 
     runBlocking {
-      listOf(uiThread, workerThread).forEach { scope ->
-        val representation =
-          withContext(scope) {
-            CustomViewPreviewRepresentation(
-                file,
-                buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL },
-              )
-              .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
-          }
-        assertNotNull("failed to instantiate with scope $scope", representation)
-        assertTrue(representation.hasPendingRefresh)
-        assertFalse(representation.isActive)
+      val representation =
+        CustomViewPreviewRepresentation(
+          file,
+          buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL },
+        )
+      assertNotNull("failed to instantiate CustomViewPreviewRepresentation", representation)
+      assertTrue(representation.hasPendingRefresh)
+      assertFalse(representation.isActive)
 
-        representation.onActivate()
-        assertTrue(representation.isActive)
-        assertFalse("onActivate should trigger a refresh", representation.hasPendingRefresh)
-      }
+      representation.onActivate()
+      assertTrue(representation.isActive)
+      assertFalse("onActivate should trigger a refresh", representation.hasPendingRefresh)
+
+      assertNotNull(representation.workbench.modelContext)
+      Disposer.dispose(representation)
+      // Disposing the representation should dispose the workbench and clear its model context
+      assertNull(representation.workbench.modelContext)
     }
   }
 }

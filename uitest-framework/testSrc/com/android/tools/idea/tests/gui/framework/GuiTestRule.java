@@ -30,9 +30,11 @@ import static org.fest.reflect.core.Reflection.type;
 
 import com.android.SdkConstants;
 import com.android.test.testutils.TestUtils;
+import com.android.flags.junit.FlagRule;
 import com.android.tools.idea.bleak.Bleak;
 import com.android.tools.idea.bleak.StudioBleakOptions;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -109,6 +111,8 @@ public class GuiTestRule implements TestRule {
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
 
+  private final FlagRule<Boolean> myFlagRule = new FlagRule<>(StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS, false);
+
   /* By nesting a pair of timeouts (one around just the test, one around the entire rule chain), we ensure that Rule code executing
    * before/after the test gets a chance to run, while preventing the whole rule chain from running forever.
    */
@@ -152,6 +156,7 @@ public class GuiTestRule implements TestRule {
       .around(new IdeControl(myRobotTestRule::getRobot))
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
+      .around(myFlagRule)
       .around(new IdeHandling())
       .around(new ScreenshotOnFailure(myRobotTestRule::getRobot))
       .around(new DiagnosticsOnFailure())
@@ -387,8 +392,9 @@ public class GuiTestRule implements TestRule {
                                                                     @Nullable String gradlePluginVersion,
                                                                     @Nullable String kotlinVersion,
                                                                     @Nullable String ndkVersion,
+                                                                    @Nullable String compileSdkVersion,
                                                                     @NotNull Wait waitForSync) throws IOException {
-    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion);
+    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, compileSdkVersion);
     return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
   }
 
@@ -399,12 +405,17 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, waitForSync);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, null, waitForSync);
+  }
+
+  @NotNull
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinishWithSpecificSdk(@NotNull String projectDirName, @NotNull String compileSdkVersion) throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, compileSdkVersion, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull
@@ -449,7 +460,8 @@ public class GuiTestRule implements TestRule {
     // If the index.zip does not exist, or if the plugin is not installed, this step does not affect the test
     System.setProperty("STUDIO_PREBUILT_INDEX", projectPath.toPath().resolve("index.zip").toAbsolutePath().toString());
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion),
+    AgpVersionSoftwareEnvironmentDescriptor current = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
+    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion, current.getCompileSdk(), current.getTargetSdk(), current.getModelVersion()),
                          ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
@@ -475,6 +487,8 @@ public class GuiTestRule implements TestRule {
    * @param gradleVersion              optional Gradle version to use or null to use the default.
    * @param gradlePluginVersion              optional Gradle Plugin version to use or null to use the default.
    * @param kotlinVersion              optional Kotlin version to use or null to use the default.
+   * @param ndkVersion    optional NDK version to use or null to use the default.
+   * @param compileSdkVersion  optional SDK version to use or null to use the default.
    * @throws IOException if an unexpected I/O error occurs.
    */
   @NotNull
@@ -482,15 +496,29 @@ public class GuiTestRule implements TestRule {
                            @Nullable String gradleVersion,
                            @Nullable String gradlePluginVersion,
                            @Nullable String kotlinVersion,
-                           @Nullable String ndkVersion) throws IOException {
+                           @Nullable String ndkVersion,
+                           @Nullable String compileSdkVersion
+  ) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion),
+    AgpVersionSoftwareEnvironmentDescriptor current = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
+    if (compileSdkVersion == null) compileSdkVersion = current.getCompileSdk();
+    updateGradleVersions(projectPath, new CustomAgpVersionSoftwareEnvironment(gradlePluginVersion, gradleVersion, null, kotlinVersion, compileSdkVersion, current.getTargetSdk(), current.getModelVersion()),
                          ndkVersion);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
     refreshFiles();
     return projectPath;
+  }
+
+  @NotNull
+  public File setUpProject(@NotNull String projectDirName,
+                           @Nullable String gradleVersion,
+                           @Nullable String gradlePluginVersion,
+                           @Nullable String kotlinVersion,
+                           @Nullable String ndkVersion
+                           ) throws IOException {
+    return setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion, ndkVersion, null);
   }
 
   /**
@@ -529,7 +557,7 @@ public class GuiTestRule implements TestRule {
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectDirPath, GradleVersion.version(gradleVersion), null);
-    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    File path = GradleProjectSystemUtil.findEmbeddedGradleDistributionFile(gradleVersion);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
     return wrapper != null;

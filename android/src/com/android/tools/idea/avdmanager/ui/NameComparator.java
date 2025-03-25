@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>Pixel XL
  *   <li>Pixel
  *   <li>Resizable (Experimental)
+ *   <li>Obsolete devices
  * </ol>
  */
 @SuppressWarnings("GrazieInspection")
@@ -70,9 +71,13 @@ public final class NameComparator implements Comparator<Device> {
     PIXEL_2_to_7_FAMILY,
     // "Pixel" at the end because they don't have a number but are logically "1".
     PIXEL_1,
-    RESIZABLE_EXPERIMENTAL;
+    RESIZABLE_EXPERIMENTAL,
+    OBSOLETE;
 
     private static @NotNull SortKey valueOfDevice(@NotNull Device device, @NotNull BooleanSupplier resizableExperimentalTweaksEnabledGet) {
+      if (device.getIsDeprecated()) {
+        return OBSOLETE;
+      }
       String displayName = device.getDisplayName();
       return switch (displayName) {
         case "Small Phone" -> SMALL_PHONE;

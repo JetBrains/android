@@ -87,6 +87,9 @@ class WiFiPairingControllerImpl(
         MdnsSupportState.AdbMacEnvironmentBroken -> {
           view.showMacMdnsEnvironmentIsBroken()
         }
+        MdnsSupportState.AdbDisabled -> {
+          view.showMdnsDisabledOnAdbServer()
+        }
       }
     }
 

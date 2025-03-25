@@ -39,8 +39,8 @@ class SystemTraceTaskHandler(val sessionsManager: SessionsManager, private val i
     && artifact.artifactProto.hasConfiguration()
     && (artifact.artifactProto.configuration.hasPerfettoOptions() || artifact.artifactProto.configuration.hasAtraceOptions())
 
-  override fun isDeviceSupported(device: Common.Device?, config: ProfilingConfiguration?) =
-    super.isDeviceSupported(device, config) && device != null &&
+  override fun isDeviceSupported(device: Common.Device, config: ProfilingConfiguration?) =
+    super.isDeviceSupported(device, config) &&
     (!device.isEmulator || config !is AtraceConfiguration || (device.featureLevel != 24 && device.featureLevel != 25) ||
      !device.cpuAbi.contains("arm", ignoreCase = true))
 

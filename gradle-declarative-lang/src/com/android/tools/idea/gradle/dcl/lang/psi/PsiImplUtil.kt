@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.NULL
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -22,6 +23,7 @@ import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.childLeafs
 import com.intellij.psi.util.childrenOfType
+import com.intellij.psi.util.elementType
 
 class PsiImplUtil {
   companion object {
@@ -29,14 +31,21 @@ class PsiImplUtil {
     fun getReceiver(property: DeclarativeProperty): DeclarativeProperty? = when (property) {
       is DeclarativeBare -> null
       is DeclarativeQualified -> property.property
-      else -> error("foo")
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getReceiver()")
     }
 
     @JvmStatic
     fun getField(property: DeclarativeProperty): DeclarativeIdentifier = when (property) {
       is DeclarativeBare -> property.identifier
-      is DeclarativeQualified -> property.identifier!!
-      else -> error("foo")
+      is DeclarativeQualified -> property.identifier
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
+    }
+
+    @JvmStatic
+    fun getField(property: DeclarativePropertyReceiver): DeclarativeIdentifier = when (property) {
+      is DeclarativeBareReceiver -> property.identifier
+      is DeclarativeQualifiedReceiver -> property.identifier
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
     }
 
     @JvmStatic
@@ -47,8 +56,61 @@ class PsiImplUtil {
       ReferenceProvidersRegistry.getReferencesFromProviders(property)
 
     @JvmStatic
+    fun getReceiver(property: DeclarativeAssignableProperty): DeclarativeAssignableProperty? = when (property) {
+      is DeclarativeAssignableBare -> null
+      is DeclarativeAssignableQualified -> property.assignableProperty
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getReceiver()")
+    }
+
+    @JvmStatic
+    fun getReceiver(property: DeclarativeSimpleFactory): DeclarativeFactoryReceiver? = null
+
+    @JvmStatic
+    fun getReceiver(property: DeclarativeFactoryPropertyReceiver): DeclarativePropertyReceiver? =
+      property.propertyReceiver
+
+    @JvmStatic
+    fun getField(property: DeclarativeAssignableProperty): DeclarativeIdentifier = when (property) {
+      is DeclarativeAssignableBare -> property.identifier
+      is DeclarativeAssignableQualified -> property.identifier
+      else -> throw IllegalStateException("Unexpected DeclarativeProperty class of type ${property.javaClass.name} in getField()")
+    }
+
+    @JvmStatic
+    fun getIdentifier(assignment: DeclarativeAssignment): DeclarativeIdentifier =
+      assignment.assignableProperty.field
+
+
+    @JvmStatic
+    fun getIdentifier(receiver: DeclarativeQualifiedReceiver): DeclarativeIdentifier =
+       PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
+
+    @JvmStatic
+    fun getArgumentsList(factory: DeclarativeFactoryPropertyReceiver): DeclarativeArgumentsList? =
+      factory.propertySimpleFactory.argumentsList
+
+    @JvmStatic
+    fun getIdentifier(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeIdentifier =
+      PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
+
+    @JvmStatic
+    fun getIdentifier(receiver: DeclarativeFactoryPropertyReceiver): DeclarativeIdentifier =
+      receiver.propertySimpleFactory.identifier
+
+    @JvmStatic
+    fun getReference(property: DeclarativeAssignableProperty): PsiReference? = getReferences(property).firstOrNull()
+
+    @JvmStatic
+    fun getReferences(property: DeclarativeAssignableProperty): Array<PsiReference> =
+      ReferenceProvidersRegistry.getReferencesFromProviders(property)
+
+    // Name should be nullable to agree with CompositePsiElement.getName() in PSI impl classes
+    @JvmStatic
     fun getName(property: DeclarativeIdentifier): String? {
-      return StringUtil.unescapeStringCharacters(property.text)
+      var text = property.text
+      if (text.startsWith("`") && text.endsWith("`"))
+        text = text.drop(1).dropLast(1)
+      return StringUtil.unescapeStringCharacters(text)
     }
 
     @JvmStatic
@@ -67,8 +129,10 @@ class PsiImplUtil {
     }
 
     @JvmStatic
-    fun getIdentifier(block: DeclarativeBlock): DeclarativeIdentifier? {
-      return PsiTreeUtil.getChildOfType(block, DeclarativeIdentifier::class.java) ?: block.embeddedFactory?.identifier
+    fun getIdentifier(block: DeclarativeBlock): DeclarativeIdentifier {
+      return PsiTreeUtil.getChildOfType(block, DeclarativeIdentifier::class.java)
+             ?: block.embeddedFactory?.identifier
+             ?: throw IllegalStateException("DeclarativeBlock `${block.text}` does not have identifier")
     }
 
     @JvmStatic
@@ -87,6 +151,17 @@ class PsiImplUtil {
     }
 
     @JvmStatic
+    fun getReceiver(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeFactoryReceiver =
+      receiver.factoryReceiver
+
+    @JvmStatic
+    fun getReceiver(receiver: DeclarativePropertyReceiver): DeclarativePropertyReceiver? =
+      when (receiver) {
+        is DeclarativeQualifiedReceiver -> receiver.propertyReceiver
+        else -> null
+      }
+
+    @JvmStatic
     fun getValue(literal: DeclarativeLiteral): Any? = when {
       literal.boolean != null -> literal.boolean?.text == "true"
       literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
@@ -96,6 +171,7 @@ class PsiImplUtil {
       literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
       literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
       literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()
+      literal.elementType == NULL -> null
       else -> null
     }
 

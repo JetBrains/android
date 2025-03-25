@@ -17,19 +17,36 @@ package com.android.tools.idea.startup
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.res.ResourceClassRegistry
+import com.android.tools.idea.res.StudioResourceIdManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.replaceService
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.LocalResourceManager
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 
 @RunWith(JUnit4::class)
 class ClearResourceCacheAfterFirstBuildTest {
-  @JvmField @Rule val projectRule = AndroidProjectRule.onDisk().initAndroid(false)
+  @JvmField
+  @Rule
+  val projectRule = AndroidProjectRule.onDisk().initAndroid(false)
 
   private lateinit var project: Project
   private lateinit var projectSystem: TestProjectSystem
@@ -39,15 +56,13 @@ class ClearResourceCacheAfterFirstBuildTest {
   private lateinit var mockDisposable: Disposable
 
   private class TestRunnable(private val toRun: () -> Unit) : Runnable {
-    private var hasRun = false
+    var hasRun = false
+      private set
 
     override fun run() {
       toRun()
       hasRun = true
     }
-
-    fun assertHasRun() = assertThat(hasRun).isTrue()
-    fun assertHasNotRun() = assertThat(hasRun).isFalse()
   }
 
   @Before
@@ -61,12 +76,12 @@ class ClearResourceCacheAfterFirstBuildTest {
 
     onCacheClean = TestRunnable {
       assertWithMessage("onCacheClean callback was called before resource cache was cleared")
-          .that(clearResourceCacheAfterFirstBuild.isCacheClean()).isTrue()
+        .that(clearResourceCacheAfterFirstBuild.isCacheClean()).isTrue()
     }
 
     onSourceGenerationError = TestRunnable {
       assertWithMessage("onSourceGenerationError callback was called after resource cache was cleared")
-          .that(clearResourceCacheAfterFirstBuild.isCacheClean()).isFalse()
+        .that(clearResourceCacheAfterFirstBuild.isCacheClean()).isFalse()
     }
 
     mockDisposable = Disposer.newDisposable()
@@ -84,7 +99,7 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun isCacheClean_trueAfterCacheClean() {
-    clearResourceCacheAfterFirstBuild.clearResourceCacheIfNecessary()
+    clearResourceCacheAfterFirstBuild.syncSucceeded()
     assertThat(clearResourceCacheAfterFirstBuild.isCacheClean()).isTrue()
   }
 
@@ -94,8 +109,8 @@ class ClearResourceCacheAfterFirstBuildTest {
 
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
 
-    onCacheClean.assertHasRun()
-    onSourceGenerationError.assertHasNotRun()
+    assertThat(onCacheClean.hasRun).isTrue()
+    assertThat(onSourceGenerationError.hasRun).isFalse()
   }
 
   @Test
@@ -106,8 +121,8 @@ class ClearResourceCacheAfterFirstBuildTest {
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
 
     // Ignore errors as long as the resource cache has been cleared once.
-    onCacheClean.assertHasRun()
-    onSourceGenerationError.assertHasNotRun()
+    assertThat(onCacheClean.hasRun).isTrue()
+    assertThat(onSourceGenerationError.hasRun).isFalse()
   }
 
   @Test
@@ -115,15 +130,15 @@ class ClearResourceCacheAfterFirstBuildTest {
     projectSystem.emulateSync(SyncResult.FAILURE)
 
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
-    onCacheClean.assertHasNotRun()
-    onSourceGenerationError.assertHasRun()
+    assertThat(onCacheClean.hasRun).isFalse()
+    assertThat(onSourceGenerationError.hasRun).isTrue()
   }
 
   @Test
   fun runWhenResourceCacheClean_waits() {
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
-    onCacheClean.assertHasNotRun()
-    onSourceGenerationError.assertHasNotRun()
+    assertThat(onCacheClean.hasRun).isFalse()
+    assertThat(onSourceGenerationError.hasRun).isFalse()
   }
 
   @Test
@@ -132,7 +147,7 @@ class ClearResourceCacheAfterFirstBuildTest {
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
     projectSystem.emulateSync(SyncResult.SUCCESS)
 
-    onCacheClean.assertHasRun()
+    assertThat(onCacheClean.hasRun).isTrue()
   }
 
   @Test
@@ -140,8 +155,8 @@ class ClearResourceCacheAfterFirstBuildTest {
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
 
     projectSystem.emulateSync(SyncResult.SUCCESS)
-    onCacheClean.assertHasRun()
-    onSourceGenerationError.assertHasNotRun()
+    assertThat(onCacheClean.hasRun).isTrue()
+    assertThat(onSourceGenerationError.hasRun).isFalse()
   }
 
   @Test
@@ -149,8 +164,8 @@ class ClearResourceCacheAfterFirstBuildTest {
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError, mockDisposable)
 
     projectSystem.emulateSync(SyncResult.FAILURE)
-    onCacheClean.assertHasNotRun()
-    onSourceGenerationError.assertHasRun()
+    assertThat(onCacheClean.hasRun).isFalse()
+    assertThat(onSourceGenerationError.hasRun).isTrue()
   }
 
   @Test
@@ -159,6 +174,31 @@ class ClearResourceCacheAfterFirstBuildTest {
     projectSystem.emulateSync(SyncResult.FAILURE)
     projectSystem.emulateSync(SyncResult.SUCCESS)
 
-    onCacheClean.assertHasRun()
+    assertThat(onCacheClean.hasRun).isTrue()
+  }
+
+  @Test
+  fun cacheActuallyCleared() {
+    val module = projectRule.module
+    Facets.createAndAddAndroidFacet(module)
+
+    val disposable = projectRule.testRootDisposable
+
+    // Project service
+    val resourceClassRegistry: ResourceClassRegistry = mock()
+    project.replaceService(ResourceClassRegistry::class.java, resourceClassRegistry, disposable)
+
+    // Module service
+    val localResourceManager: LocalResourceManager = mock()
+    val moduleResourceManagers: ModuleResourceManagers = mock {
+      on { getLocalResourceManager() } doReturn localResourceManager
+    }
+    module.replaceService(ModuleResourceManagers::class.java, moduleResourceManagers, disposable)
+
+    clearResourceCacheAfterFirstBuild.setIncompleteRuntimeDependencies()
+    clearResourceCacheAfterFirstBuild.syncSucceeded()
+
+    verify(resourceClassRegistry, times(2)).clearCache()
+    verify(localResourceManager).invalidateAttributeDefinitions()
   }
 }

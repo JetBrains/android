@@ -216,7 +216,7 @@ class DownloadsInfoPresentableBuildEvent(
       invokeLater {
         model.subscribeUiModel(object : DownloadInfoDataModel.Listener {
           private val runningRequestsSet = mutableSetOf<DownloadRequestKey>()
-          override fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
+          fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
             if (!downloadRequest.completed) {
               runningRequestsSet.add(downloadRequest.requestKey)
             }
@@ -224,6 +224,10 @@ class DownloadsInfoPresentableBuildEvent(
               runningRequestsSet.remove(downloadRequest.requestKey)
             }
             setIconRunningStateEnabled(runningRequestsSet.isNotEmpty())
+          }
+
+          override fun updateDownloadRequests(downloadRequests: List<DownloadRequestItem>) {
+            downloadRequests.forEach { updateDownloadRequest(it) }
           }
         })
       }

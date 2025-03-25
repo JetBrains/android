@@ -275,10 +275,7 @@ private fun retrieveInsets(nlComponent: NlComponent, attrs: InsetsAttributes): I
 private fun getPxValue(nlComponent: NlComponent, value: String?): Int {
   if (value != null) {
     val configuration = nlComponent.model.configuration
-    val resourceResolver = configuration.resourceResolver
-    if (resourceResolver != null) {
-      return ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration) ?: 0
-    }
+    return ViewEditor.resolveDimensionPixelSize(value, configuration) ?: 0
   }
   return 0
 }

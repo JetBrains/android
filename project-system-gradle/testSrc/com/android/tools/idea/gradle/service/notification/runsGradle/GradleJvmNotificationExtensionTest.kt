@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.service.notification.runsGradle
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.base.GradleJdkException
 import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension
@@ -39,6 +36,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyString
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 
 class GradleJvmNotificationExtensionTest {

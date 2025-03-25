@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.Result
 import com.intellij.execution.filters.Filter.ResultItem
@@ -24,10 +25,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.PsiShortNamesCache
 import kotlin.text.RegexOption.IGNORE_CASE
 
-// This regex is pretty liberal, but we don't allow whitespace in a filename. This is so we don't
-// have to wrap the name with some delimiter.
+// Only include Java and Kotlin files because logs tend to have a lot of irrelevant
+// matches otherwise and Kotlin/Java are typically all we care about.
 private val fileAndLineRegex =
-  "\\b(?<filename>[a-z_][a-z0-9._-]*):(?<line>[0-9]+)\\b".toRegex(IGNORE_CASE)
+  "\\b(?<filename>[a-z_][a-z0-9._-]*\\.(kt|java)):(?<line>[0-9]+)\\b".toRegex(IGNORE_CASE)
 
 /**
  * A simple [Filter] that detects project file links
@@ -40,26 +41,31 @@ internal class SimpleFileLinkFilter(private val project: Project) : Filter, Dumb
   private val fileNamesCache = PsiShortNamesCache.getInstance(project)
 
   override fun applyFilter(line: String, entireLength: Int): Result? {
-    val matches = fileAndLineRegex.findAll(line)
-    val offset = entireLength - line.length
-    val items =
-      matches.mapNotNullTo(mutableListOf()) { match ->
-        val range = match.range
-        val filename = match.groups["filename"]?.value ?: return@mapNotNullTo null
-        val lineNumber = match.groups["line"]?.value?.toIntOrNull() ?: return@mapNotNullTo null
-        val files = fileNamesCache.getFilesByName(filename).map { it.virtualFile }
-        if (files.isEmpty()) {
-          return@mapNotNullTo null
+    try {
+      val matches = fileAndLineRegex.findAll(line)
+      val offset = entireLength - line.length
+      val items =
+        matches.mapNotNullTo(mutableListOf()) { match ->
+          val range = match.range
+          val filename = match.groups["filename"]?.value ?: return@mapNotNullTo null
+          val lineNumber = match.groups["line"]?.value?.toIntOrNull() ?: return@mapNotNullTo null
+          val files = fileNamesCache.getFilesByName(filename).map { it.virtualFile }
+          if (files.isEmpty()) {
+            return@mapNotNullTo null
+          }
+          ResultItem(
+            offset + range.first,
+            offset + range.last + 1,
+            hyperlinkInfoFactory.createMultipleFilesHyperlinkInfo(files, lineNumber - 1, project),
+          )
         }
-        ResultItem(
-          offset + range.first,
-          offset + range.last + 1,
-          hyperlinkInfoFactory.createMultipleFilesHyperlinkInfo(files, lineNumber - 1, project),
-        )
+      return when {
+        items.isEmpty() -> null
+        else -> Result(items)
       }
-    return when {
-      items.isEmpty() -> null
-      else -> Result(items)
+    } catch (e: Exception) {
+      LOGGER.warn("Error detecting hyperlinks", e)
+      return null
     }
   }
 }

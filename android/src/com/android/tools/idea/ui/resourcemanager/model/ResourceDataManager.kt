@@ -107,7 +107,7 @@ class ResourceDataManager(var facet: AndroidFacet) {
     if (chosenElements != null) {
       val usageTargets = arrayOfNulls<UsageTarget>(chosenElements.size)
       for (i in chosenElements.indices) {
-        usageTargets[i] = PsiElement2UsageTargetAdapter(chosenElements[i])
+        usageTargets[i] = PsiElement2UsageTargetAdapter(chosenElements[i], true)
       }
       return usageTargets
     }

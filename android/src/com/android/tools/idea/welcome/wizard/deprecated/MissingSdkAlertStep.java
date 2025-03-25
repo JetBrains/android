@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.intellij.ui.components.JBLabel;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * Step to show a message that the SDK is missing.
@@ -27,16 +28,13 @@ import java.awt.*;
  */
 @Deprecated
 public class MissingSdkAlertStep extends FirstRunWizardStep {
-  public MissingSdkAlertStep() {
-    super("Missing SDK");
+  public MissingSdkAlertStep(@NotNull FirstRunWizardTracker tracker) {
+    super("Missing SDK", tracker);
   }
 
   @Override
   public void init() {
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(new JBLabel("<html><b>No Android SDK found.</b><br><br>Before continuing, you must download the necessary " +
-                          "components or select an existing SDK."), BorderLayout.NORTH);
-    setComponent(panel);
+    setComponent(com.android.tools.idea.welcome.wizard.MissingSdkAlertStep.Companion.createPanel());
   }
 
   @Nullable
@@ -49,4 +47,10 @@ public class MissingSdkAlertStep extends FirstRunWizardStep {
   public JComponent getPreferredFocusedComponent() {
     return null;
   }
+
+  @Override
+  protected SetupWizardEvent.WizardStep.WizardStepKind getWizardStepKind() {
+    return SetupWizardEvent.WizardStep.WizardStepKind.MISSING_SDK_ALERT;
+  }
 }
+

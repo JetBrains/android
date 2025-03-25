@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.sdklib.AndroidCoordinate
 import com.google.common.annotations.VisibleForTesting
+import org.jetbrains.kotlin.backend.common.pop
+import org.jetbrains.kotlin.backend.common.push
 
 /** Information needed for creating custom scene components later. */
 data class ComposeViewInfo(
@@ -39,7 +41,7 @@ fun ComposeViewInfo.findHitWithDepth(
   y: Int,
   depth: Int = 0,
 ): Collection<Pair<Int, ComposeViewInfo>> =
-  if (bounds.isNotEmpty() && bounds.containsPoint(x, y)) {
+  if (containsPoint(x, y)) {
     listOf(Pair(depth, this)) + children.flatMap { it.findHitWithDepth(x, y, depth + 1) }.toList()
   } else {
     listOf()
@@ -66,6 +68,40 @@ fun List<ComposeViewInfo>.findDeepestHits(
     ?.value
     ?.map { it.second }
     ?.toList() ?: emptyList()
+
+/**
+ * To be able to find every possible hit we need to find each leaf node of the tree within the file
+ * we are looking for. A leaf node being defined as living in this file and having no children that
+ * live in the file.
+ */
+fun ComposeViewInfo.findLeafHitsInFile(x: Int, y: Int, fileName: String): List<ComposeViewInfo> {
+  var leafHits = mutableListOf<ComposeViewInfo>()
+
+  if (!this.containsPoint(x, y)) return leafHits.toList()
+  var stack = mutableListOf(this)
+
+  while (stack.isNotEmpty()) {
+    var currentViewInfo: ComposeViewInfo = stack.pop()
+    var childrenContainingPoint =
+      currentViewInfo.children.filter { it.containsPoint(x, y) && it.doesFileExistInTree(fileName) }
+
+    // If no children contain point then it must be a leaf
+    if (childrenContainingPoint.isEmpty()) {
+      leafHits.push(currentViewInfo)
+    } else {
+      stack.addAll(childrenContainingPoint)
+    }
+  }
+  return leafHits.toList()
+}
+
+fun ComposeViewInfo.containsPoint(x: Int, y: Int): Boolean {
+  return bounds.isNotEmpty() && bounds.containsPoint(x, y)
+}
+
+fun ComposeViewInfo.doesFileExistInTree(fileName: String): Boolean {
+  return sourceLocation.fileName == fileName || children.any { it.doesFileExistInTree(fileName) }
+}
 
 /** Pixel bounds. The model closely resembles how Compose Stack is returned. */
 data class PxBounds(val left: Int, val top: Int, val right: Int, val bottom: Int) {

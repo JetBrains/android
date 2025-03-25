@@ -16,8 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.sdklib.SdkVersionInfo
-import com.android.testutils.MockitoKt
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.generateMultiplatformModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -40,6 +39,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class KotlinMultiplatformModuleTest {
 
@@ -69,13 +70,17 @@ class KotlinMultiplatformModuleTest {
     val iosPlatformContent = rootDir.resolve("iosMain").resolve("Platform.ios.kt").readText()
     assertThat(iosPlatformContent).isEqualTo(EXPECTED_IOS_MAIN_CONTENT)
 
-    val androidUnitTestContent =
-      rootDir.resolve("androidUnitTest").resolve("ExampleUnitTest.kt").readText()
-    assertThat(androidUnitTestContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
+    val androidTestOnJvmContent =
+      rootDir.resolve("androidHostTest").resolve("ExampleUnitTest.kt").readText()
+    assertThat(androidTestOnJvmContent).isEqualTo(EXPECTED_ANDROID_UNIT_TEST_CONTENT)
 
-    val androidInstrumentedTestContent =
-      rootDir.resolve("androidInstrumentedTest").resolve("ExampleInstrumentedTest.kt").readText()
-    assertThat(androidInstrumentedTestContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
+    val androidTestOnDeviceContent =
+      rootDir.resolve("androidDeviceTest").resolve("ExampleInstrumentedTest.kt").readText()
+    assertThat(androidTestOnDeviceContent).isEqualTo(EXPECTED_ANDROID_INSTRUMENTED_TEST_CONTENT)
+
+    val gradlePropertiesContent = rootDir.resolve("gradle.properties").readText()
+    assertThat(gradlePropertiesContent)
+      .contains("kotlin.native.distribution.downloadFromMaven=true")
 
     val moduleFiles =
       rootDir
@@ -92,20 +97,9 @@ class KotlinMultiplatformModuleTest {
   ): File {
     val name = "shared"
     val buildApi =
-      ApiVersion(
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-      )
-    val targetApi =
-      ApiVersion(
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-      )
-    val minApi =
-      ApiVersion(
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-      )
+      ApiVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get(), StudioFlags.NPW_COMPILE_SDK_VERSION.get().toString())
+    val targetApi = buildApi
+    val minApi = ApiVersion(34, "34")
     val kotlinVersion = "1.9.20"
     val agpVersion = AgpVersion(8, 3, 0)
     val packageName = "com.kmplib.packagename"
@@ -119,11 +113,11 @@ class KotlinMultiplatformModuleTest {
       agpVersion = projectRuleAgpVersion,
     )
 
-    val mockProjectTemplateData = MockitoKt.mock<ProjectTemplateData>()
-    MockitoKt.whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
-    val mockModuleTemplateData = MockitoKt.mock<ModuleTemplateData>()
-    MockitoKt.whenever(mockModuleTemplateData.projectTemplateData)
-      .thenReturn(mockProjectTemplateData)
+    val mockProjectTemplateData = mock<ProjectTemplateData>()
+    whenever(mockProjectTemplateData.agpVersion).thenReturn(agpVersion)
+    whenever(mockProjectTemplateData.rootDir).thenReturn(rootDir)
+    val mockModuleTemplateData = mock<ModuleTemplateData>()
+    whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
 
     val renderingContext =
       RenderingContext(
@@ -165,8 +159,8 @@ class KotlinMultiplatformModuleTest {
         srcDir = androidMainDir,
         resDir = rootDir.resolve("res").also { it.mkdir() },
         manifestDir = rootDir,
-        testDir = rootDir.resolve("androidInstrumentedTest").also { it.mkdir() },
-        unitTestDir = rootDir.resolve("androidUnitTest").also { it.mkdir() },
+        testDir = rootDir.resolve("androidDeviceTest").also { it.mkdir() },
+        unitTestDir = rootDir.resolve("androidHostTest").also { it.mkdir() },
         aidlDir = null,
         commonSrcDir = commonMainDir,
         iosSrcDir = iosMainDir,
@@ -208,17 +202,13 @@ plugins {
 // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
 androidLibrary {
   namespace = "com.kmplib.packagename"
-  compileSdk = ${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}
+  compileSdk = ${StudioFlags.NPW_COMPILE_SDK_VERSION.get()}
   minSdk = 34
 
-  withAndroidTestOnJvmBuilder {
-      compilationName = "unitTest"
-      defaultSourceSetName = "androidUnitTest"
+  withHostTestBuilder {
   }
 
-  withAndroidTestOnDeviceBuilder {
-      compilationName = "instrumentedTest"
-      defaultSourceSetName = "androidInstrumentedTest"
+  withDeviceTestBuilder {
       sourceSetTreeName = "test"
   }.configure {
     instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -232,7 +222,7 @@ androidLibrary {
 // A step-by-step guide on how to include this library in an XCode
 // project can be found here:
 // https://developer.android.com/kotlin/multiplatform/migrate
-val xcfName = "shared"
+val xcfName = "sharedKit"
 
 iosX64 {
   binaries.framework {
@@ -277,7 +267,7 @@ sourceSets {
     }
   }
 
-  getByName("androidInstrumentedTest") {
+  getByName("androidDeviceTest") {
     dependencies {
     }
   }
@@ -375,12 +365,13 @@ package com.kmplib.packagename
       arrayOf(
         "AndroidManifest.xml",
         "commonMain/Platform.kt",
-        "androidUnitTest/ExampleUnitTest.kt",
-        "androidInstrumentedTest/ExampleInstrumentedTest.kt",
+        "androidHostTest/ExampleUnitTest.kt",
+        "androidDeviceTest/ExampleInstrumentedTest.kt",
         "build.gradle.kts",
         ".gitignore",
         "androidMain/Platform.android.kt",
         "iosMain/Platform.ios.kt",
+        "gradle.properties",
       )
   }
 }

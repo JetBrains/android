@@ -54,10 +54,6 @@ public abstract class OutputInfo {
 
   public abstract DependencyBuildContext getBuildContext();
 
-  public ImmutableList<OutputArtifact> get(OutputGroup group) {
-    return getOutputGroups().get(group);
-  }
-
   public ImmutableList<OutputArtifact> getJars() {
     return getOutputGroups().get(OutputGroup.JARS);
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.ISSUE1
@@ -39,6 +38,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class InsightsTrackerTest {
@@ -60,11 +62,11 @@ class InsightsTrackerTest {
   private lateinit var tracker: AppInsightsTracker
 
   private val editor
-    get() = console.editor
+    get() = console.editor!!
 
   @Before
   fun setUp() {
-    tracker = MockitoKt.mock()
+    tracker = mock()
 
     console =
       initConsoleWithFilters(projectRule.project, tracker).apply {
@@ -110,11 +112,11 @@ class InsightsTrackerTest {
     )
 
     // Click on the hyperlink
-    console.editor.caretModel.moveToOffset(
-      console.editor.document.textLength - "Activity.kt:4)".length
+    editor.caretModel.moveToOffset(
+      editor.document.textLength - "Activity.kt:4)".length
     )
-    val position = console.editor.caretModel.logicalPosition
-    val point = console.editor.logicalPositionToXY(position)
+    val position = editor.caretModel.logicalPosition
+    val point = editor.logicalPositionToXY(position)
 
     val mouse = editor.mouse()
     mouse.clickAtXY(point.x, point.y)
@@ -122,8 +124,8 @@ class InsightsTrackerTest {
     // Verify logged contents
     Mockito.verify(tracker, Mockito.times(1))
       .logStacktraceClicked(
-        MockitoKt.eq(ConnectionMode.ONLINE),
-        MockitoKt.eq(
+        eq(ConnectionMode.ONLINE),
+        eq(
           AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
             .apply {
               crashType = AppQualityInsightsUsageEvent.CrashType.FATAL
@@ -150,9 +152,9 @@ class InsightsTrackerTest {
     )
 
     // Click on the ", " inlay
-    console.editor.caretModel.moveToOffset(console.editor.document.textLength - 1)
-    val position = console.editor.caretModel.logicalPosition
-    val point = console.editor.logicalPositionToXY(position)
+    editor.caretModel.moveToOffset(editor.document.textLength - 1)
+    val position = editor.caretModel.logicalPosition
+    val point = editor.logicalPositionToXY(position)
 
     val mouse = editor.mouse()
     mouse.clickAtXY(point.x, point.y)
@@ -174,9 +176,9 @@ class InsightsTrackerTest {
     )
 
     // Click on the "show diff" inlay
-    console.editor.caretModel.moveToOffset(console.editor.document.textLength - 1)
-    val position = console.editor.caretModel.logicalPosition
-    val point = console.editor.logicalPositionToXY(position)
+    editor.caretModel.moveToOffset(editor.document.textLength - 1)
+    val position = editor.caretModel.logicalPosition
+    val point = editor.logicalPositionToXY(position)
 
     val mouse = editor.mouse()
     // We have a sequence of inlays (", " and "show diff") and we want to click on the second
@@ -186,8 +188,8 @@ class InsightsTrackerTest {
     // Verify logged contents
     Mockito.verify(tracker, Mockito.times(1))
       .logStacktraceClicked(
-        MockitoKt.eq(null),
-        MockitoKt.eq(
+        isNull(),
+        eq(
           AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
             .apply {
               clickLocation =

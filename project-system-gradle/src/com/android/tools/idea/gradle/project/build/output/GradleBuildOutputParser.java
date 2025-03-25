@@ -117,7 +117,7 @@ public class GradleBuildOutputParser implements BuildOutputParser {
       }
       futureOutput.addAll(Arrays.asList(msg.getRawMessage().split("\\n")));
       String message = msg.getText().lines().findFirst().orElse(msg.getText());
-      String detailedMessage = msg.getRawMessage().isEmpty() ? msg.getText() : msg.getRawMessage();
+      String detailedMessage = (msg.getRawMessage().isEmpty() ? msg.getText() : msg.getRawMessage()).trim();
       boolean validPosition = false;
       for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
         FilePosition filePosition = convertToFilePosition(sourceFilePosition);

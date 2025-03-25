@@ -17,54 +17,83 @@
 package com.android.tools.idea.backup
 
 import com.android.backup.BackupType
-import com.android.tools.idea.backup.BackupFileType.FILE_SAVER_DESCRIPTOR
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.ui.TextFieldWithHistory
-import com.intellij.ui.TextFieldWithStoredHistory
+import com.intellij.openapi.ui.Messages
+import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
+import java.awt.Dimension
+import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
 import javax.swing.GroupLayout
-import javax.swing.GroupLayout.DEFAULT_SIZE
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
+import javax.swing.SwingConstants.HORIZONTAL
+import javax.swing.event.DocumentEvent
+import kotlin.io.path.exists
 import kotlin.io.path.extension
-import kotlin.io.path.nameWithoutExtension
+import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
-import kotlin.io.path.relativeToOrSelf
 import org.jetbrains.annotations.VisibleForTesting
 
-private const val TYPE_FIELD_WIDTH = 100
-private const val PATH_FIELD_WIDTH = 500
+private val APPLICATION_ID_FIELD_WIDTH
+  get() = JBUIScale.scale(300)
+private val TYPE_FIELD_WIDTH
+  get() = JBUIScale.scale(100)
+private val PATH_FIELD_WIDTH
+  get() = JBUIScale.scale(500)
 
-internal class BackupDialog(
-  private val project: Project,
-  private val applicationId: String,
-  private val fileFinder: FileFinder = FileFinder {
-    LocalFileSystem.getInstance().findFileByPath(it)?.toNioPath()
-  },
-) : DialogWrapper(project) {
-  private val typeComboBox = ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray()))
-  private val fileTextField = TextFieldWithStoredHistoryWithBrowseButton()
+private val DEFAULT_BACKUP_FILENAME = "application.${BackupFileType.defaultExtension}"
+
+internal class BackupDialog(private val project: Project, initialApplicationId: String) :
+  DialogWrapper(project) {
+  private val applicationIds =
+    project.getService(ProjectAppsProvider::class.java).getApplicationIds()
+  private val applicationIdComboBox =
+    ComboBox(DefaultComboBoxModel(applicationIds.sorted().toTypedArray())).apply {
+      name = "applicationIdComboBox"
+      maximumSize = Dimension(APPLICATION_ID_FIELD_WIDTH, maximumSize.height)
+    }
+  private val typeComboBox =
+    ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray())).apply {
+      name = "typeComboBox"
+      maximumSize = Dimension(TYPE_FIELD_WIDTH, maximumSize.height)
+    }
+  private val fileTextField =
+    BackupFileTextField.createFileSaver(project) { fileSetByChooser = true }
+      .apply {
+        textComponent.document.addDocumentListener(
+          object : DocumentAdapter() {
+            override fun textChanged(e: DocumentEvent) {
+              try {
+                val path = Path.of(text)
+                isOKActionEnabled = path.isValid() && !path.isDirectory()
+              } catch (_: InvalidPathException) {
+                isOKActionEnabled = false
+              }
+            }
+          }
+        )
+        name = "fileTextField"
+        minimumSize = Dimension(PATH_FIELD_WIDTH, minimumSize.height)
+      }
+  private var fileSetByChooser = false
   private val properties
     get() = PropertiesComponent.getInstance(project)
 
+  val applicationId: String
+    get() = applicationIdComboBox.item
+
   val backupPath: Path
     get() {
-      val path = Path.of(fileTextField.text).absolute()
-      return when (path.extension) {
-        BackupFileType.defaultExtension -> path
-        else -> Path.of("${path.pathString}.${BackupFileType.defaultExtension}")
-      }
+      val path = Path.of(fileTextField.text).absoluteInProject(project)
+      return path.withBackupExtension()
     }
 
   val type: BackupType
@@ -72,9 +101,14 @@ internal class BackupDialog(
 
   init {
     init()
-    title = "Backup App State"
+    title = "Backup App Data"
+    if (applicationIds.contains(initialApplicationId)) {
+      applicationIdComboBox.item = initialApplicationId
+    }
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
+    pack()
+    isResizable = false
   }
 
   override fun createCenterPanel(): JComponent {
@@ -83,90 +117,73 @@ internal class BackupDialog(
     layout.autoCreateContainerGaps = true
     layout.autoCreateGaps = true
 
+    val applicationIdLabel = JLabel("Application ID:")
     val typeLabel = JLabel("Backup type:")
     val fileLabel = JLabel("Backup file:")
 
-    fileTextField.addActionListener {
-      val path =
-        FileChooserFactory.getInstance()
-          .createSaveFileDialog(FILE_SAVER_DESCRIPTOR, project)
-          .save(backupPath.parent, backupPath.nameWithoutExtension)
-          ?.file
-          ?.toPath()
-      if (path != null) {
-        fileTextField.setTextAndAddToHistory(path.relative().pathString)
-      }
+    fileTextField.text = getLastUsedFile()
+    with(layout) {
+      setHorizontalGroup(
+        createParallelGroup(GroupLayout.Alignment.LEADING)
+          .addGroup(
+            createSequentialGroup()
+              .addComponent(applicationIdLabel)
+              .addComponent(applicationIdComboBox)
+          )
+          .addGroup(createSequentialGroup().addComponent(typeLabel).addComponent(typeComboBox))
+          .addGroup(createSequentialGroup().addComponent(fileLabel).addComponent(fileTextField))
+      )
+      setVerticalGroup(
+        createSequentialGroup()
+          .addGroup(
+            createParallelGroup(GroupLayout.Alignment.CENTER)
+              .addComponent(applicationIdLabel)
+              .addComponent(applicationIdComboBox)
+          )
+          .addGroup(
+            createParallelGroup(GroupLayout.Alignment.CENTER)
+              .addComponent(typeLabel)
+              .addComponent(typeComboBox)
+          )
+          .addGroup(
+            createParallelGroup(GroupLayout.Alignment.CENTER)
+              .addComponent(fileLabel)
+              .addComponent(fileTextField)
+          )
+      )
+      linkSize(HORIZONTAL, applicationIdLabel, typeLabel, fileLabel)
     }
-
-    fileTextField.text =
-      getLastUsedDirectory()
-        .resolve("$applicationId.${BackupFileType.defaultExtension}")
-        .relative()
-        .pathString
-
-    layout.setHorizontalGroup(
-      layout
-        .createSequentialGroup()
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(typeLabel)
-            .addComponent(fileLabel)
-        )
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(
-              typeComboBox,
-              DEFAULT_SIZE,
-              DEFAULT_SIZE,
-              JBUIScale.scale(TYPE_FIELD_WIDTH),
-            )
-            .addComponent(
-              fileTextField,
-              JBUIScale.scale(PATH_FIELD_WIDTH),
-              DEFAULT_SIZE,
-              DEFAULT_SIZE,
-            )
-        )
-    )
-    layout.setVerticalGroup(
-      layout
-        .createSequentialGroup()
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(typeLabel)
-            .addComponent(typeComboBox)
-        )
-        .addGroup(
-          layout
-            .createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(fileLabel)
-            .addComponent(fileTextField)
-        )
-    )
 
     panel.layout = layout
     return panel
   }
 
   override fun doOKAction() {
-    super.doOKAction()
-    setLastUsedDirectory(backupPath.parent)
+    setLastUsedFile(backupPath.relativeToProject(project).pathString)
     setLastUsedType(typeComboBox.item)
-  }
-
-  private fun getLastUsedDirectory(): Path {
-    val projectDir = project.guessProjectDir()!!.toNioPath()
-    return when (val dir = properties.getValue(LAST_USED_DIRECTORY_KEY)) {
-      null -> projectDir
-      else -> fileFinder.findFile(dir) ?: projectDir
+    if (backupPath.exists() && !fileSetByChooser) {
+      @Suppress("DialogTitleCapitalization")
+      val result =
+        Messages.showYesNoDialog(
+          UIBundle.message("file.chooser.save.dialog.confirmation", backupPath.fileName),
+          UIBundle.message("file.chooser.save.dialog.confirmation.title"),
+          Messages.getWarningIcon(),
+        )
+      if (result != Messages.YES) {
+        return
+      }
     }
+    fileTextField.text = Path.of(fileTextField.text).withBackupExtension().pathString
+    fileTextField.addCurrentTextToHistory()
+    super.doOKAction()
   }
 
-  private fun setLastUsedDirectory(path: Path) {
-    properties.setValue(LAST_USED_DIRECTORY_KEY, path.pathString)
+  private fun getLastUsedFile(): String {
+    return properties.getValue(LAST_USED_FILE_KEY) ?: DEFAULT_BACKUP_FILENAME
+  }
+
+  private fun setLastUsedFile(path: String) {
+    properties.setValue(LAST_USED_FILE_KEY, path)
   }
 
   private fun getLastUsedType(): BackupType {
@@ -180,40 +197,15 @@ internal class BackupDialog(
     properties.setValue(LAST_USED_TYPE_KEY, type.name)
   }
 
-  private fun Path.relative() = relativeToOrSelf(Path.of(project.basePath!!))
-
-  private fun Path.absolute(): Path {
-    val projectDir = project.guessProjectDir()!!.toNioPath()
-    return when {
-      isAbsolute -> this
-      else -> projectDir.resolve(this)
-    }
-  }
-
-  /** Based on [com.intellij.ui.TextFieldWithHistoryWithBrowseButton] */
-  private class TextFieldWithStoredHistoryWithBrowseButton :
-    ComponentWithBrowseButton<TextFieldWithHistory>(
-      TextFieldWithStoredHistory("Backup.File.History"),
-      null,
-    ) {
-    var text: String
-      get() = childComponent.text
-      set(text) {
-        childComponent.text = text
-      }
-
-    fun setTextAndAddToHistory(text: String) {
-      childComponent.setTextAndAddToHistory(text)
-    }
-  }
-
-  internal fun interface FileFinder {
-    fun findFile(path: String): Path?
-  }
-
   companion object {
-    @VisibleForTesting internal const val LAST_USED_DIRECTORY_KEY = "Backup.Last.Used.Directory"
+    @VisibleForTesting internal const val LAST_USED_FILE_KEY = "Backup.Last.Used.File"
 
     @VisibleForTesting internal const val LAST_USED_TYPE_KEY = "Backup.Last.Used.Type"
   }
 }
+
+private fun Path.withBackupExtension() =
+  when (extension) {
+    BackupFileType.defaultExtension -> this
+    else -> Path.of("${pathString}.${BackupFileType.defaultExtension}")
+  }

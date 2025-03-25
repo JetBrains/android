@@ -6,9 +6,13 @@ directories:
   prebuilts/r8
   tools/idea/bazel
   tools/idea/plugins/kotlin/jvm-debugger
+  tools/adt/idea/debuggers
+  tools/adt/idea/android-kotlin
 
 targets:
   tools/adt/idea/ij-debugger-tests:attacher
+  tools/adt/idea/ij-jps-build:jps-test-runner
+  tools/adt/idea/jps-build:jps-test-runner
 
 additional_languages:
   kotlin

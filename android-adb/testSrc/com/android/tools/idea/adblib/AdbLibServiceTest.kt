@@ -33,7 +33,11 @@ class AdbLibServiceTest {
   private val oneSessionPerProject = FlagRule(ADBLIB_ONE_SESSION_PER_PROJECT)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(oneSessionPerProject).around(fakeAdbRule).around(fakeAdbServiceRule)!!
+  val ruleChain =
+    RuleChain.outerRule(projectRule)
+      .around(oneSessionPerProject)
+      .around(fakeAdbRule)
+      .around(fakeAdbServiceRule)!!
 
   private val project
     get() = projectRule.project
@@ -44,9 +48,7 @@ class AdbLibServiceTest {
     val session = AdbLibService.getSession(project)
 
     // Act
-    val version = runBlocking {
-      session.hostServices.version()
-    }
+    val version = runBlocking { session.hostServices.version() }
 
     // Assert
     Truth.assertThat(version).isGreaterThan(1)

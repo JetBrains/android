@@ -17,8 +17,6 @@ package com.android.tools.idea.editors.strings.action
 
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.configuration.LocaleQualifier
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.editors.strings.StringResource
@@ -31,18 +29,19 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.res.StringResourceWriter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
+import java.awt.event.MouseEvent
+import javax.swing.JPanel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.junit.Before
@@ -52,8 +51,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import java.awt.event.MouseEvent
-import javax.swing.JPanel
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Test [AddLocaleAction] methods. */
 @RunWith(JUnit4::class)
@@ -103,15 +102,7 @@ class AddLocaleActionTest {
         .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
         .build()
 
-    event =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    event = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)

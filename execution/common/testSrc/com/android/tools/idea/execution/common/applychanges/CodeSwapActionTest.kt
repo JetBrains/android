@@ -18,9 +18,6 @@ package com.android.tools.idea.execution.common.applychanges
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.run.util.SwapInfo
@@ -48,6 +45,9 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.asSafely
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class CodeSwapActionTest {
 

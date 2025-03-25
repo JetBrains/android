@@ -29,5 +29,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
   </component>
 </module>

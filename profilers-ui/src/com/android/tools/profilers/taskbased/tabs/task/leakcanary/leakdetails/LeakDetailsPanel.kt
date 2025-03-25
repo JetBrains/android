@@ -50,10 +50,10 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
-import com.intellij.icons.AllIcons
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 /**
  * Composable function that renders the leak details panel.
@@ -114,10 +114,10 @@ fun LeakTraceNodeView(node: Node,
     Row {
       Row(modifier = Modifier.clickable { isOpen = !isOpen }.testTag(node.className)) {
         if (isOpen) {
-          Icon("general/arrowDown.svg", "open", AllIcons::class.java)
+          Icon(AllIconsKeys.General.ArrowDown, "open")
         }
         else {
-          Icon("general/arrowRight.svg", "closed", AllIcons::class.java)
+          Icon(AllIconsKeys.General.ArrowRight, "closed")
         }
         Spacer(Modifier.padding(2.5.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

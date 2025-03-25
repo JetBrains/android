@@ -180,15 +180,6 @@ public class OverviewPanel extends JPanel {
       }
     });
 
-    picker.setSelectListener(new MEScenePicker.HitElementListener() {
-      @Override
-      public void over(Object over, double dist) {
-        if (DEBUG) {
-          Debug.log("over " + over);
-        }
-      }
-    });
-
     setFocusable(true);
     setRequestFocusEnabled(true);
 
@@ -349,35 +340,30 @@ public class OverviewPanel extends JPanel {
   }
 
   private void updateFromMouse(int x, int y, boolean select) {
-    MTag[] objects = new MTag[1];
-    DerivedSetLine[] line = new DerivedSetLine[1];
-    picker.setSelectListener(new MEScenePicker.HitElementListener() { // todo memory wasteful
-      @Override
-      public void over(Object over, double dist) {
-        if (over instanceof MTag) {
-          objects[0] = ((MTag)over);
-        }
-        else {
-          line[0] = (DerivedSetLine)over;
-        }
-      }
-    });
-    picker.find(x, y);
-    if (line[0] != null && mMouseOverDerived != line[0].mConstraintSet) {
-      mMouseOverDerived = line[0].mConstraintSet;
-      String id = Utils.stripID(line[0].mConstraintSet.getAttributeValue("id"));
-      setToolTipText(id + " derives from " + line[0].mDerivedFrom);
+    MTag object = null;
+    DerivedSetLine line = null;
+    Object hit = picker.find(x, y);
+    if (hit instanceof MTag) {
+      object = (MTag)hit;
+    }
+    else if (hit instanceof DerivedSetLine){
+      line = (DerivedSetLine)hit;
+    }
+    if (line != null && mMouseOverDerived != line.mConstraintSet) {
+      mMouseOverDerived = line.mConstraintSet;
+      String id = Utils.stripID(line.mConstraintSet.getAttributeValue("id"));
+      setToolTipText(id + " derives from " + line.mDerivedFrom);
       mMouseOverObject = null;
       repaint();
       return;
     }
-    else if (line[0] == null && mMouseOverDerived != null) {
+    else if (line == null && mMouseOverDerived != null) {
       mMouseOverDerived = null;
       setToolTipText(MAIN_TOOL_TIP);
       repaint();
     }
 
-    if (objects[0] == null) {
+    if (object == null) {
       if (mMouseOverObject != null) {
         mMouseOverObject = null;
         setToolTipText(MAIN_TOOL_TIP);
@@ -386,7 +372,7 @@ public class OverviewPanel extends JPanel {
       return;
     }
 
-    MTag found = objects[0];
+    MTag found = object;
     if (select && mListener != null) {
       mListener.select(found, mControlDown ? MTagActionListener.CONTROL_FLAG : 0);
     }

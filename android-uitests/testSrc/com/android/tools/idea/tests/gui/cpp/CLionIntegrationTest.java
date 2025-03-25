@@ -73,7 +73,7 @@ public class CLionIntegrationTest {
     guiTest.waitForBackgroundTasks();
 
     // Check unused header import and no errors.
-    String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
+    String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code\u2026")
       .clickButton("Analyze")
       .getResults();
     assertThat(inspectionResults).contains("Unused");
@@ -98,9 +98,8 @@ public class CLionIntegrationTest {
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
     Wait.seconds(10).expecting("Native header file is opened for navigating to definition")
       .until(() -> NATIVE_C_HEADER_FILE.equals(ideFrame.getEditor().getCurrentFileName()));
-    editor.waitForFileToActivate();
-    String currentLine = ideFrame.getEditor().getCurrentLine();
-    assertThat(currentLine).isEqualTo("#define BUFFER_OFFSET(i) ((char*)NULL + (i))\n");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertThat(editor.getCurrentLine().trim()).isEqualTo("#define BUFFER_OFFSET(i) ((char*)NULL + (i))");
 
     // Check errors.
     List<String> errors = ideFrame.getEditor().open(NATIVE_C_FILE_PATH)

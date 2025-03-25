@@ -20,12 +20,13 @@ import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DeviceId
-import com.intellij.ide.DataManager
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
@@ -34,21 +35,13 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
-import com.intellij.util.concurrency.ThreadingAssertions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 /**
  * Class responsible for observing the state of Running Devices tabs. Can be used by other classes
  * as source for Running Devices state.
  */
 @UiThread
-@Service(Service.Level.PROJECT)
-class RunningDevicesStateObserver(
-  private val project: Project,
-  private val scope: CoroutineScope
-) : Disposable {
+class RunningDevicesStateObserver(private val project: Project) : Disposable {
 
   interface Listener {
     /**
@@ -72,7 +65,7 @@ class RunningDevicesStateObserver(
 
   private var visibleTabs: List<DeviceId> = emptyList()
     set(value) {
-      ThreadingAssertions.assertEventDispatchThread()
+      ApplicationManager.getApplication().assertIsDispatchThread()
       if (value == field) {
         return
       }
@@ -129,12 +122,12 @@ class RunningDevicesStateObserver(
   override fun dispose() {}
 
   fun addListener(listener: Listener) {
-    scope.launch(Dispatchers.Main.immediate) {
-      listener.onVisibleTabsChanged(visibleTabs)
-      listener.onExistingTabsChanged(existingTabs)
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
-      listeners.add(listener)
-    }
+    listener.onVisibleTabsChanged(visibleTabs)
+    listener.onExistingTabsChanged(existingTabs)
+
+    listeners.add(listener)
   }
 
   /** Returns a list of all content from Running Devices, across all existing ContentManagers. */
@@ -193,12 +186,7 @@ class RunningDevicesStateObserver(
     val contents = getAllContents()
     val tabIds =
       contents
-        .map { it.component }
-        .filterIsInstance<UiDataProvider>()
-        .mapNotNull { dataProvider ->
-          val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, dataProvider)
-          DEVICE_ID_KEY.getData(dataContext)
-        }
+        .mapNotNull { it.deviceId }
 
     return tabIds
   }
@@ -219,6 +207,6 @@ class RunningDevicesStateObserver(
 
 private val Content.deviceId: DeviceId?
   get() {
-    val dataContext = DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, component)
-    return DEVICE_ID_KEY.getData(dataContext)
+    return IdeUiService.getInstance().createCustomizedDataContext(
+      DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink -> DataSink.Companion.uiDataSnapshot(sink, component) }).getData(DEVICE_ID_KEY)
   }

@@ -501,7 +501,7 @@ internal data class DisplayConfigurationResponse(override val requestId: Int, va
       stream.writeInt(display.width)
       stream.writeInt(display.height)
       stream.writeInt(display.orientation)
-      stream.writeInt(display.type.ordinal)
+      stream.writeEnum(display.type)
     }
   }
 
@@ -524,7 +524,7 @@ internal data class DisplayConfigurationResponse(override val requestId: Int, va
         val type = try {
           DisplayType.entries[stream.readInt()]
         }
-        catch (e: ArrayIndexOutOfBoundsException) {
+        catch (_: ArrayIndexOutOfBoundsException) {
           DisplayType.UNKNOWN
         }
         displays.add(DisplayDescriptor(displayId, width, height, orientation, type))
@@ -637,7 +637,7 @@ internal data class DisplayAddedOrChangedNotification(
     stream.writeInt(width)
     stream.writeInt(height)
     stream.writeInt(rotation)
-    stream.writeInt(displayType.ordinal)
+    stream.writeEnum(displayType)
   }
 
   override fun toString(): String =
@@ -651,7 +651,7 @@ internal data class DisplayAddedOrChangedNotification(
       val width = stream.readInt()
       val height = stream.readInt()
       val rotation = stream.readInt()
-      val displayType = DisplayType.entries[stream.readInt()]
+      val displayType = stream.readEnum<DisplayType>()
       return DisplayAddedOrChangedNotification(displayId, width, height, rotation, displayType)
     }
   }

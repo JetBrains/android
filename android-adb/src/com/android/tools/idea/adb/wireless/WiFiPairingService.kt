@@ -123,4 +123,7 @@ enum class MdnsSupportState {
    * selection is wrong).
    */
   AdbMacEnvironmentBroken,
+
+  /** ADB server MDNS is disabled */
+  AdbDisabled,
 }

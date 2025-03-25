@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.SdkConstants
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -28,6 +27,7 @@ import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
@@ -88,10 +88,10 @@ class AndroidModuleDescriptorsTest {
       assertThat(ndkVersion.parsedValue.asTestValue(), nullValue())
 
       assertThat(
-        matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
+        matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk),
         equalTo(true)
       )
-      assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
+      assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk))
 
       assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
       assertThat(sourceCompatibility.parsedValue.asTestValue(), nullValue())

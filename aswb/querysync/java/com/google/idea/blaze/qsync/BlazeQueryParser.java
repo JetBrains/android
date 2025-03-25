@@ -20,6 +20,7 @@ import static com.google.idea.blaze.common.Label.toLabelList;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
@@ -33,7 +34,7 @@ import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.Query;
-import com.google.idea.blaze.qsync.query.Query.Rule;
+import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.util.HashSet;
 import java.util.List;
@@ -76,6 +77,51 @@ public class BlazeQueryParser {
   // An aggregation of all the dependencies of java rules
   private final Set<Label> javaDeps = new HashSet<>();
 
+
+  public static class RuleVisitors {
+
+    @FunctionalInterface
+    interface RuleVisitor {
+      void visit(BlazeQueryParser parser, Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder);
+    }
+
+    private final ImmutableMap<String, RuleVisitor> myVisitorsByRuleClass;
+
+    {
+      ImmutableMap.Builder<String, RuleVisitor> builder = ImmutableMap.builder();
+      register(builder, RuleKinds.ANDROID_RULE_KINDS, BlazeQueryParser::visitJavaRule);
+      register(builder, RuleKinds.JAVA_RULE_KINDS, BlazeQueryParser::visitJavaRule);
+      register(builder, RuleKinds.CC_RULE_KINDS, BlazeQueryParser::visitCcRule);
+      register(builder, RuleKinds.PROTO_SOURCE_RULE_KINDS, BlazeQueryParser::visitProtoRule);
+      myVisitorsByRuleClass = builder.buildOrThrow();
+    }
+
+    public void visit(BlazeQueryParser parser, Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
+      String ruleClass = rule.ruleClass();
+      final var visitor = myVisitorsByRuleClass.get(ruleClass);
+      if (visitor != null) {
+        visitor.visit(parser, label, rule, targetBuilder);
+      }
+    }
+
+    private static void register(ImmutableMap.Builder<String, RuleVisitor> builder,
+                                 Set<String> kinds,
+                                 RuleVisitor visitor) {
+      for (String kind : kinds) {
+        builder.put(kind, visitor);
+      }
+    }
+  }
+
+  /**
+   * Returns the list of all rule classes directly supported by the current query sync configuration.
+   *
+   * <p>This information is only supposed ot be used to refine the Bazel query that query sync issues.
+   */
+  public static ImmutableSet<String> getAllSupportedRuleClasses() {
+    return new RuleVisitors().myVisitorsByRuleClass.keySet();
+  }
+
   public BlazeQueryParser(
       QuerySummary query, Context<?> context, ImmutableSet<String> handledRuleKinds) {
     this.context = context;
@@ -87,51 +133,41 @@ public class BlazeQueryParser {
     context.output(PrintOutput.log("Analyzing project structure..."));
 
     long now = System.nanoTime();
-
-    for (Map.Entry<Label, Query.SourceFile> sourceFileEntry :
+    final var visitors = new RuleVisitors();
+    for (Map.Entry<Label, QueryData.SourceFile> sourceFileEntry :
         query.getSourceFilesMap().entrySet()) {
       if (sourceFileEntry.getKey().getWorkspaceName().isEmpty()) {
         graphBuilder
-            .locationsBuilder()
-            .put(sourceFileEntry.getKey(), new Location(sourceFileEntry.getValue().getLocation()));
+            .sourceFileLabelsBuilder().add(sourceFileEntry.getKey());
       } else {
         context.output(
             new PrintOutput(
                 "Skipping unsupported non-root workspace source: " + sourceFileEntry.getValue()));
       }
     }
-    for (Map.Entry<Label, Query.Rule> ruleEntry : query.getRulesMap().entrySet()) {
-      String ruleClass = ruleEntry.getValue().getRuleClass();
-
+    for (Map.Entry<Label, QueryData.Rule> ruleEntry : query.getRulesMap().entrySet()) {
       ProjectTarget.Builder targetBuilder = ProjectTarget.builder();
 
-      targetBuilder.label(ruleEntry.getKey()).kind(ruleClass);
-      if (!ruleEntry.getValue().getTestApp().isEmpty()) {
-        targetBuilder.testApp(Label.of(ruleEntry.getValue().getTestApp()));
+      QueryData.Rule rule = ruleEntry.getValue();
+      targetBuilder.label(ruleEntry.getKey()).kind(rule.ruleClass());
+      if (!rule.testApp().isEmpty()) {
+        targetBuilder.testApp(Label.of(rule.testApp()));
       }
-      if (!ruleEntry.getValue().getInstruments().isEmpty()) {
-        targetBuilder.instruments(Label.of(ruleEntry.getValue().getInstruments()));
+      if (!rule.instruments().isEmpty()) {
+        targetBuilder.instruments(Label.of(rule.instruments()));
       }
-      if (!ruleEntry.getValue().getCustomPackage().isEmpty()) {
-        targetBuilder.customPackage(ruleEntry.getValue().getCustomPackage());
+      if (!rule.customPackage().isEmpty()) {
+        targetBuilder.customPackage(rule.customPackage());
       }
-      if (!ruleEntry.getValue().getMainClass().isEmpty()) {
-        targetBuilder.mainClass(ruleEntry.getValue().getMainClass());
+      if (!rule.mainClass().isEmpty()) {
+        targetBuilder.mainClass(rule.mainClass());
       }
 
-      if (RuleKinds.isJava(ruleClass)) {
-        visitJavaRule(ruleEntry.getKey(), ruleEntry.getValue(), targetBuilder);
-      }
-      if (RuleKinds.isCc(ruleClass)) {
-        visitCcRule(ruleEntry.getKey(), ruleEntry.getValue(), targetBuilder);
-      }
-      if (RuleKinds.isProtoSource(ruleClass)) {
-        visitProtoRule(ruleEntry.getValue(), targetBuilder);
-      }
-      if (alwaysBuildRuleKinds.contains(ruleClass)) {
+      visitors.visit(this, ruleEntry.getKey(), rule, targetBuilder);
+      if (alwaysBuildRuleKinds.contains(rule.ruleClass())) {
         projectTargetsToBuild.add(ruleEntry.getKey());
       }
-      targetBuilder.tags(ruleEntry.getValue().getTagsList());
+      targetBuilder.tags(rule.tags());
       ProjectTarget target = targetBuilder.build();
 
       for (Label thisSource : target.sourceLabels().values()) {
@@ -156,7 +192,7 @@ public class BlazeQueryParser {
 
     BuildGraphData graph = graphBuilder.projectDeps(projectDeps).build();
 
-    context.output(PrintOutput.log("%-10d Source files", graph.locations().size()));
+    context.output(PrintOutput.log("%-10d Source files", graph.sourceFileLabels().size()));
     context.output(PrintOutput.log("%-10d Java sources", graph.javaSources().size()));
     context.output(PrintOutput.log("%-10d Packages", graph.packages().size()));
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));
@@ -165,53 +201,54 @@ public class BlazeQueryParser {
     return graph;
   }
 
-  private void visitProtoRule(Query.Rule rule, ProjectTarget.Builder targetBuilder) {
+  private void visitProtoRule(Label unused, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
     targetBuilder
         .sourceLabelsBuilder()
-        .putAll(SourceType.REGULAR, expandFileGroupValues(rule.getSourcesList()));
+        .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()));
 
-    Set<Label> thisDeps = Sets.newHashSet(toLabelList(rule.getDepsList()));
+    Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);
   }
 
-  private void visitJavaRule(Label label, Query.Rule rule, ProjectTarget.Builder targetBuilder) {
+  private void visitJavaRule(
+      Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
     graphBuilder.allTargetsBuilder().add(label);
     targetBuilder.languagesBuilder().add(QuerySyncLanguage.JAVA);
     targetBuilder
         .sourceLabelsBuilder()
-        .putAll(SourceType.REGULAR, expandFileGroupValues(rule.getSourcesList()))
-        .putAll(SourceType.ANDROID_RESOURCES, expandFileGroupValues(rule.getResourceFilesList()));
+        .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()))
+        .putAll(SourceType.ANDROID_RESOURCES, expandFileGroupValues(rule.resourceFiles()));
 
-    Set<Label> thisDeps = Sets.newHashSet(toLabelList(rule.getDepsList()));
+    Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);
 
-    targetBuilder.runtimeDepsBuilder().addAll(toLabelList(rule.getRuntimeDepsList()));
+    targetBuilder.runtimeDepsBuilder().addAll(rule.runtimeDeps());
     javaDeps.addAll(thisDeps);
 
-    if (RuleKinds.isAndroid(rule.getRuleClass())) {
+    if (RuleKinds.isAndroid(rule.ruleClass())) {
       // Add android targets with aidl files as external deps so the aspect generates
       // the classes
-      if (!rule.getIdlSourcesList().isEmpty()) {
+      if (!rule.idlSources().isEmpty()) {
         projectTargetsToBuild.add(label);
       }
-      if (!rule.getManifest().isEmpty()) {
+      if (rule.manifest().isPresent()) {
         targetBuilder
             .sourceLabelsBuilder()
-            .put(SourceType.ANDROID_MANIFEST, Label.of(rule.getManifest()));
+            .put(SourceType.ANDROID_MANIFEST, rule.manifest().get());
       }
     }
   }
 
-  private void visitCcRule(Label label, Query.Rule rule, ProjectTarget.Builder targetBuilder) {
+  private void visitCcRule(Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
     graphBuilder.allTargetsBuilder().add(label);
     targetBuilder.languagesBuilder().add(QuerySyncLanguage.CC);
-    targetBuilder.coptsBuilder().addAll(rule.getCoptsList());
+    targetBuilder.coptsBuilder().addAll(rule.copts());
     targetBuilder
         .sourceLabelsBuilder()
-        .putAll(SourceType.REGULAR, expandFileGroupValues(rule.getSourcesList()))
-        .putAll(SourceType.CC_HEADERS, expandFileGroupValues(rule.getHdrsList()));
+        .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()))
+        .putAll(SourceType.CC_HEADERS, expandFileGroupValues(rule.hdrs()));
 
-    Set<Label> thisDeps = Sets.newHashSet(toLabelList(rule.getDepsList()));
+    Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);
   }
 
@@ -223,10 +260,8 @@ public class BlazeQueryParser {
   }
 
   /** Returns a set of sources for a rule, expanding any in-project {@code filegroup} rules */
-  private ImmutableSet<Label> expandFileGroupValues(List<String>... labelLists) {
-    return stream(labelLists)
-        .map(Label::toLabelList)
-        .flatMap(List::stream)
+  private ImmutableSet<Label> expandFileGroupValues(List<Label> labelLists) {
+    return labelLists.stream()
         .map(this::expandSourceLabel)
         .flatMap(Set::stream)
         .collect(toImmutableSet());
@@ -239,10 +274,9 @@ public class BlazeQueryParser {
     Set<Label> visited = Sets.newHashSet();
     ImmutableSet.Builder<Label> result = ImmutableSet.builder();
 
-    for (String source : requireNonNull(query.getRulesMap().get(label)).getSourcesList()) {
-      Label asLabel = Label.of(source);
-      if (visited.add(asLabel)) {
-        result.addAll(expandSourceLabel(asLabel));
+    for (Label source : requireNonNull(query.getRulesMap().get(label)).sources()) {
+      if (visited.add(source)) {
+        result.addAll(expandSourceLabel(source));
       }
     }
 
@@ -250,14 +284,14 @@ public class BlazeQueryParser {
   }
 
   private boolean shouldExpandSourceLabel(Label label) {
-    Rule rule = query.getRulesMap().get(label);
+    QueryData.Rule rule = query.getRulesMap().get(label);
     if (rule == null) {
       return false;
     }
-    if (rule.getRuleClass().equals("filegroup")) {
+    if (rule.ruleClass().equals("filegroup")) {
       return true;
     }
-    if (rule.getTagsList().contains("ij-ignore-source-transform")) {
+    if (rule.tags().contains("ij-ignore-source-transform")) {
       // This rule has a tag asking us to skip some source transformation and use its sources
       // directly instead - i.e. expand it as we would for a filegroup. This ensures that the IDE
       // considers the workspace sources as the actual sources, rather than the generated

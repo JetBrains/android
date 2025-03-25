@@ -92,8 +92,7 @@ public class LaunchUtils {
     // From Version 23 onwards (in the emulator, possibly later on devices), we can dismiss the keyguard
     // with "adb shell wm dismiss-keyguard". This allows the application to show up without the user having
     // to manually dismiss the keyguard.
-    final AndroidVersion canDismissKeyguard = new AndroidVersion(23, null);
-    if (canDismissKeyguard.compareTo(device.getVersion()) <= 0) {
+    if (device.getVersion().isAtLeast(23)) {
       // It is not necessary to wait for the keyguard to be dismissed. On a slow emulator, this seems
       // to take a while (6s on my machine)
       ApplicationManager.getApplication().executeOnPooledThread(() -> {

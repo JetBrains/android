@@ -22,7 +22,9 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskOperationResult
 import org.gradle.tooling.events.task.TaskSuccessResult
+import org.gradle.tooling.model.UnsupportedMethodException
 
 /**
  * Analyzer for reporting tasks that always run due to misconfiguration.
@@ -37,15 +39,18 @@ class AlwaysRunTasksAnalyzer(
 
   override fun receiveEvent(event: ProgressEvent) {
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
-      (event.result as TaskSuccessResult).executionReasons?.forEach {
-        when (it) {
-          AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS.message -> alwaysRunTasksSet.add(
-            AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS))
-          AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE.message -> alwaysRunTasksSet.add(
-            AlwaysRunTaskData(getTask(event), AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE))
+      event.result.executionReasons().forEach { reasonMessage ->
+        AlwaysRunTaskData.Reason.findMatchingReason(reasonMessage)?.let {
+          alwaysRunTasksSet.add(AlwaysRunTaskData(getTask(event), it))
         }
       }
     }
+  }
+
+  private fun TaskOperationResult.executionReasons(): List<String> = try {
+    (this as? TaskSuccessResult)?.executionReasons ?: emptyList()
+  } catch (e: UnsupportedMethodException) {
+    emptyList()
   }
 
   private fun getTask(event: TaskFinishEvent): TaskData {

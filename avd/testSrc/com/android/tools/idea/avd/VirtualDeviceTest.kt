@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import com.android.SdkConstants
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
@@ -25,9 +26,11 @@ import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.ColdBoot
+import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.sdklib.internal.avd.InternalSdCard
 import com.android.sdklib.internal.avd.OnDiskSkin
+import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
@@ -38,8 +41,22 @@ import org.mockito.kotlin.whenever
 
 class VirtualDeviceTest {
   @Test
+  fun withDefaults() {
+    val devices = VendorDevices(NullLogger()).apply { init { true } }
+    val pixel8 = devices.getDevice("pixel_8", "Google")!!
+
+    with(VirtualDevice.withDefaults(pixel8)) {
+      assertThat(ram).isEqualTo(EmulatedProperties.defaultRamSize(device).toStorageCapacity())
+      assertThat(vmHeapSize)
+        .isEqualTo(EmulatedProperties.defaultVmHeapSize(device).toStorageCapacity())
+      assertThat(internalStorage)
+        .isEqualTo(EmulatedProperties.defaultInternalStorage(device).toStorageCapacity())
+    }
+  }
+
+  @Test
   fun avdBuilderToVirtualDevice() {
-    val devices = VendorDevices(NullLogger()).apply { init() }
+    val devices = VendorDevices(NullLogger()).apply { init { true } }
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
 
     val avdBuilder =
@@ -59,6 +76,7 @@ class VirtualDeviceTest {
     avdBuilder.networkLatency = AvdNetworkLatency.GPRS
     avdBuilder.networkSpeed = AvdNetworkSpeed.GSM
     avdBuilder.bootMode = ColdBoot
+    avdBuilder.userSettings[UserSettingsKey.PREFERRED_ABI] = SdkConstants.ABI_RISCV64
 
     with(VirtualDevice.withDefaults(pixel8).copyFrom(avdBuilder)) {
       assertThat(device).isEqualTo(pixel8)
@@ -76,12 +94,13 @@ class VirtualDeviceTest {
       assertThat(latency).isEqualTo(AvdNetworkLatency.GPRS)
       assertThat(speed).isEqualTo(AvdNetworkSpeed.GSM)
       assertThat(defaultBoot).isEqualTo(Boot.COLD)
+      assertThat(preferredAbi).isEqualTo(SdkConstants.ABI_RISCV64)
     }
   }
 
   @Test
   fun virtualDeviceToAvdBuilder() {
-    val devices = VendorDevices(NullLogger()).apply { init() }
+    val devices = VendorDevices(NullLogger()).apply { init { true } }
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
     val avdBuilder =
       AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
@@ -92,6 +111,7 @@ class VirtualDeviceTest {
         name = "My Pixel",
         expandedStorage = Custom(StorageCapacity(100, StorageCapacity.Unit.MB)),
         skin = DefaultSkin(Paths.get("pixel_8")),
+        defaultSkin = DefaultSkin(Paths.get("pixel_8")),
         orientation = ScreenOrientation.LANDSCAPE,
         cpuCoreCount = 2,
         ram = StorageCapacity(16, StorageCapacity.Unit.GB),
@@ -103,6 +123,7 @@ class VirtualDeviceTest {
         latency = AvdNetworkLatency.GPRS,
         speed = AvdNetworkSpeed.GSM,
         defaultBoot = Boot.COLD,
+        preferredAbi = SdkConstants.ABI_RISCV64,
       )
 
     avdBuilder.copyFrom(device, mockSystemImage())
@@ -122,7 +143,15 @@ class VirtualDeviceTest {
       assertThat(networkLatency).isEqualTo(AvdNetworkLatency.GPRS)
       assertThat(networkSpeed).isEqualTo(AvdNetworkSpeed.GSM)
       assertThat(bootMode).isEqualTo(ColdBoot)
+      assertThat(userSettings[UserSettingsKey.PREFERRED_ABI]).isEqualTo(SdkConstants.ABI_RISCV64)
     }
+  }
+
+  @Test
+  fun deviceFilter() {
+    val devices = VendorDevices(NullLogger()).apply { init { device -> device.id != "pixel_8" } }
+    assertThat(devices.getDevice("pixel_8", "Google")).isNull()
+    assertThat(devices.getDevice("pixel_9", "Google")).isNotNull()
   }
 
   private fun mockSystemImage(): ISystemImage =

@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.pickers.preview
 
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.pickers.base.model.PsiPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
@@ -40,6 +39,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

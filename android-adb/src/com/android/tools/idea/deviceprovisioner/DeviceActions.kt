@@ -39,7 +39,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 suspend fun runCatchingDeviceActionException(
   project: Project?,
   title: String,
-  block: suspend () -> Unit
+  block: suspend () -> Unit,
 ) {
   try {
     block()
@@ -61,7 +61,7 @@ suspend fun runCatchingDeviceActionException(
 fun <DeviceHandleT : DeviceHandle> DeviceHandleT.launchCatchingDeviceActionException(
   coroutineContext: CoroutineContext = EmptyCoroutineContext,
   project: Project? = null,
-  block: suspend DeviceHandleT.() -> Unit
+  block: suspend DeviceHandleT.() -> Unit,
 ) {
   scope.launch(coroutineContext) {
     runCatchingDeviceActionException(project, state.properties.title) { block() }
@@ -77,7 +77,7 @@ fun <DeviceHandleT : DeviceHandle> DeviceHandleT.launchCatchingDeviceActionExcep
 fun <DeviceTemplateT : DeviceTemplate> DeviceTemplateT.launchCatchingDeviceActionException(
   coroutineScope: CoroutineScope,
   project: Project? = null,
-  block: suspend DeviceTemplateT.() -> Unit
+  block: suspend DeviceTemplateT.() -> Unit,
 ) {
   coroutineScope.launch { runCatchingDeviceActionException(project, properties.title) { block() } }
 }

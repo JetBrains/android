@@ -34,6 +34,7 @@ import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -44,9 +45,10 @@ private const val LEARN_MORE_LINK =
 /** Label displayed in [TimelinePanel] for unsupported components. */
 class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
   TimelineElement(0, SupportedAnimationManager.FrozenState(false), minX, maxX) {
+  private val scaleChangeListener = PropertyChangeListener { resize() }
 
   init {
-    JBUIScale.addUserScaleChangeListener { resize() }
+    JBUIScale.addUserScaleChangeListener(scaleChangeListener)
   }
 
   private fun resize() {
@@ -72,7 +74,7 @@ class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
   override fun dispose() {
     // Don't destroy object, just make them invisible.
     label.isVisible = false
-    JBUIScale.removeUserScaleChangeListener { resize() }
+    JBUIScale.removeUserScaleChangeListener(scaleChangeListener)
   }
 
   private class LabelPanel private constructor(parent: JComponent) :

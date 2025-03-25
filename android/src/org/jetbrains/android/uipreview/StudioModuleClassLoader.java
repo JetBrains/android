@@ -5,7 +5,9 @@ import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.fin
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
+import com.android.tools.idea.rendering.classloading.StringReplaceTransform;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.classloading.ClassBinaryCache;
@@ -28,18 +30,16 @@ import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
-import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.UtilKt;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -47,10 +47,10 @@ import java.nio.file.Path;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
  * used by those custom views (other than the framework itself, which is loaded by a parent class
  * loader via layout library.)
  */
-public final class StudioModuleClassLoader extends ModuleClassLoader implements ModuleProvider {
+public final class StudioModuleClassLoader extends ModuleClassLoader {
   private static final Logger LOG = Logger.getInstance(StudioModuleClassLoader.class);
 
   /**
@@ -99,6 +99,24 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       // Classes to support animation
       "androidx.compose.animation.tooling."
   );
+
+  /**
+   * Map containing which classes we should look into and do string replacements. The map is of the form:
+   * <code>class name -> map of constants</code>
+   * If we find the class name while processing the class transformations, we use the map of constants of the form:
+   * <code>old name -> new name</code>
+   * <br />
+   * If we find in the class any string using the "old name", it will be replaced with the "new name" one.
+   */
+  private static final Map<String,? extends Map<String, String>> STRING_REPLACEMENTS = ImmutableMap.of(
+    INTERNAL_PACKAGE + "kotlin.reflect.jvm.internal.impl.load.java.JvmAnnotationNames", ImmutableMap.of(
+      "kotlin.Metadata", INTERNAL_PACKAGE + "kotlin.Metadata",
+      "kotlin.annotations.jvm.ReadOnly", INTERNAL_PACKAGE + "kotlin.annotations.jvm.ReadOnly",
+      "kotlin.annotations.jvm.Mutable", INTERNAL_PACKAGE + "kotlin.annotations.jvm.Mutable",
+      "kotlin.jvm.internal", INTERNAL_PACKAGE + "kotlin.jvm.internal",
+      "kotlin.jvm.internal.EnhancedNullability", INTERNAL_PACKAGE + "kotlin.jvm.internal.EnhancedNullability",
+      "kotlin.jvm.internal.SerializedIr", INTERNAL_PACKAGE + "kotlin.jvm.internal.SerializedIr"
+    ));
 
   /**
    * Classes are rewritten by applying the following transformations:
@@ -145,6 +163,9 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     RequestExecutorTransform::new,
     ViewTreeLifecycleTransform::new,
     SdkIntReplacer::new,
+    // Because of the use of RepackageTransform, we also need to ensure that certain internal constants are correctly renamed
+    // so they point to the new repackaged classes.
+    visitor -> new StringReplaceTransform(visitor, STRING_REPLACEMENTS),
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
@@ -156,7 +177,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
    * The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
    * of this class as well to find classes
    */
-  private final WeakReference<Module> myModuleReference;
+  private final BuildTargetReference myBuildTargetReference;
 
   /**
    * Interface for reporting load times and general diagnostics.
@@ -164,10 +185,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   @NotNull
   private final ModuleClassLoaderDiagnosticsWrite myDiagnostics;
 
-  /**
-   * Holds the provider that allows finding the {@link PsiFile}
-   */
-  private final Supplier<PsiFile> myPsiFileProvider;
   private final ModuleClassLoaderImpl myImpl;
   /**
    * Saves the given {@link ClassLoader} passed as parent to this {@link StudioModuleClassLoader}. This allows to check
@@ -176,17 +193,18 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   private final ClassLoader myParentAtConstruction;
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
-  StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
+  StudioModuleClassLoader(@Nullable ClassLoader parent,
+                          @NotNull StudioModuleRenderContext renderContext,
                           @NotNull ClassTransform projectTransformations,
                           @NotNull ClassTransform nonProjectTransformations,
                           @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     this(parent, renderContext, projectTransformations, nonProjectTransformations,
-         ClassBinaryCacheManager.getInstance().getCache(renderContext.getModule()),
+         ClassBinaryCacheManager.getInstance().getCache(renderContext.getBuildTargetReference().getModuleIfNotDisposed()),
          diagnostics);
   }
 
   private StudioModuleClassLoader(@Nullable ClassLoader parent,
-                                  @NotNull ModuleRenderContext renderContext,
+                                  @NotNull StudioModuleRenderContext renderContext,
                                   @NotNull ModuleClassLoaderImpl loader,
                                   @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     super(
@@ -196,19 +214,17 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
           // mismatches.
           FilteringClassLoader.allowedPrefixes(parent, ALLOWED_PACKAGES_FROM_PLUGIN)
         ),
-        renderContext.getModule(),
+        renderContext.getBuildTargetReference().getModuleIfNotDisposed(),
         loader
       ), loader);
 
     myParentAtConstruction = parent;
     myImpl = loader;
-    myModuleReference = new WeakReference<>(renderContext.getModule());
-    Module module = renderContext.getModule();
+    myBuildTargetReference = renderContext.getBuildTargetReference();
+    Module module = renderContext.getBuildTargetReference().getModuleIfNotDisposed();
     if (module != null) {
       Disposer.tryRegister(module, new WeakReferenceDisposableWrapper(this::dispose));
     }
-    // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
-    myPsiFileProvider = renderContext.getFileProvider();
     myDiagnostics = diagnostics;
   }
 
@@ -217,7 +233,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     return getProjectLoadedClasses().contains(fqcn) || getNonProjectLoadedClasses().contains(fqcn);
   }
 
-  private StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
+  private StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull StudioModuleRenderContext renderContext,
                                   @NotNull ClassTransform projectTransformations,
                                   @NotNull ClassTransform nonProjectTransformations,
                                   @NotNull ClassBinaryCache cache,
@@ -226,7 +242,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       parent,
       renderContext,
       new ModuleClassLoaderImpl(
-        renderContext.getModule(),
+        renderContext.getBuildTargetReference().getModuleIfNotDisposed(),
         renderContext.createInjectableClassLoaderLoader(),
         parent,
         projectTransformations,
@@ -272,7 +288,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
 
   @Override
   public boolean areDependenciesUpToDate() {
-    Module module = getModule();
+    Module module = myBuildTargetReference.getModuleIfNotDisposed();
     if (module == null) return true;
 
     Set<Path> currentlyLoadedLibraries = new HashSet<>(myImpl.getExternalLibraries());
@@ -288,7 +304,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
    */
   @Override
   public boolean isUserCodeUpToDate() {
-    return myImpl.isUserCodeUpToDate(getModule());
+    return myImpl.isUserCodeUpToDate(myBuildTargetReference.getModuleIfNotDisposed());
   }
 
   @Override
@@ -321,10 +337,9 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
                                durationMs);
   }
 
-  @Override
   @Nullable
   public Module getModule() {
-    return myModuleReference.get();
+    return myBuildTargetReference.getModuleIfNotDisposed();
   }
 
   @Override
@@ -334,9 +349,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   }
 
   @Nullable
-  public ModuleRenderContext getModuleContext() {
-    Module module = getModule();
-    return module == null ? null : StudioModuleRenderContext.forFile(module, myPsiFileProvider);
+  public StudioModuleRenderContext getModuleContext() {
+    return isDisposed() ? null : StudioModuleRenderContext.forBuildTargetReference(myBuildTargetReference);
   }
 
   /**
@@ -377,8 +391,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
 
   @Nullable
   StudioModuleClassLoader copy(@NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
-    ModuleRenderContext renderContext = getModuleContext();
-    if (isDisposed() || renderContext == null || renderContext.isDisposed()) return null;
+    StudioModuleRenderContext renderContext = getModuleContext();
+    if (isDisposed() || renderContext == null || renderContext.getBuildTargetReference().getModuleIfNotDisposed() == null) return null;
     return new StudioModuleClassLoader(myParentAtConstruction, renderContext, getProjectClassesTransform(), getNonProjectClassesTransform(),
                                        diagnostics);
   }

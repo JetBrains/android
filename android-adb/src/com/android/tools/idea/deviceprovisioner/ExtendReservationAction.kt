@@ -33,14 +33,11 @@ import javax.swing.SwingConstants
 
 object ExtendReservationAction : DefaultActionGroup(), CustomComponentAction {
 
-  init {
-    templatePresentation.isPerformGroup = true
-  }
-
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabledAndVisible = event.reservationAction() != null
+    event.presentation.isPerformGroup = true
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -55,7 +52,9 @@ object ExtendReservationAction : DefaultActionGroup(), CustomComponentAction {
       popup.setAdText("Device reserved for the 180 minutes maximum duration", SwingConstants.LEFT)
     } else {
       popup.addListSelectionListener { selectEvent ->
-        val text = ((selectEvent.source as? JList<*>)?.selectedValue as? PopupFactoryImpl.ActionItem)?.description ?: ""
+        val text =
+          ((selectEvent.source as? JList<*>)?.selectedValue as? PopupFactoryImpl.ActionItem)
+            ?.description ?: ""
         popup.setAdText(text, SwingConstants.LEFT)
       }
     }

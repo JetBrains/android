@@ -26,6 +26,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -44,7 +46,6 @@ import com.intellij.testFramework.RunsInEdt
 import java.awt.Rectangle
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -52,7 +53,10 @@ import org.mockito.kotlin.mock
 
 @RunsInEdt
 class ResourceLookupResolverTest {
-  private val projectRule = AndroidProjectRule.withSdk()
+  // This test is SDK sensitive.
+  // Explicitly specify the SDK to avoid failures in SDK upgrades.
+  private val projectRule =
+    AndroidProjectRule.withSdk(AndroidVersion(VersionCodes.VANILLA_ICE_CREAM))
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
@@ -222,7 +226,6 @@ class ResourceLookupResolverTest {
       .isEqualTo("#FF0000")
   }
 
-  @Ignore("Test fails at SDK 35: b/355160912")
   @Test
   fun testColorValueFromTextStyleMaterialBody1() {
     val data = Data(projectRule.testRootDisposable)
@@ -237,7 +240,7 @@ class ResourceLookupResolverTest {
     )
     checkLocation(
       locations[1],
-      "themes_material.xml:434",
+      "themes_material.xml:435",
       "<item name=\"textColorPrimary\">@color/text_color_primary</item>",
     )
     checkLocation(
@@ -248,7 +251,7 @@ class ResourceLookupResolverTest {
     )
     checkLocation(
       locations[3],
-      "themes_material.xml:416",
+      "themes_material.xml:417",
       "<item name=\"colorForeground\">@color/foreground_material_light</item>",
     )
     checkLocation(
@@ -262,7 +265,6 @@ class ResourceLookupResolverTest {
       .isEqualTo("#DD000000")
   }
 
-  @Ignore("Test fails at SDK 35: b/355160912")
   @Test
   fun testColorValueFromTextStyleMaterialWithLimit() {
     val data = Data(projectRule.testRootDisposable)
@@ -277,7 +279,7 @@ class ResourceLookupResolverTest {
     )
     checkLocation(
       locations[1],
-      "themes_material.xml:434",
+      "themes_material.xml:435",
       "<item name=\"textColorPrimary\">@color/text_color_primary</item>",
     )
     assertThat(locations.size).isEqualTo(2) // 3 lines omitted because a limit of 2 was specified

@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.GlobalState
+import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -32,10 +33,17 @@ class PreviewEssentialsModeManagerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var settings: GlobalState
+  private var wasPreviewEssentialsModeEnabled: Boolean = false
 
   @Before
   fun setUp() {
     settings = AndroidEditorSettings.getInstance().globalState
+    wasPreviewEssentialsModeEnabled = settings.isPreviewEssentialsModeEnabled
+  }
+
+  @After
+  fun tearDown() {
+    settings.isPreviewEssentialsModeEnabled = wasPreviewEssentialsModeEnabled
   }
 
   @Test

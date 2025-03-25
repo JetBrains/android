@@ -36,14 +36,12 @@ import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer
 import com.android.tools.idea.uibuilder.surface.layer.UiCheckWarningLayer
 import com.android.tools.idea.uibuilder.surface.sizepolicy.ImageContentSizePolicy
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 
 class ComposeScreenViewProvider(private val previewManager: ComposePreviewManager) :
   ScreenViewProvider {
-  override var colorBlindFilter: ColorBlindMode = ColorBlindMode.NONE
   override val displayName: String = "Compose"
 
   override fun createPrimarySceneView(
@@ -58,23 +56,21 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
               add(
                 BorderLayer(it, true, { surface.isRotating }) { sceneView ->
                   when {
-                    StudioFlags.COMPOSE_PREVIEW_SELECTION.get() &&
-                      sceneView.isRootComponentSelected() -> BorderColor.SELECTED
+                    sceneView.isRootComponentSelected() -> BorderColor.SELECTED
                     sceneView == surface.sceneViewAtMousePosition -> BorderColor.HOVERED
                     else -> BorderColor.DEFAULT_WITHOUT_SHADOW
                   }
                 }
               )
             }
-            add(ScreenViewLayer(it, colorBlindFilter, surface, surface::rotateSurfaceDegree))
+            add(ScreenViewLayer(it, surface, surface::rotateSurfaceDegree))
             add(
               SceneLayer(surface, it, false).apply {
                 isShowOnHover = true
                 setShowOnHoverFilter { sceneView ->
                   (previewManager.mode.value.isNormal ||
                     previewManager.mode.value is PreviewMode.UiCheck) &&
-                    (!StudioFlags.COMPOSE_PREVIEW_SELECTION.get() ||
-                      sceneView.isRootComponentSelected())
+                    sceneView.isRootComponentSelected()
                 }
               }
             )
@@ -98,7 +94,8 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
       }
       .withShapePolicy(
         if (
-          PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
+          manager.model.dataProvider
+            ?.getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
             ?.displaySettings
             ?.showDecoration == true
         )
@@ -106,6 +103,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
         else SQUARE_SHAPE_POLICY
       )
       .decorateContentSizePolicy { policy -> ImageContentSizePolicy(policy) }
+      .apply { if (StudioFlags.COMPOSE_PREVIEW_RESIZING.get()) this.resizeable() }
       .build()
 
   override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE

@@ -1,0 +1,21 @@
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="7.5" y="8.5" width="7" height="4" rx="0.75" stroke="#834DF0"/>
+<path d="M7.5 14.5H14.5" stroke="#834DF0" stroke-linecap="round"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2.03682 3.63657C2.81289 3.32876 4.18285 3 6.5 3C8.81715 3 10.1871 3.32876 10.9632 3.63657C11.7124 3.93375 12 4.67416 12 5.32843V7H7.5625C6.69956 7 6 7.7835 6 8.75V9.32184C5.94199 9.34236 5.88493 9.36655 5.82918 9.39443L5.35704 9.6305C4.87105 9.87349 4.33515 10 3.7918 10H3.5C2.11929 10 1 8.88071 1 7.5V5.32843C1 4.67416 1.28759 3.93375 2.03682 3.63657Z" fill="#EBECF0"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M2.40552 4.56613C3.03499 4.31646 4.27326 4 6.5 4C8.72674 4 9.96501 4.31646 10.5945 4.56613C10.8314 4.66008 11 4.92183 11 5.32843V7H12V5.32843C12 4.67416 11.7124 3.93375 10.9632 3.63657C10.1871 3.32876 8.81715 3 6.5 3C4.18285 3 2.81289 3.32876 2.03682 3.63657C1.28759 3.93375 1 4.67416 1 5.32843V7.5C1 8.88071 2.11929 10 3.5 10H3.7918C4.33515 10 4.87105 9.87349 5.35704 9.6305L5.82918 9.39443C5.88493 9.36655 5.94199 9.34236 6 9.32184V8.75C6 8.58552 6.02026 8.42633 6.05815 8.2754C5.82582 8.31711 5.59802 8.39197 5.38197 8.5L4.90983 8.73607C4.56269 8.90964 4.17991 9 3.7918 9H3.5C2.67157 9 2 8.32843 2 7.5V5.32843C2 4.92183 2.16862 4.66008 2.40552 4.56613Z" fill="#6C707E"/>
+</svg>

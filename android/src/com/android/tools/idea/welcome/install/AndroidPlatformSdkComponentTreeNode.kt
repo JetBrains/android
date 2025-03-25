@@ -1,0 +1,146 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.welcome.install
+
+import com.android.SdkConstants
+import com.android.repository.Revision
+import com.android.repository.api.RemotePackage
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.getFullReleaseName
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.sdklib.repository.meta.DetailsTypes
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
+
+/**
+ * Install Android SDK components for developing apps targeting Android platform.
+ *
+ * Default selection logic:
+ * * If the component of this kind are already installed, they cannot be unchecked (e.g. the wizard
+ *   will not uninstall them)
+ * * If SDK does not have any platforms installed (or this is a new SDK installation), then only the
+ *   latest platform will be installed.
+ */
+class AndroidPlatformSdkComponentTreeNode(
+  name: String,
+  description: String,
+  private val myVersion: AndroidVersion,
+  private val myIsDefaultPlatform: Boolean,
+  installUpdates: Boolean,
+) : InstallableSdkComponentTreeNode(name, description, installUpdates) {
+  override val requiredSdkPackages: Collection<String>
+    get() {
+      val requests = mutableListOf(DetailsTypes.getPlatformPath(myVersion))
+      findLatestCompatibleBuildTool()?.let { requests.add(it) }
+      return requests
+    }
+
+  override val optionalSdkPackages: Collection<String>
+    get() = listOf(DetailsTypes.getSourcesPath(myVersion))
+
+  override fun sdkComponentsMetricKind() =
+    SetupWizardEvent.SdkInstallationMetrics.SdkComponentKind.ANDROID_PLATFORM
+
+  private fun findLatestCompatibleBuildTool(): String? {
+    var revision: Revision? = null
+    var path: String? = null
+    for (remote in repositoryPackages.remotePackages.values) {
+      if (!remote.path.startsWith(SdkConstants.FD_BUILD_TOOLS)) {
+        continue
+      }
+      val testRevision = remote.version
+      if (
+        testRevision.major == myVersion.apiLevel && (revision == null || testRevision > revision)
+      ) {
+        revision = testRevision
+        path = remote.path
+      }
+    }
+    return path
+  }
+
+  override fun configure(installContext: InstallContext, sdkHandler: AndroidSdkHandler) {}
+
+  public override fun isOptionalForSdkLocation(): Boolean {
+    val locals = getInstalledPlatformVersions(sdkHandler)
+    if (locals.isEmpty()) {
+      return !myIsDefaultPlatform
+    }
+    for (androidVersion in locals) {
+      // No unchecking if the platform is already installed. We can update but not remove existing
+      // platforms
+      val apiLevel = androidVersion.apiLevel
+      if (myVersion.featureLevel == apiLevel) {
+        return false
+      }
+    }
+    return true
+  }
+
+  public override fun isSelectedByDefault(): Boolean = false
+
+  companion object {
+    private fun getPlatformToInstall(
+      remotePackages: Collection<RemotePackage>,
+      installUpdates: Boolean,
+      api: Int,
+    ): AndroidPlatformSdkComponentTreeNode {
+      val version = AndroidVersion(api).withBaseExtensionLevel()
+      val versionName = version.getFullReleaseName(includeApiLevel = true, includeCodeName = true)
+      val description = "Android platform libraries for targeting platform: $versionName"
+      return AndroidPlatformSdkComponentTreeNode(
+        versionName,
+        description,
+        version,
+        !version.isPreview,
+        installUpdates,
+      )
+    }
+
+    private fun getInstalledPlatformVersions(handler: AndroidSdkHandler?): List<AndroidVersion> {
+      val result = mutableListOf<AndroidVersion>()
+      if (handler != null) {
+        val packages =
+          handler
+            .getSdkManager(
+              StudioLoggerProgressIndicator(AndroidPlatformSdkComponentTreeNode::class.java)
+            )
+            .packages
+        for (p in packages.localPackages.values) {
+          if (p.typeDetails is DetailsTypes.PlatformDetailsType) {
+            result.add((p.typeDetails as DetailsTypes.PlatformDetailsType).androidVersion)
+          }
+        }
+      }
+      return result
+    }
+
+    @JvmOverloads
+    fun createSubtree(
+      remotePackages: Collection<RemotePackage>,
+      installUpdates: Boolean,
+      api: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
+    ): SdkComponentTreeNode {
+      val platformToInstall = getPlatformToInstall(remotePackages, installUpdates, api)
+      return SdkComponentCategoryTreeNode(
+        "Android SDK Platform",
+        "SDK components for creating applications for different Android platforms",
+        listOf(platformToInstall),
+      )
+    }
+  }
+}

@@ -21,6 +21,8 @@ import org.junit.Test
 
 class ProfileWithLowOverheadTest: ProfilersTestBase() {
 
+  override val systemImage = Emulator.SystemImage.API_33_PlayStore
+
   /**
    * Validate “Profile ‘app’ with LowOverhead” is  working.
    * <p>
@@ -43,7 +45,6 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
   @Test
   fun testLowOverheadSession() {
     sessionBasedProfiling(
-      systemImage = Emulator.SystemImage.API_33_PlayStore,
       testFunction = { studio, adb ->
         // Since there is no definitive way to tell that the emulator is ready
         // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.

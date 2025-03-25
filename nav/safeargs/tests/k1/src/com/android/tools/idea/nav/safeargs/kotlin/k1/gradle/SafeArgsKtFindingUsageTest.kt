@@ -17,7 +17,7 @@ package com.android.tools.idea.nav.safeargs.kotlin.gradle
 
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.fileUnderGradleRoot

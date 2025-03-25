@@ -32,7 +32,6 @@ import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.TemplateState
 import com.android.sdklib.devices.Abi
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -41,21 +40,22 @@ import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
 import com.android.tools.idea.run.DeviceTemplateAndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
 import com.intellij.execution.RunManager
-import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Instant
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Duration
 import kotlin.coroutines.EmptyCoroutineContext
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 internal fun handleId(id: String) = DeviceId("Test", false, id)
 
@@ -83,8 +83,8 @@ internal class FakeDeviceHandle(
    * Does not update the state of any actions.
    */
   fun connectToMockDevice(): ConnectedDevice =
-    MockitoKt.mock<ConnectedDevice>().also { mockDevice ->
-      MockitoKt.whenever(mockDevice.deviceInfoFlow)
+    mock<ConnectedDevice>().also { mockDevice ->
+      whenever(mockDevice.deviceInfoFlow)
         .thenReturn(MutableStateFlow(DeviceInfo("SN1234", com.android.adblib.DeviceState.ONLINE)))
       stateFlow.update { DeviceState.Connected(it.properties, mockDevice) }
     }
@@ -112,7 +112,7 @@ internal class FakeDeviceHandle(
         override suspend fun activate(snapshot: Snapshot) {}
 
         override suspend fun snapshots(): List<Snapshot> =
-          listOf(LocalEmulatorSnapshot("snap-1", Path.of("/tmp/snap-1")))
+          listOf(LocalEmulatorSnapshot("snap-1", Paths.get("/tmp/snap-1")))
 
         override val presentation =
           MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())
@@ -171,7 +171,7 @@ internal fun createDevice(
   val device =
     DeploymentTargetDevice(
       DeviceHandleAndroidDevice(
-        MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
+        mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
         handle,
         handle.state,
       ),
@@ -194,7 +194,7 @@ internal fun createTemplate(
     DeploymentTargetDevice(
       DeviceTemplateAndroidDevice(
         scope,
-        MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
+        mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
         handle,
       ),
       connectionTime,
@@ -205,14 +205,9 @@ internal fun createTemplate(
 }
 
 internal fun actionEvent(dataContext: DataContext, place: String = "") =
-  AnActionEvent(null, dataContext, place, Presentation(), ActionManager.getInstance(), 0)
+  AnActionEvent.createEvent(dataContext, Presentation(), place, ActionUiKind.NONE, null)
 
-internal fun dataContext(project: Project? = null): DataContext = DataContext {
-  when {
-    CommonDataKeys.PROJECT.`is`(it) -> project
-    else -> null
-  }
-}
+internal fun dataContext(project: Project) = SimpleDataContext.getProjectContext(project)
 
 internal fun RunManager.createTestConfig() =
   createConfiguration("config", AndroidRunConfigurationType::class.java).also {

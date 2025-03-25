@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import static com.android.testutils.TestUtils.resolveWorkspacePath;
+import static com.android.test.testutils.TestUtils.resolveWorkspacePath;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

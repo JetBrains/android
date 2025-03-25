@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -32,6 +31,7 @@ import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.whenever
 import org.mockito.stubbing.Answer
 
 /**

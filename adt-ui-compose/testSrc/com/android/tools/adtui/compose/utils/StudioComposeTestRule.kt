@@ -19,23 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.android.tools.adtui.compose.StudioTestTheme
-import java.io.File
 
 abstract class StudioComposeTestRule(val composeTestRule: ComposeContentTestRule = createComposeRule())
   : ComposeContentTestRule by composeTestRule {
   companion object {
-    private const val SKIKO_PATH_PROPERTY_KEY = "skiko.data.path"
-
-    private fun setupSkikoBinaryExtractionFolder() {
-      val skikoPathPropertyValue = File(System.getProperty("java.io.tmpdir")).resolve(".skiko").toString()
-      System.setProperty(SKIKO_PATH_PROPERTY_KEY, skikoPathPropertyValue)
-    }
-
-    fun createStudioComposeTestRule(): StudioComposeTestRule {
-      // Setup binary extraction folder necessary for bazel test execution.
-      setupSkikoBinaryExtractionFolder()
-      return StudioComposeTestRuleImpl()
-    }
+    fun createStudioComposeTestRule(): StudioComposeTestRule = StudioComposeTestRuleImpl()
   }
 
   abstract fun setContent(darkMode: Boolean, composable: @Composable () -> Unit)

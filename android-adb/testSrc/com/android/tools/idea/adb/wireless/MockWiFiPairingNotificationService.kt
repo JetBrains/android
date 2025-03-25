@@ -31,5 +31,10 @@ class MockWiFiPairingNotificationService(project: Project) : WiFiPairingNotifica
     showBalloonTracker.produce(ShowBalloonParams(title, content, type, icon))
   }
 
-  data class ShowBalloonParams(val title: String, val content: String, val type: NotificationType, val icon: Icon?)
+  data class ShowBalloonParams(
+    val title: String,
+    val content: String,
+    val type: NotificationType,
+    val icon: Icon?,
+  )
 }

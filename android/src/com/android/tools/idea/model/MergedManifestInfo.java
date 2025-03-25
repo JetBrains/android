@@ -48,7 +48,8 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import gnu.trove.TObjectLongHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -115,9 +116,9 @@ public final class MergedManifestInfo {
     /**
      * A mapping from PsiFile (or VirtualFile if the corresponding PsiFile is unavailable) to its modification stamp at this point in time.
      */
-    @NotNull private final TObjectLongHashMap<Object> modificationStamps;
+    @NotNull private final Object2LongMap<Object> modificationStamps;
 
-    private ModificationStamps(@NotNull ImmutableList<VirtualFile> files, @NotNull TObjectLongHashMap<Object> modificationStamps) {
+    private ModificationStamps(@NotNull ImmutableList<VirtualFile> files, @NotNull Object2LongMap<Object> modificationStamps) {
       this.files = files;
       this.modificationStamps = modificationStamps;
     }
@@ -125,7 +126,7 @@ public final class MergedManifestInfo {
     @NotNull
     public static ModificationStamps forFiles(@NotNull Project project, @NotNull List<VirtualFile> files) {
       ImmutableList.Builder<VirtualFile> fileListBuilder = ImmutableList.builder();
-      TObjectLongHashMap<Object> modificationStamps = new TObjectLongHashMap<>();
+      Object2LongMap<Object> modificationStamps = new Object2LongOpenHashMap<>();
       PsiManager psiManager = PsiManager.getInstance(project);
       for (VirtualFile file : files) {
         fileListBuilder.add(file);
@@ -149,11 +150,11 @@ public final class MergedManifestInfo {
         PsiFile psiFile = psiManager.findFile(file);
         if (psiFile == null) {
           // No PSI has been created for the file yet.
-          if (file.getModificationStamp() != modificationStamps.get(file)) {
+          if (file.getModificationStamp() != modificationStamps.getLong(file)) {
             return false;
           }
         } else {
-          if (psiFile.getModificationStamp() != modificationStamps.get(psiFile)) {
+          if (psiFile.getModificationStamp() != modificationStamps.getLong(psiFile)) {
             return false;
           }
         }
@@ -434,7 +435,7 @@ public final class MergedManifestInfo {
     }
     SourceProviders sourceProviders = SourceProviders.getInstance(androidFacet);
     if (Iterables.tryFind(sourceProviders.getSources().getManifestFiles(), it -> Objects.equals(it, vFile)).isPresent()) {
-      return ModuleSystemUtil.getMainModule(androidFacet.getModule());
+      return ModuleSystemUtil.getProductionAndroidModule(androidFacet);
     }
     return null;
   }

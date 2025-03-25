@@ -7,6 +7,7 @@ package(
 android_library(
     name = "lib",
     srcs = glob(["lib/java/**/*.java"]),
+    javacopts = ["-source 17 -target 17"],
     manifest = "lib/AndroidManifest.xml",
     resource_files = glob(["lib/res/**"]),
 )

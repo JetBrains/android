@@ -16,25 +16,24 @@
 package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
-import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.accessibility.ScreenReader
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.awt.Point
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.SwingUtilities
+import org.jetbrains.annotations.VisibleForTesting
 
 /** Distance between the bottom bound of model name and top bound of SceneView. */
 @SwingCoordinate private const val TOP_BAR_BOTTOM_MARGIN = 3
@@ -46,7 +45,7 @@ import javax.swing.SwingUtilities
 class SceneViewTopPanel(
   private val toolbarTargetComponent: JComponent,
   private val statusIconAction: AnAction?,
-  toolbarActions: List<AnAction>,
+  private val toolbarActions: List<AnAction>,
   private val labelPanel: JComponent,
 ) : JPanel(BorderLayout()) {
 
@@ -67,19 +66,11 @@ class SceneViewTopPanel(
       statusIcon.isVisible = true
     }
     add(labelPanel, BorderLayout.CENTER)
+    val toolbarActionGroup = DefaultActionGroup(toolbarActions)
     val toolbar =
-      createToolbar(toolbarActions) {
-          // Do not allocate space for the "see more" chevron if not needed
-          it.isReservePlaceAutoPopupIcon = false
-          it.setShowSeparatorTitles(true)
-        }
-        ?.also {
-          add(it, BorderLayout.LINE_END)
-          // Initialize the toolbar as invisible if ScreenReader is not active. In this case, its
-          // visibility will be controlled by hovering the sceneViewTopPanel. When the screen reader
-          // is active, the toolbar is always visible, so it can be focusable.
-          it.isVisible = SceneViewPeerPanel.defaultToolbarVisibility || ScreenReader.isActive()
-        }
+      createToolbar(listOf(ShowActionGroupInPopupAction(toolbarActionGroup)))?.also {
+        add(it, BorderLayout.LINE_END)
+      }
     // The space of name label is sacrificed when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
     // User can still hover it to see the full label in the tooltips.
@@ -98,94 +89,11 @@ class SceneViewTopPanel(
       )
     minimumSize = Dimension(minWidth, minHeight)
     preferredSize = toolbar?.let { Dimension(minWidth, minHeight) }
-
-    setUpTopPanelMouseListeners(toolbar)
-  }
-
-  /**
-   * Creates and adds the [MouseAdapter]s required to show the [sceneViewToolbar] when the mouse is
-   * hovering the [SceneViewTopPanel], and hide it otherwise.
-   */
-  private fun JPanel.setUpTopPanelMouseListeners(sceneViewToolbar: JComponent?) {
-    // MouseListener to show the sceneViewToolbar when the mouse enters the target component, and to
-    // hide it when the mouse exits the bounds
-    // of sceneViewTopPanel.
-    val hoverTopPanelMouseListener =
-      object : MouseAdapter() {
-
-        override fun mouseEntered(e: MouseEvent?) {
-          // Show the toolbar actions when mouse is hovering the top panel.
-          sceneViewToolbar?.let { it.isVisible = true }
-        }
-
-        override fun mouseExited(e: MouseEvent?) {
-          SwingUtilities.getWindowAncestor(this@setUpTopPanelMouseListeners)?.let {
-            if (!it.isFocused) {
-              // Dismiss the toolbar if the current window loses focus, e.g. when alt tabbing.
-              hideToolbar()
-              return@mouseExited
-            }
-          }
-
-          e?.locationOnScreen?.let {
-            SwingUtilities.convertPointFromScreen(it, this@setUpTopPanelMouseListeners)
-            // Hide the toolbar when the mouse exits the bounds of sceneViewTopPanel or the
-            // containing design surface.
-            if (!containsExcludingBorder(it) || !designSurfaceContains(e.locationOnScreen)) {
-              hideToolbar()
-            } else {
-              // We've exited to one of the toolbar actions, so we need to make sure this listener
-              // is algo registered on them.
-              sceneViewToolbar?.let { toolbar ->
-                for (i in 0 until toolbar.componentCount) {
-                  toolbar
-                    .getComponent(i)
-                    .removeMouseListener(this) // Prevent duplicate listeners being added.
-                  toolbar.getComponent(i).addMouseListener(this)
-                }
-              }
-            }
-          } ?: hideToolbar()
-        }
-
-        private fun JPanel.designSurfaceContains(p: Point): Boolean {
-          var component = parent
-          var designSurface: DesignSurfaceScrollPane? = null
-          while (component != null) {
-            if (component is DesignSurfaceScrollPane) {
-              designSurface = component
-              break
-            }
-            component = component.parent
-          }
-          if (designSurface == null) return false
-          SwingUtilities.convertPointFromScreen(p, designSurface)
-          // Consider the scrollbar width exiting from the right
-          return p.x in 0 until (designSurface.width - UIUtil.getScrollBarWidth()) &&
-            p.y in 0 until designSurface.height
-        }
-
-        private fun JPanel.containsExcludingBorder(p: Point): Boolean {
-          val borderInsets = border.getBorderInsets(this@setUpTopPanelMouseListeners)
-          return p.x in borderInsets.left until (width - borderInsets.right) &&
-            p.y in borderInsets.top until (height - borderInsets.bottom)
-        }
-
-        private fun hideToolbar() {
-          sceneViewToolbar?.let { toolbar ->
-            // Only hide the toolbar if the screen reader is not active
-            toolbar.isVisible = ScreenReader.isActive()
-          }
-        }
-      }
-
-    addMouseListener(hoverTopPanelMouseListener)
-    labelPanel.addMouseListener(hoverTopPanelMouseListener)
   }
 
   private fun createToolbar(
     actions: List<AnAction>,
-    toolbarCustomization: (ActionToolbar) -> Unit,
+    toolbarCustomization: (ActionToolbar) -> Unit = {},
   ): JComponent? {
     if (actions.isEmpty()) {
       return null
@@ -204,4 +112,46 @@ class SceneViewTopPanel(
   }
 
   private fun JComponent?.minimumWidth(): Int = this?.minimumSize?.width ?: 0
+
+  /**
+   * Returns the visibility of the [SceneViewTopPanel]. The panel is visible if there are any
+   * actions available or if the [labelPanel] is visible.
+   */
+  override fun isVisible(): Boolean {
+    return labelPanel.isVisible || toolbarActions.isNotEmpty()
+  }
+
+  /** [AnAction] that displays the actions of the given [ActionGroup] in a popup. */
+  @VisibleForTesting
+  class ShowActionGroupInPopupAction(val actionGroup: DefaultActionGroup) :
+    AnAction("Show Toolbar Actions", null, StudioIcons.Common.OVERFLOW) {
+    override fun actionPerformed(e: AnActionEvent) {
+      val popup =
+        JBPopupFactory.getInstance()
+          .createActionGroupPopup(
+            null,
+            actionGroup,
+            e.dataContext,
+            JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+            false,
+          )
+      e.inputEvent?.component?.let { component ->
+        val location = component.locationOnScreen
+        location.translate(0, component.height)
+        popup.showInScreenCoordinates(component, location)
+        return@actionPerformed
+      }
+      popup.showInBestPositionFor(e.dataContext)
+    }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      // Check if the underlying action group is visible, and hide the action if it is.
+      (actionGroup.childActionsOrStubs.filterIsInstance<ShowGroupUnderConditionWrapper>())
+        .singleOrNull()
+        ?.let { e.presentation.isVisible = it.isVisible(e.dataContext) }
+    }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  }
 }

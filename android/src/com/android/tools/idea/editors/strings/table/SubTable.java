@@ -38,7 +38,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
-public final class SubTable<M extends TableModel> extends JBTable implements UiDataProvider, PasteProvider {
+final class SubTable<M extends TableModel> extends JBTable implements UiDataProvider, PasteProvider {
   private final FrozenColumnTable<M> myFrozenColumnTable;
 
   SubTable(@NotNull SubTableModel model, @NotNull FrozenColumnTable<M> frozenColumnTable) {

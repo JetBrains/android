@@ -38,7 +38,8 @@ class Gradle2RequiredIssueChecker : GradleIssueChecker {
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.GRADLE2_REQUIRED)
     return BuildIssueComposer("Gradle ${SdkConstants.GRADLE_MINIMUM_VERSION} is required.").apply {
-      addDescription(message)
+      addDescriptionOnNewLine(message)
+      startNewParagraph()
       addQuickFix("Migrate to Gradle wrapper and sync project", CreateGradleWrapperQuickFix())
     }.composeBuildIssue()
   }

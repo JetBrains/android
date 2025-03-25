@@ -43,6 +43,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.icons.AllIcons;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -53,8 +54,8 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.DumbAware;
@@ -127,15 +128,20 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
   private ListenableFuture<DexReferences> myDexReferences;
 
   @NotNull public static final NotificationGroup LOGGING_NOTIFICATION =
-    NotificationGroup.logOnlyGroup("APK Analyzer (Info)", PluginId.getId("org.jetbrains.android"));
+    NotificationGroupManager.getInstance().getNotificationGroup("APK Analyzer (Info)");
   @NotNull public static final NotificationGroup BALLOON_NOTIFICATION =
-    NotificationGroup.balloonGroup("APK Analyzer (Important)", PluginId.getId("org.jetbrains.android"));
+    NotificationGroupManager.getInstance().getNotificationGroup("APK Analyzer (Important)");
 
-  public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @Nullable VirtualFile apkFolder) {
+  public DexFileViewer(
+    @NotNull Project project,
+    @NotNull Path[] dexFiles,
+    @Nullable VirtualFile apkFolder,
+    @Nullable ProguardMappings proguardMappings) {
     Preconditions.checkArgument(dexFiles.length > 0 || apkFolder != null, "Must have at least one dex file or an APK folder");
     myDexFiles = dexFiles;
     myProject = project;
     myApkFolder = apkFolder;
+    myProguardMappings = proguardMappings;
 
     // we need a new instance of this disposable every time, not just a lambda method
     myDisposable = Disposer.newDisposable();
@@ -144,6 +150,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     myLoadingPanel.startLoading();
 
     myTree = new Tree(new DefaultTreeModel(new LoadingNode()));
+    myTree.setName("DexTree");
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(true);
 
@@ -175,7 +182,10 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     });
 
     myDexTreeRenderer = new DexTreeNodeRenderer();
-
+    if (myProguardMappings != null) {
+      myDeobfuscateNames = true;
+      myDexTreeRenderer.setMappings(myProguardMappings);
+    }
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Class")
@@ -809,12 +819,8 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
 
     @Override
-    public boolean displayTextInToolbar() {
-      return true;
-    }
-
-    @Override
     public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
       if (myProguardMappings != null) {
         e.getPresentation().setText("Change Proguard mappings...");
       }

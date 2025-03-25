@@ -6,9 +6,9 @@ MODULE                        : MultiFlavor.app
     MavenName                     : MultiFlavor:app:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -215,7 +215,7 @@ MODULE                        : MultiFlavor.app
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/processFirstAbcSecondAbcDebugAndroidTestResources/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/compileFirstAbcSecondAbcDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         ResValues
             string/v_a                    : v_a:string=firstAbc
             string/v_b                    : v_b:string=debug

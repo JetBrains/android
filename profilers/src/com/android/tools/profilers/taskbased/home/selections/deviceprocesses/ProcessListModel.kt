@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.swing.Icon
 
-class ProcessListModel(val profilers: StudioProfilers, private val updateProfilingProcessStartingPoint: () -> Unit) : AspectObserver() {
+class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
   private val _deviceToProcesses = MutableStateFlow(mapOf<Common.Device, List<Common.Process>>())
   val deviceToProcesses = _deviceToProcesses.asStateFlow()
 
@@ -271,8 +271,6 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
   fun onProcessSelection(newProcess: Common.Process) {
     _selectedProcess.value = newProcess
     _isPreferredProcessSelected.value = newProcess.name == _preferredProcessName.value
-
-    updateProfilingProcessStartingPoint()
   }
 
   private fun preferredProcessUpdated() {

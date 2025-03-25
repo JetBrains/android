@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
-import com.android.tools.idea.gradle.dependencies.DependenciesHelper
+import com.android.tools.idea.gradle.dependencies.PluginsHelper
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
@@ -149,7 +149,7 @@ class AddJavaToolchainDefinition(
     val projectBuildModel: ProjectBuildModel
     ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
-      DependenciesHelper.withModel(projectBuildModel)
+      PluginsHelper.withModel(projectBuildModel)
         .applySettingsPlugin(DEFAULT_RESOLVER_PLUGIN_NAME, "0.8.0")
     }
   }

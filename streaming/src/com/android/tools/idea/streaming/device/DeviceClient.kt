@@ -27,7 +27,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.adblib.AdbLibApplicationService
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.report.GenericReport
 import com.android.tools.idea.downloads.AndroidProfilerDownloader
@@ -36,17 +36,18 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
+import com.android.utils.TraceUtils.simpleId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Strings.capitalize
-import com.intellij.util.IncorrectOperationException
 import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CompletableDeferred
@@ -117,7 +118,6 @@ internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 internal const val STREAM_AUDIO = 0x04
 internal const val USE_UINPUT = 0x08
-internal const val AUTO_RESET_UI_SETTINGS = 0x10
 internal const val DEBUG_LAYOUT_UI_SETTINGS = 0x20
 internal const val GESTURE_NAVIGATION_UI_SETTINGS = 0x40
 /** Maximum cumulative length of agent messages to remember. */
@@ -136,15 +136,16 @@ internal class DeviceClient(
 ) : Disposable {
 
   val deviceName: String = deviceConfig.deviceName
-  @Volatile var videoDecoder: VideoDecoder? = null
-    private set
-  @Volatile var audioDecoder: AudioDecoder? = null
-    private set
-  @Volatile var deviceController: DeviceController? = null
-    private set
   val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
-  private val clientScope = AndroidCoroutineScope(this)
-  private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
+  private val clientScope = createCoroutineScope()
+  private val connectionHolder = AtomicReference<Connection>()
+  val deviceController: DeviceController?
+    get() = connectionHolder.get()?.deviceController
+  val videoDecoder: VideoDecoder?
+    get() = connectionHolder.get()?.videoDecoder
+  private val audioDecoder: AudioDecoder?
+    get() = connectionHolder.get()?.audioDecoder
+  private var disposed = false
   private val agentTerminationListeners = createLockFreeCopyOnWriteList<AgentTerminationListener>()
   /**
    * Contains entries for all active video streams. Keyed by display IDs. The values represent
@@ -165,26 +166,39 @@ internal class DeviceClient(
    */
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()
 
-    streamingSessionTracker.streamingStarted()
-    val completion = CompletableDeferred<Unit>()
-    val connection = connectionState.compareAndExchange(null, completion) ?: completion
-    if (connection === completion) {
-      try {
-        startAgentAndConnect(maxVideoSize, initialDisplayOrientation, startVideoStream, project)
-        connection.complete(Unit)
+    try {
+      AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()
+
+      streamingSessionTracker.streamingStarted()
+      val newConnection = Connection(this)
+      val connection = connectionHolder.compareAndExchange(null, newConnection) ?: newConnection
+      if (connection === newConnection) {
+        try {
+          startAgentAndConnect(connection, maxVideoSize, initialDisplayOrientation, startVideoStream, project)
+          connection.established.complete(Unit)
+        }
+        catch (e: Throwable) {
+          connectionHolder.set(null)
+          AdbLibApplicationService.instance.session.throwIfCancellationOrDeviceDisconnected(e)
+          connection.established.completeExceptionally(e)
+        }
       }
-      catch (e: Throwable) {
-        connectionState.set(null)
-        AdbLibApplicationService.instance.session.throwIfCancellationOrDeviceDisconnected(e)
-        connection.completeExceptionally(e)
+      else {
+        Disposer.dispose(newConnection)
+      }
+      connection.established.await()
+
+      if (connection !== newConnection && startVideoStream) {
+        startVideoStream(project, PRIMARY_DISPLAY_ID, maxVideoSize)
       }
     }
-    connection.await()
-
-    if (connection !== completion && startVideoStream) {
-      startVideoStream(project, PRIMARY_DISPLAY_ID, maxVideoSize)
+    catch (e: Throwable) {
+      if (disposed) {
+        logger.info("$simpleId.establishAgentConnection: already disposed, throwing CancellationException")
+        throw CancellationException()
+      }
+      throw e
     }
   }
 
@@ -193,16 +207,14 @@ internal class DeviceClient(
    * if the connection hasn't been attempted yet or the connection attempt failed.
    */
   suspend fun waitUntilConnected() {
-    connectionState.get()?.await()
+    connectionHolder.get()?.established?.await()
   }
 
   /**
    * Starts the screen sharing agent and connects to it.
    */
   private suspend fun startAgentAndConnect(
-      maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()
-
+    connection: Connection, maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
     val adbSession = AdbLibApplicationService.instance.session
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
@@ -217,29 +229,24 @@ internal class DeviceClient(
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     logger.debug("Using port $port")
-    var channels: Channels? = null
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
+      var channels: Channels? = null
       ClosableReverseForwarding(deviceSelector, adbSession, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port)).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
+        startAgent(connection, deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
         channels = connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
       channels?.let { channels ->
-        try {
-          deviceController = DeviceController(this, channels.controlChannel)
-        }
-        catch (e: IncorrectOperationException) {
-          return // Already disposed.
-        }
-        videoDecoder = VideoDecoder(channels.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
+        connection.deviceController = DeviceController(connection, channels.controlChannel)
+        connection.videoDecoder = VideoDecoder(channels.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
             .apply { start(startVideoStream) }
-        audioDecoder = channels.audioChannel?.let { AudioDecoder(it, clientScope).apply { start(isAudioStreamingEnabled()) } }
+        connection.audioDecoder = channels.audioChannel?.let { AudioDecoder(it, clientScope).apply { start(isAudioStreamingEnabled()) } }
 
         if (isAudioStreamingSupported() && !isRemoteDevice()) {
-          val messageBusConnection = project.messageBus.connect(this)
+          val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
           messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateAudioStreaming() })
         }
       }
@@ -316,8 +323,9 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun SuspendingServerSocketChannel.acceptAndReadMarker(): Deferred<Pair<SuspendingSocketChannel, Byte>> {
-    val channel = acceptAndEnsureClosing(this@DeviceClient)
+  private suspend fun SuspendingServerSocketChannel.acceptAndReadMarker():
+      Deferred<Pair<SuspendingSocketChannel, Byte>> {
+    val channel = acceptAndEnsureClosing()
     return coroutineScope { async { Pair(channel, readChannelMarker(channel)) } }
   }
 
@@ -331,7 +339,7 @@ internal class DeviceClient(
     return try {
       withTimeout(timeMillis, block)
     }
-    catch (e: TimeoutCancellationException) {
+    catch (_: TimeoutCancellationException) {
       throw TimeoutException(timeoutMessage)
     }
   }
@@ -344,6 +352,7 @@ internal class DeviceClient(
   }
 
   override fun dispose() {
+    disposed = true
     streamingSessionTracker.streamingEnded()
   }
 
@@ -403,20 +412,14 @@ internal class DeviceClient(
 
   private val isEmulator = deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true
 
-  private suspend fun startAgent(
-      deviceSelector: DeviceSelector,
-      adbSession: AdbSession,
-      socketName: String,
-      maxVideoSize: Dimension,
-      initialDisplayOrientation: Int,
-      startVideoStream: Boolean) {
+  private fun startAgent(connection: Connection, deviceSelector: DeviceSelector, adbSession: AdbSession, socketName: String,
+                         maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean) {
     val maxSizeArg =
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
                 (if (isAudioStreamingEnabled()) STREAM_AUDIO else 0) or
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
-                (if (StudioFlags.DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS.get()) AUTO_RESET_UI_SETTINGS else 0) or
                 (if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) DEBUG_LAYOUT_UI_SETTINGS else 0) or
                 (if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) GESTURE_NAVIGATION_UI_SETTINGS else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0)
@@ -459,7 +462,7 @@ internal class DeviceClient(
               }
             }
             is ShellCommandOutputElement.ExitCode -> {
-              onDisconnection()
+              onDisconnection(connection)
               if (it.exitCode == 0) {
                 log.info("terminated")
               } else {
@@ -475,16 +478,16 @@ internal class DeviceClient(
           }
         }
       }
-      catch (e: EOFException) {
+      catch (_: EOFException) {
         // Device disconnected. This is not an error.
         log.info("device disconnected")
-        onDisconnection()
+        onDisconnection(connection)
         for (listener in agentTerminationListeners) {
           listener.deviceDisconnected()
         }
       }
       catch (e: Throwable) {
-        onDisconnection()
+        onDisconnection(connection)
         adbSession.throwIfCancellationOrDeviceDisconnected(e)
         throw RuntimeException("Command \"$command\" failed", e)
       }
@@ -511,7 +514,7 @@ internal class DeviceClient(
       isAudioStreamingSupported() && (DeviceMirroringSettings.getInstance().redirectAudio || isRemoteDevice())
 
   private fun isRemoteDevice(): Boolean =
-      deviceConfig.deviceProperties.isRemote ?: false
+      deviceConfig.deviceProperties.isRemote == true
 
   private fun calculateMaxBitRate(): Int {
     if (isEmulator) {
@@ -550,19 +553,15 @@ internal class DeviceClient(
     try {
       StudioCrashReporter.getInstance().submit(report.asCrashReport())
     }
-    catch (ignore: RuntimeException) {
+    catch (_: RuntimeException) {
       // May happen due to exceeded quota.
     }
   }
 
-  private suspend fun onDisconnection() {
-    deviceController?.let { Disposer.dispose(it) }
-    deviceController = null
-    videoDecoder?.closeChannel()
-    videoDecoder = null
-    audioDecoder?.closeChannel()
-    audioDecoder = null
-    connectionState.set(null)
+  private fun onDisconnection(connection: Connection) {
+    if (connectionHolder.compareAndSet(connection, null)) {
+      Disposer.dispose(connection)
+    }
   }
 
   private suspend fun AdbSession.pushFile(device: DeviceSelector, file: Path, remoteFilePath: String, permissions: RemoteFileMode) {
@@ -579,9 +578,7 @@ internal class DeviceClient(
   private suspend fun AdbSession.throwIfCancellationOrDeviceDisconnected(throwable: Throwable) {
     when {
       throwable is CancellationException -> throw throwable
-      isDeviceConnected() == false -> {
-        throw CancellationException()
-      }
+      isDeviceConnected() == false -> throw CancellationException()
     }
   }
 
@@ -598,8 +595,8 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(parentDisposable: Disposable): SuspendingSocketChannel =
-      accept().also { Disposer.register(parentDisposable, DisposableCloser(it)) }
+  private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(): SuspendingSocketChannel =
+      accept().also { Disposer.register(this@DeviceClient, DisposableCloser(it)) }
 
   private data class Channels(
     var videoChannel: SuspendingSocketChannel,
@@ -621,7 +618,7 @@ internal class DeviceClient(
           channel.close()
         }
         catch (e: IOException) {
-          thisLogger().warn(e)
+          logger.warn(e)
         }
       }
     }
@@ -749,6 +746,21 @@ internal class DeviceClient(
 
     fun isEmpty(): Boolean =
         requestedVideoResolutions.isEmpty()
+  }
+
+  private class Connection(disposableParent: Disposable) : Disposable {
+
+    val established = CompletableDeferred<Unit>()
+    @Volatile var deviceController: DeviceController? = null
+    @Volatile var videoDecoder: VideoDecoder? = null
+    @Volatile var audioDecoder: AudioDecoder? = null
+
+    init {
+      Disposer.register(disposableParent, this)
+    }
+
+    override fun dispose() {
+    }
   }
 }
 

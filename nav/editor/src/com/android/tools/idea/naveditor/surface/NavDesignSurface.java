@@ -26,9 +26,9 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.intellij.util.progress.CancellationUtil.sleepCancellable;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.ZoomController;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -81,6 +81,7 @@ import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -166,7 +167,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
           (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface),
           new DefaultSelectionModel(),
           ZoomControlsPolicy.VISIBLE,
-          true);
+          false);
     // TODO: add nav-specific issues
     // getIssueModel().addIssueProvider(new NavIssueProvider(project));
     myEditorPanel = editorPanel;
@@ -176,7 +177,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       public void componentResized(ComponentEvent e) {
         removeComponentListener(this);
         SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
-        if (manager != null) manager.requestRenderAsync();
+        if (manager != null) manager.requestRender();
       }
     });
 
@@ -211,7 +212,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     getScheduleRef().set(null);
     super.dispose();
   }
-
 
   @Override
   public void uiDataSnapshot(@NotNull DataSink sink) {
@@ -266,36 +266,39 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       }
       // If it didn't work, it's probably because the nav library isn't included. Prompt for it to be added.
       else if (requestAddDependency(model)) {
-        ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(getProject())
-          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
-        // When sync is done, try to create the schema again.
-        Futures.addCallback(syncResult, new FutureCallback<Object>() {
-          @Override
-          public void onSuccess(@Nullable Object unused) {
-            ProgressManager.getInstance().runProcessWithProgressAsynchronously(new Task.Backgroundable(getProject(), "Waiting for schema to be ready...") {
-              @Override
-              public void run(@NotNull ProgressIndicator indicator) {
-                final int initialAttempts = 3;
-                int attempts = initialAttempts;
-                while (attempts > 0) {
-                  DumbService.getInstance(getProject()).waitForSmartMode();
-                  if (tryToCreateSchema(facet)) {
-                    result.complete(null);
-                    return;
+        application.invokeAndWait(() -> {
+          ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getSyncManager(getProject())
+            .requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+          // When sync is done, try to create the schema again.
+          Futures.addCallback(syncResult, new FutureCallback<Object>() {
+            @Override
+            public void onSuccess(@Nullable Object unused) {
+              ProgressManager.getInstance()
+                .runProcessWithProgressAsynchronously(new Task.Backgroundable(getProject(), "Waiting for schema to be ready...") {
+                  @Override
+                  public void run(@NotNull ProgressIndicator indicator) {
+                    final int initialAttempts = 3;
+                    int attempts = initialAttempts;
+                    while (attempts > 0) {
+                      DumbService.getInstance(getProject()).waitForSmartMode();
+                      if (tryToCreateSchema(facet)) {
+                        result.complete(null);
+                        return;
+                      }
+                      attempts--;
+                      sleepCancellable(500L * (initialAttempts - attempts));
+                    }
+                    showFailToAddMessage(result, model);
                   }
-                  attempts--;
-                  sleepCancellable(500L * (initialAttempts - attempts));
-                }
-                showFailToAddMessage(result, model);
-              }
-            }, new EmptyProgressIndicator());
-          }
+                }, new EmptyProgressIndicator());
+            }
 
-          @Override
-          public void onFailure(@Nullable Throwable t) {
-            showFailToAddMessage(result, model);
-          }
-        }, MoreExecutors.directExecutor());
+            @Override
+            public void onFailure(@Nullable Throwable t) {
+              showFailToAddMessage(result, model);
+            }
+          }, MoreExecutors.directExecutor());
+        }, ModalityState.nonModal());
       }
       else {
         showFailToAddMessage(result, model);
@@ -486,11 +489,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
   }
 
   @Override
-  protected boolean isKeepingScaleWhenReopen() {
-    // TODO: Keeping same scale for Navigation Editor and remove this function from DesignSurface
-    // Navigation Editors calls zoom-to-fit automatically when NlModel is set. Some zoom-to-fit functions is called when editor is empty,
-    // which makes the scale value become 0%. We don't want to keep this 0% scale value here.
-    // To resolve this issue, the zoomToFit() function should be removed from NavSceneManager.requestRender().
+  public boolean getShouldStoreScale() {
+    // Do not store the scale if we use NavDesignSurface.
     return false;
   }
 
@@ -533,7 +533,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     }
     if (id != null) {
       Configuration configuration = Iterables.getOnlyElement(getConfigurations(), null);
-      ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
+      RenderResources resolver = configuration != null ? configuration.getResourceItemResolver() : null;
       ResourceValue value = resolver != null ? resolver.findResValue(id, false) : null;
       String fileName = value != null ? value.getValue() : null;
       if (fileName != null) {
@@ -586,14 +586,17 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       }
     }
 
-    if (shouldRecenter) {
+    Dimension size = getViewSize();
+    Dimension visibleSize = getExtentSize();
+    int scrollPositionX = (size.width - visibleSize.width) / 2;
+    int scrollPositionY = (size.height - visibleSize.height) / 2;
+    // Ensure the scroll position is never at point (0,0) when re-centering. NavDesignSurface previews are always
+    // centered on the screen, with horizontal and vertical scrolling and center shouldn't be on the top left of the screen.
+    if (shouldRecenter && (scrollPositionX != 0 || scrollPositionY != 0)) {
       // The navigation design surface differs from the other design surfaces in that there are
       // still scroll bars visible after doing a zoom to fit. As a result we need to explicitly
       // center the viewport.
-      Dimension visibleSize = getExtentSize();
-      Dimension size = getViewSize();
-
-      setScrollPosition((size.width - visibleSize.width) / 2, (size.height - visibleSize.height) / 2);
+      setScrollPosition(scrollPositionX, scrollPositionY);
     }
   }
 

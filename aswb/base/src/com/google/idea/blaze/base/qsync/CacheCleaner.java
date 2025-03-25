@@ -42,12 +42,10 @@ public class CacheCleaner implements BuildArtifactCache.CleanRequest {
   private final Logger logger = Logger.getInstance(CacheCleaner.class);
 
   private final Project project;
-  private final QuerySyncManager querySyncManager;
   private final AtomicReference<AccessToken> activeCleanRequest = new AtomicReference<>();
 
-  CacheCleaner(Project project, QuerySyncManager qsm) {
+  CacheCleaner(Project project) {
     this.project = project;
-    this.querySyncManager = qsm;
   }
 
   @Override
@@ -83,11 +81,7 @@ public class CacheCleaner implements BuildArtifactCache.CleanRequest {
             new Task.Backgroundable(project, "Cleaning build cache") {
               @Override
               public void run(@NotNull ProgressIndicator progressIndicator) {
-                BuildArtifactCache cache =
-                    querySyncManager
-                        .getLoadedProject()
-                        .map(QuerySyncProject::getBuildArtifactCache)
-                        .orElse(null);
+                BuildArtifactCache cache = project.getService(BuildArtifactCache.class);
                 if (cache == null) {
                   return;
                 }

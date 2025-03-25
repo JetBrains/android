@@ -40,6 +40,9 @@ import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
+import com.google.idea.common.experiments.BoolExperiment;
+import com.google.idea.common.experiments.ExperimentService;
+import com.google.idea.common.experiments.MockExperimentService;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import java.util.EnumSet;
@@ -67,6 +70,9 @@ public class MobileInstallBuildStepTestCase extends BlazeAndroidIntegrationTestC
         "  //java/com/foo/app:app",
         "android_sdk_platform: android-27");
     MockSdkUtil.registerSdk(workspace, "27");
+    MockExperimentService experimentService = new MockExperimentService();
+    registerApplicationComponent(ExperimentService.class, experimentService);
+    experimentService.setExperiment(new BoolExperiment("blaze.android.merge.libs", true), false);
 
     workspace.createFile(
         new WorkspacePath("java/com/foo/app/MainActivity.java"),

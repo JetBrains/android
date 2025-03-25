@@ -15,142 +15,138 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.ISystemImage
+import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
-import com.android.tools.idea.adddevicedialog.LocalProject
-import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
-import com.intellij.openapi.project.Project
-import java.awt.Component
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.math.max
+import com.android.tools.idea.adddevicedialog.FormFactors
+import com.android.tools.idea.avd.StorageCapacityFieldState.Empty
+import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
+import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
+import com.android.tools.idea.avd.StorageCapacityFieldState.Result
+import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
+import com.android.tools.idea.flags.StudioFlags
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
-import org.jetbrains.jewel.bridge.LocalComponent
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.GroupHeader
-import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.TextField
-import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
-import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
 internal fun AdditionalSettingsPanel(
-  configureDevicePanelState: ConfigureDevicePanelState,
-  additionalSettingsPanelState: AdditionalSettingsPanelState,
-  onImportButtonClick: () -> Unit,
+  state: ConfigureDevicePanelState,
   modifier: Modifier = Modifier,
 ) {
-  VerticallyScrollableContainer(modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
-      Row {
-        Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
+  val hasPlayStore = state.hasPlayStore()
+  Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
+    Row {
+      Text("Device skin", Modifier.padding(end = Padding.SMALL).alignByBaseline())
 
-        Dropdown(
-          configureDevicePanelState.device.skin,
-          configureDevicePanelState.skins,
-          onSelectedItemChange = {
-            configureDevicePanelState.device = configureDevicePanelState.device.copy(skin = it)
-          },
-          Modifier.padding(end = Padding.MEDIUM).alignByBaseline(),
-        )
-      }
-
-      CameraGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
-      NetworkGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
-      StartupGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
-
-      StorageGroup(
-        configureDevicePanelState.device,
-        additionalSettingsPanelState.storageGroupState,
-        configureDevicePanelState.validity.isExpandedStorageValid,
-        configureDevicePanelState::device::set,
-      )
-      LaunchedEffect(Unit) {
-        additionalSettingsPanelState.storageGroupState.expandedStorageFlow.collect(
-          configureDevicePanelState::setExpandedStorage
-        )
-      }
-
-      EmulatedPerformanceGroup(
-        configureDevicePanelState.device,
-        configureDevicePanelState::device::set,
+      Dropdown(
+        state.device.skin,
+        state.skins().toImmutableList(),
+        onSelectedItemChange = { state.device = state.device.copy(skin = it) },
+        Modifier.alignByBaseline().testTag("DeviceSkinDropdown"),
+        !state.device.isFoldable,
       )
     }
+
+    CameraGroup(state.device, state::device::set)
+    NetworkGroup(state.device, state::device::set)
+    StartupGroup(state.device, state::device::set)
+
+    StorageGroup(
+      state.device,
+      state.storageGroupState,
+      hasPlayStore,
+      StudioFlags.POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED.get(),
+      state::device::set,
+    )
+
+    EmulatedPerformanceGroup(
+      state.device,
+      state.emulatedPerformanceGroupState,
+      hasPlayStore,
+      state.maxCpuCoreCount,
+      state::device::set,
+    )
+
+    PreferredAbiGroup(
+      state.device.preferredAbi,
+      state.systemImageTableSelectionState.selection,
+      onPreferredAbiChange = state::setPreferredAbi,
+    )
   }
 }
 
 @Composable
 private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
+  if (device.cameraLocations.isEmpty()) {
+    return
+  }
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Camera")
 
-    Row {
-      Text("Front", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    if (CameraLocation.FRONT in device.cameraLocations) {
+      Row {
+        Text("Front", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        device.frontCamera,
-        FRONT_CAMERAS,
-        onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        Dropdown(
+          device.frontCamera,
+          FRONT_CAMERAS,
+          onSelectedItemChange = { onDeviceChange(device.copy(frontCamera = it)) },
+          Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        )
 
-      InfoOutlineIcon(
-        """
+        InfoOutlineIcon(
+          """
         None: no camera installed for AVD
         Emulated: use a simulated camera
         Webcam0: use host computer webcam or built-in camera
         """
-          .trimIndent(),
-        Modifier.align(Alignment.CenterVertically),
-      )
+            .trimIndent(),
+          Modifier.align(Alignment.CenterVertically),
+        )
+      }
     }
 
-    Row {
-      Text("Rear", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    if (CameraLocation.BACK in device.cameraLocations) {
+      Row {
+        Text("Rear", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        device.rearCamera,
-        REAR_CAMERAS,
-        onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
+        Dropdown(
+          device.rearCamera,
+          REAR_CAMERAS,
+          onSelectedItemChange = { onDeviceChange(device.copy(rearCamera = it)) },
+          Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        )
 
-      InfoOutlineIcon(
-        """
+        InfoOutlineIcon(
+          """
         None: no camera installed for AVD
         VirtualScene: use a virtual camera in a simulated environment
         Emulated: use a simulated camera
         Webcam0: use host computer webcam or built-in camera
         """
-          .trimIndent(),
-        Modifier.align(Alignment.CenterVertically),
-      )
+            .trimIndent(),
+          Modifier.align(Alignment.CenterVertically),
+        )
+      }
     }
   }
 }
@@ -259,161 +255,11 @@ private val ORIENTATIONS =
 private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 
 @Composable
-private fun StorageGroup(
-  device: VirtualDevice,
-  storageGroupState: StorageGroupState,
-  isExistingImageValid: Boolean,
-  onDeviceChange: (VirtualDevice) -> Unit,
-) {
-  Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
-    GroupHeader("Storage")
-
-    Row {
-      Text("Internal storage", Modifier.alignByBaseline().padding(end = Padding.SMALL))
-
-      StorageCapacityField(
-        device.internalStorage,
-        onValueChange = { onDeviceChange(device.copy(internalStorage = it)) },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
-
-      InfoOutlineIcon(
-        "The amount of non-removable space available to store data on the AVD",
-        Modifier.align(Alignment.CenterVertically),
-      )
-    }
-
-    Row {
-      Text("Expanded storage", Modifier.padding(end = Padding.MEDIUM))
-
-      InfoOutlineIcon(
-        """
-        Custom: The amount of expanded storage available to store data on the AVD. We recommend at least 100 MB in order to use the camera in the emulator.
-        Existing image: Choose a file path to an existing expanded storage image. Using an existing image is useful when sharing data (pictures, media, files, etc.) between AVDs. 
-        None: No expanded storage on this AVD
-        """
-          .trimIndent()
-      )
-    }
-
-    Row {
-      RadioButtonRow(
-        RadioButton.CUSTOM,
-        storageGroupState.selectedRadioButton,
-        onClick = { storageGroupState.selectedRadioButton = RadioButton.CUSTOM },
-        Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("CustomRadioButton"),
-      )
-
-      StorageCapacityField(
-        storageGroupState.custom,
-        onValueChange = {
-          storageGroupState.custom = it
-          onDeviceChange(device.copy(expandedStorage = Custom(it.withMaxUnit())))
-        },
-        Modifier.alignByBaseline(),
-        storageGroupState.selectedRadioButton == RadioButton.CUSTOM,
-      )
-    }
-
-    Row {
-      RadioButtonRow(
-        RadioButton.EXISTING_IMAGE,
-        storageGroupState.selectedRadioButton,
-        onClick = { storageGroupState.selectedRadioButton = RadioButton.EXISTING_IMAGE },
-        Modifier.alignByBaseline().padding(end = Padding.SMALL).testTag("ExistingImageRadioButton"),
-      )
-
-      ExistingImageField(
-        storageGroupState.existingImage,
-        storageGroupState.selectedRadioButton == RadioButton.EXISTING_IMAGE,
-        isExistingImageValid,
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
-      )
-    }
-
-    RadioButtonRow(
-      RadioButton.NONE,
-      storageGroupState.selectedRadioButton,
-      onClick = { storageGroupState.selectedRadioButton = RadioButton.NONE },
-    )
-  }
-}
-
-@Composable
-private fun <E : Enum<E>> RadioButtonRow(
-  value: Enum<E>,
-  selectedValue: Enum<E>,
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  RadioButtonRow(value.toString(), selectedValue == value, onClick, modifier)
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun ExistingImageField(
-  existingImage: TextFieldState,
-  enabled: Boolean,
-  isExistingImageValid: Boolean,
-  modifier: Modifier = Modifier,
-) {
-  Row(modifier) {
-    @OptIn(ExperimentalJewelApi::class) val component = LocalComponent.current
-    val project = LocalProject.current
-
-    val errorText =
-      "The specified image must be a valid file".takeIf { enabled && !isExistingImageValid }
-    ErrorTooltip(errorText) {
-      TextField(
-        existingImage,
-        Modifier.testTag("ExistingImageField"),
-        enabled,
-        outline = if (enabled && !isExistingImageValid) Outline.Error else Outline.None,
-        trailingIcon = {
-          Icon(
-            AllIconsKeys.General.OpenDisk,
-            null,
-            Modifier.padding(start = Padding.MEDIUM_LARGE)
-              .clickable(
-                enabled,
-                onClick = {
-                  val image = chooseFile(component, project)
-                  if (image != null) existingImage.setTextAndPlaceCursorAtEnd(image.toString())
-                },
-              )
-              .pointerHoverIcon(PointerIcon.Default),
-          )
-        },
-      )
-    }
-  }
-}
-
-private fun chooseFile(parent: Component, project: Project?): Path? {
-  // TODO chooseFile logs an error because it does slow things on the EDT
-  val virtualFile =
-    FileChooser.chooseFile(
-      FileChooserDescriptorFactory.createSingleFileDescriptor().withFileFilter {
-        it.name.endsWith(".img", ignoreCase = true)
-      },
-      parent,
-      project,
-      null,
-    )
-
-  if (virtualFile == null) {
-    return null
-  }
-
-  val path = virtualFile.toNioPath()
-  assert(Files.isRegularFile(path))
-
-  return path
-}
-
-@Composable
 private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
+  state: EmulatedPerformanceGroupState,
+  hasGooglePlayStore: Boolean,
+  maxCpuCoreCount: Int,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
@@ -421,15 +267,14 @@ private fun EmulatedPerformanceGroup(
 
     Row {
       Text("CPU cores", Modifier.alignByBaseline().padding(end = Padding.SMALL))
-      val cpuCoreCount = device.cpuCoreCount ?: 1
 
       Dropdown(
         Modifier.alignByBaseline(),
-        device.cpuCoreCount != null,
+        !hasGooglePlayStore,
         menuContent = {
-          for (count in 1..max(1, Runtime.getRuntime().availableProcessors() / 2)) {
+          for (count in 1..maxCpuCoreCount) {
             selectableItem(
-              cpuCoreCount == count,
+              device.cpuCoreCount == count,
               onClick = { onDeviceChange(device.copy(cpuCoreCount = count)) },
             ) {
               Text(count.toString())
@@ -437,7 +282,7 @@ private fun EmulatedPerformanceGroup(
           }
         },
       ) {
-        Text(cpuCoreCount.toString())
+        Text(device.cpuCoreCount.toString())
       }
     }
 
@@ -449,17 +294,25 @@ private fun EmulatedPerformanceGroup(
         listOf(GraphicsMode.AUTO, GraphicsMode.HARDWARE, GraphicsMode.SOFTWARE).toImmutableList(),
         onSelectedItemChange = { onDeviceChange(device.copy(graphicsMode = it)) },
         Modifier.alignByBaseline(),
+        !hasGooglePlayStore,
       )
     }
 
-    Row {
+    @Suppress("NAME_SHADOWING") val device by rememberUpdatedState(device)
+
+    Row(Modifier.testTag("RamRow")) {
       Text("RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
-        device.ram,
-        onValueChange = { onDeviceChange(device.copy(ram = it)) },
+        state.ram,
+        state.ram.result().ramErrorMessage(),
         Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        !hasGooglePlayStore || device.formFactor == FormFactors.AUTO,
       )
+
+      LaunchedEffect(Unit) {
+        state.ram.storageCapacity.collect { onDeviceChange(device.copy(ram = it)) }
+      }
 
       InfoOutlineIcon(
         "The amount of RAM on the AVD. This RAM is allocated from the host system while the AVD is running. Larger amounts of RAM will " +
@@ -468,14 +321,19 @@ private fun EmulatedPerformanceGroup(
       )
     }
 
-    Row {
+    Row(Modifier.testTag("VMHeapSizeRow")) {
       Text("VM heap size", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
       StorageCapacityField(
-        device.vmHeapSize,
-        onValueChange = { onDeviceChange(device.copy(vmHeapSize = it)) },
-        Modifier.alignByBaseline().padding(end = Padding.MEDIUM, bottom = Padding.SMALL),
+        state.vmHeapSize,
+        state.vmHeapSize.result().vmHeapSizeErrorMessage(),
+        Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
+        !hasGooglePlayStore,
       )
+
+      LaunchedEffect(Unit) {
+        state.vmHeapSize.storageCapacity.collect { onDeviceChange(device.copy(vmHeapSize = it)) }
+      }
 
       InfoOutlineIcon(
         "The amount of RAM available to the Java virtual machine (VM) to allocate to running apps on the AVD. A larger VM heap allows " +
@@ -486,52 +344,58 @@ private fun EmulatedPerformanceGroup(
   }
 }
 
-internal class AdditionalSettingsPanelState internal constructor(device: VirtualDevice) {
-  internal val storageGroupState = StorageGroupState(device)
-}
+internal class EmulatedPerformanceGroupState internal constructor(device: VirtualDevice) {
+  internal val ram =
+    StorageCapacityFieldState(requireNotNull(device.ram), VirtualDevice.MIN_RAM, UNITS)
 
-internal class StorageGroupState internal constructor(device: VirtualDevice) {
-  internal var selectedRadioButton by mutableStateOf(RadioButton.valueOf(device.expandedStorage))
-  internal var custom by mutableStateOf(customValue(device))
-  internal val existingImage = TextFieldState(device.expandedStorage.toTextFieldValue())
-
-  val expandedStorageFlow = snapshotFlow {
-    when (selectedRadioButton) {
-      RadioButton.CUSTOM -> Custom(custom.withMaxUnit())
-      RadioButton.EXISTING_IMAGE -> ExistingImage(existingImage.text.toString())
-      RadioButton.NONE -> None
-    }
-  }
+  internal val vmHeapSize =
+    StorageCapacityFieldState(
+      requireNotNull(device.vmHeapSize),
+      VirtualDevice.MIN_VM_HEAP_SIZE,
+      UNITS,
+    )
 
   private companion object {
-    private fun customValue(device: VirtualDevice) =
-      if (device.expandedStorage is Custom) {
-        device.expandedStorage.value
-      } else {
-        StorageCapacity(512, StorageCapacity.Unit.MB)
-      }
-
-    private fun ExpandedStorage.toTextFieldValue() = if (this is ExistingImage) toString() else ""
+    private val UNITS = listOf(StorageCapacity.Unit.MB, StorageCapacity.Unit.GB).toImmutableList()
   }
 }
 
-internal enum class RadioButton {
-  CUSTOM {
-    override fun toString() = "Custom"
-  },
-  EXISTING_IMAGE {
-    override fun toString() = "Existing image"
-  },
-  NONE {
-    override fun toString() = "None"
-  };
+private fun Result.ramErrorMessage() =
+  when (this) {
+    is Valid -> null
+    is Empty -> "Specify a RAM value"
+    is LessThanMin ->
+      "RAM must be at least ${VirtualDevice.MIN_RAM}. Recommendation is ${StorageCapacity(1, StorageCapacity.Unit.GB)}."
+    is Overflow -> "RAM value is too large"
+  }
 
-  internal companion object {
-    internal fun valueOf(storage: ExpandedStorage) =
-      when (storage) {
-        is Custom -> CUSTOM
-        is ExistingImage -> EXISTING_IMAGE
-        is None -> NONE
-      }
+private fun Result.vmHeapSizeErrorMessage() =
+  when (this) {
+    is Valid -> null
+    is Empty -> "Specify a VM heap size"
+    is LessThanMin -> "VM heap must be at least ${VirtualDevice.MIN_VM_HEAP_SIZE}"
+    is Overflow -> "VM heap size is too large"
+  }
+
+@Composable
+private fun PreferredAbiGroup(
+  preferredAbi: String?,
+  systemImage: ISystemImage?,
+  onPreferredAbiChange: (String?) -> Unit,
+) {
+  val availableAbis = persistentListOf("Optimal").plus(systemImage.allAbiTypes())
+  Row {
+    Text("Preferred ABI", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+
+    // "Optimal" is our null value; it means we don't set a preferred ABI and use the default.
+    Dropdown(
+      preferredAbi ?: "Optimal",
+      availableAbis,
+      onSelectedItemChange = { onPreferredAbiChange(it.takeUnless { it == "Optimal" }) },
+      Modifier.alignByBaseline(),
+      enabled = availableAbis.isNotEmpty(),
+      outline =
+        if (preferredAbi == null || preferredAbi in availableAbis) Outline.None else Outline.Error,
+    )
   }
 }

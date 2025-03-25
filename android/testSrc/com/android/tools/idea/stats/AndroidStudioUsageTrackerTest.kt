@@ -16,8 +16,6 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.HostData.graphicsEnvironment
@@ -42,13 +40,15 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.registerExtension
 import org.junit.Assert
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.GraphicsDevice
 import java.io.File
 import java.time.ZoneOffset
+import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.TimeZone
-import java.util.Calendar
 
 class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
   private val mockMendelFlagsProvider: MendelFlagsProvider = mock()

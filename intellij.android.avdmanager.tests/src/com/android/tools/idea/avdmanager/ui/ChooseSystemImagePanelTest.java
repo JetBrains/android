@@ -26,11 +26,13 @@ import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
 import static com.android.sdklib.SystemImageTags.TABLET_TAG;
 import static com.android.sdklib.SystemImageTags.WEAR_TAG;
+import static com.android.sdklib.SystemImageTags.XR_TAG;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.SystemImageClassification.OTHER;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.SystemImageClassification.PERFORMANT;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.getClassificationForDevice;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.getClassificationFromParts;
+import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.isBaseExtensionLevelForDeviceType;
 import static com.android.tools.idea.avdmanager.ui.ChooseSystemImagePanel.systemImageMatchesDevice;
 
 import com.android.repository.api.LocalPackage;
@@ -132,6 +134,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     String tv30Path = "system-images;android-30;android-tv;";
     // TV 31 image
     String tv31Path = "system-images;android-31;android-tv;";
+    // XR image
+    String xrPath = "system-images;android-34;android-xr;";
 
     final FakePackage.FakeLocalPackage pkgGapi;
     final FakePackage.FakeLocalPackage pkgGapi29;
@@ -149,6 +153,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     final FakePackage.FakeRemotePackage remotePkgAutomotive;
     final FakePackage.FakeLocalPackage pkgTv30;
     final FakePackage.FakeLocalPackage pkgTv31;
+    final FakePackage.FakeLocalPackage pkgXr;
 
     SystemImageDescription gapiImageDescription;
     SystemImageDescription gapi29ImageDescription;
@@ -166,6 +171,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     SystemImageDescription tv30ImageDescription;
     SystemImageDescription tv31ImageDescription;
     SystemImageDescription remoteAutoDescription;
+    SystemImageDescription xrDescription;
 
     SystemImageTestList(String abi, Path sdkRoot) {
       gapiPath += abi;
@@ -183,6 +189,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       automotivePsPath += abi;
       tv30Path += abi;
       tv31Path += abi;
+      xrPath += abi;
 
       pkgGapi = createSysimgPackage(gapiPath, abi, IdDisplay.create("google_apis", "Google APIs"),
                                     IdDisplay.create("google", "Google"), 23, sdkRoot);
@@ -220,11 +227,13 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                                     IdDisplay.create("google", "Google"), 30, sdkRoot);
       pkgTv31 = createSysimgPackage(tv31Path, abi, IdDisplay.create("android-tv", "Television"),
                                     IdDisplay.create("google", "Google"), 31, sdkRoot);
+      pkgXr = createSysimgPackage(xrPath, abi, IdDisplay.create("android-xr", "XR"),
+                                    IdDisplay.create("google", "Google"), 34, sdkRoot);
     }
 
     ImmutableList<FakePackage.FakeLocalPackage> getPackageInfoList() {
       return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgGapi31, pkgGapi32, pkgGapi33, pkgGapi34, pkgPs, pkgWear, pkgWear29, pkgCnWear,
-                              pkgAutomotive, pkgAutomotivePs, pkgTv30, pkgTv31);
+                              pkgAutomotive, pkgAutomotivePs, pkgTv30, pkgTv31, pkgXr);
     }
 
     void generateSystemImageDescriptions(AndroidSdkHandler sdkHandler) {
@@ -246,6 +255,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       var automotivePsImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, automotivePsPath, progress);
       var tv30Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, tv30Path, progress);
       var tv31Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, tv31Path, progress);
+      var xrImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, xrPath, progress);
 
       gapiImageDescription = new SystemImageDescription(gapiImage);
       gapi29ImageDescription = new SystemImageDescription(gapi29Image);
@@ -263,6 +273,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       tv30ImageDescription = new SystemImageDescription(tv30Image);
       tv31ImageDescription = new SystemImageDescription(tv31Image);
       remoteAutoDescription = new SystemImageDescription(remotePkgAutomotive);
+      xrDescription = new SystemImageDescription(xrImage);
     }
   }
 
@@ -281,6 +292,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private Device myAutomotiveDevice;
   private Device myFreeform;
   private Device my4KTV;
+  private Device myXrDevice;
 
   @Override
   public void setUp() throws Exception {
@@ -340,6 +352,9 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     // Get a 4K TV
     my4KTV = devMgr.getDevice("tv_4k", "Google");
+
+    // Get an XR device
+    myXrDevice = devMgr.getDevice("xr", "Google");
   }
 
   public void testClassificationFromParts() {
@@ -418,6 +433,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(33), ANDROID_TV_TAG, isArmHostOs));
       assertEquals(isArmHostOs ? PERFORMANT : OTHER,
                    getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(33), GOOGLE_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(34), XR_TAG, isArmHostOs));
     }
   }
 
@@ -544,6 +561,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationForDevice(mSysImagesArm64.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
       assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
                    getClassificationForDevice(mSysImagesArm64.remoteAutoDescription, myAutomotiveDevice, isArmHostOs));
+
+      // Note: XR does not provide a Play-Store image
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationForDevice(mSysImagesArm64.xrDescription, myXrDevice, isArmHostOs));
     }
   }
 
@@ -608,5 +629,16 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myWearDevice));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.automotivePsImageDescription, myWearDevice));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.automotivePsImageDescription, myPlayStorePhoneDevice));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.xrDescription, myFoldable));
+  }
+
+  public void testIsBaseExtensionLevelForDeviceType() {
+    assertTrue(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 7, true), ImmutableList.of()));
+    assertTrue(isBaseExtensionLevelForDeviceType(new AndroidVersion(34), ImmutableList.of(AUTOMOTIVE_TAG)));
+    assertTrue(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 9, false), ImmutableList.of(AUTOMOTIVE_TAG)));
+
+    assertFalse(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 9, false), ImmutableList.of()));
+    assertFalse(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 9, false), ImmutableList.of()));
+    assertFalse(isBaseExtensionLevelForDeviceType(new AndroidVersion(34, null, 10, false), ImmutableList.of(AUTOMOTIVE_TAG)));
   }
 }

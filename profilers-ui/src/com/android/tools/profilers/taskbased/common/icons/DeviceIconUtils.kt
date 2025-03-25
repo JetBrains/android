@@ -41,6 +41,9 @@ object DeviceIconUtils {
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar
       StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceCar
       StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR -> StudioIconsCompose.DeviceExplorer.FirebaseDeviceCar
+      // Xr
+      StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET -> StudioIconsCompose.DeviceExplorer.VirtualDeviceHeadset
+      StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_HEADSET -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceHeadset
       // Icon not found
       else -> null
     }

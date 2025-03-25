@@ -79,8 +79,7 @@ import org.xml.sax.SAXException
  * IDE facilities like reference shortening and code formatting using the user's preferred code
  * style.
  */
-class LintIdeFixPerformer(client: LintClient, private val project: Project) :
-  LintFixPerformer(client) {
+class LintIdeFixPerformer(client: LintClient) : LintFixPerformer(client) {
 
   override fun log(severity: Severity, message: String) {
     val log = LintIdeClient.LOG
@@ -374,15 +373,17 @@ private class LintIdeFixPerformerFix(
   private val valueOverride: ((PendingEditFile, PendingEdit) -> String?)? = null,
 ) : ModCommandAction {
 
-  private val performer = LintIdeFixPerformer(LintIdeSupport.get().createClient(project), project)
+  private val performer = LintIdeFixPerformer(LintIdeSupport.get().createClient(project))
   private val edits = LinkedHashMap<PendingEditFile, Pair<SmartPsiFileRange, CharSequence>?>()
-
-  val incident = incident.copySafe()
 
   init {
     // Collect edits
     val affectedFiles =
-      performer.registerFixes(incident, listOf(fix), LintIdeReadOnlyFileProvider(project))
+      performer.registerFixes(
+        incident.copySafe(),
+        listOf(fix),
+        LintIdeReadOnlyFileProvider(project),
+      )
     val manager = SmartPointerManager.getInstance(project)
     for (file in affectedFiles) {
       val psiFile = file.file.toVirtualFile()?.toPsiFile(project)

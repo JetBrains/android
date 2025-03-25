@@ -32,12 +32,12 @@ import com.intellij.execution.process.UnixProcessManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TemporaryDirectory
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.io.IOException
 import java.lang.Long.min
 import java.nio.file.Files
 import java.nio.file.Path
@@ -121,7 +121,7 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
       val deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10)
       while (true) {
         val catalog = RunningEmulatorCatalog.getInstance()
-        val controllers = catalog.updateNow().get()
+        val controllers = runBlocking { catalog.updateNow().await() }
         controller = controllers.find { it.emulatorId.registrationFileName == "pid_$processId.ini" }
         if (controller != null) {
           nullableController = controller

@@ -19,9 +19,6 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
@@ -37,13 +34,16 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Answers
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.Mock
-import org.mockito.Mockito.anyLong
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
@@ -58,7 +58,7 @@ class SingleDeviceAndroidProcessMonitorTest {
   }
 
   private fun createDevice(): IDevice {
-    val mockDevice = mock(IDevice::class.java)
+    val mockDevice = mock<IDevice>()
     whenever(mockDevice.version).thenReturn(AndroidVersion(26))
     whenever(mockDevice.isOnline).thenReturn(true)
     return mockDevice
@@ -261,9 +261,9 @@ class SingleDeviceAndroidProcessMonitorTest {
   }
 
   private fun createMockClient(pid: Int): Client {
-    val mockClientData = mock(ClientData::class.java)
+    val mockClientData = mock<ClientData>()
     whenever(mockClientData.pid).thenReturn(pid)
-    val mockClient = mock(Client::class.java)
+    val mockClient = mock<Client>()
     whenever(mockClient.clientData).thenReturn(mockClientData)
     return mockClient
   }

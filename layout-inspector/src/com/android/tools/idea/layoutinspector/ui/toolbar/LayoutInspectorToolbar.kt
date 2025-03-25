@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.impl.content.BaseLabel
 import com.intellij.util.ui.JBUI
@@ -70,7 +71,7 @@ fun createEmbeddedLayoutInspectorToolbar(
       selectProcessAction,
       extraActions,
     )
-  actionToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY)
+  actionToolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
   actionToolbar.setReservePlaceAutoPopupIcon(false)
   actionToolbar.setOrientation(SwingConstants.HORIZONTAL)
 
@@ -112,13 +113,12 @@ fun createStandaloneLayoutInspectorToolbar(
   actionToolbar.component.name = LAYOUT_INSPECTOR_MAIN_TOOLBAR
   actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
   actionToolbar.targetComponent = targetComponent
-  actionToolbar.updateActionsImmediately()
   // Removes empty space on the right side of the toolbar.
   actionToolbar.setReservePlaceAutoPopupIcon(false)
 
   val modificationListener =
     InspectorModel.ModificationListener { _, _, _ ->
-      invokeLater { actionToolbar.updateActionsImmediately() }
+      invokeLater { actionToolbar.updateActionsAsync() }
     }
   layoutInspector.inspectorModel.addModificationListener(modificationListener)
 
@@ -153,7 +153,7 @@ private class LayoutInspectorActionGroup(
     add(AlphaSliderAction { layoutInspector.renderModel })
     if (
       !layoutInspector.isSnapshot &&
-        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+      !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
     ) {
       add(Separator.getInstance())
       add(ToggleLiveUpdatesAction(layoutInspector))

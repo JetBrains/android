@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth.assertThat
@@ -25,6 +23,8 @@ import com.intellij.testFramework.LightPlatformTestCase
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.file.Files
 import kotlin.io.path.Path
@@ -109,6 +109,6 @@ class GradleSignStepTest : LightPlatformTestCase() {
     val captor = argumentCaptor<String>()
     gradleSignStep.commitForNext()
     verify(myWizard).setApkPath(captor.capture())
-    assertThat(Files.isSameFile(Path(captor.value), Path(destinationPath))).isTrue()
+    assertThat(Files.isSameFile(Path(captor.firstValue), Path(destinationPath))).isTrue()
   }
 }

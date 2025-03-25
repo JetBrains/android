@@ -30,6 +30,7 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -80,6 +81,11 @@ internal fun checkSupportedFiles(file: PsiFile) {
 }
 
 internal fun checkJetpackCompose(project: Project) {
+  // K2 uses compose compiler plugin provided by `KotlinCompilerPluginsProvider`.
+  // It returns the compose compiler plugin only when the project has
+  // `-Xplugin=.. compose compiler plugin ..` option.
+  if (KotlinPluginModeProvider.isK2Mode()) return
+
   val pluginExtensions = IrGenerationExtension.getInstances(project)
   var found = false
   for (extension in pluginExtensions) {

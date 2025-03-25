@@ -68,8 +68,11 @@ public interface AndroidSqlPsiTypes {
   IElementType EXISTS_EXPRESSION = new AndroidSqlAstNodeType("EXISTS_EXPRESSION");
   IElementType EXPLAIN_PREFIX = new AndroidSqlAstNodeType("EXPLAIN_PREFIX");
   IElementType EXPRESSION = new AndroidSqlAstNodeType("EXPRESSION");
+  IElementType FILTER_CLAUSE = new AndroidSqlAstNodeType("FILTER_CLAUSE");
   IElementType FOREIGN_KEY_CLAUSE = new AndroidSqlAstNodeType("FOREIGN_KEY_CLAUSE");
   IElementType FOREIGN_TABLE = new AndroidSqlAstNodeType("FOREIGN_TABLE");
+  IElementType FRAME_CLAUSE = new AndroidSqlAstNodeType("FRAME_CLAUSE");
+  IElementType FRAME_SPEC = new AndroidSqlAstNodeType("FRAME_SPEC");
   IElementType FROM_CLAUSE = new AndroidSqlAstNodeType("FROM_CLAUSE");
   IElementType FROM_TABLE = new AndroidSqlAstNodeType("FROM_TABLE");
   IElementType FUNCTION_CALL_EXPRESSION = new AndroidSqlAstNodeType("FUNCTION_CALL_EXPRESSION");
@@ -90,7 +93,9 @@ public interface AndroidSqlPsiTypes {
   IElementType ORDERING_TERM = new AndroidSqlAstNodeType("ORDERING_TERM");
   IElementType ORDER_CLAUSE = new AndroidSqlAstNodeType("ORDER_CLAUSE");
   IElementType OR_EXPRESSION = new AndroidSqlAstNodeType("OR_EXPRESSION");
+  IElementType OVER_CLAUSE = new AndroidSqlAstNodeType("OVER_CLAUSE");
   IElementType PAREN_EXPRESSION = new AndroidSqlAstNodeType("PAREN_EXPRESSION");
+  IElementType PARTITION_CLAUSE = new AndroidSqlAstNodeType("PARTITION_CLAUSE");
   IElementType PRAGMA_NAME = new AndroidSqlAstNodeType("PRAGMA_NAME");
   IElementType PRAGMA_STATEMENT = new AndroidSqlAstNodeType("PRAGMA_STATEMENT");
   IElementType PRAGMA_VALUE = new AndroidSqlAstNodeType("PRAGMA_VALUE");
@@ -122,6 +127,8 @@ public interface AndroidSqlPsiTypes {
   IElementType VACUUM_STATEMENT = new AndroidSqlAstNodeType("VACUUM_STATEMENT");
   IElementType VIEW_NAME = new AndroidSqlAstNodeType("VIEW_NAME");
   IElementType WHERE_CLAUSE = new AndroidSqlAstNodeType("WHERE_CLAUSE");
+  IElementType WINDOW_CLAUSE = new AndroidSqlAstNodeType("WINDOW_CLAUSE");
+  IElementType WINDOW_DEFINITION = new AndroidSqlAstNodeType("WINDOW_DEFINITION");
   IElementType WITH_CLAUSE = new AndroidSqlAstNodeType("WITH_CLAUSE");
   IElementType WITH_CLAUSE_SELECT_STATEMENT = new AndroidSqlAstNodeType("WITH_CLAUSE_SELECT_STATEMENT");
   IElementType WITH_CLAUSE_STATEMENT = new AndroidSqlAstNodeType("WITH_CLAUSE_STATEMENT");
@@ -162,6 +169,7 @@ public interface AndroidSqlPsiTypes {
   IElementType CONSTRAINT = new AndroidSqlTokenType("CONSTRAINT");
   IElementType CREATE = new AndroidSqlTokenType("CREATE");
   IElementType CROSS = new AndroidSqlTokenType("CROSS");
+  IElementType CURRENT = new AndroidSqlTokenType("CURRENT");
   IElementType CURRENT_DATE = new AndroidSqlTokenType("CURRENT_DATE");
   IElementType CURRENT_TIME = new AndroidSqlTokenType("CURRENT_TIME");
   IElementType CURRENT_TIMESTAMP = new AndroidSqlTokenType("CURRENT_TIMESTAMP");
@@ -184,17 +192,21 @@ public interface AndroidSqlPsiTypes {
   IElementType EQEQ = new AndroidSqlTokenType("==");
   IElementType ESCAPE = new AndroidSqlTokenType("ESCAPE");
   IElementType EXCEPT = new AndroidSqlTokenType("EXCEPT");
+  IElementType EXCLUDE = new AndroidSqlTokenType("EXCLUDE");
   IElementType EXCLUSIVE = new AndroidSqlTokenType("EXCLUSIVE");
   IElementType EXISTS = new AndroidSqlTokenType("EXISTS");
   IElementType EXPLAIN = new AndroidSqlTokenType("EXPLAIN");
   IElementType FAIL = new AndroidSqlTokenType("FAIL");
   IElementType FALSE = new AndroidSqlTokenType("FALSE");
+  IElementType FILTER = new AndroidSqlTokenType("FILTER");
+  IElementType FOLLOWING = new AndroidSqlTokenType("FOLLOWING");
   IElementType FOR = new AndroidSqlTokenType("FOR");
   IElementType FOREIGN = new AndroidSqlTokenType("FOREIGN");
   IElementType FROM = new AndroidSqlTokenType("FROM");
   IElementType FULL = new AndroidSqlTokenType("FULL");
   IElementType GLOB = new AndroidSqlTokenType("GLOB");
   IElementType GROUP = new AndroidSqlTokenType("GROUP");
+  IElementType GROUPS = new AndroidSqlTokenType("GROUPS");
   IElementType GT = new AndroidSqlTokenType(">");
   IElementType GTE = new AndroidSqlTokenType(">=");
   IElementType HAVING = new AndroidSqlTokenType("HAVING");
@@ -239,13 +251,18 @@ public interface AndroidSqlPsiTypes {
   IElementType ON = new AndroidSqlTokenType("ON");
   IElementType OR = new AndroidSqlTokenType("OR");
   IElementType ORDER = new AndroidSqlTokenType("ORDER");
+  IElementType OTHERS = new AndroidSqlTokenType("OTHERS");
   IElementType OUTER = new AndroidSqlTokenType("OUTER");
+  IElementType OVER = new AndroidSqlTokenType("OVER");
+  IElementType PARTITION = new AndroidSqlTokenType("PARTITION");
   IElementType PLAN = new AndroidSqlTokenType("PLAN");
   IElementType PLUS = new AndroidSqlTokenType("+");
   IElementType PRAGMA = new AndroidSqlTokenType("PRAGMA");
+  IElementType PRECEDING = new AndroidSqlTokenType("PRECEDING");
   IElementType PRIMARY = new AndroidSqlTokenType("PRIMARY");
   IElementType QUERY = new AndroidSqlTokenType("QUERY");
   IElementType RAISE = new AndroidSqlTokenType("RAISE");
+  IElementType RANGE = new AndroidSqlTokenType("RANGE");
   IElementType RECURSIVE = new AndroidSqlTokenType("RECURSIVE");
   IElementType REFERENCES = new AndroidSqlTokenType("REFERENCES");
   IElementType REGEXP = new AndroidSqlTokenType("REGEXP");
@@ -257,6 +274,7 @@ public interface AndroidSqlPsiTypes {
   IElementType RIGHT = new AndroidSqlTokenType("RIGHT");
   IElementType ROLLBACK = new AndroidSqlTokenType("ROLLBACK");
   IElementType ROW = new AndroidSqlTokenType("ROW");
+  IElementType ROWS = new AndroidSqlTokenType("ROWS");
   IElementType RPAREN = new AndroidSqlTokenType(")");
   IElementType SAVEPOINT = new AndroidSqlTokenType("SAVEPOINT");
   IElementType SELECT = new AndroidSqlTokenType("SELECT");
@@ -270,11 +288,13 @@ public interface AndroidSqlPsiTypes {
   IElementType TEMP = new AndroidSqlTokenType("TEMP");
   IElementType TEMPORARY = new AndroidSqlTokenType("TEMPORARY");
   IElementType THEN = new AndroidSqlTokenType("THEN");
+  IElementType TIES = new AndroidSqlTokenType("TIES");
   IElementType TILDE = new AndroidSqlTokenType("~");
   IElementType TO = new AndroidSqlTokenType("TO");
   IElementType TRANSACTION = new AndroidSqlTokenType("TRANSACTION");
   IElementType TRIGGER = new AndroidSqlTokenType("TRIGGER");
   IElementType TRUE = new AndroidSqlTokenType("TRUE");
+  IElementType UNBOUNDED = new AndroidSqlTokenType("UNBOUNDED");
   IElementType UNEQ = new AndroidSqlTokenType("<>");
   IElementType UNION = new AndroidSqlTokenType("UNION");
   IElementType UNIQUE = new AndroidSqlTokenType("UNIQUE");
@@ -286,6 +306,7 @@ public interface AndroidSqlPsiTypes {
   IElementType VIRTUAL = new AndroidSqlTokenType("VIRTUAL");
   IElementType WHEN = new AndroidSqlTokenType("WHEN");
   IElementType WHERE = new AndroidSqlTokenType("WHERE");
+  IElementType WINDOW = new AndroidSqlTokenType("WINDOW");
   IElementType WITH = new AndroidSqlTokenType("WITH");
   IElementType WITHOUT = new AndroidSqlTokenType("WITHOUT");
 
@@ -418,11 +439,20 @@ public interface AndroidSqlPsiTypes {
       else if (type == EXPLAIN_PREFIX) {
         return new AndroidSqlExplainPrefixImpl(node);
       }
+      else if (type == FILTER_CLAUSE) {
+        return new AndroidSqlFilterClauseImpl(node);
+      }
       else if (type == FOREIGN_KEY_CLAUSE) {
         return new AndroidSqlForeignKeyClauseImpl(node);
       }
       else if (type == FOREIGN_TABLE) {
         return new AndroidSqlForeignTableImpl(node);
+      }
+      else if (type == FRAME_CLAUSE) {
+        return new AndroidSqlFrameClauseImpl(node);
+      }
+      else if (type == FRAME_SPEC) {
+        return new AndroidSqlFrameSpecImpl(node);
       }
       else if (type == FROM_CLAUSE) {
         return new AndroidSqlFromClauseImpl(node);
@@ -484,8 +514,14 @@ public interface AndroidSqlPsiTypes {
       else if (type == OR_EXPRESSION) {
         return new AndroidSqlOrExpressionImpl(node);
       }
+      else if (type == OVER_CLAUSE) {
+        return new AndroidSqlOverClauseImpl(node);
+      }
       else if (type == PAREN_EXPRESSION) {
         return new AndroidSqlParenExpressionImpl(node);
+      }
+      else if (type == PARTITION_CLAUSE) {
+        return new AndroidSqlPartitionClauseImpl(node);
       }
       else if (type == PRAGMA_NAME) {
         return new AndroidSqlPragmaNameImpl(node);
@@ -579,6 +615,12 @@ public interface AndroidSqlPsiTypes {
       }
       else if (type == WHERE_CLAUSE) {
         return new AndroidSqlWhereClauseImpl(node);
+      }
+      else if (type == WINDOW_CLAUSE) {
+        return new AndroidSqlWindowClauseImpl(node);
+      }
+      else if (type == WINDOW_DEFINITION) {
+        return new AndroidSqlWindowDefinitionImpl(node);
       }
       else if (type == WITH_CLAUSE) {
         return new AndroidSqlWithClauseImpl(node);

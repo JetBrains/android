@@ -19,6 +19,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.PROJECT_MODIFIED
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
@@ -95,7 +96,7 @@ class NoFacetView(val project: Project)
   }
 
   private fun newModule(e: HyperlinkEvent, project: Project) {
-    val anActionEvent = AnActionEvent.createFromInputEvent(e.inputEvent, "", null, SimpleDataContext.getProjectContext(project))
+    val anActionEvent = AnActionEvent.createEvent(SimpleDataContext.getProjectContext(project), null, "", ActionUiKind.NONE, e.inputEvent)
     androidNewModuleAction.update(anActionEvent)
     if (anActionEvent.presentation.isEnabled) {
       androidNewModuleAction.actionPerformed(anActionEvent)
@@ -106,7 +107,7 @@ class NoFacetView(val project: Project)
     val reason = if (project.isInitialized) PROJECT_MODIFIED else PROJECT_LOADED
     val syncManager = project.getProjectSystem().getSyncManager()
     if (!syncManager.isSyncInProgress()) {
-      syncManager.syncProject(reason)
+      syncManager.requestSyncProject(reason)
     }
   }
 }

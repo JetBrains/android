@@ -24,7 +24,8 @@
     <orderEntry type="module" module-name="url-assistant" />
     <orderEntry type="module" module-name="targetsdkversion-upgrade-assistant" />
     <orderEntry type="module" module-name="intellij.android.gmd-code-completion" />
-    <orderEntry type="module" module-name="ml.sml-android" />
+    <orderEntry type="module" module-name="aiplugin.android-plugin" />
+    <orderEntry type="module" module-name="aiplugin.experimental" />
     <orderEntry type="module" module-name="studio-sdk-all-plugins" />
   </component>
 </module>

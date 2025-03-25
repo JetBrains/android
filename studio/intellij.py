@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import List, Set, Dict
 import json
 import re
 import sys
@@ -33,8 +34,10 @@ class IntelliJ:
   major: str
   minor: str
   platform: str = ""
-  platform_jars: set[str] = field(default_factory=lambda: set())
-  plugin_jars: dict[str, set[str]] = field(default_factory=lambda: dict())
+  platform_jars: Set[str] = field(default_factory=lambda: set())
+  plugin_jars: Dict[str, Set[str]] = field(default_factory=lambda: dict())
+  jvm_add_exports: List[str] = field(default_factory=lambda: list())
+  jvm_add_opens: List[str] = field(default_factory=lambda: list())
 
   def version(self):
     return self.major, self.minor
@@ -47,7 +50,9 @@ class IntelliJ:
     major, minor = read_version(path/_idea_home[platform]/"lib", prefix)
     jars = read_platform_jars(path/_idea_home[platform], product_info)
     plugin_jars = _read_plugin_jars(path/_idea_home[platform])
-    return IntelliJ(major, minor, platform_jars=jars, plugin_jars=plugin_jars)
+    add_exports = _read_jvm_args("--add-exports=","=ALL-UNNAMED", product_info)
+    add_opens = _read_jvm_args("--add-opens=","=ALL-UNNAMED", product_info)
+    return IntelliJ(major, minor, platform_jars=jars, plugin_jars=plugin_jars, jvm_add_exports=add_exports, jvm_add_opens=add_opens)
 
 
 def read_product_info(path):
@@ -99,7 +104,7 @@ def _read_zip_entry(zip_path, entry):
 
 def _read_plugin_id(path: Path):
   jars = path.glob("lib/*.jar")
-  xml = load_plugin_xml(jars, [])
+  xml = load_plugin_xml(jars)
 
   # The id of a plugin is defined as the id tag and if missing, the name tag.
   ids = [id.text for id in xml.findall("id")]
@@ -135,7 +140,7 @@ def _read_plugin_jars(idea_home: Path):
   return plugins
 
 
-def _load_include(include, xpath, external_xmls, cwd, index):
+def _load_include(include, xpath, cwd, index):
   href = include.get("href")
   parse = include.get("parse", "xml")
   if parse != "xml":
@@ -145,6 +150,8 @@ def _load_include(include, xpath, external_xmls, cwd, index):
       child.tag == "{http://www.w3.org/2001/XInclude}fallback"
       for child in include
   )
+  if is_optional:
+    return [], None
 
   # See `PluginXmlPathResolver.toLoadPath` for the platform implementation
   rel = href
@@ -157,8 +164,6 @@ def _load_include(include, xpath, external_xmls, cwd, index):
     else:
       rel = cwd + "/" + href
 
-  if rel in external_xmls or is_optional:
-    return [], None
   new_cwd = rel[0 : rel.rindex("/")] if "/" in rel else ""
 
   if rel not in index:
@@ -198,7 +203,7 @@ def _xpath_for_include(include, parent):
   return xpath
 
 
-def _resolve_includes(elem, external_xmls, cwd, index):
+def _resolve_includes(elem, cwd, index):
   """Resolves xincludes in the given xml element.
 
   By replacing xinclude tags like
@@ -215,10 +220,10 @@ def _resolve_includes(elem, external_xmls, cwd, index):
     e = elem[i]
     if e.tag == "{http://www.w3.org/2001/XInclude}include":
       xpath = _xpath_for_include(e, elem)
-      nodes, new_cwd = _load_include(e, xpath, external_xmls, cwd, index)
+      nodes, new_cwd = _load_include(e, xpath, cwd, index)
       subtree = ET.Element(elem.tag)
       subtree.extend(nodes)
-      _resolve_includes(subtree, external_xmls, new_cwd, index)
+      _resolve_includes(subtree, new_cwd, index)
       nodes = list(subtree)
       if nodes:
         for node in nodes[:-1]:
@@ -229,11 +234,11 @@ def _resolve_includes(elem, external_xmls, cwd, index):
           node.tail = (node.tail or "") + e.tail
         elem[i] = node
     else:
-      _resolve_includes(e, external_xmls, cwd, index)
+      _resolve_includes(e, cwd, index)
     i = i + 1
 
 
-def load_plugin_xml(files: list[Path], external_xmls, xml_name = "META-INF/plugin.xml"):
+def load_plugin_xml(files: List[Path], xml_name = "META-INF/plugin.xml"):
   xmls = {}
   index = {}
   jars = [zipfile.ZipFile(f) for f in files if f.suffix == ".jar"]
@@ -248,20 +253,38 @@ def load_plugin_xml(files: list[Path], external_xmls, xml_name = "META-INF/plugi
         index[jar_entry] = jar
 
   if len(xmls) != 1:
-    msg = "\n".join(xmls.keys())
-    print(
-        "Plugin should have exactly one plugin.xml file (found %d)" % len(xmls)
-    )
-    print(msg)
-    sys.exit(1)
+    for file in xmls:
+      print(f"Found {xml_name} at {file}")
+    sys.exit(f"ERROR: plugin should have exactly one file named {xml_name} (found {len(xmls)})")
 
   _, xml = list(xmls.items())[0]
   element = ET.fromstring(xml)
 
   # We cannot use ElementInclude because it does not support xpointer
-  _resolve_includes(element, external_xmls, "META-INF", index)
+  _resolve_includes(element, "META-INF", index)
 
   for jar in jars:
     jar.close()
 
   return element
+
+
+def _read_jvm_args(prefix, suffix, product_info):
+    """Extracts and sorts JVM arguments that start with a prefix and end with a suffix.
+
+    Args:
+        prefix: The prefix string.
+        suffix: The suffix string.
+        product_info: A dictionary containing product information, including JVM arguments.
+
+    Returns:
+        A sorted list of strings containing the arguments without the prefix and suffix,
+        or an empty list if no matching arguments are found.
+    """
+    jvm_args = product_info["launch"][0]["additionalJvmArguments"]
+    result = []
+    for arg in jvm_args:
+        if arg.startswith(prefix) and arg.endswith(suffix):
+            result.append(arg[len(prefix):-len(suffix)])
+    result.sort()
+    return result

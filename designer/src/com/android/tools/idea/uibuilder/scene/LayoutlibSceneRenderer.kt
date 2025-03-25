@@ -47,21 +47,21 @@ import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ColorUtil
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.CancellationException
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -100,7 +100,7 @@ class LayoutlibSceneRenderer(
    * Worker thread based coroutine scope used for processing render requests, and performing
    * inflation and rendering.
    */
-  private val scope = AndroidCoroutineScope(this)
+  private val scope: CoroutineScope
 
   /** Lock guarding execution of [NlModelHierarchyUpdater.updateHierarchy] for [model]. */
   private val updateHierarchyLock = ReentrantLock()
@@ -129,13 +129,8 @@ class LayoutlibSceneRenderer(
   var lastRenderQuality = 0f
     private set
 
-  init {
-    Disposer.register(parentDisposable, this)
-  }
-
-  // TODO(b/335424569): make this field private
   @GuardedBy("renderTaskLock")
-  var renderTask: RenderTask? = null
+  internal var renderTask: RenderTask? = null
     get() = renderTaskLock.withLock { field }
     private set(newTask) {
       val oldTask: RenderTask?
@@ -157,9 +152,8 @@ class LayoutlibSceneRenderer(
       }
     }
 
-  // TODO(b/335424569): make this field private
   @GuardedBy("renderTaskLock")
-  var sessionClock: SessionClock = RealTimeSessionClock()
+  internal var sessionClock: SessionClock = RealTimeSessionClock()
     get() = renderTaskLock.withLock { field }
     private set
 
@@ -207,6 +201,11 @@ class LayoutlibSceneRenderer(
   private val lastProcessedRenderRequestTime = MutableStateFlow<Long>(-1)
 
   init {
+    // Order here is relevant. We need to register first to ensure that the scope does not get
+    // leaked
+    // if this class is disposed before the scope is correctly initialized.
+    Disposer.register(parentDisposable, this)
+    scope = AndroidCoroutineScope(this)
     scope.launch {
       requestsChannel.receiveAsFlow().collect {
         renderIsRunning.set(true)
@@ -214,12 +213,28 @@ class LayoutlibSceneRenderer(
           if (isActive.get()) {
             val reverseUpdate = AtomicBoolean(false)
             val rerenderIfNeeded = sceneRenderConfiguration.doubleRenderIfNeeded.getAndSet(false)
-            doRender(it, reverseUpdate)
-            if (rerenderIfNeeded && reverseUpdate.get()) {
-              doRender(it, reverseUpdate)
+            val callbacksConfig =
+              sceneRenderConfiguration.layoutlibCallbacksConfig.getAndSet(
+                LayoutlibCallbacksConfig.DO_NOT_EXECUTE
+              )
+            doRender(
+              it,
+              callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING,
+              reverseUpdate,
+            )
+            if (
+              (rerenderIfNeeded && reverseUpdate.get()) ||
+                callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_AND_RERENDER
+            ) {
+              doRender(
+                it,
+                callbacksConfig == LayoutlibCallbacksConfig.EXECUTE_AND_RERENDER,
+                reverseUpdate,
+              )
             }
-          } else
+          } else {
             log.info("Render skipped due to deactivated LayoutlibSceneRenderer (model = $model)")
+          }
         } catch (t: CancellationException) {
           log.debug(t)
         } catch (t: Throwable) {
@@ -232,21 +247,6 @@ class LayoutlibSceneRenderer(
         }
       }
     }
-  }
-
-  /**
-   * Adds a new [RenderRequest] to the queue and returns a future that will be completed once this
-   * request or some other newer request is completed.
-   *
-   * Note that it's not guaranteed that this specific request will be executed, as it could be
-   * replaced by a newer request that arrives later, before this one starts to execute.
-   *
-   * @param trigger reason that triggered the render, used for tracking purposes
-   */
-  // TODO(b/335424569): remove this method and make clients use requestRender or
-  //  requestRenderAndWait
-  fun renderAsync(trigger: LayoutEditorRenderResult.Trigger?): CompletableFuture<Unit> {
-    return scope.launch { requestRenderAndWait(trigger) }.asCompletableFuture()
   }
 
   /**
@@ -269,6 +269,7 @@ class LayoutlibSceneRenderer(
    *
    * @param trigger reason that triggered the render, used for tracking purposes
    */
+  @RequiresBackgroundThread
   suspend fun requestRenderAndWait(trigger: LayoutEditorRenderResult.Trigger?) {
     val request = enqueueRenderRequest(trigger)
     // Suspends until this or any newer request is processed
@@ -289,17 +290,13 @@ class LayoutlibSceneRenderer(
    *
    * This method will also [inflate] the model when forced or needed (i.e. when
    * [LayoutlibSceneRenderConfiguration.needsInflation] is true or when [renderTask] is null).
-   *
-   * Returns the [RenderResult] of the render operation, which might be an error result, or null if
-   * the model could not be rendered (e.g. because the inflation failed).
-   *
-   * Note that [CancellationException]s will be caught by this method and cause the returned
-   * [RenderResult] to be an error result.
    */
+  @RequiresBackgroundThread
   private suspend fun doRender(
     request: RenderRequest,
+    executeCallbacksBeforeRendering: Boolean,
     reverseUpdate: AtomicBoolean,
-  ): RenderResult? {
+  ) {
     var result: RenderResult? = null
     val renderStartTimeMs = System.currentTimeMillis()
 
@@ -318,7 +315,7 @@ class LayoutlibSceneRenderer(
         else null
       if (inflateResult?.renderResult?.isSuccess == false) {
         surface.updateErrorDisplay()
-        return null
+        return
       }
       renderTask?.let {
         if (sceneRenderConfiguration.elapsedFrameTimeMs != -1L) {
@@ -329,6 +326,9 @@ class LayoutlibSceneRenderer(
         // Make sure that the task's quality is up-to-date before rendering
         val quality = sceneRenderConfiguration.quality
         it.setQuality(quality)
+        if (executeCallbacksBeforeRendering) {
+          it.executeCallbacks(sessionClock.timeNanos).await()
+        }
         result = it.render().await() // await is the suspendable version of join
         if (result?.renderResult?.isSuccess == true) {
           lastRenderQuality = quality
@@ -338,30 +338,38 @@ class LayoutlibSceneRenderer(
         }
       }
     } catch (throwable: Throwable) {
-      // Note that CancellationExceptions are not being propagated here, but an error result is
-      // created instead when cancellations or other errors happen.
       if (!model.isDisposed) {
+        val renderService = StudioRenderService.getInstance(model.project)
+        val logger =
+          if (sceneRenderConfiguration.logRenderErrors)
+            renderService.createHtmlLogger(model.project)
+          else renderService.nopLogger
+
         result =
-          createRenderTaskErrorResult(file, (throwable as? CompletionException)?.cause ?: throwable)
+          createRenderTaskErrorResult(
+            file,
+            throwable = (throwable as? CompletionException)?.cause ?: throwable,
+            logger = logger,
+          )
+      }
+      throw throwable
+    } finally {
+      result?.let { renderResult = result }
+
+      // Notify surface and track metrics async
+      val renderTimeMs = System.currentTimeMillis() - renderStartTimeMs
+      executeOnPooledThread {
+        surface.modelRendered()
+        result?.let {
+          // In an unlikely event when result is disposed we can still safely request the size of
+          // the image
+          NlDiagnosticsManager.getWriteInstance(surface)
+            .recordRender(renderTimeMs, it.renderedImage.width * it.renderedImage.height * 4L)
+          CommonUsageTracker.getInstance(surface)
+            .logRenderResult(request.trigger, it, CommonUsageTracker.RenderResultType.RENDER)
+        }
       }
     }
-
-    result?.let { renderResult = result }
-
-    // Notify surface and track metrics async
-    val renderTimeMs = System.currentTimeMillis() - renderStartTimeMs
-    executeOnPooledThread {
-      surface.modelRendered()
-      result?.let {
-        // In an unlikely event when result is disposed we can still safely request the size of the
-        // image
-        NlDiagnosticsManager.getWriteInstance(surface)
-          .recordRender(renderTimeMs, it.renderedImage.width * it.renderedImage.height * 4L)
-        CommonUsageTracker.getInstance(surface)
-          .logRenderResult(request.trigger, it, CommonUsageTracker.RenderResultType.RENDER)
-      }
-    }
-    return result
   }
 
   /**
@@ -373,6 +381,7 @@ class LayoutlibSceneRenderer(
    *
    * It throws a [CancellationException] if cancelled midway.
    */
+  @RequiresBackgroundThread
   private suspend fun inflate(reverseUpdate: AtomicBoolean): RenderResult? {
     val project: Project = model.project
     if (project.isDisposed || isDisposed.get()) {
@@ -383,19 +392,15 @@ class LayoutlibSceneRenderer(
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
     // disk contents, so we have to push any edits to disk before rendering)
     // Wrapping into blockingContext because model.file requires read action
-    blockingContext { model.file }.saveFileIfNecessary()
+    val file = blockingContext { model.file }
+    file.saveFileIfNecessary()
 
     // Record the current version we're rendering from; we'll use that in #activate to make sure
     // we're picking up any external changes
     val facet: AndroidFacet = model.facet
     val configuration: Configuration = model.configuration
     val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
-    renderedVersion =
-      resourceNotificationManager.getCurrentVersion(
-        facet,
-        blockingContext { model.file },
-        configuration,
-      )
+    renderedVersion = resourceNotificationManager.getCurrentVersion(facet, file, configuration)
 
     val renderService = StudioRenderService.getInstance(project)
     val logger =
@@ -406,16 +411,16 @@ class LayoutlibSceneRenderer(
     var newTask: RenderTask? = null
     try {
       newTask = sceneRenderConfiguration.createRenderTask(configuration, renderService, logger)
-      result =
-        newTask?.let { doInflate(it, logger) }
-          ?: createRenderTaskErrorResult(blockingContext { model.file }, logger)
+      result = newTask?.let { doInflate(it, logger) } ?: createRenderTaskErrorResult(file, logger)
     } catch (throwable: Throwable) {
+      result = createRenderTaskErrorResult(file, throwable, logger)
       if (throwable is CancellationException) {
         // Re-throw any CancellationException to correctly propagate cancellations upward
         throw throwable
+      } else {
+        // Log but don't re-throw other exceptions, as these exceptions are specific to inflation
+        Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
       }
-      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
-      result = createRenderTaskErrorResult(blockingContext { model.file }, throwable)
     } finally {
       // Make sure not to cancel the post-inflation work needed to keep this renderer in a
       // consistent state
@@ -443,6 +448,7 @@ class LayoutlibSceneRenderer(
    *
    * Returns the result if successful, or throws an exception if inflation fails or gets cancelled.
    */
+  @RequiresBackgroundThread
   private suspend fun doInflate(newTask: RenderTask, logger: RenderLogger): RenderResult {
     newTask.defaultForegroundColor = '#'.toString() + ColorUtil.toHex(UIUtil.getLabelForeground())
     try {
@@ -457,8 +463,6 @@ class LayoutlibSceneRenderer(
       }
       return result!!
     } catch (throwable: Throwable) {
-      // Do some logging and re-throw
-      Logger.getInstance(LayoutlibSceneRenderer::class.java).warn(throwable)
       // Do not ignore ClassNotFoundException on inflate
       if (throwable is ClassNotFoundException) {
         logger.addMessage(

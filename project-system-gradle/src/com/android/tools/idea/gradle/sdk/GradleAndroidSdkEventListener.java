@@ -21,8 +21,9 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -70,7 +71,8 @@ public class GradleAndroidSdkEventListener implements IdeSdks.AndroidSdkEventLis
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_SDK_PATH_CHANGED), null);
+      ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager()
+        .requestSyncProject(new ProjectSystemSyncManager.SyncReason(TRIGGER_SDK_PATH_CHANGED));
     }
   }
 

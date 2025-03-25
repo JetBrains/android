@@ -38,7 +38,7 @@
 
     <issue
         id="ObsoleteSdkInt"
-        message="Unnecessary; SDK_INT is always >= 23"
+        message="Unnecessary; `SDK_INT` is always >= 23"
         errorLine1="                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location

@@ -323,6 +323,11 @@ MODULE                        : project
                 taskModel                     : DefaultGradleTaskModel
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -341,8 +346,8 @@ MODULE                        : project.app
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -391,6 +396,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.android.test.localaarsasmodules
         testApplicationId             : com.android.test.localaarsasmodules.test
@@ -414,8 +420,8 @@ MODULE                        : project.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -592,8 +598,8 @@ MODULE                        : project.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.android.test.localaarsasmodules
@@ -698,8 +704,8 @@ MODULE                        : project.library
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library
@@ -748,6 +754,7 @@ MODULE                        : project.library
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.android.test.library.test
         buildType                     : debug
@@ -765,8 +772,8 @@ MODULE                        : project.library
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -933,8 +940,8 @@ MODULE                        : project.library
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.android.test.library

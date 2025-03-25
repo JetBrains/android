@@ -36,18 +36,19 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
-import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Component;
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -148,7 +150,7 @@ public final class SdkQuickfixUtils {
 
   public static void showAndroidSdkManager() {
     ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(
-      AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
+      AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null));
   }
 
   private static AndroidSdkHandler getSdkHandler() {
@@ -190,8 +192,8 @@ public final class SdkQuickfixUtils {
       // This is an expensive call involving a number of manifest download operations,
       // so make it only when some installations are requested.
       mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-               new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
-               new StudioDownloader(), StudioSettingsController.getInstance());
+                            new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
+                            new StudioDownloader(), StudioSettingsController.getInstance());
       RepositoryPackages packages = mgr.getPackages();
       if (requestedPackages == null) {
         requestedPackages = new ArrayList<>();
@@ -243,7 +245,7 @@ public final class SdkQuickfixUtils {
     }
     List<RemotePackage> installRequests = ContainerUtil.map(resolvedPackages, UpdatablePackage::getRemote);
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), installRequests));
+    wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), () -> installRequests));
     InstallSelectedPackagesStep installStep =
       new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, sdkHandler, backgroundable);
     wizardBuilder.addStep(installStep);
@@ -303,7 +305,7 @@ public final class SdkQuickfixUtils {
   @Slow
   public static boolean checkPathIsAvailableForDownload(String path) {
     // Loading the manager below can require waiting for something on the EDT. If this code has a read lock, this can result in deadlock.
-    ThreadingAssertions.assertNoOwnReadAccess();
+    ApplicationManager.getApplication().assertReadAccessNotAllowed();
 
     RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(REPO_LOGGER);
     mgr.loadSynchronously(

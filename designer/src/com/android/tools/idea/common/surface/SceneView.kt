@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.scene.Scene
@@ -68,6 +69,9 @@ abstract class SceneView(
 
   val scene: Scene
     get() = sceneManager.scene
+
+  val firstComponent: NlComponent?
+    get() = sceneManager.model.treeReader.components.firstOrNull()
 
   /**
    * If Layers are not exist, they will be created by [.createLayers]. This should happen only once.

@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.actions.SearchableDropDownAction
 import com.android.tools.idea.appinspection.ide.ui.ICON_EMULATOR
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
@@ -28,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 
 /**
  * A [DropDownAction] that shows the list of debuggable processes running in the device
@@ -40,14 +42,13 @@ class SingleDeviceSelectProcessAction(
   private val deviceModel: DeviceModel,
   private val targetDeviceSerialNumber: String,
   private val onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
-) : DropDownAction("Select Process", "Select a process to connect to.", ICON_PHONE) {
-
-  override fun displayTextInToolbar() = true
+) : SearchableDropDownAction("Select Process", "Select a process to connect to.", ICON_PHONE) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     super.update(event)
+    event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     val targetDevice = deviceModel.devices.find { it.serial == targetDeviceSerialNumber }
     if (targetDevice == null) {
       // by default, don't show the process picker, unless auto-connect is off

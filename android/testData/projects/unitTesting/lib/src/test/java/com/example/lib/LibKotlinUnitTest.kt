@@ -18,7 +18,7 @@ import org.apache.commons.logging.LogFactory
 import org.junit.Assert.*
 import org.junit.Test
 import org.mockito.Mockito.*
-import com.android.testutils.MockitoKt.whenever
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.charset.StandardCharsets
 

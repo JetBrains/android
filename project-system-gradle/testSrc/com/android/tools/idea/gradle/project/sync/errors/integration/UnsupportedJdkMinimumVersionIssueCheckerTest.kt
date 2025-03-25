@@ -59,7 +59,15 @@ class UnsupportedJdkMinimumVersionIssueCheckerTest : AbstractIssueCheckerIntegra
         expect.that(buildIssue.quickFixes).hasSize(2)
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: java.lang.RuntimeException
+              at: [0]com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors#registerSyncErrorToSimulate
+          }
+        }
+      """.trimIndent()
     )
   }
 }

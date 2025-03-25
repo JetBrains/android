@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey
@@ -37,14 +38,14 @@ class UnpairTest {
     PairingDevice(
       deviceID = "id1",
       displayName = "My Phone",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isWearDevice = false,
       isEmulator = true,
       hasPlayStore = true,
       state = ConnectionState.ONLINE,
     )
   private val wearPropertiesMap =
-    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
+    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
     AvdInfo(
       Paths.get("ini"),
@@ -57,7 +58,7 @@ class UnpairTest {
     PairingDevice(
       deviceID = "id2",
       displayName = "Round Watch",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isEmulator = true,
       isWearDevice = true,
       hasPlayStore = true,

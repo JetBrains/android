@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestPro
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.testing.TestProjectPaths
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -53,6 +54,20 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
+      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.internal.exceptions.LocationAwareException
+              at: [0]org.gradle.kotlin.dsl.execution.Interpreter${'$'}ProgramHost${'$'}compileSecondStageOf${'$'}cacheDir${'$'}1#invoke
+            exception: org.gradle.kotlin.dsl.support.ScriptCompilationException
+              at: [0]org.gradle.kotlin.dsl.support.KotlinCompilerKt#compileKotlinScriptModuleTo
+          }
+        }
+      """.trimIndent())
     }
 
   )
@@ -67,7 +82,12 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        // The message may have multiple lines, so check the first line only.
+        // Example:
+        //     Unresolved reference: abcd
+        //     Build 06caa169-39fa-46b1-befd-827d18fbb27e is started
+        //     Build 06caa169-39fa-46b1-befd-827d18fbb27e is closed
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
       }
     )
   }
@@ -82,7 +102,8 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        // The message may have multiple lines, so check the first line only
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
       }
     )
   }
@@ -97,7 +118,8 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).isEqualTo("Unresolved reference: abcd")
+        // The message may have multiple lines, so check the first line only
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
       }
     )
   }

@@ -23,9 +23,9 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzer
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.visuallint.analyzers.WearMarginAnalyzer
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -59,7 +59,7 @@ class WearMarginAnalyzerComposeTest {
         file,
         renderResult.result!!.renderContext!!.configuration,
       )
-    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel)
+    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel.configuration)
     Assert.assertEquals(0, issues.size)
   }
 
@@ -89,7 +89,7 @@ class WearMarginAnalyzerComposeTest {
         file,
         renderResult.result!!.renderContext!!.configuration,
       )
-    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel)
+    val issues = WearMarginAnalyzer.findIssues(renderResult.result, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals(
       "The view TextView is too close to the side of the device",

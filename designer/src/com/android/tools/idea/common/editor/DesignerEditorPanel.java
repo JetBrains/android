@@ -23,8 +23,6 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.lint.ModelLintIssueAnnotator;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -33,7 +31,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.downloads.AndroidLayoutlibDownloader;
 import com.android.tools.idea.editors.notifications.NotificationPanel;
 import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -43,26 +40,31 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider;
 import com.android.tools.idea.uibuilder.type.FileTypeUtilsKt;
 import com.android.tools.idea.util.SyncUtil;
-import com.intellij.CommonBundle;
+import com.google.common.collect.Iterables;
+import com.intellij.codeInsight.navigation.NavigationUtil;
+import com.intellij.ide.IdeView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataSink;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.UiDataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
-
 import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -94,7 +96,7 @@ import org.jetbrains.annotations.Nullable;
  * The panel will start in the {@link State#DEACTIVATED}. Some heavy initialization might be deferred until the panel changes to one of the
  * other states.
  */
-public class DesignerEditorPanel extends JPanel implements Disposable {
+public class DesignerEditorPanel extends JPanel implements Disposable, UiDataProvider {
 
   private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
   private static final String ACCESSORY_PROPORTION = "AndroidStudio.AccessoryProportion";
@@ -139,6 +141,25 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   /** Notification panel to be used for the surface. */
   NotificationPanel myNotificationPanel = new NotificationPanel(
     ExtensionPointName.create("com.android.tools.idea.uibuilder.editorNotificationProvider"));
+
+  /** {@link IdeView} that allows the IDE to present the correct File menu options by detecting where the current file is located. */
+  private final IdeView myIdeView = new IdeView() {
+    @Override
+    public void selectElement(@NotNull PsiElement element) {
+      NavigationUtil.activateFileWithPsiElement(element);
+    }
+
+    @Override
+    public @NotNull PsiDirectory @NotNull [] getDirectories() {
+      PsiDirectory directory = getOrChooseDirectory();
+      return directory != null ? new PsiDirectory[] { directory } : PsiDirectory.EMPTY_ARRAY;
+    }
+
+    @Override
+    public @Nullable PsiDirectory getOrChooseDirectory() {
+      return getFile().getContainingDirectory();
+    }
+  };
 
   /**
    * Creates a new {@link DesignerEditorPanel}.
@@ -186,7 +207,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     toolbarAndNotification.add(myNotificationPanel, BorderLayout.SOUTH);
     myContentPanel.add(toolbarAndNotification, BorderLayout.NORTH);
 
-    myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText());
+    myWorkBench.setLoadingText("Loading...");
 
     myState = defaultEditorPanelState;
     mySurface.getAnalyticsManager().setEditorModeWithoutTracking(myState);
@@ -202,7 +223,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     mySurfaceListener = new DesignSurfaceListener() {
       @Override
       @UiThread
-      public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
+      public void modelsChanged(@NotNull DesignSurface<?> surface, @NotNull List<? extends @Nullable NlModel> models) {
+        // This class works under the assumption of having a single model, so the last one is used.
+        NlModel model = Iterables.getFirst(models, null);
         if (bottomModelComponent != null) {
           if (myBottomComponent != null) {
             myContentPanel.remove(myBottomComponent);
@@ -275,6 +298,23 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myNotificationPanel.updateNotifications(file, editor, project);
   }
 
+  @Override
+  public void uiDataSnapshot(@NotNull DataSink sink) {
+    FileEditor fileEditorDelegate = getSurface().getFileEditorDelegate();
+    if (fileEditorDelegate instanceof TextEditor) {
+      sink.set(SplitEditorKt.getSPLIT_TEXT_EDITOR_KEY(), (TextEditor)fileEditorDelegate);
+      sink.set(LangDataKeys.IDE_VIEW, myIdeView);
+    }
+  }
+
+  /**
+   * Sets the {@link TextEditor} that the surface will delegate to. This will be the text editor used when moving
+   * the caret to the right position when clicking components.
+   */
+  void setFileEditorDelegate(TextEditor editor) {
+    getSurface().setFileEditorDelegate(editor);
+  }
+
   @NotNull
   private static JComponent createSurfaceToolbar(@NotNull DesignSurface<?> surface) {
     return surface.getActionManager().createToolbar();
@@ -339,13 +379,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
               return;
             }
 
-          if (cause instanceof ProcessCanceledException){
-            // e.g. when IDEA user clicks 'cancel' button while required resources are downloaded from the Internet .
-            myWorkBench.loadingStopped("Failed to initialize editor (operation canceled).");
-            assert !IdeInfo.getInstance().isAndroidStudio(): "AndroidStudio has all the resources bundled with the IDE.";
-            return;
-          }
-
             myWorkBench.loadingStopped("Failed to initialize editor.");
             Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
           });
@@ -355,7 +388,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   @NotNull
   private NlModel createAndInitNeleModel() {
-    AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace();
     XmlFile file = ReadAction.compute(() -> getFile());
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
@@ -530,7 +562,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       // This class is the parent of ActionToolBar, DesignSurface, and Accessory Panel. The data of editor actions should be provided here.
       // For example, the refresh action can be performed when focusing ActionToolBar or DesignSurface.
       DesignSurface<?> surface = getSurface();
-      sink.set(DesignerDataKeys.DESIGN_SURFACE, surface);
+      DataSink.uiDataSnapshot(sink, surface);
       if (surface instanceof NlDesignSurface o) {
         ScreenViewProvider mode = o.getScreenViewProvider();
         if (mode == NlScreenViewProvider.RENDER ||

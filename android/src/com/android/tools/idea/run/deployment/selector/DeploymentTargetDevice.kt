@@ -25,8 +25,6 @@ import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
 import com.android.tools.idea.run.DeviceTemplateAndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
 import com.android.tools.idea.run.LaunchCompatibilityChecker
-import com.google.common.util.concurrent.Futures.immediateFailedFuture
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.icons.AllIcons
 import com.intellij.ui.LayeredIcon
@@ -125,15 +123,8 @@ class DeploymentTargetDevice(
       }
     }
 
-  // TODO: refactor this API; it's only used synchronously
-  val ddmlibDeviceAsync: ListenableFuture<IDevice>
-    get() {
-      val device = androidDevice
-      if (!device.isRunning()) {
-        return immediateFailedFuture(IllegalStateException("$device is not running"))
-      }
-      return device.getLaunchedDevice()
-    }
+  val ddmlibDevice: IDevice?
+    get() = androidDevice.ddmlibDevice
 
   override fun toString() = "Device($name)"
 }

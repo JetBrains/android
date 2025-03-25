@@ -582,7 +582,14 @@ public class _DeclarativeLexer implements FlexLexer {
 
       if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
         zzAtEOF = true;
+            switch (zzLexicalState) {
+            case IN_BLOCK_COMMENT: {
+              commentLevel = 0; yybegin(YYINITIAL); return BLOCK_COMMENT;
+            }  // fall though
+            case 72: break;
+            default:
         return null;
+        }
       }
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {

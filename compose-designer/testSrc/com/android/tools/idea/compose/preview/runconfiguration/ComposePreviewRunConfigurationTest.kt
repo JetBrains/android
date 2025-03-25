@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
@@ -25,6 +24,7 @@ import com.android.tools.idea.run.editor.NoApksProvider
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.openapi.util.JDOMUtil
 import org.jdom.Element
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

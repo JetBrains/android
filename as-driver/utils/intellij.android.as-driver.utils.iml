@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="gson" level="project" />
+    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
   </component>
 </module>

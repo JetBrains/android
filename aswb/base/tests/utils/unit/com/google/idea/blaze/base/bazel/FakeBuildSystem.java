@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
@@ -39,9 +40,7 @@ import javax.annotation.Nullable;
 public abstract class FakeBuildSystem implements BuildSystem {
 
   public static Builder builder(BuildSystemName name) {
-    return new AutoValue_FakeBuildSystem.Builder()
-        .setName(name)
-        .setSyncStrategy(SyncStrategy.SERIAL);
+    return new AutoValue_FakeBuildSystem.Builder().setName(name).setSyncStrategy(SyncStrategy.SERIAL);
   }
 
   @Override
@@ -55,14 +54,12 @@ public abstract class FakeBuildSystem implements BuildSystem {
     return getBuildInvoker();
   }
 
-  abstract Optional<BuildInvoker> getParallelBuildInvoker();
-
-  abstract Optional<BuildInvoker> getLocalBuildInvoker();
-
   @Override
-  public Optional<BuildInvoker> getLocalBuildInvoker(Project project, BlazeContext context) {
-    return getParallelBuildInvoker();
+  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
+    return getBuildInvoker();
   }
+
+  abstract Optional<BuildInvoker> getParallelBuildInvoker();
 
   @Override
   public Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context) {
@@ -77,8 +74,7 @@ public abstract class FakeBuildSystem implements BuildSystem {
   protected abstract SyncStrategy getSyncStrategy();
 
   @Override
-  public void populateBlazeVersionData(
-      WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {}
+  public void populateBlazeVersionData(WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) { }
 
   abstract Optional<String> getBazelVersionString();
 
@@ -106,8 +102,6 @@ public abstract class FakeBuildSystem implements BuildSystem {
     public abstract Builder setBuildInvoker(BuildInvoker value);
 
     public abstract Builder setParallelBuildInvoker(Optional<BuildInvoker> value);
-
-    public abstract Builder setLocalBuildInvoker(Optional<BuildInvoker> value);
 
     public abstract Builder setBazelVersionString(Optional<String> value);
 

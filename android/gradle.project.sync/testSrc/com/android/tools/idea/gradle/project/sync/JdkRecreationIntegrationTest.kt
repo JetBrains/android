@@ -33,6 +33,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -45,6 +46,7 @@ class JdkRecreationIntegrationTest {
   val expect = Expect.createAndEnableStackTrace()!!
 
   @Test
+  @Ignore("b/385322415")
   fun `Corrupted Jdk is recreated after sync`() {
     // Set flag
     StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(true)

@@ -19,6 +19,7 @@ plugins {
   kotlin("jvm")
   id("org.jetbrains.intellij.platform.module")
   id("org.jetbrains.compose")
+  id("org.jetbrains.kotlin.plugin.compose") version "2.0.21"
 }
 
 repositories {
@@ -45,10 +46,10 @@ dependencies {
   // MUST align version with the Jewel dependency in adt-ui-compose
   // MUST align -XXX suffix in artifact ID to the target IJP version
   // See https://github.com/JetBrains/Jewel/releases for the release notes
-  api("org.jetbrains.jewel:jewel-ide-laf-bridge-242:0.24.2") {
+  api("org.jetbrains.jewel:jewel-ide-laf-bridge-243:0.27.0") {
     exclude(group = "org.jetbrains.kotlinx")
   }
-  api("org.jetbrains.jewel:jewel-markdown-ide-laf-bridge-styling-242:0.24.2") {
+  api("org.jetbrains.jewel:jewel-markdown-ide-laf-bridge-styling-243:0.27.0") {
     exclude(group = "org.jetbrains.kotlinx")
   }
 
@@ -57,6 +58,8 @@ dependencies {
     exclude(group = "org.jetbrains.compose.material")
     exclude(group = "org.jetbrains.kotlinx")
   }
+
+  api("androidx.lifecycle:lifecycle-runtime:2.8.5")
 }
 
 sourceSets {

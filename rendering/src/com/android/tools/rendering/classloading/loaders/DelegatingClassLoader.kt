@@ -53,6 +53,14 @@ open class DelegatingClassLoader(parent: ClassLoader?, private val loader: Loade
    */
   private val renamedClasses = mutableMapOf<String, String>()
 
+  /**
+   * Loads the class contents with the given name or throws [ClassNotFoundException] if the class
+   * can not be found by this [DelegatingClassLoader].
+   */
+  @Throws(ClassNotFoundException::class)
+  fun loadClassBytes(name: String): ByteArray =
+    loader.loadClass(name) ?: throw ClassNotFoundException(name)
+
   @Throws(ClassNotFoundException::class)
   final override fun loadClass(name: String): Class<*> {
     onBeforeLoadClass(name)
@@ -73,7 +81,7 @@ open class DelegatingClassLoader(parent: ClassLoader?, private val loader: Loade
     val start = System.currentTimeMillis()
     var found = false
     try {
-      val bytes = loader.loadClass(name) ?: throw ClassNotFoundException(name)
+      val bytes = loadClassBytes(name)
 
       val redefinedName = ClassReader(bytes).className.replace('/', '.')
       if (name != redefinedName) {

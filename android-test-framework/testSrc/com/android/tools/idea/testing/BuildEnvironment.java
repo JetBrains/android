@@ -28,18 +28,15 @@ public class BuildEnvironment {
   @NotNull private final String myGradlePluginVersion;
   @NotNull private final String myBuildToolsVersion;
   private final int myCompileSdkVersion;
-  private final int myTargetSdkVersion;
   private final int myMinSdkVersion;
 
   private BuildEnvironment(@NotNull String gradlePluginVersion,
                            @NotNull String buildToolsVersion,
                            int compileSdkVersion,
-                           int targetSdkVersion,
                            int minSdkVersion) {
     myGradlePluginVersion = gradlePluginVersion;
     myBuildToolsVersion = buildToolsVersion;
     myCompileSdkVersion = compileSdkVersion;
-    myTargetSdkVersion = targetSdkVersion;
     myMinSdkVersion = minSdkVersion;
   }
 
@@ -49,7 +46,6 @@ public class BuildEnvironment {
       ourInstance = new BuildEnvironment(
         AgpVersions.getLatestKnown().toString(),
         CURRENT_BUILD_TOOLS_VERSION,
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         SdkVersionInfo.LOWEST_ACTIVE_API
       );
@@ -69,10 +65,6 @@ public class BuildEnvironment {
 
   public String getCompileSdkVersion() {
     return String.valueOf(myCompileSdkVersion);
-  }
-
-  public String getTargetSdkVersion() {
-    return String.valueOf(myTargetSdkVersion);
   }
 
   public String getMinSdkVersion() {

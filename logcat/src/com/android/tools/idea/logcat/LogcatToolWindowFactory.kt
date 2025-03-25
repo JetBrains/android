@@ -33,7 +33,7 @@ import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
-import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.service
@@ -169,7 +169,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   override fun createChildComponent(
     project: Project,
-    popupActionGroup: ActionGroup,
+    popupActionGroup: DefaultActionGroup,
     clientState: String?,
   ) =
     LogcatMainPanel(
@@ -210,6 +210,6 @@ private fun DeviceInfo.toOfflineDevice(): Device {
     is PhysicalDeviceInfo ->
       Device.createPhysical(serialNumber, false, release, sdk, manufacturer, model, featureLevel)
     is EmulatorDeviceInfo ->
-      Device.createEmulator(serialNumber, false, release, sdk, avdName, featureLevel)
+      Device.createEmulator(serialNumber, false, release, sdk, avdName, avdPath, featureLevel)
   }
 }

@@ -74,20 +74,19 @@ class TestApplicationInstaller : ApplicationDeployer {
     this.appIdToApp = appIdToApp
   }
 
-  override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
+  override fun fullDeploy(
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
     val appId = app.applicationId
     return Deployer.Result(false, false, false, appIdToApp[appId]!!)
   }
 
   override fun applyChangesDeploy(
-    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
-  ): Deployer.Result {
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
     TODO("Not yet implemented")
   }
 
   override fun applyCodeChangesDeploy(
-    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
-  ): Deployer.Result {
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator): Deployer.Result {
     TODO("Not yet implemented")
   }
 }

@@ -78,6 +78,9 @@ public class LayoutLibrary {
      * @param fontLocation the location of the fonts in the SDK target.
      * @param nativeLibDirPath the absolute path of the directory containing all the native libraries for layoutlib.
      * @param icuDataPath the location of the ICU data used natively.
+     * @param hyphenDirPath the path of the directory containing all the data files for hyphenation
+     *     support.
+     * @param keyboardPaths an array of paths to key character map files for keyboard support.
      * @param enumValueMap map attrName ⇒ { map enumFlagName ⇒ Integer value }. This is typically
      *          read from attrs.xml in the SDK target.
      * @param log a {@link ILayoutLog} object. Can be null.
@@ -87,10 +90,12 @@ public class LayoutLibrary {
                         @NonNull File fontLocation,
                         @NonNull String nativeLibDirPath,
                         @NonNull String icuDataPath,
+                        @NonNull String hyphenDirPath,
                         @NonNull String[] keyboardPaths,
                         @NonNull Map<String, Map<String, Integer>> enumValueMap,
                         @Nullable ILayoutLog log) {
-        return mBridge.init(platformProperties, fontLocation, nativeLibDirPath, icuDataPath, keyboardPaths, enumValueMap, log);
+        return mBridge.init(platformProperties, fontLocation, nativeLibDirPath,
+                            icuDataPath, hyphenDirPath, keyboardPaths, enumValueMap, log);
     }
 
     /**

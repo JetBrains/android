@@ -19,7 +19,6 @@ package com.android.tools.idea.editors.layeredimage;
 import com.android.tools.pixelprobe.Image;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightFillLayout;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.registry.Registry;
 import java.awt.BorderLayout;
@@ -30,7 +29,10 @@ import org.intellij.images.editor.ImageEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacade, Disposable {
+import javax.swing.*;
+import java.awt.*;
+
+class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacade {
   private final ThreeComponentsSplitter myContentSplitter;
   private final JComponent myContentComponent;
   private final Image myImage;
@@ -69,10 +71,6 @@ class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacad
   @Override
   public ThreeComponentsSplitter getContentSplitter() {
     return myContentSplitter;
-  }
-
-  @Override
-  public void dispose() {
   }
 
   JComponent getPreferredFocusedComponent() {

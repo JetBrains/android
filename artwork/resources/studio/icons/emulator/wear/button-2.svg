@@ -1,1 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_2305_735)" fill="#6E6E6E"><path fill-rule="evenodd" clip-rule="evenodd" d="M14 8A6 6 0 1 1 2 8a6 6 0 0 1 12 0zm.71-2a7 7 0 1 0 .219 3H15a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-.29z"/><path d="M12 .763l.54-.54a.763.763 0 0 1 1.079 0l2.158 2.159a.763.763 0 0 1 0 1.079l-.54.539L12 .763zM10.485 11.457H5.612v-.967l2.3-2.45c.316-.346.549-.647.698-.904.153-.257.23-.502.23-.733 0-.315-.08-.563-.24-.742-.159-.182-.387-.273-.683-.273-.319 0-.571.11-.757.332-.182.218-.273.506-.273.864H5.47c0-.433.102-.828.307-1.187.209-.358.502-.638.88-.84A2.647 2.647 0 0 1 7.94 4.25c.733 0 1.3.176 1.705.527.406.352.61.848.61 1.49 0 .351-.091.71-.274 1.074-.182.364-.494.79-.937 1.274L7.429 10.32h3.056v1.138z"/></g><defs><clipPath id="clip0_2305_735"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6.5" stroke="#6C707E"/><path d="M13 1l2 2" stroke="#6C707E" stroke-linecap="round"/><path d="M14 6h1a1 1 0 011 1v1a1 1 0 01-1 1h-1V6z" fill="#6C707E"/><path d="M6 5.578C6.39 4.984 7 4.5 8 4.5c1.031 0 1.984.625 1.984 1.766 0 1.134-1.469 2.377-3.945 4.297a.101.101 0 00-.039.08v.241a.1.1 0 00.1.1h4.275" stroke="#6C707E" stroke-linecap="round"/></svg>

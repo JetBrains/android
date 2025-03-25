@@ -120,7 +120,7 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
             if (autoAddGpuSetup.get()) {
               gpuRecipe.render(context, DefaultRecipeExecutor(context), TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD)
             }
-            module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+            module.project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
           }
 
           logEvent(EventType.MODEL_IMPORT_FROM_WIZARD, fromFile)

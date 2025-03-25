@@ -22,6 +22,7 @@ import com.intellij.openapi.fileTypes.FileType
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.name.FqName
 
@@ -31,10 +32,7 @@ import org.jetbrains.kotlin.name.FqName
  * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes`
  * to include in go/studio-auto-import-packages.
  */
-class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
-  MavenClassRegistryBase() {
-  val lookup: LookupData = generateLookup()
-
+class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClassRegistryBase() {
   /**
    * Given an unresolved name, returns the likely collection of
    * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
@@ -51,7 +49,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     name: String,
     receiverType: String?,
     useAndroidX: Boolean,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<LibraryImportData> =
     findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType)
 
@@ -69,7 +67,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
   override fun findLibraryDataAnyReceiver(
     name: String,
     useAndroidX: Boolean,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<LibraryImportData> =
     findLibraryDataInternal(name, null, true, useAndroidX, completionFileType)
 
@@ -78,7 +76,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     receiverType: String?,
     anyReceiver: Boolean,
     useAndroidX: Boolean,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<LibraryImportData> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
@@ -112,170 +110,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     return lookup.coordinateList
   }
 
-  private fun generateLookup(): LookupData {
-    val data = indexRepository.loadIndexFromDisk()
-
-    return try {
-      data.use { readIndicesFromJsonFile(it) }
-    } catch (e: Exception) {
-      logger<MavenClassRegistry>().warn("Problem reading GMaven index file: ${e.message}")
-      LookupData.EMPTY
-    }
-  }
-
-  @Throws(IOException::class)
-  private fun readIndicesFromJsonFile(inputStream: InputStream): LookupData {
-    return JsonReader(InputStreamReader(inputStream)).use { reader ->
-      var map: LookupData? = null
-      reader.beginObject()
-      while (reader.hasNext()) {
-        when (reader.nextName()) {
-          "Index" -> map = readIndexArray(reader)
-          else -> reader.skipValue()
-        }
-      }
-
-      reader.endObject()
-      map ?: LookupData.EMPTY
-    }
-  }
-
-  @Throws(IOException::class)
-  private fun readIndexArray(reader: JsonReader): LookupData {
-    val classNames: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
-    val topLevelFunctions: MutableList<Pair<FunctionSpecifier, LibraryImportData>> = mutableListOf()
-    val ktxMap: MutableMap<String, String> = mutableMapOf()
-    val coordinateList: MutableList<Coordinate> = mutableListOf()
-
-    reader.beginArray()
-    while (reader.hasNext()) {
-      val indexData = readGMavenIndex(reader)
-
-      // Get class names and their associated libraries.
-      classNames.addAll(indexData.getClassSimpleNamesWithLibraries())
-
-      // Get top-level function names and their associated libraries.
-      topLevelFunctions.addAll(indexData.getTopLevelFunctionSpecifiersWithLibraries())
-
-      // Update "artifact to the associated KTX artifact" map.
-      indexData.toKtxMapEntry()?.let { ktxMap[it.targetLibrary] = it.ktxLibrary }
-
-      // Update maven artifact coordinate list.
-      coordinateList.add(Coordinate(indexData.groupId, indexData.artifactId, indexData.version))
-    }
-    reader.endArray()
-
-    val classNameMap = classNames.groupBy({ it.first }, { it.second })
-    val topLevelFunctionsMap = topLevelFunctions.groupBy({ it.first }, { it.second })
-
-    return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, coordinateList)
-  }
-
-  @Throws(IOException::class)
-  private fun readGMavenIndex(reader: JsonReader): GMavenArtifactIndex {
-    reader.beginObject()
-    var groupId: String? = null
-    var artifactId: String? = null
-    var version: String? = null
-    var ktxTargets: Collection<String>? = null
-    var fqcns: Collection<FqName>? = null
-    // Top-level functions aren't in the index when empty in order to save bytes. Missing is not
-    // consider malformed, so allow empty list.
-    var topLevelFunctions: Collection<KotlinTopLevelFunction> = emptyList()
-    while (reader.hasNext()) {
-      when (reader.nextName()) {
-        INDEX_KEY.GROUP_ID.key -> {
-          groupId = reader.nextString()
-        }
-        INDEX_KEY.ARTIFACT_ID.key -> {
-          artifactId = reader.nextString()
-        }
-        INDEX_KEY.VERSION.key -> {
-          version = reader.nextString()
-        }
-        INDEX_KEY.KTX_TARGETS.key -> {
-          ktxTargets = readKtxTargets(reader)
-        }
-        INDEX_KEY.FQCNS.key -> {
-          fqcns = readFqcns(reader)
-        }
-        INDEX_KEY.TOP_LEVEL_FUNCTIONS.key -> {
-          topLevelFunctions = readTopLevelFunctions(reader)
-        }
-        else -> {
-          reader.skipValue()
-        }
-      }
-    }
-
-    val gMavenIndex =
-      GMavenArtifactIndex(
-        groupId = groupId ?: throw MalformedIndexException("Group ID is missing($reader)."),
-        artifactId = artifactId
-            ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
-        version = version ?: throw MalformedIndexException("Version is missing($reader)."),
-        ktxTargets = ktxTargets
-            ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
-        fqcns = fqcns
-            ?: throw MalformedIndexException("Fully qualified class names are missing($reader)."),
-        topLevelFunctions = topLevelFunctions,
-      )
-    reader.endObject()
-    return gMavenIndex
-  }
-
-  @Throws(IOException::class)
-  private fun readFqcns(reader: JsonReader): Collection<FqName> {
-    val fqcns = mutableListOf<FqName>()
-    reader.beginArray()
-    while (reader.hasNext()) {
-      fqcns.add(FqName(reader.nextString()))
-    }
-    reader.endArray()
-    return fqcns
-  }
-
-  @Throws(IOException::class)
-  private fun readTopLevelFunctions(reader: JsonReader): Collection<KotlinTopLevelFunction> {
-    return buildList {
-      reader.beginArray()
-      while (reader.hasNext()) {
-        reader.beginObject()
-        var fqName: String? = null
-        var xFqName: String? = null
-        var receiverFqName: String? = null
-        while (reader.hasNext()) {
-          when (reader.nextName()) {
-            "fqn" -> fqName = reader.nextString()
-            "xfqn" -> xFqName = reader.nextString()
-            "rcvr" -> receiverFqName = reader.nextString()
-            else -> reader.skipValue()
-          }
-        }
-        reader.endObject()
-
-        when {
-          fqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
-          xFqName != null && receiverFqName != null ->
-            add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
-        }
-      }
-      reader.endArray()
-    }
-  }
-
-  @Throws(IOException::class)
-  private fun readKtxTargets(reader: JsonReader): Collection<String> {
-    val decoratedLibraries = mutableListOf<String>()
-    reader.beginArray()
-    while (reader.hasNext()) {
-      decoratedLibraries.add(reader.nextString())
-    }
-    reader.endArray()
-    return decoratedLibraries
-  }
-
-  enum class INDEX_KEY(val key: String) {
+  private enum class IndexKey(val key: String) {
     GROUP_ID("groupId"),
     ARTIFACT_ID("artifactId"),
     VERSION("version"),
@@ -283,10 +118,181 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     FQCNS("fqcns"),
     TOP_LEVEL_FUNCTIONS("ktlfns"),
   }
+
+  companion object {
+    @TestOnly
+    fun createFrom(getIndexFileStream: () -> InputStream): MavenClassRegistry {
+      val lookup = generateLookup(getIndexFileStream())
+      return MavenClassRegistry(lookup)
+    }
+
+    private fun generateLookup(data: InputStream): LookupData {
+      return try {
+        data.use { readIndicesFromJsonFile(it) }
+      } catch (e: Exception) {
+        logger<MavenClassRegistry>().warn("Problem reading GMaven index file: ${e.message}")
+        LookupData.EMPTY
+      }
+    }
+
+    @Throws(IOException::class)
+    private fun readIndicesFromJsonFile(inputStream: InputStream): LookupData {
+      return JsonReader(InputStreamReader(inputStream)).use { reader ->
+        var map: LookupData? = null
+        reader.beginObject()
+        while (reader.hasNext()) {
+          when (reader.nextName()) {
+            "Index" -> map = readIndexArray(reader)
+            else -> reader.skipValue()
+          }
+        }
+
+        reader.endObject()
+        map ?: LookupData.EMPTY
+      }
+    }
+
+    @Throws(IOException::class)
+    private fun readIndexArray(reader: JsonReader): LookupData {
+      val classNames: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
+      val topLevelFunctions: MutableList<Pair<FunctionSpecifier, LibraryImportData>> =
+        mutableListOf()
+      val ktxMap: MutableMap<String, String> = mutableMapOf()
+      val coordinateList: MutableList<Coordinate> = mutableListOf()
+
+      reader.beginArray()
+      while (reader.hasNext()) {
+        val indexData = readGMavenIndex(reader)
+
+        // Get class names and their associated libraries.
+        classNames.addAll(indexData.getClassSimpleNamesWithLibraries())
+
+        // Get top-level function names and their associated libraries.
+        topLevelFunctions.addAll(indexData.getTopLevelFunctionSpecifiersWithLibraries())
+
+        // Update "artifact to the associated KTX artifact" map.
+        indexData.toKtxMapEntry()?.let { ktxMap[it.targetLibrary] = it.ktxLibrary }
+
+        // Update maven artifact coordinate list.
+        coordinateList.add(Coordinate(indexData.groupId, indexData.artifactId, indexData.version))
+      }
+      reader.endArray()
+
+      val classNameMap = classNames.groupBy({ it.first }, { it.second })
+      val topLevelFunctionsMap = topLevelFunctions.groupBy({ it.first }, { it.second })
+
+      return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, coordinateList)
+    }
+
+    @Throws(IOException::class)
+    private fun readGMavenIndex(reader: JsonReader): GMavenArtifactIndex {
+      reader.beginObject()
+      var groupId: String? = null
+      var artifactId: String? = null
+      var version: String? = null
+      var ktxTargets: Collection<String>? = null
+      var fqcns: Collection<FqName>? = null
+      // Top-level functions aren't in the index when empty in order to save bytes. Missing is not
+      // consider malformed, so allow empty list.
+      var topLevelFunctions: Collection<KotlinTopLevelFunction> = emptyList()
+      while (reader.hasNext()) {
+        when (reader.nextName()) {
+          IndexKey.GROUP_ID.key -> {
+            groupId = reader.nextString()
+          }
+          IndexKey.ARTIFACT_ID.key -> {
+            artifactId = reader.nextString()
+          }
+          IndexKey.VERSION.key -> {
+            version = reader.nextString()
+          }
+          IndexKey.KTX_TARGETS.key -> {
+            ktxTargets = readKtxTargets(reader)
+          }
+          IndexKey.FQCNS.key -> {
+            fqcns = readFqcns(reader)
+          }
+          IndexKey.TOP_LEVEL_FUNCTIONS.key -> {
+            topLevelFunctions = readTopLevelFunctions(reader)
+          }
+          else -> {
+            reader.skipValue()
+          }
+        }
+      }
+
+      val gMavenIndex =
+        GMavenArtifactIndex(
+          groupId = groupId ?: throw MalformedIndexException("Group ID is missing($reader)."),
+          artifactId =
+            artifactId ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
+          version = version ?: throw MalformedIndexException("Version is missing($reader)."),
+          ktxTargets =
+            ktxTargets ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
+          fqcns =
+            fqcns
+              ?: throw MalformedIndexException("Fully qualified class names are missing($reader)."),
+          topLevelFunctions = topLevelFunctions,
+        )
+      reader.endObject()
+      return gMavenIndex
+    }
+
+    @Throws(IOException::class)
+    private fun readFqcns(reader: JsonReader): Collection<FqName> {
+      val fqcns = mutableListOf<FqName>()
+      reader.beginArray()
+      while (reader.hasNext()) {
+        fqcns.add(FqName(reader.nextString()))
+      }
+      reader.endArray()
+      return fqcns
+    }
+
+    @Throws(IOException::class)
+    private fun readTopLevelFunctions(reader: JsonReader): Collection<KotlinTopLevelFunction> {
+      return buildList {
+        reader.beginArray()
+        while (reader.hasNext()) {
+          reader.beginObject()
+          var fqName: String? = null
+          var xFqName: String? = null
+          var receiverFqName: String? = null
+          while (reader.hasNext()) {
+            when (reader.nextName()) {
+              "fqn" -> fqName = reader.nextString()
+              "xfqn" -> xFqName = reader.nextString()
+              "rcvr" -> receiverFqName = reader.nextString()
+              else -> reader.skipValue()
+            }
+          }
+          reader.endObject()
+
+          when {
+            fqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
+            xFqName != null && receiverFqName != null ->
+              add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
+          }
+        }
+        reader.endArray()
+      }
+    }
+
+    @Throws(IOException::class)
+    private fun readKtxTargets(reader: JsonReader): Collection<String> {
+      val decoratedLibraries = mutableListOf<String>()
+      reader.beginArray()
+      while (reader.hasNext()) {
+        decoratedLibraries.add(reader.nextString())
+      }
+      reader.endArray()
+      return decoratedLibraries
+    }
+  }
 }
 
 /** An index of a specific [version] of GMaven Artifact. */
-data class GMavenArtifactIndex(
+private data class GMavenArtifactIndex(
   val groupId: String,
   val artifactId: String,
   val version: String,
@@ -303,7 +309,7 @@ data class GMavenArtifactIndex(
           artifact = "$groupId:$artifactId",
           importedItemFqName = fqName.asString(),
           importedItemPackageName = fqName.parent().asString(),
-          version = version
+          version = version,
         )
     }
   }
@@ -319,7 +325,7 @@ data class GMavenArtifactIndex(
           artifact = "$groupId:$artifactId",
           importedItemFqName = topLevelFunction.kotlinFqName.asString(),
           importedItemPackageName = topLevelFunction.packageName,
-          version = version
+          version = version,
         )
     }
   }
@@ -339,10 +345,11 @@ data class GMavenArtifactIndex(
 }
 
 /** An entry of a map from the KTX library to its decorated library. */
-data class KtxMapEntry(val ktxLibrary: String, val targetLibrary: String)
+private data class KtxMapEntry(val ktxLibrary: String, val targetLibrary: String)
 
 /** A top-level Kotlin function. */
-data class KotlinTopLevelFunction(
+@TestOnly
+internal data class KotlinTopLevelFunction(
   /** Unqualified function name. */
   val simpleName: String,
   /** Package name of the function. */
@@ -362,7 +369,7 @@ data class KotlinTopLevelFunction(
   companion object {
     fun fromJvmQualifiedName(
       fqName: String,
-      receiverFqName: String? = null
+      receiverFqName: String? = null,
     ): KotlinTopLevelFunction {
       require(fqName.contains('.')) {
         "fqName does not have file facade class containing the function: '$fqName'"
@@ -409,10 +416,7 @@ data class LookupData(
   }
 }
 
-data class FunctionSpecifier(
-  val simpleName: String,
-  val receiverFqName: FqName?,
-)
+data class FunctionSpecifier(val simpleName: String, val receiverFqName: FqName?)
 
 /** Exception thrown when parsing malformed GMaven index file. */
 private class MalformedIndexException(message: String) : RuntimeException(message)

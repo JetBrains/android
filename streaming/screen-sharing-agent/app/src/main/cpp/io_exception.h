@@ -22,13 +22,13 @@ namespace screensharing {
 
 class IoException : public std::exception {
 public:
-  IoException();
+  IoException(int error_code = errno);
   IoException(const char* message);
 
   virtual std::string GetMessage() const;
 
 private:
-  int errno_;
+  int error_code_;  // An errno value.
   std::string message_;
 };
 

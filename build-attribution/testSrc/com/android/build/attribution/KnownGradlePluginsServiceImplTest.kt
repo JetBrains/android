@@ -16,7 +16,6 @@
 package com.android.build.attribution
 
 import com.android.build.attribution.data.GradlePluginsData
-import com.android.testutils.MockitoKt.whenever
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Pair
@@ -27,6 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.io.IOException
 
@@ -42,8 +42,8 @@ class KnownGradlePluginsServiceImplTest {
     val data = LocalKnownGradlePluginsServiceImpl().gradlePluginsData
 
     assertThat(data).isNotEqualTo(GradlePluginsData.emptyData)
-    assertThat(data.pluginsInfo).hasSize(40)
-    assertThat(data.pluginsInfo.filter { it.configurationCachingCompatibleFrom == null }).hasSize(8)
+    assertThat(data.pluginsInfo).hasSize(44)
+    assertThat(data.pluginsInfo.filter { it.configurationCachingCompatibleFrom == null }).hasSize(6)
     assertThat(data.pluginsInfo.filter { it.pluginArtifact == null }).isEmpty()
   }
 

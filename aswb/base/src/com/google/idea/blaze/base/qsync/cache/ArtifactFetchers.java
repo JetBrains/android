@@ -28,8 +28,4 @@ public class ArtifactFetchers {
 
   public static final ExtensionPointName<ArtifactFetcher<?>> EP_NAME =
       ExtensionPointName.create("com.google.idea.blaze.qsync.ArtifactFetcher");
-
-  public static final ListeningExecutorService EXECUTOR =
-      MoreExecutors.listeningDecorator(
-          AppExecutorUtil.createBoundedApplicationPoolExecutor("ArtifactBulkCopyExecutor", 128));
 }

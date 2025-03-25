@@ -18,34 +18,25 @@ package com.android.tools.idea.testing
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.FakeAndroidDevice
+import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.google.common.truth.Truth
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.ExecutionTargetManager
-import com.intellij.execution.Location
-import com.intellij.execution.PsiLocation
 import com.intellij.execution.RunManager
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -55,8 +46,9 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.runInEdtAndWait
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import javax.swing.Icon
 
 fun RunConfiguration.executeMakeBeforeRunStepInTest(device: IDevice) =
@@ -141,31 +133,21 @@ fun <T : RunConfiguration?> createRunConfigurationFromClass(
   else error("Wrong type of run configuration created: ${runConfiguration::class}")
 }
 
-private fun createContext(project: Project, psiElement: PsiElement): ConfigurationContext {
-  val dataContext = MapDataContext()
-  dataContext.put(CommonDataKeys.PROJECT, project)
-  if (PlatformCoreDataKeys.MODULE.getData(dataContext) == null) {
-    dataContext.put(PlatformCoreDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(psiElement))
-  }
-  dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(psiElement))
-  return ConfigurationContext.getFromContext(dataContext, ActionPlaces.UNKNOWN)
-}
-
 private fun createRunConfigurationFromPsiElement(
   project: Project,
   psiElement: PsiElement
 ): RunConfiguration {
-  val context = createContext(project, psiElement)
+  val context = TestConfigurationTesting.createContext(project, psiElement)
   val settings = context.configuration ?: return error("Failed to get/create run configuration settings")
   // Save the run configuration in the project.
   val runManager = RunManager.getInstance(project)
   runManager.addConfiguration(settings)
-  return settings.configuration ?: error("Failed to create run configuration for: $psiElement")
+  return settings.configuration
 }
 
 @JvmOverloads
 fun mockDeviceFor(androidVersion: AndroidVersion, abis: List<Abi>, density: Int? = null): IDevice {
-  val device = MockitoKt.mock<IDevice>()
+  val device = mock<IDevice>()
   whenever(device.abis).thenReturn(abis.map { it.toString() })
   whenever(device.version).thenReturn(androidVersion)
   whenever(device.serialNumber).thenReturn("1234")

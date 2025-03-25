@@ -130,16 +130,17 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
         }
         dataLoaded = true
         support.uiExecution(Runnable {
-          listModel.clear()
+          val updatedContent = mutableListOf<String>()
           currentValueIncluded = false
           if (values.isNotEmpty()) {
             val currentValue = editor.text
             if (support.allowCustomValues && currentValue.isNotEmpty()) {
-              listModel.addElement(currentValue)
+              updatedContent += currentValue
               currentValueIncluded = true
             }
-            values.forEach { if (it != currentValue) listModel.addElement(it) }
+            updatedContent += values.filter { it != currentValue }
           }
+          filteredModel.replaceAll(updatedContent)
           updateFilter()
         })
       })

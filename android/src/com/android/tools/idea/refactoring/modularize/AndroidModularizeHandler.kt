@@ -28,8 +28,8 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getManifestFiles
+import com.android.tools.idea.projectsystem.getProductionAndroidModule
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.findResourceFieldsForFileResource
 import com.android.tools.idea.res.findResourceFieldsForValueResource
@@ -105,7 +105,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
       // Only offer modules that have an Android facet, otherwise we don't know where to move resources.
       for (facet in project.getAndroidFacets()) {
         if (ResourceFolderManager.getInstance(facet).folders.isNotEmpty()) {
-          suitableModules.add(facet.module.getMainModule())
+          suitableModules.add(facet.getProductionAndroidModule())
         }
       }
       for (root: PsiElement in elements) {

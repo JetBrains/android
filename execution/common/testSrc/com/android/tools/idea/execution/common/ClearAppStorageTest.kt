@@ -17,7 +17,6 @@ package com.android.tools.idea.execution.common
 
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NotificationRule
@@ -25,7 +24,12 @@ import com.google.common.truth.Truth
 import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import kotlin.test.fail
 
 /**
@@ -43,7 +47,7 @@ class ClearAppStorageTest {
     val device = mockDevice("com.company.application")
     clearAppStorage(projectRule.project, device, "com.company.application", RunStats(projectRule.project))
 
-    Mockito.verify(device).executeShellCommand(MockitoKt.eq("pm clear com.company.application"), MockitoKt.any())
+    verify(device).executeShellCommand(eq("pm clear com.company.application"), any())
   }
 
   @Test
@@ -51,7 +55,7 @@ class ClearAppStorageTest {
     val device = mockDevice("com.company.application", clearAppStorageSuccess = false)
     clearAppStorage(projectRule.project, device, "com.company.application", RunStats(projectRule.project))
 
-    Mockito.verify(device).executeShellCommand(MockitoKt.eq("pm clear com.company.application"), MockitoKt.any())
+    verify(device).executeShellCommand(eq("pm clear com.company.application"), any())
     val notificationInfo = notificationRule.notifications.find { it.content == "Failed to clear app storage for com.company.application on device device1" }
     Truth.assertThat(notificationInfo).isNotNull()
   }
@@ -61,13 +65,13 @@ class ClearAppStorageTest {
     val device = mockDevice("com.company.application1")
     clearAppStorage(projectRule.project, device, "com.company.application", RunStats(projectRule.project))
 
-    Mockito.verify(device, Mockito.never()).executeShellCommand(MockitoKt.eq("pm clear com.company.application"), MockitoKt.any())
+    verify(device, never()).executeShellCommand(eq("pm clear com.company.application"), any())
   }
 }
 
 private fun mockDevice(packageName: String, clearAppStorageSuccess: Boolean = true): IDevice {
-  val mock = MockitoKt.mock<IDevice>()
-  MockitoKt.whenever(mock.executeShellCommand(MockitoKt.any(), MockitoKt.any())).thenAnswer {
+  val mock = mock<IDevice>()
+  whenever(mock.executeShellCommand(any(), any())).thenAnswer {
     val command = it.arguments[0] as String
     val receiver = it.arguments[1] as CollectingOutputReceiver
     val result = when {
@@ -75,7 +79,7 @@ private fun mockDevice(packageName: String, clearAppStorageSuccess: Boolean = tr
       command.startsWith("pm list packages ") -> if (command.endsWith(" $packageName")) "package:$packageName" else ""
       else -> fail("""Command "$command" not setup in mock""")
     }
-    MockitoKt.whenever(mock.name).thenReturn("device1")
+    whenever(mock.name).thenReturn("device1")
 
     receiver.addOutput(result.toByteArray(), 0, result.length)
     receiver.flush()

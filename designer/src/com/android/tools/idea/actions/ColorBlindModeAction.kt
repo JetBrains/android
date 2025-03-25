@@ -28,9 +28,11 @@ class ColorBlindModeAction : DropDownAction("Color Blind Modes", null, null) {
     ColorBlindMode.values().forEach { addAction(SetColorBlindModeAction(it)) }
   }
 
+  fun shouldBeEnabled(e: AnActionEvent): Boolean = e.getData(DESIGN_SURFACE) is NlDesignSurface
+
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isVisible = e.getData(DESIGN_SURFACE) is NlDesignSurface
+    e.presentation.isEnabledAndVisible = shouldBeEnabled(e)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.com.google.rpc.Status
-import com.android.tools.idea.insights.LoadingState.Failure
-import com.android.tools.idea.insights.LoadingState.Loading
 import com.android.tools.idea.insights.LoadingState.Ready
-import com.android.tools.idea.insights.LoadingState.Unauthorized
-import com.android.tools.idea.insights.LoadingState.UnknownFailure
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.rpc.Status
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -40,12 +36,12 @@ import kotlinx.coroutines.flow.map
 sealed class LoadingState<out T> {
 
   /** The value is being loaded and is not yet available. */
-  object Loading : LoadingState<Nothing>() {
+  data class Loading(val message: String = "") : LoadingState<Nothing>() {
     override fun <U> map(fn: (Nothing) -> U): Loading {
       return this
     }
 
-    override fun toString(): String = "LoadingState.Loading"
+    override fun toString(): String = "LoadingState.Loading $message"
   }
 
   /** Loading has completed with either a [success][Ready] or a [Failure]. */
@@ -62,6 +58,9 @@ sealed class LoadingState<out T> {
   sealed class Failure : Done<Nothing>() {
     abstract val message: String?
     open val cause: Throwable? = null
+
+    fun getCauseMessageOrDefault(default: String = "An unknown failure occurred") =
+      cause?.message ?: message ?: default
   }
 
   /** Currently signed-in user does not have sufficient access. */
@@ -117,6 +116,12 @@ sealed class LoadingState<out T> {
     override fun <U> map(fn: (Nothing) -> U) = this
   }
 
+  data object Deprecated : Failure() {
+    override val message = null
+
+    override fun <U> map(fn: (Nothing) -> U) = this
+  }
+
   data class UnsupportedOperation(
     override val message: String?,
     override val cause: Throwable? = null,
@@ -140,9 +145,20 @@ sealed class LoadingState<out T> {
    * transforming the original [T] value with [fn].
    */
   abstract fun <U> map(fn: (T) -> U): LoadingState<U>
+
+  /** Gets the ready value or null. */
+  fun valueOrNull() = if (this is LoadingState.Ready) value else null
+
+  companion object {
+    val Loading = Loading()
+  }
 }
 
 fun <T, U> Flow<LoadingState<T>>.mapReady(fn: (T) -> U): Flow<LoadingState<U>> = map { it.map(fn) }
+
+fun <T, U> Flow<LoadingState<T>>.mapReadyOrDefault(defaultValue: U, fn: (T) -> U): Flow<U> = map {
+  if (it is Ready) fn(it.value) else defaultValue
+}
 
 fun <T> Flow<LoadingState<T>>.filterReady(): Flow<T> {
   return filterIsInstance<Ready<T>>().map { it.value }

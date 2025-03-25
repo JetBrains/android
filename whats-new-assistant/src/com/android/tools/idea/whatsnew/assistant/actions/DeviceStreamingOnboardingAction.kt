@@ -19,7 +19,8 @@ import com.android.tools.idea.assistant.AssistActionHandler
 import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
@@ -36,12 +37,12 @@ class DeviceStreamingOnboardingAction: AssistActionHandler {
     WhatsNewMetricsTracker.getInstance().clickActionButton(project, ACTION_KEY)
     ToolWindowManager.getInstance(project).getToolWindow("Device Manager 2")?.show()
     val selectProjectAction = ActionManager.getInstance().getAction("SelectProjectAction")
-    val event = AnActionEvent.createFromAnAction(selectProjectAction, null, "WNA") {
+    val event = createEvent(selectProjectAction, { it: String ->
       when(it) {
         CommonDataKeys.PROJECT.name -> project
         else -> null
       }
-    }
+    }, null, "WNA", ActionUiKind.NONE, null)
     selectProjectAction.actionPerformed(event)
   }
 }

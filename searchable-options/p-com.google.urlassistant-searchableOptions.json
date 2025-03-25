@@ -1,2 +1,2 @@
 {"id":"preferences.keymap","name":"Keymap","entries":[{"hit":"App Links Assistant","path":"ActionManager"},{"hit":"Open App Links Assistant","path":"ActionManager"}]}
-{"id":"com.google.urlassistant.datalayer.db.AppLinksAssistantSettingsConfigurable","name":"App Links Assistant","entries":[{"hit":"App Links Assistant"},{"hit":"I consent to sharing my package name and associated domains with Google for this project (Default (Template) Project)."}]}
+{"id":"com.google.urlassistant.datalayer.db.AppLinksAssistantSettingsConfigurable","name":"App Links Assistant","entries":[{"hit":"App Links Assistant"}]}

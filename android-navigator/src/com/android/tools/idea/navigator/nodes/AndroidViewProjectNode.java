@@ -19,8 +19,8 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectS
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.navigator.nodes.backup.BackupGroupNode;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
+import com.android.tools.idea.navigator.nodes.backup.BackupGroupNode;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -43,17 +43,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
+  private final ViewSettings settings = getSettings();
+  private final BackupGroupNode myBackupGroupNode;
 
   public AndroidViewProjectNode(@NotNull Project project,
                                 @NotNull ViewSettings settings) {
     super(project, project, settings);
+    myBackupGroupNode = new BackupGroupNode(project, settings);
   }
 
   @Override
   @NotNull
   public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
-    ViewSettings settings = getSettings();
     AndroidProjectSystem projectSystem = ProjectSystemService.getInstance(myProject).getProjectSystem();
     // Android project view cannot build its usual structure without build models available and instead builds a special fallback
     // view when they are no available.  Doing so too soon results in re-loadig the tree view twice while opening a project and losing
@@ -80,11 +82,22 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     }
 
     if (StudioFlags.BACKUP_ENABLED.get()) {
-      children.add(new BackupGroupNode(myProject, settings));
+      if (!myBackupGroupNode.getChildren().isEmpty()) {
+        children.add(myBackupGroupNode);
+      }
     }
 
     // TODO: What about files in the base project directory
     return children;
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    if (StudioFlags.BACKUP_ENABLED.get() && myBackupGroupNode.canRepresent(element)) {
+      // When the first backup file is added and the last one is removed, this triggers a call to getChildren
+      return true;
+    }
+    return super.canRepresent(element);
   }
 
   @Override

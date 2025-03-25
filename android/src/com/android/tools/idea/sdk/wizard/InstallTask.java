@@ -35,14 +35,13 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.Task;
@@ -344,13 +343,7 @@ public class InstallTask extends Task.Backgroundable {
   }
 
   private static NotificationGroup getNotificationGroup() {
-    final String NOTIFICATION_GROUP_NAME = "SDK Install";
-    NotificationGroup group = NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_NAME);
-    if (group == null) {
-      group = new NotificationGroup(
-        NOTIFICATION_GROUP_NAME, NotificationDisplayType.STICKY_BALLOON, false, null, null, null, PluginId.getId("org.jetbrains.android"));
-    }
-    return group;
+    return NotificationGroupManager.getInstance().getNotificationGroup("SDK Install");
   }
 
   public void setCompleteCallback(@Nullable Function<List<RepoPackage>, Void> completeCallback) {

@@ -18,70 +18,70 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- File descriptions for res/drawable: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.CustomDrawableDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.BitmapDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.NinePatchDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.LayerListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.LevelListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ShapeDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimationListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedStateListDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RippleDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ColorDrawableDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.VectorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedVectorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.InsetDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ClipDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ScaleDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription" rootTagName="adaptive-icon"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription" rootTagName="selector"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.CustomDrawableDomFileDescription" rootTagName="drawable"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.BitmapDomFileDescription" rootTagName="bitmap"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.NinePatchDomFileDescription" rootTagName="nine-patch"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.LayerListDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.LevelListDomFileDescription" rootTagName="level-list"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ShapeDomFileDescription" rootTagName="shape"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimationListDomFileDescription" rootTagName="animation-list"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedStateListDomFileDescription" rootTagName="animated-selector"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RippleDomFileDescription" rootTagName="ripple"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ColorDrawableDomFileDescription" rootTagName="color"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.VectorDomFileDescription" rootTagName="vector"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedVectorDomFileDescription" rootTagName="animated-vector"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.InsetDomFileDescription" rootTagName="inset"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ClipDomFileDescription" rootTagName="clip"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ScaleDomFileDescription" rootTagName="scale"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription" rootTagName="animated-rotate"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription" rootTagName="rotate"/>
     <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.CustomDrawableElementDomFileDescription"/>
     <dom.fileMetaData implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedImageDomFileDescription" rootTagName="animated-image"/>
 
     <!-- File descriptions for res/drawable: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorGradientDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorGradientDomFileDescription" rootTagName="gradient"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription" rootTagName="selector"/>
 
     <!-- File description for res/raw: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.raw.RawDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.raw.RawDomFileDescription"/>
 
     <!-- File description for Manifest files: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription" rootTagName="manifest"/>
 
     <!-- File descriptions for res/layout: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.LayoutViewElementDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.DataBindingDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.MergeDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewTagDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.layout.LayoutViewElementDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription" rootTagName="fragment"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.layout.DataBindingDomFileDescription" rootTagName="layout"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.layout.MergeDomFileDescription" rootTagName="merge"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.layout.ViewTagDomFileDescription" rootTagName="view"/>
 
     <!-- File descriptions for res/anim: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenAlphaFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenRotateFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenScaleFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenTranslateFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.LayoutAnimationControllerDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.GridLayoutAnimationControllerDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription" rootTagName="set"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenAlphaFileDescription" rootTagName="alpha"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenRotateFileDescription" rootTagName="rotate"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenScaleFileDescription" rootTagName="scale"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenTranslateFileDescription" rootTagName="translate"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animation.fileDescriptions.LayoutAnimationControllerDomFileDescription" rootTagName="layoutAnimation"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animation.fileDescriptions.GridLayoutAnimationControllerDomFileDescription" rootTagName="gridLayoutAnimation"/>
 
     <!-- File descriptions for res/animator: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorSetDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.ObjectAnimatorDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorStateListDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorDomFileDescription" rootTagName="animator"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorSetDomFileDescription" rootTagName="set"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animator.fileDescriptions.ObjectAnimatorDomFileDescription" rootTagName="objectAnimator"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.animator.fileDescriptions.AnimatorStateListDomFileDescription" rootTagName="selector"/>
 
     <!-- File descriptions for res/transition: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.transition.TransitionDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.transitionManager.TransitionManagerDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.transition.TransitionDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.transitionManager.TransitionManagerDomFileDescription" rootTagName="transitionManager"/>
 
     <!-- File description for res/menu: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.menu.MenuDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.menu.MenuDomFileDescription"/>
 
     <!-- File description for values resources files: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.resources.ResourcesDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.resources.ResourcesDomFileDescription" rootTagName="resources"/>
 
     <!-- File descriptions for res/xml: -->
     <dom.fileMetaData implementation="org.jetbrains.android.dom.xml.PreferenceClassDomFileDescription"/>
@@ -92,13 +92,13 @@
     <dom.fileMetaData implementation="org.jetbrains.android.dom.xml.AccessibilityServiceDomFileDescription" rootTagName="accessibility-service"/>
 
     <!-- File description for file with <lint> root tag: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription" rootTagName="lint"/>
 
     <!-- File description for res/font: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.font.FontFamilyDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.font.FontFamilyDomFileDescription" rootTagName="font-family"/>
 
     <!-- File description for res/navigation: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>
 
     <!--  The dynamic DOM extender:  -->
     <dom.extender domClass="org.jetbrains.android.dom.AndroidDomElement" extenderClass="org.jetbrains.android.dom.AndroidDomExtender"/>

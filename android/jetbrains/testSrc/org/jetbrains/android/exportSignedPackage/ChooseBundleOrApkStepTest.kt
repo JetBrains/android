@@ -15,12 +15,12 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class ChooseBundleOrApkStepTest : HeavyPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents

@@ -104,5 +104,7 @@ class HttpArtifactResolver(
     get() = "${artifactId}-${version}.${type}"
 
   private fun RunningArtifactCoordinate.toGMavenUrl() =
-    URL("http://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
+    URL(
+      "https://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}"
+    )
 }

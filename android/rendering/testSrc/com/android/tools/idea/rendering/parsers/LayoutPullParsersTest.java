@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_EXACT;
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
@@ -22,6 +24,7 @@ import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.FontType;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.resources.ResourceItem;
@@ -281,7 +284,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
   private static FontFamily createRobotoFontFamily() {
     return new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, "Roboto", "", "", ImmutableList.of(
-      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false, false)));
+      new MutableFontDetail("Roboto", FontType.SINGLE, 700, 100f, ITALICS, DEFAULT_EXACT, "https://fonts.google.com/roboto700i", "", false)));
   }
 
   public void testDownloadedFontFamily() {

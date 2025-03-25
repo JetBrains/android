@@ -895,8 +895,8 @@ MODULE                        : project.app
             ApiLevel                      : 23
             ApiString                     : 23
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -944,6 +944,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : true
     - basicVariant:               : debug
         applicationId                 : com.example.alruiz.transitive_dependencies
         testApplicationId             : com.example.alruiz.transitive_dependencies.test
@@ -963,8 +964,8 @@ MODULE                        : project.app
                 ApiLevel                      : 23
                 ApiString                     : 23
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1105,8 +1106,8 @@ MODULE                        : project.app
                 ApiLevel                      : 23
                 ApiString                     : 23
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.example.alruiz.transitive_dependencies
@@ -1772,6 +1773,7 @@ MODULE                        : project.library1
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : true
     - basicVariant:               : debug
         testApplicationId             : com.example.library1.test
         buildType                     : debug
@@ -2467,6 +2469,7 @@ MODULE                        : project.library2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : true
     - basicVariant:               : debug
         testApplicationId             : com.example.library2.test
         buildType                     : debug

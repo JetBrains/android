@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
@@ -39,22 +40,28 @@ intellij_plugin(
     ],
 )
 
+alias(
+    name = "studio_zips",
+    actual = select({
+        "@platforms//os:linux": "//tools/adt/idea/studio:android-studio.linux.zip",
+        "//tools/base/bazel/platforms:macos-x86_64": "//tools/adt/idea/studio:android-studio.mac.zip",
+        "//tools/base/bazel/platforms:macos-arm64": "//tools/adt/idea/studio:android-studio.mac_arm.zip",
+        "@platforms//os:windows": "//tools/adt/idea/studio:android-studio.win.zip",
+    }),
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "as-driver.utils",
     data = [
-        "//prebuilts/studio/intellij-sdk:performanceTesting.zip",
         "//prebuilts/studio/sdk:platforms/android-33",
         "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/vendor/google/testing/display:ffmpeg_files",
         "//tools/vendor/google/testing/display:xvfb",
     ] + select({
-        "@platforms//os:linux": ["//tools/adt/idea/studio:android-studio.linux.zip"],
-        "//tools/base/bazel/platforms:macos-x86_64": ["//tools/adt/idea/studio:android-studio.mac.zip"],
-        "//tools/base/bazel/platforms:macos-arm64": ["//tools/adt/idea/studio:android-studio.mac_arm.zip"],
-        "@platforms//os:windows": ["//tools/adt/idea/studio:android-studio.win.zip"],
-        "//conditions:default": [],
+        "@intellij//:studio-sdk": [":studio_zips"],
+        "//conditions:default": ["@intellij//:distribution-zip"],
     }),
     iml_files = ["utils/as-driver.utils.iml"],
     test_srcs = ["utils/testSrc"],
@@ -62,6 +69,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
@@ -71,6 +79,8 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/as-driver:librunfiles[test]",
     ],
 )
 
@@ -91,6 +101,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
@@ -122,4 +133,11 @@ iml_module(
         "@intellij//:com.jetbrains.performancePlugin",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
     ],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "librunfiles",
+    jars = ["//tools/base/bazel:librunfiles.jar"],
+    visibility = ["//visibility:public"],
 )

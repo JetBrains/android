@@ -21,8 +21,8 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;

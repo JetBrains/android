@@ -16,10 +16,10 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.android.sdklib.deviceprovisioner.DeviceId
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class DeviceAndSnapshotComboBoxExecutionTargetTest {
 

@@ -25,6 +25,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -48,8 +49,7 @@ public class OpenFirebaseAssistantQuickFix extends DefaultLintQuickFix {
           return;
         }
         AnActionEvent openFirebaseAssistantEvent =
-          AnActionEvent.createFromAnAction(openFirebaseAssistant, null, "Android Lint QuickFix",
-                                           dataContext);
+          AnActionEvent.createEvent(openFirebaseAssistant, dataContext, null, "Android Lint QuickFix", ActionUiKind.NONE, null);
         openFirebaseAssistant.actionPerformed(openFirebaseAssistantEvent);
       });
   }

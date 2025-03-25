@@ -561,15 +561,43 @@ class AppInsightsCacheTest {
     val cache = AppInsightsCacheImpl()
     cache.populateIssues(connection, listOf(ISSUE1))
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, Experiment.UNKNOWN)).isNull()
 
-    cache.putAiInsight(connection, ISSUE1.id, DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id))
+    cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, Experiment.UNKNOWN))
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
 
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", Experiment.UNKNOWN)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, Experiment.TOP_SOURCE)).isNull()
+
     val newInsight = AiInsight("blah", Experiment.TOP_THREE_SOURCES)
-    cache.putAiInsight(connection, ISSUE1.id, newInsight)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id))
+    cache.putAiInsight(connection, ISSUE1.id, null, newInsight)
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, newInsight.experiment))
       .isEqualTo(newInsight.copy(isCached = true))
+
+    cache.putAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT)
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT.experiment))
+      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
+  }
+
+  @Test
+  fun `removeIssue removes the issue from cache`() {
+    val cache = AppInsightsCacheImpl()
+    cache.populateIssues(connection, listOf(ISSUE1))
+    cache.addNote(connection, ISSUE1.issueDetails.id, NOTE1)
+    cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
+    cache.putAiInsight(
+      connection,
+      ISSUE1.id,
+      "variant2",
+      AiInsight("blah", Experiment.TOP_THREE_SOURCES),
+    )
+
+    cache.removeIssue(connection, ISSUE1.id)
+    assertThat(cache.getIssues(connection, listOf(ISSUE1.id))).isEmpty()
+    assertThat(cache.getNotes(connection, ISSUE1.id)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, Experiment.UNKNOWN)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant2", Experiment.TOP_THREE_SOURCES))
+      .isNull()
   }
 }

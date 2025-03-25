@@ -34,6 +34,7 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
@@ -74,7 +75,6 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED
 import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE
 import icons.StudioIcons.Logcat.Input.FILTER_HISTORY
-import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
 import java.awt.Component
 import java.awt.Font
 import java.awt.Graphics
@@ -162,7 +162,7 @@ internal class FilterTextField(
   private val logcatPresenter: LogcatPresenter,
   private val filterParser: LogcatFilterParser,
   initialText: String,
-  matchCase: Boolean,
+  matchCase: Boolean?,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
 ) : BorderLayoutPanel() {
   private val filterHistory = AndroidLogcatFilterHistory.getInstance()
@@ -171,13 +171,15 @@ internal class FilterTextField(
   private val clearButton = ClearButton()
   private val favoriteButton = FavoriteButton()
   private val matchCaseButton = MatchCaseButton()
-  private var filter: LogcatFilter? = filterParser.parse(initialText, matchCase)
-
-  var matchCase = matchCase
+  private val separator = JSeparator(VERTICAL)
+  var matchCase = matchCase ?: PropertiesComponent.getInstance().getBoolean(MATCH_CASE_PROPERTY)
     set(value) {
       field = value
+      PropertiesComponent.getInstance().setValue(MATCH_CASE_PROPERTY, value)
       filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
     }
+
+  private var filter: LogcatFilter? = filterParser.parse(initialText, this.matchCase)
 
   private var isFavorite: Boolean = false
     set(value) {
@@ -206,14 +208,9 @@ internal class FilterTextField(
 
     addToLeft(historyButton)
     addToCenter(textField)
-    val buttonPanel =
-      InlinePanel(clearButton, matchCaseButton, JSeparator(VERTICAL), favoriteButton)
+    val buttonPanel = InlinePanel(clearButton, matchCaseButton, separator, favoriteButton)
     addToRight(buttonPanel)
-
-    if (initialText.isEmpty()) {
-      buttonPanel.isVisible = false
-    }
-
+    updateButtons()
     // Set a border around the text field and buttons.
     // Using FilterTextFieldBorder (which is just a DarculaTextBorder) alone doesn't seem to work.
     // It seems to need CompoundBorder.
@@ -235,11 +232,11 @@ internal class FilterTextField(
       addDocumentListener(
         object : DocumentListener {
           override fun documentChanged(event: DocumentEvent) {
-            filter = filterParser.parse(text, matchCase)
+            filter = filterParser.parse(text, this@FilterTextField.matchCase)
             isFavorite = filterHistory.favorites.contains(text)
             filterHistory.mostRecentlyUsed = textField.text
-            filterUpdateChannel.trySend(FilterUpdated(text, matchCase))
-            buttonPanel.isVisible = textField.text.isNotEmpty()
+            filterUpdateChannel.trySend(FilterUpdated(text, this@FilterTextField.matchCase))
+            updateButtons()
           }
         }
       )
@@ -295,6 +292,13 @@ internal class FilterTextField(
 
   @TestOnly
   internal fun getEditorEx() = textField.editor as EditorEx
+
+  private fun updateButtons() {
+    val hasFilter = text.isNotEmpty()
+    clearButton.isVisible = hasFilter
+    favoriteButton.isVisible = hasFilter
+    separator.isVisible = hasFilter
+  }
 
   @UiThread
   private fun showPopup() {
@@ -439,7 +443,7 @@ internal class FilterTextField(
             }
           )
           if (filterHistory.favorites.isNotEmpty() && filterHistory.nonFavorites.isNotEmpty()) {
-            add(Separator)
+            add(Separator())
           }
           addAll(
             filterHistory.named.map {
@@ -737,7 +741,7 @@ internal class FilterTextField(
             else -> blankIcon
           }
 
-        deleteLabel.icon = if (isSelected) FILTER_HISTORY_DELETE else blankIcon
+        deleteLabel.icon = if (isSelected) AllIcons.General.Delete else blankIcon
 
         countLabel.text =
           when (count) {
@@ -780,7 +784,7 @@ internal class FilterTextField(
       }
     }
 
-    data object Separator : FilterHistoryItem() {
+    class Separator : FilterHistoryItem() {
       // A standalone JSeparator here will change the background of the separator when it is
       // selected. Wrapping it with a JPanel
       // suppresses that behavior for some reason.
@@ -856,6 +860,10 @@ internal class FilterTextField(
       LogcatBundle.message("logcat.filter.clear.tooltip"),
       AllIcons.Actions.CloseHovered,
     ) {
+    init {
+      name = "ClearButton"
+    }
+
     override fun mouseClicked() {
       this@FilterTextField.text = ""
     }
@@ -863,6 +871,10 @@ internal class FilterTextField(
 
   private inner class FavoriteButton :
     HoverButton(FAVORITE_OUTLINE, LogcatBundle.message("logcat.filter.tag.favorite.tooltip")) {
+    init {
+      name = "FavoriteButton"
+    }
+
     override fun mouseClicked() {
       isFavorite = !isFavorite
       toolTipText =
@@ -910,6 +922,7 @@ internal class FilterTextField(
     init {
       isFocusable = true
       updateIcon()
+      name = "MatchCaseButton"
     }
 
     override fun getIcon(): Icon {
@@ -928,6 +941,10 @@ internal class FilterTextField(
     companion object {
       val TOPIC = Topic(FilterStatusChanged::class.java)
     }
+  }
+
+  companion object {
+    @VisibleForTesting const val MATCH_CASE_PROPERTY = "LogcatFilterMatchCase"
   }
 }
 

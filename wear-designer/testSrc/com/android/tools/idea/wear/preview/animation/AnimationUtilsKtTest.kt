@@ -18,8 +18,7 @@ package com.android.tools.idea.wear.preview.animation
 import androidx.wear.protolayout.expression.pipeline.DynamicTypeAnimator
 import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
@@ -31,17 +30,19 @@ import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.util.MockNlComponent
 import com.android.tools.idea.wear.preview.PsiWearTilePreviewElement
-import com.android.tools.idea.wear.preview.WearTilePreviewElement
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import junit.framework.TestCase.fail
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class AnimationUtilsKtTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -69,10 +70,13 @@ class AnimationUtilsKtTest {
   fun `detectAnimations - preview element not found`() {
     val layoutlibSceneManager = mock<LayoutlibSceneManager>()
     val model = mock<NlModel>()
-    val dataContext = SimpleDataContext.builder().add(PREVIEW_ELEMENT_INSTANCE, null).build()
+    val dataProvider =
+      object : NlDataProvider() {
+        override fun getData(dataId: String): Any? = null
+      }
 
     whenever(layoutlibSceneManager.model).thenReturn(model)
-    whenever(model.dataContext).thenReturn(dataContext)
+    whenever(model.dataProvider).thenReturn(dataProvider)
 
     detectAnimations(layoutlibSceneManager)
 
@@ -93,9 +97,14 @@ class AnimationUtilsKtTest {
           }
         }
       )
+    val dataProvider =
+      object : NlDataProvider(PREVIEW_ELEMENT_INSTANCE) {
+        override fun getData(dataId: String): Any? =
+          previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
+      }
+
     val model = nlComponent.model
-    whenever(model.dataContext)
-      .thenReturn(SimpleDataContext.getSimpleContext(PREVIEW_ELEMENT_INSTANCE, previewElement))
+    whenever(model.dataProvider).thenReturn(dataProvider)
 
     whenever(layoutlibSceneManager.model).thenReturn(model)
     whenever(layoutlibSceneManager.scene).thenReturn(scene)
@@ -132,6 +141,54 @@ class AnimationUtilsKtTest {
 
     assertThat(previewElement.tileServiceViewAdapter.value)
       .isEqualTo(tileServiceViewAdapterNoAnimations)
+    assertThat(previewElement.hasAnimations).isFalse()
+  }
+
+  // Regression test for b/373681154
+  @Test
+  fun `detectAnimations - handles view adapter without getAnimations method`() {
+    val layoutlibSceneManager = mock<LayoutlibSceneManager>()
+
+    val scene = mock<Scene>()
+    val root = mock<SceneComponent>()
+    val nlComponent =
+      MockNlComponent.create(
+        runReadAction {
+          XmlTagUtil.createTag(projectRule.project, "<FrameLayout/>").apply {
+            putUserData(ModuleUtilCore.KEY_MODULE, projectRule.module)
+          }
+        }
+      )
+    val dataProvider =
+      object : NlDataProvider(PREVIEW_ELEMENT_INSTANCE) {
+        override fun getData(dataId: String): Any? =
+          previewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
+      }
+    val model = nlComponent.model
+    whenever(model.dataProvider).thenReturn(dataProvider)
+    whenever(layoutlibSceneManager.model).thenReturn(model)
+    whenever(layoutlibSceneManager.scene).thenReturn(scene)
+    whenever(scene.root).thenReturn(root)
+    whenever(root.nlComponent).thenReturn(nlComponent)
+
+    val tileServiceViewAdapter =
+      object {
+        // no getAnimations here
+      }
+
+    val viewInfo = ViewInfo("View", null, 0, 0, 30, 20, tileServiceViewAdapter, null, null)
+
+    nlComponent.viewInfo = viewInfo
+
+    try {
+      detectAnimations(layoutlibSceneManager)
+    } catch (_: Exception) {
+      fail(
+        "Detect animations should not throw an exception when there is no getAnimations method in the ViewAdapter"
+      )
+    }
+
+    assertThat(previewElement.tileServiceViewAdapter.value).isEqualTo(tileServiceViewAdapter)
     assertThat(previewElement.hasAnimations).isFalse()
   }
 }

@@ -26,9 +26,14 @@ import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.intellij.testFramework.UsefulTestCase
 import java.awt.Point
 import junit.framework.TestCase
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class CoordinatorPlaceholderTest : SceneTest() {
 
+  @Test
   fun testRegion() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
     val frameLayout = myScene.getSceneComponent("frame")!!
@@ -58,6 +63,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     }
   }
 
+  @Test
   fun testSnap() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
     val frameLayout = myScene.getSceneComponent("frame")!!
@@ -78,6 +84,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     assertEquals(5.toDouble(), p.distance(left.toDouble(), top.toDouble()), 0.01)
   }
 
+  @Test
   fun testApplyToLeftTop() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
     val frameLayout = myScene.getSceneComponent("frame")!!
@@ -108,6 +115,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     )
   }
 
+  @Test
   fun testApplyToRightBottom() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
     val frameLayout = myScene.getSceneComponent("frame")!!
@@ -142,6 +150,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     )
   }
 
+  @Test
   fun testAddComponentWithoutSnappingToAnchor() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
     val placeholders =

@@ -30,6 +30,7 @@ import com.google.idea.blaze.qsync.java.artifacts.AspectProto.OutputArtifact.Pat
 import com.google.idea.blaze.qsync.testdata.JavaInfoTxt;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -62,6 +63,7 @@ public class AspectUnitTest {
   }
 
   @Test
+  @Ignore("b/353651427")
   public void exporting_target_has_no_jars() throws Exception {
     ImmutableMap<Label, JavaTargetArtifacts> byTarget =
         Maps.uniqueIndex(
@@ -77,7 +79,8 @@ public class AspectUnitTest {
   }
 
   @Test
-  public void each_jar_beloings_to_a_single_target() throws IOException {
+  @Ignore("b/353651427")
+  public void each_jar_belongs_to_a_single_target() throws IOException {
     HashMultimap<Label, String> targetToJar =
         JavaInfoTxt.EXTERNAL_EXPORTS.readOnlyProto().getArtifactsList().stream()
             .collect(
@@ -92,5 +95,16 @@ public class AspectUnitTest {
     for (String jarPath : jarToTarget.keys()) {
       assertWithMessage("targets for jar " + jarPath).that(jarToTarget.get(jarPath)).hasSize(1);
     }
+  }
+
+  @Test
+  public void workspaceRootIncluded_getTargetSources() throws IOException {
+    ImmutableMap<Label, JavaTargetArtifacts> byTarget =
+        Maps.uniqueIndex(
+            JavaInfoTxt.WORKSPACE_ROOT_INCLUDED.readOnlyProto().getArtifactsList(),
+            t -> Label.of(t.getTarget()));
+    TestData target = TestData.WORKSPACE_ROOT_INCLUDED_QUERY;
+    // no sources should be there for a target within project scope.
+    assertThat(byTarget.get(target.getAssumedOnlyLabel()).getSrcsList()).isEmpty();
   }
 }

@@ -16,13 +16,14 @@
 package com.android.tools.idea.streaming.emulator.settings
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.streaming.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.CameraVelocityControls
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
@@ -31,16 +32,19 @@ import org.junit.Rule
 import org.junit.Test
 import javax.swing.JCheckBox
 
-/**
- * Tests for [EmulatorSettingsPage] and [EmulatorSettings].
- */
+/** Tests for [EmulatorSettingsPage] and [EmulatorSettings]. */
 @RunsInEdt
 class EmulatorSettingsPageTest {
-  @get:Rule
-  val ruleChain = RuleChain(ProjectRule(), EdtRule())
 
-  private val settings
-    get() = EmulatorSettings.getInstance()
+  @get:Rule
+  val ruleChain = RuleChain(ApplicationRule(), EdtRule())
+
+  private val settings by lazy { EmulatorSettings.getInstance() }
+  private val settingsPage by lazy {
+    val provider = EmulatorConfigurableProvider()
+    assertThat(provider.canCreateConfigurable()).isTrue()
+    provider.createConfigurable()
+  }
 
   @Before
   fun setUp() {
@@ -50,14 +54,12 @@ class EmulatorSettingsPageTest {
   @After
   fun tearDown() {
     settings.loadState(EmulatorSettings())
+    settingsPage.disposeUIResources()
   }
 
   @Test
   fun testSettingsUi() {
-    val provider = EmulatorConfigurableProvider()
-    assertThat(provider.canCreateConfigurable()).isTrue()
-    val settingsUi = provider.createConfigurable()
-    val ui = FakeUi(settingsUi.createComponent()!!)
+    val ui = FakeUi(settingsPage.createComponent()!!)
     val launchInToolWindowCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Launch in the Running Devices tool window" }
     val activateOnAppLaunchCheckBox = ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching an app" }
     val activateOnTestLaunchCheckBox =
@@ -67,7 +69,7 @@ class EmulatorSettingsPageTest {
     val cameraVelocityControlComboBox = ui.getComponent<ComboBox<*>> { it.selectedItem is CameraVelocityControls }
     val snapshotAutoDeletionPolicyComboBox = ui.getComponent<ComboBox<*>> { it.selectedItem is SnapshotAutoDeletionPolicy }
 
-    settingsUi.reset()
+    settingsPage.reset()
 
     assertThat(launchInToolWindowCheckBox.isSelected).isTrue()
     assertThat(activateOnAppLaunchCheckBox.isEnabled).isTrue()
@@ -76,45 +78,45 @@ class EmulatorSettingsPageTest {
     assertThat(showCameraControlPromptsCheckBox.isSelected).isTrue()
     assertThat(cameraVelocityControlComboBox.selectedItem).isEqualTo(CameraVelocityControls.WASDQE)
     assertThat(cameraVelocityControlComboBox.isEnabled).isTrue()
-    assertThat(snapshotAutoDeletionPolicyComboBox.selectedItem).isEqualTo(SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING)
+    assertThat(snapshotAutoDeletionPolicyComboBox.selectedItem).isEqualTo(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY)
     assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     activateOnAppLaunchCheckBox.isSelected = false
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.activateOnTestLaunch).isFalse()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     activateOnTestLaunchCheckBox.isSelected = true
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.activateOnTestLaunch).isTrue()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     synchronizeClipboardCheckBox.isSelected = false
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.synchronizeClipboard).isFalse()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     showCameraControlPromptsCheckBox.isSelected = false
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.showCameraControlPrompts).isFalse()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     cameraVelocityControlComboBox.selectedItem = CameraVelocityControls.ZQSDAE
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.cameraVelocityControls).isEqualTo(CameraVelocityControls.ZQSDAE)
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     snapshotAutoDeletionPolicyComboBox.selectedItem = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY)
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     launchInToolWindowCheckBox.isSelected = false
     assertThat(activateOnAppLaunchCheckBox.isEnabled).isTrue()
@@ -123,9 +125,9 @@ class EmulatorSettingsPageTest {
     assertThat(showCameraControlPromptsCheckBox.isEnabled).isTrue()
     assertThat(cameraVelocityControlComboBox.isEnabled).isTrue()
     assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.launchInToolWindow).isFalse()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
   }
 }

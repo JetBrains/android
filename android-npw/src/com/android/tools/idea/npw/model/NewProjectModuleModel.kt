@@ -45,7 +45,8 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
     ":",
     formFactor = ObjectValueProperty(FormFactor.Mobile),
     category = ObjectValueProperty(Category.Activity),
-    wizardContext = NEW_PROJECT
+    wizardContext = NEW_PROJECT,
+    recommendedBuildSdk = null
   ).apply {
     multiTemplateRenderer.incrementRenders()
   }
@@ -140,7 +141,8 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
     ":",
     formFactor = ObjectValueProperty(FormFactor.Mobile),
     category = ObjectValueProperty(Category.Activity),
-    wizardContext = NEW_PROJECT
+    wizardContext = NEW_PROJECT,
+    recommendedBuildSdk = projectModel.findNewModuleRecommendedBuildSdk()
   )
   companionModuleModel.multiTemplateRenderer.incrementRenders()
   companionModuleModel.moduleName.set(moduleName)

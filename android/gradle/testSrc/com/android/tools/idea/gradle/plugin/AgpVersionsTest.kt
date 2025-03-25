@@ -15,11 +15,24 @@ class AgpVersionsTest {
   @get:Rule
   val flagRule = FlagRule(StudioFlags.AGP_VERSION_TO_USE)
 
+  @get:Rule
+  val stableAgpForNewProjectsFlagRule = FlagRule(StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS)
+
   @Test
   fun `check no override behaviour` () {
     StudioFlags.AGP_VERSION_TO_USE.clearOverride()
+    StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.override(false)
     assertThat(AgpVersions.studioFlagOverride).isNull()
     assertThat(AgpVersions.newProject).isEqualTo(AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
+    assertThat(AgpVersions.latestKnown).isEqualTo(AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
+  }
+
+  @Test
+  fun `check no override behaviour with stable flag` () {
+    StudioFlags.AGP_VERSION_TO_USE.clearOverride()
+    StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.override(true)
+    assertThat(AgpVersions.studioFlagOverride).isNull()
+    assertThat(AgpVersions.newProject).isEqualTo(AgpVersion.parse(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION))
     assertThat(AgpVersions.latestKnown).isEqualTo(AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
   }
 

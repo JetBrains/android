@@ -5,8 +5,8 @@
             toReformat="true" toShortenFQNames="true">
     <variable name="WIDGET" expression="" defaultValue="&quot;androidx.compose.foundation.layout.Box&quot;" alwaysStopAt="true"/>
     <context>
-      <option name="KOTLIN" value="true"/>
-      <option name="KOTLIN_COMMENT" value="false"/>
+      <option name="COMPOSE_KOTLIN" value="true"/>
+      <option name="COMPOSE_KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
   <template name="WR" description="Surround with Row"
@@ -14,8 +14,8 @@
             toReformat="true" toShortenFQNames="true">
     <variable name="WIDGET" expression="&quot;androidx.compose.foundation.layout.Row&quot;"/>
     <context>
-      <option name="KOTLIN" value="true"/>
-      <option name="KOTLIN_COMMENT" value="false"/>
+      <option name="COMPOSE_KOTLIN" value="true"/>
+      <option name="COMPOSE_KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
   <template name="WC" description="Surround with Column"
@@ -23,8 +23,8 @@
             toReformat="true" toShortenFQNames="true">
     <variable name="WIDGET" expression="&quot;androidx.compose.foundation.layout.Column&quot;"/>
     <context>
-      <option name="KOTLIN" value="true"/>
-      <option name="KOTLIN_COMMENT" value="false"/>
+      <option name="COMPOSE_KOTLIN" value="true"/>
+      <option name="COMPOSE_KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
   <template name="comp"
@@ -34,8 +34,8 @@
             toShortenFQNames="true">
     <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
     <context>
-      <option name="KOTLIN" value="true"/>
-      <option name="KOTLIN_COMMENT" value="false"/>
+      <option name="COMPOSE_KOTLIN" value="true"/>
+      <option name="COMPOSE_KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
 
@@ -47,7 +47,7 @@
             toShortenFQNames="true">
     <variable name="DP" expression="" defaultValue="" alwaysStopAt="true"/>
     <context>
-      <option name="KOTLIN_EXPRESSION" value="true"/>
+      <option name="COMPOSE_KOTLIN_EXPRESSION" value="true"/>
     </context>
   </template>
   <template name="weight"
@@ -57,7 +57,7 @@
             toShortenFQNames="true">
     <variable name="WEIGHT" expression="" defaultValue="" alwaysStopAt="true"/>
     <context>
-      <option name="KOTLIN_EXPRESSION" value="true"/>
+      <option name="COMPOSE_KOTLIN_EXPRESSION" value="true"/>
     </context>
   </template>
   <!-- endregion -->

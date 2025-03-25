@@ -45,8 +45,10 @@ import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.openFileWithPsiElement
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiBinaryFile
@@ -121,7 +123,10 @@ class ResourceExplorerListViewModelImpl(
       when (currentResourceType) {
         ResourceType.STRING -> listOf(DefaultActionGroup().apply {
           add(object : OpenStringResourceEditorAction() {
-            override fun displayTextInToolbar() = true
+            override fun update(e: AnActionEvent) {
+              super.update(e)
+              e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+            }
           })
         })
         else -> emptyList()

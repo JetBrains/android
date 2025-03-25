@@ -17,8 +17,8 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type.TYPE_TEST
 import com.android.tools.idea.projectsystem.GradleToken
-import com.android.tools.idea.projectsystem.getAndroidTestModule
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.module.Module

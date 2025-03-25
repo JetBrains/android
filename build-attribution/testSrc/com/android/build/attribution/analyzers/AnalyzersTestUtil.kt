@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
@@ -46,6 +45,7 @@ import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.ProjectIdentifier
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.net.URI
 
@@ -199,11 +199,11 @@ fun downloadFailureStub(start: Long, end: Long, bytes: Long, failures: List<Fail
   override fun getFailures(): List<Failure> = failures
 }
 
-fun failureStub(message: String, causes: List<Failure>, problems: List<Problem>) = object : Failure {
+fun failureStub(message: String, causes: List<Failure>) = object : Failure {
   override fun getMessage(): String = message
   override fun getCauses(): List<Failure> = causes
+  override fun getProblems(): List<Problem> = emptyList()
   override fun getDescription(): String = "Failure description"
-  override fun getProblems(): List<Problem> = problems
 }
 
 

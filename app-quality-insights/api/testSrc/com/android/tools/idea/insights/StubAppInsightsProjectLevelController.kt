@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.ai.AiInsightToolkit
+import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.mockito.Mockito.mock
 
 open class StubAppInsightsProjectLevelController(
-  override val key: InsightsProviderKey = InsightsProviderKey("Fake provider"),
+  override val provider: InsightsProvider = FakeInsightsProvider(),
   override val state: Flow<AppInsightsState> = emptyFlow(),
   override val coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   private val retrieveInsights: (PsiFile) -> List<AppInsight> = { _ -> emptyList() },
+  override val aiInsightToolkit: AiInsightToolkit = FakeAiInsightToolkit(),
 ) : AppInsightsProjectLevelController {
   override val project: Project = mock()
 
@@ -72,5 +78,11 @@ open class StubAppInsightsProjectLevelController(
 
   override fun selectIssueVariant(variant: IssueVariant?) {}
 
-  override fun refreshInsight(contextSharingOverride: Boolean) {}
+  override fun refreshInsight(regenerateWithContext: Boolean) {}
+
+  override fun submitInsightFeedback(insightFeedback: InsightFeedback) {}
+
+  override fun disableAction(action: KClass<out Action>) {}
+
+  override fun enableAction(action: KClass<out Action>) {}
 }

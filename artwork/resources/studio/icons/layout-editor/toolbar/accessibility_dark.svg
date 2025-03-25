@@ -1,7 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="8.00104" cy="2.5" r="1.5" fill="#AFB1B3"/>
-<path d="M12.6115 4.0383L13.0011 5.50003C11.5797 6.0663 10.0772 6.36345 8.00333 6.36345C5.91455 6.36345 4.42478 6.07358 3 5.50003L3.38978 4.03751C4.6061 4.5629 5.96786 4.86344 8.00333 4.86344C10.0219 4.86344 11.3961 4.5566 12.6115 4.0383Z" fill="#AFB1B3"/>
-<rect x="6" y="5" width="4" height="6" fill="#AFB1B3"/>
-<rect x="6" y="9" width="1" height="6" fill="#AFB1B3"/>
-<rect x="9" y="9" width="1" height="6" fill="#AFB1B3"/>
-</svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 14.5v-9m3 0v9m-2.5-4h2M3 4.5c1 .5 2.5 1 5 1M13 4.5c-1 .5-2.5 1-5 1" stroke="#CED0D6" stroke-linecap="round"/><circle cx="8" cy="2.5" r="1.5" stroke="#CED0D6"/></svg>

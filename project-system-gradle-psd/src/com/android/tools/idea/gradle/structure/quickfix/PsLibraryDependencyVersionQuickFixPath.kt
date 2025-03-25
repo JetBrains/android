@@ -26,21 +26,33 @@ data class PsLibraryDependencyVersionQuickFixPath(
   val dependency: String,
   val configurationName: String,
   val version: String,
-  val updateVariable: Boolean?
+  val updateVariable: Boolean?,
+  val addVersionInText: Boolean = false,
+  val onUpdate: (() -> Unit)? = null,
 ) : PsQuickFix, Serializable {
   override val text: String
-    get() = when (updateVariable) {
-      null -> "Update"
-      true -> "Update Variable"
-      false -> "Update Dependency"
+    get() {
+      val updateText = when (updateVariable) {
+        null -> "Update"
+        true -> "Update Variable"
+        false -> "Update Dependency"
+      }
+      return if (addVersionInText) {
+        "$updateText\nto $version"
+      }
+      else {
+        updateText
+      }
     }
 
   constructor(
     dependency: PsLibraryDependency,
     version: String,
-    updateVariable: Boolean? = null
+    updateVariable: Boolean? = null,
+    addVersionInText: Boolean = false,
+    onUpdate: (() -> Unit)? = null,
   ) : this(
-    dependency.parent.name, dependency.spec.compactNotation(), dependency.joinedConfigurationNames, version, updateVariable
+    dependency.parent.name, dependency.spec.compactNotation(), dependency.joinedConfigurationNames, version, updateVariable, addVersionInText, onUpdate
   )
 
   override fun execute(context: PsContext) {
@@ -49,6 +61,7 @@ data class PsLibraryDependencyVersionQuickFixPath(
     if (module != null && spec != null) {
       module.setLibraryDependencyVersion(spec, configurationName, version, updateVariable ?: false)
     }
+    onUpdate?.invoke()
   }
 
   override fun toString(): String = "$dependency ($configurationName)"

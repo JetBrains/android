@@ -43,9 +43,10 @@ open class ProfilersTestBase {
     return Logger.getLogger(ProfilersTestBase::class.java.getName())
   }
 
-  private val testProjectMinAppPath = "tools/adt/idea/profilers-integration/testData/minapp"
-  private val testMinAppRepoManifest = "tools/adt/idea/profilers-integration/minapp_deps.manifest"
-  private val testProjectApk = "tools/adt/idea/profilers-integration/testData/helloworldapk"
+  // Default projects for most of the tests.
+  open val projectPath : String = TestConstants.MIN_APP_PROJECT_PATH
+  open val repoManifestPath : String = TestConstants.MIN_APP_REPO_MANIFEST
+  open val systemImage : Emulator.SystemImage = TestConstants.SYSTEM_IMAGE
 
   @JvmField
   @Rule
@@ -55,17 +56,16 @@ open class ProfilersTestBase {
   @Rule
   var watcher = MemoryDashboardNameProviderWatcher()
 
-  protected fun sessionBasedProfiling(systemImage: Emulator.SystemImage,
-                                      testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
+  protected fun sessionBasedProfiling(testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
     // Disabling the profiler task-based ux and verbose logs behind the flag.
     system.installation.addVmOption("-Dprofiler.task.based.ux=false")
     system.installation.addVmOption("-Dprofiler.testing.mode=true")
 
     // Open android project, and set a fixed distribution
-    val project = AndroidProject(testProjectMinAppPath)
+    val project = AndroidProject(projectPath)
 
     // Create a maven repo and set it up in the installation and environment
-    system.installRepo(MavenRepo(testMinAppRepoManifest))
+    system.installRepo(MavenRepo(repoManifestPath))
 
     system.runAdb { adb ->
       system.runEmulator(systemImage) { emulator ->
@@ -86,18 +86,17 @@ open class ProfilersTestBase {
     }
   }
 
-  protected fun taskBasedProfiling(systemImage: Emulator.SystemImage,
-                                   deployApp: Boolean,
+  protected fun taskBasedProfiling(deployApp: Boolean,
                                    testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
     // Enabling profiler task-based ux and verbose logs behind the flag.
     system.installation.addVmOption("-Dprofiler.task.based.ux=true")
     system.installation.addVmOption("-Dprofiler.testing.mode=true")
 
     // Open android project, and set a fixed distribution
-    val project = AndroidProject(testProjectMinAppPath)
+    val project = AndroidProject(projectPath)
 
     // Create a maven repo and set it up in the installation and environment
-    system.installRepo(MavenRepo(testMinAppRepoManifest))
+    system.installRepo(MavenRepo(repoManifestPath))
 
     system.runAdb { adb ->
       system.runEmulator(systemImage) { emulator ->
@@ -126,9 +125,8 @@ open class ProfilersTestBase {
     }
   }
 
-  protected fun profileAppUsingApk(systemImage: Emulator.SystemImage,
-                                   enableTaskBasedProfiling: Boolean,
-                                   testFunction: ((studio: AndroidStudio, adb: Adb) -> Unit)) {
+  protected fun profileAppUsingApk(enableTaskBasedProfiling: Boolean,
+                                   testFunction: (studio: AndroidStudio, adb: Adb) -> Unit) {
     system.installation.addVmOption("-Dprofiler.testing.mode=true")
     if (enableTaskBasedProfiling) {
       system.installation.addVmOption("-Dprofiler.task.based.ux=true")
@@ -142,7 +140,7 @@ open class ProfilersTestBase {
 
     system.installation.setGlobalSdk(system.sdk)
 
-    val project = AndroidProjectWithoutGradle(testProjectApk)
+    val project = AndroidProjectWithoutGradle(projectPath)
 
     system.runAdb { adb ->
       system.runEmulator(systemImage) { emulator ->
@@ -160,6 +158,26 @@ open class ProfilersTestBase {
           testFunction.invoke(studio, adb)
         }
       }
+    }
+  }
+
+  protected fun setupProjectWithoutEmulator(testFunction: ((studio: AndroidStudio, project: AndroidProject) -> Unit)) {
+    // Enabling verbose logs behind the flag.
+    system.installation.addVmOption("-Dprofiler.testing.mode=true")
+
+    // Open android project, and set a fixed distribution
+    val project = AndroidProject(projectPath)
+
+    // Create a maven repo and set it up in the installation and environment
+    system.installRepo(MavenRepo(repoManifestPath))
+
+    system.runStudio(project, watcher.dashboardName) { studio ->
+      studio.waitForSync()
+      studio.waitForIndex()
+      getLogger().info("Test set-up completed, starting the test case / invoking test function.")
+      Thread.sleep(2000)
+      // Test Function or test steps to be executed.
+      testFunction.invoke(studio, project)
     }
   }
 
@@ -297,6 +315,26 @@ open class ProfilersTestBase {
 
   protected fun setProfilingStartingPointToProcessStart(studio: AndroidStudio) {
     studio.executeAction("Android.SetProfilingStartingPointToProcessStart")
+  }
+
+  protected fun selectLastRecordingFromRecordingList(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectLastRecordingFromRecordingList")
+  }
+
+  protected fun setHideNewTaskPromptToTrue(studio: AndroidStudio) {
+    studio.executeAction("Android.SetHideNewTaskPromptToTrue")
+  }
+
+  /**
+   * This action sets HIDE_NEW_TASK_PROMPT dialog prompt to true, which prevents the dialog prompt from appearing when
+   * starting/importing new tasks, allowing the test to proceed without closing the task tab.
+   */
+  protected fun openPastRecordingsTab(studio: AndroidStudio) {
+    studio.executeAction("Android.OpenProfilersPastRecordingsTab")
+  }
+
+  protected fun exportRecording(studio: AndroidStudio) {
+    studio.executeAction("Android.ProfilerExportRecording")
   }
 
   protected fun profileAction(studio: AndroidStudio) {

@@ -17,10 +17,12 @@ package org.jetbrains.android;
 
 import static org.jetbrains.android.UndisposedAndroidObjectsCheckerRule.checkUndisposedAndroidRelatedObjects;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.testutils.MockitoThreadLocalsCleaner;
 import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
@@ -68,7 +70,7 @@ import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
- * {@link com.android.tools.idea.testing.AndroidProjectRule} instead. This allows you to use
+ * {@link AndroidProjectRule} instead. This allows you to use
  * features introduced in JUnit4 (such as parameterization) while also providing a more
  * compositional approach - instead of your test class inheriting dozens and dozens of methods you
  * might not be familiar with, those methods will be constrained to the rule.
@@ -167,15 +169,23 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   public void ensureSdkManagerAvailable() {
-    ensureSdkManagerAvailable(getTestRootDisposable());
+    ensureSdkManagerAvailable(getTestRootDisposable(), null);
+  }
+
+  public void ensureSdkManagerAvailable(@Nullable AndroidVersion androidPlatformVersion) {
+    ensureSdkManagerAvailable(getTestRootDisposable(), androidPlatformVersion);
   }
 
   public static void ensureSdkManagerAvailable(@NotNull Disposable testRootDisposable) {
+    ensureSdkManagerAvailable(testRootDisposable, null);
+  }
+
+  public static void ensureSdkManagerAvailable(@NotNull Disposable testRootDisposable, @Nullable AndroidVersion androidPlatformVersion) {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       AndroidSdks androidSdks = AndroidSdks.getInstance();
       AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
       if (sdkData == null) {
-        sdkData = AndroidTestBase.createTestSdkManager(testRootDisposable);
+        sdkData = AndroidTestBase.createTestSdkManager(testRootDisposable, androidPlatformVersion);
         if (sdkData != null) {
           androidSdks.setSdkData(sdkData);
         }
@@ -185,9 +195,15 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   @Nullable
-  public static AndroidSdkData createTestSdkManager(@NotNull Disposable testRootDisposable) {
+  public static AndroidSdkData createTestSdkManager(@NotNull Disposable testRootDisposable, @Nullable AndroidVersion androidPlatformVersion) {
     VfsRootAccess.allowRootAccess(testRootDisposable, TestUtils.getSdk().toString());
-    Sdk androidSdk = Sdks.createLatestAndroidSdk();
+    Sdk androidSdk;
+    if (androidPlatformVersion != null) {
+      androidSdk = Sdks.createAndroidSdk(testRootDisposable, "SDK", true, androidPlatformVersion);
+    }
+    else {
+      androidSdk = Sdks.createLatestAndroidSdk();
+    }
     AndroidSdkAdditionalData data = AndroidSdkAdditionalData.from(androidSdk);
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();

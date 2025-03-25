@@ -43,8 +43,17 @@ import java.io.File
  * The main reason to include that is because the compose compiler plugin expects
  * the runtime to be path of the classpath or else it'll throw an error.
  */
-val composeRuntimePath = TestUtils.resolveWorkspacePath(
+private val composeRuntimePathForK1 = TestUtils.resolveWorkspacePath(
   "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.4.0-SNAPSHOT.jar").toString()
+private val composeRuntimePathForK2 = TestUtils.resolveWorkspacePath(
+  "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-desktop-1.7.0.jar").toString()
+val composeRuntimePath
+  get() = if (KotlinPluginModeProvider.isK2Mode()) {
+    composeRuntimePathForK2
+  }
+  else {
+    composeRuntimePathForK1
+  }
 
 /**
  * Register the plugin for the given project rule. If you are using the default model via [AndroidProjectRule.inMemory],
@@ -53,14 +62,6 @@ val composeRuntimePath = TestUtils.resolveWorkspacePath(
  */
 fun registerComposeCompilerPlugin(project: Project) {
   // Register the compose compiler plugin much like what Intellij would normally do.
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    if (!project.extensionArea.hasExtensionPoint(FirExtensionRegistrarAdapter.extensionPointName)) {
-      FirExtensionRegistrarAdapter.registerExtensionPoint(project)
-    }
-    if (FirExtensionRegistrarAdapter.getInstances(project).find { it is ComposeFirExtensionRegistrar } == null) {
-      FirExtensionRegistrarAdapter.registerExtension(project, ComposeFirExtensionRegistrar())
-    }
-  }
   if (IrGenerationExtension.getInstances(project).find { it is ComposePluginIrGenerationExtension } == null) {
     IrGenerationExtension.registerExtension(project, ComposePluginIrGenerationExtension())
   }

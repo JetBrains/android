@@ -19,13 +19,14 @@ import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
+import kotlinx.coroutines.flow.Flow
 
 interface AppInsightsTabProvider {
   val displayName: String
   val icon: Icon
 
   /** Populates the provided [tabPanel] with content. */
-  fun populateTab(project: Project, tabPanel: AppInsightsTabPanel)
+  fun populateTab(project: Project, tabPanel: AppInsightsTabPanel, activeTabFlow: Flow<Boolean>)
 
   fun isApplicable(): Boolean = true
 

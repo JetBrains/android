@@ -16,9 +16,10 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 /** Sent when an update is requested by the user. */
@@ -28,9 +29,15 @@ object ExplicitRefresh : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
-  ): StateTransition<Action> =
-    StateTransition(
+    provider: InsightsProvider,
+    cache: AppInsightsCache,
+  ): StateTransition<Action> {
+    val selectedIssue = state.selectedIssue
+    val selectedConnection = state.connections.selected
+    if (selectedIssue != null && selectedConnection != null) {
+      cache.removeIssue(state.connections.selected, selectedIssue.id)
+    }
+    return StateTransition(
       state.copy(
         issues = LoadingState.Loading,
         currentIssueVariants = LoadingState.Ready(null),
@@ -39,4 +46,5 @@ object ExplicitRefresh : ChangeEvent {
       ),
       action = Action.Refresh,
     )
+  }
 }

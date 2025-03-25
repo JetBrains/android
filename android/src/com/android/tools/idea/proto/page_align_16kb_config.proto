@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+message PageAlign16kb {
+  // Date when the Play Store will require 16k page support (like, November
+  // 2026)
+  optional string play_store_deadline_date = 1;
+  // URL to the 16k page size documentation (no http:// prefix)
+  optional string message_url = 2;
+  // Prefix for the message that will be shown when an APK is not 16k page
+  // aligned.
+  optional string so_unaligned_in_apk_message = 3;
+  // Message that will be shown when an .so file has unaligned load segments.
+  optional string unaligned_load_segments_message = 4;
+  // The final part of the message.
+  optional string message_postscript = 5;
+}

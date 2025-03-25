@@ -16,15 +16,19 @@
 package com.android.tools.idea.preview.representation
 
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.retryUntilPassing
+import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
@@ -39,9 +43,14 @@ import com.android.tools.idea.preview.TestPreviewRefreshRequest
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
+import com.android.tools.idea.preview.animation.AnimationManager
+import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
+import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
@@ -57,14 +66,17 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.moveCaretToEnd
+import com.android.tools.idea.ui.ApplicationUtils
 import com.android.tools.preview.DisplayPositioning
+import com.android.tools.preview.PreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -81,7 +93,9 @@ import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.CountDownLatch
+import javax.swing.JPanel
 import kotlin.test.assertFails
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -98,6 +112,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 private lateinit var previewView: CommonNlDesignSurfacePreviewView
 private lateinit var previewViewModelMock: CommonPreviewViewModel
@@ -124,11 +143,14 @@ private class TestPreviewElementModelAdapter :
 
   override fun modelToElement(model: NlModel): PsiTestPreviewElement? =
     if (!model.isDisposed) {
-      model.dataContext.getData(TEST_PREVIEW_ELEMENT_KEY)
+      model.dataProvider?.getData(TEST_PREVIEW_ELEMENT_KEY)
     } else null
 
-  override fun createDataContext(previewElement: PsiTestPreviewElement): DataContext =
-    SimpleDataContext.builder().add(TEST_PREVIEW_ELEMENT_KEY, previewElement).build()
+  override fun createDataProvider(previewElement: PsiTestPreviewElement): NlDataProvider =
+    object : NlDataProvider(TEST_PREVIEW_ELEMENT_KEY) {
+      override fun getData(dataId: String): Any? =
+        previewElement.takeIf { dataId == TEST_PREVIEW_ELEMENT_KEY.name }
+    }
 
   override fun toLogString(previewElement: PsiTestPreviewElement): String = ""
 
@@ -354,7 +376,7 @@ class CommonPreviewRepresentationTest {
         refreshManager.getTotalRequestsInQueueForTest() == 1
       }
       assertFalse(previewRepresentation.isInvalidatedForTest())
-      blockingRefresh.runningRefreshJob!!.cancel()
+      blockingRefresh.runningRefreshJob?.cancel()
     }
 
   @Test
@@ -407,6 +429,7 @@ class CommonPreviewRepresentationTest {
     } finally {
       PreviewRefreshTracker.cleanAfterTesting(previewRepresentation.previewView.mainSurface)
       AnalyticsSettings.optedIn = false
+      previewRepresentation.onDeactivateImmediately()
     }
   }
 
@@ -422,12 +445,10 @@ class CommonPreviewRepresentationTest {
       val sceneView = preview.previewView.mainSurface.sceneManagers.first().sceneViews.first()
 
       withContext(uiThread) {
-        preview.navigationHandler.handleNavigateWithCoordinates(
-          sceneView,
-          sceneView.x,
-          sceneView.y,
-          false,
-        )
+        preview.navigationHandler
+          .findNavigatablesWithCoordinates(sceneView, sceneView.x, sceneView.y, false, false)
+          .firstOrNull()
+          ?.let { preview.navigationHandler.navigateTo(sceneView, it, false) }
       }
 
       runReadAction {
@@ -515,6 +536,193 @@ class CommonPreviewRepresentationTest {
     }
   }
 
+  // Regression test for b/370595516
+  @Test
+  fun animationPreviewIsDisposedWhenExitingAnimationInspectorMode() {
+    runBlocking(workerThread) {
+      val animationPreview =
+        mock<AnimationPreview<AnimationManager>>().also {
+          whenever(it.component).thenReturn(TooltipLayeredPane(JPanel()))
+        }
+      val previewRepresentation = createPreviewRepresentation(animationPreview = animationPreview)
+      previewRepresentation.compileAndWaitForRefresh()
+
+      // start animation inspection
+      previewRepresentation.setMode(PreviewMode.AnimationInspection(selected = mock()))
+      previewRepresentation.mode.awaitStatus("Animation Inspection mode expected", 1.seconds) {
+        it is PreviewMode.AnimationInspection
+      }
+      retryUntilPassing(1.seconds) {
+        assertThat(previewRepresentation.currentAnimationPreview).isEqualTo(animationPreview)
+      }
+
+      // stop animation inspection
+      previewRepresentation.setMode(PreviewMode.Default())
+      previewRepresentation.mode.awaitStatus("Default mode expected", 1.seconds) {
+        it is PreviewMode.Default
+      }
+      retryUntilPassing(1.seconds) {
+        verify(animationPreview, times(1)).dispose()
+        assertThat(previewRepresentation.currentAnimationPreview).isNull()
+      }
+      previewRepresentation.onDeactivateImmediately()
+    }
+  }
+
+  // Regression test for: b/344639845
+  @Test
+  fun flowsAreCanceledOnDeactivate() {
+    runBlocking(workerThread) {
+      val previewElementProvider =
+        mock<PreviewElementProvider<PsiTestPreviewElement>>().also {
+          whenever(it.previewElements()).thenReturn(emptySequence())
+        }
+      val previewRepresentation = createPreviewRepresentation(previewElementProvider)
+      previewRepresentation.compileAndWaitForRefresh()
+      clearInvocations(previewElementProvider)
+
+      // writing in the file should trigger element updates through the flows while
+      // the lifecycle is active
+      ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+        projectRule.fixture.editor.moveCaretToEnd()
+        projectRule.fixture.editor.executeAndSave {
+          insertText("\n\n// some change to the file\n\n")
+        }
+      }
+      // wait for 2 seconds to give time for the flows to update themselves
+      retryUntilPassing(2.seconds) {
+        runBlocking { verify(previewElementProvider).previewElements() }
+      }
+
+      // once the lifecycle is deactivated, new preview elements should no longer be requested
+      previewRepresentation.onDeactivateImmediately()
+      clearInvocations(previewElementProvider)
+
+      ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+        projectRule.fixture.editor.moveCaretToEnd()
+        projectRule.fixture.editor.executeAndSave {
+          insertText("\n\n// some change to the file\n\n")
+        }
+      }
+      // wait for 2 seconds to give time for the flows to update themselves in case of a regression
+      delay(2.seconds)
+      verifyNoInteractions(previewElementProvider)
+    }
+  }
+
+  // Regression test for b/373572532
+  @Test
+  fun layoutOptionIsPersisted(): Unit =
+    runBlocking(workerThread) {
+      val persistedPreviewRepresentation = createPreviewRepresentation()
+      persistedPreviewRepresentation.compileAndWaitForRefresh()
+      // We can't use Grid layout option in this test as it's default layout.
+      assertThat(persistedPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Focus(null))
+      persistedPreviewRepresentation.setMode(PreviewMode.Focus(null))
+      assertThat(persistedPreviewRepresentation.mode.value).isEqualTo(PreviewMode.Focus(null))
+      retryUntilPassing(1.seconds) {
+        assertThat(
+            persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+              ?.currentLayoutOption
+              ?.value
+          )
+          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+      }
+
+      val state = persistedPreviewRepresentation.getState()
+      // Deactivate now to avoid interfering with the other preview representation
+      persistedPreviewRepresentation.onDeactivateImmediately()
+
+      val restoredPreviewRepresentation = createPreviewRepresentation()
+      assertThat(restoredPreviewRepresentation.mode.value).isNotEqualTo(PreviewMode.Focus(null))
+      restoredPreviewRepresentation.setState(state)
+      restoredPreviewRepresentation.compileAndWaitForRefresh()
+      assertThat(restoredPreviewRepresentation.mode.value)
+        .isInstanceOf(PreviewMode.Focus::class.java)
+      retryUntilPassing(1.seconds) {
+        assertThat(
+            restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+              ?.currentLayoutOption
+              ?.value
+          )
+          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+      }
+
+      restoredPreviewRepresentation.onDeactivateImmediately()
+    }
+
+  // Regression test for b/373572532
+  @Test
+  fun focusLayoutOptionIsPersisted(): Unit =
+    runBlocking(workerThread) {
+      val previewElement = PsiTestPreviewElement("test element")
+      val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
+      val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+      persistedPreviewRepresentation.compileAndWaitForRefresh()
+
+      assertThat(persistedPreviewRepresentation.mode.value.layoutOption)
+        .isNotEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+      persistedPreviewRepresentation.setMode(PreviewMode.Focus(previewElement))
+      assertThat(persistedPreviewRepresentation.mode.value)
+        .isEqualTo(PreviewMode.Focus(previewElement))
+      retryUntilPassing(1.seconds) {
+        assertThat(
+            persistedPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+              ?.currentLayoutOption
+              ?.value
+          )
+          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+      }
+
+      val state = persistedPreviewRepresentation.getState()
+      // Deactivate now to avoid interfering with the other preview representation
+      persistedPreviewRepresentation.onDeactivateImmediately()
+
+      val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+      restoredPreviewRepresentation.setState(state)
+      restoredPreviewRepresentation.compileAndWaitForRefresh()
+      assertThat(restoredPreviewRepresentation.mode.value)
+        .isEqualTo(PreviewMode.Focus(previewElement))
+      retryUntilPassing(1.seconds) {
+        assertThat(
+            restoredPreviewRepresentation.previewView.mainSurface.layoutManagerSwitcher
+              ?.currentLayoutOption
+              ?.value
+          )
+          .isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
+      }
+
+      restoredPreviewRepresentation.onDeactivateImmediately()
+    }
+
+  // Regression test for b/373572532
+  @Test
+  fun groupSelectionIsPersisted(): Unit =
+    runBlocking(workerThread) {
+      val previewElement =
+        PsiTestPreviewElement(displayName = "test element", groupName = "test group")
+      val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
+      val persistedPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+      persistedPreviewRepresentation.compileAndWaitForRefresh()
+
+      assertThat(persistedPreviewRepresentation.groupManager.groupFilter)
+        .isEqualTo(PreviewGroup.All)
+      persistedPreviewRepresentation.groupManager.groupFilter =
+        PreviewGroup.namedGroup("test group")
+
+      val state = persistedPreviewRepresentation.getState()
+      // Deactivate now to avoid interfering with the other preview representation
+      persistedPreviewRepresentation.onDeactivateImmediately()
+
+      val restoredPreviewRepresentation = createPreviewRepresentation(previewElementProvider)
+      restoredPreviewRepresentation.setState(state)
+      restoredPreviewRepresentation.compileAndWaitForRefresh()
+      assertThat(restoredPreviewRepresentation.groupManager.groupFilter)
+        .isEqualTo(PreviewGroup.namedGroup("test group"))
+
+      restoredPreviewRepresentation.onDeactivateImmediately()
+    }
+
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
@@ -538,7 +746,8 @@ class CommonPreviewRepresentationTest {
   }
 
   private fun createPreviewRepresentation(
-    customPreviewElementProvider: PreviewElementProvider<PsiTestPreviewElement>? = null
+    customPreviewElementProvider: PreviewElementProvider<PsiTestPreviewElement>? = null,
+    animationPreview: AnimationPreview<*>? = null,
   ): CommonPreviewRepresentation<PsiTestPreviewElement> {
     val previewElementProvider =
       customPreviewElementProvider
@@ -555,26 +764,30 @@ class CommonPreviewRepresentationTest {
           )
         )
     val previewRepresentation =
-      CommonPreviewRepresentation(
-        adapterViewFqcn = "TestAdapterViewFqcn",
-        psiFile,
-        { previewElementProvider },
-        modelAdapter,
-        viewConstructor = { project, surfaceBuilder, parentDisposable ->
-          CommonNlDesignSurfacePreviewView(project, surfaceBuilder, parentDisposable).also {
-            previewView = it
-          }
-        },
-        viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },
-        configureDesignSurface = {},
-        renderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
-        createRefreshEventBuilder = { surface ->
-          PreviewRefreshEventBuilder(
-            PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE,
-            PreviewRefreshTracker.getInstance(surface),
-          )
-        },
-      )
+      object :
+        CommonPreviewRepresentation<PsiTestPreviewElement>(
+          adapterViewFqcn = "TestAdapterViewFqcn",
+          psiFile,
+          { previewElementProvider },
+          modelAdapter,
+          viewConstructor = { project, surfaceBuilder, parentDisposable ->
+            CommonNlDesignSurfacePreviewView(project, surfaceBuilder, parentDisposable).also {
+              previewView = it
+            }
+          },
+          viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },
+          configureDesignSurface = {},
+          renderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
+          createRefreshEventBuilder = { surface ->
+            PreviewRefreshEventBuilder(
+              PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE,
+              PreviewRefreshTracker.getInstance(surface),
+            )
+          },
+        ) {
+
+        override fun createAnimationInspector(element: PreviewElement<*>) = animationPreview
+      }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
   }
@@ -616,4 +829,13 @@ class CommonPreviewRepresentationTest {
       fixture.elementAtCaret.let { smartPointerManager.createSmartPsiElementPointer(it) }
     }
   }
+
+  private val CommonPreviewRepresentation<*>.groupManager: PreviewGroupManager
+    get() {
+      val context =
+        DataManager.getInstance()
+          .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
+      return PreviewGroupManager.KEY.getData(context)
+        ?: fail("Expected a group manager to be present")
+    }
 }

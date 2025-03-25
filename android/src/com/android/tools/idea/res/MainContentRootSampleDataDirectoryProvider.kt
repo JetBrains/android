@@ -18,7 +18,6 @@ package com.android.tools.idea.res
 import com.android.SdkConstants.FD_SAMPLE_DATA
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
-import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
@@ -30,8 +29,7 @@ import java.io.IOException
  * An implementation of [SampleDataDirectoryProvider] which houses a module's sample data directory
  * in the main content root of the module.
  */
-class MainContentRootSampleDataDirectoryProvider(module: Module) : SampleDataDirectoryProvider {
-  val module: Module = module.getHolderModule()
+class MainContentRootSampleDataDirectoryProvider(val module: Module) : SampleDataDirectoryProvider {
 
   override fun getSampleDataDirectory(): PathString? {
     return AndroidFacet.getInstance(module)

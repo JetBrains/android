@@ -21,6 +21,7 @@ import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType
 
 import com.intellij.ui.components.JBList;
 import java.awt.event.KeyEvent;
+import java.util.regex.Pattern;
 import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import javax.swing.JTextField;
@@ -52,7 +53,7 @@ public class NewKotlinClassDialogFixture extends ComponentFixture<NewKotlinClass
   @NotNull
   public NewKotlinClassDialogFixture selectType(@NotNull String type) {
     JListFixture listFixture = new JListFixture(robot(), waitUntilShowingAndEnabled(robot(), target(), byType(JBList.class)));
-    listFixture.selectItem(type);
+    listFixture.selectItem(Pattern.compile(type, Pattern.DOTALL));
 
     return this;
   }

@@ -16,10 +16,10 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -28,8 +28,8 @@ import kotlin.test.assertTrue
 @RunWith(JUnit4::class)
 class LiveEditDevicesTestInfo {
 
-  val device1: IDevice = MockitoKt.mock()
-  val device2: IDevice = MockitoKt.mock()
+  val device1: IDevice = mock()
+  val device2: IDevice = mock()
 
   @Test
   fun testDeviceAdd() {

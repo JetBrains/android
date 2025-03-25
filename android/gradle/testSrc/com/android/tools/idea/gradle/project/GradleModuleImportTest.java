@@ -28,7 +28,6 @@ import static com.intellij.util.PathUtil.toSystemIndependentName;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -54,7 +53,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Tests for {@link GradleModuleImporter#importModules(Object, Map, Project, GradleSyncListener)}.
+ * Tests for {@link GradleModuleImporter#importModules(Object, Map, Project)}.
  */
 @SuppressWarnings("JUnitTestCaseWithNoTests") // Named differently, didn't want to do too much unnecessary setups
 public final class GradleModuleImportTest extends HeavyPlatformTestCase {
@@ -163,7 +162,7 @@ public final class GradleModuleImportTest extends HeavyPlatformTestCase {
    */
   public void testImportSimpleGradleProject() throws Exception {
     VirtualFile moduleRoot = createGradleProjectToImport(dir, MODULE_NAME);
-    GradleModuleImporter.importModules(this, Collections.singletonMap(moduleRoot.getName(), moduleRoot), getProject(), null);
+    GradleModuleImporter.importModules(this, Collections.singletonMap(moduleRoot.getName(), moduleRoot), getProject());
     assertModuleImported(getProject(), MODULE_NAME, moduleRoot);
   }
 
@@ -180,7 +179,7 @@ public final class GradleModuleImportTest extends HeavyPlatformTestCase {
       assertEquals(projectRoot.findFileByRelativePath(path), toImport.get(pathToGradleName(path)));
     }
 
-    GradleModuleImporter.importModules(this, toImport, getProject(), null);
+    GradleModuleImporter.importModules(this, toImport, getProject());
 
     for (String path : paths) {
       VirtualFile moduleRoot = projectRoot.findFileByRelativePath(path);
@@ -201,7 +200,7 @@ public final class GradleModuleImportTest extends HeavyPlatformTestCase {
     assertModuleRequiredButNotFound(module(2), toImport);
 
     try {
-      GradleModuleImporter.importModules(this, toImport, getProject(), null);
+      GradleModuleImporter.importModules(this, toImport, getProject());
       fail();
     }
     catch (IOException e) {
@@ -221,7 +220,7 @@ public final class GradleModuleImportTest extends HeavyPlatformTestCase {
     assert moduleLocation != null;
     assertEquals(moduleLocation, subProjects.get(pathToGradleName(SAMPLE_PROJECT_PATH)));
 
-    GradleModuleImporter.importModules(this, subProjects, getProject(), null);
+    GradleModuleImporter.importModules(this, subProjects, getProject());
     assertModuleImported(getProject(), SAMPLE_PROJECT_PATH, moduleLocation);
   }
 

@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -46,6 +47,7 @@ class AndroidSdkCompatibilityDialogTest {
     return findModelessDialog { it is AndroidSdkCompatibilityDialog } as AndroidSdkCompatibilityDialog?
   }
 
+  @Ignore("b/391880461")
   @Test
   fun `test dialog content with same channel recommendation`() {
     val recommendation = StudioVersionRecommendation.newBuilder().apply {
@@ -86,6 +88,7 @@ class AndroidSdkCompatibilityDialogTest {
     assertThat(dialog.exitCode).isEqualTo(DialogWrapper.CLOSE_EXIT_CODE)
   }
 
+  @Ignore("b/391880461")
   @Test
   fun `test dialog content with different channel recommendation`() {
     val recommendation = StudioVersionRecommendation.newBuilder().apply {

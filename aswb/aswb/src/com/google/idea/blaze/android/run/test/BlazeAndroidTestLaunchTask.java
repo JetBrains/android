@@ -25,9 +25,11 @@ import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.ideinfo.AndroidInstrumentationInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
@@ -42,7 +44,6 @@ import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.java.AndroidBlazeRules.RuleTypes;
@@ -211,8 +212,11 @@ public class BlazeAndroidTestLaunchTask implements BlazeLaunchTask {
                         if (retVal != 0) {
                           context.setHasError();
                         } else {
-                          testResultsHolder.setTestResults(
-                              buildResultHelper.getTestResults(Optional.empty()));
+                          try (final var bepStream =
+                              buildResultHelper.getBepStream(Optional.empty())) {
+                            testResultsHolder.setTestResults(
+                                BuildResultParser.getTestResults(bepStream));
+                          }
                         }
                         ListenableFuture<Void> unusedFuture =
                             FileCaches.refresh(

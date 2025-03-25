@@ -26,6 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.google.common.collect.Ordering
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 
 internal typealias DeviceAttribute<V> = RowAttribute<DeviceProfile, V>
@@ -37,6 +40,10 @@ fun DeviceFiltersPanel(modifier: Modifier = Modifier, content: @Composable () ->
   }
 }
 
+/**
+ * Holds the state of the filters for a [DeviceTable]. Can be extended to add or adjust filters for
+ * subtypes of [DeviceProfile].
+ */
 @Stable
 open class DeviceFilterState<in DeviceT : DeviceProfile> : RowFilter<DeviceT> {
   val formFactorFilter = FormFactor.initialSingleSelectionFilterState("Phone")
@@ -55,7 +62,17 @@ open class TextFilterState<in DeviceT : DeviceProfile> : RowFilter<DeviceT> {
 }
 
 val Manufacturer = DeviceAttribute("OEM") { it.manufacturer }
-val FormFactor = DeviceAttribute("Form Factor") { it.formFactor }
+
+internal val formFactorOrder: PersistentList<String> =
+  with(FormFactors) { persistentListOf(PHONE, TABLET, WEAR, DESKTOP, TV, AUTO) }
+
+private val formFactorComparator: Comparator<String> =
+  compareBy(nullsLast(Ordering.explicit(formFactorOrder))) { formFactor: String ->
+      formFactor.takeIf { it in formFactorOrder }
+    }
+    .then(naturalOrder())
+
+val FormFactor = DeviceAttribute("Form Factor", comparator = formFactorComparator) { it.formFactor }
 
 internal fun <V : Comparable<V>> DeviceAttribute(name: String, value: (DeviceProfile) -> V) =
   DeviceAttribute(name, Comparator.naturalOrder(), value)

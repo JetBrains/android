@@ -42,6 +42,7 @@ import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestP
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth
 import com.intellij.execution.process.ProcessIOExecutorService
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -63,7 +64,6 @@ import org.junit.runners.model.Statement
 import java.awt.Dimension
 import java.nio.file.Files
 import java.nio.file.Path
-import java.time.Duration
 import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.seconds
 
@@ -142,11 +142,12 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
 
   internal fun openUiSettings(): UiSettingsPanel {
     waitForCondition(60.seconds) {
-      toolWindow.updateMainToolbar()
+      ActivityTracker.getInstance().inc()
       val button = fakeUi.findComponent<ActionButton> {
         it.action.templateText == SETTINGS_BUTTON_TEXT
       }
-      Logger.getInstance(UiSettingsIntegrationRule::class.java).warn("Button found: $button, enabled: ${button?.isEnabled}, showing: ${button?.isShowing}")
+      Logger.getInstance(UiSettingsIntegrationRule::class.java)
+        .warn("Button found: $button, enabled: ${button?.isEnabled}, showing: ${button?.isShowing}")
       button?.isEnabled ?: false
     }
     val button = fakeUi.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
@@ -199,7 +200,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   private fun getControllerOf(testRoot: Path, emulator: Emulator): EmulatorController {
     val catalog = RunningEmulatorCatalog.getInstance()
     catalog.overrideRegistrationDirectory(testRoot.resolve("home/.android/avd/running"))
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     val emulatorController = emulators.single { emulator.serialNumber == it.emulatorId.serialNumber }
     return emulatorController
   }
@@ -216,7 +217,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     Disposer.register(testRootDisposable, deviceClient)
     val deviceProvisioner = project.getService(DeviceProvisionerService::class.java).deviceProvisioner
     val selector = DeviceSelector.fromSerialNumber(emulator.serialNumber)
-    val handle = deviceProvisioner.findConnectedDeviceHandle(selector, Duration.ofSeconds(30)) ?: error("No handle found")
+    val handle = deviceProvisioner.findConnectedDeviceHandle(selector, 30.seconds) ?: error("No handle found")
     return DeviceToolWindowPanel(testRootDisposable, project, handle, deviceClient)
   }
 

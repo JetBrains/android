@@ -1,1 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect width="16" height="16" fill="none"/><g fill="none" fill-rule="evenodd"><path d="M10 10V1H4v9z"/><path d="M6.264 9.347c0-.46.323-.83.721-.85L7 8.5c.825 0 1.5-.674 1.5-1.5V4c0-.825-.675-1.5-1.5-1.5S5.5 3.175 5.5 4v1.034A4.013 4.013 0 0 0 4 6.12V4c0-1.65 1.35-3 3-3s3 1.35 3 3v3c0 1.65-1.35 3-3 3-.256 0-.5-.041-.736-.103v-.55z" fill="#AFB1B3"/><path d="M8.04 13H9v1.153a2.987 2.987 0 0 1-2 .769c-1.65 0-3-1.35-3-3v-3c0-1.65 1.35-3 3-3 .191 0 .376.024.557.059v.61c0 .456-.317.822-.71.847A1.5 1.5 0 0 0 5.5 8.922v3c0 .825.675 1.5 1.5 1.5.403 0 .77-.161 1.04-.422z" fill="#AFB1B3"/><path d="M14 12l2 2-1 1-2-2-2 2-1-1 2-2-2-2 1-1 2 2 2-2 1 1-2 2z" fill="#C75450"/></g></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.738 4.265a3.25 3.25 0 013.25-3.25h.5a3.25 3.25 0 013.25 3.25v2.5a3.25 3.25 0 01-3.25 3.25h-.226a.5.5 0 110-1h.226a2.25 2.25 0 002.25-2.25v-2.5a2.25 2.25 0 00-2.25-2.25h-.5a2.25 2.25 0 00-2.25 2.25v.79a.5.5 0 01-1 0v-.79zm3.508 10.25c0 .277-.225.504-.498.465a3.5 3.5 0 01-3.002-3.465v-2a3.5 3.5 0 013.002-3.464c.273-.04.498.188.498.464 0 .277-.226.495-.497.55a2.5 2.5 0 00-2.003 2.45v2a2.5 2.5 0 002.003 2.451c.271.055.497.273.497.55z" fill="#CED0D6"/><path d="M9.223 14.492l3.039-3.04M9.223 11.453l3.039 3.039" stroke="#DB5C5C" stroke-linecap="round"/></svg>

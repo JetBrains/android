@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.configuration.editors
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.testutils.ignore.IgnoreWithCondition
@@ -61,7 +60,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.w3c.dom.Element
 import java.awt.event.ActionEvent
 import java.io.ByteArrayInputStream
@@ -239,7 +239,7 @@ class AndroidComplicationConfigurationEditorTest {
         override fun get(): ListenableFuture<MergedManifestSnapshot> =
           immediateFuture(manifestSnapshot)
       }
-    val mockMergedManifestManager = Mockito.mock(MergedManifestManager::class.java)
+    val mockMergedManifestManager = mock<MergedManifestManager>()
     whenever(mockMergedManifestManager.mergedManifest).thenReturn(supplier)
     module.replaceService(
       MergedManifestManager::class.java,
@@ -601,7 +601,8 @@ class AndroidComplicationConfigurationEditorTest {
     getPanelForSlot(1).getCheckBox().isSelected = true
     getPanelForSlot(1).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
     // runConfiguration.watchFaceInfo has only 2 available slots.
-    val slotTypeComboBox2 = getPanelForSlot(1).getComboBox()
+    @Suppress("UNCHECKED_CAST")
+    val slotTypeComboBox2 = getPanelForSlot(1).getComboBox() as ComboBox<ComplicationType>
     // intersect between (LONG_TEXT, SHORT_TEXT, RANGED_VALUE) and (SHORT_TEXT, LONG_TEXT)
     assertThat(slotTypeComboBox2.items)
       .containsExactly(ComplicationType.LONG_TEXT, ComplicationType.SHORT_TEXT)

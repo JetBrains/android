@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -32,7 +30,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.withSettings
+import org.mockito.kotlin.UseConstructor
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class SingleArtifactTaskHandlerTest {
 
@@ -62,12 +63,12 @@ class SingleArtifactTaskHandlerTest {
    * Configured to call the real SingleArtifactTaskHandler#enter method if invoked via the mock.
    */
   private fun createMockSingleArtifactTaskHandler(): SingleArtifactTaskHandler<InterimStage> {
-    val mockSessionsManager = MockitoKt.mock<SessionsManager>().apply {
-      MockitoKt.whenever(this.studioProfilers).thenReturn(myProfilers)
+    val mockSessionsManager = mock<SessionsManager>().apply {
+      whenever(this.studioProfilers).thenReturn(myProfilers)
     }
-    val mockSingleArtifactTaskHandler = MockitoKt.mock<SingleArtifactTaskHandler<InterimStage>>(
-      withSettings().useConstructor(mockSessionsManager)).apply {
-      MockitoKt.whenever(enter(any())).thenCallRealMethod()
+    val mockSingleArtifactTaskHandler = mock<SingleArtifactTaskHandler<InterimStage>>(
+      useConstructor = UseConstructor.withArguments(mockSessionsManager)).apply {
+      whenever(enter(any())).thenCallRealMethod()
     }
     return mockSingleArtifactTaskHandler
   }
@@ -75,7 +76,7 @@ class SingleArtifactTaskHandlerTest {
   @Test
   fun `test setupStage called on enter`() {
     val mockSingleArtifactTaskHandler = createMockSingleArtifactTaskHandler()
-    val mockArgs = MockitoKt.mock<TaskArgs>()
+    val mockArgs = mock<TaskArgs>()
     mockSingleArtifactTaskHandler.enter(mockArgs)
     // Verify that the setupStage method is only invoked once on enter.
     verify(mockSingleArtifactTaskHandler, times(1)).setupStage()

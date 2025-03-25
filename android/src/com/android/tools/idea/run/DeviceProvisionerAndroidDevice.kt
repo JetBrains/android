@@ -32,6 +32,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicReference
@@ -44,6 +45,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.asListenableFuture
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
@@ -69,19 +71,26 @@ sealed class DeviceProvisionerAndroidDevice(parentScope: CoroutineScope) : Andro
    * Boots the device in the default manner, if it is not already running, and returns the resulting
    * [IDevice]. This will cancel any existing boot operation and start a new one.
    */
-  abstract fun bootDefault(): ListenableFuture<IDevice>
+  abstract fun bootDefault(): Deferred<IDevice>
 
-  protected fun boot(action: suspend () -> IDevice): ListenableFuture<IDevice> {
+  protected fun boot(action: suspend () -> IDevice): Deferred<IDevice> {
     return scope
       .async { action() }
       .also { launchDeviceTask.getAndSet(it)?.cancel() }
-      .asListenableFuture()
   }
 
   override fun getLaunchedDevice(): ListenableFuture<IDevice> {
     return launchDeviceTask.get()?.asListenableFuture()
       ?: throw IllegalStateException("Attempt to get device that hasn't been launched yet.")
   }
+
+  /**
+   * Returns the IDevice if the device is connected and ready for use, or else null. Note that even
+   * if the device is [running][isRunning], the device may not yet be fully booted, so this may
+   * return null.
+   */
+  override fun getDdmlibDevice(): IDevice? =
+    if (isRunning) runBlocking { launchDeviceTask.get()?.getCompletedOrNull() } else null
 
   override fun getSerial(): String = buildString {
     append("DeviceProvisionerAndroidDevice pluginId=")
@@ -129,7 +138,7 @@ class DeviceTemplateAndroidDevice(
 
   override fun isRunning() = false
 
-  override fun bootDefault(): ListenableFuture<IDevice> = boot {
+  override fun bootDefault(): Deferred<IDevice> = boot {
     val deviceHandle = deviceTemplate.activationAction.activate()
 
     val deviceState =
@@ -174,15 +183,15 @@ class DeviceHandleAndroidDevice(
 
   override fun isRunning() = deviceHandle.state.connectedDevice != null
 
-  override fun bootDefault(): ListenableFuture<IDevice> = boot {
+  override fun bootDefault(): Deferred<IDevice> = boot {
     activate { deviceHandle.activationAction?.activate() }
   }
 
-  fun coldBoot(): ListenableFuture<IDevice> = boot {
+  fun coldBoot(): Deferred<IDevice> = boot {
     activate { deviceHandle.coldBootAction?.activate() }
   }
 
-  fun bootFromSnapshot(snapshot: Snapshot): ListenableFuture<IDevice> = boot {
+  fun bootFromSnapshot(snapshot: Snapshot): Deferred<IDevice> = boot {
     activate { deviceHandle.bootSnapshotAction?.activate(snapshot) }
   }
 
@@ -211,8 +220,7 @@ class DeviceHandleAndroidDevice(
         this,
       )
     // If the device is running, assume that these errors don't matter.
-    val deviceLaunchCompatibility =
-      deviceHandle.state.error?.takeUnless { isRunning }.toLaunchCompatibility()
+    val deviceLaunchCompatibility = deviceHandle.state.error.toLaunchCompatibility()
 
     // Favor the project launch compatibility, since handle state tends to be more temporary.
     return projectLaunchCompatibility.combine(deviceLaunchCompatibility)

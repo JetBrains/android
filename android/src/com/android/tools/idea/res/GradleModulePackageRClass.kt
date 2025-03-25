@@ -42,6 +42,13 @@ class ModuleRClass(
   ResourceRepositoryRClass(
     psiManager,
     ModuleResourcesSource(facet, sourceSet, transitivity, fieldModifier),
+    AndroidLightClassModuleInfo.from(
+      facet.module,
+      when (sourceSet) {
+        MAIN -> false
+        TEST -> true
+      },
+    ),
   ) {
 
   enum class SourceSet {
@@ -50,14 +57,7 @@ class ModuleRClass(
   }
 
   init {
-    setModuleInfo(
-      facet.module,
-      when (sourceSet) {
-        MAIN -> false
-        TEST -> true
-      },
-    )
-    val lightVirtualFile = myFile.viewProvider.virtualFile
+    val lightVirtualFile = containingFile.viewProvider.virtualFile
 
     if (fieldModifier == AndroidLightField.FieldModifier.FINAL) {
       // If the R fields are final, we try to find the actual physical R class to use real values.
@@ -79,11 +79,12 @@ class ModuleRClass(
     lightVirtualFile.putUserData(FILE_SOURCE_SET_KEY, sourceSet)
   }
 
-  override fun getScopeType() =
-    when (sourceSet) {
-      MAIN -> ScopeType.MAIN
-      TEST -> ScopeType.ANDROID_TEST
-    }
+  override val scopeType: ScopeType
+    get() =
+      when (sourceSet) {
+        MAIN -> ScopeType.MAIN
+        TEST -> ScopeType.ANDROID_TEST
+      }
 
   private class ModuleResourcesSource(
     val facet: AndroidFacet,

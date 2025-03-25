@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.validation.Validator
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import junit.framework.TestCase
 import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 /**
  * Tests for [AndroidOpenFileAction]

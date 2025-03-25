@@ -17,10 +17,10 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
+import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.ModuleClassLoadedDiagnosticsImpl
 import com.android.tools.rendering.classloading.ModuleClassLoader
@@ -32,20 +32,23 @@ import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.removeUserData
 import com.intellij.serviceContainer.AlreadyDisposedException
+import com.intellij.util.application
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import java.lang.ref.WeakReference
 
 private fun throwIfNotUnitTest(e: Exception) =
   if (!ApplicationManager.getApplication().isUnitTestMode) {
@@ -62,16 +65,27 @@ private fun throwIfNotUnitTest(e: Exception) =
 private class ModuleClassLoaderProjectHelperService(val project: Project) :
   ProjectSystemBuildManager.BuildListener, Disposable {
   init {
-    try {
-      ProjectSystemService.getInstance(project)
-        .projectSystem
-        .getBuildManager()
-        .addBuildListener(this, this)
-    } catch (e: IllegalStateException) {
-      throwIfNotUnitTest(e)
-    } catch (e: UnsupportedOperationException) {
-      throwIfNotUnitTest(e)
+    // IntelliJ might sometimes create project services even when the project is in the
+    // process of being disposed.
+    if (!project.isDisposed) {
+      try {
+        ProjectSystemService.getInstance(project)
+          .projectSystem
+          .getBuildManager()
+          .addBuildListener(this, this)
+      }
+      catch (e: IllegalStateException) {
+        throwIfNotUnitTest(e)
+      }
+      catch (e: UnsupportedOperationException) {
+        throwIfNotUnitTest(e)
+      }
     }
+  }
+
+  @RequiresBackgroundThread
+  private fun clearCaches() {
+    StudioModuleClassLoaderManager.get().clearCache(project)
   }
 
   override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {
@@ -79,13 +93,17 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
       result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS &&
         result.mode == ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE
     ) {
-      ModuleManager.getInstance(project).modules.forEach {
-        ModuleClassLoaderManager.get().clearCache(it)
-      }
+      ApplicationManager.getApplication().executeOnPooledThread { clearCaches() }
     }
   }
 
-  override fun dispose() {}
+  override fun dispose() {
+    // Dispose usually runs on the EDT thread. Calling clearCaches on it can cause a deadlock
+    // since the StudioModuleClassLoaderManager might hold the lock and try to acquire the read lock.
+    ApplicationManager.getApplication().executeOnPooledThread {
+      clearCaches()
+    }
+  }
 }
 
 private val PRELOADER: Key<StudioPreloader> =
@@ -126,7 +144,11 @@ class StudioModuleClassLoaderManager :
     else WeakMultiMap.createWithWeakValues()
 
   override fun dispose() {
-    holders.keySet().mapNotNull { it.module }.forEach { clearCache(it) }
+    val iterator = holders.keySet().iterator()
+    for (key in iterator) {
+      iterator.remove()
+      key.module?.let { m -> clearModuleData(m) }
+    }
   }
 
   @TestOnly
@@ -145,14 +167,15 @@ class StudioModuleClassLoaderManager :
    * sessions.
    */
   @Synchronized
-  override fun getShared(
+  @JvmOverloads
+  fun getShared(
     parent: ClassLoader?,
-    moduleRenderContext: ModuleRenderContext,
-    additionalProjectTransformation: ClassTransform,
-    additionalNonProjectTransformation: ClassTransform,
-    onNewModuleClassLoader: Runnable,
+    moduleRenderContext: StudioModuleRenderContext,
+    additionalProjectTransformation: ClassTransform = ClassTransform.identity,
+    additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
+    onNewModuleClassLoader: Runnable = Runnable {},
   ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
-    val module: Module? = moduleRenderContext.module
+    val module: Module? = moduleRenderContext.buildTargetReference.moduleIfNotDisposed
     var moduleClassLoader = module?.getUserData(PRELOADER)?.getClassLoader()
     val combinedProjectTransformations: ClassTransform by lazy {
       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
@@ -180,7 +203,7 @@ class StudioModuleClassLoaderManager :
 
     if (moduleClassLoader == null) {
       // Make sure the helper service is initialized
-      moduleRenderContext.module
+      module
         ?.project
         ?.getService(ModuleClassLoaderProjectHelperService::class.java)
       if (LOG.isDebugEnabled) {
@@ -189,7 +212,7 @@ class StudioModuleClassLoaderManager :
         }
       }
       val preloadedClassLoader: StudioModuleClassLoader? =
-        moduleRenderContext.module
+        module
           ?.getOrCreateHatchery()
           ?.requestClassLoader(
             parent,
@@ -215,7 +238,7 @@ class StudioModuleClassLoaderManager :
       }
     }
     val newModuleClassLoaderReference =
-      ModuleClassLoaderManager.Reference(this, moduleClassLoader).also {
+      ModuleClassLoaderManager.Reference(moduleClassLoader, ModuleClassLoaderReferenceReleaser(this)).also {
         LOG.debug { "New ModuleClassLoader reference $it to $moduleClassLoader" }
       }
     holders.putValue(moduleClassLoader, newModuleClassLoaderReference)
@@ -228,14 +251,16 @@ class StudioModuleClassLoaderManager :
    * caller has full ownership of it.
    */
   @Synchronized
-  override fun getPrivate(
+  @JvmOverloads
+  fun getPrivate(
     parent: ClassLoader?,
-    moduleRenderContext: ModuleRenderContext,
-    additionalProjectTransformation: ClassTransform,
-    additionalNonProjectTransformation: ClassTransform,
+    moduleRenderContext: StudioModuleRenderContext,
+    additionalProjectTransformation: ClassTransform  = ClassTransform.identity,
+    additionalNonProjectTransformation: ClassTransform  = ClassTransform.identity,
   ): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     // Make sure the helper service is initialized
-    moduleRenderContext.module
+    val module: Module? = moduleRenderContext.buildTargetReference.moduleIfNotDisposed
+    module
       ?.project
       ?.getService(ModuleClassLoaderProjectHelperService::class.java)
 
@@ -244,7 +269,7 @@ class StudioModuleClassLoaderManager :
     val combinedNonProjectTransformations =
       combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
     val preloadedClassLoader: StudioModuleClassLoader? =
-      moduleRenderContext.module
+      module
         ?.getOrCreateHatchery()
         ?.requestClassLoader(
           parent,
@@ -260,7 +285,7 @@ class StudioModuleClassLoaderManager :
           createDiagnostics(),
         ))
       .let {
-        val newModuleClassLoaderReference = ModuleClassLoaderManager.Reference(this, it)
+        val newModuleClassLoaderReference = ModuleClassLoaderManager.Reference(it, ModuleClassLoaderReferenceReleaser(this))
         LOG.debug { "New ModuleClassLoader reference $newModuleClassLoaderReference to $it" }
         holders.putValue(it, newModuleClassLoaderReference)
         newModuleClassLoaderReference
@@ -271,16 +296,49 @@ class StudioModuleClassLoaderManager :
   fun createCopy(mcl: StudioModuleClassLoader): StudioModuleClassLoader? =
     mcl.copy(createDiagnostics())
 
+  private fun clearModuleData(module: Module) {
+    module.removeUserData(PRELOADER)?.dispose()
+    module.getUserData(HATCHERY)?.destroy()
+  }
+
+  private fun clearCaches(filter: (Module) -> Boolean) {
+    val modules = holders
+      .keySet()
+      .toList() // Convert to list since we will be removing elements later
+      .mapNotNull { it.module?.let { m -> m to it } }
+      .filter { it.first.isDisposed || filter(it.first) }
+      .onEach {
+        holders.remove(it.second)
+      }
+      .mapTo(mutableSetOf()) { it.first }
+    modules.forEach(::clearModuleData)
+
+    // Clear entries for class loaders that are disposed or are pointing to disposed modules.
+    holders.entrySet().toList()
+      .onEach {
+        if (it.key.isDisposed || it.key.module == null) {
+          holders.remove(it.key)
+        }
+      }
+  }
+
+  /**
+   * Clears the cached [StudioModuleClassLoader] for the class loaders associated to this [Project].
+   */
+  @Synchronized
+  internal fun clearCache(project: Project) {
+    clearCaches {
+      it.project == project
+    }
+  }
+
+  /**
+   * Clears the cached [StudioModuleClassLoader] for the class loader associated to this [Module].
+   */
   @Synchronized
   override fun clearCache(module: Module) {
-    holders
-      .keySet()
-      .toList()
-      .filter { it.module?.getHolderModule() == module.getHolderModule() }
-      .forEach { holders.remove(it) }
-    setOf(module.getHolderModule(), module).forEach { mdl ->
-      mdl.removeUserData(PRELOADER)?.dispose()
-      mdl.getUserData(HATCHERY)?.destroy()
+    clearCaches {
+      it.getModuleSystem().getHolderModule() == module.getModuleSystem().getHolderModule()
     }
   }
 
@@ -338,7 +396,7 @@ class StudioModuleClassLoaderManager :
    * Inform [StudioModuleClassLoaderManager] that [ModuleClassLoader] is not used anymore and
    * therefore can be disposed if no longer managed.
    */
-  override fun release(moduleClassLoaderReference: ModuleClassLoaderManager.Reference<*>) {
+  fun release(moduleClassLoaderReference: ModuleClassLoaderManager.Reference<*>) {
     LOG.debug { "release reference $moduleClassLoaderReference" }
     val classLoader = moduleClassLoaderReference.classLoader as StudioModuleClassLoader
     unHold(moduleClassLoaderReference)
@@ -367,7 +425,14 @@ class StudioModuleClassLoaderManager :
       else NopModuleClassLoadedDiagnostics
 
     @JvmStatic
-    fun get(): StudioModuleClassLoaderManager =
-      ModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
+    fun get(): StudioModuleClassLoaderManager = application.service<StudioModuleClassLoaderManager>()
+  }
+}
+
+private class ModuleClassLoaderReferenceReleaser(moduleManager: StudioModuleClassLoaderManager): (ModuleClassLoaderManager.Reference<*>) -> Unit {
+  private val moduleRef = WeakReference(moduleManager)
+
+  override fun invoke(reference: ModuleClassLoaderManager.Reference<*>) {
+    moduleRef.get()?.release(reference)
   }
 }

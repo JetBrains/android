@@ -18,7 +18,8 @@ package com.android.tools.idea.adb.wireless
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.ui.HyperlinkAdapter
 import javax.swing.event.HyperlinkEvent
 
@@ -29,13 +30,25 @@ object WiFiPairingHyperlinkListener : HyperlinkAdapter() {
       ActionManager.getInstance()
         .getAction("Android.RunAndroidSdkManager")
         .actionPerformed(
-          AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { dataId -> null }
+          createEvent(
+            { dataId: String -> null },
+            null,
+            ActionPlaces.UNKNOWN,
+            ActionUiKind.NONE,
+            null,
+          )
         )
     } else if (e.description == Urls.openAdbSettings) {
       ActionManager.getInstance()
         .getAction("Android.AdbSettings")
         .actionPerformed(
-          AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { dataId -> null }
+          createEvent(
+            { dataId: String -> null },
+            null,
+            ActionPlaces.UNKNOWN,
+            ActionUiKind.NONE,
+            null,
+          )
         )
     } else if (e.url != null) {
       BrowserUtil.browse(e.url)

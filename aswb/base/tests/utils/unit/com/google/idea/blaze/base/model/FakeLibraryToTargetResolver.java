@@ -25,8 +25,8 @@ import com.intellij.openapi.project.Project;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/** Fake implementation of {@link LibraryToTargetResolver} for use in tests. */
-public final class FakeLibraryToTargetResolver implements LibraryToTargetResolver {
+/** Fake implementation of {@link LegacyLibraryToTargetResolver} for use in tests. */
+public final class FakeLibraryToTargetResolver implements LegacyLibraryToTargetResolver {
 
   private ImmutableMap<LibraryKey, Label> libraryKeyToLabelMap = ImmutableMap.of();
 

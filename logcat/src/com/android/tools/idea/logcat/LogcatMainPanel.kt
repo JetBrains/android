@@ -35,6 +35,7 @@ import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CopyMessageTextAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
+import com.android.tools.idea.logcat.actions.IgnoreAppAction
 import com.android.tools.idea.logcat.actions.IgnoreTagAction
 import com.android.tools.idea.logcat.actions.ImportLogcatAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
@@ -217,6 +218,10 @@ class LogcatMainPanelFactory {
         )
       }
 
+      ApplicationManager.getApplication().executeOnPooledThread {
+        project.getService(ProcessNameMonitor::class.java).start()
+      }
+
       return LogcatMainPanel(
         project = project,
         splitterPopupActionGroup = DefaultActionGroup(),
@@ -247,7 +252,7 @@ internal class LogcatMainPanel
 @TestOnly
 constructor(
   private val project: Project,
-  private val splitterPopupActionGroup: ActionGroup,
+  private val splitterPopupActionGroup: DefaultActionGroup,
   logcatColors: LogcatColors,
   state: LogcatPanelConfig?,
   private var logcatSettings: AndroidLogcatSettings,
@@ -259,7 +264,7 @@ constructor(
 
   constructor(
     project: Project,
-    splitterPopupActionGroup: ActionGroup,
+    splitterPopupActionGroup: DefaultActionGroup,
     logcatColors: LogcatColors,
     state: LogcatPanelConfig?,
   ) : this(
@@ -310,7 +315,7 @@ constructor(
       logcatPresenter = this,
       logcatFilterParser,
       state?.filter ?: getDefaultFilter(project, androidProjectDetector),
-      state?.filterMatchCase ?: false,
+      state?.filterMatchCase,
       state?.getInitialItem(),
     )
 
@@ -414,7 +419,7 @@ constructor(
         ProjectSystemService.getInstance(project)
           .projectSystem
           .getSyncManager()
-          .syncProject(USER_REQUEST)
+          .requestSyncProject(USER_REQUEST)
       }
       isVisible = isMissingApplicationIds()
     }
@@ -501,9 +506,12 @@ constructor(
           if (item.device.isOnline) {
             logcatServiceChannel.send(StartLogcat(item.device))
           } else {
+            val sameDevice = connectedDevice.get()?.deviceId == item.device.deviceId
             logcatServiceChannel.send(StopLogcat)
             withContext(uiThread) {
-              clearDocument()
+              if (!sameDevice) {
+                clearDocument()
+              }
               noLogsBanner.isVisible = false
             }
           }
@@ -557,6 +565,7 @@ constructor(
       add(LogcatFoldLinesLikeThisAction(editor))
       add(ToggleFilterAction(this@LogcatMainPanel, logcatFilterParser))
       add(IgnoreTagAction())
+      add(IgnoreAppAction())
       add(CreateScratchFileAction())
       add(Separator.create())
       actions.forEach { add(it) }

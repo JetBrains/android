@@ -25,13 +25,10 @@ interface MendelFlagsProvider {
       ExtensionPointName.create("com.android.tools.idea.mendelFlagsProvider")
 
     fun isExperimentEnabled(id: Int) =
-      EP_NAME.extensionList.any {
-        id in it.getActiveExperimentIds()
-      }
+      EP_NAME.extensionList.any { id in it.getActiveExperimentIds() }
 
-    fun getActiveExperimentIds(): List<Int> = EP_NAME.extensionList.flatMap {
-      it.getActiveExperimentIds()
-    }.distinct()
+    fun getActiveExperimentIds(): List<Int> =
+      EP_NAME.extensionList.flatMap { it.getActiveExperimentIds() }.distinct()
 
     fun getInstances() = EP_NAME.extensionList
   }

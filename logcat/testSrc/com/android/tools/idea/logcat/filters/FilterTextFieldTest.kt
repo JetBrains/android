@@ -36,6 +36,9 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.asSequence
@@ -45,27 +48,28 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.SimpleColoredComponent
 import icons.StudioIcons
-import java.awt.Dimension
-import java.awt.event.FocusEvent
-import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.VK_ENTER
-import javax.swing.GroupLayout
-import javax.swing.Icon
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JSeparator
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Dimension
+import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_ENTER
+import javax.swing.GroupLayout
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JSeparator
+import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
 
 /** Tests for [FilterTextField] */
 class FilterTextFieldTest {
@@ -73,8 +77,15 @@ class FilterTextFieldTest {
   private val usageTrackerRule = UsageTrackerRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 EdtRule(), usageTrackerRule, disposableRule)
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      WaitForIndexRule(projectRule),
+      EdtRule(),
+      usageTrackerRule,
+      disposableRule,
+    )
 
   private val project
     get() = projectRule.project
@@ -92,6 +103,7 @@ class FilterTextFieldTest {
     filterHistory.nonFavorites.clear()
     filterHistory.named.clear()
     filterHistory.favorites.clear()
+    PropertiesComponent.getInstance().unsetValue(FilterTextField.MATCH_CASE_PROPERTY)
   }
 
   @Test
@@ -385,64 +397,68 @@ class FilterTextFieldTest {
 
   @RunsInEdt
   @Test
-  fun emptyText_buttonPanelInvisible() {
+  fun emptyText_buttonPanelVisibility() {
     val filterTextField = filterTextField(initialText = "")
 
-    val favoriteButton =
-      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
-    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val favoriteButton = filterTextField.getNamedComponent("FavoriteButton")
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton")
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+    val clearButton = filterTextField.getNamedComponent("ClearButton")
 
     assertThat(favoriteButton.isShowing).isFalse()
-    assertThat(clearButton.isShowing).isFalse()
+    assertThat(matchCaseButton.isShowing).isTrue()
     assertThat(separator.isShowing).isFalse()
+    assertThat(clearButton.isShowing).isFalse()
   }
 
   @RunsInEdt
   @Test
-  fun nonEmptyText_buttonPanelVisible() {
+  fun nonEmptyText_buttonPanelVisibility() {
     val filterTextField = filterTextField(initialText = "foo")
 
-    val favoriteButton =
-      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
-    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val favoriteButton = filterTextField.getNamedComponent("FavoriteButton")
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton")
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+    val clearButton = filterTextField.getNamedComponent("ClearButton")
 
     assertThat(favoriteButton.isShowing).isTrue()
-    assertThat(clearButton.isShowing).isTrue()
+    assertThat(matchCaseButton.isShowing).isTrue()
     assertThat(separator.isShowing).isTrue()
+    assertThat(clearButton.isShowing).isTrue()
   }
 
   @RunsInEdt
   @Test
-  fun textBecomesEmpty_buttonPanelInvisible() {
+  fun textBecomesEmpty_buttonPanelVisibility() {
     val filterTextField = filterTextField(initialText = "foo")
-    val favoriteButton =
-      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
-    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val favoriteButton = filterTextField.getNamedComponent("FavoriteButton")
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton")
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+    val clearButton = filterTextField.getNamedComponent("ClearButton")
 
     filterTextField.text = ""
 
     assertThat(favoriteButton.isShowing).isFalse()
-    assertThat(clearButton.isShowing).isFalse()
+    assertThat(matchCaseButton.isShowing).isTrue()
     assertThat(separator.isShowing).isFalse()
+    assertThat(clearButton.isShowing).isFalse()
   }
 
   @RunsInEdt
   @Test
-  fun textBecomesNotEmpty_buttonPanelVisible() {
+  fun textBecomesNotEmpty_buttonPanelVisibility() {
     val filterTextField = filterTextField(initialText = "")
-    val favoriteButton =
-      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
-    val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
+    val favoriteButton = filterTextField.getNamedComponent("FavoriteButton")
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton")
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
+    val clearButton = filterTextField.getNamedComponent("ClearButton")
 
     filterTextField.text = "foo"
 
     assertThat(favoriteButton.isShowing).isTrue()
-    assertThat(clearButton.isShowing).isTrue()
+    assertThat(matchCaseButton.isShowing).isTrue()
     assertThat(separator.isShowing).isTrue()
+    assertThat(clearButton.isShowing).isTrue()
   }
 
   @RunsInEdt
@@ -471,12 +487,58 @@ class FilterTextFieldTest {
     assertThat(favoriteButton.icon).isEqualTo(StudioIcons.Logcat.Input.FAVORITE_FILLED)
   }
 
+  @RunsInEdt
+  @Test
+  fun matchCaseTrue_selected() {
+    val filterTextField = filterTextField(matchCase = true)
+
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton") as ActionButton
+    val toggleAction = matchCaseButton.action as ToggleAction
+    assertThat(toggleAction.isSelected(TestActionEvent.createTestEvent())).isTrue()
+  }
+
+  @RunsInEdt
+  @Test
+  fun matchCaseFalse_notSelected() {
+    val filterTextField = filterTextField(matchCase = false)
+
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton") as ActionButton
+    val toggleAction = matchCaseButton.action as ToggleAction
+    assertThat(toggleAction.isSelected(TestActionEvent.createTestEvent())).isFalse()
+  }
+
+  @RunsInEdt
+  @Test
+  fun matchCaseUnset_notSelected() {
+    val filterTextField = filterTextField(matchCase = null)
+
+    val matchCaseButton = filterTextField.getNamedComponent("MatchCaseButton") as ActionButton
+    val toggleAction = matchCaseButton.action as ToggleAction
+    assertThat(toggleAction.isSelected(TestActionEvent.createTestEvent())).isFalse()
+  }
+
+  @RunsInEdt
+  @Test
+  fun matchCaseToggled_valuePersists() {
+    filterTextField(matchCase = null).toggleMatchCaseButton()
+
+    assertThat(filterTextField(matchCase = null).getMatchCaseButtonState()).isTrue()
+  }
+
+  @RunsInEdt
+  @Test
+  fun matchCaseToggledTwice_valuePersists() {
+    filterTextField(matchCase = null).toggleMatchCaseButton().toggleMatchCaseButton()
+
+    assertThat(filterTextField(matchCase = null).getMatchCaseButtonState()).isFalse()
+  }
+
   private fun filterTextField(
     project: Project = this.project,
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
     filterParser: LogcatFilterParser = logcatFilterParser,
     initialText: String = "",
-    matchCase: Boolean = false,
+    matchCase: Boolean? = null,
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
   ) =
     FilterTextField(
@@ -498,8 +560,9 @@ class FilterTextFieldTest {
   private fun getHistoryFavorites(): List<String> = filterHistory.favorites
 }
 
-private fun FilterTextField.getButtonWithIcon(icon: Icon) =
-  TreeWalker(this).descendants().filterIsInstance<JLabel>().first { it.icon == icon }
+private fun FilterTextField.getNamedComponent(name: String) =
+  TreeWalker(this).descendants().find { it.name == name }
+    ?: fail("Component named '$name' not found")
 
 private fun HistoryList.renderToStrings(): List<String> {
   return model.asSequence().toList().map {
@@ -522,4 +585,17 @@ private fun JPanel.renderToString(): String {
     }
     else -> throw IllegalStateException("Unexpected component")
   }
+}
+
+private fun FilterTextField.getMatchCaseButtonState(): Boolean {
+  val button = getNamedComponent("MatchCaseButton") as ActionButton
+  val action = button.action as ToggleAction
+  return action.isSelected(TestActionEvent.createTestEvent())
+}
+
+private fun FilterTextField.toggleMatchCaseButton(): FilterTextField {
+  val button = getNamedComponent("MatchCaseButton") as ActionButton
+  val action = button.action as ToggleAction
+  action.actionPerformed(TestActionEvent.createTestEvent())
+  return this
 }

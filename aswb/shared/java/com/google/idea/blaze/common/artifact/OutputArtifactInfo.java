@@ -43,6 +43,11 @@ public interface OutputArtifactInfo {
   Path getArtifactPath();
 
   /**
+   * The length of a prefix path if any, i.e. the length of a prefix like `basel-out/k8/bin` is 3.
+   */
+  int getArtifactPathPrefixLength();
+
+  /**
    * The blaze-out-relative path.
    *
    * <p><b>Do not use</b> as it is quirky due to compatibility with old code. See: {@link #artifactPathToBazelOutRelativePath(Path)}

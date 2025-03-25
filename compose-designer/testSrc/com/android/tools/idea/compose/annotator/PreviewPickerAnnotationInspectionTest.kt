@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.flags.StudioFlags
@@ -31,6 +30,7 @@ import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
 import org.junit.Assert.assertEquals

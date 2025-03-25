@@ -51,9 +51,6 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
   override val issues
     get() = lintIntegrator.issues
 
-  /** Render specific metrics data */
-  private var renderMetric = RenderResultMetricData()
-
   @VisibleForTesting val listeners = HashSet<Listener>()
 
   /** Tracks metric related to atf */
@@ -100,7 +97,7 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
             listeners.forEach { it.lintUpdated(null) }
             return@forEach
           }
-          updateLint(renderResult, LayoutValidator.validate(validatorResult), manager.model)
+          updateLint(LayoutValidator.validate(validatorResult), manager.model)
         }
         else -> {
           // Result not available.
@@ -111,7 +108,7 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
   }
 
   @VisibleForTesting
-  fun updateLint(renderResult: RenderResult, validatorResult: ValidatorResult, model: NlModel) {
+  fun updateLint(validatorResult: ValidatorResult, model: NlModel) {
     layoutParser.clear()
 
     var result: ValidatorResult? = null
@@ -144,11 +141,6 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
       lintIntegrator.populateLints()
       result = validatorResult
     } finally {
-      renderMetric.renderMs = renderResult.stats.renderDurationMs
-      renderMetric.scanMs = validatorResult.metric.mHierarchyCreationMs
-      renderMetric.componentCount = layoutParser.componentCount
-      renderMetric.isRenderResultSuccess = renderResult.renderResult.isSuccess
-
       layoutParser.clear()
       // TODO: b/180069618 revisit metrics. Should log render result here.
       listeners.forEach { it.lintUpdated(result) }

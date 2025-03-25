@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.util.toIoFile
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -65,6 +66,20 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
+      """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+              at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+            exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+              at: no info
+          }
+        }
       """.trimIndent()
     )
   }
@@ -104,6 +119,20 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
+      """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+              at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+            exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+              at: no info
+          }
+        }
       """.trimIndent()
     )
   }
@@ -141,6 +170,20 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
         expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
+        """.trimIndent())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.api.ProjectConfigurationException
+                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+              exception: org.gradle.internal.exceptions.LocationAwareException
+                at: [0]org.gradle.plugin.use.resolve.internal.PluginResolutionResult#getFound
+              exception: org.gradle.api.plugins.UnknownPluginException
+                at: [0]org.gradle.plugin.use.resolve.internal.PluginResolutionResult#getFound
+            }
+          }
         """.trimIndent())
       }
     )

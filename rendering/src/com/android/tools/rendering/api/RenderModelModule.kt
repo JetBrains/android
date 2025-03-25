@@ -19,14 +19,13 @@ import com.android.ide.common.rendering.api.AssetRepository
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
-import com.android.tools.rendering.ModuleRenderContext
-import com.android.tools.rendering.RenderTask
+import com.android.tools.rendering.classloading.ClassTransform
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager.Reference
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import java.lang.ref.WeakReference
 
 /** Provides the name and basic state properties of the Android module for logging. */
 interface RenderModelModuleLoggingId {
@@ -64,5 +63,14 @@ interface RenderModelModule : Disposable, IdeaModuleProvider, RenderModelModuleL
 
   val environment: EnvironmentContext
 
-  fun createModuleRenderContext(weakRenderTask: WeakReference<RenderTask>): ModuleRenderContext
+  fun interface ClassLoaderProvider {
+    fun getClassLoader(
+      parent: ClassLoader?,
+      additionalProjectTransformation: ClassTransform,
+      additionalNonProjectTransformation: ClassTransform,
+      onNewModuleClassLoader: Runnable,
+    ): Reference<*>
+  }
+
+  fun getClassLoaderProvider(privateClassLoader: Boolean): ClassLoaderProvider
 }

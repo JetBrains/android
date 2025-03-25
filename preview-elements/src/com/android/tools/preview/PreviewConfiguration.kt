@@ -48,7 +48,7 @@ private const val NO_WALLPAPER_SELECTED = -1
 /** Empty device spec when the user has not specified any. */
 private const val NO_DEVICE_SPEC = ""
 
-interface ConfigurablePreviewElement<T>: PreviewElement<T> {
+interface ConfigurablePreviewElement<T> : PreviewElement<T> {
   /** Preview element configuration that affects how LayoutLib resolves the resources */
   val configuration: PreviewConfiguration
 }
@@ -85,16 +85,18 @@ internal constructor(
       wallpaper: Int? = null,
       imageTransformation: Consumer<BufferedImage>? = null,
     ): PreviewConfiguration =
-    // We only limit the sizes. We do not limit the API because using an incorrect API level will
-    // throw an exception that
+      // We only limit the sizes. We do not limit the API because using an incorrect API level will
+      // throw an exception that
       // we will handle and any other error.
       PreviewConfiguration(
         apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
         theme = theme,
-        width = width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION, MAX_DIMENSION)
-                ?: UNDEFINED_DIMENSION,
-        height = height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION, MAX_DIMENSION)
-                 ?: UNDEFINED_DIMENSION,
+        width =
+          width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION, MAX_DIMENSION)
+            ?: UNDEFINED_DIMENSION,
+        height =
+          height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION, MAX_DIMENSION)
+            ?: UNDEFINED_DIMENSION,
         locale = locale ?: "",
         fontScale = max(0f, fontScale ?: 1f),
         uiMode = uiMode ?: 0,
@@ -106,19 +108,23 @@ internal constructor(
 }
 
 /** Applies the [ConfigurablePreviewElement] settings to the given [renderConfiguration]. */
-fun ConfigurablePreviewElement<*>.applyTo(renderConfiguration: Configuration, defaultDeviceProvider: (Configuration) -> Device? = { null }) {
+fun ConfigurablePreviewElement<*>.applyTo(
+  renderConfiguration: Configuration,
+  defaultDeviceProvider: (Configuration) -> Device? = { null },
+) {
   configuration.applyTo(
     renderConfiguration,
     { it.settings.highestApiTarget },
     { it.settings.devices },
     defaultDeviceProvider,
-    getCustomDeviceSize()
+    getCustomDeviceSize(),
   )
 }
 
 /**
- * If specified in the [ConfigurablePreviewElement], this method will return the `widthDp` and `heightDp`
- * dimensions as a [Pair] as long as the device frame is disabled (i.e. `showDecorations` is false).
+ * If specified in the [ConfigurablePreviewElement], this method will return the `widthDp` and
+ * `heightDp` dimensions as a [Pair] as long as the device frame is disabled (i.e. `showDecorations`
+ * is false).
  */
 @AndroidDpCoordinate
 private fun ConfigurablePreviewElement<*>.getCustomDeviceSize(): Dimension? =
@@ -151,7 +157,10 @@ private fun PreviewConfiguration.applyTo(
   }
 
   renderConfiguration.startBulkEditing()
-  renderConfiguration.imageTransformation = imageTransformation
+  if (imageTransformation != null) {
+    renderConfiguration.imageTransformation = imageTransformation
+  }
+
   if (apiLevel != UNDEFINED_API_LEVEL) {
     val newTarget =
       renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }
@@ -173,13 +182,15 @@ private fun PreviewConfiguration.applyTo(
   renderConfiguration.setWallpaper(Wallpaper.values().getOrNull(wallpaper))
 
   val allDevices = devicesProvider(renderConfiguration)
-  val deviceConfig = if (deviceSpec.startsWith(DEVICE_BY_SPEC_PREFIX)) {
-    DeviceConfig.toMutableDeviceConfigOrNull(deviceSpec, allDevices)
-  } else {
-    null
-  }
+  val deviceConfig =
+    if (deviceSpec.startsWith(DEVICE_BY_SPEC_PREFIX)) {
+      DeviceConfig.toMutableDeviceConfigOrNull(deviceSpec, allDevices)
+    } else {
+      null
+    }
   renderConfiguration.cutoutOverlay = deviceConfig?.cutout?.overlay ?: FrameworkOverlay.CUTOUT_NONE
-  renderConfiguration.isGestureNav = deviceConfig == null || deviceConfig.navigation == Navigation.gesture
+  renderConfiguration.isGestureNav =
+    deviceConfig == null || deviceConfig.navigation == Navigation.gesture
 
   val deviceFromSpec = deviceConfig?.createDeviceInstance() ?: allDevices.findByIdOrName(deviceSpec)
   val device = deviceFromSpec ?: defaultDeviceProvider(renderConfiguration)
@@ -204,11 +215,16 @@ private fun PreviewConfiguration.applyTo(
       // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the
       // current dpi vs the default dpi (160).
       val dpiFactor = 1.0 * renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
-      renderConfiguration.updateScreenSize((it.width * dpiFactor).toInt(), (it.height * dpiFactor).toInt(), device)
+      renderConfiguration.updateScreenSize(
+        (it.width * dpiFactor).toInt(),
+        (it.height * dpiFactor).toInt(),
+        device,
+      )
     }
   }
 
-  // If the configuration has a parent ID, use it to override the device cutout in the configuration.
+  // If the configuration has a parent ID, use it to override the device cutout in the
+  // configuration.
   deviceConfig?.parentDeviceId?.let { renderConfiguration.useDeviceForCutout(it) }
   renderConfiguration.finishBulkEditing()
 }
@@ -235,6 +251,6 @@ fun ConfigurablePreviewElement<*>.applyConfigurationForTest(
     highestApiTarget,
     devicesProvider,
     defaultDeviceProvider,
-    getCustomDeviceSize()
+    getCustomDeviceSize(),
   )
 }

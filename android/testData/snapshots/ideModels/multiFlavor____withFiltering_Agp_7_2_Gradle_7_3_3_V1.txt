@@ -300,6 +300,11 @@ MODULE                        : MultiFlavor
                             qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
+                testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -318,8 +323,8 @@ MODULE                        : MultiFlavor.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -368,6 +373,7 @@ MODULE                        : MultiFlavor.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
@@ -399,8 +405,8 @@ MODULE                        : MultiFlavor.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -728,8 +734,8 @@ MODULE                        : MultiFlavor.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 20
             VersionNameSuffix             : -firstAbc-secondAbc-debug
             VersionNameWithSuffix         : 1.secondAbc-firstAbc-secondAbc-debug

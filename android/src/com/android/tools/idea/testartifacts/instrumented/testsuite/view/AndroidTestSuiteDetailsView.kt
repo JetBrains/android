@@ -221,16 +221,12 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       selectedDevice?.let { selectDevice(it) }
     }
     myDeviceSelectorListView.setAndroidTestResults(testResults)
-    contentView.setPackageName(testResults.packageName)
     selectedDevice?.let {
       contentView.setAndroidDevice(it)
       contentView.setAndroidTestCaseResult(testResults.getTestCaseResult(it))
-      contentView.setAndroidTestCaseStartTime(testResults.getStartTime(it))
       contentView.setLogcat(testResults.getLogcat(it))
       contentView.setErrorStackTrace(testResults.getErrorStackTrace(it))
       contentView.setBenchmarkText(testResults.getBenchmark(it))
-      contentView.setRetentionInfo(testResults.getRetentionInfo(it))
-      contentView.setRetentionSnapshot(testResults.getRetentionSnapshot(it))
     }
   }
 

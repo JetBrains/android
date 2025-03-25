@@ -80,7 +80,6 @@ public class GradleSpecificActionCustomizer implements ActionConfigurationCustom
   private static void setUpGradleViewToolbarActions(ActionManager actionManager) {
     Actions.hideAction(actionManager, "ExternalSystem.RefreshAllProjects");
     Actions.hideAction(actionManager, "ExternalSystem.SelectProjectDataToImport");
-    Actions.hideAction(actionManager, "ExternalSystem.ToggleAutoReload");
     Actions.hideAction(actionManager, "ExternalSystem.DetachProject");
     Actions.hideAction(actionManager, "ExternalSystem.AttachProject");
   }
@@ -92,7 +91,6 @@ public class GradleSpecificActionCustomizer implements ActionConfigurationCustom
 
     Actions.hideAction(actionManager, "AddFrameworkSupport");
     Actions.hideAction(actionManager, "BuildArtifact");
-    Actions.hideAction(actionManager, "RunTargetAction");
   }
 
   private static void setUpWelcomeScreenActions(ActionManager actionManager) {

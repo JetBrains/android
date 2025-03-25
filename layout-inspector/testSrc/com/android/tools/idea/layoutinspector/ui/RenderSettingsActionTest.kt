@@ -23,13 +23,13 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HighlightColorAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
 import java.awt.event.MouseEvent
 import java.util.EnumSet
@@ -128,21 +128,14 @@ class RenderSettingsActionTest {
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
 
-    val dataContext = DataContext { dataId ->
-      when (dataId) {
-        LAYOUT_INSPECTOR_DATA_KEY.name -> inspector
-        else -> null
-      }
-    }
-    val actionManager: ActionManager = mock()
+    val dataContext = SimpleDataContext.getSimpleContext(LAYOUT_INSPECTOR_DATA_KEY, inspector)
     val inputEvent = mock<MouseEvent>()
-    return AnActionEvent(
-      inputEvent,
+    return AnActionEvent.createEvent(
       dataContext,
-      ActionPlaces.UNKNOWN,
       Presentation(),
-      actionManager,
-      0,
+      ActionPlaces.UNKNOWN,
+      ActionUiKind.NONE,
+      inputEvent,
     )
   }
 }

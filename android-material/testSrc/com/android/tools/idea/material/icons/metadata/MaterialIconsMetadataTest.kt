@@ -17,12 +17,14 @@ package com.android.tools.idea.material.icons.metadata
 
 import com.android.utils.SdkUtils
 import com.google.common.truth.Truth
+import com.google.gson.JsonSyntaxException
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.io.FileUtil
+import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.io.File
-import kotlin.test.assertEquals
 
 class MaterialIconsMetadataTest {
   private lateinit var testDirectory: File
@@ -65,7 +67,7 @@ class MaterialIconsMetadataTest {
       "  ]\n" +
       "}"
     )
-    val iconsMetadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile), thisLogger())
+    val iconsMetadata = MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile)).getOrThrow()
     Truth.assertThat(iconsMetadata.families).hasLength(5)
     assertEquals("Material Icons", iconsMetadata.families[0])
     assertEquals("Material Icons Outlined", iconsMetadata.families[1])
@@ -88,7 +90,12 @@ class MaterialIconsMetadataTest {
   fun testParseWithBadFile() {
     testMetadataFile.writeText("Hello, World!")
 
-    assertEquals(MaterialIconsMetadata.EMPTY, getParsedTestMetadata())
+    try {
+      assertEquals(MaterialIconsMetadata.EMPTY, getParsedTestMetadata())
+      Assert.fail("Expected IllegalStateException exception")
+    } catch (t: JsonSyntaxException) {
+      assertEquals("java.lang.IllegalStateException: Not a JSON Object: \"Hello\"", t.message)
+    }
   }
 
   @Test
@@ -112,5 +119,5 @@ class MaterialIconsMetadataTest {
   }
 
   private fun getParsedTestMetadata(): MaterialIconsMetadata =
-    MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile), thisLogger())
+    MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testMetadataFile)).getOrThrow()
 }

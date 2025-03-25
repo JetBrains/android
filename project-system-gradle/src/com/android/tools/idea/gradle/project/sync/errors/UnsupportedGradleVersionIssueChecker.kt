@@ -16,17 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
@@ -159,7 +159,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
         if (settings != null) {
           settings.distributionType = DistributionType.DEFAULT_WRAPPED
         }
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED)
+        project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED.toReason())
         future.complete(null)
       }
       return future

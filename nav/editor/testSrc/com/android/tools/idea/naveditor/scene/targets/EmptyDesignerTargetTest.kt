@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -27,9 +25,11 @@ import com.android.tools.idea.naveditor.surface.NavView
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import java.util.Collections
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class EmptyDesignerTargetTest : NavTestCase() {
   fun testEmptyDesignerTarget() {
@@ -39,8 +39,8 @@ class EmptyDesignerTargetTest : NavTestCase() {
     val view = NavView(surface, surface.getSceneManager(model)!!)
     whenever(surface.focusedSceneView).thenReturn(view)
 
-    val actionManager = mock(NavActionManager::class.java)
-    val menu = mock(AddDestinationMenu::class.java)
+    val actionManager = mock<NavActionManager>()
+    val menu = mock<AddDestinationMenu>()
 
     whenever(surface.selectionModel).thenReturn(NopSelectionModel)
     whenever(surface.actionManager).thenReturn(actionManager)

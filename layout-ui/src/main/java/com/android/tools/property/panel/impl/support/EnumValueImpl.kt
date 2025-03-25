@@ -19,7 +19,8 @@ import com.android.tools.property.panel.api.ActionEnumValue
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
-import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -104,13 +105,12 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
         }
       }
       val event =
-        AnActionEvent(
-          null,
+        AnActionEvent.createEvent(
           propertyContext,
-          "",
           action.templatePresentation.clone(),
-          ActionManager.getInstance(),
-          0,
+          ActionPlaces.POPUP,
+          ActionUiKind.POPUP,
+          null,
         )
       action.actionPerformed(event)
     }

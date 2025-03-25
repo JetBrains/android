@@ -278,6 +278,105 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.zoomController.setScale(20.0)
     assertEquals(10.0, surface.zoomController.scale)
   }
+
+  fun testWaitDesignSurfaceResizeBeforeZoomToFit() {
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val fitScaleValue = 1.78
+
+    val surface =
+      TestDesignSurface(
+        project = project,
+        disposable = testRootDisposable,
+        fitScaleProvider = { fitScaleValue },
+        waitForRenderBeforeZoomToFit = true,
+      )
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+
+    // We try to notify that we are ready to apply zoom-to-fit with a bitwiseNumber of "1"
+    // (NOTIFY_ZOOM_TO_FIT_INT_MASK).
+    surface.notifyZoomToFit()
+    surface.notifyZoomToFit()
+    surface.notifyZoomToFit()
+
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
+    // bitwiseNumber of "2" (NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    assertEquals(1.0, surface.zoomController.scale)
+    surface.notifyComponentResizedForTest()
+
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
+    // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
+    assertEquals(1.0, surface.zoomController.scale)
+    surface.notifyLayoutCreatedForTest()
+
+    // We check that zoom-to-fit has been applied.
+    assertFalse(surface.zoomController.zoomToFit())
+  }
+
+  fun testWaitRenderBeforeZoomToFit() {
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val fitScaleValue = 1.78
+
+    val surface =
+      TestDesignSurface(
+        project = project,
+        disposable = testRootDisposable,
+        fitScaleProvider = { fitScaleValue },
+        waitForRenderBeforeZoomToFit = true,
+      )
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+
+    // We try to notify that we are ready to apply zoom-to-fit with a bitwiseNumber of
+    // "2"(NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    // We try to call notifyComponentResizedForTest multiple times to make sure the mask doesn't
+    // change its value if multiple resize callbacks happens.
+    surface.notifyComponentResizedForTest()
+    surface.notifyComponentResizedForTest()
+    surface.notifyComponentResizedForTest()
+
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
+    // bitwiseNumber of "1" (NOTIFY_ZOOM_TO_FIT_INT_MASK).
+    assertEquals(1.0, surface.zoomController.scale)
+    surface.notifyZoomToFit()
+
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
+    // bitwiseNumber of "4" (NOTIFY_LAYOUT_CREATED).
+    assertEquals(1.0, surface.zoomController.scale)
+    surface.notifyLayoutCreatedForTest()
+
+    // We check that zoom-to-fit has been applied.
+    assertFalse(surface.zoomController.zoomToFit())
+  }
+
+  fun testDoNotWaitToZoomToFit() {
+    val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).buildWithoutSurface()
+    val fitScaleValue = 1.78
+
+    val surface =
+      TestDesignSurface(
+        project = project,
+        disposable = testRootDisposable,
+        fitScaleProvider = { fitScaleValue },
+        waitForRenderBeforeZoomToFit = false,
+      )
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+
+    surface.notifyLayoutCreatedForTest()
+
+    // Zoom-to-fit shouldn't be applied if notifyZoomToFit doesn't have also a
+    // bitwiseNumber of "2" (NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    assertEquals(1.0, surface.zoomController.scale)
+
+    // We notify that we are ready to apply zoom-to-fit with a bitwiseNumber of "2"
+    // (NOTIFY_COMPONENT_RESIZED_INT_MASK).
+    // We try to call notifyComponentResizedForTest multiple times to make sure the mask doesn't
+    // change its value if multiple resize callbacks happens.
+    surface.notifyComponentResizedForTest()
+    surface.notifyComponentResizedForTest()
+    surface.notifyComponentResizedForTest()
+
+    // We check that zoom-to-fit has been applied.
+    assertFalse(surface.zoomController.zoomToFit())
+  }
 }
 
 class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
@@ -315,7 +414,8 @@ class TestLayoutManager : PositionableContentLayoutManager() {
   }
 }
 
-class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {
+class TestActionHandler<T : SceneManager>(surface: DesignSurface<T>) :
+  DesignSurfaceActionHandler<DesignSurface<T>>(surface) {
   override val pasteTarget: NlComponent? = null
 
   override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean = false
@@ -343,6 +443,8 @@ class TestDesignSurface(
       TestSceneManager(model, surface)
     },
   testLayoutManager: TestLayoutManager = TestLayoutManager(),
+  fitScaleProvider: () -> Double = { 1.0 },
+  waitForRenderBeforeZoomToFit: Boolean = false,
 ) :
   DesignSurface<SceneManager>(
     project = project,
@@ -351,6 +453,7 @@ class TestDesignSurface(
     positionableLayoutManager = testLayoutManager,
     actionHandlerProvider = { TestActionHandler(it) },
     zoomControlsPolicy = ZoomControlsPolicy.VISIBLE,
+    waitForRenderBeforeZoomToFit = waitForRenderBeforeZoomToFit,
   ) {
 
   init {
@@ -384,6 +487,7 @@ class TestDesignSurface(
       project = project,
       disposable = disposable,
       trackZoom = null,
+      fitScaleProvider = fitScaleProvider,
     )
   override val zoomController: ZoomController
     get() = zoomControllerFake

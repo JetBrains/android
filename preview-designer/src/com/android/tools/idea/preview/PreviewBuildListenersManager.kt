@@ -27,7 +27,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.util.SlowOperations
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -61,8 +60,7 @@ class PreviewBuildListenersManager(
   ) {
     val psiFile = runReadAction { psiFilePointer.element }
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
-    val buildTargetReference = SlowOperations.knownIssue("IDEA-359568").use { BuildTargetReference.from(psiFile) } ?: return
-    val module = buildTargetReference.module
+    val buildTargetReference = BuildTargetReference.from(psiFile) ?: return
     setupBuildListener(
       buildTargetReference,
       object : BuildListener {
@@ -74,7 +72,8 @@ class PreviewBuildListenersManager(
 
         override fun buildSucceeded() {
           log.debug("buildSucceeded")
-          if (isFastPreviewSupported && !module.isDisposed) {
+          val module = buildTargetReference.moduleIfNotDisposed
+          if (isFastPreviewSupported && module != null) {
             // When the build completes successfully, we do not need the overlay until a new
             // modification happens. But invalidation should not be done when this listener is
             // called during setup, as a consequence of an old build (see startedListening)
@@ -112,7 +111,7 @@ class PreviewBuildListenersManager(
     )
 
     if (isFastPreviewSupported) {
-      FastPreviewManager.getInstance(module.project)
+      FastPreviewManager.getInstance(psiFile.project)
         .addListener(
           disposable,
           object : FastPreviewManager.Companion.FastPreviewManagerListener {

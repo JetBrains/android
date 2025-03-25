@@ -177,7 +177,22 @@ abstract class SceneManager(
     component.children.forEach { updateFromComponent(it, seenComponents) }
   }
 
-  abstract fun requestRenderAsync(): CompletableFuture<Void>
+  /**
+   * Request a new render of the model and wait for the new render to finish.
+   *
+   * It shouldn't be used when it is not relevant for the caller to wait for the render to finish,
+   * in those cases [requestRender] should be used instead.
+   */
+  abstract suspend fun requestRenderAndWait()
+
+  /**
+   * Request a new render of the model. This request may not be processed immediately, but it could
+   * be scheduled for later instead. It is responsibility of the subclasses to define the exact
+   * behaviour of this method.
+   *
+   * See also [requestRenderAndWait].
+   */
+  abstract fun requestRender()
 
   abstract fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void>
 

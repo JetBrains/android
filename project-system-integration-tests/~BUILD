@@ -14,7 +14,7 @@ common_data = [
 old_project_app_data = [
     ":oldprojectapp",
     ":oldprojectapp_deps",
-    "//prebuilts/studio/jdk/jdk11",
+    "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
     "//prebuilts/studio/sdk:build-tools/latest",
     "//tools/base/build-system:gradle-distrib-6.7.1",
 ]
@@ -28,6 +28,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//prebuilts/tools/common/m2:junit-4.12[test]",

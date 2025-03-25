@@ -10,20 +10,23 @@
   <vendor>JetBrains, Google</vendor>
 
   <change-notes><![CDATA[
-    This release contains updates from Android Studio Ladybug Feature Drop Canary 5.
+    This release contains updates from Android Studio Meerkat Feature Drop Canary 5.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2024/10/android-studio-ladybug-feature-drop.html">Android Studio Ladybug Feature Drop Canary 5</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2025/02/android-studio-meerkat-feature-drop_13.html">Android Studio Meerkat Feature Drop Canary 5</a>.]]>
   </change-notes>
 
   <dependencies>
     <plugin id="com.intellij.platform.images"/>
+    <plugin id="com.intellij.modules.java"/>
     <plugin id="com.intellij.java"/>
     <module name="intellij.platform.lvcs.impl"/>
     <module name="intellij.platform.vcs.impl"/>
     <module name="intellij.platform.vcs.dvcs.impl"/>
     <module name="intellij.platform.vcs.dvcs.impl.shared"/>
     <module name="intellij.platform.vcs.log.impl"/>
+    <module name="intellij.libraries.grpc"/>
+    <module name="intellij.libraries.grpc.netty.shaded"/>
   </dependencies>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
@@ -37,6 +40,7 @@
   <xi:include href="/META-INF/android-adb.xml"/>
   <xi:include href="/META-INF/android-adb-ui.xml"/>
   <xi:include href="/META-INF/adt-ui.xml"/>
+  <xi:include href="/META-INF/adt-ui-compose.xml"/>
   <xi:include href="/META-INF/database-inspector.xml"/>
   <xi:include href="/META-INF/android-editing-documentation.xml"/>
   <xi:include href="/META-INF/android-editing-metrics.xml"/>
@@ -45,8 +49,11 @@
   <xi:include href="/META-INF/android-navigator.xml"/>
   <xi:include href="/META-INF/android-room.xml"/>
   <xi:include href="/META-INF/android-dagger.xml"/>
-  <!--<xi:include href="/META-INF/app-insights-api.xml"/>-->
-  <!--<xi:include href="/META-INF/app-insights.xml"/> -->
+  <xi:include href="/META-INF/apkanalyzer.xml" />
+  <xi:include href="/META-INF/apkanalyzer-gradle.xml" />
+  <xi:include href="/META-INF/apkanalyzer-apk.xml" />
+<!--  <xi:include href="/META-INF/app-insights-api.xml"/>-->
+<!--  <xi:include href="/META-INF/app-insights.xml"/>-->
   <xi:include href="/META-INF/databinding.xml"/>
   <xi:include href="/META-INF/databinding-gradle.xml"/>
   <xi:include href="/META-INF/mlkit.xml"/>
@@ -59,7 +66,7 @@
   <xi:include href="/META-INF/profilers.xml"/>
   <xi:include href="/META-INF/profilers-gradle.xml"/>
   <xi:include href="/META-INF/project-system-plugin.xml"/>
-  <!--<xi:include href="/META-INF/project-system-apk-plugin.xml"/>-->
+  <xi:include href="/META-INF/project-system-apk-plugin.xml"/>
   <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml"/>
   <xi:include href="/META-INF/project-system-gradle-upgrade.xml"/>
@@ -74,6 +81,7 @@
   <xi:include href="/META-INF/build-attribution.xml"/>
   <xi:include href="/META-INF/lint-plugin.xml"/>
   <xi:include href="/META-INF/network-inspector.xml"/>
+  <xi:include href="/META-INF/testartifacts.xml"/>
   <xi:include href="/META-INF/utp.xml"/>
   <xi:include href="/META-INF/backgroundtask-inspector.xml"/>
   <xi:include href="/META-INF/android-debuggers.xml"/>
@@ -101,4 +109,7 @@
   <xi:include href="/META-INF/native-symbolizer-gradle.xml"/>
   <xi:include href="/META-INF/aiplugin-api.xml"/>
   <xi:include href="/META-INF/server-flags.xml"/>
+<!--  <xi:include href="/META-INF/studio-labs.xml" />-->
+<!--  <xi:include href="/META-INF/settings-sync.xml" />-->
+  <xi:include href="/META-INF/screenshot-testing.xml" />
 </idea-plugin>

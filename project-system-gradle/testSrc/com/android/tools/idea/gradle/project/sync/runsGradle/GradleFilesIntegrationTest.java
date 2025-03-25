@@ -31,7 +31,10 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
+import com.android.test.testutils.TestUtils;
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -46,6 +49,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
@@ -53,13 +57,19 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.psi.KtPsiFactory;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
+import org.toml.lang.psi.TomlPsiFactory;
 
 /**
  * Tests for {@link GradleFiles}.
@@ -84,19 +94,55 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   @Override
   protected File loadSimpleApplication() throws Exception {
     File projectRoot = super.loadSimpleApplication();
-    // Make sure the file hashes are updated before the test is run
-    myGradleFiles.maybeProcessSyncStarted();
+    simulateSyncForGradleFilesUpdate();
     return projectRoot;
+  }
+
+  private File loadSimpleDeclarativeApplication() throws Exception {
+    assertTrue(DeclarativeStudioSupport.isEnabled());
+    assertTrue(DeclarativeIdeSupport.isEnabled());
+    File file = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE);
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(getProjectFolderPath(), true));
+    setupGradleSnapshotToWrapper();
+    importProject();
+    prepareProjectForTest(myFixture.getProject(), null);
+    simulateSyncForGradleFilesUpdate();
+    return file;
+  }
+
+  private void runWithDeclarativeSupport(ThrowableRunnable<Exception> runnable) throws Exception {
+    try {
+      DeclarativeStudioSupport.override(true);
+      DeclarativeIdeSupport.override(true);
+      runnable.run();
+    }
+    finally {
+      DeclarativeIdeSupport.clearOverride();
+      DeclarativeStudioSupport.clearOverride();
+    }
+  }
+
+  private void simulateSyncForGradleFilesUpdate() {
+    myGradleFiles.maybeProcessSyncStarted();
+    UIUtil.dispatchAllInvocationEvents();
+    assertFalse(myGradleFiles.areGradleFilesModified());
+  }
+
+  private void setupGradleSnapshotToWrapper() throws IOException {
+    Path distribution = TestUtils.resolveWorkspacePath("tools/external/gradle");
+    Path gradle = distribution.resolve("gradle-8.12-20241105002153+0000-bin.zip");
+    GradleWrapper wrapper = GradleWrapper.find(myFixture.getProject());
+    wrapper.updateDistributionUrl(gradle.toFile());
   }
 
   public void testNotModifiedWhenAddingWhitespaceInBuildFile() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false);
+    runGroovyAppBuildFileFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false);
   }
 
   public void testNotModifiedWhenAddingCommentInBuildFile() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest((factory, file) -> {
       PsiFile dummyFile = factory.createGroovyFile("// foo", false, null);
       PsiElement comment = dummyFile.getFirstChild();
       file.add(comment);
@@ -107,7 +153,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     VirtualFile buildFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
 
-    runFakeModificationTest((factory, file) -> {
+    runGroovyFakeModificationTest((factory, file) -> {
       assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
       Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
       doc.insertString(file.getFirstChild().getTextOffset() + 3, "abc");
@@ -119,7 +165,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     VirtualFile buildFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
 
-    runFakeModificationTest((factory, file) -> {
+    runGroovyFakeModificationTest((factory, file) -> {
       assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
       Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
       doc.insertString(file.getFirstChild().getTextOffset() + "// Top-level".length(), "\n//");
@@ -131,7 +177,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     VirtualFile buildFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
 
-    runFakeModificationTest((factory, file) -> {
+    runGroovyFakeModificationTest((factory, file) -> {
       assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
       file.deleteChildRange(file.getFirstChild(), file.getFirstChild());
     }, false, buildFile);
@@ -141,7 +187,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     VirtualFile buildFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
 
-    runFakeModificationTest((factory, file) -> {
+    runGroovyFakeModificationTest((factory, file) -> {
       assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
       // This is fragile, but at least the assertions below will catch modifications to build.gradle which would invalidate this test
       PsiElement buildscript = file.findElementAt(101);
@@ -157,7 +203,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     VirtualFile buildFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
 
-    runFakeModificationTest((factory, file) -> {
+    runGroovyFakeModificationTest((factory, file) -> {
       assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
       Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
       doc.deleteString(1, 2);
@@ -169,7 +215,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     VirtualFile buildFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
 
-    runFakeModificationTest((factory, file) -> {
+    runGroovyFakeModificationTest((factory, file) -> {
       assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
       Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
       doc.insertString(file.getFirstChild().getTextOffset() + "// Top-level".length(), "\n");
@@ -181,29 +227,29 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
 
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_GRADLE_PROPERTIES);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
 
   public void testModifiedWhenAddingTextChildInPropertiesFile() throws Exception {
     loadSimpleApplication();
 
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_GRADLE_PROPERTIES);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
-                            virtualFile);
+    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                                  virtualFile);
   }
 
   public void testModifiedWhenAddingTextInGradleConfigPropertiesFile() throws Exception {
     loadSimpleApplication();
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(".gradle", FN_GRADLE_CONFIG_PROPERTIES);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("test.property=true")), true,
-                            virtualFile);
+    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("test.property=true")), true,
+                                  virtualFile);
   }
 
   public void testNotModifiedWhenAddingTextInGradleConfigPropertiesFileOutsideOfCacheDir() throws Exception {
     loadSimpleApplication();
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(".not-gradle", FN_GRADLE_CONFIG_PROPERTIES);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("test.property=true")), false,
-                            virtualFile);
+    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("test.property=true")), false,
+                                  virtualFile);
   }
 
   public void testNotModifiedWhenAddingWhitespaceInWrapperPropertiesFile() throws Exception {
@@ -211,7 +257,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     Project project = getProject();
     GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
     VirtualFile virtualFile = wrapper.getPropertiesFile();
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
 
   public void testModifiedWhenAddingTextChildInWrapperPropertiesFile() throws Exception {
@@ -219,13 +265,13 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     Project project = getProject();
     GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
     VirtualFile virtualFile = wrapper.getPropertiesFile();
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
-                            virtualFile);
+    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                                  virtualFile);
   }
 
   public void testModifiedWhenReplacingChild() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }), true);
@@ -233,7 +279,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testModifiedWhenChildRemoved() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       assertThat(file.getFirstChild() instanceof PsiComment).isFalse();
       file.deleteChildRange(file.getFirstChild(), file.getFirstChild());
@@ -242,7 +288,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testNotModifiedWhenInnerWhiteSpaceIsAdded() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isAtLeast(3);
       PsiElement element = file.getChildren()[2];
       assertThat(element).isInstanceOf(GrMethodCallExpression.class);
@@ -252,7 +298,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testNotModifiedWhenInnerNewLineIsAdded() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isAtLeast(3);
       PsiElement element = file.getChildren()[2];
       assertThat(element).isInstanceOf(GrMethodCallExpression.class);
@@ -262,11 +308,11 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testNotModifiedWhenTextIsIdentical() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }), true);
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.android.application'"));
     }), false, false, getAppBuildFile());
@@ -274,12 +320,12 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testModifiedWhenDeleteAfterSync() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }), true);
-    myGradleFiles.maybeProcessSyncStarted();
-    runFakeModificationTest(((factory, file) -> {
+    simulateSyncForGradleFilesUpdate();
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.android.application'"));
     }), true);
@@ -287,36 +333,26 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testNotModifiedAfterSync() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }, true);
-    myGradleFiles.maybeProcessSyncStarted();
+    simulateSyncForGradleFilesUpdate();
     assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
-  }
-
-  public void testModifiedWhenModifiedDuringSync() throws Exception {
-    loadSimpleApplication();
-    myGradleFiles.maybeProcessSyncStarted();
-    runFakeModificationTest((factory, file) -> {
-      assertThat(file.getChildren().length).isGreaterThan(0);
-      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
-    }, true);
-    assertThat(myGradleFiles.areGradleFilesModified()).isTrue();
   }
 
   public void testNotModifiedWhenChangedBackDuringSync() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
     }), true);
-    myGradleFiles.maybeProcessSyncStarted();
-    runFakeModificationTest((factory, file) -> {
+    simulateSyncForGradleFilesUpdate();
+    runGroovyAppBuildFileFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }, true);
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
     }), false, false, getAppBuildFile());
@@ -324,8 +360,9 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testModifiedWhenVersionCatalogFileChanged() throws Exception {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG);
+    simulateSyncForGradleFilesUpdate();
     VirtualFile libs = findOrCreateFileRelativeToProjectRootFolder("gradle", "libs.versions.toml");
-    runFakeModificationTest((factory, file) -> {
+    runTomlFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       PsiElement firstCopy = file.getChildren()[0].copy();
       file.getChildren()[0].add(firstCopy);
@@ -339,34 +376,15 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     boolean deleted = path.delete();
     assertThat(deleted).isTrue();
     assertThat(getAppBuildFile().exists()).isTrue();
-    myGradleFiles.maybeProcessSyncStarted();
-    // syncStarted adds a transaction to update the file hashes, ensure this is run before verifying
-    UIUtil.dispatchAllInvocationEvents();
+    simulateSyncForGradleFilesUpdate();
     assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
     assertThat(myGradleFiles.hasHashForFile(getAppBuildFile())).isFalse();
-  }
-
-  public void testChangesAreNotDetectedWithNoListener() throws Exception {
-    loadSimpleApplication();
-    PsiFile psiFile = findPsiFile(getAppBuildFile());
-
-    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(getProject());
-
-    // If the listener was attached, this should count as a modification.
-    CommandProcessor.getInstance().executeCommand(getProject(), () ->
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        assertThat(psiFile.getChildren().length).isGreaterThan(0);
-        psiFile.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
-      }), "Fake Edit Test", null);
-
-    // But since we have no listener no files should be classed as modified.
-    assertFalse(myGradleFiles.areGradleFilesModified());
   }
 
   public void testCommentingOutTriggersModification() throws Exception {
     loadSimpleApplication();
 
-    runFakeModificationTest(((factory, file) -> {
+    runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       PsiElement element = ProjectBuildModelHandler.Companion.getInstance(getProject()).read((model) -> {
         List<DependencyModel> dependencies = model.getModuleBuildModel(getModule("app")).dependencies().all();
         assertThat(dependencies.size()).isGreaterThan(0);
@@ -380,87 +398,76 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   public void testModifiedWhenAddingTextChildInBuildFile() throws Exception {
     loadSimpleApplication();
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true);
+    runGroovyAppBuildFileFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true);
   }
 
   public void testModifiedWhenAddingTextChildInSettingsFile() throws Exception {
     loadSimpleApplication();
 
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
-                            virtualFile);
+    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                                  virtualFile);
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() throws Exception {
-    DeclarativeStudioSupport.override(true);
-    try {
-      loadSimpleApplication();
-
+    runWithDeclarativeSupport(() -> {
+      loadSimpleDeclarativeApplication();
       VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
-      runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
-                              virtualFile);
-    }
-    finally {
-      DeclarativeStudioSupport.clearOverride();
-    }
+      runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
+                                         virtualFile);
+    });
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
-    DeclarativeStudioSupport.override(true);
-    try {
-      loadSimpleApplication();
-
+    runWithDeclarativeSupport(() -> {
+      loadSimpleDeclarativeApplication();
       VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
-      runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
-                              virtualFile);
-    }
-    finally {
-      DeclarativeStudioSupport.clearOverride();
-    }
+      runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
+                                         virtualFile);
+    });
   }
 
   public void testModifiedWhenAddingTextChildInKotlinBuildFile() throws Exception {
-    loadSimpleApplication();
-
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS);
+    simulateSyncForGradleFilesUpdate();
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
-                            virtualFile);
+    runKtsFakeModificationTest((factory, file) -> file.add(factory.createProperty("val coolexpression by extra(\"nice!\")")),
+                               true, true, virtualFile);
   }
 
   public void testNotModifiedWhenAddingWhitespaceInSettingsFile() throws Exception {
     loadSimpleApplication();
-
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
 
   public void testNotModifiedWhenAddingWhitespaceInKotlinSettingsFile() throws Exception {
     loadSimpleApplication();
-
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_KTS);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    runKtsFakeModificationTest((factory, file) -> file.add(factory.createNewLine(1)), false, virtualFile);
   }
 
   public void testNotModifiedWhenAddingWhitespaceInDeclarativeSettingsFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    runWithDeclarativeSupport(() -> {
+      loadSimpleDeclarativeApplication();
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
+      runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createNewline()), false, virtualFile);
+    });
   }
 
 
   public void testNotModifiedWhenAddingWhitespaceInKotlinBuildFile() throws Exception {
-    loadSimpleApplication();
-
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS);
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    runKtsFakeModificationTest((factory, file) -> file.add(factory.createNewLine(1)), false, virtualFile);
   }
 
   public void testNotModifiedWhenAddingWhitespaceInDeclarativeBuildFile() throws Exception {
-    loadSimpleApplication();
-
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    runWithDeclarativeSupport(() -> {
+      loadSimpleDeclarativeApplication();
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+      runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
+    });
   }
 
   @NotNull
@@ -500,31 +507,79 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     return result;
   }
 
-  private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
-                                       boolean expectedResult) {
-    runFakeModificationTest(editFunction, expectedResult, true, getAppBuildFile());
+  private void runGroovyAppBuildFileFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
+                                                         boolean expectedResult) {
+    runGroovyFakeModificationTest(editFunction, expectedResult, true, getAppBuildFile());
   }
 
-  private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
-                                       boolean expectedResult,
-                                       @NotNull VirtualFile file) {
-    runFakeModificationTest(editFunction, expectedResult, true, file);
+  private void runGroovyFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
+                                             boolean expectedResult,
+                                             @NotNull VirtualFile file) {
+    runGroovyFakeModificationTest(editFunction, expectedResult, true, file);
   }
 
-  private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
-                                       boolean expectedResult,
-                                       boolean preCheckEnabled,
-                                       @NotNull VirtualFile file) {
-    // Clear event queue as the hashing is added as a transaction
-    UIUtil.dispatchAllInvocationEvents();
+  private void runGroovyFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
+                                             boolean expectedResult,
+                                             boolean preCheckEnabled,
+                                             @NotNull VirtualFile file) {
+    runGenericFakeModificationTest(GroovyPsiElementFactory::getInstance, editFunction, expectedResult, preCheckEnabled, file);
+  }
 
+  private void runKtsFakeModificationTest(@NotNull BiConsumer<KtPsiFactory, PsiFile> editFunction,
+                                          boolean expectedResult,
+                                          @NotNull VirtualFile file) {
+    runKtsFakeModificationTest(editFunction, expectedResult, true, file);
+  }
+
+  private void runKtsFakeModificationTest(@NotNull BiConsumer<KtPsiFactory, PsiFile> editFunction,
+                                          boolean expectedResult,
+                                          boolean preCheckEnabled,
+                                          @NotNull VirtualFile file) {
+    runGenericFakeModificationTest(KtPsiFactory::new, editFunction, expectedResult, preCheckEnabled, file);
+  }
+
+  private void runDeclarativeFakeModificationTest(@NotNull BiConsumer<DeclarativePsiFactory, PsiFile> editFunction,
+                                                  boolean expectedResult,
+                                                  @NotNull VirtualFile file) {
+    runDeclarativeFakeModificationTest(editFunction, expectedResult, true, file);
+  }
+
+  private void runDeclarativeFakeModificationTest(@NotNull BiConsumer<DeclarativePsiFactory, PsiFile> editFunction,
+                                                  boolean expectedResult,
+                                                  boolean preCheckEnabled,
+                                                  @NotNull VirtualFile file) {
+    assertTrue(DeclarativeStudioSupport.isEnabled());
+    assertTrue(DeclarativeIdeSupport.isEnabled());
+    runGenericFakeModificationTest(DeclarativePsiFactory::new, editFunction, expectedResult, preCheckEnabled, file);
+  }
+
+  private void runTomlFakeModificationTest(@NotNull BiConsumer<TomlPsiFactory, PsiFile> editFunction,
+                                           boolean expectedResult,
+                                           @NotNull VirtualFile file) {
+    runTomlFakeModificationTest(editFunction, expectedResult, true, file);
+  }
+
+  private void runTomlFakeModificationTest(@NotNull BiConsumer<TomlPsiFactory, PsiFile> editFunction,
+                                           boolean expectedResult,
+                                           boolean preCheckEnabled,
+                                           @NotNull VirtualFile file) {
+    runGenericFakeModificationTest((project) -> new TomlPsiFactory(project, true), editFunction, expectedResult, preCheckEnabled, file);
+  }
+
+  private <T> void runGenericFakeModificationTest(
+    @NotNull Function<Project, T> factoryFactory,
+    @NotNull BiConsumer<T, PsiFile> editFunction,
+    boolean expectedResult,
+    boolean preCheckEnabled,
+    @NotNull VirtualFile file
+  ) {
     PsiFile psiFile = findPsiFile(file);
 
     FileEditorManager mockManager = mock(FileEditorManager.class);
 
     myGradleFiles.getFileEditorListener().selectionChanged(new FileEditorManagerEvent(mockManager, null, null, null, file, null, null));
 
-    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(getProject());
+    T factory = factoryFactory.apply(getProject());
 
     boolean filesModified = myGradleFiles.areGradleFilesModified();
     if (preCheckEnabled) {

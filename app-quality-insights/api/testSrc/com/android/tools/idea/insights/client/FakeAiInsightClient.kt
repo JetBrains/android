@@ -16,8 +16,8 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.protobuf.Message
 import com.google.common.io.BaseEncoding
+import com.google.protobuf.Message
 
 object FakeAiInsightClient : AiInsightClient {
   override suspend fun fetchCrashInsight(

@@ -16,16 +16,11 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.model.DefaultSelectionModel
-import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_EXPERIMENTAL_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -68,15 +63,12 @@ private fun createPreviewDesignSurfaceBuilder(
           RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
       }
     }
-    .shouldZoomOnFirstComponentResize(false)
+    .waitForRenderBeforeRestoringZoom(true)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setDelegateDataProvider(dataProvider)
-    .setSelectionModel(
-      if (StudioFlags.COMPOSE_PREVIEW_SELECTION.get()) DefaultSelectionModel()
-      else NopSelectionModel
-    )
+    .setSelectionModel(DefaultSelectionModel())
     .setZoomControlsPolicy(ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActionsProvider {
       if (!isInteractive()) COMPOSE_SUPPORTED_ACTIONS else ImmutableSet.of()
@@ -84,10 +76,6 @@ private fun createPreviewDesignSurfaceBuilder(
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(screenViewProvider, false)
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
-    .setShouldShowLayoutDeprecationBanner {
-      listOf(LIST_LAYOUT_OPTION, LIST_EXPERIMENTAL_LAYOUT_OPTION, LIST_NO_GROUP_LAYOUT_OPTION)
-        .contains(it)
-    }
 
 /**
  * Creates a [NlSurfaceBuilder] for the main design surface in the Compose preview. [isInteractive]

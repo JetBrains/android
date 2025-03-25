@@ -1,3 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14ZM8 12C10.2091 12 12 10.2091 12 8C12 7.25823 11.7981 6.56362 11.4462 5.96813L5.96813 11.4462C6.56362 11.7981 7.25823 12 8 12ZM4.55388 10.0321L10.0321 4.55388C9.43653 4.20195 8.74185 4 8 4C5.79086 4 4 5.79086 4 8C4 8.74185 4.20195 9.43653 4.55388 10.0321Z" fill="#AFB1B3"/>
-</svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="5.5" stroke="#CED0D6"/><path d="M4.5 11.5l7-7" stroke="#CED0D6" stroke-linecap="round"/></svg>

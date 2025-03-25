@@ -22,7 +22,6 @@ import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.constructEmptyBuildResultsObject
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.analytics.TestUsageTracker
@@ -44,6 +43,7 @@ import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.util.UUID
 import javax.swing.JEditorPane
 import javax.swing.JPanel
@@ -338,9 +338,12 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
       .replace("\n","")
       .replace("<br>","\n")
       .trim()
+
+    // Since the unicode character \u2026 for ellipsis, gets converted to HTML via Swing it turns into
+    // its decimal form &#8230;. See https://en.wikipedia.org/wiki/Ellipsis#HTML for more details
     Truth.assertThat(text).isEqualTo("""
       There was an internal failure in Build Analyzer while running analysis of this build.
-      Please help us fix it by reporting the problem using Help &gt; Submit Feedback action.
+      Please help us fix it by reporting the problem using Help &gt; Submit a Bug Report&#8230;
     """.trimIndent())
   }
 

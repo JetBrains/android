@@ -46,6 +46,7 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.WeakReferenceDisposableWrapper
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
@@ -53,11 +54,9 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
-import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
@@ -132,7 +131,12 @@ open class NlPropertiesModel(
 
   var surface: DesignSurface<*>?
     get() = activeSurface
-    set(value) = useDesignSurface(value)
+    set(value) {
+      value?.let {
+        Disposer.register(it, WeakReferenceDisposableWrapper { useDesignSurface(null) })
+      }
+      useDesignSurface(value)
+    }
 
   val selection: List<NlComponent>
     get() = surface?.selectionModel?.selection ?: emptyList()
@@ -248,43 +252,38 @@ open class NlPropertiesModel(
     ApplicationManager.getApplication()
       .invokeLater(
         {
-          SlowOperations.allowSlowOperations(
-            ThrowableComputable {
-              NlWriteCommandActionUtil.run(
-                property.components,
-                "Set $componentName.${property.name} to $newValue",
-              ) {
-                property.components.forEach {
-                  it.setAttribute(property.namespace, property.name, newValue)
-                }
-                val compatibleAttribute = compatibleMarginAttribute(property)
-                if (compatibleAttribute != null) {
-                  property.components.forEach {
-                    it.setAttribute(property.namespace, compatibleAttribute, newValue)
-                  }
-                }
-                logPropertyValueChanged(property)
-                if (property.namespace == TOOLS_URI) {
-                  if (newValue != null) {
-                    // A tools property may not be in the current set of possible properties. So add
-                    // it
-                    // now:
-                    if (properties.isEmpty) {
-                      properties = provider.createEmptyTable()
-                    }
-                    properties.put(property)
-                  }
-
-                  if (property.name == ATTR_PARENT_TAG) {
-                    // When the "parentTag" attribute is set on a <merge> tag,
-                    // we may have a different set of available properties available,
-                    // since the attributes of the "parentTag" are included if set.
-                    firePropertiesGenerated()
-                  }
-                }
+          NlWriteCommandActionUtil.run(
+            property.components,
+            "Set $componentName.${property.name} to $newValue",
+          ) {
+            property.components.forEach {
+              it.setAttribute(property.namespace, property.name, newValue)
+            }
+            val compatibleAttribute = compatibleMarginAttribute(property)
+            if (compatibleAttribute != null) {
+              property.components.forEach {
+                it.setAttribute(property.namespace, compatibleAttribute, newValue)
               }
             }
-          )
+            logPropertyValueChanged(property)
+            if (property.namespace == TOOLS_URI) {
+              if (newValue != null) {
+                // A tools property may not be in the current set of possible properties. So add
+                // it now:
+                if (properties.isEmpty) {
+                  properties = provider.createEmptyTable()
+                }
+                properties.put(property)
+              }
+
+              if (property.name == ATTR_PARENT_TAG) {
+                // When the "parentTag" attribute is set on a <merge> tag,
+                // we may have a different set of available properties available,
+                // since the attributes of the "parentTag" are included if set.
+                firePropertiesGenerated()
+              }
+            }
+          }
         },
         { Disposer.isDisposed(this) },
       )
@@ -313,6 +312,9 @@ open class NlPropertiesModel(
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
       activeSceneView = surface?.focusedSceneView
+      activeSceneView?.let {
+        Disposer.register(it, WeakReferenceDisposableWrapper { activeSceneView = null })
+      }
     }
     makeInitialSelection(surface, activePanel)
   }

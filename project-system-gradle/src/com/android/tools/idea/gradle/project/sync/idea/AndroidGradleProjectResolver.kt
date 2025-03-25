@@ -708,6 +708,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     projectPath: String,
     buildFilePath: String?
   ): ExternalSystemException {
+    SyncFailureUsageReporter.getInstance().collectUnprocessedGradleError(projectPath, error)
     val msg = error.message
     if (msg != null) {
       val rootCause = ExceptionUtil.getRootCause(error)

@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.rendering.RenderResult
 import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
+import com.android.tools.idea.testing.virtualFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VfsUtil
@@ -33,44 +34,21 @@ import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
 
-class RenderATFComplexPerfgateTest {
-  @get:Rule
-  val gradleRule = AndroidGradleProjectRule()
+class RenderATFComplexPerfgateTest : ComposeRenderTestBase(PERFGATE_COMPLEX_LAYOUT) {
+
   private lateinit var facet: AndroidFacet
   private lateinit var layoutFile: VirtualFile
   private lateinit var layoutConfiguration: Configuration
 
   @Before
-  fun setUp() {
-    RenderTestUtil.beforeRenderTestCase()
+  override fun setUp() {
+    super.setUp()
     // Enabling this will retrieve text character locations from TextView to improve the
     // accuracy of TextContrastCheck in ATF.
     LayoutValidator.setObtainCharacterLocations(true)
-
-    val baseTestPath = resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData")
-    gradleRule.fixture.testDataPath = baseTestPath.toString()
-    val xmlPath = baseTestPath.resolve("projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml")
-    var layoutFilePath: Path = Path.of("")
-    gradleRule.load(PERFGATE_COMPLEX_LAYOUT, preLoad = {
-      layoutFilePath = it.resolve("app/res/layout/activity_main.xml").toPath()
-      Files.createDirectories(layoutFilePath.parent)
-      Files.copy(xmlPath, layoutFilePath)
-    })
-    facet = gradleRule.androidFacet(":app")
-    layoutFile = VfsUtil.findFileByIoFile(layoutFilePath.toFile(), false)!!
+    facet = projectRule.mainAndroidFacet(":app")
+    layoutFile = facet.virtualFile("src/main/res/layout/activity_main.xml")
     layoutConfiguration = RenderTestUtil.getConfiguration(facet.module, layoutFile)
-  }
-
-  @After
-  fun tearDown() {
-    try {
-      ApplicationManager.getApplication().invokeAndWait {
-        RenderTestUtil.afterRenderTestCase()
-      }
-    }
-    finally {
-      StudioFrameworkResourceRepositoryManager.getInstance().clearCache()
-    }
   }
 
   @Test

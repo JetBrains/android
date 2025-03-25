@@ -61,6 +61,7 @@ import com.intellij.openapi.util.io.DataInputOutputUtilRt.writeSeq
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.SlowOperations
 import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
 import com.intellij.util.indexing.FileBasedIndex
@@ -213,7 +214,10 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     @JvmStatic
     private fun doGetDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
       ProgressManager.checkCanceled()
-      val data: MutableMap<String, AndroidManifestRawText> = FileBasedIndex.getInstance().getFileData(NAME, manifestFile, project)
+
+      val data: MutableMap<String, AndroidManifestRawText> = SlowOperations.knownIssue("b/391099838").use {
+        FileBasedIndex.getInstance().getFileData(NAME, manifestFile, project)
+      }
       check(data.values.size <= 1)
       return data.values.firstOrNull()
     }

@@ -213,7 +213,7 @@ public final class BlazeAndroidRunConfigurationRunner
     ApkProvider apkProvider =
         BlazeApkProviderService.getInstance()
             .getApkProvider(env.getProject(), runContext.getBuildStep());
-    DeviceFutures deviceFutures = deployTarget.getDevices(env.getProject());
+    DeviceFutures deviceFutures = deployTarget.launchDevices(env.getProject());
 
     ApplicationDeployer deployer =
         runContext.getBuildStep() instanceof MobileInstallBuildStep

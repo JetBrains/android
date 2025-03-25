@@ -19,7 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
-import gnu.trove.TIntIntHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,9 +38,9 @@ class BlazeCoverageData {
 
   static class FileData {
     final String source;
-    final TIntIntHashMap lineHits;
+    final Int2IntOpenHashMap lineHits;
 
-    private FileData(String source, TIntIntHashMap lineHits) {
+    private FileData(String source, Int2IntOpenHashMap lineHits) {
       this.source = source;
       this.lineHits = lineHits;
     }
@@ -65,7 +65,7 @@ class BlazeCoverageData {
       while ((line = reader.readLine()) != null) {
         if (line.startsWith(SF)) {
           String source = line.substring(SF.length());
-          TIntIntHashMap hits = parseHits(reader);
+          Int2IntOpenHashMap hits = parseHits(reader);
           if (!hits.isEmpty()) {
             map.put(source, new FileData(source, hits));
           }
@@ -74,8 +74,8 @@ class BlazeCoverageData {
       return new BlazeCoverageData(ImmutableMap.copyOf(map));
     }
 
-    private static TIntIntHashMap parseHits(BufferedReader reader) throws IOException {
-      TIntIntHashMap hits = new TIntIntHashMap();
+    private static Int2IntOpenHashMap parseHits(BufferedReader reader) throws IOException {
+      Int2IntOpenHashMap hits = new Int2IntOpenHashMap();
       String line;
       while ((line = reader.readLine()) != null) {
         if (line.startsWith(END_OF_RECORD)) {

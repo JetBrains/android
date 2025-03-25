@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.facet.ndk
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.VariantAbi
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetTypeId
@@ -82,7 +82,16 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
 
     @JvmStatic
     fun getInstance(module: Module): NdkFacet? {
-      return FacetManager.getInstance(module.getHolderModule()).getFacetByType(facetTypeId)
+      if (module.isDisposed) {
+        Logger.getInstance(NdkFacet::class.java).warn("'$facetName' facet is requested on a disposed module $module")
+        return null
+      }
+      val holderModule = module.getHolderModule()
+      if (holderModule.isDisposed) {
+        Logger.getInstance(NdkFacet::class.java).warn("'$facetName' facet is requested on $module but holder module is disposed: $holderModule")
+        return null
+      }
+      return FacetManager.getInstance(holderModule).getFacetByType(facetTypeId)
     }
 
     @JvmStatic

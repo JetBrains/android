@@ -73,16 +73,8 @@ import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 public class MoreFontsDialog extends DialogWrapper {
   public static final String ACTION_NAME = "More Fonts...";
 
-  private static final float FONT_SIZE_IN_LIST = 16f;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 10;
-  private static final int DEFAULT_HEIGHT = JBUI.scale(400);
-  private static final int DEFAULT_WIDTH = JBUI.scale(600);
-  private static final int MIN_FONT_LIST_HEIGHT = JBUI.scale(200);
-  private static final int MIN_FONT_LIST_WIDTH = JBUI.scale(250);
-  private static final int MIN_FONT_PREVIEW_HEIGHT = JBUI.scale(200);
-  private static final int MIN_FONT_PREVIEW_WIDTH = JBUI.scale(150);
-  private static final int DESCENDER_SPACE = JBUI.scale(4);
 
   private final FontListModel myModel;
   private final DefaultListModel<FontDetail> myDetailModel;
@@ -119,11 +111,11 @@ public class MoreFontsDialog extends DialogWrapper {
     super(facet.getModule().getProject());
     setTitle("Resources");
     myResourceRepository = StudioResourceRepositoryManager.getInstance(facet);
-    myContentPanel.setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
-    myFontList.setMinimumSize(new Dimension(MIN_FONT_LIST_WIDTH, MIN_FONT_LIST_HEIGHT));
+    myContentPanel.setPreferredSize(new Dimension(getDefaultWidth(), getDefaultHeight()));
+    myFontList.setMinimumSize(new Dimension(getMinFontListWidth(), getMinFontListHeight()));
     myFontList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myFontList.setName("Font list");
-    myFontDetailList.setMinimumSize(new Dimension(MIN_FONT_PREVIEW_WIDTH, MIN_FONT_PREVIEW_HEIGHT));
+    myFontDetailList.setMinimumSize(new Dimension(getMinFontPreviewWidth(), getMinFontPreviewHeight()));
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     ProjectFonts projectFonts = showExistingFonts ? new ProjectFonts(StudioDownloadableFontCacheService.getInstance(), myResourceRepository) : null;
     myModel = new FontListModel(projectFonts, showExistingFonts);
@@ -135,7 +127,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontList.setCellRenderer(new FontFamilyRenderer());
     // We want to set fixed cell height and width. This makes the list render much faster.
     myFontList.setFixedCellHeight(computeFontHeightInFontList(myFontList));
-    myFontList.setFixedCellWidth(MIN_FONT_LIST_WIDTH + JBUI.scale(DESCENDER_SPACE));
+    myFontList.setFixedCellWidth(getMinFontListWidth() + JBUI.scale(getDescenderSpace()));
     myFontList.setModel(myModel);
     myFontListScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     JScrollBar scrollBar = myFontListScrollPane.getVerticalScrollBar();
@@ -158,8 +150,8 @@ public class MoreFontsDialog extends DialogWrapper {
       public void componentResized(@NotNull ComponentEvent event) {
         Insets fontListInsets = myFontListPanel.getBorder().getBorderInsets(myFontListPanel);
         int width = (myContentPanel.getWidth() - myFontLabel.getWidth()) / 2 - fontListInsets.left - fontListInsets.right;
-        myFontList.setFixedCellWidth(Math.min(MIN_FONT_LIST_WIDTH, width));
-        myPreviewPanel.setPreferredSize(new Dimension(width, MIN_FONT_PREVIEW_HEIGHT));
+        myFontList.setFixedCellWidth(Math.min(getMinFontListWidth(), width));
+        myPreviewPanel.setPreferredSize(new Dimension(width, getMinFontPreviewHeight()));
       }
     });
     myProvider.addItem("Google Fonts");
@@ -247,7 +239,7 @@ public class MoreFontsDialog extends DialogWrapper {
   }
 
   private static int computeFontHeightInFontList(@NotNull JComponent component) {
-    return component.getFontMetrics(component.getFont().deriveFont(FONT_SIZE_IN_LIST)).getHeight();
+    return component.getFontMetrics(component.getFont().deriveFont(getFontSizeInList())).getHeight();
   }
 
   private LayoutManager createGroupLayoutForCreateParams() {
@@ -395,6 +387,38 @@ public class MoreFontsDialog extends DialogWrapper {
     return builder.toString();
   }
 
+  private static float getFontSizeInList() {
+    return JBUI.scaleFontSize(16f);
+  }
+
+  private static int getDefaultHeight() {
+    return JBUI.scale(400);
+  }
+
+  private static int getDefaultWidth() {
+    return JBUI.scale(600);
+  }
+
+  private static int getMinFontListHeight() {
+    return JBUI.scale(200);
+  }
+
+  private static int getMinFontListWidth() {
+    return JBUI.scale(250);
+  }
+
+  private static int getMinFontPreviewHeight() {
+    return JBUI.scale(200);
+  }
+
+  private static int getMinFontPreviewWidth() {
+    return JBUI.scale(150);
+  }
+
+  private static int getDescenderSpace() {
+    return JBUI.scale(4);
+  }
+
   private static class FontFamilyRenderer extends ColoredListCellRenderer<FontFamily> {
     private static final int FONT_CACHE_LOAD_BATCH_SIZE = 15;
 
@@ -452,7 +476,7 @@ public class MoreFontsDialog extends DialogWrapper {
         font = myFontService.loadMenuFont(fontFamily);
         String text = fontFamily.getMenuName();
         if (font != null && font.canDisplayUpTo(text) < 0) {
-          font = font.deriveFont(FONT_SIZE_IN_LIST);
+          font = font.deriveFont(getFontSizeInList());
           myMenuFontCache.put(fontFamily, font);
         }
       }
@@ -519,7 +543,7 @@ public class MoreFontsDialog extends DialogWrapper {
       String text = fontDetail.getStyleName();
       Font font = myFontService.loadDetailFont(fontDetail);
       if (font != null) {
-        setFont(font.deriveFont(FONT_SIZE_IN_LIST));
+        setFont(font.deriveFont(getFontSizeInList()));
         text = findDisplayableTextForFont(font, text);
       }
       mySelectionForeground = myForeground;

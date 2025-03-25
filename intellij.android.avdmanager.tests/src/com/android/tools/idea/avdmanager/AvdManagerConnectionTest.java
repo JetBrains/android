@@ -47,6 +47,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.AvdManagerException;
 import com.android.sdklib.internal.avd.OnDiskSkin;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
@@ -59,6 +60,9 @@ import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
+import com.intellij.credentialStore.Credentials;
+import com.intellij.util.net.ProxyConfiguration;
+import com.intellij.util.net.ProxyCredentialStore;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -299,7 +303,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertThat(avdConfig.get(HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
   }
 
-  public void testWipeAvd() {
+  public void testWipeAvd() throws AvdManagerException {
     MockLog log = new MockLog();
     // Create an AVD
     AvdInfo avd = mAvdManager.createAvd(
@@ -314,8 +318,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false,
       false,
       false);
-
-    assertNotNull("Could not create AVD", avd);
 
     // Make a userdata-qemu.img so we can see if 'wipe-data' deletes it
     Path userQemu = mAvdFolder.resolve(AvdManager.USERDATA_QEMU_IMG);
@@ -530,6 +532,16 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false);
     assertThat(info).isNotNull();
     assertThat(info.getUserSettings().get(PREFERRED_ABI)).isEqualTo(Abi.X86_64.toString());
+  }
+
+  public void testStudioParams() {
+    ProxyConfiguration.StaticProxyConfiguration config =
+      ProxyConfiguration.proxy(ProxyConfiguration.ProxyProtocol.HTTP, "proxy.com", 80, "");
+    ProxyCredentialStore.getInstance().setCredentials("proxy.com", 80, new Credentials("myuser", "hunter2"), false);
+
+    List<String> params = AvdManagerConnectionKt.toStudioParams(config, ProxyCredentialStore.getInstance());
+    assertThat(params).containsExactly("http.proxyHost=proxy.com", "http.proxyPort=80", "proxy.authentication.username=myuser",
+                                       "proxy.authentication.password=hunter2");
   }
 
   private static void recordGoogleApisSysImg23(Path sdkRoot) {

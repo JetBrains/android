@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -91,8 +92,7 @@ public class OpenExistingProjectTest {
 
     Thread.sleep(10_000); // TODO(b/332920584): temporary workaround for IJPL-149431 (DumbService deadlock).
 
-    ideFrame.invokeMenuPath("Code", "Inspect Code...");
-    InspectCodeDialogFixture inspectCodeDialog = InspectCodeDialogFixture.find(ideFrame);
+    InspectCodeDialogFixture inspectCodeDialog = ideFrame.invokeInspectCodeDialog();
     inspectCodeDialog.clickAnalyze();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     List<String> errors = editorFixture.getHighlights(HighlightSeverity.ERROR);

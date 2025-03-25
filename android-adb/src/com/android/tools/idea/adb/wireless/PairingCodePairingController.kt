@@ -23,18 +23,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @UiThread
-class PairingCodePairingController(private val scope: CoroutineScope,
-                                   private val pairingService: WiFiPairingService,
-                                   private val view: PairingCodePairingView) {
+class PairingCodePairingController(
+  private val scope: CoroutineScope,
+  private val pairingService: WiFiPairingService,
+  private val view: PairingCodePairingView,
+) {
   private val LOG = logger<PairingCodePairingController>()
 
   init {
     view.addListener(ViewListener())
   }
 
-  /**
-   * Note: This call is blocking, as it displays a modal dialog
-   */
+  /** Note: This call is blocking, as it displays a modal dialog */
   fun showDialog() {
     view.showDialog()
   }
@@ -47,18 +47,22 @@ class PairingCodePairingController(private val scope: CoroutineScope,
 
       scope.launch(uiThread(ModalityState.any())) {
         try {
-          val pairingResult = pairingService.pairMdnsService(view.model.service, view.model.pairingCode)
+          val pairingResult =
+            pairingService.pairMdnsService(view.model.service, view.model.pairingCode)
           view.showWaitingForDeviceProgress(pairingResult)
           LOG.info(
-            "Pairing code pairing process with mDNS service ${view.model.service} succeeded, now starting to wait for device to connect")
-          //TODO: Ensure not disposed and state still the same
+            "Pairing code pairing process with mDNS service ${view.model.service} succeeded, now starting to wait for device to connect"
+          )
+          // TODO: Ensure not disposed and state still the same
           val device = pairingService.waitForDevice(pairingResult)
-          LOG.info("Device ${device} corresponding to mDNS service ${view.model.service} is now connected")
-          //TODO: Ensure not disposed and state still the same
+          LOG.info(
+            "Device ${device} corresponding to mDNS service ${view.model.service} is now connected"
+          )
+          // TODO: Ensure not disposed and state still the same
           view.showPairingSuccess(view.model.service, device)
         } catch (e: Throwable) {
           LOG.warn("Pairing code pairing process failed", e)
-          //TODO: Ensure not disposed and state still the same
+          // TODO: Ensure not disposed and state still the same
           view.showPairingError(view.model.service, e)
         }
       }

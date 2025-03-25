@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.backup
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetContext
 import com.android.tools.idea.run.editor.DeployTargetProvider
-import com.intellij.CommonBundle
 import com.intellij.execution.RunManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageDialogBuilder
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
 
 /** Production implementation of [ActionHelper] */
 class ActionHelperImpl : ActionHelper {
@@ -36,34 +32,31 @@ class ActionHelperImpl : ActionHelper {
   }
 
   override fun getDeployTargetCount(project: Project) =
-    getDeployTarget(project)?.getAndroidDevices(project)?.size ?: 0
+    getDeployTarget(project).getAndroidDevices(project).size
 
   override suspend fun getDeployTargetSerial(project: Project): String? {
-    val deployTarget = getDeployTarget(project) ?: return null
+    val deployTarget = getDeployTarget(project)
     val targets = deployTarget.getAndroidDevices(project)
     if (targets.size != 1) {
       return null
     }
-    val target = targets.firstOrNull { it.isRunning } ?: return null
-    return target.launchedDevice.await().serialNumber
-  }
 
-  override suspend fun showWarning(project: Project, title: String, message: String) {
-    withContext(uiThread) {
-      @Suppress("UnstableApiUsage")
-      MessageDialogBuilder.Message(title, message)
-        .buttons(CommonBundle.getOkButtonText())
-        .asWarning()
-        .show(project)
+    val device = targets.first().ddmlibDevice
+    if (device?.isOnline != true) {
+      return null
     }
+    return device.serialNumber
   }
 
-  private fun getDeployTarget(project: Project): DeployTarget? {
+  override suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean {
+    val backupManager = BackupManager.getInstance(project)
+    val applicationIds = project.service<ProjectAppsProvider>().getApplicationIds()
+    return applicationIds.any { backupManager.isInstalled(serialNumber, it) }
+  }
+
+  private fun getDeployTarget(project: Project): DeployTarget {
     val targetProvider: DeployTargetProvider =
       DeployTargetContext().getCurrentDeployTargetProvider()
-    return when (targetProvider.requiresRuntimePrompt(project)) {
-      true -> null
-      false -> targetProvider.getDeployTarget(project)
-    }
+    return targetProvider.getDeployTarget(project)
   }
 }

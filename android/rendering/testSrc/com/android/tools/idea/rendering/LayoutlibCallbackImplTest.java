@@ -17,7 +17,9 @@ package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
-import static org.mockito.Mockito.any;
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_EXACT;
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,6 +29,7 @@ import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.FontType;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -40,7 +43,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.LayoutlibCallbackImpl;
-import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManagerKt;
@@ -97,7 +99,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       ApplicationManager.getApplication(), DownloadableFontCacheService.class, myFontCacheServiceMock, getTestRootDisposable());
     myProjectFonts = mock(ProjectFonts.class);
     FontFamily fontFamily = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, "Roboto", "", "", ImmutableList.of(
-      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false, false)));
+      new MutableFontDetail("Roboto", FontType.SINGLE, 700, 100f, ITALICS, DEFAULT_EXACT, "https://fonts.google.com/roboto700i", "", false)));
     when(myProjectFonts.getFont(any())).thenReturn(fontFamily);
   }
 
@@ -140,8 +142,9 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
-      ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forBuildTargetReference(myBuildTarget.getBuildTarget());
+      ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get()
+                                                      .getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
           new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
@@ -181,7 +184,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forBuildTargetReference(myBuildTarget.getBuildTarget());
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
@@ -210,7 +213,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
+      StudioModuleRenderContext renderContext = StudioModuleRenderContext.forBuildTargetReference(myBuildTarget.getBuildTarget());
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =

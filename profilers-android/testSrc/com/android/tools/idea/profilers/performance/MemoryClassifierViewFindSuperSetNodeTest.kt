@@ -129,6 +129,5 @@ class MemoryClassifierViewFindSuperSetNodeTest {
 
 private fun gc() {
   repeat (10) { System.gc() }
-  System.runFinalization()
   repeat (10) { ManagementFactory.getMemoryMXBean().gc() }
 }

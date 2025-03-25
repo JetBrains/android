@@ -16,9 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -29,7 +33,8 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
 
   private fun runSyncAndCheckFailure(
     preparedProject: PreparedTestProject,
-    expectedErrorNodeNameVerifier: (String) -> Unit
+    expectedErrorNodeNameVerifier: (String) -> Unit,
+    expectedFailureDetailsString: String
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
     verifySyncViewEvents = { _, buildEvents ->
@@ -53,6 +58,7 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
+      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo(expectedFailureDetailsString)
     },
   )
 
@@ -66,7 +72,21 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
         expect.that(it).startsWith("Unexpected input: '(\"This is a simple application!\")")
-      }
+      },
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.groovy.scripts.ScriptCompilationException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#lambda${'$'}wrapCompilationFailure${'$'}0
+            exception: org.codehaus.groovy.control.MultipleCompilationErrorsException
+              at: [0]org.apache.groovy.parser.antlr4.AstBuilder#collectSyntaxError
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -83,7 +103,21 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
         expect.that(it).startsWith("Unexpected input: 'throw'")
-      }
+      },
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.groovy.scripts.ScriptCompilationException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#lambda${'$'}wrapCompilationFailure${'$'}0
+            exception: org.codehaus.groovy.control.MultipleCompilationErrorsException
+              at: [0]org.apache.groovy.parser.antlr4.AstBuilder#collectSyntaxError
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -116,6 +150,20 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
         expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
+        """.trimIndent())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.api.ProjectConfigurationException
+                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+              exception: org.gradle.api.GradleScriptException
+                at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+              exception: org.codehaus.groovy.runtime.typehandling.GroovyCastException
+                at: [1]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            }
+          }
         """.trimIndent())
       }
     )

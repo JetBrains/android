@@ -97,13 +97,15 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
 
   private fun createNameOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    // It is okay to have duplicated name
     val editTextField = JBTextField(customSetName)
+    val existingConfigurationNames =
+      VisualizationUtil.getUserMadeConfigurationSets().map { it.name }
     editTextField.document.addDocumentListener(
       object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           customSetName = e.document.getText(0, e.document.length) ?: ""
-          addButton.isEnabled = customSetName.isNotBlank()
+          addButton.isEnabled =
+            customSetName.isNotBlank() && !existingConfigurationNames.contains(customSetName)
         }
       }
     )

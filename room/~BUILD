@@ -25,7 +25,7 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.room.AndroidRoomTestSuite",
     test_data = [
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
     ],
@@ -40,6 +40,7 @@ iml_module(
         "//tools/adt/idea/room:intellij.android.room[module]",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",

@@ -55,10 +55,11 @@ public class MockArtifactLocationDecoder implements ArtifactLocationDecoder {
     }
 
     File file = decode(artifact);
+    int artifactPathPrefixLength = Path.of(artifact.getRootExecutionPathFragment()).getNameCount();
     if (isRemote && file.exists()) {
-      return new FakeRemoteOutputArtifact(file, workspaceRoot.toPath().relativize(file.toPath()));
+      return new FakeRemoteOutputArtifact(file, workspaceRoot.toPath().relativize(file.toPath()), artifactPathPrefixLength);
     }
     return new LocalFileOutputArtifactWithoutDigest(
-        decode(artifact), Path.of(artifact.getExecutionRootRelativePath()), artifact.getExecutionRootRelativePath());
+      decode(artifact), Path.of(artifact.getExecutionRootRelativePath()), artifactPathPrefixLength);
   }
 }

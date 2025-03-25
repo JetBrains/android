@@ -9,6 +9,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.android-extensions-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.assignment-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.compose-compiler-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.js-plain-objects-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.kotlin-compiler-common.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.kotlin-compiler-fe10.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.kotlin-compiler-ir.jar!/" />

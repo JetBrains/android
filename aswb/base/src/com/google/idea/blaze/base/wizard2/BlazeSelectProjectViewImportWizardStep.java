@@ -23,7 +23,7 @@ import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-class BlazeSelectProjectViewImportWizardStep extends ProjectImportWizardStep {
+public class BlazeSelectProjectViewImportWizardStep extends ProjectImportWizardStep {
 
   private final JPanel component = new JPanel(new BorderLayout());
   private BlazeSelectProjectViewControl control;

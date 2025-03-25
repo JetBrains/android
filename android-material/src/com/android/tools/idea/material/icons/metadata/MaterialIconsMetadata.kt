@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.material.icons.metadata
 
+import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata.Companion.EMPTY
 import com.android.utils.HashCodes
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -22,7 +23,6 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonIOException
-import com.google.gson.JsonSyntaxException
 import com.google.gson.annotations.SerializedName
 import com.intellij.openapi.diagnostic.Logger
 import java.io.BufferedReader
@@ -57,24 +57,15 @@ data class MaterialIconsMetadata(
      *
      * Returns an empty instance if the parsing fails. See [EMPTY].
      */
-    fun parse(url: URL, logger: Logger): MaterialIconsMetadata {
-      var metadata: MaterialIconsMetadata = EMPTY
-
+    fun parse(url: URL): Result<MaterialIconsMetadata> =
       try {
-        metadata = BufferedReader(InputStreamReader(url.openStream(), Charsets.UTF_8)).use { reader ->
+        Result.success(BufferedReader(InputStreamReader(url.openStream(), Charsets.UTF_8)).use { reader ->
           getGson().fromJson(reader, MaterialIconsMetadata::class.java)
-        }
+        })
       }
-      catch (e: Exception) {
-        when (e) {
-          is IOException,
-          is JsonIOException,
-          is JsonSyntaxException -> logger.warn("Error reading url", e)
-          else -> throw e
-        }
+      catch (t: Throwable) {
+        Result.failure(t)
       }
-      return metadata
-    }
 
     /**
      * Writes the metadata as a serialized Json text.

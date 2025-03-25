@@ -27,8 +27,8 @@ import com.android.tools.idea.adddevicedialog.FormFactors
 import com.google.common.collect.Range
 import icons.StudioIconsCompose
 import kotlin.math.max
-import kotlin.time.Duration
 
+/** A [DeviceProfile] based on a [Device], used for creating an AVD. */
 @Immutable
 internal data class VirtualDeviceProfile(
   val device: Device,
@@ -58,6 +58,7 @@ internal data class VirtualDeviceProfile(
         FormFactors.TV -> StudioIconsCompose.DeviceExplorer.VirtualDeviceTv
         FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar
         FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceWear
+        FormFactors.XR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceHeadset
         // TODO: Add icon for tablet
         else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone
       }
@@ -68,12 +69,6 @@ internal data class VirtualDeviceProfile(
       iconClass = StudioIconsCompose::class.java,
     )
   }
-
-  override val isAlreadyPresent: Boolean
-    get() = false
-
-  override val availabilityEstimate: Duration
-    get() = Duration.ZERO
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@VirtualDeviceProfile) }
 
@@ -133,7 +128,7 @@ private val Device.androidVersionRange: Range<Int>
       }
       .reduce(Range<Int>::span)
 
-private val Device.formFactor: String
+internal val Device.formFactor: String
   get() =
     when {
       Device.isWear(this) -> FormFactors.WEAR
@@ -141,6 +136,7 @@ private val Device.formFactor: String
       Device.isTv(this) -> FormFactors.TV
       Device.isTablet(this) -> FormFactors.TABLET
       Device.isDesktop(this) -> FormFactors.DESKTOP
+      Device.isXr(this) -> FormFactors.XR
       else -> FormFactors.PHONE
     }
 

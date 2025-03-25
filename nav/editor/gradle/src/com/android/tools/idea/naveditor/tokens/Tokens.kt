@@ -25,36 +25,56 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.util.addDependenciesWithUiConfirmation
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.atomic.AtomicBoolean
 
-class GradleAddDestinationMenuToken: AddDestinationMenuToken<GradleProjectSystem>, GradleToken {
-  override fun modifyProject(projectSystem: GradleProjectSystem, data: AddDestinationMenuToken.Data) {
+class GradleAddDestinationMenuToken : AddDestinationMenuToken<GradleProjectSystem>, GradleToken {
+  override fun modifyProject(
+    projectSystem: GradleProjectSystem,
+    data: AddDestinationMenuToken.Data,
+  ) {
     val module = data.surface.model?.module ?: return
     if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT)) {
       return
     }
 
     module.addDependenciesWithUiConfirmation(
-      coordinates = listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("+")),
-      promptUserBeforeAdding = true, requestSync = false)
+      coordinates =
+        listOf(
+          GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("+")
+        ),
+      promptUserBeforeAdding = true,
+      requestSync = false,
+    )
   }
 }
 
-class GradleNavDesignSurfaceToken: NavDesignSurfaceToken<GradleProjectSystem>, GradleToken {
+class GradleNavDesignSurfaceToken : NavDesignSurfaceToken<GradleProjectSystem>, GradleToken {
   override fun modifyProject(projectSystem: GradleProjectSystem, model: NlModel): Boolean {
     val didAdd = AtomicBoolean(false)
     val module = model.module
     val coordinates = NavDesignSurface.getDependencies(module).map { it.getCoordinate("+") }
-    ApplicationManager.getApplication().invokeAndWait {
-      try {
-        didAdd.set(module.addDependenciesWithUiConfirmation(coordinates, promptUserBeforeAdding = true, requestSync = false).isEmpty());
-      }
-      catch (t: Throwable) {
-        Logger.getInstance(NavDesignSurface::class.java).warn("Failed to add dependencies", t)
-        didAdd.set(false);
-      }
-    }
-    return didAdd.get();
+    ApplicationManager.getApplication()
+      .invokeAndWait(
+        {
+          try {
+            didAdd.set(
+              module
+                .addDependenciesWithUiConfirmation(
+                  coordinates,
+                  promptUserBeforeAdding = true,
+                  requestSync = false,
+                )
+                .isEmpty()
+            )
+          } catch (t: Throwable) {
+            Logger.getInstance(NavDesignSurface::class.java).warn("Failed to add dependencies", t)
+            didAdd.set(false)
+          }
+        },
+        ModalityState.nonModal(),
+      )
+    return didAdd.get()
   }
 }

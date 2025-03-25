@@ -15,37 +15,47 @@
  */
 package com.android.tools.idea.welcome.config
 
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import java.io.File
 
 /**
- * There are several reasons when first run wizard is shown. Wizard behaves slightly differently, depending on the mode.
+ * There are several reasons when first run wizard is shown. Wizard behaves slightly differently,
+ * depending on the mode.
  */
 enum class FirstRunWizardMode {
-  /**
-   * Newly installed Android Studio, first run wizard never ran on this system.
-   */
+  /** Newly installed Android Studio, first run wizard never ran on this system. */
   NEW_INSTALL,
-  /**
-   * Android Studio was installed by the Windows installer, we need to pick it up where it left.
-   */
+  /** Android Studio was installed by the Windows installer, we need to pick it up where it left. */
   INSTALL_HANDOFF,
   /**
-   * Android Studio was completely setup but something happened to an SDK, we need to reinitialize it.
+   * Android Studio was completely setup but something happened to an SDK, we need to reinitialize
+   * it.
    */
   MISSING_SDK;
 
-  val installerTimestamp: String? get() = installerData.timestamp
-  val sdkLocation: File? get() = installerData.androidDest
+  val installerTimestamp: String?
+    get() = installerData.timestamp
+
+  val sdkLocation: File?
+    get() = installerData.androidDest
+
   private val installerData: InstallerData
-    @Synchronized get() =
+    @Synchronized
+    get() =
       if (this == INSTALL_HANDOFF) {
         com.android.tools.idea.welcome.config.installerData!!
-      }
-      else {
+      } else {
         EMPTY_INSTALLER_DATA
       }
 
   fun hasValidSdkLocation(): Boolean = installerData.hasValidSdkLocation()
 
   fun shouldCreateAvd(): Boolean = this != MISSING_SDK && installerData.shouldCreateAvd()
+
+  fun toMetricKind(): SetupWizardEvent.SetupWizardMode =
+    when (this) {
+      NEW_INSTALL -> SetupWizardEvent.SetupWizardMode.NEW_INSTALL
+      INSTALL_HANDOFF -> SetupWizardEvent.SetupWizardMode.INSTALL_HANDOFF
+      MISSING_SDK -> SetupWizardEvent.SetupWizardMode.MISSING_SDK
+    }
 }

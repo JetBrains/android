@@ -25,16 +25,17 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata.Extractor;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectoryBuilder;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.JavaSourcePackage;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher;
@@ -57,11 +58,11 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
   private static final ImmutableSet<String> JAVA_SRC_EXTENSIONS = ImmutableSet.of("java", "kt");
 
   private final ProjectDefinition projectDefinition;
-  private final JavaSourcePackageNameMetadata packageReader;
+  private final Extractor<JavaSourcePackage> packageReader;
   private final TestSourceGlobMatcher testSourceMatcher;
 
   public AddProjectGenSrcs(
-      ProjectDefinition projectDefinition, JavaSourcePackageNameMetadata packageReader) {
+      ProjectDefinition projectDefinition, Extractor<JavaSourcePackage> packageReader) {
     this.projectDefinition = projectDefinition;
     this.packageReader = packageReader;
     testSourceMatcher = TestSourceGlobMatcher.create(projectDefinition);
@@ -117,9 +118,9 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifacts(
+  public ImmutableSetMultimap<BuildArtifact, Extractor<?>> getRequiredArtifacts(
       TargetBuildInfo forTarget) {
-    ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata> required =
+    ImmutableSetMultimap.Builder<BuildArtifact, Extractor<?>> required =
         ImmutableSetMultimap.builder();
     getSourceFileArtifacts(forTarget).forEach(p -> required.put(p, packageReader));
     return required.build();
@@ -135,7 +136,9 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
     List<BuildArtifact> missingPackageArtifacts = Lists.newArrayList();
     for (TargetBuildInfo target : artifactState.depsMap().values()) {
       for (BuildArtifact genSrc : getSourceFileArtifacts(target)) {
-        String javaPackage = target.getMetadata(genSrc, packageReader.key());
+
+        String javaPackage =
+            genSrc.getMetadata(JavaSourcePackage.class).map(JavaSourcePackage::name).orElse(null);
         if (javaPackage == null) {
           missingPackageArtifacts.add(genSrc);
         } else {

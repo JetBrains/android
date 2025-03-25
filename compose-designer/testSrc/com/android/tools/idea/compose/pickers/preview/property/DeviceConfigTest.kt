@@ -277,6 +277,26 @@ internal class DeviceConfigTest {
     assertEquals("_device_class_tablet", parseDeviceSpec(REFERENCE_TABLET_SPEC)!!.deviceId)
     assertEquals("_device_class_desktop", parseDeviceSpec(REFERENCE_DESKTOP_SPEC)!!.deviceId)
   }
+
+  /**
+   * Checks that certain old Compose pre-1.8 unsupported specs are replaced with newer supported
+   * ones.
+   */
+  @Test
+  fun testSpecPatching() {
+    assertEquals(
+      "_device_class_tablet",
+      parseDeviceSpec(
+          "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240"
+        )!!
+        .deviceId,
+    )
+    assertEquals(
+      "_device_class_phone",
+      parseDeviceSpec("spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420")!!
+        .deviceId,
+    )
+  }
 }
 
 private fun parseDeviceSpec(deviceSpec: String?): DeviceConfig? {

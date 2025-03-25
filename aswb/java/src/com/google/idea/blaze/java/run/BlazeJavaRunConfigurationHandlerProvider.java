@@ -35,6 +35,11 @@ public class BlazeJavaRunConfigurationHandlerProvider
   }
 
   @Override
+  public String getDisplayLabel() {
+    return "JVM Compatible (Binary or Test)";
+  }
+
+  @Override
   public boolean canHandleKind(TargetState state, @Nullable Kind kind) {
     return supportsKind(kind);
   }

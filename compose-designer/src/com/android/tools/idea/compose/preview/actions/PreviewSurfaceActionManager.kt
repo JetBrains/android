@@ -22,11 +22,15 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.sceneview.InteractiveLabelPanel
 import com.android.tools.idea.common.surface.sceneview.LabelPanel
-import com.android.tools.idea.compose.preview.actions.ml.SendPreviewToStudioBotAction
+import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.zoomTargetProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
+import com.android.tools.idea.preview.actions.JumpToDefinitionAction
+import com.android.tools.idea.preview.actions.ViewInFocusModeAction
+import com.android.tools.idea.preview.actions.ZoomToSelectionAction
 import com.android.tools.idea.preview.actions.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
@@ -78,12 +82,18 @@ internal class PreviewSurfaceActionManager(
     val mousePosition = MouseInfo.getPointerInfo().location
     SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
     // Zoom to Selection
-    actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y))
+    actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y, ::zoomTargetProvider))
     // Jump to Definition
     actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
+    // View in Focus mode
+    actionGroup.add(ViewInFocusModeAction(mousePosition.x, mousePosition.y))
+    // Add toolbar actions in the context-menu as a redundant entry point
+    getSceneViewContextToolbarActions().takeIf { it.isNotEmpty() }?.forEach { actionGroup.add(it) }
     // Send Preview to Studio Bot and ask to fix it
     if (StudioFlags.COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT.get()) {
-      actionGroup.add(SendPreviewToStudioBotAction())
+      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
+        actionGroup.add(it.createSendPreviewAction())
+      }
     }
 
     return actionGroup

@@ -17,6 +17,7 @@ package com.android.tools.compose.code.state
 
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.composableScope
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.descendants
@@ -68,7 +69,7 @@ internal data class StateRead(
             if (scope.isGetter) "${scope.property.name}.get()" else return null
           is KtNamedFunction ->
             scope.name
-              ?: ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function")
+            ?: ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function")
           else -> scope.name ?: return null
         }
       val bodyScope = (scope as? KtDeclarationWithBody)?.bodyExpression ?: scope
@@ -88,7 +89,9 @@ private fun KtNameReferenceExpression.computeStateRead(): StateRead? {
 
 private fun KtNameReferenceExpression.computeStateReadElement(): KtExpression? {
   if (isAssignee()) return null
+  ProgressManager.checkCanceled()
   if (isImplicitStateRead()) return this
+  ProgressManager.checkCanceled()
   return getExplicitStateReadElement()
 }
 
@@ -121,13 +124,14 @@ private fun KtNameReferenceExpression.getExplicitStateReadElement(): KtExpressio
  */
 private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean =
   (resolveMainReference() as? KtProperty)?.delegateExpression?.isStateType(GENERIC_STATE_CLASS_ID)
-    ?: false
+  ?: false
 
 private fun KotlinType.isStateType(stateTypeFqName: String) =
   (fqName?.asString() == stateTypeFqName ||
-    supertypes().any { it.fqName?.asString() == stateTypeFqName })
+   supertypes().any { it.fqName?.asString() == stateTypeFqName })
 
-private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean = type.isSubtypeOf(stateClassId)
+private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean =
+  type.isSubtypeOf(stateClassId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
@@ -141,6 +145,6 @@ private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
 
 private fun KtNameReferenceExpression.isAssignee(): Boolean {
   return parentOfType<KtBinaryExpression>()
-    ?.takeIf { it.operationToken.toString() == "EQ" }
-    ?.let { it.left == this || it.left?.descendants()?.contains(this) == true } ?: false
+           ?.takeIf { it.operationToken.toString() == "EQ" }
+           ?.let { it.left == this || it.left?.descendants()?.contains(this) == true } ?: false
 }

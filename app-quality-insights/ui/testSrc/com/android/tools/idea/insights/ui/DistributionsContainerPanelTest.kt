@@ -60,7 +60,7 @@ class DistributionsContainerPanelTest {
       flow.emit(
         initialState.copy(currentIssueDetails = LoadingState.NetworkFailure("network failed"))
       )
-      assertThat(panel.emptyText.text).isEqualTo("Data not available while offline.")
+      assertThat(panel.emptyText.text).isEqualTo("Request failed")
 
       flow.emit(
         initialState.copy(

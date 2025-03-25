@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass;
 import com.google.idea.blaze.qsync.project.ProjectProto;
@@ -412,10 +413,10 @@ public class GraphToProjectConverterTest {
 
   @Test
   public void testCalculateAndroidResourceDirectories_single_directory() {
-    ImmutableSet<Path> sourceFiles =
+    final var sourceFiles =
         ImmutableSet.of(
-            Path.of("java/com/test/AndroidManifest.xml"),
-            Path.of("java/com/test/res/values/strings.xml"));
+          Label.of("//java/com/test:AndroidManifest.xml"),
+          Label.of("//java/com/test:res/values/strings.xml"));
 
     ImmutableSet<Path> androidResourceDirectories =
         GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles);
@@ -424,13 +425,13 @@ public class GraphToProjectConverterTest {
 
   @Test
   public void testCalculateAndroidResourceDirectories_multiple_directories() {
-    ImmutableSet<Path> sourceFiles =
+    final var sourceFiles =
         ImmutableSet.of(
-            Path.of("java/com/test/AndroidManifest.xml"),
-            Path.of("java/com/test/res/values/strings.xml"),
-            Path.of("java/com/test2/AndroidManifest.xml"),
-            Path.of("java/com/test2/res/layout/some-activity.xml"),
-            Path.of("java/com/test2/res/layout/another-activity.xml"));
+          Label.of("//java/com/test:AndroidManifest.xml"),
+          Label.of("//java/com/test:res/values/strings.xml"),
+          Label.of("//java/com/test2:AndroidManifest.xml"),
+          Label.of("//java/com/test2:res/layout/some-activity.xml"),
+          Label.of("//java/com/test2:res/layout/another-activity.xml"));
 
     ImmutableSet<Path> androidResourceDirectories =
         GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles);
@@ -440,9 +441,9 @@ public class GraphToProjectConverterTest {
 
   @Test
   public void testCalculateAndroidResourceDirectories_manifest_without_res_directory() {
-    ImmutableSet<Path> sourceFiles =
+    final var sourceFiles =
         ImmutableSet.of(
-            Path.of("java/com/nores/AndroidManifest.xml"), Path.of("java/com/nores/Foo.java"));
+          Label.of("//java/com/nores:AndroidManifest.xml"), Label.of("//java/com/nores:Foo.java"));
 
     ImmutableSet<Path> androidResourceDirectories =
         GraphToProjectConverter.computeAndroidResourceDirectories(sourceFiles);

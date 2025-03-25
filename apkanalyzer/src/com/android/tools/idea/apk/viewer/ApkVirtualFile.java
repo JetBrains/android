@@ -30,16 +30,14 @@ public class ApkVirtualFile {
   private ApkVirtualFile() {
   }
 
-  @Nullable public static VirtualFile create(@NotNull Path path, @NotNull byte[] content) {
+  @Nullable public static VirtualFile create(@NotNull Path path, byte @NotNull [] content) {
     Path fileName = path.getFileName();
     if (fileName == null) {
       return null;
     }
     Path parent = path.getParent();
-    boolean isBinary = true; // Default to binary for files inside an APK
-    if (path.toString().matches("/META-INF/.*\\.version")) {
-      isBinary = false;
-    }
+    // Default to binary for files inside an APK
+    boolean isBinary = !path.toString().matches("/META-INF/.*\\.version");
 
     if (isBinary) {
       return new BinaryLightVirtualFile(fileName.toString(), content) {

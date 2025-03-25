@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
@@ -29,10 +27,9 @@ import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
-import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -41,6 +38,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ComposeViewControlActionTest {
 
@@ -56,18 +55,16 @@ class ComposeViewControlActionTest {
   fun tearDown() {
     StudioFlags.COMPOSE_VIEW_INSPECTOR.clearOverride()
     StudioFlags.COMPOSE_VIEW_FILTER.clearOverride()
-    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.clearOverride()
   }
 
   @Suppress("SpellCheckingInspection")
   @Test
-  fun testZoomActionsWithFlagDisabled() {
-    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(false)
+  fun testZoomActions() {
     val options =
       listOf(
-        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout B", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout C", { EmptySurfaceLayoutManager() }),
       )
 
     val viewControlAction =
@@ -93,53 +90,8 @@ class ComposeViewControlActionTest {
 """
 
     val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
-
-    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
-    assertEquals(expected, actionContent)
-  }
-
-  @Suppress("SpellCheckingInspection")
-  @Test
-  fun testZoomActionsWithFlagEnabled() {
-    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
-    val options =
-      listOf(
-        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
-      )
-
-    val viewControlAction =
-      ComposeViewControlAction(options, additionalActionProvider = ColorBlindModeAction())
-
-    val expected =
-      """View Control
-    Switch Layout
-    Layout A
-    Layout B
-    Layout C
-    ------------------------------------------------------
-    Zoom In
-    Zoom Out
-    Zoom to 100%
-    ------------------------------------------------------
-    Show Inspection Tooltips
-    ------------------------------------------------------
-    Color Blind Modes
-        ✔ Original
-        Protanopes
-        Protanomaly
-        Deuteranopes
-        Deuteranomaly
-        Tritanopes
-        Tritanomaly
-"""
-
-    val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+    whenever(designSurfaceMock.colorBlindMode).thenReturn(ColorBlindMode.NONE)
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
@@ -148,12 +100,11 @@ class ComposeViewControlActionTest {
   @Suppress("SpellCheckingInspection")
   @Test
   fun testColorBlindModeIsSelectedBasedOnTheScreenViewProvider() {
-    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
     val options =
       listOf(
-        SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout B", EmptySurfaceLayoutManager()),
-        SurfaceLayoutOption("Layout C", EmptySurfaceLayoutManager()),
+        SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout B", { EmptySurfaceLayoutManager() }),
+        SurfaceLayoutOption("Layout C", { EmptySurfaceLayoutManager() }),
       )
 
     val viewControlAction =
@@ -165,10 +116,6 @@ class ComposeViewControlActionTest {
     Layout A
     Layout B
     Layout C
-    ------------------------------------------------------
-    Zoom In
-    Zoom Out
-    Zoom to 100%
     ------------------------------------------------------
     Show Inspection Tooltips
     ------------------------------------------------------
@@ -182,12 +129,9 @@ class ComposeViewControlActionTest {
         Tritanomaly
 """
 
-    val screenViewProviderMock = mock<ScreenViewProvider>()
-
     val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
-    whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+    whenever(designSurfaceMock.colorBlindMode).thenReturn(ColorBlindMode.PROTANOMALY)
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
@@ -203,7 +147,7 @@ class ComposeViewControlActionTest {
         isOutOfDate = false,
         isRefreshing = true,
         areResourcesOutOfDate = false,
-        previewedFile = null,
+        psiFilePointer = null,
       )
     val nonRefreshingStatus =
       ComposePreviewManager.Status(
@@ -212,28 +156,75 @@ class ComposeViewControlActionTest {
         isOutOfDate = false,
         isRefreshing = false,
         areResourcesOutOfDate = false,
-        previewedFile = null,
+        psiFilePointer = null,
       )
-    val context = DataContext {
-      when {
-        PREVIEW_VIEW_MODEL_STATUS.`is`(it) -> manager.currentStatus
-        else -> null
-      }
-    }
-    val event = TestActionEvent.createTestEvent(context)
+    lateinit var event: AnActionEvent
     val viewControlAction =
-      ComposeViewControlAction(listOf(SurfaceLayoutOption("Layout A", EmptySurfaceLayoutManager())))
+      ComposeViewControlAction(
+        listOf(SurfaceLayoutOption("Layout A", { EmptySurfaceLayoutManager() }))
+      )
 
-    manager.currentStatus = nonRefreshingStatus
-    viewControlAction.update(event)
+    fun ComposePreviewManager.Status.setAndUpdate() {
+      manager.currentStatus =
+        this.also {
+          event =
+            TestActionEvent.createTestEvent(
+              SimpleDataContext.getSimpleContext(PREVIEW_VIEW_MODEL_STATUS, this)
+            )
+          viewControlAction.update(event)
+        }
+    }
+
+    nonRefreshingStatus.setAndUpdate()
     assertTrue(event.presentation.isEnabled)
 
-    manager.currentStatus = refreshingStatus
-    viewControlAction.update(event)
+    refreshingStatus.setAndUpdate()
     assertFalse(event.presentation.isEnabled)
 
-    manager.currentStatus = nonRefreshingStatus
-    viewControlAction.update(event)
+    nonRefreshingStatus.setAndUpdate()
     assertTrue(event.presentation.isEnabled)
+  }
+
+  @Test
+  fun testNotVisibleIfNoActionsAvailable() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(false)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
+    val event = createAndUpdateEvent()
+    assertFalse(event.presentation.isVisible)
+  }
+
+  @Test
+  fun testVisibleIfFilterActionAvailable() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(true)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
+    val event = createAndUpdateEvent()
+    assertTrue(event.presentation.isVisible)
+  }
+
+  @Test
+  fun testVisibleIfInspectorActionAvailable() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(false)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(true)
+    val event = createAndUpdateEvent()
+    assertTrue(event.presentation.isVisible)
+  }
+
+  @Test
+  fun testVisibleIfAdditionalActionAvailable() {
+    StudioFlags.COMPOSE_VIEW_FILTER.override(false)
+    StudioFlags.COMPOSE_VIEW_INSPECTOR.override(false)
+    val event = createAndUpdateEvent(ColorBlindModeAction())
+    assertTrue(event.presentation.isVisible)
+  }
+
+  private fun createAndUpdateEvent(
+    additionalActionProvider: ColorBlindModeAction? = null
+  ): AnActionEvent {
+    val viewControlAction =
+      ComposeViewControlAction(emptyList(), additionalActionProvider = additionalActionProvider)
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, mock<NlDesignSurface>())
+    val event = TestActionEvent.createTestEvent(dataContext)
+    viewControlAction.update(event)
+    return event
   }
 }

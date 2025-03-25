@@ -68,6 +68,15 @@ class ResourceImportDialogViewModel(
     .groupIntoDesignAssetSet()
     .toIdentitySet()
 
+  private fun <T> Collection<T>.toIdentitySet(): MutableSet<T> {
+    val result = Collections.newSetFromMap(IdentityHashMap<T, Boolean>())
+    for (element in this) {
+      result.add(element)
+    }
+
+    return result
+  }
+
   val assetSets get() = assetSetsToImport
 
   private val rendererManager = DesignAssetRendererManager.getInstance()

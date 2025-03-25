@@ -20,9 +20,9 @@ import com.android.adblib.ShellCollector
 import com.android.adblib.TextShellCollector
 import com.android.adblib.ddmlibcompatibility.debugging.executeShellCommand
 import com.android.adblib.selector
+import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adblib.AdbLibApplicationService
-import com.android.tools.idea.adblib.ddmlibcompatibility.defaultDdmTimeoutMillis
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +40,10 @@ abstract class AdbShellCommandsUtil {
     return executeCommandImpl(command, false)
   }
 
-  private suspend fun executeCommandImpl(command: String, errorCheck: Boolean): AdbShellCommandResult {
+  private suspend fun executeCommandImpl(
+    command: String,
+    errorCheck: Boolean,
+  ): AdbShellCommandResult {
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
     // from the command by analysing the output and looking for the "xxx" marker.
     val fullCommand = if (errorCheck) command + COMMAND_ERROR_CHECK_SUFFIX else command
@@ -52,9 +55,11 @@ abstract class AdbShellCommandsUtil {
 
     // Look for error marker in the last 2 output lines
     var isError = false
-    if (errorCheck && commandOutput.size >= 2 &&
-      commandOutput[commandOutput.size - 2] == ERROR_LINE_MARKER &&
-      commandOutput[commandOutput.size - 1] == ""
+    if (
+      errorCheck &&
+        commandOutput.size >= 2 &&
+        commandOutput[commandOutput.size - 2] == ERROR_LINE_MARKER &&
+        commandOutput[commandOutput.size - 1] == ""
     ) {
       isError = true
       commandOutput.removeLast()
@@ -84,15 +89,22 @@ abstract class AdbShellCommandsUtil {
     private const val COMMAND_ERROR_CHECK_SUFFIX = " || echo $ERROR_LINE_MARKER"
 
     @JvmStatic
-    fun create(device: IDevice) = object : AdbShellCommandsUtil() {
-      override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
-        executeShellCommand(AdbLibApplicationService.instance.session, device, command, receiver)
-    }
+    fun create(device: IDevice) =
+      object : AdbShellCommandsUtil() {
+        override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
+          executeShellCommand(AdbLibApplicationService.instance.session, device, command, receiver)
+      }
 
     @JvmStatic
-    fun create(device: ConnectedDevice) = object : AdbShellCommandsUtil() {
-      override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
-        device.session.deviceServices.shell(device.selector, command, receiver, commandTimeout = Duration.ofMillis(defaultDdmTimeoutMillis))
-    }
+    fun create(device: ConnectedDevice) =
+      object : AdbShellCommandsUtil() {
+        override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
+          device.session.deviceServices.shell(
+            device.selector,
+            command,
+            receiver,
+            commandTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong()),
+          )
+      }
   }
 }

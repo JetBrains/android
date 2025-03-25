@@ -179,6 +179,9 @@ fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConver
   //  separate understanding of lexical scope from the position the element holds in the model hierarchy, and compute trimming relative
   //  to those (possibly nested) scopes rather than the model.
   val parent = element.parent
+                 // TODO(xof): *sigh*
+                 ?.takeIf { it !is ProjectPropertiesDslElement }
+               ?: element.parent?.parent
   val parts = ArrayList(name.fullNameParts());
   // FIXME(xof): this case needs fixing too
   if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, UNKNOWN, name.isFake)
@@ -216,3 +219,10 @@ fun GradlePropertiesDslElement.setMaybeIndirectedElement(propertyElement: Gradle
   originalFile.hideProperty(propertyElement)
   addAppliedProperty(propertyElement)
 }
+
+/**
+ * Is this method name one that finds or creates an element of a NamedDomainObjectContainer and
+ * provides a configuration Action or Closure?
+ */
+fun isDomainObjectConfiguratorMethodName(methodName : String?) =
+  methodName != null && methodName in listOf("create", "getByName", "maybeCreate", "named", "register")

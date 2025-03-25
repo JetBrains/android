@@ -17,17 +17,11 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
-import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.AnalyticsSettings
-import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.error.SharedIssuePanelProvider
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.getDesignSurface
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
@@ -46,12 +40,12 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
-import com.android.tools.idea.preview.gallery.GalleryMode
+import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.GRID_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.modes.UI_CHECK_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
@@ -62,7 +56,6 @@ import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
@@ -72,7 +65,6 @@ import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.google.common.base.Preconditions.checkState
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
@@ -108,10 +100,13 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.junit.After
@@ -122,9 +117,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 internal class TestComposePreviewView(override val mainSurface: NlDesignSurface) :
   ComposePreviewView {
@@ -135,7 +127,7 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
-  override var galleryMode: GalleryMode? = null
+  override var focusMode: FocusMode? = null
 
   val refreshCompletedListeners: MutableList<() -> Unit> = mutableListOf()
 
@@ -152,6 +144,15 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   }
 
   override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
+
+  suspend fun runAndWaitForRefresh(runnable: () -> Unit) {
+    var refreshCompleted = false
+    val listener = { refreshCompleted = true }
+    refreshCompletedListeners.add(listener)
+    runnable()
+    delayUntilCondition(250) { refreshCompleted }
+    refreshCompletedListeners.remove(listener)
+  }
 }
 
 class ComposePreviewRepresentationTest {
@@ -169,6 +170,11 @@ class ComposePreviewRepresentationTest {
 
   private var composePreviewEssentialsModeEnabled: Boolean = false
     set(value) {
+      if (
+        field == value &&
+          AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled == value
+      )
+        return
       runWriteActionAndWait {
         AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = value
         ApplicationManager.getApplication()
@@ -203,7 +209,6 @@ class ComposePreviewRepresentationTest {
 
   @After
   fun tearDown() {
-    StudioFlags.NELE_ATF_FOR_COMPOSE.clearOverride()
     StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.clearOverride()
     composePreviewEssentialsModeEnabled = false
   }
@@ -275,8 +280,6 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testUiCheckMode() = runComposePreviewRepresentationTest {
-    StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
-
     val originalScale = 0.6
     mainSurface.zoomController.setScale(originalScale)
     val preview = createPreviewAndCompile()
@@ -284,7 +287,7 @@ class ComposePreviewRepresentationTest {
       preview.uiCheckFilterFlow.value
     )
 
-    val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
+    val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
     val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
     val problemsView = ProblemsView.getToolWindow(project)!!
 
@@ -303,10 +306,9 @@ class ComposePreviewRepresentationTest {
       preview.uiCheckFilterFlow.value
     )
     delayUntilCondition(250) {
-      GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
     }
 
-    assertTrue(preview.atfChecksEnabled)
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
       .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
       .inOrder()
@@ -320,68 +322,68 @@ class ComposePreviewRepresentationTest {
       """
           TestKt.Preview1
           spec:width=411dp,height=891dp
-          PreviewDisplaySettings(name=Medium Phone - Preview1, baseName=Preview1, parameterName=Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone - Preview1, baseName=Preview1, parameterName=Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Screen sizes)
 
           TestKt.Preview1
           spec:width=673dp,height=841dp
-          PreviewDisplaySettings(name=Unfolded Foldable - Preview1, baseName=Preview1, parameterName=Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Unfolded Foldable - Preview1, baseName=Preview1, parameterName=Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Screen sizes)
 
           TestKt.Preview1
           spec:width=1280dp,height=800dp,dpi=240
-          PreviewDisplaySettings(name=Medium Tablet - Preview1, baseName=Preview1, parameterName=Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Tablet - Preview1, baseName=Preview1, parameterName=Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Screen sizes)
 
           TestKt.Preview1
           spec:width=1920dp,height=1080dp,dpi=160
-          PreviewDisplaySettings(name=Desktop - Preview1, baseName=Preview1, parameterName=Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Desktop - Preview1, baseName=Preview1, parameterName=Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Screen sizes)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Medium Phone-Landscape - Preview1, baseName=Preview1, parameterName=Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone-Landscape - Preview1, baseName=Preview1, parameterName=Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Screen sizes)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=85% - Preview1, baseName=Preview1, parameterName=85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=85% - Preview1, baseName=Preview1, parameterName=85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=100% - Preview1, baseName=Preview1, parameterName=100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=100% - Preview1, baseName=Preview1, parameterName=100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=115% - Preview1, baseName=Preview1, parameterName=115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=115% - Preview1, baseName=Preview1, parameterName=115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=130% - Preview1, baseName=Preview1, parameterName=130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=130% - Preview1, baseName=Preview1, parameterName=130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=180% - Preview1, baseName=Preview1, parameterName=180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=180% - Preview1, baseName=Preview1, parameterName=180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=200% - Preview1, baseName=Preview1, parameterName=200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=200% - Preview1, baseName=Preview1, parameterName=200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Light - Preview1, baseName=Preview1, parameterName=Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Light - Preview1, baseName=Preview1, parameterName=Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Light/Dark)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Dark - Preview1, baseName=Preview1, parameterName=Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Dark - Preview1, baseName=Preview1, parameterName=Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Light/Dark)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Original - Preview1, baseName=Preview1, parameterName=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Original - Preview1, baseName=Preview1, parameterName=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Protanopes - Preview1, baseName=Preview1, parameterName=Protanopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Protanopes - Preview1, baseName=Preview1, parameterName=Protanopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Protanomaly - Preview1, baseName=Preview1, parameterName=Protanomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Protanomaly - Preview1, baseName=Preview1, parameterName=Protanomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Deuteranopes - Preview1, baseName=Preview1, parameterName=Deuteranopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Deuteranopes - Preview1, baseName=Preview1, parameterName=Deuteranopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Deuteranomaly - Preview1, baseName=Preview1, parameterName=Deuteranomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Deuteranomaly - Preview1, baseName=Preview1, parameterName=Deuteranomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Tritanopes - Preview1, baseName=Preview1, parameterName=Tritanopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Tritanopes - Preview1, baseName=Preview1, parameterName=Tritanopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Tritanomaly - Preview1, baseName=Preview1, parameterName=Tritanomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Tritanomaly - Preview1, baseName=Preview1, parameterName=Tritanomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
         """
         .trimIndent(),
@@ -395,7 +397,8 @@ class ComposePreviewRepresentationTest {
     )
 
     // Change the scale of the surface
-    mainSurface.zoomController.setScale(originalScale + 0.5)
+    val scaleUpdate = originalScale + 0.5
+    mainSurface.zoomController.setScale(scaleUpdate)
 
     // Check that the UI Check tab has been created
     assertEquals(2, contentManager.contents.size)
@@ -408,11 +411,11 @@ class ComposePreviewRepresentationTest {
       preview.uiCheckFilterFlow.value
     )
     delayUntilCondition(250) {
-      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
     }
 
-    // Check that the surface zooms to fit when exiting UI check mode.
-    assertEquals(1.0, mainSurface.zoomController.scale, 0.001)
+    // Check that the surface zoom stays unchanged when exiting UI check mode.
+    assertEquals(scaleUpdate, mainSurface.zoomController.scale, 0.001)
 
     preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed stop uiCheckMode",
@@ -445,7 +448,7 @@ class ComposePreviewRepresentationTest {
     setModeAndWaitForRefresh(
       PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
     ) {
-      GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
     }
 
     // Check that the UI Check tab is being reused
@@ -504,7 +507,7 @@ class ComposePreviewRepresentationTest {
     }
 
     setModeAndWaitForRefresh(PreviewMode.Default()) {
-      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
     }
   }
 
@@ -538,17 +541,15 @@ class ComposePreviewRepresentationTest {
             .trimIndent(),
         )
       }
-      val surfaceMock = Mockito.mock(NlDesignSurface::class.java)
-      whenever(surfaceMock.analyticsManager).thenReturn(mock<NlAnalyticsManager>())
-      whenever(surfaceMock.sceneManagers).thenReturn(ImmutableList.of())
-      whenever(surfaceMock.pannable).thenReturn(TestPannable())
-      val composeView = TestComposePreviewView(surfaceMock)
+      val mainSurface: NlDesignSurface =
+        NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable).build()
+      val composeView = TestComposePreviewView(mainSurface)
       val previewRepresentation =
         ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
           composeView
         }
       Disposer.register(fixture.testRootDisposable, previewRepresentation)
-      Disposer.register(fixture.testRootDisposable, surfaceMock)
+      Disposer.register(fixture.testRootDisposable, mainSurface)
 
       // Compile the project so that 'buildSucceeded' is called during build listener setup
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
@@ -581,10 +582,11 @@ class ComposePreviewRepresentationTest {
     )
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
 
-    StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
-
     val testPsiFile = runWriteActionAndWait {
-      fixture.addFileToProjectAndInvalidate(
+      // Do not use addFileToProjectAndInvalidate(..) here. It generates/caches a document with null
+      // virtual file, which results in the inconsistency with the document for the PSI virtual file
+      // after updating PSI. See b/381432038 for further information.
+      fixture.addFileToProject(
         "Test.kt",
         // language=kotlin
         """
@@ -623,7 +625,7 @@ class ComposePreviewRepresentationTest {
       createPreviewAndCompile(preview)
 
       // Start UI Check mode
-      val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
+      val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
       val uiCheckElement = previewElements[1]
 
       run {
@@ -734,7 +736,7 @@ class ComposePreviewRepresentationTest {
     runComposePreviewRepresentationTest {
       composePreviewEssentialsModeEnabled = true
 
-      // Only one preview/model is shown in gallery mode
+      // Only one preview/model is shown in focus mode
       val preview = createPreviewAndCompile(expectedModelCount = 1)
 
       assertEquals(10, preview.interactiveManager.fpsLimit)
@@ -748,15 +750,14 @@ class ComposePreviewRepresentationTest {
       assertEquals(30, preview.interactiveManager.fpsLimit)
 
       composePreviewEssentialsModeEnabled = true
-      retryUntilPassing(5.seconds) { assertEquals(10, preview.interactiveManager.fpsLimit) }
+      delayUntilCondition(delayPerIterationMs = 500) { preview.interactiveManager.fpsLimit == 10 }
 
       composePreviewEssentialsModeEnabled = false
-      retryUntilPassing(5.seconds) { assertEquals(30, preview.interactiveManager.fpsLimit) }
+      delayUntilCondition(delayPerIterationMs = 500) { preview.interactiveManager.fpsLimit == 30 }
     }
 
   @Test
   fun testWearUiCheckMode() {
-    StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
     StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.override(true)
 
     val testPsiFile = runWriteActionAndWait {
@@ -784,7 +785,7 @@ class ComposePreviewRepresentationTest {
         preview.uiCheckFilterFlow.value
       )
 
-      val uiCheckElement = mainSurface.models.mapNotNull { it.dataContext.previewElement() }[0]
+      val uiCheckElement = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }[0]
       val problemsView = ProblemsView.getToolWindow(project)!!
 
       val contentManager = runBlocking(uiThread) { problemsView.contentManager }
@@ -802,10 +803,9 @@ class ComposePreviewRepresentationTest {
         preview.uiCheckFilterFlow.value
       )
       delayUntilCondition(250) {
-        GRID_NO_GROUP_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+        UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value
       }
 
-      assertTrue(preview.atfChecksEnabled)
       assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
         .containsExactly("Wear OS Devices")
       preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
@@ -818,19 +818,19 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview
           id:wearos_large_round
-          PreviewDisplaySettings(name=Wear OS Large Round - Preview, baseName=Preview, parameterName=Wear OS Large Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Wear OS Large Round - Preview, baseName=Preview, parameterName=Wear OS Large Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.Preview
           id:wearos_small_round
-          PreviewDisplaySettings(name=Wear OS Small Round - Preview, baseName=Preview, parameterName=Wear OS Small Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Wear OS Small Round - Preview, baseName=Preview, parameterName=Wear OS Small Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.Preview
           id:wearos_square
-          PreviewDisplaySettings(name=Wear OS Square - Preview, baseName=Preview, parameterName=Wear OS Square, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Wear OS Square - Preview, baseName=Preview, parameterName=Wear OS Square, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.Preview
           id:wearos_rect
-          PreviewDisplaySettings(name=Wear OS Rectangular - Preview, baseName=Preview, parameterName=Wear OS Rectangular, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Wear OS Rectangular - Preview, baseName=Preview, parameterName=Wear OS Rectangular, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
         """
           .trimIndent(),
@@ -895,25 +895,25 @@ class ComposePreviewRepresentationTest {
       assertEquals(
         """
           TestKt.Preview
-          PreviewDisplaySettings(name=Preview, baseName=Preview, parameterName=null, group=null, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview, baseName=Preview, parameterName=null, group=null, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.MultiPreview
-          PreviewDisplaySettings(name=MultiPreview - 1, baseName=MultiPreview, parameterName=1, group=2, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=MultiPreview - 1, baseName=MultiPreview, parameterName=1, group=2, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.MultiPreview
-          PreviewDisplaySettings(name=MultiPreview - 2, baseName=MultiPreview, parameterName=2, group=2, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=MultiPreview - 2, baseName=MultiPreview, parameterName=2, group=2, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.MultiPreview
-          PreviewDisplaySettings(name=MultiPreview - 3, baseName=MultiPreview, parameterName=3, group=3, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=MultiPreview - 3, baseName=MultiPreview, parameterName=3, group=3, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.MultiPreview
-          PreviewDisplaySettings(name=MultiPreview - 4, baseName=MultiPreview, parameterName=4, group=3, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=MultiPreview - 4, baseName=MultiPreview, parameterName=4, group=3, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.MultiPreview
-          PreviewDisplaySettings(name=MultiPreview - 5, baseName=MultiPreview, parameterName=5, group=1, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=MultiPreview - 5, baseName=MultiPreview, parameterName=5, group=1, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.MultiPreview
-          PreviewDisplaySettings(name=MultiPreview - 6, baseName=MultiPreview, parameterName=6, group=1, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=MultiPreview - 6, baseName=MultiPreview, parameterName=6, group=1, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
         """
           .trimIndent(),
@@ -931,21 +931,20 @@ class ComposePreviewRepresentationTest {
     mainSurface: NlDesignSurface =
       NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable).build(),
     block: suspend ComposePreviewRepresentationTestContext.() -> Unit,
-  ) {
+  ) = runTest {
     val context =
       ComposePreviewRepresentationTestContext(
+        scope = backgroundScope,
         previewPsiFile,
         mainSurface,
         fixture,
         logger,
         projectRule.buildSystemServices,
       )
-    runBlocking(workerThread) {
-      try {
-        context.block()
-      } finally {
-        context.cleanup()
-      }
+    try {
+      context.block()
+    } finally {
+      context.cleanup()
     }
   }
 
@@ -979,6 +978,7 @@ class ComposePreviewRepresentationTest {
    * test class.
    */
   private class ComposePreviewRepresentationTestContext(
+    val scope: CoroutineScope,
     private val previewPsiFile: PsiFile,
     val mainSurface: NlDesignSurface,
     private val fixture: CodeInsightTestFixture,
@@ -995,15 +995,13 @@ class ComposePreviewRepresentationTest {
     private lateinit var newModelAddedLatch: CountDownLatch
 
     init {
-      mainSurface.addListener(
-        object : DesignSurfaceListener {
-          override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-            val id = UUID.randomUUID().toString().substring(0, 5)
-            logger.info("modelChanged ($id)")
-            newModelAddedLatch.countDown()
-          }
+      scope.launch {
+        mainSurface.modelChanged.collect { models ->
+          val id = UUID.randomUUID().toString().substring(0, 5)
+          logger.info("modelChanged ($id)")
+          repeat(models.size) { newModelAddedLatch.countDown() }
         }
-      )
+      }
     }
 
     suspend fun createPreviewAndCompile(

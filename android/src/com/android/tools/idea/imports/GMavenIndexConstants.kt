@@ -29,9 +29,7 @@ internal const val BASE_URL = "https://dl.google.com/android/studio/gmaven/index
  */
 internal const val NAME = "classes"
 
-/**
- * Version of Google Maven Class Index file.
- */
+/** Version of Google Maven Class Index file. */
 internal const val VERSION = 0.1
 
 /**

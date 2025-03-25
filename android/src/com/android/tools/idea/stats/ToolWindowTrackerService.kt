@@ -26,7 +26,6 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Tracks tool window usage by listening to state changes.
@@ -36,33 +35,22 @@ import org.jetbrains.annotations.VisibleForTesting
  * If a tool window is active and the user opens another tool window in the same group, then the active tool window is closed and
  * the new tool window is opened. This triggers 2 events (1 close and 1 open).
  */
-class ToolWindowTrackerService {
+class ToolWindowTrackerService(private val project: Project) : ToolWindowManagerListener {
   private val stateMap = HashMap<String, ToolWindowState>()
 
   companion object {
     @JvmStatic
     fun getInstance(project: Project) = project.service<ToolWindowTrackerService>()
-
-    internal class LazyListener(private val project: Project) : ToolWindowManagerListener {
-      override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
-        getInstance(project).toolWindowsRegistered(ids, toolWindowManager)
-      }
-
-      override fun stateChanged(toolWindowManager: ToolWindowManager) {
-        getInstance(project).stateChanged(toolWindowManager)
-      }
-    }
   }
 
-  @VisibleForTesting
-  fun toolWindowsRegistered(ids: List<String>, toolWindowManager: ToolWindowManager) {
+  override fun toolWindowsRegistered(ids: List<String>, toolWindowManager: ToolWindowManager) {
     for (id in ids) {
       stateMap[id] = getToolWindowState(toolWindowManager.getToolWindow(id))
     }
   }
 
-  @VisibleForTesting
-  fun stateChanged(toolWindowManager: ToolWindowManager) {
+  override fun stateChanged() {
+    val toolWindowManager = ToolWindowManager.getInstance(project)
     for ((id, previousState) in stateMap) {
       val window = toolWindowManager.getToolWindow(id)
       val currentState = getToolWindowState(window)

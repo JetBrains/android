@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import androidx.compose.ui.window.singleWindowApplication
+import com.android.tools.adtui.compose.standaloneSingleWindowApplication
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 
 /** Standalone app for quickly testing the DeviceTable. */
 fun main() {
-  singleWindowApplication(title = "Add Device") {
+  standaloneSingleWindowApplication(title = "Add Device") {
     IntUiTheme {
       val source = TestDeviceSource()
       source.apply { TestDevices.allTestDevices.forEach { add(it) } }

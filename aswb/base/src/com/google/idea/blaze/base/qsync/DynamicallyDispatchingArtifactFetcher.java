@@ -16,14 +16,20 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.idea.blaze.base.qsync.cache.ArtifactFetchers;
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -35,8 +41,8 @@ public class DynamicallyDispatchingArtifactFetcher implements ArtifactFetcher<Ou
 
   private final ImmutableList<ArtifactFetcher<?>> fetchers;
 
-  public DynamicallyDispatchingArtifactFetcher(ImmutableList<ArtifactFetcher<?>> fetchers) {
-    this.fetchers = fetchers;
+  public DynamicallyDispatchingArtifactFetcher(Project project) {
+    this.fetchers = ImmutableList.copyOf(ArtifactFetchers.EP_NAME.getExtensionList());
   }
 
   @Override
@@ -49,10 +55,23 @@ public class DynamicallyDispatchingArtifactFetcher implements ArtifactFetcher<Ou
             .entrySet()
             .stream()
             .map(it -> Pair.create(findArtifactFetcherFor(it.getKey()), it.getValue()))
-            .map(it -> it.first.copy(ImmutableMap.copyOf(it.second), context))
+            .map(it -> fetchBy(it.first, ImmutableMap.copyOf(it.second), context))
             .collect(ImmutableList.toImmutableList());
 
     return Futures.allAsList(futures);
+  }
+
+  private static ListenableFuture<?> fetchBy(ArtifactFetcher<OutputArtifact> fetcher,
+                                             ImmutableMap<OutputArtifact, ArtifactDestination> artifactFetchingMap,
+                                             Context<?> context) {
+    final var sw = Stopwatch.createStarted();
+    context.output(PrintOutput.output("Fetching %d artifacts using %s", artifactFetchingMap.size(), fetcher.toString()));
+    return Futures.transform(fetcher.copy(artifactFetchingMap, context), it -> {
+      context.output(
+        PrintOutput.output("Done fetching %d artifacts using %s in %sms", artifactFetchingMap.size(), fetcher.toString(), sw.elapsed(
+          TimeUnit.MILLISECONDS)));
+      return it;
+    }, MoreExecutors.directExecutor());
   }
 
   @Override

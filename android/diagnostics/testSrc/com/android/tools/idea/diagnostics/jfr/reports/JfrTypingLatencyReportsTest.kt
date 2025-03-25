@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.jfr.reports
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports.MyLatencyListener
 import com.android.tools.idea.serverflags.protos.JfrTypingLatencyConfig
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -29,6 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 

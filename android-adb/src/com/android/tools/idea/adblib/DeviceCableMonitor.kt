@@ -30,8 +30,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceConnectedNotificationEvent
 import com.intellij.notification.BrowseNotificationAction
 import com.intellij.notification.Notification
-import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.components.service
@@ -52,10 +52,8 @@ class DeviceCableMonitor : ProjectActivity {
     val NOTIFICATION_GROUP_ID = "Android Device Speed Warning"
   }
 
-  private val notificationGroup: NotificationGroup
-    get() =
-      NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_ID)
-        ?: NotificationGroup(NOTIFICATION_GROUP_ID, NotificationDisplayType.BALLOON)
+  private val notificationGroup: NotificationGroup =
+    NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID)
 
   override suspend fun execute(project: Project) {
     if (!isAndroidEnvironment(project)) {
@@ -89,9 +87,7 @@ class DeviceCableMonitor : ProjectActivity {
     // Some older devices have USB controller bugs where they report being able to do USB 3 while
     // only being USB 2 capable. We filter them out via the API level since which they are likely to
     // not have been updated.
-    if (
-      !handle.state.properties.androidVersion!!.isGreaterOrEqualThan(AndroidVersion.VersionCodes.R)
-    ) {
+    if (!handle.state.properties.androidVersion!!.isAtLeast(AndroidVersion.VersionCodes.R)) {
       return
     }
 

@@ -25,7 +25,8 @@ import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.hint.HintUtil
 import com.intellij.java.library.JavaLibraryUtil
 import com.intellij.lang.injection.InjectedLanguageManager
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
 import com.intellij.openapi.module.ModuleUtilCore
@@ -143,7 +144,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
           DatabaseInspectorViewsFactoryImpl.getInstance(),
         )
       action.actionPerformed(
-        AnActionEvent.createFromAnAction(action, event, "", DataContext.EMPTY_CONTEXT)
+        createEvent(action, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, event)
       )
     }
   }

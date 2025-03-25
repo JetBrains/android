@@ -250,11 +250,11 @@ private object StringResourceWriterImpl : StringResourceWriter {
 
     val valuesDir = psiManager.findDirectory(valuesDirectory) ?: return null
     return try {
-      createFileResource(
+      createXmlFileResource(
         resourceFileName,
         valuesDir,
         rootTagName = "",
-        ResourceType.STRING.name,
+        ResourceType.STRING,
         valuesResourceFile = true,
       )
     } catch (e: Exception) {

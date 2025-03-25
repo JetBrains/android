@@ -52,13 +52,20 @@ open class TestVitalsGrpcClient : VitalsGrpcClient {
     return emptyList()
   }
 
-  override suspend fun searchErrorReports(
+  override suspend fun searchErrorReportByReportIds(
+    connection: Connection,
+    filters: QueryFilters,
+    reportIds: List<String>,
+  ): List<Event> {
+    return emptyList()
+  }
+
+  override suspend fun searchErrorReportByIssueId(
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId,
-    maxNumResults: Int,
-  ): List<Event> {
-    return emptyList()
+  ): Event {
+    return Event.EMPTY
   }
 
   override suspend fun listTopIssues(

@@ -57,7 +57,7 @@ fun getCompilerConfiguration(
   val compilerConfiguration = CompilerConfiguration().apply {
     put(
       CommonConfigurationKeys.MODULE_NAME,
-      module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(file.originalFile.virtualFile)
+      module.name
     )
     KotlinFacet.get(module)?.let { kotlinFacet ->
       val moduleName = when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {

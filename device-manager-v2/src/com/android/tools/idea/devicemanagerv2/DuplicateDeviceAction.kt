@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.idea.deviceprovisioner.deviceHandle
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_DUPLICATE_ACTION
@@ -39,7 +40,7 @@ class DuplicateDeviceAction :
     DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_DUPLICATE_ACTION)
 
     deviceHandle.launchCatchingDeviceActionException(project = e.project) {
-      duplicateAction.duplicate()
+      duplicateAction.duplicate(e.componentToRestoreFocusTo())
     }
   }
 }

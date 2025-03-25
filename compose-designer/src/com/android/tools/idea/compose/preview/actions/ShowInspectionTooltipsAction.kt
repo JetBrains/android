@@ -28,7 +28,7 @@ class ShowInspectionTooltipsAction : ToggleAction() {
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.text = message("action.scene.view.control.show.inspection.tooltip")
-    e.presentation.isEnabledAndVisible = StudioFlags.COMPOSE_VIEW_INSPECTOR.get()
+    e.presentation.isEnabledAndVisible = shouldBeEnabled()
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
@@ -40,4 +40,8 @@ class ShowInspectionTooltipsAction : ToggleAction() {
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  companion object {
+    fun shouldBeEnabled(): Boolean = StudioFlags.COMPOSE_VIEW_INSPECTOR.get()
+  }
 }

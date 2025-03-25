@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -30,6 +29,7 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtens
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class SafeArgsKotlinPackageDescriptorTest {

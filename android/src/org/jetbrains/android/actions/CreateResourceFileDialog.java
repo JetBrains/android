@@ -18,14 +18,12 @@ import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.SlowOperations;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -159,7 +157,11 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     updateOkAction();
     updateRootElementTextField();
 
-    if (rootElement != null) {
+    if (folderType == ResourceFolderType.RAW) {
+      myRootElementLabel.setVisible(false);
+      myRootElementFieldWrapper.setVisible(false);
+      myRootElementField.setVisible(false);
+    } else if (rootElement != null) {
       myRootElementLabel.setVisible(false);
       myRootElementFieldWrapper.setVisible(false);
       myRootElementField.setText(rootElement);
@@ -214,8 +216,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     if (action != null) {
       try {
         final Module module = myFacet.getModule();
-        final List<String> allowedTagNames =
-          SlowOperations.allowSlowOperations((ThrowableComputable<List<String>, Throwable>)() -> action.getSortedAllowedTagNames(myFacet));
+        final List<String> allowedTagNames = action.getSortedAllowedTagNames(myFacet);
         myRootElementField = new TextFieldWithAutoCompletion<>(
           module.getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(allowedTagNames, null), true, null) {
           @Override
@@ -257,7 +258,9 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     }
 
     String rootElement = getRootElement();
-    if (!action.isChooseTagName() && rootElement.isEmpty()) {
+    if (!action.isChooseTagName() &&
+        action.getResourceFolderType() != ResourceFolderType.RAW &&
+        (rootElement == null || rootElement.isEmpty())) {
       Messages.showErrorDialog(myPanel, AndroidBundle.message("root.element.not.specified.error"), CommonBundle.getErrorTitle());
       return;
     }
@@ -319,9 +322,9 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     return myDirectoryNameTextField.getText().trim();
   }
 
-  @NotNull
+  @Nullable
   protected String getRootElement() {
-    return myRootElementField.getText().trim();
+    return myRootElementField == null ? null : myRootElementField.getText().trim();
   }
 
 

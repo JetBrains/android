@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "io_exception.h"
+#include "socket_reader.h"
 
 namespace screensharing {
 
@@ -32,7 +33,7 @@ namespace screensharing {
 // See Base128OutputStream.
 class Base128InputStream {
 public:
-  Base128InputStream(int socket_fd, size_t buffer_size);
+  Base128InputStream(SocketReader&& reader, size_t buffer_size);
   ~Base128InputStream();
 
   // Shuts down the socket file descriptor for reading but doesn't close it.
@@ -50,6 +51,8 @@ public:
   int32_t ReadFixed32();
   std::unique_ptr<std::u16string> ReadString16();
 
+  int32_t BufferedBytesAvailable() const { return data_end_ - offset_; }
+
   class StreamFormatException : public IoException {
   public:
     StreamFormatException(const char* message)
@@ -60,7 +63,7 @@ public:
   };
 
 private:
-  int fd_;
+  SocketReader reader_;
   uint8_t* buffer_;
   size_t buffer_capacity_;
   size_t offset_;

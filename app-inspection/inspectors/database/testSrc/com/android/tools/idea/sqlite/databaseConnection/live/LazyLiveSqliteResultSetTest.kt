@@ -16,8 +16,6 @@
 package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
@@ -34,8 +32,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.concurrency.any
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
   private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -55,8 +56,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
           .build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-        .thenReturn(cursor.toByteArray())
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(cursor.toByteArray())
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -94,8 +94,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
           .build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-        .thenReturn(cursor.toByteArray())
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(cursor.toByteArray())
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -116,7 +115,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
       val row = SqliteInspectorProtocol.Row.newBuilder().build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(ByteArray(0))
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(ByteArray(0))
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -155,8 +154,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
           .build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-        .thenReturn(cursor.toByteArray())
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(cursor.toByteArray())
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -184,7 +182,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
       val row = SqliteInspectorProtocol.Row.newBuilder().build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(ByteArray(0))
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(ByteArray(0))
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -209,8 +207,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
           .build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-        .thenReturn(cursor.toByteArray())
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(cursor.toByteArray())
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -235,8 +232,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
           .build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-        .thenReturn(cursor.toByteArray())
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(cursor.toByteArray())
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -270,8 +266,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
         SqliteInspectorProtocol.Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-        .thenReturn(cursor.toByteArray())
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(cursor.toByteArray())
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -313,8 +308,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
         SqliteInspectorProtocol.Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-        .thenReturn(cursor.toByteArray())
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(cursor.toByteArray())
 
       val resultSet =
         createLazyLiveSqliteResultSet(
@@ -355,8 +349,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
         SqliteInspectorProtocol.Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
       val mockMessenger = mock(AppInspectorMessenger::class.java)
-      whenever(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-        .thenReturn(cursor.toByteArray())
+      whenever(mockMessenger.sendRawCommand(any())).thenReturn(cursor.toByteArray())
 
       val resultSet =
         createLazyLiveSqliteResultSet(

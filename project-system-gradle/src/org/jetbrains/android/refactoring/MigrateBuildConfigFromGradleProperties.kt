@@ -17,16 +17,16 @@ package org.jetbrains.android.refactoring
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.project.getPackageName
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.gradle.isMainModule
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.lang.Language
@@ -86,8 +86,6 @@ private fun shouldEnable(project: Project): Boolean {
 }
 
 class MigrateBuildConfigFromGradlePropertiesAction : AndroidGradleBaseRefactoringAction() {
-  override fun isHidden() = StudioFlags.MIGRATE_BUILDCONFIG_FROM_GRADLE_PROPERTIES_REFACTORING_ENABLED.get().not()
-
   override fun getHandler(dataContext: DataContext) = MigrateBuildConfigFromGradlePropertiesHandler()
   override fun isAvailableInEditorOnly() = false
   override fun isAvailableForLanguage(language: Language?) = true
@@ -266,16 +264,13 @@ class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
       }
     }
 
-    val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_BUILD_CONFIG_FROM_GRADLE_PROPERTIES)
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, request)
+    myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_BUILD_CONFIG_FROM_GRADLE_PROPERTIES.toReason())
     UndoManager.getInstance(myProject).undoableActionPerformed(object : BasicUndoableAction() {
       override fun undo() {
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncInvoker.Request(
-          GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE))
+        myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE.toReason())
       }
       override fun redo() {
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncInvoker.Request(
-          GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE))
+        myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE.toReason())
       }
     })
 

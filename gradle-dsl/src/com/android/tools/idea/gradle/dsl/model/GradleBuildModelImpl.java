@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createGradleBuildModel;
 import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.ALIAS;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS;
@@ -86,7 +87,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
   @NotNull protected GradleBuildFile myGradleBuildFile;
 
-  public GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
+  protected GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
     super(buildDslFile);
     myGradleBuildFile = buildDslFile;
   }
@@ -414,8 +415,8 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
   @Nullable
   private static GradleFileModel getFileModel(@NotNull GradleDslFile file) {
-    if (file instanceof GradleBuildFile) {
-      return new GradleBuildModelImpl((GradleBuildFile)file);
+    if (file instanceof GradleBuildFile buildFile) {
+      return createGradleBuildModel(buildFile);
     }
     else if (file instanceof GradleSettingsFile) {
       return new GradleSettingsModelImpl((GradleSettingsFile)file);

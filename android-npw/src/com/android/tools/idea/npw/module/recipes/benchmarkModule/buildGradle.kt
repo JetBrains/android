@@ -31,28 +31,21 @@ fun buildGradle(
   language: Language,
   agpVersion: AgpVersion,
   useGradleKts: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
 ): String {
-  val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
-    """
-   kotlinOptions {
-      jvmTarget = "11"
-   }
-  """
-  }
-
   val isNewAGP = agpVersion.compareIgnoringQualifiers("3.6.0") >= 0
 
   val testBuildTypeBlock = renderIf(isNewAGP) { """testBuildType = "release"""" }
 
-  val releaseBlock = renderIf(isNewAGP) {
-    """
+  val releaseBlock =
+    renderIf(isNewAGP) {
+      """
 
     release {
       isDefault = true
     }
     """
-  }
+    }
 
   return """
 ${emptyPluginsBlock()}
@@ -60,13 +53,6 @@ ${emptyPluginsBlock()}
 android {
     namespace '$packageName'
     ${toAndroidFieldVersion("compileSdk", buildApiString, agpVersion)}
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    $kotlinOptionsBlock
 
     defaultConfig {
         ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
@@ -94,5 +80,6 @@ dependencies {
     // https://developer.android.com/studio/projects/android-library#Convert
 
 }
-""".gradleToKtsIfKts(useGradleKts)
+"""
+    .gradleToKtsIfKts(useGradleKts)
 }

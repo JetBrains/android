@@ -30,6 +30,7 @@
 #include "flags.h"
 #include "jvm.h"
 #include "log.h"
+#include "socket_reader.h"
 
 namespace screensharing {
 
@@ -42,6 +43,8 @@ constexpr int BUFFER_SIZE = 4096;
 constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
 
 constexpr duration SOCKET_RECEIVE_POLL_TIMEOUT = 250ms;
+constexpr duration SOCKET_READ_TIMEOUT = 5s;
+constexpr duration SOCKET_WRITE_TIMEOUT = 10s;
 constexpr duration DISPLAY_POLLING_DURATION = 500ms;
 
 constexpr int FINGER_TOUCH_SIZE = 1;
@@ -95,15 +98,30 @@ bool CheckVideoSize(Size video_resolution) {
   return false;
 }
 
+vector<JObject> tokens_of_displays_turned_off;
+
+bool SetDisplayPowerMode(Jni jni, JObject&& display_token, DisplayPowerMode power_mode) {
+  SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+  JThrowable exception = jni.GetAndClearException();
+  if (exception.IsNotNull()) {
+    Log::W(std::move(exception), "Unable to turn display %s", power_mode == DisplayPowerMode::POWER_MODE_OFF ? "off" : "on");
+    return false;
+  }
+  if (power_mode == DisplayPowerMode::POWER_MODE_OFF) {
+    tokens_of_displays_turned_off.push_back(std::move(display_token).ToGlobal());
+  }
+  Log::I("Turned display %s", power_mode == DisplayPowerMode::POWER_MODE_OFF ? "off" : "on");
+  return true;
+}
+
 }  // namespace
 
 Controller::Controller(int socket_fd)
     : socket_fd_(socket_fd),
-      input_stream_(socket_fd, BUFFER_SIZE),
-      output_stream_(SocketWriter(socket_fd, "control"), BUFFER_SIZE),
+      input_stream_(SocketReader(socket_fd, duration_cast<milliseconds>(SOCKET_READ_TIMEOUT).count()), BUFFER_SIZE),
+      output_stream_(SocketWriter(socket_fd, "control", duration_cast<milliseconds>(SOCKET_WRITE_TIMEOUT).count()), BUFFER_SIZE),
       clipboard_listener_(this),
       device_state_listener_(this) {
-  assert(socket_fd > 0);
   try {
     output_stream_.WriteByte('C');
     output_stream_.Flush();
@@ -171,8 +189,6 @@ void Controller::Initialize() {
 
   DisplayManager::AddDisplayListener(jni_, this);
   current_displays_ = GetDisplays();
-
-  Agent::InitializeSessionEnvironment();
 }
 
 void Controller::InitializeVirtualKeyboard() {
@@ -234,7 +250,7 @@ void Controller::Run() {
         SendPendingDisplayEvents();
       }
 
-      if (!WaitForIncomingData(socket_timeout, socket_fd_)) {
+      if (input_stream_.BufferedBytesAvailable() == 0 && !WaitForIncomingData(socket_timeout, socket_fd_)) {
         continue;
       }
 
@@ -251,6 +267,7 @@ void Controller::Run() {
     }
   } catch (EndOfFile& e) {
     Log::D("Controller::Run: End of command stream");
+    Agent::Shutdown();
   } catch (IoException& e) {
     Log::Fatal(SOCKET_IO_ERROR, "Error reading from command socket channel - %s", e.GetMessage().c_str());
   }
@@ -603,33 +620,43 @@ void Controller::WakeUpDevice() {
 }
 
 bool Controller::ControlDisplayPower(Jni jni, int state) {
-  if (Agent::feature_level() >= 35) {
-    if (Agent::device_manufacturer() == HONOR) TRACE;
+  if (DisplayManager::DisplayPowerControlSupported(jni)) {
     return DisplayManager::RequestDisplayPower(jni, PRIMARY_DISPLAY_ID, state);
     // TODO: Turn off secondary physical displays.
   } else {
     DisplayPowerMode power_mode = state == DisplayInfo::STATE_OFF ? DisplayPowerMode::POWER_MODE_OFF : DisplayPowerMode::POWER_MODE_NORMAL;
-    if (Agent::device_manufacturer() == HONOR) TRACE;
-    vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
-    if (display_ids.empty()) {
-      if (Agent::device_manufacturer() == HONOR) TRACE;
-      JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
-      if (display_token.IsNull()) {
-        if (Agent::device_manufacturer() == HONOR) TRACE;
-        return false;
+    if (power_mode == DisplayPowerMode::POWER_MODE_NORMAL) {
+      while (!tokens_of_displays_turned_off.empty()) {
+        JObject display_token = std::move(tokens_of_displays_turned_off.back());
+        tokens_of_displays_turned_off.pop_back();
+        if (!SetDisplayPowerMode(jni, std::move(display_token), power_mode)) {
+          return false;
+        }
       }
-      if (Agent::device_manufacturer() == HONOR) TRACE;
-      SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
-    } else {
-      for (int64_t display_id: display_ids) {
-        if (Agent::device_manufacturer() == HONOR) TRACE;
-        JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
-        if (Agent::device_manufacturer() == HONOR) TRACE;
-        SurfaceControl::SetDisplayPowerMode(jni, display_token, power_mode);
+    }
+    else {
+      vector<int64_t> display_ids = DisplayControl::GetPhysicalDisplayIds(jni);
+      if (display_ids.empty()) {
+        JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
+        if (display_token.IsNull()) {
+          Log::W(jni.GetAndClearException(), "Unable to find the primary display to turn it off");
+          return false;
+        }
+        return SetDisplayPowerMode(jni, std::move(display_token), power_mode);
+      } else {
+        for (int64_t display_id: display_ids) {
+          JObject display_token = DisplayControl::GetPhysicalDisplayToken(jni, display_id);
+          if (display_token.IsNull()) {
+            Log::W(jni.GetAndClearException(), "Unable to get token for display %" PRIx64, display_id);
+            continue;
+          }
+          if (!SetDisplayPowerMode(jni, std::move(display_token), power_mode)) {
+            return false;
+          }
+        }
       }
     }
   }
-  if (Agent::device_manufacturer() == HONOR) TRACE;
   return true;
 }
 

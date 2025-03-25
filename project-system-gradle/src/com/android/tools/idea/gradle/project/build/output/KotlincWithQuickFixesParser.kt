@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.build.events.FileMessageBuildIssueEvent
+import com.android.tools.idea.gradle.project.build.events.MessageBuildIssueEvent
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueDescriptionComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
-import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.build.output.KotlincOutputParser
@@ -54,11 +56,14 @@ class KotlincWithQuickFixesParser : BuildOutputParser {
     if ((originalMessage.contains(JVM_TARGET_FIX_BYTECODE) && originalMessage.contains(JVM_TARGET_FIX_SPECIFY_OPTION)) ||
         (originalMessage.contains(JVM_TARGET_FIX_STATIC))) {
       if (originalEvent is MessageEvent) {
-        val buildIssueComposer = BuildIssueComposer(originalEvent.description!!.trim(), originalMessage)
-        buildIssueComposer.addDescription("Adding support for Java 8 language features could solve this issue.")
-        buildIssueComposer.addQuickFix(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = true))
-        buildIssueComposer.addQuickFix("More information...", OpenLinkQuickFix(JAVA_8_SUPPORT_LINK))
-        return BuildIssueEventImpl(originalEvent.parentId!!, buildIssueComposer.composeBuildIssue(), originalEvent.kind)
+        val additionalDescription = BuildIssueDescriptionComposer("Adding support for Java 8 language features could solve this issue.")
+        additionalDescription.newLine()
+        additionalDescription.newLine()
+        additionalDescription.addQuickFix(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = true))
+        additionalDescription.newLine()
+        additionalDescription.addQuickFix("More information...", OpenLinkQuickFix(JAVA_8_SUPPORT_LINK))
+
+        return originalEvent.toBuildIssueEventWithAdditionalDescription(additionalDescription)
       }
     }
     return originalEvent

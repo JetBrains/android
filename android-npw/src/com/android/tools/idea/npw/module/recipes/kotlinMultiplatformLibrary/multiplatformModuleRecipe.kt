@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary
 
 import com.android.SdkConstants
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.npw.module.recipes.addInstrumentedTests
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestWithKotlinTest
 import com.android.tools.idea.npw.module.recipes.generateManifest
@@ -65,8 +66,16 @@ private fun RecipeExecutor.generateModule(
   )
 
   setKotlinVersion(projectData.kotlinVersion)
-  applyPlugin("org.jetbrains.kotlin.multiplatform", projectData.kotlinVersion)
-  applyPlugin("com.android.kotlin.multiplatform.library", projectData.agpVersion)
+  addPlugin(
+    "org.jetbrains.kotlin.multiplatform",
+    "org.jetbrains.kotlin:kotlin-gradle-plugin",
+    projectData.kotlinVersion.toString(),
+  )
+  addPlugin(
+    "com.android.kotlin.multiplatform.library",
+    "org.jetbrains.kotlin:kotlin-gradle-plugin",
+    projectData.agpVersion.toString(),
+  )
 
   save(manifestXml, data.manifestDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML))
   save(gitignore(), data.rootDir.resolve(".gitignore"))
@@ -82,38 +91,30 @@ private fun RecipeExecutor.generateModule(
   addMultiplatformLocalTests(packageName, data.unitTestDir)
   addInstrumentedTests(packageName, useAndroidX, isLibraryProject = true, data.testDir, language)
   addInstrumentedTestDependencies()
+
+  addDownloadFromMavenProperty(projectData.kotlinVersion)
 }
 
 fun RecipeExecutor.addCommonMainDependencies(kotlinVersion: String) {
   addDependency(
-    "org.jetbrains.kotlin:kotlin-stdlib:+",
+    "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion",
     "implementation",
-    minRev = kotlinVersion,
     sourceSetName = "commonMain",
   )
 }
 
 fun RecipeExecutor.addCommonTestDependencies(kotlinVersion: String) {
   addDependency(
-    "org.jetbrains.kotlin:kotlin-test:+",
+    "org.jetbrains.kotlin:kotlin-test:$kotlinVersion",
     "implementation",
-    minRev = kotlinVersion,
     sourceSetName = "commonTest",
   )
 }
 
 fun RecipeExecutor.addInstrumentedTestDependencies() {
-  addDependency(
-    "androidx.test:runner:+",
-    "implementation",
-    sourceSetName = "androidInstrumentedTest",
-  )
-  addDependency("androidx.test:core:+", "implementation", sourceSetName = "androidInstrumentedTest")
-  addDependency(
-    "androidx.test.ext:junit:+",
-    "implementation",
-    sourceSetName = "androidInstrumentedTest",
-  )
+  addDependency("androidx.test:runner:+", "implementation", sourceSetName = "androidDeviceTest")
+  addDependency("androidx.test:core:+", "implementation", sourceSetName = "androidDeviceTest")
+  addDependency("androidx.test.ext:junit:+", "implementation", sourceSetName = "androidDeviceTest")
 }
 
 fun RecipeExecutor.addAndroidMain(packageName: String, outFolder: File, language: Language) {
@@ -133,4 +134,22 @@ fun RecipeExecutor.addIosMain(packageName: String, outFolder: File, language: La
 
 fun RecipeExecutor.addMultiplatformLocalTests(packageName: String, localTestOut: File) {
   save(exampleUnitTestWithKotlinTest(packageName), localTestOut.resolve("ExampleUnitTest.kt"))
+}
+
+/**
+ * Add kotlin.native.distribution.downloadFromMaven=true to gradle.properties if it doesn't already
+ * exist, and if the Kotlin version is lower than 2.0.0
+ */
+fun RecipeExecutor.addDownloadFromMavenProperty(kotlinVersion: String) {
+  if (Version.parse(kotlinVersion) >= Version.parse("2.0.0")) {
+    return
+  }
+  addProjectGradleProperty(
+    "kotlin.native.distribution.downloadFromMaven",
+    """# Opt in to the future (Kotlin Gradle plugin 2.0.0) default behavior of downloading the
+       # Kotlin native libraries from Maven.
+      kotlin.native.distribution.downloadFromMaven=true
+      """
+      .trimIndent(),
+  )
 }

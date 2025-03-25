@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.adblib.DevicePropertyNames
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
@@ -35,16 +35,15 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.AbstractDisplayView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
-import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
-import com.android.tools.idea.testing.executeCapturingLoggedErrors
 import com.android.tools.idea.testing.executeCapturingLoggedWarnings
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.mockStatic
@@ -56,6 +55,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION
@@ -95,6 +95,7 @@ import com.intellij.util.ConcurrencyUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.runBlocking
 import org.apache.http.entity.mime.MultipartEntityBuilder
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -183,8 +184,10 @@ internal class DeviceViewTest {
     device = agentRule.connectDevice("Pixel 5", 32, Dimension(1080, 2340))
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
+    ActionManager.getInstance() // Instantiate ActionManager to trigger loading of keyboard shortcuts.
   }
 
+  @After
   fun tearDown() {
     BitRateManager.getInstance().clear()
   }
@@ -754,7 +757,7 @@ internal class DeviceViewTest {
     agent.crashOnStart = true
     errorMessage.text = ""
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Let all ongoing activity finish before attempting to reconnect.
-    val loggedErrors = executeCapturingLoggedErrors {
+    val loggedWarnings = executeCapturingLoggedWarnings {
       fakeUi.clickOn(button)
       waitForCondition(5, SECONDS) { extractText(errorMessage.text).isNotEmpty() }
       for (i in 1 until 3) {
@@ -764,7 +767,7 @@ internal class DeviceViewTest {
     }
     assertThat(extractText(errorMessage.text)).isEqualTo("Failed to initialize the device agent. See log for details.")
     assertThat(button.text).isEqualTo("Retry")
-    assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
+    assertThat(loggedWarnings).containsExactly("terminated with code 139", "Failed to initialize the screen sharing agent")
 
     mirroringSessions = usageTrackerRule.deviceMirroringSessions()
     assertThat(mirroringSessions.size).isEqualTo(2)
@@ -873,13 +876,13 @@ internal class DeviceViewTest {
   fun testConnectionTimeout() {
     StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.overrideForTest(200, testRootDisposable)
     agent.startDelayMillis = 500
-    val loggedErrors = executeCapturingLoggedErrors {
+    val loggedWarnings = executeCapturingLoggedWarnings {
       createDeviceViewWithoutWaitingForAgent(500, 1000, screenScale = 1.0)
       val errorMessage = fakeUi.getComponent<JEditorPane>()
       waitForCondition(2.seconds) { fakeUi.isShowing(errorMessage) }
       assertThat(extractText(errorMessage.text)).isEqualTo("Device agent is not responding")
     }
-    assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
+    assertThat(loggedWarnings).containsExactly("Failed to initialize the screen sharing agent")
   }
 
   @Test

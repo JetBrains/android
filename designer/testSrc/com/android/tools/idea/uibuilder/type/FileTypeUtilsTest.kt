@@ -104,6 +104,31 @@ class FileTypeUtilsTest {
     assertEquals(configDevice, config2.device)
   }
 
+  /**
+   * When the user changes the theme, the configuration should remember the change. Regression test
+   * for b/380783679.
+   */
+  @Test
+  fun testDrawableRemembersThemeSetting() {
+    DesignerTypeRegistrar.register(TestDrawableFileType)
+
+    val manager = ConfigurationManager.getOrCreateInstance(projectRule.module)
+    // The content doesn't matter
+    val file = projectRule.fixture.addFileToProject("res/drawable/my_drawable.xml", TEST_ROOT_TAG)
+
+    run {
+      val config = file.virtualFile.getConfiguration(manager)
+      assertEquals("@android:style/Theme", config.theme)
+      config.setTheme("MyThemeToRemember")
+      assertEquals("@style/MyThemeToRemember", config.theme)
+    }
+
+    run {
+      val config = file.virtualFile.getConfiguration(manager)
+      assertEquals("@style/MyThemeToRemember", config.theme)
+    }
+  }
+
   @Test
   fun testSameDeviceForDifferentDrawableFiles() {
     DesignerTypeRegistrar.register(TestDrawableFileType)

@@ -62,14 +62,15 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
   /**
    * The different layouts to organise the way to show previews:
-   * - List: organises the previews in a vertical oriented list.
-   * - Grid: organises the previews into a grid.
-   * - Gallery: shows one single preview at a time.
+   * - GRID: organises the previews into a grid.
+   * - GALLERY: shows one single preview at a time (aka Focus mode).
+   *
+   * Note: Although Gallery mode has been renamed to Focus mode, its key is also used to store user preferred layout in the settings preferences.
+   * The key used for storing these preferences should stay "GALLERY". Changing it would result in users losing their previously stored layout preference.
    */
   public enum LayoutType {
-    LIST("List"),
     GRID("Grid"),
-    GALLERY("Gallery");
+    GALLERY("Focus");
 
     @NotNull
     private final String myDisplayName;

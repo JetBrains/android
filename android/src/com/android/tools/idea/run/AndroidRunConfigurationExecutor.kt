@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
@@ -71,6 +72,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.facet.AndroidFacet
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -88,7 +90,8 @@ class AndroidRunConfigurationExecutor(
   override val configuration = env.runProfile as AndroidRunConfiguration
   private val settings = env.runnerAndConfigurationSettings as RunnerAndConfigurationSettings
 
-  val facet = configuration.configurationModule.module?.androidFacet ?: throw RuntimeException("Cannot get AndroidFacet")
+  val facet: AndroidFacet
+    get() = configuration.configurationModule.module?.androidFacet ?: throw RuntimeException("Cannot get AndroidFacet")
 
   private val LOG = Logger.getInstance(this::class.java)
 
@@ -103,7 +106,7 @@ class AndroidRunConfigurationExecutor(
     val processHandler = AndroidProcessHandler(applicationId, { it.forceStop(applicationId) })
     val console = createConsole()
 
-    fillStats(RunStats.from(env), applicationId)
+    fillStats(RunStats.from(env), applicationId, devices)
 
     devices.forEach {
       if (configuration.CLEAR_LOGCAT) {
@@ -123,20 +126,25 @@ class AndroidRunConfigurationExecutor(
       indicator.text = "Launching on devices"
       devices.map { device ->
         async {
+          val restoreEnabled = configuration.isRestoreEnabled()
+          val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
           LOG.info("Launching on device ${device.name}")
 
           //Deploy
           if (configuration.DEPLOY) {
             val apks = apkInfosSafe(device)
+            val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
             val deployResults =
-              deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
+              deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } })
 
             val mainApp = deployResults.find { it.app.appId == applicationId }
               ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
 
             if (configuration.isRestoreEnabled()) {
-              indicator.text = "Restoring app data"
-              restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+              if (!configuration.RESTORE_FRESH_INSTALL_ONLY || freshInstall) {
+                indicator.text = "Restoring app data"
+                restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+              }
             }
 
             if (launch(mainApp.app, device, console, isDebug = false)) {
@@ -194,7 +202,7 @@ class AndroidRunConfigurationExecutor(
       indicator.text = "Terminating the app"
       val results = devices.filter {
         // Starting with API33, we will purely rely on Package Manager to handle process termination.
-        !StudioFlags.INSTALL_USE_PM_TERMINATE.get() || !it.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)
+        !StudioFlags.INSTALL_USE_PM_TERMINATE.get() || !it.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)
       }.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
 
       if (results.any { !it }) {
@@ -209,7 +217,7 @@ class AndroidRunConfigurationExecutor(
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
-    fillStats(RunStats.from(env), applicationId)
+    fillStats(RunStats.from(env), applicationId, devices)
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
@@ -244,18 +252,23 @@ class AndroidRunConfigurationExecutor(
           attachDebuggerToSandboxSdk(device, applicationId, env, indicator, console)
         }
 
+        val restoreEnabled = configuration.isRestoreEnabled()
+        val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
         val apks = apkInfosSafe(device)
+        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
         val deployResults =
-          deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
+          deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } })
 
         notifyLiveEditService(device, apks, applicationContext)
 
         val mainApp = deployResults.find { it.app.appId == applicationId }
           ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
 
-        if (configuration.isRestoreEnabled()) {
-          indicator.text = "Restoring app data"
-          restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+        if (restoreEnabled) {
+          if (!configuration.RESTORE_FRESH_INSTALL_ONLY || freshInstall) {
+            indicator.text = "Restoring app data"
+            restoreAppFromFile(project, device, configuration.RESTORE_FILE, RunStats.from(env))
+          }
         }
 
         launch(mainApp.app, device, console, isDebug = true)
@@ -315,7 +328,7 @@ class AndroidRunConfigurationExecutor(
 
     var needsNewRunContentDescriptor = existingRunContentDescriptor == null
 
-    fillStats(RunStats.from(env), applicationId)
+    fillStats(RunStats.from(env), applicationId, devices)
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
     console.printLaunchTaskStartedMessage("Applying changes to")
@@ -328,9 +341,10 @@ class AndroidRunConfigurationExecutor(
 
         //Deploy
         val apks = apkInfosSafe(device)
+        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
         val deployResults = deployAndHandleError(
           env,
-          { apks.map { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, indicator) } },
+          { apks.map { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
           isApplyChangesFallbackToRun()
         )
 
@@ -384,7 +398,7 @@ class AndroidRunConfigurationExecutor(
 
     var needsNewRunContentDescriptor = existingRunContentDescriptor == null
 
-    fillStats(RunStats.from(env), applicationId)
+    fillStats(RunStats.from(env), applicationId, devices)
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
     console.printLaunchTaskStartedMessage("Applying code changes to")
@@ -393,9 +407,10 @@ class AndroidRunConfigurationExecutor(
       async {
         LOG.info("Launching on device ${device.name}")
         val apks = apkInfosSafe(device)
+        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
         val deployResults = deployAndHandleError(
           env,
-          { apks.map { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, indicator) } },
+          { apks.map { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
           isApplyCodeChangesFallbackToRun()
         )
 
@@ -448,12 +463,15 @@ class AndroidRunConfigurationExecutor(
     throw ExecutionException(e)
   }
 
-  private fun fillStats(stats: RunStats, applicationId: String) {
+  private fun fillStats(stats: RunStats, applicationId: String, devices: List<IDevice>) {
     stats.setPackage(applicationId)
     stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun())
     stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun())
     stats.setRunAlwaysInstallWithPm(configuration.ALWAYS_INSTALL_WITH_PM)
     stats.setIsComposeProject(LiveEditService.usesCompose(project))
+    // Only applicable 35+
+    stats.setUseAssumeVerified(configuration.ALLOW_ASSUME_VERIFIED &&
+                               devices.any { it.version.isAtLeast(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM) })
   }
 
   private fun isApplyCodeChangesFallbackToRun(): Boolean {

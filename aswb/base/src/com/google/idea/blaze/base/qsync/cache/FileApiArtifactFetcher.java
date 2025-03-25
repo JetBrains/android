@@ -19,18 +19,33 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.command.buildresult.LocalFileOutputArtifact;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.artifact.ArtifactFetcher;
+import com.google.idea.common.experiments.IntExperiment;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map.Entry;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /** Implementation of {@link ArtifactFetcher} that copy file via file api. */
 public class FileApiArtifactFetcher implements ArtifactFetcher<LocalFileOutputArtifact> {
+  public static final IntExperiment maxThreads = new IntExperiment("aswb.file.api.artifact.fetcher.max.threads", 128);
+  public static final ListeningExecutorService EXECUTOR =
+    MoreExecutors.listeningDecorator(
+      // Wrap into a bounded executor as it also allows to give it a name.
+      AppExecutorUtil.createBoundedApplicationPoolExecutor("FileApiArtifactFetcher",
+                                                           new ThreadPoolExecutor(1, maxThreads.getValue(),
+                                                                                  10L, TimeUnit.SECONDS,
+                                                                                  new SynchronousQueue<Runnable>()), maxThreads.getValue()));
   @Override
   public ListenableFuture<?> copy(
       ImmutableMap<? extends LocalFileOutputArtifact, ArtifactDestination> artifactToDest,
@@ -39,7 +54,7 @@ public class FileApiArtifactFetcher implements ArtifactFetcher<LocalFileOutputAr
     for (Entry<? extends LocalFileOutputArtifact, ArtifactDestination> entry :
         artifactToDest.entrySet()) {
       tasks.add(
-          ArtifactFetchers.EXECUTOR.submit(
+          EXECUTOR.submit(
               () -> {
                 Path dest = entry.getValue().path;
                 LocalFileOutputArtifact localFileOutputArtifact = entry.getKey();
@@ -60,5 +75,10 @@ public class FileApiArtifactFetcher implements ArtifactFetcher<LocalFileOutputAr
   @Override
   public Class<LocalFileOutputArtifact> supportedArtifactType() {
     return LocalFileOutputArtifact.class;
+  }
+
+  @Override
+  public String toString() {
+    return "file system artifact fetcher";
   }
 }

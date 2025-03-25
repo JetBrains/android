@@ -88,7 +88,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
   ) {
     val hoveredNode = inspectorModel.hoveredNode
     val drawView = drawInfo.node
-    val view = drawView.findFilteredOwner(renderModel.treeSettings)
+    val view = drawView.unfilteredOwner
     val selection = inspectorModel.selection
 
     val g2 = g.create() as Graphics2D
@@ -102,7 +102,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
           view == selection ||
           view == hoveredNode ||
           (renderModel.treeSettings.showRecompositions &&
-            view?.recompositions?.hasHighlight == true &&
+            view.recompositions.hasHighlight == true &&
             inspectorModel.maxHighlight != 0f))
     ) {
       drawView.paintBorder(
@@ -132,10 +132,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
           // multiple DrawViewNodes (that is, both
           // a structural DrawViewChild and one or more image-containing DrawViewImage), only draw
           // on the bottom one (the DrawViewChild).
-          (renderModel.hoveredDrawInfo == null &&
-            view != null &&
-            inspectorModel.selection == view &&
-            drawView is DrawViewChild))
+          (renderModel.hoveredDrawInfo == null && selection == view && drawView is DrawViewChild))
     ) {
       renderFold(g2, component, foregroundColor)
     }

@@ -19,6 +19,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.TaskEventTrackerUtils.trackTaskEntered
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.diagnostic.Logger
@@ -132,15 +133,12 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
   protected abstract fun createLoadingTaskArgs(artifact: SessionArtifact<*>): TaskArgs
 
   /**
-   * Returns whether the task supports a given device and process. Some tasks only require checking the device, some only the process, and
-   * some require checking both.
+   * Checks whether the task supports a given device and process. If it doesn't, an error is returned representing the cause,
+   * otherwise, it returns null. Some tasks only require checking the device, some only the process, and some require checking both.
+   *
+   * This method is called under the assumption that the device and process selections are all valid (not null nor default instances).
    */
-  fun supportsDeviceAndProcess(device: Common.Device, process: Common.Process) = device != Common.Device.getDefaultInstance() &&
-                                                                                          process != Common.Process.getDefaultInstance() &&
-                                                                                          checkDeviceAndProcess(device, process)
-
-  protected abstract fun checkDeviceAndProcess(device: Common.Device, process: Common.Process): Boolean
-
+  abstract fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError?
   /**
    * Unified error handler for all task handlers.
    */

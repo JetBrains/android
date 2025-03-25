@@ -33,7 +33,6 @@ import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.NoErrorsOrWarningsLogger
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.recordExistingFile
@@ -44,6 +43,7 @@ import com.google.common.collect.Maps
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -102,7 +102,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     myNonPlayAvdInfo = anAvdInfo(systemImage = nonPlayImage!!, properties = myPropertiesMap)
 
     // Get a phone device that supports Google Play
-    val devMgr = DeviceManager.createInstance(sdkHandler, NoErrorsOrWarningsLogger())
+    val devMgr = DeviceManager.createInstance(sdkHandler, NoErrorsOrWarningsLogger(), { true })
     myGooglePlayDevice = devMgr.getDevice("Nexus 5", "Google")
 
     // Make a phone device that does not support Google Play

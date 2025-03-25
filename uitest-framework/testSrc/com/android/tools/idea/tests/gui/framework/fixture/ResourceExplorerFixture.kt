@@ -57,7 +57,7 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
   @Suppress("UNCHECKED_CAST")
   val resourcesCount: Int
     get() {
-      val listViews = robot().finder().findAll(target(), TypeMatcher(AssetListView::class.java)) as Collection<AssetListView>
+      val listViews = robot().finder().findAll(target(), Matchers.byType(AssetListView::class.java).andIsVisible()) as Collection<AssetListView>
       return listViews.map { it.model.size }.reduce(Int::plus)
     }
 

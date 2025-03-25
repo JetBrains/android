@@ -20,6 +20,7 @@ import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintOrigin
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
+import com.android.tools.visuallint.VisualLintErrorType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 

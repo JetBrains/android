@@ -32,6 +32,11 @@ public class BlazeAndroidTestRunConfigurationHandlerProvider
   }
 
   @Override
+  public String getDisplayLabel() {
+    return "Android Test";
+  }
+
+  @Override
   public boolean canHandleKind(TargetState state, @Nullable Kind kind) {
     return kind != null
         && kind.isOneOf(

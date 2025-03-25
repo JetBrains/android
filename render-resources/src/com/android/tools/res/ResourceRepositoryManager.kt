@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceRepository
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 
 /**
  * Studio independent version of [StudioResourceRepositoryManager]
@@ -58,6 +59,9 @@ interface ResourceRepositoryManager {
 
   /** Returns all locales of the project resources. */
   val localesInProject: ImmutableList<Locale>
+
+  /** Returns all languages of the project resources. */
+  val languagesInProject: ImmutableSet<String>
 
   /**
    * Returns the resource repository for a single module (which can possibly have multiple resource folders).

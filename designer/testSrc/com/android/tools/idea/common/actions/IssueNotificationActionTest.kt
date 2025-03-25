@@ -24,10 +24,10 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.util.TestToolWindowManager
+import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -203,7 +203,7 @@ class IssueNotificationActionTest {
       }
     val action = IssueNotificationAction()
     action.update(actionEvent)
-    assertFalse(actionEvent.presentation.isEnabled)
+    assertFalse(actionEvent.presentation.isVisible)
   }
 
   private fun createSingleIssueWithSeverity(severity: HighlightSeverity, nlModel: NlModel) =

@@ -18,7 +18,5 @@ package com.android.tools.idea.adblib.testing
 import com.android.adblib.AdbSession
 import com.android.tools.idea.adblib.AdbLibService
 
-/**
- * A test implementation of [AdbLibService]. Can be given any [AdbSession].
- */
+/** A test implementation of [AdbLibService]. Can be given any [AdbSession]. */
 class TestAdbLibService(override val session: AdbSession) : AdbLibService

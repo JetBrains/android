@@ -15,28 +15,28 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.mocks.FakeFileDatabaseManager
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.utils.StubProcessDescriptor
 import com.android.tools.idea.testing.runDispatching
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.util.concurrency.EdtExecutorService
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 class OfflineModeManagerTest : LightPlatformTestCase() {
 
@@ -60,7 +60,7 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
 
-    uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    uiDispatcher = Dispatchers.EDT
 
     trackerService = FakeDatabaseInspectorAnalyticsTracker()
     project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, trackerService)

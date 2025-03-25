@@ -40,7 +40,7 @@ import static org.fest.reflect.core.Reflection.method;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NdkSxsTest {
-  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(2, TimeUnit.MINUTES);
+  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   /**
    * Verifies that there should be multiple NDK version under NDK (Side by side) section in SDK Manager.

@@ -234,6 +234,7 @@ private class SlowDrawableResourceLookupElement(
         presentation: LookupElementPresentation,
       ) {
         this@SlowDrawableResourceLookupElement.renderElement(presentation)
+
         GutterIconCache.getInstance(facet.module.project)
           .getIcon(file, resolver, facet)
           ?.let(presentation::setIcon)

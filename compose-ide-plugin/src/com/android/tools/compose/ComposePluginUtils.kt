@@ -44,7 +44,6 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
@@ -56,9 +55,10 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.types.AbbreviatedType
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
 private const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
@@ -86,11 +86,6 @@ fun isModifierChainLongerThanTwo(element: KtElement): Boolean {
     }
   }
   return false
-}
-
-internal fun KotlinType.isClassOrExtendsClass(classFqName: String): Boolean {
-  return fqName?.asString() == classFqName ||
-    supertypes().any { it.fqName?.asString() == classFqName }
 }
 
 internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): FqName? {
@@ -167,3 +162,10 @@ internal fun isInLibrarySource(element: PsiElement) =
   element.containingFile.virtualFile != null &&
     ProjectFileIndex.getInstance(element.project)
       .isInLibrarySource(element.containingFile.virtualFile)
+
+private val KotlinType.fqName: FqName?
+  get() =
+    when (this) {
+      is AbbreviatedType -> abbreviation.fqName
+      else -> constructor.declarationDescriptor?.fqNameOrNull()
+    }

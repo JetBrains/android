@@ -17,9 +17,18 @@ package com.android.tools.idea.imports
 
 import com.android.annotations.concurrency.Slow
 import com.android.io.CancellableFileIo
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.openapi.extensions.ExtensionNotApplicableException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.util.EventDispatcher
+import com.intellij.util.application
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.outputStream
 import java.io.IOException
@@ -31,119 +40,127 @@ import java.net.UnknownHostException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
-import java.time.Duration
+import java.util.EventListener
 import java.util.Locale
 import java.util.Properties
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.exists
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 /** Network connection timeout in milliseconds. */
 private const val NETWORK_TIMEOUT_MILLIS = 3000
 
 /** Network retry initial delay in milliseconds. */
-private val NETWORK_RETRY_INITIAL_DELAY_MILLIS = TimeUnit.HOURS.toMillis(1)
+private val NETWORK_RETRY_INITIAL_DELAY = 1.hours
 
 /** Network maximum retry times. */
 private const val NETWORK_MAXIMUM_RETRY_TIMES = 4
 
 /** Network retry delay factor. */
-private const val NETWORK_RETRY_DELAY_FACTOR = 2.0
+private const val NETWORK_RETRY_DELAY_FACTOR = 2
+
+/** Scheduled refreshment interval for local disk cache. */
+private val REFRESH_INTERVAL = 1.days
 
 private const val GZ_EXT = ".gz"
 
-/** Key used in property list to find ETag value.  */
+/** Key used in property list to find ETag value. */
 private const val ETAG_KEY = "etag"
 
 private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
 
+/** Key used in cache directories to locate the gmaven.index network cache. */
+private const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
+
 /**
- * A repository provides Maven class registry generated from loading local disk cache, which is actively refreshed from
- * network request on GMaven indices on [baseUrl]/[RELATIVE_PATH], on a scheduled basis (daily).
+ * A repository provides Maven class registry generated from loading local disk cache, which is
+ * actively refreshed from network request on GMaven indices on [baseUrl]/[RELATIVE_PATH], on a
+ * scheduled basis (daily).
  *
- * [getMavenClassRegistry] returns the last known [MavenClassRegistry] if possible.
- *
- * The underlying [lastComputedMavenClassRegistry] is for storing the last known value for instant query. The
- * freshness is guaranteed by the [scheduler].
+ * The underlying [lastComputedMavenClassRegistry] is for storing the last known value for instant
+ * query. The freshness is guaranteed by the [scheduler].
  */
-class GMavenIndexRepository(
+@Service
+class GMavenIndexRepository
+@TestOnly
+internal constructor(
   private val baseUrl: String,
   private val cacheDir: Path,
-  private val refreshInterval: Duration
-) : Disposable {
-  private class ValueWithETag(val data: ByteArray, val eTag: String)
+  coroutineScope: CoroutineScope,
+  coroutineDispatcher: CoroutineDispatcher,
+) {
 
-  private val relativeCachePath = if (RELATIVE_PATH.endsWith(GZ_EXT)) RELATIVE_PATH.dropLast(GZ_EXT.length) else RELATIVE_PATH
-  private var lastComputedMavenClassRegistry = AtomicReference<MavenClassRegistry?>()
-  private val scheduler = AppExecutorUtil.createBoundedScheduledExecutorService(
-    "MavenClassRegistry Refresher",
-    1
+  constructor(
+    coroutineScope: CoroutineScope
+  ) : this(
+    BASE_URL,
+    Paths.get(PathManager.getSystemPath(), GMAVEN_INDEX_CACHE_DIR_KEY),
+    coroutineScope,
+    Dispatchers.Default,
   )
 
+  private val relativeCachePath =
+    if (RELATIVE_PATH.endsWith(GZ_EXT)) RELATIVE_PATH.dropLast(GZ_EXT.length) else RELATIVE_PATH
+
+  private val listeners = EventDispatcher.create(GMavenIndexRepositoryListener::class.java)
+
   init {
-    val task = Runnable {
-      refreshWithRetryStrategy(
-        url = "$baseUrl/$RELATIVE_PATH",
-        retryDelayMillis = NETWORK_RETRY_INITIAL_DELAY_MILLIS,
-        remainingAttempts = NETWORK_MAXIMUM_RETRY_TIMES
-      )
-    }
-    // Schedules to refresh local disk cache on a daily basis.
-    scheduler.scheduleWithFixedDelay(task, 0, refreshInterval.toMillis(), TimeUnit.MILLISECONDS)
-  }
+    coroutineScope.launch(coroutineDispatcher) {
+      // Schedules to refresh local disk cache on a daily basis (based on refreshInterval).
+      while (true) {
+        launch {
+          refreshWithRetryStrategy(
+            url = "$baseUrl/$RELATIVE_PATH",
+            retryDelay = NETWORK_RETRY_INITIAL_DELAY,
+            remainingAttempts = NETWORK_MAXIMUM_RETRY_TIMES,
+          )
+        }
 
-  /**
-   * Returns the last known [MavenClassRegistry] if possible.
-   *
-   * Or new Maven class registry is created in the calling thread.
-   */
-  fun getMavenClassRegistry(): MavenClassRegistry {
-    return lastComputedMavenClassRegistry.get() ?: MavenClassRegistry(this).apply {
-      lastComputedMavenClassRegistry.set(this)
+        delay(REFRESH_INTERVAL)
+      }
     }
   }
 
+  internal fun addListener(listener: GMavenIndexRepositoryListener, parentDisposable: Disposable) {
+    listeners.addListener(listener, parentDisposable)
+  }
+
   /**
-   * Refreshes both local disk cache and [lastComputedMavenClassRegistry] if exists with retry strategy.
+   * Refreshes both local disk cache and [lastComputedMavenClassRegistry] if exists with retry
+   * strategy.
    */
   @Slow
-  private fun refreshWithRetryStrategy(url: String, retryDelayMillis: Long, remainingAttempts: Int) {
+  private suspend fun refreshWithRetryStrategy(
+    url: String,
+    retryDelay: Duration,
+    remainingAttempts: Int,
+  ) {
     val status = refresh(url)
+    if (status != RefreshStatus.RETRY || remainingAttempts <= 1) return
 
-    if (status == RefreshStatus.RETRY && remainingAttempts > 1) {
-      val scheduledTime = DATE_FORMAT.format(System.currentTimeMillis() + retryDelayMillis)
-      thisLogger().info("Scheduled to retry refreshing ${this.javaClass.name} after $scheduledTime.")
+    val scheduledTime =
+      DATE_FORMAT.format(System.currentTimeMillis() + retryDelay.inWholeMilliseconds)
+    thisLogger().info("Scheduled to retry refreshing ${this.javaClass.name} after $scheduledTime.")
+    delay(retryDelay)
 
-      val retry = Runnable {
-        val nextRetryDelayMillis = (retryDelayMillis * NETWORK_RETRY_DELAY_FACTOR).toLong()
-        refreshWithRetryStrategy(url, nextRetryDelayMillis, remainingAttempts - 1)
-      }
-      scheduler.schedule(retry, retryDelayMillis, TimeUnit.MILLISECONDS)
-    }
+    refreshWithRetryStrategy(url, retryDelay * NETWORK_RETRY_DELAY_FACTOR, remainingAttempts - 1)
   }
 
-  /**
-   * Refreshes both local disk cache and [lastComputedMavenClassRegistry] if exists.
-   */
+  /** Refreshes both local disk cache and [lastComputedMavenClassRegistry] if exists. */
   @Slow
   private fun refresh(url: String): RefreshStatus {
     val status = refreshDiskCache(url)
-
-    if (status == RefreshStatus.UPDATED) {
-      lastComputedMavenClassRegistry.getAndUpdate {
-        if (it == null) {
-          null
-        }
-        else {
-          val mavenClassRegistry = MavenClassRegistry(this)
-          // TODO: make it `debug` instead of `info` once it's stable.
-          thisLogger().info("Updated in-memory Maven class registry.")
-          mavenClassRegistry
-        }
-      }
-    }
+    if (status == RefreshStatus.UPDATED) listeners.multicaster.onIndexUpdated()
 
     return status
   }
@@ -155,9 +172,7 @@ class GMavenIndexRepository(
     val file = cacheDir.resolve(relativeCachePath)
     try {
       return CancellableFileIo.newInputStream(file)
-    }
-    catch (ignore: NoSuchFileException) {
-    }
+    } catch (ignore: NoSuchFileException) {}
 
     // Fallback: Builtin index, used for offline scenarios etc.
     return readDefaultData()
@@ -166,19 +181,21 @@ class GMavenIndexRepository(
   /**
    * Returns [RefreshStatus.UPDATED] if the disk cache is successfully updated.
    *
-   * Or returns [RefreshStatus.UNCHANGED] if it's already up to date. Or returns [RefreshStatus.RETRY] if might be
-   * worth retrying after a while. Or returns [RefreshStatus.ERROR] when errors occur.
+   * Or returns [RefreshStatus.UNCHANGED] if it's already up to date. Or returns
+   * [RefreshStatus.RETRY] if might be worth retrying after a while. Or returns
+   * [RefreshStatus.ERROR] when errors occur.
    *
-   * When requesting content, we explicitly store the corresponding ETag values, in a `.properties` file, as a sibling
-   * to the local cached content. So, such cached ETag value can be an identifier to determine if there's new changes
-   * since the last request, and `304 Not Modified Response` is the expected response if we've already gotten an up to
-   * date cache.
+   * When requesting content, we explicitly store the corresponding ETag values, in a `.properties`
+   * file, as a sibling to the local cached content. So, such cached ETag value can be an identifier
+   * to determine if there's new changes since the last request, and `304 Not Modified Response` is
+   * the expected response if we've already gotten an up to date cache.
    */
   @Slow
   private fun refreshDiskCache(url: String): RefreshStatus {
     try {
       val cacheFile = cacheDir.resolve(relativeCachePath)
-      val eTagForCacheFile: String? = if (cacheFile.exists()) loadETag(getETagFile(cacheFile)) else null
+      val eTagForCacheFile: String? =
+        if (cacheFile.exists()) loadETag(getETagFile(cacheFile)) else null
 
       val valueWithETag = readUrlData(url, NETWORK_TIMEOUT_MILLIS, eTagForCacheFile)
       if (valueWithETag == null) {
@@ -188,19 +205,17 @@ class GMavenIndexRepository(
 
       saveCache(valueWithETag.data, cacheFile)
       saveETag(getETagFile(cacheFile), valueWithETag.eTag)
-      thisLogger().info("Refreshed disk cache successfully with a new ETag header: ${valueWithETag.eTag}.")
+      thisLogger()
+        .info("Refreshed disk cache successfully with a new ETag header: ${valueWithETag.eTag}.")
       return RefreshStatus.UPDATED
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       thisLogger().info("Failed to refresh local disk cache:\n$e")
 
       return if (isRetryableError(e)) RefreshStatus.RETRY else RefreshStatus.ERROR
     }
   }
 
-  /**
-   * Returns true if a retry should be scheduled for later.
-   */
+  /** Returns true if a retry should be scheduled for later. */
   private fun isRetryableError(e: Exception): Boolean {
     if (e !is IOException) return false
 
@@ -210,23 +225,19 @@ class GMavenIndexRepository(
     return responseCode >= 400
   }
 
-  /**
-   * Reads the given query URL, with the given time out, and returns the bytes found.
-   */
+  /** Reads the given query URL, with the given time out, and returns the bytes found. */
   @Slow
   private fun readUrlData(url: String, timeoutMillis: Int, eTag: String?): ValueWithETag? {
-    return HttpRequests
-      .request(URL(url).toExternalForm())
+    return HttpRequests.request(URL(url).toExternalForm())
       .connectTimeout(timeoutMillis)
       .readTimeout(timeoutMillis)
-      .tuner { connection ->
-        eTag?.let { connection.setRequestProperty("If-None-Match", it) }
-      }
+      .tuner { connection -> eTag?.let { connection.setRequestProperty("If-None-Match", it) } }
       .connect { request ->
         val eTagField = request.connection.getHeaderField("ETag")
         val responseCode = (request.connection as HttpURLConnection).responseCode
         if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-          thisLogger().info("HTTP not modified since the last request for URL: $url (etag: $eTagField).")
+          thisLogger()
+            .info("HTTP not modified since the last request for URL: $url (etag: $eTagField).")
           return@connect null
         }
 
@@ -236,9 +247,11 @@ class GMavenIndexRepository(
   }
 
   private fun readDefaultData(): InputStream {
-    return GMavenIndexRepository::class.java.classLoader.getResourceAsStream("gmavenIndex/$OFFLINE_NAME.json") ?: throw Error(
-      "Unexpected error when reading resource file: $OFFLINE_NAME.json."
-    )
+    return GMavenIndexRepository::class
+      .java
+      .classLoader
+      .getResourceAsStream("gmavenIndex/$OFFLINE_NAME.json")
+      ?: throw Error("Unexpected error when reading resource file: $OFFLINE_NAME.json.")
   }
 
   private fun saveCache(data: ByteArray, cacheFile: Path) {
@@ -250,9 +263,13 @@ class GMavenIndexRepository(
         // Writes the decompressed bytes of the data to the temp file.
         Files.write(tempFile, it)
       }
-      Files.move(tempFile, cacheFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-    }
-    catch (e: Exception) {
+      Files.move(
+        tempFile,
+        cacheFile,
+        StandardCopyOption.REPLACE_EXISTING,
+        StandardCopyOption.ATOMIC_MOVE,
+      )
+    } catch (e: Exception) {
       Files.deleteIfExists(tempFile)
       throw e
     }
@@ -260,14 +277,12 @@ class GMavenIndexRepository(
 
   private fun loadETag(file: Path): String? {
     return try {
-      val properties = Properties().apply {
-        CancellableFileIo.newInputStream(file).use { inputStream ->
-          this.load(inputStream)
+      val properties =
+        Properties().apply {
+          CancellableFileIo.newInputStream(file).use { inputStream -> this.load(inputStream) }
         }
-      }
       properties.getProperty(ETAG_KEY)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       thisLogger().info("Error when loading ETag value:\n$e")
       null
     }
@@ -284,32 +299,51 @@ class GMavenIndexRepository(
     return file.resolveSibling("${file.fileName}.properties")
   }
 
-  /**
-   * Status after the local disk cache being refreshed.
-   */
+  /** Status after the local disk cache being refreshed. */
   private enum class RefreshStatus {
-    /**
-     * Content is updated to the latest.
-     */
+    /** Content is updated to the latest. */
     UPDATED,
 
-    /**
-     * No changes after refreshing.
-     */
+    /** No changes after refreshing. */
     UNCHANGED,
 
-    /**
-     * Worth a retry after a while.
-     */
+    /** Worth a retry after a while. */
     RETRY,
 
-    /**
-     * Errors happen when refreshing.
-     */
-    ERROR
+    /** Errors happen when refreshing. */
+    ERROR,
   }
 
-  override fun dispose() {
-    scheduler.shutdown()
+  private class ValueWithETag(val data: ByteArray, val eTag: String)
+
+  companion object {
+    fun getInstance(): GMavenIndexRepository = application.service()
+  }
+}
+
+/** Listener for events related to the [GMavenIndexRepository] service. */
+internal fun interface GMavenIndexRepositoryListener : EventListener {
+  fun onIndexUpdated()
+}
+
+/**
+ * Post-startup activity that kicks of the GMaven index refresh logic in [GMavenIndexRepository].
+ */
+class AutoRefresherForMavenClassRegistry : ProjectActivity {
+  init {
+    if (application.isUnitTestMode || application.isHeadlessEnvironment)
+      throw ExtensionNotApplicableException.create()
+  }
+
+  override suspend fun execute(project: Project) {
+    if (
+      !IdeInfo.getInstance().isAndroidStudio && !IdeSdks.getInstance().hasConfiguredAndroidSdk()
+    ) {
+      // IDE must not hit network on startup
+      return
+    }
+
+    // Start refresher in GMavenIndexRepository at project start-up.
+    GMavenIndexRepository.getInstance()
   }
 }

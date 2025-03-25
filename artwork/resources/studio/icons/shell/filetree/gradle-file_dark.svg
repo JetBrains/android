@@ -1,1 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect width="16" height="16" fill="none"/><path d="M15.52 2.375c-.567-1.047-1.58-1.36-2.295-1.375-.878-.018-1.599.482-1.462.81.029.07.193.438.294.59.147.219.408.05.5 0 .274-.15.566-.198.898-.158.318.038.739.239 1.022.797.665 1.314-1.389 4.018-3.96 2.145-2.57-1.872-5.071-1.252-6.203-.874-1.132.377-1.652.756-1.205 1.634.608 1.192.406.827.996 1.814.936 1.568 2.985-.722 2.985-.722-1.526 2.312-2.835 1.754-3.337.945-.452-.728-.804-1.568-.804-1.568C-.917 7.814.13 14 .13 14h1.92c.49-2.278 2.24-2.194 2.54 0h1.465c1.296-4.448 4.58 0 4.58 0h1.91c-.535-3.034 1.074-3.987 2.088-5.765 1.015-1.779 1.975-3.955.887-5.86z" fill="#9AA7B0" fill-rule="evenodd" fill-opacity=".8"/></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_3_839)"><path d="M14.894 3.545c-.362-.756-1.556-1.65-2.893-.481m2.893.48c.463.882-.33 2.526-1.93 2.526-2.087 0-4.276-3.457-9.04-1.108-.421.207-.608.7-.464 1.148l.116.36m11.318-2.925s1.336 2.815-2.33 5.557c-1.033.773-1.411 2.291-1.45 3.644a.1.1 0 01-.1.098h-1.14a.22.22 0 01-.208-.169 1.482 1.482 0 00-1.436-1.091c-.678 0-1.26.456-1.434 1.094a.22.22 0 01-.208.168H5.512a.22.22 0 01-.208-.168 1.487 1.487 0 00-2.868 0 .22.22 0 01-.208.169H1.036a.1.1 0 01-.1-.09c-.293-2.844.53-4.951 2.64-6.287m0 0l.58 1.91c.217.636 1.085.741 1.614.444a9.336 9.336 0 001.822-1.279" stroke="#CED0D6" stroke-linecap="round"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9.26 7.32c-.096-.061-.153-.173-.116-.28a.798.798 0 111.306.84c-.082.078-.207.072-.302.01l-.889-.57z" fill="#CED0D6"/></g><defs><clipPath id="clip0_3_839"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>

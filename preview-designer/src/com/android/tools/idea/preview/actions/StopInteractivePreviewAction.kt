@@ -20,6 +20,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
@@ -33,12 +34,12 @@ class StopInteractivePreviewAction(private val isDisabled: (e: AnActionEvent) ->
     message("action.stop.interactive.description"),
     StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE,
   ) {
-  override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
     val previewMode = e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value
     e.presentation.isEnabled = previewMode is PreviewMode.Interactive && !isDisabled(e)
     e.presentation.isVisible = previewMode is PreviewMode.Interactive
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   override fun actionPerformed(e: AnActionEvent) {

@@ -49,6 +49,7 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionExcep
 import java.nio.file.Path
 import java.util.function.Consumer
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -205,6 +206,25 @@ class AndroidVersionsInfo(
 
     override fun toString(): String = label
 
+    /**
+     * Build SDK is used in compileSdk.
+     */
+    fun withBuildSdk(version: AndroidVersion): VersionItem =
+      VersionItem(
+        label = getLabel(version, null),
+        buildApiLevel = version.apiLevel,
+        buildApiLevelStr = version.apiLevel.toString(),
+        minApiLevel = min(minApiLevel, version.apiLevel),
+        minApiLevelStr = if (minApiLevel <= version.apiLevel) minApiLevelStr else (version.codename ?: version.apiLevel.toString()),
+        targetApiLevelStr = if (androidTarget != null && androidTarget.version.apiLevel <= version.apiLevel) {
+          targetApiLevelStr
+        }
+        else {
+          version.apiStringWithExtension
+        },
+        androidTarget = null
+      )
+
     companion object {
       fun fromAndroidVersion(version: AndroidVersion): VersionItem {
         val newProjectsCompileSdkVersion = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
@@ -297,6 +317,7 @@ private fun FormFactor.defaultTag() = when (this) {
   FormFactor.WEAR -> SystemImageTags.WEAR_TAG
   FormFactor.TV -> SystemImageTags.ANDROID_TV_TAG
   FormFactor.AUTOMOTIVE -> SystemImageTags.AUTOMOTIVE_TAG
+  FormFactor.XR -> SystemImageTags.XR_TAG
 }
 
 private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion = (repoPackage.typeDetails as ApiDetailsType).androidVersion

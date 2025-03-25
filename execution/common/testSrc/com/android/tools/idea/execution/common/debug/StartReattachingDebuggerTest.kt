@@ -21,8 +21,6 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.services.ShellCommandOutput
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
@@ -46,7 +44,9 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -143,7 +143,7 @@ class StartReattachingDebuggerTest {
 
     val ADDITIONAL_CLIENTS = 2
     // RunContentManagerImpl.showRunContent content does nothing on showRunContent in Unit tests, we want to check it was invoked.
-    val runContentManagerImplMock = Mockito.mock(RunContentManager::class.java)
+    val runContentManagerImplMock = mock<RunContentManager>()
 
     project.registerServiceInstance(RunContentManager::class.java, runContentManagerImplMock)
     val projectSystem = TestProjectSystem(project)

@@ -29,9 +29,9 @@ import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.rows
 import com.intellij.ui.dsl.builder.toMutableProperty
-import com.intellij.ui.util.minimumWidth
 import com.intellij.util.ui.JBUI
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Insets
 import javax.swing.border.LineBorder
 
@@ -73,7 +73,7 @@ class EditSnapshotDialog(snapshotName: String, snapshotDescription: String, var 
       row {
         checkBox(StreamingBundle.message("edit.snapshot.checkbox.boot.from.this.snapshot")).bindSelected(::useToBoot)
       }
-    }.apply { minimumWidth = 500 }
+    }.apply { minimumSize = Dimension(500, 500) }
   }
 
   /**

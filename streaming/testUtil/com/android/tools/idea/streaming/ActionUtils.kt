@@ -29,12 +29,14 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
@@ -48,16 +50,16 @@ import java.awt.event.KeyEvent.VK_E
 /** Executes an action related to device streaming. */
 fun executeStreamingAction(actionId: String, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR,
                            modifiers: Int = CTRL_DOWN_MASK,
-                           extraData: Map<String, Any?> = emptyMap()) {
+                           extra: DataSnapshotProvider? = null) {
   val action = ActionManager.getInstance().getAction(actionId)
-  executeStreamingAction(action, source, project, place = place, modifiers = modifiers, extraData = extraData)
+  executeStreamingAction(action, source, project, place = place, modifiers = modifiers, extra = extra)
 }
 
 /** Executes an action related to device streaming. */
 fun executeStreamingAction(action: AnAction, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR,
                            modifiers: Int = CTRL_DOWN_MASK,
-                           extraData: Map<String, Any?> = emptyMap()) {
-  val event = createTestEvent(source, project, place = place, modifiers = modifiers, extraData = extraData)
+                           extra: DataSnapshotProvider? = null) {
+  val event = createTestEvent(source, project, place = place, modifiers = modifiers, extra = extra)
   action.update(event)
   assertThat(event.presentation.isEnabledAndVisible).isTrue()
   action.actionPerformed(event)
@@ -65,32 +67,32 @@ fun executeStreamingAction(action: AnAction, source: Component, project: Project
 
 fun updateAndGetActionPresentation(actionId: String, source: Component, project: Project,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT,
-                                   extraData: Map<String, Any?> = emptyMap()): Presentation {
+                                   extra: DataSnapshotProvider? = null): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
-  return updateAndGetActionPresentation(action, source, project, place = place, extraData = extraData)
+  return updateAndGetActionPresentation(action, source, project, place = place, extra = extra)
 }
 
 fun updateAndGetActionPresentation(action: AnAction, source: Component, project: Project,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT,
-                                   extraData: Map<String, Any?> = emptyMap()): Presentation {
-  val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone(), extraData = extraData)
+                                   extra: DataSnapshotProvider? = null): Presentation {
+  val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone(), extra = extra)
   action.update(event)
   return event.presentation
 }
 
 fun createTestEvent(source: Component, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
                     modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
-                    extraData: Map<String, Any?> = emptyMap()): AnActionEvent {
+                    extra: DataSnapshotProvider? = null): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
-  val dataContext = CustomizedDataContext.withProvider(DataContext.EMPTY_CONTEXT, TestDataProvider(source, project, extraData))
-  return AnActionEvent(inputEvent, dataContext, place, presentation, ActionManager.getInstance(), 0)
+  val dataContext = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, TestDataSnapshotProvider(source, project, extra))
+  return AnActionEvent.createEvent(dataContext, presentation, place, ActionUiKind.NONE, inputEvent)
 }
 
-private class TestDataProvider(
+private class TestDataSnapshotProvider(
   private val component: Component,
   private val project: Project,
-  private val extraData: Map<String, Any?> = emptyMap(),
-) : DataProvider {
+  private val extra: DataSnapshotProvider?
+) : DataSnapshotProvider {
 
   private val emulatorView
     get() = component as? EmulatorView
@@ -99,19 +101,19 @@ private class TestDataProvider(
   private val displayView
     get() = component as? AbstractDisplayView
 
-  override fun getData(dataId: String): Any? {
-    return when (dataId) {
-      EMULATOR_VIEW_KEY.name -> emulatorView
-      EMULATOR_CONTROLLER_KEY.name -> emulatorView?.emulator
-      DEVICE_VIEW_KEY.name -> deviceView
-      DEVICE_CLIENT_KEY.name -> deviceView?.deviceClient
-      DEVICE_CONTROLLER_KEY.name -> deviceView?.deviceController
-      DISPLAY_VIEW_KEY.name -> displayView
-      ZOOMABLE_KEY.name -> component as? ZoomablePanel
-      SERIAL_NUMBER_KEY.name -> displayView?.deviceSerialNumber
-      CommonDataKeys.PROJECT.name -> project
-      PlatformCoreDataKeys.CONTEXT_COMPONENT.name -> component
-      else -> extraData[dataId]
+  override fun dataSnapshot(sink: DataSink) {
+    sink.apply {
+      extra?.let { dataSnapshot(it) }
+      set(EMULATOR_VIEW_KEY, emulatorView)
+      set(EMULATOR_CONTROLLER_KEY, emulatorView?.emulator)
+      set(DEVICE_VIEW_KEY, deviceView)
+      set(DEVICE_CLIENT_KEY, deviceView?.deviceClient)
+      set(DEVICE_CONTROLLER_KEY, deviceView?.deviceController)
+      set(DISPLAY_VIEW_KEY, displayView)
+      set(ZOOMABLE_KEY, component as? ZoomablePanel)
+      set(SERIAL_NUMBER_KEY, displayView?.deviceSerialNumber)
+      set(CommonDataKeys.PROJECT, project)
+      set(PlatformCoreDataKeys.CONTEXT_COMPONENT, component)
     }
   }
 }

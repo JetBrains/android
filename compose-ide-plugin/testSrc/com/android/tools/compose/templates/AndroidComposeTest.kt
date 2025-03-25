@@ -107,13 +107,14 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
 
       @Composable
       fun NewsStory() {
-          W<caret>
+        <caret>
       }
       """
         .trimIndent(),
     )
 
-    myFixture.type("\t")
+    val template = TemplateSettings.getInstance().getTemplate("W", "AndroidCompose")
+    InvokeTemplateAction(template, myFixture.editor, project, HashSet()).perform()
 
     myFixture.checkResult(
       """

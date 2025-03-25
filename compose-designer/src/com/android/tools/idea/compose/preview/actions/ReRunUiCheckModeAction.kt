@@ -93,11 +93,8 @@ class ReRunUiCheckModeAction : AnAction() {
 
     val composeManager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return
     val flowManager =
-      relevantEditor.getDesignSurface()?.let {
-        PreviewFlowManager.KEY.getData(
-          DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, it)
-        )
-      } ?: return
+      relevantEditor.getDesignSurface()?.let { PreviewFlowManager.KEY.getData(
+        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, it)) } ?: return
     AndroidCoroutineScope(composeManager).launch {
       // Waits for the correct preview to be recreated, and starts UI Check on it
       val previewElements =

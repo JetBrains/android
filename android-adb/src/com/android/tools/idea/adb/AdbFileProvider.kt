@@ -20,21 +20,26 @@ import com.intellij.openapi.project.Project
 import java.io.File
 
 /**
- * Supplier of ADB executable path. It can be obtained for the application or a project, although the latter should be preferred.
+ * Supplier of ADB executable path. It can be obtained for the application or a project, although
+ * the latter should be preferred.
  *
- * Usage:
- *  `val adbFile: File? = AdbFileProvider.fromProject(project).get()`
+ * Usage: `val adbFile: File? = AdbFileProvider.fromProject(project).get()`
  */
 fun interface AdbFileProvider {
   fun get(): File?
 
   companion object {
-    @JvmStatic fun fromProject(project: Project) : AdbFileProvider = project.getService(AdbFileProvider::class.java)
+    @JvmStatic
+    fun fromProject(project: Project): AdbFileProvider =
+      project.getService(AdbFileProvider::class.java)
 
     /**
-     * It's preferred to use [AdbFileProvider.fromProject] because Application and Project could be using different SDKs.
-     * A Project should only use the ADB provided by the SDK used in the Project.
+     * It's preferred to use [AdbFileProvider.fromProject] because Application and Project could be
+     * using different SDKs. A Project should only use the ADB provided by the SDK used in the
+     * Project.
      */
-    @JvmStatic fun fromApplication() : AdbFileProvider = ApplicationManager.getApplication().getService(AdbFileProvider::class.java)
+    @JvmStatic
+    fun fromApplication(): AdbFileProvider =
+      ApplicationManager.getApplication().getService(AdbFileProvider::class.java)
   }
 }

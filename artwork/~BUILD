@@ -1,5 +1,5 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(

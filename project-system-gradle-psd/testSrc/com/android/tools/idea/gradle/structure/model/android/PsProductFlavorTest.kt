@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -27,6 +26,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.testResolve
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
@@ -143,8 +143,8 @@ class PsProductFlavorTest {
       assertThat(
         PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.targetSdkVersion()?.valueType,
         equalTo(GradlePropertyModel.ValueType.INTEGER))
-      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}"))
-      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}"))
+      assertThat(targetSdkVersion.resolved.asTestValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.selected.targetSdk))
+      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.selected.targetSdk))
 
       assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))

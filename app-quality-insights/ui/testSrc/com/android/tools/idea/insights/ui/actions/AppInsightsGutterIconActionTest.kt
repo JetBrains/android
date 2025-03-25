@@ -22,10 +22,8 @@ import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
-import com.android.tools.idea.insights.CRASHLYTICS_KEY
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
-import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.ui.formatNumberToPrettyString
 import com.google.common.truth.Truth
@@ -57,7 +55,7 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
   @Test
   fun `gutter popup shows correct information`() =
     runBlocking(AndroidDispatchers.uiThread) {
-      val sortedGroupedInsights = insights.groupBy { it.provider }.toSortedMap()
+      val sortedGroupedInsights = insights.groupBy { it.providerName }.toSortedMap()
 
       val displayPanel = JPanel()
       val gutterIconAction = AppInsightsGutterIconAction(insights) {}
@@ -74,13 +72,12 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
             insights.size + sortedGroupedInsights.size + maxOf(sortedGroupedInsights.size - 1, 0)
           )
         var checkedIndex = 0
-        sortedGroupedInsights.forEach { (provider, insights) ->
+        sortedGroupedInsights.forEach { (displayName, insights) ->
           if (checkedIndex != 0) {
             Truth.assertThat(getElementAt(checkedIndex)).isEqualTo(SeparatorInstruction)
             checkedIndex++
           }
-          Truth.assertThat(getElementAt(checkedIndex))
-            .isEqualTo(HeaderInstruction(provider.displayName))
+          Truth.assertThat(getElementAt(checkedIndex)).isEqualTo(HeaderInstruction(displayName))
           checkedIndex++
           insights.forEach { insight ->
             Truth.assertThat(getElementAt(checkedIndex)).isEqualTo(InsightInstruction(insight))
@@ -118,21 +115,21 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
     @Parameterized.Parameters(name = "{index}: shows correct info for {0}")
     fun data() =
       listOf(
-        listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), CRASHLYTICS_KEY) {}),
-        listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {}),
+        listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), "provider1") {}),
+        listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), "provider2") {}),
         listOf(
-          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), CRASHLYTICS_KEY) {},
-          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), CRASHLYTICS_KEY) {},
+          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), "provider1") {},
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), "provider1") {},
         ),
         listOf(
-          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {},
-          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), VITALS_KEY) {},
+          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), "provider2") {},
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), "provider2") {},
         ),
         listOf(
-          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), CRASHLYTICS_KEY) {},
-          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), CRASHLYTICS_KEY) {},
-          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {},
-          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), VITALS_KEY) {},
+          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), "provider1") {},
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), "provider1") {},
+          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), "provider2") {},
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), "provider2") {},
         ),
       )
   }

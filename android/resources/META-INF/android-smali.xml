@@ -13,8 +13,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin>
-  <extensions defaultExtensionNs="com.intellij">
-    <editorNotificationProvider implementation="com.android.tools.idea.apk.debugging.editor.SmaliFileNotificationProvider"/>
+<idea-plugin package="com.android.tools.idea.gradle.dsl.kotlin" >
+  <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
+    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.kotlin.KotlinDslTransformerFactory"/>
   </extensions>
 </idea-plugin>

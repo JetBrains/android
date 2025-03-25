@@ -26,16 +26,19 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.UnindexedFilesScannerExecutor
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import com.intellij.util.application
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.CheckReturnValue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 /** Tests for [AndroidMavenImportIntentionAction]. */
 @RunsInEdt
@@ -60,7 +63,30 @@ class AndroidMavenImportIntentionActionTest {
         caretPlacement = "RecyclerView|",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
         addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
-        addedImports = listOf("androidx.recyclerview.widget.RecyclerView")
+        addedImports = listOf("androidx.recyclerview.widget.RecyclerView"),
+      )
+      .run()
+  }
+
+  @Test
+  fun mavenRepositoryIsUnavailable_actionShouldBeUnavailable() {
+    val mockMavenClassRegistryManager: MavenClassRegistryManager = mock {
+      on { tryGetMavenClassRegistry() } doReturn null
+    }
+
+    AndroidMavenImportIntentionActionTestConfig(
+        projectRule = projectRule,
+        forbiddenGradleText = listOf("androidx.recyclerview:recyclerview:"),
+        fileContents =
+          """
+          package test.pkg.imports
+          val view = RecyclerView() // Here RecyclerView is an unresolvable symbol
+          """
+            .trimIndent(),
+        caretPlacement = "RecyclerView|",
+        actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
+        available = false,
+        mavenClassRegistryManager = mockMavenClassRegistryManager,
       )
       .run()
   }
@@ -235,7 +261,7 @@ class AndroidMavenImportIntentionActionTest {
           package test.pkg.imports
           val v = "foobar".extensionFunction() // Space for caret
           """
-            .trimIndent(),
+            .trimIndent()
       )
 
     val withoutParens =
@@ -245,7 +271,7 @@ class AndroidMavenImportIntentionActionTest {
           package test.pkg.imports
           val v = "foobar".extensionFunction // Space for caret
           """
-            .trimIndent(),
+            .trimIndent()
       )
 
     withParens.run()
@@ -277,7 +303,7 @@ class AndroidMavenImportIntentionActionTest {
           val s = "foobar"
           val v = s.extensionFunction() // Space for caret
           """
-            .trimIndent(),
+            .trimIndent()
       )
 
     val withoutParens =
@@ -288,7 +314,7 @@ class AndroidMavenImportIntentionActionTest {
           val s = "foobar"
           val v = s.extensionFunction // Space for caret
           """
-            .trimIndent(),
+            .trimIndent()
       )
 
     withParens.run()
@@ -435,10 +461,7 @@ class AndroidMavenImportIntentionActionTest {
     AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         forbiddenGradleText =
-          listOf(
-            "androidx.compose.ui:ui-tooling-preview:",
-            "androidx.compose.ui:ui-tooling:",
-          ),
+          listOf("androidx.compose.ui:ui-tooling-preview:", "androidx.compose.ui:ui-tooling:"),
         fileContents =
           """
           package test.pkg.imports;
@@ -489,10 +512,7 @@ class AndroidMavenImportIntentionActionTest {
     AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         forbiddenGradleText =
-          listOf(
-            "androidx.palette:palette-ktx:",
-            "androidx.room:room-runtime:",
-          ),
+          listOf("androidx.palette:palette-ktx:", "androidx.room:room-runtime:"),
         fileContents =
           """
           package test.pkg.imports
@@ -508,7 +528,7 @@ class AndroidMavenImportIntentionActionTest {
         // The deterministic order of suggestions are ensured, so the first option
         // `androidx.palette:palette` is applied.
         addedGradleText = listOf("implementation 'androidx.palette:palette-ktx:1.0.0"),
-        addedImports = listOf("androidx.palette.graphics.FakeClass")
+        addedImports = listOf("androidx.palette.graphics.FakeClass"),
       )
       .runAndThen { action ->
         // Since we have added on `androidx.palette:palette`, no dependencies are to be suggested
@@ -580,18 +600,18 @@ class AndroidMavenImportIntentionActionTest {
     val actionText: String? = null,
     val addedGradleText: Collection<String> = listOf(),
     val addedImports: Collection<String> = listOf(),
+    val mavenClassRegistryManager: MavenClassRegistryManager = fakeMavenClassRegistryManager,
   ) {
     private fun <T> openTestProject(
       testProject: TestProjectDefinition,
-      body: PreparedTestProject.Context.(Project) -> T
+      body: PreparedTestProject.Context.(Project) -> T,
     ) {
       return projectRule.openTestProject(testProject) {
-        ApplicationManager.getApplication()
-          .replaceService(
-            MavenClassRegistryManager::class.java,
-            fakeMavenClassRegistryManager,
-            fixture.testRootDisposable
-          )
+        application.replaceService(
+          MavenClassRegistryManager::class.java,
+          mavenClassRegistryManager,
+          fixture.testRootDisposable,
+        )
         body(project)
       }
     }
@@ -610,10 +630,16 @@ class AndroidMavenImportIntentionActionTest {
         if (fileContents.isNotEmpty()) {
           fixture.loadNewFile(
             "app/src/main/java/test/pkg/imports/MainActivity2.$fileExtension",
-            fileContents
+            fileContents,
           )
         }
         val source = fixture.editor.document.text
+
+        // Fetch the registry early to pre-load it, so that `isAvailable` below doesn't return
+        // early.
+        val registry = runBlocking {
+          MavenClassRegistryManager.getInstance().getMavenClassRegistry()
+        }
 
         val action = AndroidMavenImportIntentionAction()
         val element: PsiElement
@@ -631,10 +657,17 @@ class AndroidMavenImportIntentionActionTest {
         assertThat(action.text).isEqualTo(actionText)
         when {
           syncAfterAction ->
-            performAndWaitForSyncEnd { action.perform(project, fixture.editor, element, true) }
+            performAndWaitForSyncEnd { action.invoke(project, fixture.editor, element) }
           // Note: We do perform, not performAndSync here, since in some cases androidx libraries
           // aren't available
-          else -> performWithoutSync(action, element)
+          else ->
+            AndroidMavenImportIntentionAction.invoke(
+              project,
+              fixture.editor,
+              element,
+              registry,
+              false,
+            )
         }
         for (added in addedGradleText) {
           assertBuildGradle(project) { it.contains(added) }
@@ -655,7 +688,8 @@ class AndroidMavenImportIntentionActionTest {
               .filter { it.startsWith("+ ") }
               .map { it.removePrefix("+ ") }
               .filter(String::isNotBlank)
-          val (addedImportLines, otherAddedLines) = addedLines.partition { it.startsWith("import ") }
+          val (addedImportLines, otherAddedLines) =
+            addedLines.partition { it.startsWith("import ") }
           assertWithMessage("Unexpected lines added to file.").that(otherAddedLines).isEmpty()
 
           val importedSymbols =

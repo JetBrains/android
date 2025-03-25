@@ -29,6 +29,7 @@ import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -43,6 +44,8 @@ internal class DeviceSpecInjectionContributorTest {
 
   private val injectionFixture: InjectionTestFixture
     get() = InjectionTestFixture(fixture)
+
+  private lateinit var deviceSpecInjectionContributor: DeviceSpecInjectionContributor
 
   @Before
   fun setup() {
@@ -59,7 +62,7 @@ internal class DeviceSpecInjectionContributorTest {
         .trimIndent(),
     )
 
-    val deviceSpecInjectionContributor =
+    deviceSpecInjectionContributor =
       object : DeviceSpecInjectionContributor() {
         override fun isInPreviewAnnotation(psiElement: PsiElement): Boolean =
           when (psiElement.language) {
@@ -75,6 +78,18 @@ internal class DeviceSpecInjectionContributorTest {
       deviceSpecInjectionContributor,
     )
     LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
+      JavaLanguage.INSTANCE,
+      deviceSpecInjectionContributor,
+    )
+  }
+
+  @After
+  fun tearDown() {
+    LanguageInjectionContributor.INJECTOR_EXTENSION.removeExplicitExtension(
+      KotlinLanguage.INSTANCE,
+      deviceSpecInjectionContributor,
+    )
+    LanguageInjectionContributor.INJECTOR_EXTENSION.removeExplicitExtension(
       JavaLanguage.INSTANCE,
       deviceSpecInjectionContributor,
     )

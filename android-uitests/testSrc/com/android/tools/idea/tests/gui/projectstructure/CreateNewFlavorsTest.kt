@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -25,8 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardF
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -76,8 +73,8 @@ class CreateNewFlavorsTest {
             type(FLAVOR1)
             clickOk()
           }
-          minSdkVersion().selectItemWithIndex(0) //Index 0 is corresponding SDK - 24 (API 24 ("Nougat"; Android 7.0))
-          targetSdkVersion().selectItemWithIndex(0) //Index 0 is corresponding SDK - 24 (API 24 ("Nougat"; Android 7.0))
+          minSdkVersion().selectItemWithIndex(0) //Index 0 is corresponding SDK - 34 (API 34)
+          targetSdkVersion().selectItemWithIndex(0) //Index 0 is corresponding SDK - 34 (API 34)
           clickAddProductFlavor().run {
             type(FLAVOR2)
             clickOk()
@@ -95,7 +92,7 @@ class CreateNewFlavorsTest {
       .currentFileContents
 
     val dimenDemo = "dimension '$DIMEN_NAME'"
-    val flavor1 = "$FLAVOR1 {\n            $dimenDemo\n            minSdk 24\n            targetSdk 24\n        }"
+    val flavor1 = "$FLAVOR1 {\n            $dimenDemo\n            minSdk 34\n            targetSdk 34\n        }"
     val flavor2 = "$FLAVOR2 {\n            $dimenDemo\n            versionCode 2\n            versionName '2.3'\n        }"
 
     assertThat(gradleFileContents).contains(flavor1)

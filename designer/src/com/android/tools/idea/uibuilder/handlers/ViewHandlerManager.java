@@ -34,12 +34,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -297,61 +297,62 @@ public final class ViewHandlerManager implements Disposable {
       return NONE;
     }
     Logger.getInstance(ViewHandler.class).debug("Looking for user code defined handlers for " + viewTag);
-    return ApplicationManager.getApplication().runReadAction((Computable<ViewHandler>)() -> {
-      if (myProject.isDisposed()) {
-        return NONE;
-      }
+    return ReadAction.nonBlocking(() -> {
+        if (myProject.isDisposed()) {
+          return NONE;
+        }
 
-      try {
-        PsiClass[] viewClasses = findClassesForViewTag(myProject, viewTag);
-        if (viewClasses.length > 0) {
-          String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
-          PsiClass[] handlerClasses = JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject));
+        try {
+          PsiClass[] viewClasses = findClassesForViewTag(myProject, viewTag);
+          if (viewClasses.length > 0) {
+            String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
+            PsiClass[] handlerClasses = JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject));
 
-          if (handlerClasses.length == 0) {
-            // No view handler found for this class; look up the custom view and get the handler for its
-            // parent view instead. For example, if you've customized a LinearLayout by subclassing it, then
-            // if you don't provide a ViewHandler for the subclass, we dall back to the LinearLayout's
-            // ViewHandler instead.
-            for (PsiClass cls : viewClasses) {
-              PsiClass superClass = cls.getSuperClass();
-              if (superClass != null) {
-                String fqn = superClass.getQualifiedName();
-                if (fqn != null) {
-                  // When making a lookup of the super class, we don't want the original caller to be notified by handlerUpdated,
-                  // and we don't want to start an index lookup on another thread. Indicate that by passing the constant RECURSIVE_CALLBACK.
-                  ViewHandler handler = getHandlerOrDefault(NlComponentHelper.INSTANCE.viewClassToTag(fqn), SUPER_CLASS_LOOKUP);
-                  if (handler == TEMP) {
-                    Logger.getInstance(ViewHandler.class).warn("Unexpectedly got: TEMP for: " + viewTag);
-                    handler = NONE;
+            if (handlerClasses.length == 0) {
+              // No view handler found for this class; look up the custom view and get the handler for its
+              // parent view instead. For example, if you've customized a LinearLayout by subclassing it, then
+              // if you don't provide a ViewHandler for the subclass, we dall back to the LinearLayout's
+              // ViewHandler instead.
+              for (PsiClass cls : viewClasses) {
+                PsiClass superClass = cls.getSuperClass();
+                if (superClass != null) {
+                  String fqn = superClass.getQualifiedName();
+                  if (fqn != null) {
+                    // When making a lookup of the super class, we don't want the original caller to be notified by handlerUpdated,
+                    // and we don't want to start an index lookup on another thread. Indicate that by passing the constant RECURSIVE_CALLBACK.
+                    ViewHandler handler = getHandlerOrDefault(NlComponentHelper.INSTANCE.viewClassToTag(fqn), SUPER_CLASS_LOOKUP);
+                    if (handler == TEMP) {
+                      Logger.getInstance(ViewHandler.class).warn("Unexpectedly got: TEMP for: " + viewTag);
+                      handler = NONE;
+                    }
+                    if (handler != NONE && handlerUpdated != null) {
+                      handlerUpdated.run();
+                    }
+                    myHandlers.put(viewTag, handler);
+                    return handler;
                   }
-                  if (handler != NONE && handlerUpdated != null) {
-                    handlerUpdated.run();
-                  }
-                  myHandlers.put(viewTag, handler);
-                  return handler;
                 }
               }
             }
-          }
-          else {
-            for (PsiClass cls : handlerClasses) {
-              // Look for bytecode and instantiate if possible, then return
-              // TODO: Instantiate
-              Logger.getInstance(ViewHandler.class).debug(String.format(
-                "Found view handler %s  of type %s", cls.getQualifiedName(), cls.getClass().getName()));
+            else {
+              for (PsiClass cls : handlerClasses) {
+                // Look for bytecode and instantiate if possible, then return
+                // TODO: Instantiate
+                Logger.getInstance(ViewHandler.class).debug(String.format(
+                  "Found view handler %s  of type %s", cls.getQualifiedName(), cls.getClass().getName()));
+              }
             }
           }
         }
-      }
-      catch (IndexNotReadyException ignore) {
-        // TODO: Fix the bug: b.android.com/210064
+        catch (IndexNotReadyException ignore) {
+          // TODO: Fix the bug: b.android.com/210064
+          myHandlers.put(viewTag, NONE);
+          return NONE;
+        }
         myHandlers.put(viewTag, NONE);
         return NONE;
-      }
-      myHandlers.put(viewTag, NONE);
-      return NONE;
-    });
+      })
+      .executeSynchronously();
   }
 
   /**

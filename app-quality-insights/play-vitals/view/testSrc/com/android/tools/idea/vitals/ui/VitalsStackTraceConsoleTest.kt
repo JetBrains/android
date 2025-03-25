@@ -21,11 +21,11 @@ import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
-import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.executeWithErrorProcessor
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.google.common.truth.Truth
 import com.intellij.execution.filters.ExceptionFilters
 import com.intellij.openapi.application.WriteAction
@@ -39,7 +39,8 @@ import org.junit.rules.RuleChain
 
 class VitalsStackTraceConsoleTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule, VITALS_KEY)
+  private val controllerRule =
+    AppInsightsProjectLevelControllerRule(projectRule, VitalsInsightsProvider)
 
   private val fetchState =
     LoadingState.Ready(
@@ -58,7 +59,7 @@ class VitalsStackTraceConsoleTest {
               consoleView.addMessageFilter(it)
             }
 
-            (consoleView.editor.foldingModel as FoldingModelImpl).isFoldingEnabled = false
+            (consoleView.editor!!.foldingModel as FoldingModelImpl).isFoldingEnabled = false
           }
       }
     Disposer.register(controllerRule.disposable, stackTraceConsole)
@@ -68,7 +69,7 @@ class VitalsStackTraceConsoleTest {
         WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
         stackTraceConsole.consoleView.waitAllRequests()
 
-        Truth.assertThat(stackTraceConsole.consoleView.editor.document.text.trim())
+        Truth.assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
           .isEqualTo(
             """
              retrofit2.HttpException: HTTP 401 

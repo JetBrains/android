@@ -22,9 +22,9 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
-import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.psi.PsiDocumentManager
-import kotlinx.coroutines.future.await
+import com.intellij.testFramework.utils.editor.saveToDisk
 import kotlinx.coroutines.runBlocking
 import org.mockito.kotlin.whenever
 
@@ -65,7 +65,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
 
   fun testDoNotCacheSuccessfulRenderImage() = runBlocking {
     myLayoutlibSceneManager.sceneRenderConfiguration.cacheSuccessfulRenderImage = false
-    myLayoutlibSceneManager.requestRenderAsync().await()
+    myLayoutlibSceneManager.requestRenderAndWait()
     myLayoutlibSceneManager.sceneRenderConfiguration.needsInflation.set(true)
     myLayoutlibSceneManager.renderResult!!.let {
       assertTrue(it.renderResult.isSuccess)
@@ -75,13 +75,19 @@ class LayoutlibSceneManagerTest : SceneTest() {
     }
 
     // Break the XML, the next render will fail but will retain the image and dimensions
-    WriteCommandAction.runWriteCommandAction(project) {
+    runWriteActionAndWait {
       val manager = PsiDocumentManager.getInstance(project)
       val document = manager.getDocument(myLayoutlibSceneManager.model.file)!!
       document.setText("<broken />")
       manager.commitAllDocuments()
+      // We need to save to disk here because below we call requestRenderAndWait blocking the UI
+      // thread while waiting for it to finish, and if this file is not saved, then the inflation
+      // pre-process logic will try to save it, causing a deadlock with the blocking wait mentioned
+      // above. Note that this should never happen in production as requestRenderAndWait should not
+      // be called in a blocking manner from the UI thread.
+      document.saveToDisk()
     }
-    myLayoutlibSceneManager.requestRenderAsync().await()
+    myLayoutlibSceneManager.requestRenderAndWait()
     myLayoutlibSceneManager.renderResult!!.let {
       assertFalse("broken render should have failed", it.renderResult.isSuccess)
       assertFalse("image should not be valid after the failed rener", it.renderedImage.isValid)
@@ -90,7 +96,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
 
   fun testCacheSuccessfulRenderImage() = runBlocking {
     myLayoutlibSceneManager.sceneRenderConfiguration.cacheSuccessfulRenderImage = true
-    myLayoutlibSceneManager.requestRenderAsync().await()
+    myLayoutlibSceneManager.requestRenderAndWait()
     myLayoutlibSceneManager.sceneRenderConfiguration.needsInflation.set(true)
     myLayoutlibSceneManager.renderResult!!.let {
       assertTrue(it.renderResult.isSuccess)
@@ -100,13 +106,19 @@ class LayoutlibSceneManagerTest : SceneTest() {
     }
 
     // Break the XML, the next render will fail but will retain the image and dimensions
-    WriteCommandAction.runWriteCommandAction(project) {
+    runWriteActionAndWait {
       val manager = PsiDocumentManager.getInstance(project)
       val document = manager.getDocument(myLayoutlibSceneManager.model.file)!!
       document.setText("<broken />")
       manager.commitAllDocuments()
+      // We need to save to disk here because below we call requestRenderAndWait blocking the UI
+      // thread while waiting for it to finish, and if this file is not saved, then the inflation
+      // pre-process logic will try to save it, causing a deadlock with the blocking wait mentioned
+      // above. Note that this should never happen in production as requestRenderAndWait should not
+      // be called in a blocking manner from the UI thread.
+      document.saveToDisk()
     }
-    myLayoutlibSceneManager.requestRenderAsync().await()
+    myLayoutlibSceneManager.requestRenderAndWait()
     myLayoutlibSceneManager.renderResult!!.let {
       assertFalse("broken render should have failed", it.renderResult.isSuccess)
       assertTrue(

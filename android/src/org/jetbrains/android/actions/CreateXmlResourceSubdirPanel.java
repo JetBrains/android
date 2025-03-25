@@ -21,7 +21,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.fileChooser.actions.VirtualFileDeleteProvider;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -34,16 +34,10 @@ import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.containers.ContainerUtil;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.util.*;
 
 /**
  * List of subdirectories where a new XML resource should be added.
@@ -84,7 +78,8 @@ public class CreateXmlResourceSubdirPanel {
 
     decorator.setRemoveAction(button -> doDeleteDirectory());
 
-    AnAction selectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.select.all"), Presentation.NULL_STRING, PlatformIcons.SELECT_ALL_ICON) {      @Override
+    AnAction selectAll = new DumbAwareAction("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
+      @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
       }
@@ -96,7 +91,7 @@ public class CreateXmlResourceSubdirPanel {
     };
     decorator.addExtraAction(selectAll);
 
-    AnAction unselectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.deselect.all"), Presentation.NULL_STRING, PlatformIcons.UNSELECT_ALL_ICON) {
+    AnAction unselectAll = new DumbAwareAction("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
@@ -131,17 +126,10 @@ public class CreateXmlResourceSubdirPanel {
     }
 
     final VirtualFileDeleteProvider provider = new VirtualFileDeleteProvider();
-    provider.deleteElement(dataId -> {
-      if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
-        return new VirtualFile[]{selectedDir};
-      }
-      else if (CommonDataKeys.PROJECT.is(dataId)) {
-        return myProject;
-      }
-      else {
-        return null;
-      }
-    });
+    provider.deleteElement(SimpleDataContext.builder()
+                             .add(CommonDataKeys.PROJECT, myProject)
+                             .add(CommonDataKeys.VIRTUAL_FILE_ARRAY, new VirtualFile[]{selectedDir})
+                             .build());
     updateDirectories(false, resourceDir);
   }
 
@@ -181,7 +169,7 @@ public class CreateXmlResourceSubdirPanel {
       directories = IdeResourcesUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
     }
 
-    directories = ContainerUtil.sorted(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
+    Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
 
     final Map<String, JCheckBox> oldCheckBoxes = myCheckBoxes;
     final int selectedIndex = myDirectoriesList.getSelectedIndex();

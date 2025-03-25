@@ -73,7 +73,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
 
   @NotNull
   @Override
-  protected PsiElement[] create(String newName, PsiDirectory directory) throws Exception {
+  protected PsiElement @NotNull [] create(@NotNull String newName, @NotNull PsiDirectory directory) {
     Module module = ModuleUtilCore.findModuleForPsiElement(directory);
     final String rootTag = myLastRootComponentName != null ? myLastRootComponentName : getDefaultRootTag(module);
     return doCreateAndNavigate(newName, directory, rootTag, false, true);
@@ -82,7 +82,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
   @NotNull
   @Override
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
-    assert myResourceFolderType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
+    assert getResourceFolderType() == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
     return getPossibleRoots(facet);
   }
 
@@ -103,7 +103,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
     protected MyDialog(@NotNull AndroidFacet facet, @Nullable InputValidator validator) {
       super(facet.getModule().getProject());
       myValidator = validator;
-      setTitle(AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName));
+      setTitle(AndroidBundle.message("new.typed.resource.dialog.title", resourcePresentableName));
       final List<String> tagNames = getSortedAllowedTagNames(facet);
       myRootElementField = new TextFieldWithAutoCompletion<String>(
         facet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(tagNames, null), true, null);

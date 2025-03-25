@@ -22,7 +22,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.ModuleRClass.SourceSet;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetManagerAdapter;
+import com.intellij.facet.FacetManagerListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -61,7 +61,7 @@ public class AndroidDependenciesCache implements Disposable {
     // AndroidDependenciesCache we are interested in any changes in the project.
     MessageBusConnection busConnection = module.getProject().getMessageBus().connect(this);
 
-    busConnection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
+    busConnection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerListener() {
       @Override
       public void facetAdded(@NotNull Facet facet) {
         dropCache();

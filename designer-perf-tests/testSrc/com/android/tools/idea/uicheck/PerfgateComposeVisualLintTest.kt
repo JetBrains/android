@@ -27,16 +27,16 @@ import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
+import com.android.tools.idea.uibuilder.visual.visuallint.BottomAppBarAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.BottomNavAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.BoundsAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.ButtonSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.LongTextAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.OverlapAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.TextFieldSizeAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.WearMarginAnalyzerInspection
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.preview.PreviewConfiguration
@@ -94,7 +94,7 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
 
   @Test
   fun testComposeVisualLintRun() {
-    val facet = projectRule.androidFacet(":app")
+    val facet = projectRule.mainAndroidFacet(":app")
     val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     val resultToModelMap = mutableMapOf<RenderResult, NlModel>()

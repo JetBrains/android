@@ -27,6 +27,7 @@ import com.google.idea.blaze.base.bazel.BuildSystem.SyncStrategy;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.BlazeInvocationContext.ContextType;
 import com.google.idea.blaze.base.command.BlazercMigrator;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.dependencies.BlazeQuerySourceToTargetProvider;
 import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.io.FileOperationProvider;
@@ -53,7 +54,6 @@ import com.google.idea.blaze.base.sync.SyncScope.SyncCanceledException;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterface;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
 import com.google.idea.blaze.base.sync.sharding.BlazeBuildTargetSharder;
@@ -250,26 +250,25 @@ public final class BuildPhaseSyncTask {
         .setShardStats(shardedTargets.shardStats())
         .setParallelBuilds(syncBuildInvoker.supportsParallelism());
 
-    BlazeBuildOutputs blazeBuildResult =
+    BlazeBuildOutputs.Legacy blazeBuildResult =
         getBlazeBuildResult(context, viewSet, shardedTargets, syncBuildInvoker, parallel);
     resultBuilder.setBuildResult(blazeBuildResult);
     buildStats
-        .setBuildResult(blazeBuildResult.buildResult)
-        .setBuildIds(blazeBuildResult.getBuildIds())
-        .setBuildBinaryType(syncBuildInvoker.getType())
-        .setBepBytesConsumed(blazeBuildResult.bepBytesConsumed);
+        .setBuildResult(blazeBuildResult.buildResult())
+        .setBuildBinaryType(syncBuildInvoker.getType());
 
     if (context.isCancelled()) {
       throw new SyncCanceledException();
     }
-    String invocationResultMsg = "Build invocation result: " + blazeBuildResult.buildResult.status;
-    if (blazeBuildResult.buildResult.status == BuildResult.Status.FATAL_ERROR) {
+    String invocationResultMsg =
+        "Build invocation result: " + blazeBuildResult.buildResult().status;
+    if (blazeBuildResult.buildResult().status == BuildResult.Status.FATAL_ERROR) {
       context.setHasError();
-      if (blazeBuildResult.buildResult.outOfMemory()) {
+      if (blazeBuildResult.buildResult().outOfMemory()) {
         SuggestBuildShardingNotification.syncOutOfMemoryError(project, context);
       }
 
-      if (!continueSyncOnOom.getValue() || blazeBuildResult.artifacts.isEmpty()) {
+      if (!continueSyncOnOom.getValue() || blazeBuildResult.isEmpty()) {
         context.output(PrintOutput.error(invocationResultMsg));
         throw new SyncFailedException();
       }
@@ -405,7 +404,7 @@ public final class BuildPhaseSyncTask {
     return targets.build();
   }
 
-  private BlazeBuildOutputs getBlazeBuildResult(
+  private BlazeBuildOutputs.Legacy getBlazeBuildResult(
       BlazeContext parentContext,
       ProjectViewSet projectViewSet,
       ShardedTargetList shardedTargets,

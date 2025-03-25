@@ -59,8 +59,6 @@ stamped_plugin_xml(
     description_file = "src/META-INF/description.html",
     plugin_id = "com.google.idea.bazel.aswb",
     plugin_name = "Bazel for Android Studio",
-    # #api212: We depend on an API which is only contained in 2021.2.1+.
-    since_build_numbers = {"212": "212.5080.55"},
     stamp_since_build = True,
     stamp_until_build = True,
     version_file = ":plugin_version.txt",
@@ -90,15 +88,17 @@ java_library(
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
+        "//tools/adt/idea/aswb/common/experiments",
+        "//tools/adt/idea/aswb/common/experiments:unit_test_utils",
         "//tools/adt/idea/aswb/cpp",
         "//tools/adt/idea/aswb/java",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/testing:lib",
+        "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",  # unuseddeps: keep
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/third_party/java/junit",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -118,6 +118,7 @@ java_library(
     ),
     deps = [
         "//tools/adt/idea/aswb/base",
+        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/cpp",
         "//tools/adt/idea/aswb/java",
@@ -155,10 +156,10 @@ intellij_unit_test_suite(
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
         "//tools/adt/idea/aswb/testing:lib",
+        "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/third_party/java/junit",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -199,7 +200,6 @@ intellij_integration_test_suite(
             "tests/integrationtests/com/google/idea/blaze/android/functional/AswbMergedManifestTest.java",  #b/222322106
         ],
     ),
-    additional_class_rules = [],
     data = [
         "testdata/golden.png",
         "testdata/ic_banner.png",
@@ -227,11 +227,14 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/java",
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared:artifact",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/exception",
+        "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common/artifact:test_utils",
+        "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/third_party/java/junit",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -253,9 +256,9 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/proto:proto_deps",
+        "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/third_party/java/junit",
     ],
 )
 
@@ -272,7 +275,6 @@ intellij_plugin(
         "//tools/adt/idea/aswb/dart:plugin_library",
         "//tools/adt/idea/aswb/java:plugin_library",
         "//tools/adt/idea/aswb/kotlin:plugin_library",
-        "//tools/adt/idea/aswb/plugin_dev:plugin_library",
         "//tools/adt/idea/aswb/skylark:plugin_library",
         "//tools/adt/idea/aswb/terminal:plugin_library",
     ],
@@ -348,7 +350,7 @@ genrule(
 # Value of BUILD_EMBED_LABEL key comes from --embed_label on the command line
 version="$$(grep BUILD_EMBED_LABEL bazel-out/stable-status.txt | cut -d ' ' -f 2)"
 # Set a default version if --embed_label was not specified
-if [ -z "$$version" ]; then version="9999"; fi
+if [ -z "$$version" ]; then version="99999999"; fi
 
 echo "$$version" > $@
 """,

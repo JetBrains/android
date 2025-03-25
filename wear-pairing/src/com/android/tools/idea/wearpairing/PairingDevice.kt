@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.intellij.openapi.project.Project
 
 enum class ConnectionState {
@@ -27,7 +28,7 @@ enum class ConnectionState {
 data class PairingDevice(
   val deviceID: String,
   val displayName: String,
-  val apiLevel: Int,
+  val androidVersion: AndroidVersion,
   val isEmulator: Boolean,
   val isWearDevice: Boolean,
   val hasPlayStore: Boolean,

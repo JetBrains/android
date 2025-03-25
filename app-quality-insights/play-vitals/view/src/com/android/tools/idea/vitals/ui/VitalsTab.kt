@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.insights.selectionOf
+import com.android.tools.idea.insights.ui.AppInsightsToolbar
 import com.android.tools.idea.insights.ui.OfflineBalloonMaker
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
@@ -36,12 +37,12 @@ import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.toTimestamp
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
@@ -65,6 +66,7 @@ class VitalsTab(
   private val project: Project,
   clock: Clock,
   tracker: AppInsightsTracker,
+  vitalsTabVisibility: Flow<Boolean>,
 ) : JPanel(BorderLayout()), Disposable {
   private val scope = AndroidCoroutineScope(this)
 
@@ -106,10 +108,10 @@ class VitalsTab(
 
   init {
     add(createToolbar().component, BorderLayout.NORTH)
-    add(VitalsContentContainerPanel(projectController, project, tracker, this))
+    add(VitalsContentContainerPanel(projectController, project, tracker, this, vitalsTabVisibility))
   }
 
-  private fun addActionsToGroup(group: DefaultActionGroup) {
+  private fun addActionsToGroup(group: DefaultActionGroup, toolbar: ActionToolbar) {
     group.apply {
       @Suppress("UNCHECKED_CAST")
       add(
@@ -144,7 +146,9 @@ class VitalsTab(
           intervals,
           null,
           projectController::selectTimeInterval,
-        )
+        ) {
+          toolbar
+        }
       )
       add(
         AppInsightsDropDownAction(
@@ -154,7 +158,9 @@ class VitalsTab(
           visibilityTypes,
           null,
           projectController::selectVisibilityType,
-        )
+        ) {
+          toolbar
+        }
       )
       add(
         TreeDropDownAction(
@@ -162,6 +168,7 @@ class VitalsTab(
           flow = versions,
           scope = scope,
           enabledFlow = offlineStateFlow.mapState { it == ConnectionMode.ONLINE },
+          primaryColumnName = "Versions",
           groupNameSupplier = { it.displayVersion },
           nameSupplier = { it.buildVersion },
           secondaryGroupSupplier = { it.tracks },
@@ -180,6 +187,7 @@ class VitalsTab(
           flow = devices,
           scope = scope,
           enabledFlow = offlineStateFlow.mapState { it == ConnectionMode.ONLINE },
+          primaryColumnName = "Devices",
           groupNameSupplier = { it.manufacturer },
           nameSupplier = { it.displayName },
           secondaryGroupSupplier = { setOf(it.deviceType) },
@@ -197,6 +205,7 @@ class VitalsTab(
           name = "operating systems",
           flow = operatingSystems,
           scope = scope,
+          primaryColumnName = "OSes",
           enabledFlow = offlineStateFlow.mapState { it == ConnectionMode.ONLINE },
           groupNameSupplier = { it.displayName },
           nameSupplier = { it.displayName },
@@ -212,11 +221,10 @@ class VitalsTab(
 
           override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-          override fun displayTextInToolbar() = true
-
           override fun update(e: AnActionEvent) {
             e.presentation.text =
               if (offlineStateFlow.value == ConnectionMode.OFFLINE) "Reconnect" else null
+            e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
           }
         }
       )
@@ -227,9 +235,7 @@ class VitalsTab(
   private fun createToolbar(): ActionToolbar {
     val group = DefaultActionGroup()
     val actionToolbar =
-      ActionManager.getInstance().createActionToolbar("AppInsights", group, true).apply {
-        targetComponent = this@VitalsTab
-      }
+      AppInsightsToolbar("AppInsights", group, true).apply { targetComponent = this@VitalsTab }
     actionToolbar.component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     scope.launch(AndroidDispatchers.uiThread) {
@@ -244,7 +250,7 @@ class VitalsTab(
         }
       }
     }
-    addActionsToGroup(group)
+    addActionsToGroup(group, actionToolbar)
     return actionToolbar
   }
 

@@ -98,6 +98,7 @@ class UiSettingsPanelTest {
     model.selectToSpeakOn.uiChangeListener = ChangeListener { lastCommand = "selectToSpeakOn=$it" }
     model.fontScaleInPercent.uiChangeListener = ChangeListener { lastCommand = "fontScale=$it" }
     model.screenDensity.uiChangeListener = ChangeListener { lastCommand = "density=$it" }
+    model.debugLayout.uiChangeListener = ChangeListener { lastCommand = "debugLayout=$it" }
     model.resetAction = { lastCommand = "reset" }
   }
 
@@ -283,30 +284,35 @@ class UiSettingsPanelTest {
 
   @Test
   fun testControlsForOemWithPermissionMonitoring() {
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, projectRule.disposable)
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, projectRule.disposable)
     model.gestureOverlayInstalled.setFromController(true)
     model.talkBackInstalled.setFromController(true)
 
     // Simulate Permission Monitoring enabled:
     model.fontScaleSettable.setFromController(false)
+    model.gestureOverlayInstalled.setFromController(true)
     assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.isShowing).isTrue()
-    assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
+    assertThat(panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isFalse()
     assertThat(panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.isShowing).isFalse()
     assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.isShowing).isFalse()
     assertThat(panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }.isShowing).isFalse()
     assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.isShowing).isFalse()
+    assertThat(panel.getDescendant<JCheckBox> { it.name == DEBUG_LAYOUT_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE1 }.isShowing).isTrue()
     assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE2 }.isShowing).isTrue()
 
     // Simulate Permission Monitoring disabled:
     model.fontScaleSettable.setFromController(true)
     assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.isShowing).isTrue()
-    assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
+    assertThat(panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.isShowing).isTrue()
+    assertThat(panel.getDescendant<JCheckBox> { it.name == DEBUG_LAYOUT_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE1 }.isShowing).isFalse()
     assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE2 }.isShowing).isFalse()
   }
@@ -366,6 +372,12 @@ class UiSettingsPanelTest {
     waitForCondition(1.seconds) { lastCommand == "density=608" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
+    if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
+      ui.keyboard.pressAndRelease(VK_SPACE)
+      waitForCondition(1.seconds) { lastCommand == "debugLayout=true" }
+      ui.keyboard.pressAndRelease(VK_TAB)
+    }
+
     assertThat(focusManager.focusOwner?.name).isEqualTo(RESET_TITLE)
     ui.keyboard.pressAndRelease(VK_SPACE)
     waitForCondition(1.seconds) { lastCommand == "reset" }
@@ -378,6 +390,13 @@ class UiSettingsPanelTest {
     ui.keyboard.press(VK_SHIFT)
     ui.keyboard.pressAndRelease(VK_TAB)
     ui.keyboard.release(VK_SHIFT)
+
+    // Back tab to skip the debug layout control:
+    if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
+      ui.keyboard.press(VK_SHIFT)
+      ui.keyboard.pressAndRelease(VK_TAB)
+      ui.keyboard.release(VK_SHIFT)
+    }
     assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.hasFocus()).isTrue()
   }
 

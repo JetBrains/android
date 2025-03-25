@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.AndroidDeclarativeType
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
@@ -38,7 +39,7 @@ import java.io.File
 class AndroidModelTest : GradleFileModelTestCase() {
 
   @Before
-  override fun before(){
+  override fun before() {
     DeclarativeIdeSupport.override(true)
     // Registry is used for a reason because 'StudioDeclarativeFlags' can't be used from 'gradle-dsl' main classloader
     // since it's declared in the content module 'intellij.android.gradle.dsl.flags'
@@ -47,7 +48,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @After
-  fun onAfter(){
+  fun onAfter() {
     DeclarativeIdeSupport.clearOverride()
     Registry.get("gradle.declarative.studio.support").resetToDefault()
   }
@@ -115,6 +116,169 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Test
   fun testAndroidBlockWithAssignmentStatements() {
     runAssignmentTest(TestFile.ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
+  }
+
+  @Test
+  fun testAndroidBlockWithAssignmentStatementsWithSoftwareType() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    val android = gradleBuildModel.android()
+
+    // overridden
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
+    // from settings
+    assertEquals("namespace", "abc", android.namespace())
+    // only from build file
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertNotNull(android)
+  }
+
+  @Test
+  fun testCreatingAndroidBlock() {
+    isIrrelevantForKotlinScript("Only one android block")
+    isIrrelevantForGroovy("Only one android block")
+    writeToBuildFile(TestFile.EMPTY_FILE)
+    val buildModel = gradleDeclarativeBuildModel
+    assertThat(buildModel.existingAndroidElement()).isNull()
+    buildModel.createAndroidElement(AndroidDeclarativeType.APPLICATION)
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile,
+                       """
+                         //
+                         androidApp{
+                         }
+                       """.trimIndent())
+  }
+
+  @Test
+  fun testRemoveElementBackedBySoftwareType() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.REMOVE_ANDROID_ASSIGNMENT_WITH_APPLIED_PARENT)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    var buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
+    android.buildToolsVersion().delete()
+
+    applyChangesAndReparse(buildModel)
+
+    buildModel = gradleBuildModel
+    assertEquals("buildToolsVersion", "24.0.0", buildModel.android().buildToolsVersion())
+  }
+
+  @Test
+  fun testRemoveSoftwareTypeElement() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.REMOVE_ANDROID_ASSIGNMENT_IN_SOFTWARE_TYPE)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    var buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
+    android.buildToolsVersion().delete() // try to remove but should do nothing
+
+    applyChangesAndReparse(buildModel)
+
+    buildModel = gradleBuildModel
+
+    assertEquals("buildToolsVersion", "24.0.0", buildModel.android().buildToolsVersion())
+  }
+
+  @Test
+  fun testAddAndroidElementWithNoSoftwareType() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.ADD_AND_ANDROID_ELEMENT_WITH_NO_SOFTWARE_TYPE)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    // check that we still have software type element in tree
+    assertEquals("namespace", "abc", android.namespace())
+    // adding defaultPublishConfig element when parent is from build script
+    android.defaultPublishConfig().setValue("debug")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_ANDROID_ELEMENT_WITH_NO_SOFTWARE_TYPE_EXPECTED)
+  }
+
+  @Test
+  fun testAddAndroidElementWithNoBuildFileParent() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.ADD_AND_ANDROID_ELEMENT_WITH_NO_BUILD_FILE_PARENT)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("namespace", "abc", android.namespace())
+    // adding applicationId element when default does not exist in build or settings
+    android.defaultConfig().applicationId().setValue("org.example")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_ANDROID_ELEMENT_WITH_NO_BUILD_FILE_PARENT_EXPECTED)
+  }
+
+  @Test
+  fun testAddAndroidElementWithSoftwareTypeParent() {
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT)
+    writeToSettingsFile(TestFile.ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT_SETTINGS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("minSdkVersion", "1.0",  android.defaultConfig().versionName())
+    // adding applicationId element when parent "default" is from settings
+    android.defaultConfig().applicationId().setValue("org.example")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT_EXPECTED)
+  }
+
+  @Test
+  fun testEditAndroidElementSoftwareType() {
+    // case creates new node in build file
+    // parent node is in build file
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE)
+    writeToSettingsFile(TestFile.SOFTWARE_TYPE_ANDROID_BLOCK)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("namespace", "abc", android.namespace())
+    android.namespace().setValue("bcd")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_EXPECTED)
+  }
+
+  @Test
+  fun testEditAndroidElementSoftwareTypeWithAppliedParent() {
+    // case creates new node in build file
+    // parent node "default" is in settings only
+    isIrrelevantForKotlinScript("No software types")
+    isIrrelevantForGroovy("No software types")
+    writeToBuildFile(TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT)
+    writeToSettingsFile(TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT_SETTINGS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    assertEquals("applicationId", "org.example", android.defaultConfig().applicationId())
+    android.defaultConfig().applicationId().setValue("com.example")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT_EXPECTED)
   }
 
   @Test
@@ -694,8 +858,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
-    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
-    assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+    if(!isGradleDeclarative) {
+      assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
+      assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+    }
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
@@ -704,8 +870,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.buildToolsVersion().delete()
     android.compileSdkVersion().delete()
     android.defaultPublishConfig().delete()
-    android.dynamicFeatures().delete()
-    android.flavorDimensions().delete()
+    if(!isGradleDeclarative) {
+      android.dynamicFeatures().delete()
+      android.flavorDimensions().delete()
+    }
     android.generatePureSplits().delete()
     android.publishNonDefault().delete()
     android.resourcePrefix().delete()
@@ -714,8 +882,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
-    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
-    assertMissingProperty("flavorDimensions", android.flavorDimensions())
+    if(!isGradleDeclarative) {
+      assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
+      assertMissingProperty("flavorDimensions", android.flavorDimensions())
+    }
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
@@ -725,17 +895,24 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
-    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
-    assertMissingProperty("flavorDimensions", android.flavorDimensions())
+    if(!isGradleDeclarative) {
+      assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
+      assertMissingProperty("flavorDimensions", android.flavorDimensions())
+    }
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
     assertMissingProperty("targetProjectPath", android.targetProjectPath())
-
-    buildModel.reparse()
-    android = buildModel.android()
-    assertNotNull(android)
     checkForInvalidPsiElement(android, AndroidModelImpl::class.java)
+
+    if(!isGradleDeclarative) {
+      // this will recreate android element.
+      // for declarative, it's not know whether it's a library or app
+      buildModel.reparse()
+      android = buildModel.android()
+      assertNotNull(android)
+      checkForInvalidPsiElement(android, AndroidModelImpl::class.java)
+    }
   }
 
   @Test
@@ -875,6 +1052,48 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("six", buildTypes[7].name())
   }
 
+  @Test
+  fun testParseVariedConfiguratorBuildTypeBlocks() {
+    writeToBuildFile(TestFile.PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_BLOCKS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val buildTypes = android.buildTypes()
+    assertSize(5, buildTypes)
+    assertEquals("release", buildTypes[0].name())
+    assertEquals(".one", buildTypes[0].applicationIdSuffix())
+    assertEquals("debug", buildTypes[1].name())
+    assertEquals(".two", buildTypes[1].applicationIdSuffix())
+    assertEquals("one", buildTypes[2].name())
+    assertEquals(".three", buildTypes[2].applicationIdSuffix())
+    assertEquals("two", buildTypes[3].name())
+    assertEquals(".four", buildTypes[3].applicationIdSuffix())
+    assertEquals("three", buildTypes[4].name())
+    assertEquals(".five", buildTypes[4].applicationIdSuffix())
+  }
+
+  @Test
+  fun testParseVariedConfiguratorBuildTypeStatements() {
+    writeToBuildFile(TestFile.PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_STATEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    val buildTypes = android.buildTypes()
+    assertSize(5, buildTypes)
+    assertEquals("release", buildTypes[0].name())
+    assertEquals(".one", buildTypes[0].applicationIdSuffix())
+    assertEquals("debug", buildTypes[1].name())
+    assertEquals(".two", buildTypes[1].applicationIdSuffix())
+    assertEquals("one", buildTypes[2].name())
+    assertEquals(".three", buildTypes[2].applicationIdSuffix())
+    assertEquals("two", buildTypes[3].name())
+    assertEquals(".four", buildTypes[3].applicationIdSuffix())
+    assertEquals("three", buildTypes[4].name())
+    assertEquals(".five", buildTypes[4].applicationIdSuffix())
+  }
+
   private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
     writeToBuildFile(TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
@@ -896,7 +1115,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyDottedBuildTypeBlock() {
-    isIrrelevantForDeclarative("No dotted notation for blocks in Declarative")
     doTestAddAndApplyOneBuildTypeBlock("dotted.buildtype", TestFile.ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
@@ -1106,17 +1324,19 @@ class AndroidModelTest : GradleFileModelTestCase() {
     checkForValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
     applyChanges(buildModel)
-    verifyFileContents(myBuildFile, "")
+    verifyFileContents(myBuildFile, if(isGradleDeclarative) "androidApp{\n}" else "")
 
     assertMissingProperty(android.defaultConfig().applicationId())
     checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
-    buildModel.reparse()
-    android = buildModel.android()
-    assertNotNull(android)
+    if (!isGradleDeclarative) { // to create android element for declarative, we need to know whether it's app or library
+      buildModel.reparse()
+      android = buildModel.android()
+      assertNotNull(android)
 
-    assertMissingProperty(android.defaultConfig().applicationId())
-    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+      assertMissingProperty(android.defaultConfig().applicationId())
+      checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    }
   }
 
   @Test
@@ -1253,6 +1473,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyBlockApplicationStatements() {
+    isIrrelevantForDeclarative("Grammar is not supported in declarative")
     writeToBuildFile(TestFile.REMOVE_AND_APPLY_BLOCK_APPLICATION_STATEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -1278,6 +1499,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyBlockStatements() {
+    isIrrelevantForDeclarative("No such grammar")
     writeToBuildFile(TestFile.ADD_AND_APPLY_BLOCK_STATEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -2110,6 +2332,21 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
     ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidBlockWithAssignmentStatements"),
+    SOFTWARE_TYPE_ANDROID_BLOCK("softwareTypeAndroidBlock"),
+    REMOVE_ANDROID_ASSIGNMENT_WITH_APPLIED_PARENT("removeAndroidAssignmentWithAppliedParent"),
+    REMOVE_ANDROID_ASSIGNMENT_IN_SOFTWARE_TYPE("removeAndroidAssignmentInSoftwareType"),
+    ADD_AND_ANDROID_ELEMENT_WITH_NO_SOFTWARE_TYPE("addAndroidElementWithNoSoftwareType"),
+    ADD_AND_ANDROID_ELEMENT_WITH_NO_BUILD_FILE_PARENT("addAndroidElementWithNoBuildFileParent"),
+    ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT("addAndroidElementWithSoftwareTypeParent"),
+    ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT_SETTINGS("addAndroidElementWithSoftwareTypeParentSettings"),
+    ADD_AND_ANDROID_ELEMENT_WITH_SOFTWARE_TYPE_PARENT_EXPECTED("addAndroidElementWithSoftwareTypeParentExpected"),
+    ADD_AND_ANDROID_ELEMENT_WITH_NO_SOFTWARE_TYPE_EXPECTED("addAndroidElementWithNoSoftwareTypeExpected"),
+    ADD_AND_ANDROID_ELEMENT_WITH_NO_BUILD_FILE_PARENT_EXPECTED("addAndroidElementWithNoBuildFileParentExpected"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE("editAndroidElementInSoftwareType"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_EXPECTED("editAndroidElementInSoftwareTypeExpected"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT("editAndroidElementInSoftwareTypeWithAppliedParent"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT_SETTINGS("editAndroidElementInSoftwareTypeWithAppliedParentSettings"),
+    EDIT_ANDROID_ELEMENT_IN_SOFTWARE_TYPE_WITH_APPLIED_PARENT_EXPECTED("editAndroidElementInSoftwareTypeWithAppliedParentExpected"),
     ANDROID_LIBRARY_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidLibraryBlockWithAssignmentStatements"),
     ANDROID_APPLICATION_STATEMENTS("androidApplicationStatements"),
     ANDROID_ASSIGNMENT_STATEMENTS("androidAssignmentStatements"),
@@ -2145,6 +2382,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK("addAndApplyDefaultConfigBlock"),
     ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED("addAndApplyDefaultConfigBlockExpected"),
     PARSE_VARIED_SYNTAX_BUILD_TYPE_BLOCKS("parseVariedSyntaxBuildTypeBlocks"),
+    PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_BLOCKS("parseVariedConfiguratorBuildTypeBlocks"),
+    PARSE_VARIED_CONFIGURATOR_BUILD_TYPE_STATEMENTS("parseVariedConfiguratorBuildTypeStatements"),
     ADD_AND_APPLY_BUILD_TYPE_BLOCK("addAndApplyBuildTypeBlock"),
     ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyBuildTypeBlockExpected"),
     ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED("addAndApplyDerefBuildTypeBlockExpected"),
@@ -2212,6 +2451,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_BUILD_TYPE_SET_INIT_WITH_EXPECTED("addBuildTypeSetInitWithExpected"),
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH("addProductFlavorSetInitWith"),
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED("addProductFlavorSetInitWithExpected"),
+    EMPTY_FILE("emptyFile"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

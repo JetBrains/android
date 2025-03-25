@@ -23,8 +23,6 @@ import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.util.GradleVersion
@@ -34,6 +32,8 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(Parameterized::class)
 class ConfigurationCachingCompatibilityAnalyzerUnitTest(

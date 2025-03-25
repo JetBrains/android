@@ -86,6 +86,13 @@ public final class RenderParamsFlags {
       new Key<>("useThemedIcon", Boolean.class);
 
     /**
+     * To tell Layoutlib to automatically create a monochrome version of adaptive icons
+     * if one is not explicitly provided.
+     */
+    public static final Key<Boolean> FLAG_KEY_FORCE_MONOCHROME_ICON =
+      new Key<>("forceMonochromeIcon", Boolean.class);
+
+    /**
      * To tell Layoutlib to use the gesture navigation, instead of a button navigation bar.
      */
     public static final Key<Boolean> FLAG_KEY_USE_GESTURE_NAV =

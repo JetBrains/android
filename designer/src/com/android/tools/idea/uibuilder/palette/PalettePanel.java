@@ -47,6 +47,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -292,7 +293,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, UiDat
   private void keyboardActionPerformed(@NotNull ActionEvent event, @NotNull AnAction action) {
     DataContext dataContext = DataManager.getInstance().getDataContext(this);
     InputEvent inputEvent = event.getSource() instanceof InputEvent ? (InputEvent)event.getSource() : null;
-    action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ActionPlaces.TOOLWINDOW_POPUP, dataContext));
+    action.actionPerformed(AnActionEvent.createEvent(action, dataContext, null, ActionPlaces.TOOLWINDOW_POPUP, ActionUiKind.POPUP, inputEvent));
   }
 
   @NotNull

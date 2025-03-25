@@ -36,7 +36,8 @@ private typealias ResourceFilter = (ResourceItem) -> Boolean
  * Implementations need to implement [doGetFields], most likely by calling one of the
  * [buildResourceFields] methods.
  */
-abstract class InnerRClassBase(context: PsiClass, val resourceType: ResourceType) :
+abstract class InnerRClassBase
+protected constructor(context: AndroidLightClassBase, val resourceType: ResourceType) :
   AndroidLightInnerClassBase(context, resourceType.getName()) {
   private var fieldsCache: CachedValue<Array<PsiField>>? = null
   private val logger = thisLogger()
@@ -49,7 +50,8 @@ abstract class InnerRClassBase(context: PsiClass, val resourceType: ResourceType
           logger.info("Recomputed ${fields.size} fields for $this")
 
           if (fields.isEmpty()) {
-            ResourceUpdateTracer.getInstance().dumpTrace("No fields found for ${this.qualifiedName}")
+            ResourceUpdateTracer.getInstance()
+              .dumpTrace("No fields found for ${this.qualifiedName}")
           }
 
           // When ResourceRepositoryManager's caches are dropped, new instances of repositories are

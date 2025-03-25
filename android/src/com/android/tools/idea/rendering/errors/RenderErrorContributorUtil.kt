@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.errors
 
-import com.android.tools.idea.actions.SendFeedbackAction
+import com.android.tools.idea.actions.SubmitBugReportAction
 import com.android.tools.idea.rendering.ShowExceptionFix
 import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.rendering.HtmlLinkManager
@@ -107,6 +107,6 @@ fun createAddReportBugMessage(linkManager: HtmlLinkManager, textBefore: String? 
       null,
       "Report Bug",
       ".",
-      linkManager.createActionLink { module -> SendFeedbackAction.submit(module?.project ?: return@createActionLink) })
+      linkManager.createActionLink { module -> SubmitBugReportAction.submit(module?.project ?: return@createActionLink) })
   )
 }

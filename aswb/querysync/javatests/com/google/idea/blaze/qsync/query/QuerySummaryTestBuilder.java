@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.query;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
@@ -26,7 +27,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.qsync.query.Query.SourceFile;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,7 +36,7 @@ public class QuerySummaryTestBuilder {
   private final ImmutableList.Builder<Label> packagesBuilder = ImmutableList.builder();
   private final ImmutableSet.Builder<Label> buildFilesWithErrorsBuilder = ImmutableSet.builder();
 
-  private final ImmutableMultimap.Builder<String, String> includesBuilder =
+  private final ImmutableMultimap.Builder<Label, Label> includesBuilder =
       ImmutableMultimap.builder();
 
   public QuerySummaryTestBuilder() {}
@@ -48,7 +48,7 @@ public class QuerySummaryTestBuilder {
   }
 
   @CanIgnoreReturnValue
-  public QuerySummaryTestBuilder addSubincludes(Multimap<String, String> subIncludes) {
+  public QuerySummaryTestBuilder addSubincludes(Multimap<Label, Label> subIncludes) {
     includesBuilder.putAll(subIncludes);
     return this;
   }
@@ -62,24 +62,22 @@ public class QuerySummaryTestBuilder {
   public Query.Summary build() {
     ImmutableList<Label> packages = packagesBuilder.build();
     ImmutableSet<Label> buildFilesWithErrors = buildFilesWithErrorsBuilder.build();
-    ImmutableMultimap<String, String> includes = includesBuilder.build();
+    ImmutableMultimap<Label, Label> includes = includesBuilder.build();
     Set<Label> sourceFiles =
         packages.stream()
             .map(Label::getPackage)
             .map(p -> Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, p, Path.of("BUILD")))
             .collect(toCollection(HashSet::new));
-    includes.keySet().stream().map(Label::of).forEach(sourceFiles::add);
+    sourceFiles.addAll(includes.keySet());
 
     QuerySummary.Builder builder = QuerySummary.newBuilder();
     builder.putAllRules(
-      packages.stream().filter(l -> !buildFilesWithErrors.contains(l.siblingWithName("BUILD")))
-        .collect(toImmutableMap(l -> Label.of(l.toString()), l -> Query.Rule.newBuilder().setRuleClass("java_library").build())));
+      packages.stream()
+        .filter(l -> !buildFilesWithErrors.contains(l.siblingWithName("BUILD")))
+        .map(l -> QueryData.Rule.builderForTests().label(l).ruleClass("java_library").build())
+        .collect(toImmutableList()));
     builder.putAllSourceFiles(
-      sourceFiles.stream().collect(toImmutableMap(src -> src, src -> SourceFile.newBuilder()
-        .setLocation(src + ":1:1")
-        .addAllSubinclude(includes.get(src.toString()))
-        .build()))
-    );
+      sourceFiles.stream().collect(toImmutableMap(src -> src, src -> new QueryData.SourceFile(src, includes.get(src)))));
 
     builder.putAllPackagesWithErrors(buildFilesWithErrors.stream().map(Label::getPackage).collect(toImmutableSet()));
 

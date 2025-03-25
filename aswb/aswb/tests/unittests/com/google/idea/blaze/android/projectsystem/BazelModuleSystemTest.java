@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.projectsystem.DependencyType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.idea.blaze.android.resources.BlazeLightResourceClassService;
@@ -118,7 +119,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
     assertThat(buildFile).isNotNull();
     when(psiFile.getVirtualFile()).thenReturn(buildFile);
 
-    BazelModuleSystem.create(module).registerDependency(APP_COMPAT_V7);
+    BazelModuleSystem.create(module).registerDependency(APP_COMPAT_V7, DependencyType.IMPLEMENTATION);
 
     ArgumentCaptor<OpenFileDescriptor> descriptorCaptor =
         ArgumentCaptor.forClass(OpenFileDescriptor.class);
@@ -141,7 +142,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
         VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
     assertThat(buildFile).isNotNull();
 
-    BazelModuleSystem.create(module).registerDependency(APP_COMPAT_V7);
+    BazelModuleSystem.create(module).registerDependency(APP_COMPAT_V7, DependencyType.IMPLEMENTATION);
 
     verify(FileEditorManager.getInstance(project)).openFile(buildFile, true);
     verifyNoMoreInteractions(FileEditorManager.getInstance(project));

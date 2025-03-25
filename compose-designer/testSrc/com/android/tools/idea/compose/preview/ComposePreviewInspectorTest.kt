@@ -24,7 +24,7 @@ import java.awt.Point
 import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.invocation.InvocationOnMock

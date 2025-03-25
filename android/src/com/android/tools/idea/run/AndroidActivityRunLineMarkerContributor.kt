@@ -16,15 +16,15 @@
 package com.android.tools.idea.run
 
 import com.android.SdkConstants
-import com.android.tools.idea.run.configuration.getPsiClass
+import com.android.tools.idea.run.configuration.getClassQualifiedName
+import com.android.tools.idea.run.configuration.isSubtypeOf
+import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.icons.AllIcons
 import com.intellij.psi.JavaTokenType
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.InheritanceUtil
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -38,9 +38,11 @@ class AndroidActivityRunLineMarkerContributor : RunLineMarkerContributor() {
       return null
     }
 
-    val psiClass = e.getPsiClass() ?: return null
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(e.project)) return null
+
+    val psiClass = e.parent ?: return null
     if (psiClass.isAndroidActivitySubclass()) {
-      val activityName = psiClass.name ?: return null
+      val activityName = e.getClassQualifiedName() ?: return null
       return Info(AllIcons.RunConfigurations.TestState.Run, ExecutorAction.getActions()) {
         AndroidBundle.message(
           "android.run.configuration.run",
@@ -53,6 +55,7 @@ class AndroidActivityRunLineMarkerContributor : RunLineMarkerContributor() {
 
   private fun PsiElement.isClassToken() =
     node.elementType == KtTokens.CLASS_KEYWORD || node.elementType == JavaTokenType.CLASS_KEYWORD
-  private fun PsiClass.isAndroidActivitySubclass() =
-    InheritanceUtil.isInheritor(this, SdkConstants.CLASS_ACTIVITY)
+
+  private fun PsiElement.isAndroidActivitySubclass() =
+    isSubtypeOf(SdkConstants.CLASS_ACTIVITY)
 }

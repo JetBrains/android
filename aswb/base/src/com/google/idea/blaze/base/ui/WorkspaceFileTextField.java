@@ -18,13 +18,13 @@ package com.google.idea.blaze.base.ui;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
-import com.google.idea.sdkcompat.general.BaseSdkCompat;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.ex.FileLookup.Finder;
 import com.intellij.openapi.fileChooser.ex.FileLookup.LookupFile;
 import com.intellij.openapi.fileChooser.ex.FileLookup.LookupFilter;
 import com.intellij.openapi.fileChooser.ex.FileTextFieldImpl;
+import com.intellij.openapi.fileChooser.ex.LocalFsFinder;
 import com.intellij.openapi.fileChooser.ex.LocalFsFinder.FileChooserFilter;
 import com.intellij.openapi.fileChooser.ex.LocalFsFinder.VfsFile;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -89,9 +89,9 @@ public final class WorkspaceFileTextField extends FileTextFieldImpl {
       Path path = Paths.get(normalize(filePath));
       VirtualFile vFile = LocalFileSystem.getInstance().findFileByNioFile(path);
       if (vFile != null) {
-        return BaseSdkCompat.getVfsFile(vFile);
+        return new LocalFsFinder.VfsFile(vFile);
       } else if (path.isAbsolute()) {
-        return BaseSdkCompat.getIoFile(path);
+        return new LocalFsFinder.IoFile(path);
       }
       return null;
     }

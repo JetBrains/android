@@ -28,6 +28,7 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
@@ -56,7 +57,8 @@ import org.mockito.Mockito.verify
 class NlPropertiesModelTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule
+  val chain = RuleChain.outerRule(projectRule).around(RenderTestRule()).around(EdtRule())!!
 
   @Test
   fun testPropertiesGeneratedEventWhenDesignSurfaceIsHookedUp() {
@@ -266,7 +268,7 @@ class NlPropertiesModelTest {
     model.addListener(listener)
 
     // Value changed should not be reported if the default values are unchanged
-    manager.requestRenderAsync()
+    manager.requestRender()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener, never()).propertyValuesChanged(model)
 
@@ -277,7 +279,7 @@ class NlPropertiesModelTest {
       ATTR_TEXT_APPEARANCE,
       "@android:style/TextAppearance.Large",
     )
-    manager.requestRenderAsync()
+    manager.requestRender()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }

@@ -21,6 +21,7 @@ import com.android.tools.idea.preview.actions.findPreviewManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 
 private const val SHOW = "Show"
 private const val HIDE = "Hide"
@@ -41,6 +42,7 @@ internal class ShowDebugBoundaries : ToggleAction("$SHOW Composable Bounds", nul
   override fun update(e: AnActionEvent) {
     super.update(e)
 
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     e.presentation.text =
       if (isSelected(e)) {
         "$HIDE Composable Bounds"
@@ -48,6 +50,4 @@ internal class ShowDebugBoundaries : ToggleAction("$SHOW Composable Bounds", nul
         "$SHOW Composable Bounds"
       }
   }
-
-  override fun displayTextInToolbar(): Boolean = true
 }

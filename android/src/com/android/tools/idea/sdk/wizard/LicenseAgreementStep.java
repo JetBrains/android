@@ -21,11 +21,13 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -35,10 +37,15 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -76,15 +83,55 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   // Only licenses that have not been accepted in the past by the user are displayed.
   private final Set<String> myVisibleLicenses = Sets.newHashSet();
 
-  // All package paths that will get installed.
-  private final List<RemotePackage> myInstallRequests;
+  // All package paths that will get installed - we use a Supplier as the packages
+  // to install may be changed by other wizard steps
+  private final Supplier<Collection<RemotePackage>> myInstallRequestsSupplier;
 
   // True when all the visible licenses have been accepted.
   private final BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
 
-  public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
+  // Sets the default accepted status for each license
+  private final boolean mySelectedByDefault;
+
+  /**
+   * Constructs a new LicenseAgreementStep
+   *
+   * @param model                   Stores associated step data
+   * @param installRequestsSupplier Supplies the packages to be installed
+   */
+  public LicenseAgreementStep(
+    @NotNull LicenseAgreementModel model,
+    @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier
+  ) {
+    this(model, installRequestsSupplier, false);
+  }
+
+  /**
+   * Constructs a new LicenseAgreementStep
+   *
+   * @param model                   Stores associated step data
+   * @param installRequestsSupplier Supplies the packages to be installed
+   * @param selectedByDefault       Should only be enabled in tests - actual users need to manually click 'accept'
+   */
+  public LicenseAgreementStep(
+    @NotNull LicenseAgreementModel model,
+    @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier,
+    boolean selectedByDefault
+  ) {
     super(model, "License Agreement");
-    myInstallRequests = installRequests;
+    myInstallRequestsSupplier = installRequestsSupplier;
+    mySelectedByDefault = selectedByDefault;
+
+    if (mySelectedByDefault) {
+      boolean isTesting = GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
+      if (!isTesting) {
+        throw new IllegalStateException("Licenses can only be selected by default when running tests");
+      }
+    }
+  }
+
+  public void reload() {
+    setChanges(createChangesList());
   }
 
   @Override
@@ -221,7 +268,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
           firstChild = n;
         }
         licenseNodeMap.put(licenseRef, n);
-        myAcceptances.put(licenseRef, Boolean.FALSE);
+        myAcceptances.put(licenseRef, mySelectedByDefault);
         root.add(n);
       }
       licenseNodeMap.get(licenseRef).add(new DefaultMutableTreeNode(change));
@@ -269,13 +316,20 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   }
 
   private List<Change> createChangesList() {
+    Optional<Path> sdkRoot = getModel().getSdkRoot().get();
+    if (sdkRoot.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    getModel().getLicenses().clear();
     List<Change> toReturn = new ArrayList<>();
-    if (myInstallRequests != null) {
-      for (RemotePackage p : myInstallRequests) {
+    Collection<RemotePackage> installRequests = myInstallRequestsSupplier.get();
+    if (installRequests != null) {
+      for (RemotePackage p : installRequests) {
         License license = p.getLicense();
         if (license != null) {
           getModel().getLicenses().add(license);
-          if (!license.checkAccepted(getModel().getSdkRoot().getValue())) {
+          if (!license.checkAccepted(sdkRoot.get())) {
             toReturn.add(new Change(p, license));
           }
         }

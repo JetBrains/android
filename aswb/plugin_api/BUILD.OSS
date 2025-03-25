@@ -1,0 +1,131 @@
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
+
+java_library(
+    name = "plugin_api_internal",
+    visibility = ["//visibility:private"],
+    exports = [
+        "//prebuilts/tools/common/m2:jsr305-2.0.1",
+        "@intellij//:JUnit",
+        "@intellij//:com.android.tools.apk",
+        "@intellij//:com.android.tools.design",
+        "@intellij//:com.android.tools.idea.smali",
+        "@intellij//:com.android.tools.ndk",
+        "@intellij//:com.google.gct.test.recorder",
+        "@intellij//:com.intellij.cidr.base",
+        "@intellij//:com.intellij.cidr.debugger",
+        "@intellij//:com.intellij.cidr.lang",
+        "@intellij//:com.intellij.cidr.lang.clangd",
+        "@intellij//:com.intellij.java",
+        "@intellij//:intellij.platform.coverage",
+        "@intellij//:intellij.platform.coverage.agent",
+        "@intellij//:intellij-sdk",
+        "@intellij//:org.jetbrains.android",
+        "@intellij//:org.jetbrains.kotlin",
+    ],
+)
+
+java_library(
+    name = "plugin_api",
+    neverlink = 1,
+    exports = [":plugin_api_internal"],
+)
+
+# For tests, we need the IJ API at runtime, so we can't use the neverlink rule.
+java_library(
+    name = "plugin_api_for_tests",
+    testonly = 1,
+    exports = [
+        ":plugin_api_internal",
+        "//tools/base/testutils:tools.testutils",
+        "@intellij//:test-framework",
+    ],
+)
+
+java_library(
+    name = "test_libs",
+    testonly = 1,
+    exports = [
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/.idea/libraries:truth-java8-extension",
+    ],
+)
+
+java_library(
+    name = "kotlin",
+    neverlink = 1,
+    exports = [
+        "@intellij//:org.jetbrains.kotlin",
+    ],
+)
+
+java_library(
+    name = "kotlin_for_tests",
+    testonly = 1,
+    exports = [
+        "@intellij//:org.jetbrains.kotlin",
+    ],
+)
+
+java_library(
+    name = "junit",
+    neverlink = 1,
+    exports = [
+        "@intellij//:JUnit",
+    ],
+)
+
+java_library(
+    name = "terminal",
+    neverlink = 1,
+    exports = [
+        "@intellij//:org.jetbrains.plugins.terminal",
+    ],
+)
+
+java_library(
+    name = "devkit",
+    neverlink = 1,
+    exports = [
+        "@intellij//:DevKit",
+    ],
+)
+
+java_library(
+    name = "jsr305",
+    exports = [
+        "//prebuilts/tools/common/m2:jsr305-2.0.1",
+    ],
+)
+
+java_library(
+    name = "coverage_for_tests",
+    testonly = 1,
+    exports = [
+        "@intellij//:intellij-sdk",
+    ],
+)
+
+java_library(
+    name = "truth",
+    exports = [
+        "//tools/adt/idea/aswb/third_party/java/truth",
+    ],
+)
+
+java_library(
+    name = "guava_for_external_binaries",
+    exports = [
+        "@maven//:com.google.guava.guava",
+    ],
+)
+
+java_library(
+    name = "hg4idea",
+    neverlink = 1,
+    exports = [
+        "@intellij//:hg4idea",
+    ],
+)

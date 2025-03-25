@@ -75,25 +75,30 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
       }
     }
 
-    buildIssueComposer.addDescription(Splitter.on("\n").omitEmptyStrings().trimResults().splitToList(message)[0])
+    buildIssueComposer.addDescriptionOnNewLine(Splitter.on("\n").omitEmptyStrings().trimResults().splitToList(message)[0])
+    buildIssueComposer.startNewParagraph()
     if (jdk7Hint.isNotEmpty()) {
       buildIssueComposer.apply {
-        addDescription("Possible causes for this unexpected error include:")
-        addDescription(jdk7Hint)
+        addDescriptionOnNewLine("Possible causes for this unexpected error include:")
+        startNewParagraph()
+        addDescriptionOnNewLine(jdk7Hint)
+        startNewParagraph()
         addQuickFix("Open JDK Settings", OpenGradleJdkSettingsQuickfix())
       }
     }
     buildIssueComposer.apply {
-      addDescription("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+      addDescriptionOnNewLine("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+      startNewParagraph()
       addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
-      addDescription("The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.")
+      addDescriptionOnNewLine("The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.")
+      startNewParagraph()
       when (ApplicationManager.getApplication().isRestartCapable) {
         true -> addQuickFix("Stop Gradle build processes (requires restart)", stopGradleDaemonQuickFix)
         false -> addQuickFix("Open Gradle Daemon documentation", stopGradleDaemonQuickFix)
       }
-      addDescription("Your project may be using a third-party plugin which is not compatible with the other " +
-                     "plugins in the project or the version of Gradle requested by the project.\n\n" +
-                     "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
+      addDescriptionOnNewLine("Your project may be using a third-party plugin which is not compatible with the other " +
+                                         "plugins in the project or the version of Gradle requested by the project.\n\n" +
+                                         "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.")
     }
 
     return buildIssueComposer.composeBuildIssue()

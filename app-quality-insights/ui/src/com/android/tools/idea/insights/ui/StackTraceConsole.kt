@@ -53,6 +53,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.unscramble.AnalyzeStacktraceUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -70,10 +71,12 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 private val CONSOLE_LOCK = Any()
 private const val CONSOLE_VIEW = "ConsoleView"
 private const val EMPTY_STATE_PANEL = "EmptyStatePanel"
+private const val NO_STACK_TRACE_PANEL = "NoStackTracePanel"
 private val LINE_0_REGEX = Regex("\\((.*):0\\)")
 
 data class StackTraceConsoleState(
@@ -112,6 +115,7 @@ class StackTraceConsole(
 
   val stackPanel = JPanel(cardLayout)
 
+  @VisibleForTesting
   val emptyStatePane =
     object : JPanel() {
       init {
@@ -121,6 +125,31 @@ class StackTraceConsole(
       override fun paint(g: Graphics) {
         super.paint(g)
         emptyStatusText.paint(this, g)
+      }
+    }
+
+  @VisibleForTesting
+  val noStackTracePane =
+    object : JPanel() {
+      private val statusText =
+        AppInsightsStatusText(this) { true }
+          .apply {
+            appendText(
+              "Stack trace not available",
+              SimpleTextAttributes(
+                SimpleTextAttributes.STYLE_PLAIN,
+                UIUtil.getLabelDisabledForeground(),
+              ),
+            )
+          }
+
+      init {
+        isOpaque = false
+      }
+
+      override fun paint(g: Graphics) {
+        super.paint(g)
+        statusText.paint(this, g)
       }
     }
 
@@ -151,14 +180,15 @@ class StackTraceConsole(
 
     stackPanel.add(consoleView, CONSOLE_VIEW)
     stackPanel.add(emptyStatePane, EMPTY_STATE_PANEL)
+    stackPanel.add(noStackTracePane, NO_STACK_TRACE_PANEL)
     cardLayout.show(stackPanel, CONSOLE_VIEW)
 
-    consoleView.editor.setBorder(JBUI.Borders.empty())
+    consoleView.editor!!.setBorder(JBUI.Borders.empty())
     updateUI()
   }
 
   fun updateUI() {
-    (consoleView?.editor as? EditorEx)?.apply {
+    (consoleView.editor as? EditorEx)?.apply {
       if (
         EditorColorsManager.getInstance()
           .globalScheme
@@ -173,8 +203,11 @@ class StackTraceConsole(
 
   fun clearStackTrace() =
     synchronized(CONSOLE_LOCK) {
+      if (consoleView.text.isEmpty()) {
+        return@synchronized
+      }
       consoleView.flushDeferredText()
-      consoleView.editor.document.setText("")
+      consoleView.editor!!.document.setText("")
       currentEvent = null
     }
 
@@ -201,16 +234,19 @@ class StackTraceConsole(
       // ConsoleViewImpl.clear() clears non-deferred text asynchronously, causing a race condition
       // when setting the new text below, so here we manually flush and then set the text to empty.
       consoleView.flushDeferredText()
-      consoleView.editor.document.setText("")
+      consoleView.editor!!.document.setText("")
       consoleView.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, event.appVcsInfo)
       consoleView.putClientProperty(CONNECTION_OF_SELECTED_CRASH, connection)
 
       if (event == Event.EMPTY) {
         cardLayout.show(stackPanel, EMPTY_STATE_PANEL)
         stackPanel.preferredSize = emptyStatePane.preferredSize
+      } else if (event.stacktraceGroup.exceptions.isEmpty()) {
+        cardLayout.show(stackPanel, NO_STACK_TRACE_PANEL)
+        stackPanel.preferredSize = noStackTracePane.preferredSize
       } else {
         cardLayout.show(stackPanel, CONSOLE_VIEW)
-        stackPanel.preferredSize = null
+        stackPanel.preferredSize = consoleView.preferredSize
       }
 
       fun Blames.getConsoleViewContentType() =
@@ -234,17 +270,19 @@ class StackTraceConsole(
         }
 
         consoleView.performWhenNoDeferredOutput {
-          consoleView.editor.foldingModel.runBatchFoldingOperation {
+          consoleView.editor!!.foldingModel.runBatchFoldingOperation {
             synchronized(CONSOLE_LOCK) {
               if (event != currentEvent) {
                 return@runBatchFoldingOperation
               }
               val region =
-                consoleView.editor.foldingModel.addFoldRegion(
-                  startOffset,
-                  endOffset,
-                  "    <${stack.stacktrace.frames.size} frames>",
-                )
+                consoleView.editor!!
+                  .foldingModel
+                  .addFoldRegion(
+                    startOffset,
+                    endOffset,
+                    "    <${stack.stacktrace.frames.size} frames>",
+                  )
               if (stack.stacktrace.blames == Blames.NOT_BLAMED) {
                 region?.isExpanded = false
               }
@@ -256,17 +294,19 @@ class StackTraceConsole(
 
     if (issue.issueDetails.fatality == FailureType.ANR) {
       consoleView.performWhenNoDeferredOutput {
-        consoleView.editor.foldingModel.runBatchFoldingOperation {
+        consoleView.editor!!.foldingModel.runBatchFoldingOperation {
           synchronized(CONSOLE_LOCK) {
             if (event != currentEvent) {
               return@synchronized
             }
             val region =
-              consoleView.editor.foldingModel.addFoldRegion(
-                startOfOtherThreads,
-                consoleView.contentSize,
-                "    Show all ${event.stacktraceGroup.exceptions.size} threads",
-              )
+              consoleView.editor!!
+                .foldingModel
+                .addFoldRegion(
+                  startOfOtherThreads,
+                  consoleView.contentSize,
+                  "    Show all ${event.stacktraceGroup.exceptions.size} threads",
+                )
             region?.isExpanded = false
           }
         }
@@ -297,12 +337,12 @@ class StackTraceConsole(
     (consoleView.editor as EditorEx).apply {
       contentComponent.isFocusCycleRoot = false
       contentComponent.isFocusable = true
-      setVerticalScrollbarVisible(false)
       setCaretEnabled(false)
+      scrollPane.verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
     }
 
     val listener = ListenerForTracking(consoleView, tracker, project, stackTraceConsoleState, scope)
-    consoleView.editor.addEditorMouseListener(listener, this)
+    consoleView.editor!!.addEditorMouseListener(listener, this)
 
     return consoleView
   }
@@ -331,7 +371,7 @@ class ListenerForTracking(
   private val scope: CoroutineScope,
 ) : EditorMouseListener {
   override fun mouseReleased(event: EditorMouseEvent) {
-    val hyperlinkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event) ?: return
+    val hyperlinkInfo = consoleView.getHyperlinks()?.getHyperlinkInfoByEvent(event) ?: return
     // Run tracking logic in a coroutine since it requires read lock.
     // Without the read lock, it is considered a slow operation.
     scope.trackClick(hyperlinkInfo)

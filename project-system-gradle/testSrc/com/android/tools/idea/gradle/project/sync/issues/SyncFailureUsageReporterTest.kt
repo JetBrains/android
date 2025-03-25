@@ -28,6 +28,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
+import com.google.wireless.android.sdk.stats.GradleFailureDetails
 import com.intellij.build.BuildProgressListener
 import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
@@ -44,6 +45,8 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.util.containers.DisposableWrapperList
+import com.jetbrains.rd.util.string.printToString
+import org.gradle.api.GradleScriptException
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.issue.DeprecatedGradleVersionIssue
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -92,6 +95,11 @@ class SyncFailureUsageReporterTest {
   fun detectedAndReportedFailureReasonReportedAsIs() {
     SyncFailureUsageReporter.getInstance().onSyncStart(buildId, projectRule.project, projectRule.project.basePath!!)
 
+    SyncFailureUsageReporter.getInstance().collectUnprocessedGradleError(
+      projectRule.project.basePath!!,
+      // This is not a full stack, but close enough for this test.
+      GradleScriptException("A problem occurred evaluating project ':app'.", RuntimeException(ClassNotFoundException("not.existing.MyClass")))
+    )
     SyncFailureUsageReporter.getInstance().collectFailure(projectRule.project.basePath!!, CLASS_NOT_FOUND)
 
     val exception = BuildIssueException(BuildIssueComposer("Test error").composeBuildIssue())
@@ -103,6 +111,37 @@ class SyncFailureUsageReporterTest {
       .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(CLASS_NOT_FOUND)
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString()).isEqualTo("""
+      errors {
+        exceptions {
+          exception_class_name: "${GradleScriptException::class.java.name}"
+          top_frame_info {
+            class_name: "${this::class.java.name}"
+            method_name: "detectedAndReportedFailureReasonReportedAsIs"
+            file_name: "SyncFailureUsageReporterTest.kt"
+            frame_index: 0
+          }
+        }
+        exceptions {
+          exception_class_name: "${RuntimeException::class.java.name}"
+          top_frame_info {
+            class_name: "${this::class.java.name}"
+            method_name: "detectedAndReportedFailureReasonReportedAsIs"
+            file_name: "SyncFailureUsageReporterTest.kt"
+            frame_index: 0
+          }
+        }
+        exceptions {
+          exception_class_name: "${ClassNotFoundException::class.java.name}"
+          top_frame_info {
+            class_name: "${this::class.java.name}"
+            method_name: "detectedAndReportedFailureReasonReportedAsIs"
+            file_name: "SyncFailureUsageReporterTest.kt"
+            frame_index: 0
+          }
+        }
+      }
+    """.trimIndent())
   }
 
   @Test
@@ -164,6 +203,19 @@ class SyncFailureUsageReporterTest {
       .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(BUILD_ISSUE_CREATED_UNKNOWN_FAILURE)
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString()).isEqualTo("""
+      errors {
+        exceptions {
+          exception_class_name: "com.intellij.openapi.externalSystem.issue.BuildIssueException"
+          top_frame_info {
+            class_name: "com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporterTest"
+            method_name: "detectedInPlatformCodeBuildIssue"
+            file_name: "SyncFailureUsageReporterTest.kt"
+            frame_index: 0
+          }
+        }
+      }
+    """.trimIndent())
   }
 
   @Test
@@ -179,6 +231,19 @@ class SyncFailureUsageReporterTest {
       .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(UNKNOWN_GRADLE_FAILURE)
+    Truth.assertThat(event.studioEvent.gradleFailureDetails.toTestString()).isEqualTo("""
+      errors {
+        exceptions {
+          exception_class_name: "${ExternalSystemException::class.java.name}"
+          top_frame_info {
+            class_name: "${this::class.java.name}"
+            method_name: "unprocessedFailureReason"
+            file_name: "SyncFailureUsageReporterTest.kt"
+            frame_index: 0
+          }
+        }
+      }
+    """.trimIndent())
   }
 
   @Test
@@ -235,3 +300,7 @@ class SyncFailureUsageReporterTest {
     syncViewListeners.forEach { it.onEvent(buildId, event) }
   }
 }
+
+private fun GradleFailureDetails.toTestString(): String = printToString().lineSequence()
+  .filterNot { it.contains("line_number: ") }
+  .joinToString(separator = "\n").trim()

@@ -57,15 +57,16 @@ class ColumnReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
   fun testColumnNameInsideAlterQuery() {
     val file = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "ALTER TABLE User RENAME COLUMN n<caret>ame TO newName")
-    val schema = file.setTestSqlSchema {
+    val schema = AndroidSqlTestSchema(file).apply {
       table {
         name = "User"
         column { name = "name" }
       }
     }
-
-    val column = (myFixture.referenceAtCaret as AndroidSqlColumnPsiReference).resolveColumn(HashSet())
-    assertThat(column).isEqualTo(schema.getTable("User").getColumn("name"))
+    file.withTestSqlSchema(schema) {
+      val column = (myFixture.referenceAtCaret as AndroidSqlColumnPsiReference).resolveColumn(HashSet())
+      assertThat(column).isEqualTo(schema.getTable("User").getColumn("name"))
+    }
   }
 
   fun testCaseInsensitive_unquoted() {

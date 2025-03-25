@@ -46,7 +46,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -224,14 +223,8 @@ public class AndroidTargetData {
   @Nullable
   public synchronized ResourceRepository getFrameworkResources(@NonNull Set<String> languages,
                                                                @NonNull List<? extends FrameworkOverlay> overlays) {
-    Path resFolderOrJar = myTarget.getPath(IAndroidTarget.RESOURCES);
-    if (!Files.exists(resFolderOrJar)) {
-      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar));
-      return null;
-    }
-
     return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
-      resFolderOrJar,
+      myTarget.getPath(IAndroidTarget.RESOURCES),
       myTarget instanceof CompatibilityRenderTarget,
       languages,
       overlays);

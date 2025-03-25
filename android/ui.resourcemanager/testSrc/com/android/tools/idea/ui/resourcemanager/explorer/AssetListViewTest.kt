@@ -18,14 +18,14 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import javax.swing.JList
 
 class AssetListViewTest {

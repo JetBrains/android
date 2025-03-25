@@ -47,7 +47,7 @@ class AndroidGradleKtsSpellcheckingStrategy : SpellcheckingStrategy(), DumbAware
   private fun isPrint(element: PsiElement): Boolean {
     return when (val maybeCall = element.parent?.parent?.parent?.parent) {
       null -> false
-      is KtCallExpression -> setOf("print", "println").contains(maybeCall.calleeExpression!!.text)
+      is KtCallExpression -> setOf("print", "println").contains(maybeCall.calleeExpression?.text)
       else -> false
     }
   }

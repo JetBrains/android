@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.project
 
-import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.flags.StudioFlags.ENABLE_APK_PROJECT_SYSTEM
-import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -46,7 +44,6 @@ import com.android.tools.idea.run.FileSystemApkProvider
 import com.android.tools.idea.run.NonGradleApkProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.configurations.ModuleBasedConfiguration
@@ -66,7 +63,6 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
 import org.jetbrains.annotations.TestOnly
 import java.io.File
-import java.nio.file.Path
 import java.util.IdentityHashMap
 
 class DefaultProjectSystemProvider : AndroidProjectSystemProvider {
@@ -88,16 +84,10 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     throw IllegalStateException("Not implemented")
   }
 
-  override fun getDefaultApkFile(): VirtualFile? = null
-
-  override fun getPathToAapt(): Path {
-    return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(DefaultProjectSystem::class.java))
-  }
-
   override fun allowsFileCreation() = false
 
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
-    override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
+    override fun requestSyncProject(reason: SyncReason): ListenableFuture<SyncResult> {
       AppUIUtil.invokeLaterIfProjectAlive(project) {
         project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
       }

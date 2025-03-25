@@ -22,15 +22,9 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection
 import com.android.tools.rendering.RenderTask
+import com.android.tools.visuallint.VisualLintBaseConfigIssues
+import com.android.tools.visuallint.VisualLintErrorType
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.lang.annotation.HighlightSeverity

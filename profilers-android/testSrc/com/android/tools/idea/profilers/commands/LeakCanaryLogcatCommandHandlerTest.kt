@@ -17,7 +17,7 @@ package com.android.tools.idea.profilers.commands
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder

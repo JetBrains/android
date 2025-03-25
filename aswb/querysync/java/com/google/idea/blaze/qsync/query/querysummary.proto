@@ -10,12 +10,23 @@ option java_package = "com.google.idea.blaze.qsync.query";
  * Contains a summary of a {@code query} command output as needed by querysync.
  */
 message Summary {
-  map<string, SourceFile> source_files = 1;
-  reserved 2; // rules
+  reserved 1; // old source_files to be discarded.
+  reserved 2; // old rules to be discarded.
   int32 version = 3;
   repeated string packages_with_errors = 4;
   StringStorage string_storage = 5;
-  map<int32, StoredRule> stored_rules = 6;
+  reserved 6; // old stored_rules to be discarded.
+
+  enum QueryStrategy {
+    QUERY_STRATEGY_UNKNOWN = 0;
+    QUERY_STRATEGY_PLAIN = 1;
+    QUERY_STRATEGY_FILTERING_TO_KNOWN_AND_USED_TARGETS = 2;
+    QUERY_STRATEGY_PLAIN_WITH_SAFE_FILTERS = 3;
+  }
+  QueryStrategy query_strategy = 7;
+
+  repeated StoredRule stored_rules = 8;
+  repeated StoredSourceFile source_files = 9;
 }
 
 /**
@@ -26,43 +37,31 @@ message StringStorage {
   repeated string indexed_strings = 1;
 }
 
-message SourceFile {
-  string location = 1;
-  // Subincludes of a source file, taken from blaze_query.SourceFile.subinclude
-  repeated string subinclude = 2;
+message StoredLabel {
+  int32 workspace = 1;
+  int32 buildPackage = 2;
+  int32 name = 3;
 }
 
-message Rule {
-  string rule_class = 1;
-  repeated string sources = 2;
-  repeated string deps = 3;
-  repeated string idl_sources = 4;
-  reserved 5;
-  repeated string runtime_deps = 6;
-  repeated string resource_files = 7;
-  string manifest = 8;
-  string test_app = 9;
-  string instruments = 10;
-  string custom_package = 11;
-  repeated string hdrs = 12;
-  repeated string copts = 13;
-  repeated string tags = 14;
-  string main_class = 15;
+message StoredSourceFile {
+  StoredLabel label = 1;
+  // Subincludes of a source file, taken from blaze_query.SourceFile.subinclude
+  repeated StoredLabel subinclude = 2;
 }
 
 message StoredRule {
-  int32 rule_class = 1;
-  repeated int32 sources = 2;
-  repeated int32 deps = 3;
-  repeated int32 idl_sources = 4;
-  reserved 5;
-  repeated int32 runtime_deps = 6;
-  repeated int32 resource_files = 7;
-  int32 manifest = 8;
+  StoredLabel label = 1;
+  int32 rule_class = 2;
+  repeated StoredLabel sources = 3;
+  repeated StoredLabel deps = 4;
+  repeated StoredLabel idl_sources = 5;
+  repeated StoredLabel runtime_deps = 6;
+  repeated StoredLabel resource_files = 7;
+  StoredLabel manifest = 8;
   int32 test_app = 9;
   int32 instruments = 10;
   int32 custom_package = 11;
-  repeated int32 hdrs = 12;
+  repeated StoredLabel hdrs = 12;
   repeated int32 copts = 13;
   repeated int32 tags = 14;
   int32 main_class = 15;

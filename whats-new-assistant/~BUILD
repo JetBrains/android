@@ -30,7 +30,7 @@ iml_module(
     tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.whatsnew.assistant.WhatsNewTestSuite",
     test_data = [
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
@@ -47,11 +47,13 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/whats-new-assistant[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

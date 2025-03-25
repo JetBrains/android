@@ -55,8 +55,9 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
     val models = mutableListOf<NlModel>()
-    for (mode in ColorBlindMode.values()) {
+    for (mode in ColorBlindMode.entries) {
       val config = defaultConfig.clone()
+      config.imageTransformation = mode.imageTransform
       val model =
         NlModel.Builder(parent, buildTarget, virtualFile, config)
           .withComponentRegistrar(NlComponentRegistrar)

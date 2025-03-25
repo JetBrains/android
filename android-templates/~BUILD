@@ -56,9 +56,9 @@ iml_module(
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-35",
         "//tools/adt/idea/android/testData:projects",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -74,6 +74,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -102,6 +103,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 
@@ -111,6 +113,7 @@ maven_repository(
     artifacts = [
         "@maven//:androidx.activity.activity-compose_1.7.2",  # Needed for TemplateDiffTest#testNewComposeWearActivity
         "@maven//:androidx.activity.activity-compose_1.8.0",
+        "@maven//:androidx.activity.activity-compose_1.9.3",  # XR template
         "@maven//:androidx.activity.activity-ktx_1.6.0",  # Still needed from navigation-fragment-ktx:2.5.3
         "@maven//:androidx.activity.activity-ktx_1.7.0",
         "@maven//:androidx.activity.activity-ktx_1.8.0",
@@ -118,50 +121,60 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.collection.collection-ktx_1.4.0",  # Compose BOM 2024.04.01
+        "@maven//:androidx.collection.collection-ktx_1.5.0-alpha06",  # XR template
         "@maven//:androidx.compose.animation.animation-core-android_1.5.0-beta01",  # Necessary for Compose for TV
         "@maven//:androidx.compose.animation.animation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.animation.animation_1.5.0-beta01",  # Necessary for Compose for TV
-        "@maven//:androidx.compose.animation.animation_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.animation.animation_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.animation.animation_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.compiler.compiler_1.5.1",
         "@maven//:androidx.compose.compose-bom_2022.10.00",
-        "@maven//:androidx.compose.compose-bom_2024.04.01",
+        "@maven//:androidx.compose.compose-bom_2024.09.00",
         "@maven//:androidx.compose.foundation.foundation-android_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.foundation.foundation-layout_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.foundation.foundation-layout_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.foundation.foundation_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.foundation.foundation_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.material.material-icons-core_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.material.material-ripple_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.foundation.foundation_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.foundation.foundation_1.8.0-alpha06",  # XR template
+        "@maven//:androidx.compose.material.material-icons-core_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.material.material-ripple_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.material.material_1.4.3",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.material.material_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.material.material_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.material3.material3_1.2.1",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.runtime.runtime-saveable_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.runtime.runtime_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.material.material_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.material3.adaptive.adaptive_1.0.0",  # Compose BOM 2024.09.00. Needed for Navigation UI Template
+        "@maven//:androidx.compose.material3.material3-adaptive-navigation-suite_1.3.0",  # Compose BOM 2024.09.00. Needed for Navigation UI Template
+        "@maven//:androidx.compose.material3.material3_1.3.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.runtime.runtime-saveable_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.runtime.runtime_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.runtime.runtime_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.ui.ui-graphics-android_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.ui.ui-graphics_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-graphics_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-test-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-test-junit4-android_1.5.0-beta01",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-test-junit4_1.7.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-junit4_1.7.0-beta05",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-test-manifest_1.7.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-manifest_1.7.0-beta05",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.ui.ui-tooling-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-data-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.ui.ui-tooling-preview_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.7.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-tooling_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-tooling_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-tooling_1.7.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-tooling_1.7.0-beta05",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-tooling_1.8.0-alpha06",  # XR template
         "@maven//:androidx.compose.ui.ui-unit-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui_1.5.0-beta01",  # Necessary for Compose for TV.
-        "@maven//:androidx.compose.ui.ui_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.ui.ui_1.8.0-alpha06",  # XR template
         "@maven//:androidx.concurrent.concurrent-futures-ktx_1.2.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.concurrent.concurrent-futures-ktx_1.2.0-alpha02",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
@@ -182,13 +195,16 @@ maven_repository(
         "@maven//:androidx.leanback.leanback_1.0.0",
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.7",  # XR template
         "@maven//:androidx.lifecycle.lifecycle-livedata-core_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.lifecycle.lifecycle-livedata_2.8.7",  # XR template
         "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-process_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.lifecycle.lifecycle-process_2.8.7",  # XR template
         "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.3.0-rc01",
@@ -196,11 +212,13 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-service_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-compose_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-compose_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-compose_2.8.7",  # XR template
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.4.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.7",  # XR template
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.3.0-rc01",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
@@ -229,6 +247,7 @@ maven_repository(
         "@maven//:androidx.wear.tiles.tiles_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.wear.wear-tooling-preview_1.0.0",
         "@maven//:androidx.wear.wear_1.2.0",
+        "@maven//:androidx.xr.compose.compose_1.0.0-alpha01",  # XR template
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
         "@maven//:com.google.ai.client.generativeai.generativeai_0.9.0",
@@ -252,6 +271,8 @@ maven_repository(
         "@maven//:com.google.guava.guava_33.2.1-jre",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:com.google.jimfs.jimfs_1.1",
         "@maven//:com.google.prefab.cli_2.1.0",
+        "@maven//:com.google.protobuf.protobuf-javalite_3.19.1",  # XR template
+        "@maven//:com.google.protobuf.protobuf-javalite_4.28.2",  # XR template
         "@maven//:com.squareup.okio.okio-jvm_3.0.0",
         "@maven//:com.squareup.okio.okio_3.4.0",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
@@ -280,15 +301,13 @@ maven_repository(
         "@maven//:org.hamcrest.hamcrest-library_1.3",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.20",  # Needed for KotlinBomPlatformDependencyTest
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",  # Needed for KotlinBomPlatformDependencyTest
-        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.9.0",  # Now needed for any Kotlin templates
-        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.9.24",  # Now needed for any Kotlin templates
-        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.0",  # Compose/Kotlin 2.0.0 templates
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.21",
         "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.22",
-        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.0",  # Compose/Kotlin 2.0.0 templates
+        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.21",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.0",  # Compose/Kotlin 2.0.0 templates
+        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
@@ -303,15 +322,15 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.24",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.9.24",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.0",  # Compose/Kotlin 2.0.0 templates
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.21",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.24",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_2.0.0",  # Compose/Kotlin 2.0.0 templates
-        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.0",  # Compose/Kotlin 2.0.0 templates
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_2.0.21",
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.21",
         "@maven//:org.jetbrains.kotlinx.atomicfu-jvm_0.17.0",
         "@maven//:org.jetbrains.kotlinx.atomicfu_0.17.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.1",

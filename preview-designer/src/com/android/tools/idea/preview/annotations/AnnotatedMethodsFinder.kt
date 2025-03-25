@@ -24,6 +24,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -51,6 +52,8 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
@@ -200,7 +203,9 @@ suspend fun hasAnnotation(
 }
 
 /** Finds all the [UAnnotation]s in [vFile] in [project] with [shortAnnotationName] as name. */
-fun findAnnotations(
+@RequiresReadLock
+@VisibleForTesting
+internal fun findAnnotations(
   project: Project,
   vFile: VirtualFile,
   shortAnnotationName: String,
@@ -218,25 +223,20 @@ fun findAnnotations(
     psiFile,
     CacheKeysManager.getInstance(project).getKey(shortAnnotationName),
   ) {
-    val scope = runReadAction { GlobalSearchScope.fileScope(project, vFile) }
+    val scope = GlobalSearchScope.fileScope(project, vFile)
     val annotations =
       if (psiFile.language == KotlinLanguage.INSTANCE) {
-        runReadAction { KotlinAnnotationsIndex[shortAnnotationName, project, scope] }
-          .asSequence()
-          .map { it.psiOrParent }
-      } else {
-        runReadAction {
-          JavaAnnotationIndex.getInstance()
-            .getAnnotations(shortAnnotationName, project, scope)
-            .asSequence()
+        KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence().map {
+          it.psiOrParent
         }
+      } else {
+        JavaAnnotationIndex.getInstance()
+          .getAnnotations(shortAnnotationName, project, scope)
+          .asSequence()
       }
 
     CachedValueProvider.Result.create(
-      annotations
-        .toList()
-        .mapNotNull { runReadAction { it.toUElementOfType<UAnnotation>() } }
-        .distinct(),
+      annotations.toList().mapNotNull { it.toUElementOfType<UAnnotation>() }.distinct(),
       psiFile,
     )
   }
@@ -303,7 +303,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
   annotationFqn: String,
   shortAnnotationName: String,
   annotationFilter: (UAnnotation) -> Boolean,
-  toValues: (methods: List<UMethod>) -> Sequence<T>,
+  toValues: (methods: List<UMethod>) -> Flow<T>,
 ): CachedValueProvider<CompletableDeferred<Collection<T>>> = CachedValueProvider {
   // This Deferred should not be needed, the promise could be returned directly. However, it seems
   // there is a compiler issue that
@@ -320,7 +320,13 @@ private fun <T> findAnnotatedMethodsCachedValues(
               .mapNotNull { it.getContainingUMethodAnnotatedWith(annotationFqn) }
               .distinct() // avoid looking more than once per method
 
-          toValues(uMethods).toList()
+          // TODO(b/381827960): avoid using runBlockingCancellable
+          // At the moment we use runBlockingCancellable to calculate the list of values within this
+          // smart read lock.
+          // Callers of findAnnotatedMethodsValues must first ensure that any processing on their
+          // flow provides smart read locks where necessary before removing the terminal .toList()
+          // call.
+          runBlockingCancellable { toValues(uMethods).toList() }
         }
       )
       .inSmartMode(project)
@@ -345,7 +351,7 @@ private data class CachedValuesKey<T>(
   val annotationFqn: String,
   val shortAnnotationName: String,
   val filter: (UAnnotation) -> Boolean,
-  val toValues: (methods: List<UMethod>) -> Sequence<T>,
+  val toValues: (methods: List<UMethod>) -> Flow<T>,
 )
 
 private val ANY_U_ANNOTATION: (UAnnotation) -> Boolean = { true }
@@ -360,7 +366,7 @@ suspend fun <T> findAnnotatedMethodsValues(
   annotationFqn: String,
   shortAnnotationName: String,
   annotationFilter: (UAnnotation) -> Boolean = ANY_U_ANNOTATION,
-  toValues: (methods: List<UMethod>) -> Sequence<T>,
+  toValues: (methods: List<UMethod>) -> Flow<T>,
 ): Collection<T> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
   return withContext(AndroidDispatchers.workerThread) {

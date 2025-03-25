@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.surface.organization
 
 import com.android.tools.idea.common.surface.SceneView
-import javax.swing.JComponent
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.toImmutableSet
 
@@ -30,9 +29,3 @@ fun Collection<SceneView>.findGroups(): ImmutableSet<OrganizationGroup> =
     .filterValues { count -> count > 1 }
     .map { it.key }
     .toImmutableSet()
-
-/** Create a [SceneViewHeader] for each [OrganizationGroup]. */
-fun Collection<OrganizationGroup>.createOrganizationHeaders(
-  parent: JComponent,
-  createHeader: (OrganizationGroup) -> JComponent = ::createOrganizationHeader,
-) = this.associateWith { SceneViewHeader(parent, it, createHeader) }.toMutableMap()

@@ -47,10 +47,9 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.createGeminiInsightRequest
-import com.android.tools.idea.insights.client.runGrpcCatching
+import com.android.tools.idea.insights.client.runGrpcCatchingWithSupervisorScope
 import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
 import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
-import com.android.tools.idea.io.grpc.ClientInterceptor
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClient
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
 import com.android.tools.idea.vitals.datamodel.DimensionType
@@ -60,14 +59,11 @@ import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import io.grpc.ClientInterceptor
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 
 private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
 private const val MAX_CONCURRENT_CALLS = 10
@@ -83,19 +79,18 @@ class VitalsClient(
 ) : AppInsightsClient {
   private val concurrentCallLimit = Semaphore(MAX_CONCURRENT_CALLS)
 
-  override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> = supervisorScope {
-    runGrpcCatching(notFoundFallbackValue = LoadingState.Ready(emptyList())) {
+  override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
+    runGrpcCatchingWithSupervisorScope(LoadingState.Ready(emptyList())) {
       LoadingState.Ready(grpcClient.listAccessibleApps())
     }
-  }
 
   override suspend fun listTopOpenIssues(
     request: IssueRequest,
     fetchSource: FetchSource?,
     mode: ConnectionMode,
     permission: Permission,
-  ): LoadingState.Done<IssueResponse> = supervisorScope {
-    runGrpcCatching(
+  ): LoadingState.Done<IssueResponse> =
+    runGrpcCatchingWithSupervisorScope(
       notFoundFallbackValue =
         LoadingState.Ready(
           IssueResponse(
@@ -109,7 +104,7 @@ class VitalsClient(
     ) {
       if (mode.isOfflineMode()) {
         val topCachedIssues = cache.getTopIssues(request) ?: emptyList()
-        return@runGrpcCatching LoadingState.Ready(
+        return@runGrpcCatchingWithSupervisorScope LoadingState.Ready(
           IssueResponse(topCachedIssues, emptyList(), emptyList(), emptyList(), Permission.FULL)
         )
       }
@@ -149,7 +144,6 @@ class VitalsClient(
         )
       )
     }
-  }
 
   override suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId) =
     LoadingState.Ready(emptyList<IssueVariant>())
@@ -158,9 +152,10 @@ class VitalsClient(
     issueId: IssueId,
     request: IssueRequest,
     variantId: String?,
-  ): LoadingState.Done<DetailedIssueStats?> = supervisorScope {
-    val failure = LoadingState.UnknownFailure("Unable to fetch issue details.")
-    runGrpcCatching(failure) {
+  ): LoadingState.Done<DetailedIssueStats?> =
+    runGrpcCatchingWithSupervisorScope(
+      LoadingState.UnknownFailure("Unable to fetch issue details.")
+    ) {
       val devices = async {
         listDevices(request.connection, request.filters, issueId, MetricType.DISTINCT_USER_COUNT)
           .summarizeDevicesFromRawDataPoints(
@@ -183,7 +178,6 @@ class VitalsClient(
       }
       LoadingState.Ready(DetailedIssueStats(devices.await(), oses.await()))
     }
-  }
 
   override suspend fun listEvents(
     issueId: IssueId,
@@ -224,25 +218,37 @@ class VitalsClient(
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
+    variantId: String?,
     failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
-    forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> {
-    if (failureType != FailureType.FATAL) {
-      return LoadingState.UnsupportedOperation("Insights are currently only available for crashes")
+    when {
+      failureType != FailureType.FATAL ->
+        return LoadingState.UnsupportedOperation("Insights are currently not available for ANRs")
+      event.isNativeCrash() ->
+        return LoadingState.UnsupportedOperation(
+          "Insights are currently not available for native crashes"
+        )
     }
-    val cachedInsight = cache.getAiInsight(connection, issueId)
-    return if (cachedInsight == null || forceFetch) {
-      val insight =
-        aiInsightClient
-          .fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
-          .copy(experiment = codeContextData.experimentType)
-      cache.putAiInsight(connection, issueId, insight)
-      LoadingState.Ready(insight)
-    } else {
-      LoadingState.Ready(cachedInsight)
+    val cachedInsight =
+      cache.getAiInsight(connection, issueId, variantId, codeContextData.experimentType)
+    val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
+    return runGrpcCatchingWithSupervisorScope(failure) {
+      if (cachedInsight == null) {
+        val insight =
+          aiInsightClient
+            .fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
+            .copy(
+              experiment = codeContextData.experimentType,
+              codeContextTrackingDetails = codeContextData.codeContextTrackingInfo,
+            )
+        cache.putAiInsight(connection, issueId, variantId, insight)
+        LoadingState.Ready(insight)
+      } else {
+        LoadingState.Ready(cachedInsight)
+      }
     }
   }
 
@@ -262,41 +268,32 @@ class VitalsClient(
             .toMap()
         topIssues.filterNot { it in cachedSampleEvents.keys } to cachedSampleEvents
       }
+    val sampleErrorReportIdList =
+      requestIssues.mapNotNull { it.sampleEvent.split("/").last().takeIf { it.isNotEmpty() } }
+    val fetchedErrorReportMap =
+      if (sampleErrorReportIdList.isNotEmpty()) {
+        grpcClient
+          .searchErrorReportByReportIds(
+            request.connection,
+            request.filters,
+            sampleErrorReportIdList,
+          )
+          .associateBy { it.name }
+      } else {
+        emptyMap()
+      }
 
-    // TODO: revisit once we have a new API.
-    val requestedEventsByIssue =
-      requestIssues
-        .map { issueDetails ->
-          async {
-            // Here we restrict number of concurrent calls as a short-term fix while waiting for
-            // b/287461357 being resolved. Limiting calls are to address high chances of
-            // 'UNAVAILABLE' errors to some extent.
-            val reports =
-              concurrentCallLimit.withPermit {
-                grpcClient.searchErrorReports(
-                  request.connection,
-                  request.filters,
-                  issueDetails.id,
-                  1,
-                )
-              }
-
-            reports.firstOrNull()
-              ?: Event.EMPTY.also {
-                thisLogger().warn("No sample report got for $issueDetails by request: $request.")
-              }
-          }
-        }
-        .awaitAll()
-        .mapIndexed { index, event -> requestIssues[index] to event }
-        .toMap()
-
-    return@coroutineScope topIssues
+    topIssues
       .map { issueDetails ->
-        AppInsightsIssue(
-          issueDetails,
-          cachedSampleEvents[issueDetails] ?: requestedEventsByIssue[issueDetails]!!,
-        )
+        val event =
+          cachedSampleEvents[issueDetails]
+            ?: fetchedErrorReportMap[issueDetails.sampleEvent]
+            ?: grpcClient.searchErrorReportByIssueId(
+              request.connection,
+              request.filters,
+              issueDetails.id,
+            )
+        AppInsightsIssue(issueDetails, event)
       }
       .also { cache.populateIssues(request.connection, it) }
   }
@@ -418,3 +415,13 @@ internal fun <T> List<Pair<T, Long>>.aggregateToWithCount(): List<WithCount<T>> 
     }
     .map { (version, count) -> WithCount(count = count, value = version) }
 }
+
+private const val ANDROID_NATIVE_CRASH_HEADER =
+  "*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***"
+private val PID_REGEX = Regex("^pid: (\\d+), tid: (\\d+) >>> (.+?) <<<$")
+
+private fun Event.isNativeCrash() =
+  stacktraceGroup.exceptions.any { it.rawExceptionMessage.isNativeCrashHeader() }
+
+private fun String.isNativeCrashHeader() =
+  equals(ANDROID_NATIVE_CRASH_HEADER) || contains(PID_REGEX) || startsWith("backtrace:")

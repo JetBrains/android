@@ -37,14 +37,11 @@ public interface DeployTarget {
    * are booted.
    */
   @NotNull
-  DeviceFutures getDevices(@NotNull Project project);
+  DeviceFutures launchDevices(@NotNull Project project);
 
   /**
    * Returns the selected deployment targets as AndroidDevices. They may or may not be running;
    * this will not launch any devices that are not already running.
    */
-  default @NotNull List<AndroidDevice> getAndroidDevices(@NotNull Project project) {
-    // TODO(b/323568263): Remove this default definition when no longer needed for ASwB.
-    throw new UnsupportedOperationException();
-  }
+  @NotNull List<AndroidDevice> getAndroidDevices(@NotNull Project project);
 }

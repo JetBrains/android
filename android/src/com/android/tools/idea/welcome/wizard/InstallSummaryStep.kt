@@ -17,141 +17,151 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RemotePackage
 import com.android.tools.idea.welcome.isWritable
+import com.android.tools.idea.welcome.wizard.deprecated.InstallSummaryStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.utils.HtmlBuilder
-import com.intellij.ide.BrowserUtil
-import com.intellij.ui.dsl.builder.BottomGap
-import com.intellij.ui.dsl.builder.LabelPosition
-import com.intellij.ui.dsl.builder.panel
-import com.intellij.util.ui.HTMLEditorKitBuilder
-import com.intellij.util.ui.StartupUiUtil
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.util.ui.StartupUiUtil.labelFont
 import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.util.function.Supplier
 import javax.swing.JComponent
-import javax.swing.JTextPane
-import javax.swing.event.HyperlinkEvent
 
-/**
- * Provides an explanation of changes the wizard will perform.
- */
+/** Provides an explanation of changes the wizard will perform. */
 class InstallSummaryStep(
-  private val model: FirstRunModel,
-  private val packagesProvider: Supplier<out Collection<RemotePackage>?>
-) : ModelWizardStep<FirstRunModel>(model, "Verify Settings") {
-  private val summaryText = JTextPane().apply {
-    isEditable = false
-    editorKit = HTMLEditorKitBuilder.simple()
+  private val model: FirstRunWizardModel,
+  private val packagesProvider: Supplier<out Collection<RemotePackage>?>,
+  private val tracker: FirstRunWizardTracker,
+) : ModelWizardStep<FirstRunWizardModel>(model, "Verify Settings") {
 
-    // There is no need to add whitespace on the top
-    addHyperlinkListener {
-      if (it.eventType == HyperlinkEvent.EventType.ACTIVATED && it.url != null) {
-        BrowserUtil.browse(it.url)
+  companion object {
+    @JvmStatic
+    fun getSdkFolderSection(location: File?): Section {
+      val text =
+        if (location == null) ""
+        else if (isWritable(location.toPath())) location.absolutePath
+        else location.absolutePath + " (read-only)"
+
+      return Section("SDK Folder", text)
+    }
+
+    @JvmStatic
+    fun getSetupTypeSection(type: String): Section {
+      return Section("Setup Type", type)
+    }
+
+    @JvmStatic
+    fun getPackagesSection(remotePackages: Collection<RemotePackage>) =
+      Section("SDK Components to Download", getPackagesTable(remotePackages).orEmpty())
+
+    private fun getPackagesTable(remotePackages: Collection<RemotePackage>): String? {
+      if (remotePackages.isEmpty()) {
+        return null
       }
+      val sortedPackagesList = sortedSetOf(PackageInfoComparator()).apply { addAll(remotePackages) }
+      return HtmlBuilder()
+        .apply {
+          beginTable()
+          sortedPackagesList.forEach {
+            beginTableRow()
+            addTableRow(
+              it.displayName,
+              "&nbsp;&nbsp;", // Adds some whitespace between name and size columns
+              getSizeLabel(it.archive!!.complete.size),
+            )
+            endTableRow()
+          }
+          endTable()
+        }
+        .html
     }
-    // TODO(qumeric) set "label for"?
+
+    @JvmStatic
+    fun getDownloadSizeSection(remotePackages: Collection<RemotePackage>): Section {
+      // TODO: calculate patches?
+      val downloadSize = remotePackages.map { it.archive!!.complete.size }.sum()
+      return Section(
+        "Total Download Size",
+        if (downloadSize == 0L) "" else getSizeLabel(downloadSize),
+      )
+    }
+
+    @JvmStatic
+    fun generateSummaryHtml(sections: List<Section>): String {
+      val builder = java.lang.StringBuilder("<html><head>")
+      builder
+        .append(UIUtil.getCssFontDeclaration(labelFont, UIUtil.getLabelForeground(), null, null))
+        .append("</head><body>")
+
+      for (section in sections) {
+        if (!section.isEmpty) {
+          builder.append(section.html)
+        }
+      }
+      builder.append("</body></html>")
+
+      return builder.toString()
+    }
   }
 
-  private val myPanel = panel {
-    row {
-      label("If you want to review or change any of your installation settings, click Previous.")
-    }.bottomGap(BottomGap.SMALL)
-    row {
-      cell(summaryText).label("Current Settings:", LabelPosition.TOP)
-    }
-  }
+  private val form = InstallSummaryStepForm()
 
-  private val sdkFolderSection: Section
-    get() {
-      val suffix = " (read-only)".takeUnless { (isWritable(sdkDirectory.toPath())) } ?: ""
-      return Section("SDK Folder", sdkDirectory.absolutePath + suffix)
-    }
+  override fun getComponent(): JComponent = form.root
 
-  private val sdkDirectory: File
-    get() = model.sdkLocation
-
-  private val setupTypeSection: Section
-    get() {
-      val setupType = model.installationType.get().name
-      return Section("Setup Type", setupType)
-    }
-
-  override fun getComponent(): JComponent = myPanel
-
-  override fun getPreferredFocusComponent(): JComponent = summaryText
+  override fun getPreferredFocusComponent(): JComponent = form.summaryText
 
   override fun onEntering() {
+    super.onEntering()
+    generateSummary()
+  }
+
+  override fun onShowing() {
+    super.onShowing()
+    tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_SUMMARY)
+  }
+
+  private fun generateSummary() {
     val packages = packagesProvider.get()
     if (packages == null) {
-      summaryText.text = "An error occurred while trying to compute required packages."
+      form.summaryText.text = "An error occurred while trying to compute required packages."
       return
     }
-    val sections = listOf(
-      setupTypeSection, sdkFolderSection, getDownloadSizeSection(packages), getPackagesSection(packages)
-    )
-
-    // TODO(qumeric): change to HtmlBuilder/similar.
-    val builder = StringBuilder("<html><head>")
-    builder.append(UIUtil.getCssFontDeclaration(StartupUiUtil.labelFont, UIUtil.getLabelForeground(), null, null))
-      .append("</head><body>")
-    sections.filterNot(Section::isEmpty).forEach {
-      builder.append(it.html)
-    }
-    builder.append("</body></html>")
-    summaryText.text = builder.toString()
-    // TODO invokeUpdate<Any>(null)
-  }
-}
-
-private fun getPackagesSection(remotePackages: Collection<RemotePackage>) =
-  Section("SDK Components to Download", getPackagesTable(remotePackages).orEmpty())
-
-// TODO(qumeric): make private
-fun getPackagesTable(remotePackages: Collection<RemotePackage>): String? {
-  if (remotePackages.isEmpty()) {
-    return null
-  }
-  val sortedPackagesList = sortedSetOf(PackageInfoComparator()).apply {
-    addAll(remotePackages)
-  }
-  return HtmlBuilder().apply {
-    beginTable()
-    sortedPackagesList.forEach {
-      beginTableRow()
-      addTableRow(
-        it.displayName,
-        "&nbsp;&nbsp;", // Adds some whitespace between name and size columns
-        getSizeLabel(it.archive!!.complete.size)
+    val installationType = model.installationType ?: FirstRunWizardModel.InstallationType.STANDARD
+    val sections =
+      listOf(
+        getSetupTypeSection(StringUtil.capitalize(installationType.name.lowercase())),
+        getSdkFolderSection(model.sdkInstallLocation?.toFile()),
+        getDownloadSizeSection(packages),
+        getPackagesSection(packages),
       )
-      endTableRow()
-    }
-    endTable()
-  }.html
+
+    form.summaryText.text = generateSummaryHtml(sections)
+    form.summaryText.setCaretPosition(
+      0
+    ) // Otherwise the scroll view will already be scrolled to the bottom when the UI is first shown
+  }
 }
 
-private fun getDownloadSizeSection(remotePackages: Collection<RemotePackage>): Section {
-  // TODO: calculate patches?
-  val downloadSize = remotePackages.map { it.archive!!.complete.size }.sum()
-  return Section("Total Download Size", if (downloadSize == 0L) "" else getSizeLabel(downloadSize))
-}
-
-
-/**
- * Summary section, consists of a header and a body text.
- */
+/** Summary section, consists of a header and a body text. */
 class Section(private val title: String, private val text: String) {
-  val isEmpty: Boolean get() = text.isBlank()
-  val html: String get() = "<p><strong>$title:</strong><br>$text</p>"
+  val isEmpty: Boolean
+    get() = text.isBlank()
+
+  val html: String
+    get() = "<p><strong>$title:</strong><br>$text</p>"
 }
 
 /**
- * Sorts package info in descending size order. Packages with the same size are sorted alphabetically.
+ * Sorts package info in descending size order. Packages with the same size are sorted
+ * alphabetically.
  */
 private class PackageInfoComparator : Comparator<RemotePackage> {
-  override fun compare(o1: RemotePackage?, o2: RemotePackage?): Int = when {
-    o1 === o2 -> 0
-    o1 == null -> -1
-    o2 == null -> 1
-    else -> o1.displayName.compareTo(o2.displayName)
-  }
+  override fun compare(o1: RemotePackage?, o2: RemotePackage?): Int =
+    when {
+      o1 === o2 -> 0
+      o1 == null -> -1
+      o2 == null -> 1
+      else -> o1.displayName.compareTo(o2.displayName)
+    }
 }

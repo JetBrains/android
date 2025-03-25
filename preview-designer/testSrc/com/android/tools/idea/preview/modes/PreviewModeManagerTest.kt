@@ -26,7 +26,7 @@ class PreviewModeManagerTest {
   @Test
   fun modeStaysTheSame() {
     val selected = TestPreviewElement("Selected")
-    val mode = PreviewMode.Gallery(selected)
+    val mode = PreviewMode.Focus(selected)
     val newElements = listOf(TestPreviewElement("First"), selected, TestPreviewElement("Second"))
     val previousElements =
       setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
@@ -42,7 +42,7 @@ class PreviewModeManagerTest {
     val previousElements =
       setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
     val newMode =
-      PreviewMode.Gallery(selected)
+      PreviewMode.Focus(selected)
         .newMode(newElements = newElements, previousElements = previousElements)
     assertNotNull(newMode)
     assertEquals(newSelected, newMode.selected)
@@ -54,7 +54,7 @@ class PreviewModeManagerTest {
     val previousElements =
       setOf(TestPreviewElement("First"), selected, TestPreviewElement("Selected"))
     val newMode =
-      PreviewMode.Gallery(selected)
+      PreviewMode.Focus(selected)
         .newMode(newElements = emptyList(), previousElements = previousElements)
     assertNull(newMode.selected)
   }
@@ -64,15 +64,14 @@ class PreviewModeManagerTest {
     val selected = TestPreviewElement("Selected")
     val newElements = listOf(selected, TestPreviewElement("First"), TestPreviewElement("Selected"))
     val newMode =
-      PreviewMode.Gallery(selected)
-        .newMode(newElements = newElements, previousElements = emptySet())
+      PreviewMode.Focus(selected).newMode(newElements = newElements, previousElements = emptySet())
     assertEquals(selected, newMode.selected)
   }
 
   @Test
   fun firstElementSelected() {
     val selected = TestPreviewElement("Selected")
-    val mode = PreviewMode.Gallery(null)
+    val mode = PreviewMode.Focus(null)
     val newElements = listOf(selected, TestPreviewElement("First"), TestPreviewElement("Second"))
     val newMode = mode.newMode(newElements = newElements, previousElements = emptySet())
     assertEquals(selected, newMode.selected)

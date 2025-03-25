@@ -212,6 +212,7 @@ fun DesignSurface<*>.getFitContentIntoWindowScale(contentSize: Dimension): Doubl
 }
 
 /** Helper function to set the visibilities of all [SceneView]s in the [DesignSurface]. */
+@UiThread
 fun DesignSurface<*>.updateSceneViewVisibilities(visibilityFunc: (SceneView) -> Boolean) {
   val sceneViews = sceneManagers.flatMap { it.sceneViews }
   sceneViews.forEach { view -> view.isVisible = visibilityFunc(view) }

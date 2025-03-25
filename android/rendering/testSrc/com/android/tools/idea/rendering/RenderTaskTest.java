@@ -708,8 +708,7 @@ public class RenderTaskTest extends AndroidTestCase {
     @Language("XML")
     final String content= "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                           "    android:layout_height=\"match_parent\"\n" +
-                          "    android:layout_width=\"match_parent\"\n" +
-                          "    android:background=\"#FFF\">\n" +
+                          "    android:layout_width=\"match_parent\">\n" +
                           "\n" +
                           "    <ImageView\n" +
                           "        android:layout_width=\"240dp\"\n" +
@@ -1026,7 +1025,7 @@ public class RenderTaskTest extends AndroidTestCase {
 
   public void testTaskError() {
     PsiFile file = myFixture.addFileToProject("src/EmptyFile.kt", "");
-    RenderResult result = createRenderTaskErrorResult(file, new Throwable("This is a render task error"));
+    RenderResult result = createRenderTaskErrorResult(file, new Throwable("This is a render task error"), null);
 
     assertTrue(result.getLogger().hasErrors());
     assertEquals("Render error (<A HREF=\"\">Details</A>)", result.getLogger().getMessages().get(0).getHtml());

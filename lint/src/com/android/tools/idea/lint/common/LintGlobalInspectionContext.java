@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
+import static com.android.tools.lint.detector.api.Lint.describeCounts;
 
 import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.client.api.LintDriver;
@@ -30,13 +31,11 @@ import com.intellij.codeInspection.ex.GlobalInspectionContextBase;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
-import com.intellij.notification.NotificationDisplayType;
-import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -363,16 +362,20 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
           message = String
             .format(Locale.US, "Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
                     myBaseline.getFixedCount(),
-                    Lint.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
-                                        true));
+                    describeCounts(myBaseline.getFoundErrorCount(),
+                                   myBaseline.getFoundWarningCount(),
+                                   myBaseline.getFoundHintCount(),
+                                   false,
+                                   true,
+                                   false));
         }
         else {
           message = String
             .format(Locale.US, "Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
                     myBaseline.getTotalCount());
         }
-        new NotificationGroup(
-          "Wrote Baseline", NotificationDisplayType.BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"))
+
+        NotificationGroupManager.getInstance().getNotificationGroup("Wrote Baseline")
           .createNotification(message, NotificationType.INFORMATION)
           .notify(context.getProject());
       }
@@ -385,5 +388,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       myEnabledIssue.setEnabledByDefault(false);
       myEnabledIssue = null;
     }
+    myResults = null;
+    myBaseline = null;
   }
 }

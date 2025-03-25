@@ -615,7 +615,7 @@ MODULE                        : kotlinMultiPlatform
                 group                         : kotlinMultiPlatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -634,7 +634,6 @@ MODULE                        : kotlinMultiPlatform
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -809,6 +808,7 @@ MODULE                        : kotlinMultiPlatform
                         default                       : <empty>
                         implementation                : <empty>
                         - jvmApiElements              : <ROOT>/app/build/libs/app-jvm.jar [-]
+                        - jvmApiElements-published    : <ROOT>/app/build/libs/app-jvm.jar [-]
                         jvmCompilationApi             : <empty>
                         jvmCompilationCompileOnly     : <empty>
                         jvmCompilationImplementation  : <empty>
@@ -825,7 +825,9 @@ MODULE                        : kotlinMultiPlatform
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/app/build/libs/app-jvm.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/app/build/libs/app-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
+                        - jvmSourcesElements-published          : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -854,7 +856,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathMetadataCommonMain   : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -871,7 +872,7 @@ MODULE                        : kotlinMultiPlatform
                         metadataCompilationImplementation       : <empty>
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/app/build/libs/app-kotlin-sources.jar [-]
                         releaseAnnotationProcessor    : <empty>
                         releaseAnnotationProcessorClasspath     : <empty>
                         releaseApi                    : <empty>
@@ -966,7 +967,6 @@ MODULE                        : kotlinMultiPlatform
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -1127,14 +1127,17 @@ MODULE                        : kotlinMultiPlatform
                         debugAnnotationProcessorClasspath       : <empty>
                         debugApi                      : <empty>
                         debugApiElements              : <empty>
+                        - debugApiElements-published  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
                         debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
+                        - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         debugRuntimeOnly              : <empty>
                         - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
@@ -1151,6 +1154,7 @@ MODULE                        : kotlinMultiPlatform
                         jvmAndAndroidResolvableDependenciesMetadata       : <empty>
                         jvmAndAndroidRuntimeOnly      : <empty>
                         - jvmApiElements              : <ROOT>/module2/build/libs/module2-jvm.jar [-]
+                        - jvmApiElements-published    : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                         jvmCompilationApi             : <empty>
                         jvmCompilationCompileOnly     : <empty>
                         jvmCompilationImplementation  : <empty>
@@ -1167,7 +1171,9 @@ MODULE                        : kotlinMultiPlatform
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
+                        - jvmSourcesElements-published          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -1197,7 +1203,6 @@ MODULE                        : kotlinMultiPlatform
                         kotlinCompilerPluginClasspathMetadataJvmAndAndroid          : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1219,19 +1224,22 @@ MODULE                        : kotlinMultiPlatform
                         metadataJvmAndAndroidCompilationImplementation    : <empty>
                         metadataJvmAndAndroidCompilationRuntimeOnly       : <empty>
                         metadataJvmAndAndroidCompileClasspath   : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/module2/build/libs/module2-kotlin-sources.jar [-]
                         releaseAnnotationProcessor    : <empty>
                         releaseAnnotationProcessorClasspath     : <empty>
                         releaseApi                    : <empty>
                         releaseApiElements            : <empty>
+                        - releaseApiElements-published          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
                         releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
+                        - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
@@ -1288,6 +1296,13 @@ MODULE                        : kotlinMultiPlatform
                             qName                         : :module2:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                jvmTest                       : jvmTest (DefaultExternalTask)
+                    qName                         : :app:jvmTest
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1306,15 +1321,15 @@ MODULE                        : kotlinMultiPlatform.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
-    BuildFolder                   : <ROOT>/app/build [-]
+    CompileTarget                 : android-34
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       : kotlinMultiPlatform
@@ -1356,6 +1371,7 @@ MODULE                        : kotlinMultiPlatform.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.kotlin
         testApplicationId             : com.example.android.kotlin.test
@@ -1363,7 +1379,7 @@ MODULE                        : kotlinMultiPlatform.app
     - basicVariant:               : release
         applicationId                 : com.example.android.kotlin
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1380,8 +1396,8 @@ MODULE                        : kotlinMultiPlatform.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1596,8 +1612,8 @@ MODULE                        : kotlinMultiPlatform.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -2677,6 +2693,7 @@ MODULE                        : kotlinMultiPlatform.app
                     - resourceDirs                : <ROOT>/app/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/app/src/jvmMain/kotlin [-]
                     platform                      : JVM
+                archiveFile                   : <ROOT>/app/build/libs/app-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -2820,14 +2837,14 @@ MODULE                        : kotlinMultiPlatform.module2
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :module2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/module2/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2870,12 +2887,13 @@ MODULE                        : kotlinMultiPlatform.module2
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.test.multiproject.module2.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2885,8 +2903,8 @@ MODULE                        : kotlinMultiPlatform.module2
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3091,8 +3109,8 @@ MODULE                        : kotlinMultiPlatform.module2
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -3569,6 +3587,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     - resourceDirs                : <ROOT>/module2/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/jvmMain/kotlin [-]
                     platform                      : JVM
+                archiveFile                   : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy

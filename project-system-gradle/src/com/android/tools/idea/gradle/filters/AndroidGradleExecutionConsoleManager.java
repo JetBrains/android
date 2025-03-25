@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.filters;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS;
 
+import com.android.tools.idea.gemini.GeminiPluginApi;
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.studiobot.StudioBot;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
@@ -71,8 +71,9 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
                                             @Nullable ExecutionEnvironment env) {
     // adds a Gemini popup menu item to the sync tree view
     AnAction[] contextActions = super.getCustomContextActions(project, task, env);
-    StudioBot studioBot = StudioBot.Companion.getInstance();
-    if (!studioBot.isAvailable()) {
+    //TODO this needs to be removed or moved to ai module
+    GeminiPluginApi geminiPluginApi = GeminiPluginApi.Companion.getInstance();
+    if (!geminiPluginApi.isAvailable()) {
       return contextActions;
     }
     AnAction[] extendedActions = new AnAction[contextActions.length + 1];

@@ -1,0 +1,27 @@
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="5" y="8" width="4" height="1" fill="#6C707E"/>
+<rect x="5" y="6" width="1" height="1" fill="#6C707E"/>
+<rect x="4" y="4" width="1" height="1" fill="#6C707E"/>
+<rect x="6" y="4" width="1" height="1" fill="#6C707E"/>
+<rect x="7" y="6" width="1" height="1" fill="#6C707E"/>
+<rect x="8" y="4" width="1" height="1" fill="#6C707E"/>
+<rect x="10" y="4" width="1" height="1" fill="#6C707E"/>
+<rect x="9" y="6" width="1" height="1" fill="#6C707E"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 3H3C2.44772 3 2 3.44772 2 4V9C2 9.55228 2.44772 10 3 10H9V11H3C1.89543 11 1 10.1046 1 9V4C1 2.89543 1.89543 2 3 2H12C13.1046 2 14 2.89543 14 4V7H13V4C13 3.44772 12.5523 3 12 3Z" fill="#6C707E"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M11 13V9L12 9V11H13V9H14V13C14 13.3556 13.5482 14 12.5 14C11.4518 14 11 13.3556 11 13ZM11 8C10.4477 8 10 8.44772 10 9V13C10 14.1046 11.1193 15 12.5 15C13.8807 15 15 14.1046 15 13V9C15 8.44772 14.5523 8 14 8H11Z" fill="#6C707E"/>
+</svg>

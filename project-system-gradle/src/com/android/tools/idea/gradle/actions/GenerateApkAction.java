@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class GenerateApkAction extends DumbAwareAction {
-  private static final String ACTION_TEXT = "Generate APK(s)";
+  private static final String ACTION_TEXT = "Generate APKs";
 
   public GenerateApkAction() {
     super(ACTION_TEXT);

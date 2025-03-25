@@ -24,9 +24,6 @@ import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.FTL_RESULTS
 import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.MANAGED_VIRTUAL_DEVICE
 import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogState
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -36,6 +33,9 @@ import com.intellij.testFramework.TestApplicationManager
 import org.mockito.Answers
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
 
@@ -292,7 +292,7 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
       whenever(this.name).thenReturn("android.experimental.testOptions.managedDevices.customDevice")
       whenever(this.valueAsString()).thenReturn("true")
     }
-    whenever(mockProjectBuildModel.getModuleBuildModel(any(Module::class.java))!!.plugins()).thenReturn(listOf(mockPluginModel))
+    whenever(mockProjectBuildModel.getModuleBuildModel(any<Module>())!!.plugins()).thenReturn(listOf(mockPluginModel))
     whenever(mockProjectBuildModel.projectBuildModel!!.propertiesModel!!.declaredProperties).thenReturn(listOf(mockGradlePropertyModel))
     whenever(mockProjectBuildModel.projectBuildModel!!.plugins()).thenReturn(listOf(mockPluginModel))
     whenever(mockPluginModel.psiElement!!.text).thenReturn("com.google.firebase.testlab")

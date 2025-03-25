@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.client.AppConnection
@@ -34,6 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.mock
 
 private val APP_CONNECTION1 = AppConnection("app1", "Test App 1")
 

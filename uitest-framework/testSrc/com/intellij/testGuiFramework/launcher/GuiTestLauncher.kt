@@ -18,6 +18,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.util.jar.Attributes
 import java.util.jar.JarFile
@@ -163,13 +164,12 @@ object GuiTestLauncher {
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
-      val jvmtiAgent =
-        TestUtils.resolveWorkspacePathUnchecked("_solib_k8/libtools_Sadt_Sidea_Sbleak_Ssrc_Scom_Sandroid_Stools_Sidea_Sbleak_Sagents_Slibjnibleakhelper.so").toRealPath()
-      if (Files.exists(jvmtiAgent)) {
+      try {
+        val jvmtiAgent = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so").toRealPath()
         options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
         options += "-Djava.library.path=${System.getProperty("java.library.path")}:${jvmtiAgent.parent}"
-      } else {
+      } catch (e: NoSuchFileException) {
         println("BLeak JVMTI agent not found. Falling back to Java implementation: application threads will not be paused, and traversal roots will be different")
       }
     }

@@ -28,6 +28,7 @@ import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
@@ -39,7 +40,6 @@ import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.scope.output.StatusOutput;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.intellij.openapi.project.Project;
@@ -47,6 +47,7 @@ import java.io.File;
 
 /** Builds the APKs required for an android instrumentation test. */
 public class BlazeInstrumentationTestApkBuildStep implements ApkBuildStep {
+  private static final String ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME = "android_deploy_info";
 
   /** Subject to change with changes to android build rules. */
   private static final String DEPLOY_INFO_FILE_SUFFIX = ".deployinfo.pb";
@@ -134,6 +135,7 @@ public class BlazeInstrumentationTestApkBuildStep implements ApkBuildStep {
         AndroidDeployInfo instrumentorDeployInfoProto =
             deployInfoHelper.readDeployInfoProtoForTarget(
                 instrumentationInfo.testApp,
+                ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME,
                 buildResultHelper,
                 fileName -> fileName.endsWith(DEPLOY_INFO_FILE_SUFFIX));
         if (instrumentationInfo.isSelfInstrumentingTest()) {
@@ -144,6 +146,7 @@ public class BlazeInstrumentationTestApkBuildStep implements ApkBuildStep {
           AndroidDeployInfo targetDeployInfoProto =
               deployInfoHelper.readDeployInfoProtoForTarget(
                   instrumentationInfo.targetApp,
+                  ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME,
                   buildResultHelper,
                   fileName -> fileName.endsWith(DEPLOY_INFO_FILE_SUFFIX));
           deployInfo =

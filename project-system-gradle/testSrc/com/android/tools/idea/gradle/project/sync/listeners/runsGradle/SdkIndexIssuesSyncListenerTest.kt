@@ -49,6 +49,7 @@ class SdkIndexIssuesSyncListenerTest {
   private val blockingPolicyOutdated = "com.flurry.android:analytics:13.0.0"
   private val blockingOutdatedVulnerability = "com.adobe.marketing.mobile:core:1.5.1"
   private val nonBlockingCritical = "com.google.android.gms:play-services-safetynet:10.0.0"
+  private val blockingCriticalDeprecated = "com.google.android.play:core:1.10.3"
 
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -59,6 +60,7 @@ class SdkIndexIssuesSyncListenerTest {
   @Before
   fun initializeSdkIndexAndTracker() {
     IdeGooglePlaySdkIndex.initialize(null)
+    IdeGooglePlaySdkIndex.showDeprecationIssues = true
     setWriterForTest(testUsageTracker)
   }
 
@@ -79,33 +81,38 @@ class SdkIndexIssuesSyncListenerTest {
   fun `Notification is not created when issues are not present`() {
     projectRule.openTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION) { project -> // Check no notifications were created
       assertThat(consumeLatestNotification(project)).isNull()
-      checkProjectStats(0, 0, 0, 0, 0, 0)
+      checkProjectStats(0, 0, 0, 0, 0, 0, 0)
     }
   }
 
   @Test
   fun `Notification is created when critical issues are present`() {
-    verifyIssues(listOf(blockingCritical), 1, 1, 0, 1, 0, 0)
+    verifyIssues(listOf(blockingCritical), 1, 1, 0, 1, 0, 0, 0)
   }
 
   @Test
   fun `Notification is created when outdated issues are present`() {
-    verifyIssues(listOf(blockingOutdated), 1, 1, 0, 0, 0, 1)
+    verifyIssues(listOf(blockingOutdated), 1, 1, 0, 0, 0, 1, 0)
   }
 
   @Test
   fun `Notification is created when policy and outdated issues are present in a single dependency`() {
-    verifyIssues(listOf(blockingPolicyOutdated), 1, 1, 1, 0, 0, 1)
+    verifyIssues(listOf(blockingPolicyOutdated), 1, 1, 1, 0, 0, 1, 0)
   }
 
   @Test
   fun `Notification is created when outdated and vulnerability issues are present in a single dependency`() {
-    verifyIssues(listOf(blockingOutdatedVulnerability), 1, 1, 0, 0, 1, 1)
+    verifyIssues(listOf(blockingOutdatedVulnerability), 1, 1, 0, 0, 1, 1, 0)
   }
 
   @Test
   fun `Notification is created when multiple dependencies have issues`() {
-    verifyIssues(listOf(blockingPolicyOutdated, blockingCritical, blockingOutdated, blockingOutdatedVulnerability, nonBlockingCritical), 4, 4, 1, 2, 1, 3)
+    verifyIssues(listOf(blockingPolicyOutdated, blockingCritical, blockingOutdated, blockingOutdatedVulnerability, nonBlockingCritical), 4, 4, 1, 2, 1, 3, 0)
+  }
+
+  @Test
+  fun `Notification is created with blocking deprecations`() {
+    verifyIssues(listOf(blockingCriticalDeprecated), 1, 1, 0, 1, 0, 0, 1)
   }
 
   @Test
@@ -120,7 +127,7 @@ class SdkIndexIssuesSyncListenerTest {
     """)
     preparedProject.open(updateOptions = {it.copy(expectedSyncIssues = setOf(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY))}) { project ->
       assertThat(consumeLatestNotification(project)).isNull()
-      checkProjectStats(0, 0, 0, 1, 0, 0)
+      checkProjectStats(0, 0, 0, 1, 0, 0, 0)
     }
   }
 
@@ -141,19 +148,19 @@ class SdkIndexIssuesSyncListenerTest {
       val notification = consumeLatestNotification(project)
       assertThat(notification).isNotNull()
       assertThat(notification!!.content).isEqualTo(expectedContent)
-      checkProjectStats(1, 1, 0, 0, 0, 1)
+      checkProjectStats(1, 1, 0, 0, 0, 1, 0)
       // Dismiss notification
       notification.expire()
       // Notification should not be generated again
       project.requestSyncAndWait()
-      checkProjectStats(1, 1, 0, 0, 0, 1)
+      checkProjectStats(1, 1, 0, 0, 0, 1, 0)
       assertThat(consumeLatestNotification(project)).isNull()
       // Remove dependency
       buildFile.writeText(originalBuildContent)
       project.requestSyncAndWait()
       // Verify notification was not shown
       assertThat(consumeLatestNotification(project)).isNull()
-      checkProjectStats(0, 0, 0, 0, 0, 0)
+      checkProjectStats(0, 0, 0, 0, 0, 0, 0)
       // Add dependency back
       buildFile.writeText(originalBuildContent + """
         dependencies {
@@ -165,7 +172,7 @@ class SdkIndexIssuesSyncListenerTest {
       val secondNotification = consumeLatestNotification(project)
       assertThat(secondNotification).isNotNull()
       assertThat(secondNotification!!.content).isEqualTo(expectedContent)
-      checkProjectStats(1, 1, 0, 0, 0, 1)
+      checkProjectStats(1, 1, 0, 0, 0, 1, 0)
     }
   }
 
@@ -182,7 +189,7 @@ class SdkIndexIssuesSyncListenerTest {
     preparedProject.open(updateOptions = {it.copy(expectedSyncIssues = setOf(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY))}) { project ->
       val notification = consumeLatestNotification(project)
       assertThat(notification).isNotNull()
-      checkProjectStats(1, 1, 0, 1, 0, 0)
+      checkProjectStats(1, 1, 0, 1, 0, 0, 0)
       // Dismiss notification
       notification!!.expire()
 
@@ -202,7 +209,7 @@ class SdkIndexIssuesSyncListenerTest {
     }
   }
 
-  private fun verifyIssues(dependencies: List<String>, numErrorsAndWarnings: Int, numBlockingIssues: Int, numPolicyIssues: Int, numCriticalIssues: Int, numVulnerabilities: Int, numOutdatedIssues: Int) {
+  private fun verifyIssues(dependencies: List<String>, numErrorsAndWarnings: Int, numBlockingIssues: Int, numPolicyIssues: Int, numCriticalIssues: Int, numVulnerabilities: Int, numOutdatedIssues: Int, numDeprecatedIssues: Int) {
     val expectedContent = "There are $numBlockingIssues SDKs with warnings that will prevent app release in Google Play Console"
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     // Add a dependencies
@@ -220,12 +227,12 @@ class SdkIndexIssuesSyncListenerTest {
       val notification = consumeLatestNotification(project)
       assertThat(notification).isNotNull()
       assertThat(notification!!.content).isEqualTo(expectedContent)
-      checkProjectStats(numErrorsAndWarnings, numBlockingIssues, numPolicyIssues, numCriticalIssues, numVulnerabilities, numOutdatedIssues)
+      checkProjectStats(numErrorsAndWarnings, numBlockingIssues, numPolicyIssues, numCriticalIssues, numVulnerabilities, numOutdatedIssues, numDeprecatedIssues)
       notification.expire()
     }
   }
 
-  private fun checkProjectStats(numErrorsAndWarnings: Int, numBlockingIssues: Int, numPolicyIssues: Int, numCriticalIssues: Int, numVulnerabilities: Int, numOutdatedIssues: Int) {
+  private fun checkProjectStats(numErrorsAndWarnings: Int, numBlockingIssues: Int, numPolicyIssues: Int, numCriticalIssues: Int, numVulnerabilities: Int, numOutdatedIssues: Int, numDeprecatedIssues: Int) {
     val statsEvents = testUsageTracker.usages.map {it.studioEvent }.filter { it.kind == SDK_INDEX_PROJECT_STATS }
     assertThat(statsEvents).hasSize(1)
     val projectStats = statsEvents[0].sdkIndexProjectStats
@@ -236,6 +243,7 @@ class SdkIndexIssuesSyncListenerTest {
     assertThat(projectStats.numCriticalIssues).isEqualTo(numCriticalIssues)
     assertThat(projectStats.numVulnerabilityIssues).isEqualTo(numVulnerabilities)
     assertThat(projectStats.numOutdatedIssues).isEqualTo(numOutdatedIssues)
+    assertThat(projectStats.numDeprecatedIssues).isEqualTo(numDeprecatedIssues)
     testUsageTracker.usages.clear()
   }
 }

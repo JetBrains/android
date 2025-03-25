@@ -41,6 +41,7 @@ operator fun SwingLength.div(rhs: Scale): AndroidLength = AndroidLength(rhs.valu
  *
  * @return the new scaled dimension applied to the receiver.
  */
+@Deprecated("Use PositionableContent properties directly")
 fun Dimension.scaleBy(scale: Double): Dimension {
   setSize((scale * width).toInt(), (scale * height).toInt())
   return this
@@ -52,6 +53,7 @@ fun Dimension.scaleBy(scale: Double): Dimension {
  *
  * @return the new scaled dimension.
  */
+@Deprecated("Use PositionableContent properties directly")
 fun Dimension.scaleOf(scale: Double): Dimension {
   return Dimension((scale * width).toInt(), (scale * height).toInt())
 }

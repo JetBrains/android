@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
-import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.ide.plugins.PluginManagerConfigurable
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.actionSystem.AnAction
@@ -59,7 +59,7 @@ object InsightAction :
     get() = PluginManagerCore.plugins.firstOrNull { it.name == "Gemini" }?.pluginId
 
   private fun JButton.setTooltipAndText() =
-    if (StudioBot.getInstance().isAvailable()) {
+    if (GeminiPluginApi.getInstance().isAvailable()) {
       text = "Show insights"
       toolTipText = "Show insights for this issue"
     } else {
@@ -92,7 +92,7 @@ object InsightAction :
     if (PluginManagerCore.isDisabled(pluginId)) {
       PluginManagerConfigurable.showPluginConfigurable(project, listOf(pluginId))
     } else {
-      StudioBot.getInstance().chat(project).stageChatQuery(createPrompt(selectedEvent), source)
+      GeminiPluginApi.getInstance().stageChatQuery(project, createPrompt(selectedEvent), source)
     }
   }
 

@@ -15,12 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
-import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
-import com.android.tools.idea.insights.ui.INSIGHT_KEY
-import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
-import com.intellij.icons.AllIcons
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -29,28 +24,30 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.ui.components.BorderLayoutPanel
+import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.Icon
+import kotlinx.coroutines.flow.StateFlow
 
-class InsightFeedbackPanel : BorderLayoutPanel() {
+class InsightFeedbackPanel(
+  private val feedbackState: StateFlow<InsightFeedback>,
+  private val onSubmitFeedback: (InsightFeedback) -> Unit,
+) : BorderLayoutPanel() {
 
-  private var currentInsightFeedback = InsightFeedback.NONE
-
-  // TODO: Track upvote and downvote clicks
   private val upvoteAction =
     createFeedbackAction(
-      icon = AllIcons.Ide.Like,
+      icon = StudioIcons.Common.LIKE,
       text = "Upvote this insight",
-      action = { toggleCurrentFeedback(InsightFeedback.THUMBS_UP, it) },
-      state = { currentInsightFeedback == InsightFeedback.THUMBS_UP },
+      action = { toggleCurrentFeedback(InsightFeedback.THUMBS_UP) },
+      state = { feedbackState.value == InsightFeedback.THUMBS_UP },
     )
 
   private val downvoteAction =
     createFeedbackAction(
-      icon = AllIcons.Ide.Dislike,
+      icon = StudioIcons.Common.DISLIKE,
       text = "Downvote this insight",
-      action = { toggleCurrentFeedback(InsightFeedback.THUMBS_DOWN, it) },
-      state = { currentInsightFeedback == InsightFeedback.THUMBS_DOWN },
+      action = { toggleCurrentFeedback(InsightFeedback.THUMBS_DOWN) },
+      state = { feedbackState.value == InsightFeedback.THUMBS_DOWN },
     )
 
   init {
@@ -58,12 +55,10 @@ class InsightFeedbackPanel : BorderLayoutPanel() {
     val toolbar =
       ActionManager.getInstance().createActionToolbar("InsightFeedbackPanel", actionGroup, true)
     toolbar.targetComponent = this
-    toolbar.minimumButtonSize = MINIMUM_ACTION_BUTTON_SIZE
     add(toolbar.component, BorderLayout.CENTER)
   }
 
   fun resetFeedback() {
-    currentInsightFeedback = InsightFeedback.NONE
     // This causes the actions to update/reset.
     ActivityTracker.getInstance().inc()
   }
@@ -86,33 +81,10 @@ class InsightFeedbackPanel : BorderLayoutPanel() {
       }
     }
 
-  private fun toggleCurrentFeedback(feedback: InsightFeedback, e: AnActionEvent) =
-    if (currentInsightFeedback != feedback) {
-      currentInsightFeedback = feedback
-      logFeedback(feedback.toSentiment(), e)
+  private fun toggleCurrentFeedback(feedback: InsightFeedback) =
+    if (feedbackState.value != feedback) {
+      onSubmitFeedback(feedback)
     } else {
-      currentInsightFeedback = InsightFeedback.NONE
-      logFeedback(InsightFeedback.NONE.toSentiment(), e)
+      onSubmitFeedback(InsightFeedback.NONE)
     }
-
-  private fun logFeedback(sentiment: Sentiment, e: AnActionEvent) {
-    val tracker = e.getData(APP_INSIGHTS_TRACKER_KEY) ?: return
-    val crashType = e.getData(FAILURE_TYPE_KEY)?.toCrashType() ?: return
-    val insight = e.getData(INSIGHT_KEY) ?: return
-
-    tracker.logInsightSentiment(sentiment, crashType, insight)
-  }
-
-  private enum class InsightFeedback {
-    NONE,
-    THUMBS_UP,
-    THUMBS_DOWN;
-
-    fun toSentiment() =
-      when (this) {
-        NONE -> Sentiment.UNKNOWN_SENTIMENT
-        THUMBS_UP -> Sentiment.THUMBS_UP
-        THUMBS_DOWN -> Sentiment.THUMBS_DOWN
-      }
-  }
 }

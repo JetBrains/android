@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin>
   <name>Gradle Declarative Support</name>
   <id>com.android.tools.gradle.dcl</id>
   <description>
@@ -72,4 +72,8 @@
                      implementationClass="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeUnresolvedReferenceInspection"/>
 
   </extensions>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.gradle.dcl.ide.declarativeSchemaProvider"
+                    interface="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeSchemaProvider"/>
+  </extensionPoints>
 </idea-plugin>

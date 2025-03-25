@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,5 +15,11 @@
  */
 package com.android.tools.res.ids
 
-/** [ResourceIdManager] implementation with fixed final ids. Convenient for testing. */
-open class StubbedResourceIdManager : ResourceIdManagerBase(ResourceIdManagerModelModule.NO_NAMESPACING_APP)
+/**
+ * [ResourceIdManager] implementation with fixed final ids. Convenient for testing.
+ *
+ * @param useRBytecodeParsing When true, the R classes belonging to this Module will be loaded using bytecode parsing and not reflection.
+ */
+open class StubbedResourceIdManager(useRBytecodeParsing: Boolean) : ResourceIdManagerBase(
+  ResourceIdManagerModelModule.noNamespacingApp(useRBytecodeParsing)
+)

@@ -29,7 +29,8 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.impl.support.PropertiesTableImpl
 import com.google.common.collect.HashBasedTable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
@@ -61,7 +62,7 @@ class ResourceActionsTest {
     val property =
       util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
-    val event = AnActionEvent.createFromDataContext("", null, context)
+    val event = createEvent(context, null, "", ActionUiKind.NONE, null)
     deleteXmlTag(property)
 
     // Expect the dialog not to be displayed, because the tag is now gone.
@@ -85,7 +86,7 @@ class ResourceActionsTest {
     assertThat(property.value).isNull()
 
     val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
-    val event = AnActionEvent.createFromDataContext("", null, context)
+    val event = createEvent(context, null, "", ActionUiKind.NONE, null)
     action.actionPerformed(event)
     val picker = colorPicker ?: error("colorPicker expected")
 
@@ -118,7 +119,7 @@ class ResourceActionsTest {
     assertThat(property.delegate).isEqualTo(actualProperty)
 
     val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
-    val event = AnActionEvent.createFromDataContext("", null, context)
+    val event = createEvent(context, null, "", ActionUiKind.NONE, null)
     action.actionPerformed(event)
     val picker = colorPicker ?: error("colorPicker expected")
 

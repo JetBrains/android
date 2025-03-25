@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
+import com.google.common.collect.Iterables;
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.TestOnly;
 public abstract class SceneContext {
   // Picker is used to record all graphics drawn to support selection
   private final ScenePicker myGraphicsPicker = new ScenePicker();
-  private Object myFoundObject;
   private Long myTime;
   @SwingCoordinate private int myMouseX = -1;
   @SwingCoordinate private int myMouseY = -1;
@@ -46,7 +46,6 @@ public abstract class SceneContext {
 
   public SceneContext() {
     myTime = System.currentTimeMillis();
-    myGraphicsPicker.setSelectListener((over, dist) -> myFoundObject = over);
   }
 
   public void setShowOnlySelection(boolean value) {
@@ -140,9 +139,8 @@ public abstract class SceneContext {
    */
   @Nullable
   public Object findClickedGraphics(@SwingCoordinate int x, @SwingCoordinate int y) {
-    myFoundObject = null;
-    myGraphicsPicker.find(x, y);
-    return myFoundObject;
+    ScenePicker.HitResult hit = Iterables.getLast(myGraphicsPicker.find(x, y), null);
+    return hit != null ? hit.object() : null;
   }
 
   public double getScale() { return 1; }

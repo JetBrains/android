@@ -17,8 +17,6 @@ package com.android.tools.idea.editors.strings.table
 
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.configuration.LocaleQualifier
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResource
 import com.android.tools.idea.editors.strings.StringResourceData
 import com.android.tools.idea.editors.strings.model.StringResourceKey
@@ -35,12 +33,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests for [StringResourceTableModel] class. */
 @RunWith(JUnit4::class)
 class StringResourceTableModelTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val stringResourceData: StringResourceData = mock()
   private val stringResourceRepository: StringResourceRepository = mock()
   private val keys: MutableList<StringResourceKey> = mutableListOf()
@@ -51,7 +50,8 @@ class StringResourceTableModelTest {
   fun setUp() {
     whenever(stringResourceData.keys).thenReturn(keys)
     whenever(stringResourceData.localeList).thenReturn(locales)
-    model = StringResourceTableModel(stringResourceRepository, projectRule.project, stringResourceData)
+    model =
+      StringResourceTableModel(stringResourceRepository, projectRule.project, stringResourceData)
   }
 
   @Test
@@ -122,7 +122,8 @@ class StringResourceTableModelTest {
       whenever(stringResourceData.getStringResource(keys.last())).thenReturn(resource)
       for (failureMessage in failureMessages) {
         whenever(resource.validateTranslation(locales.last())).thenReturn(failureMessage)
-        assertThat(model.getCellProblem(rowAndColumn, FIXED_COLUMN_COUNT + rowAndColumn)).isEqualTo(failureMessage)
+        assertThat(model.getCellProblem(rowAndColumn, FIXED_COLUMN_COUNT + rowAndColumn))
+          .isEqualTo(failureMessage)
       }
     }
   }
@@ -136,11 +137,12 @@ class StringResourceTableModelTest {
 
   @Test
   fun columnName_unknownRegion() {
-    // The region "a00" is invalid, and so Locale.getLocaleLabel() will throw an AssertionError for this instance.
-    // This test case ensures we still show a reasonable value for the column name, even if the user has created a malformed locale.
+    // The region "a00" is invalid, and so Locale.getLocaleLabel() will throw an AssertionError for
+    // this instance.
+    // This test case ensures we still show a reasonable value for the column name, even if the user
+    // has created a malformed locale.
     locales.add(Locale.create(LocaleQualifier("b+es-a00", "es", "a00", null)))
 
     assertThat(model.getColumnName(4)).isEqualTo("es-a00")
   }
-
 }

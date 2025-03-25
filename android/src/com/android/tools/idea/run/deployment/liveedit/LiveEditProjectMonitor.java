@@ -790,7 +790,9 @@ public class LiveEditProjectMonitor implements Disposable {
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);
 
-    boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
+    LiveEditAdvancedConfiguration config = LiveEditAdvancedConfiguration.getInstance();
+    boolean useDebugMode = config.getUseDebugMode();
+    boolean useStructureRedefintion = config.getAllowClassStructuralRedefinition();
 
     int apiLevel = liveEditDevices.getInfo(device).getApp().getMinAPI();
     LiveUpdateDeployer.UpdateLiveEditsParam param =
@@ -799,18 +801,10 @@ public class LiveEditProjectMonitor implements Disposable {
         update.supportClasses(apiLevel),
         update.getGroupIds(),
         update.getInvalidateMode(),
-        useDebugMode);
+        useDebugMode,
+        useStructureRedefintion);
 
-    LiveUpdateDeployer.UpdateLiveEditResult result = null;
-
-    // Sometimes we get a PSI event for a top-level file when no top-level class exists. In this
-    // case, just treat it as a no-op success. This isn't an issue with the class differ
-    // as we would no longer get spurious PSI update events anymore.
-    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get() && param.classes.isEmpty()) {
-      result = new LiveUpdateDeployer.UpdateLiveEditResult();
-    } else {
-      result = deployer.updateLiveEdit(installer, adb, applicationId, param);
-    }
+    LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);
 
     if (filesWithCompilationErrors.isEmpty() || StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get()) {
       updateEditStatus(device, LiveEditStatus.UpToDate.INSTANCE);
@@ -840,7 +834,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
 
   public static boolean supportLiveEdits(IDevice device) {
-    return device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R);
+    return device.getVersion().isAtLeast(AndroidVersion.VersionCodes.R);
   }
 
   // TODO: Unify this part.

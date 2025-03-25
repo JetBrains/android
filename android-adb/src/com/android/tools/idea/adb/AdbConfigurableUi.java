@@ -38,13 +38,16 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private JComboBox myAdbServerMdnsBackend;
   private HyperlinkLabel myAdbServerMdnsBackendLabel;
   private HyperlinkLabel myAdbServerLifecycleLabel;
+  private JComboBox myAdbServerBurstMode;
+  private HyperlinkLabel myAdbServerBurstModeLabel;
 
   @Override
   public boolean isModified(@NotNull AdbOptionsService settings) {
     return getAdbServerUsbBackend() != settings.getAdbServerUsbBackend()
            || getAdbServerMdnsBackend() != settings.getAdbServerMdnsBackend()
            || myUseExistingManuallyManagedServerRadioButton.isSelected() != settings.shouldUseUserManagedAdb()
-           || getUserManagedAdbPortNumber() != settings.getUserManagedAdbPort();
+           || getUserManagedAdbPortNumber() != settings.getUserManagedAdbPort()
+           || getAdbServerBurstMode() != settings.getAdbServerBurstMode();
   }
 
   @Override
@@ -59,6 +62,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     setAdbServerMdnsBackend(settings.getAdbServerMdnsBackend());
     myExistingAdbServerPortSpinner.setValue(settings.getUserManagedAdbPort());
     setPortNumberUiEnabled(settings.shouldUseUserManagedAdb());
+    setAdbServerBurstMode(settings.getAdbServerBurstMode());
   }
 
   @Override
@@ -68,6 +72,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
       .setUseUserManagedAdb(myUseExistingManuallyManagedServerRadioButton.isSelected())
       .setAdbServerMdnsBackend(getAdbServerMdnsBackend())
       .setUserManagedAdbPort(getUserManagedAdbPortNumber())
+      .setBurstMode(getAdbServerBurstMode())
       .commit();
   }
 
@@ -84,6 +89,11 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myAdbServerMdnsBackendLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#mdnsBackends");
     myAdbServerMdnsBackendLabel.setIcon(null);
 
+    myAdbServerBurstMode.setModel(new DefaultComboBoxModel(AdbServerBurstMode.values()));
+    myAdbServerBurstModeLabel.setHyperlinkText("ADB server burst mode (", "See support list", ")");
+    myAdbServerBurstModeLabel.setHyperlinkTarget("https://developer.android.com/tools/adb#burstMode");
+    myAdbServerBurstModeLabel.setIcon(null);
+
     return myPanel;
   }
 
@@ -98,6 +108,7 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
     myUseExistingManuallyManagedServerRadioButton.addActionListener(event -> setPortNumberUiEnabled(true));
     myAdbServerUsbBackend = new com.intellij.openapi.ui.ComboBox<>();
     myAdbServerMdnsBackend = new com.intellij.openapi.ui.ComboBox<>();
+    myAdbServerBurstMode = new com.intellij.openapi.ui.ComboBox<>();
   }
 
   private void setPortNumberUiEnabled(boolean enabled) {
@@ -124,5 +135,13 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
 
   AdbServerUsbBackend getAdbServerUsbBackend() {
     return AdbServerUsbBackend.fromDisplayText(myAdbServerUsbBackend.getSelectedItem().toString());
+  }
+
+  void setAdbServerBurstMode(AdbServerBurstMode burstMode) {
+    myAdbServerBurstMode.setSelectedItem(burstMode);
+  }
+
+  AdbServerBurstMode getAdbServerBurstMode() {
+    return AdbServerBurstMode.fromDisplayText(myAdbServerBurstMode.getSelectedItem().toString());
   }
 }

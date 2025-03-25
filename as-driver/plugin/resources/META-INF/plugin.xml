@@ -24,9 +24,9 @@
   <depends>com.intellij.java</depends>
   <depends>com.jetbrains.performancePlugin</depends>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationInitializedListener id="Startup.AndroidStudioDriverInitializer"
-                                    implementation="com.android.tools.asdriver.AndroidStudioDriverInitializer"/>
-  </extensions>
+  <applicationListeners>
+    <listener class="com.android.tools.asdriver.AndroidStudioDriverInitializer"
+              topic="com.intellij.ide.AppLifecycleListener"/>
+  </applicationListeners>
 
 </idea-plugin>

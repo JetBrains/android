@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.insights.events
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.OperatingSystemInfo
@@ -26,15 +27,14 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.convertSeverityList
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.persistence.TosPersistence
 import com.android.tools.idea.insights.toIssueRequest
-import com.android.tools.idea.studiobot.StudioBot
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.AiInsightsOptInStatus
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import java.time.Clock
 
 /** List of issues changed(fetched). */
@@ -42,12 +42,12 @@ data class IssuesChanged(
   val issues: LoadingState.Done<IssueResponse>,
   private val clock: Clock,
   private val previousGoodState: AppInsightsState?,
-  private val source: FetchSource = FetchSource.UNKNOWN_SOURCE,
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     if (issues is LoadingState.Failure) {
       return StateTransition(
@@ -84,7 +84,7 @@ data class IssuesChanged(
             defaultProject = false
             fetchSource?.let { this.fetchSource = it }
             numRetries = 0
-            cache = false
+            this.cache = false
             vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
             aiInsightsOptInStatus = getOptInStatus(state.connections.selected.projectId)
           }
@@ -135,7 +135,7 @@ data class IssuesChanged(
         currentIssueDetails =
           if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         currentEvents =
-          if (newSelectedIssue != null) transitionEventForKey(key, newSelectedIssue.sampleEvent)
+          if (newSelectedIssue != null) transitionEvent(provider, newSelectedIssue.sampleEvent)
           else LoadingState.Ready(null),
         currentNotes =
           if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
@@ -144,14 +144,7 @@ data class IssuesChanged(
         permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission,
       ),
       action =
-        if (newSelectedIssue != null)
-          actionsForSelectedIssue(
-            key,
-            newSelectedIssue.id,
-            newSelectedIssue.issueDetails.fatality,
-            newSelectedIssue.sampleEvent,
-            source == FetchSource.REFRESH,
-          )
+        if (newSelectedIssue != null) actionsForSelectedIssue(provider, newSelectedIssue)
         else Action.NONE,
     )
   }
@@ -166,7 +159,7 @@ private fun LoadingState.Done<IssueResponse>.hasAppVcsInfo(): Boolean {
 
 private fun getOptInStatus(firebaseProject: String?): AiInsightsOptInStatus =
   when {
-    !StudioBot.getInstance().isAvailable() -> AiInsightsOptInStatus.GEMINI_DISABLED
+    !GeminiPluginApi.getInstance().isAvailable() -> AiInsightsOptInStatus.GEMINI_DISABLED
     firebaseProject == null -> AiInsightsOptInStatus.UNKNOWN_STATUS
     else ->
       if (TosPersistence.getInstance().isTosAccepted(firebaseProject))

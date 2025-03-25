@@ -188,10 +188,6 @@ internal class VideoDecoder(
     }
   }
 
-  suspend fun closeChannel() {
-    videoChannel.close()
-  }
-
   private suspend fun readChannelHeaderAndInitializeCodec() {
     val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
     videoChannel.readFully(header)
@@ -601,7 +597,7 @@ internal class VideoDecoder(
     override fun toString(): String {
       return "PacketHeader(" +
              "displayId=$displayId, " +
-             "displaySize=$displaySize, " +
+             "displaySize=${displaySize.width}x${displaySize.height}, " +
              "displayOrientation=$displayOrientation, " +
              "displayOrientationCorrection=$displayOrientationCorrection, " +
              "flags=$flags, " +

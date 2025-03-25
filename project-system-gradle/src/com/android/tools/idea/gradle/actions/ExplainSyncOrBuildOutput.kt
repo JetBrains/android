@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.actions
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource
+import com.android.tools.idea.gemini.StudioBotExternalFlags
+import com.android.tools.idea.gemini.buildLlmPrompt
+import com.android.tools.idea.gradle.GradleProjectSystemBundle
+import com.android.tools.idea.gradle.GradleProjectSystemBundle.message
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter.consoleLinkUnderlinedText
-import com.android.tools.idea.studiobot.AiExcludeService
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.StudioBotBundle
-import com.android.tools.idea.studiobot.StudioBotExternalFlags
-import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.build.ExecutionNode
 import com.intellij.build.FileNavigatable
 import com.intellij.build.events.EventResult
@@ -46,14 +46,13 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getBuildScriptPsiFile
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getBuildScriptSettingsPsiFile
 import org.jetbrains.kotlin.idea.util.projectStructure.module
+import java.util.function.Predicate
 import javax.swing.tree.TreePath
 
-// These are used to trim an extra error description and links from the user message.
-private val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">${consoleLinkUnderlinedText}</a>"
-private val ASK_STUDIO_BOT_UNTIL_EOL = Regex("${consoleLinkUnderlinedText}[^\n]*")
 
+//TODO this needs to be removed or moved to ai module
 class ExplainSyncOrBuildOutput : DumbAwareAction(
-  StudioBotBundle.message("studiobot.ask.text"), StudioBotBundle.message("studiobot.ask.description"),
+  GradleProjectSystemBundle.message("studiobot.ask.text"), GradleProjectSystemBundle.message("studiobot.ask.description"),
   StudioIcons.StudioBot.ASK
 ) {
 
@@ -62,8 +61,8 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
   }
 
   override fun update(e: AnActionEvent) {
-    val studioBot = StudioBot.getInstance()
-    if (!studioBot.isAvailable()) {
+    val geminiPluginApi = GeminiPluginApi.getInstance()
+    if (!geminiPluginApi.isAvailable()) {
       e.presentation.isEnabled = false
       return
     }
@@ -94,14 +93,14 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
   private fun handleExecutionNode(node: ExecutionNode, project: Project) {
     val errorName = node.name
 
-    val studioBot = StudioBot.getInstance()
-    if (!studioBot.isContextAllowed(project)) {
+    val geminiPluginApi = GeminiPluginApi.getInstance()
+    if (!geminiPluginApi.isContextAllowed(project)) {
       // If context isn't enabled, all we do is paste a simple query into the query bar
       // using the error message/details. We trim the length so that the chat bar
       // isn't filled up by an excessively long trace.
       val truncatedDetails = getErrorDetails(node.result)?.trimMessagesWithLongStacktrace() ?: errorName
       val query = "Explain build error: ${truncatedDetails.trim()}"
-      studioBot.chat(project).stageChatQuery(query, StudioBot.RequestSource.BUILD)
+      geminiPluginApi.stageChatQuery(project, query, RequestSource.BUILD)
     } else {
       val result = node.result
       val isSyncIssue = (result is AndroidSyncIssueEventResult)
@@ -115,7 +114,6 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
       val gradleErrorContextEnabled = StudioFlags.STUDIOBOT_GRADLE_ERROR_CONTEXT_ENABLED.get()
 
       // If context is enabled, we can build a richer query by looking at the error details and location
-      val aiExcludeService = studioBot.aiExcludeService(project)
       val filesUsedAsContext = mutableListOf<VirtualFile>()
       val context = buildString {
         // Get the full details of the error from the log and add it to the query.
@@ -130,8 +128,8 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         val isContextEnabled = (isCompilerIssue && compilerErrorContextEnabled || !isCompilerIssue && gradleErrorContextEnabled)
 
         // Look at the error location and add context from that file, if applicable.
-        if (file != null && isContextEnabled) {
-          getErrorFileLocationContext(fileLocation, aiExcludeService)?.let {
+        if (file != null && isContextEnabled && !geminiPluginApi.isFileExcluded(project, file)) {
+          getErrorFileLocationContext(fileLocation)?.let {
             append("\n${it.first}\n")
             filesUsedAsContext.add(it.second)
           }
@@ -140,7 +138,7 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         // For sync-related issues, attach source code from Gradle files in the project
         val areGradleFilesRelevant = (isSyncIssue || result is FailureResult) && !isCompilerIssue
         if (areGradleFilesRelevant && gradleErrorContextEnabled) {
-          getGradleFilesContext(project, aiExcludeService)?.let {
+          getGradleFilesContext(project) { !geminiPluginApi.isFileExcluded(project, it) }?.let {
             append("\n${it.first}\n")
             filesUsedAsContext.addAll(it.second)
           }
@@ -155,37 +153,39 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
         append(firstPart)
         append("\n\n")
         // Trim down the context so that the entire query is below the maximum length
-        val trimmedContext = context.take(studioBot.MAX_QUERY_CHARS - firstPart.length - lastPart.length).trim()
+        val trimmedContext = context.take(geminiPluginApi.MAX_QUERY_CHARS - firstPart.length - lastPart.length).trim()
         append(trimmedContext)
         append("\n\n")
         append(lastPart)
       }
 
-      val source = if (isSyncIssue) StudioBot.RequestSource.SYNC else StudioBot.RequestSource.BUILD
+      val source = if (isSyncIssue) RequestSource.SYNC else RequestSource.BUILD
 
       // This is how the query will appear in the chat timeline
       val displayText = "Explain build error: $errorName"
-      val prompt = buildPrompt(project) {
+      val prompt = buildLlmPrompt (project) {
         userMessage {
           text(query, filesUsed = filesUsedAsContext)
         }
       }
-      studioBot.chat(project).sendChatQuery(prompt, source, displayText = displayText)
+      geminiPluginApi.sendChatQuery(project, prompt, displayText, source)
     }
   }
 
   companion object {
+    // TODO this should be moved to AI plugin, together with message.
+    val CONSOLE_LINK_UNDERLINED_TEXT = ">> " + message("studiobot.ask.text")
+
+    // These are used to trim an extra error description and links from the user message.
+    private val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">${CONSOLE_LINK_UNDERLINED_TEXT}</a>"
+    private val ASK_STUDIO_BOT_UNTIL_EOL = Regex("${CONSOLE_LINK_UNDERLINED_TEXT}[^\n]*")
+
     /**
      * Returns a string representing the file the given navigatable points to with the line number indicated if applicable,
      * and a reference to that file.
      */
-    @VisibleForTesting
-    fun getErrorFileLocationContext(navigatable: FileNavigatable, aiExcludeService: AiExcludeService): Pair<String, VirtualFile>? {
+    private fun getErrorFileLocationContext(navigatable: FileNavigatable): Pair<String, VirtualFile>? {
       val file = navigatable.fileDescriptor?.file ?: return null
-
-      if (aiExcludeService.isFileExcluded(file)) {
-        return null
-      }
 
       val fileText = runReadAction { file.readText() }
 
@@ -220,13 +220,13 @@ $fileTextWithErrorArrow
      * throughout the project, and a list of files which were accessed.
      */
     @VisibleForTesting
-    fun getGradleFilesContext(project: Project, aiExcludeService: AiExcludeService): Pair<String, List<VirtualFile>>? {
+    fun getGradleFilesContext(project: Project, aiExcludeChecker: Predicate<VirtualFile>): Pair<String, List<VirtualFile>>? {
       val gradleFiles = runReadAction {
         project.modules.flatMap {
           listOfNotNull(it.getBuildScriptPsiFile(), it.getBuildScriptSettingsPsiFile())
         }.distinctBy { it.virtualFile.path }
       }.filterNot {
-        aiExcludeService.isFileExcluded(it.virtualFile)
+        aiExcludeChecker.test(it.virtualFile)
       }
 
       if (gradleFiles.isEmpty()) return null

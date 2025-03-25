@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.material.icons
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
@@ -27,6 +26,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.net.JarURLConnection
 import java.net.URL
 import java.net.URLConnection
@@ -134,41 +134,41 @@ class MaterialVdIconsLoaderTest {
    * icons.
    */
   private fun checkIcons(icons: MaterialVdIcons) {
-    Truth.assertThat(icons.styles).hasLength(2)
+    Truth.assertThat(icons.styles).hasSize(2)
     checkStyle1Icons(icons)
     checkStyle2Icons(icons)
   }
 
   private fun checkStyle1Icons(icons: MaterialVdIcons) {
     assertTrue(icons.styles.contains("style 1"))
-    val style1Categories = icons.getCategories("style 1")
-    Truth.assertThat(style1Categories).hasLength(3)
+    val style1Categories = icons.getCategories("style 1").toList()
+    Truth.assertThat(style1Categories).hasSize(3)
     Truth.assertThat(style1Categories[0]).isEqualTo("category1")
     Truth.assertThat(style1Categories[1]).isEqualTo("category2")
     Truth.assertThat(style1Categories[2]).isEqualTo("category3")
-    val style1Icons = icons.getAllIcons("style 1")
-    Truth.assertThat(style1Icons).hasLength(2)
+    val style1Icons = icons.getAllIcons("style 1").toList()
+    Truth.assertThat(style1Icons).hasSize(2)
     Truth.assertThat(style1Icons[0].name).isEqualTo("style1_my_icon_1_24.xml")
     Truth.assertThat(style1Icons[1].name).isEqualTo("style1_my_icon_2_24.xml")
-    Truth.assertThat(icons.getIcons("style 1", "category1")).hasLength(2)
-    Truth.assertThat(icons.getIcons("style 1", "category2")).hasLength(1)
-    Truth.assertThat(icons.getIcons("style 1", "category2")).hasLength(1)
+    Truth.assertThat(icons.getIcons("style 1", "category1")).hasSize(2)
+    Truth.assertThat(icons.getIcons("style 1", "category2")).hasSize(1)
+    Truth.assertThat(icons.getIcons("style 1", "category2")).hasSize(1)
   }
 
   private fun checkStyle2Icons(icons: MaterialVdIcons) {
     assertTrue(icons.styles.contains("style 2"))
-    val style2Categories = icons.getCategories("style 2")
-    Truth.assertThat(style2Categories).hasLength(3)
+    val style2Categories = icons.getCategories("style 2").toList()
+    Truth.assertThat(style2Categories).hasSize(3)
     Truth.assertThat(style2Categories[0]).isEqualTo("category1")
     Truth.assertThat(style2Categories[1]).isEqualTo("category2")
     Truth.assertThat(style2Categories[2]).isEqualTo("category3")
-    val style2Icons = icons.getAllIcons("style 2")
-    Truth.assertThat(style2Icons).hasLength(2)
+    val style2Icons = icons.getAllIcons("style 2").toList()
+    Truth.assertThat(style2Icons).hasSize(2)
     Truth.assertThat(style2Icons[0].name).isEqualTo("style2_my_icon_1_24.xml")
     Truth.assertThat(style2Icons[1].name).isEqualTo("style2_my_icon_2_24.xml")
-    Truth.assertThat(icons.getIcons("style 2", "category1")).hasLength(2)
-    Truth.assertThat(icons.getIcons("style 2", "category2")).hasLength(1)
-    Truth.assertThat(icons.getIcons("style 2", "category2")).hasLength(1)
+    Truth.assertThat(icons.getIcons("style 2", "category1")).hasSize(2)
+    Truth.assertThat(icons.getIcons("style 2", "category2")).hasSize(1)
+    Truth.assertThat(icons.getIcons("style 2", "category2")).hasSize(1)
   }
 }
 

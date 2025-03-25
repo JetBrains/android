@@ -22,9 +22,9 @@ import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResol
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.appinspection.inspector.ide.resolver.BlockingArtifactResolver
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -32,7 +32,7 @@ import java.nio.file.Path
 
 class InspectorArtifactServiceTest {
 
-  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ProjectRule()
 
   private val libraryPath =
     TestUtils.resolveWorkspacePath(
@@ -41,7 +41,7 @@ class InspectorArtifactServiceTest {
 
   @Test
   fun getInspectorJar() =
-    runBlocking<Unit> {
+    runBlocking {
       val fileService = TestFileService()
       val artifactResolverFactory =
         object : ArtifactResolverFactory {
@@ -63,7 +63,7 @@ class InspectorArtifactServiceTest {
             mockMinimumArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01"),
             "2.5.0-beta01",
           ),
-          androidProjectRule.project,
+          projectRule.project,
         )
 
       assertThat(resolvedArtifactPath).isNotNull()

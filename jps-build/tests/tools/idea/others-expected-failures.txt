@@ -1,1 +1,1 @@
-com.android.tools.test.Test2.testAlwaysFails
+Test2.testAlwaysFails

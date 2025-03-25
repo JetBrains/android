@@ -38,6 +38,7 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
       excludeLibraryComponentsFromConstraints = getGradlePropertyBooleanValue(EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY, project)
                                                 ?: getGradlePropertyBooleanValue(
                                                   EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL, project),
+      generateManifestClass = getGradlePropertyBooleanValue(GENERATE_MANIFEST_CLASS_PROPERTY, project),
     )
   }
 
@@ -73,3 +74,4 @@ class GradlePropertiesModelBuilder : ToolingModelBuilder {
 private const val USE_ANDROID_X_PROPERTY = "android.useAndroidX"
 private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY = "android.dependency.excludeLibraryComponentsFromConstraints"
 private const val EXCLUDE_LIBRARY_COMPONENTS_FROM_CONSTRAINTS_PROPERTY_EXPERIMENTAL = "android.experimental.dependency.excludeLibraryComponentsFromConstraints"
+private const val GENERATE_MANIFEST_CLASS_PROPERTY = "android.generateManifestClass"

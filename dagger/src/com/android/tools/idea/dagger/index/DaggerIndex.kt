@@ -28,17 +28,15 @@ import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.KeyDescriptor
 import org.jetbrains.kotlin.idea.KotlinFileType
 
+internal fun getValuesFromIndex(key: String, scope: GlobalSearchScope): Set<IndexValue> {
+  return FileBasedIndex.getInstance().getValues(DAGGER_INDEX_NAME, key, scope).flatten().toSet()
+}
+
+private val DAGGER_INDEX_NAME: ID<String, Set<IndexValue>> =
+  ID.create("com.android.tools.idea.dagger.index.DaggerIndex")
+
 class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
-  companion object {
-    private val NAME: ID<String, Set<IndexValue>> =
-      ID.create("com.android.tools.idea.dagger.index.DaggerIndex")
-
-    internal fun getValues(key: String, scope: GlobalSearchScope): Set<IndexValue> {
-      return FileBasedIndex.getInstance().getValues(NAME, key, scope).flatten().toSet()
-    }
-  }
-
-  override fun getName(): ID<String, Set<IndexValue>> = NAME
+  override fun getName(): ID<String, Set<IndexValue>> = DAGGER_INDEX_NAME
 
   override fun dependsOnFileContent() = true
 

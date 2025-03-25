@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -28,6 +29,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.ui.JBColor
 import icons.StudioIcons
 import javax.swing.JComponent
@@ -133,18 +135,15 @@ class SelectProcessAction(
     }
   }
 
-  private var lastProcess: ProcessDescriptor? = null
-  private var lastProcessCount = 0
   var button: JComponent? = null
     private set
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     return super.createCustomComponent(presentation, place).also { button = it }
   }
 
   override fun update(event: AnActionEvent) {
-    if (model.selectedProcess == lastProcess && model.processes.size == lastProcessCount) return
-
     val currentProcess = model.selectedProcess
     val content =
       currentProcess?.let {
@@ -162,9 +161,6 @@ class SelectProcessAction(
 
     event.presentation.icon = currentProcess?.device.toIcon()
     event.presentation.text = content
-
-    lastProcess = currentProcess
-    lastProcessCount = model.processes.size
   }
 
   public override fun updateActions(context: DataContext): Boolean {
@@ -180,8 +176,7 @@ class SelectProcessAction(
     // For consistency, always add a stop action, but only enable it if there's a current process
     // that can actually be stopped.
     val stopInspectionAction =
-      object :
-        AnAction(stopPresentation.text, stopPresentation.desc, StudioIcons.Shell.Toolbar.STOP) {
+      object : AnAction(stopPresentation.text, stopPresentation.desc, AllIcons.Run.Stop) {
 
         override fun getActionUpdateThread() = BGT
 
@@ -197,8 +192,6 @@ class SelectProcessAction(
 
     return true
   }
-
-  override fun displayTextInToolbar() = true
 
   class StopPresentation(
     val text: String = AppInspectionBundle.message("action.stop.inspectors"),
@@ -229,8 +222,6 @@ class SelectProcessAction(
 
     override fun getActionUpdateThread() = BGT
 
-    override fun displayTextInToolbar() = true
-
     init {
       val (preferredProcesses, otherProcesses) =
         model.processes
@@ -254,6 +245,7 @@ class SelectProcessAction(
 
     override fun update(event: AnActionEvent) {
       super.update(event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       customDeviceAttribution(device, event)
     }
   }

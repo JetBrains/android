@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
+import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -26,6 +27,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.ModelVersion
+import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.resolve
 import com.google.common.truth.Expect
@@ -229,6 +231,10 @@ enum class TestProject(
   ),
   KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
+  ),
+  KOTLIN_MULTIPLATFORM_MODULE_ONLY(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM_MODULE_ONLY,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
   ),
   KOTLIN_MULTIPLATFORM_WITHJS(
@@ -452,7 +458,7 @@ enum class TestProject(
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
 
   override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
 }
 
 /**
@@ -477,7 +483,7 @@ enum class TestProjectOther(
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
 
   override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
 }
 
 open class TestProjectTest {

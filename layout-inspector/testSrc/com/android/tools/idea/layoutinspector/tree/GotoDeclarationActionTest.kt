@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -26,6 +24,7 @@ import com.android.tools.idea.layoutinspector.NO_COMPOSE_SOURCE_INFO_APP_KEY
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.FLAG_IS_INLINED
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -39,21 +38,21 @@ import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
-import java.awt.Dimension
-import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import java.awt.Dimension
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import kotlin.time.Duration.Companion.seconds
 
 class GotoDeclarationActionTest {
 
@@ -220,6 +219,34 @@ class GotoDeclarationActionTest {
   }
 
   @Test
+  fun testNavigateToSelectedInlinedCompose() {
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[-3], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val notificationModel = NotificationModel(projectRule.project)
+
+    // Make sure an earlier missing view id or missing compose source information warning is cleared
+    notificationModel.addNotification(VIEW_NOT_FOUND_KEY, "View not found")
+    notificationModel.addNotification(
+      NO_COMPOSE_SOURCE_INFO_NODE_KEY,
+      "Source information for composable not found",
+    )
+
+    val inspector = createLayoutInspector(model, stats, setOf(), notificationModel)
+    GotoDeclarationAction.navigateToSelectedView(
+      inspector.coroutineScope,
+      model,
+      inspector.currentClient,
+      notificationModel,
+    )
+    waitForCondition(10.seconds) {
+      notificationModel.hasNotification(NO_COMPOSE_SOURCE_INFO_NODE_INLINED_KEY)
+    }
+    assertThat(notificationModel.notifications.single().message)
+      .isEqualTo("No source information found for inlined Text Composable.")
+  }
+
+  @Test
   fun testComposeViewNodeInOtherFileWithSameName() {
     val model = runInEdtAndGet { createModel() }
     model.setSelection(model[-5], SelectionOrigin.INTERNAL)
@@ -261,7 +288,7 @@ class GotoDeclarationActionTest {
         DemoExample.setUpDemo(projectRule.fixture) {
           view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
             compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
-              compose(-3, "Text", "MyCompose.kt", 49835523, 593, 18)
+              compose(-3, "Text", "MyCompose.kt", -1, -1, 0, composeFlags = FLAG_IS_INLINED)
               compose(-4, "Greeting", "MyCompose.kt", -1, -1, 0) {
                 compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
               }
@@ -276,19 +303,10 @@ class GotoDeclarationActionTest {
     notificationModel: NotificationModel = mock(),
     fromShortcut: Boolean = false,
   ): AnActionEvent {
-    val dataContext: DataContext = mock()
     val inspector = createLayoutInspector(model, stats, setOf(), notificationModel)
-    whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
-    val actionManager: ActionManager = mock()
+    val dataContext = SimpleDataContext.builder().add(LAYOUT_INSPECTOR_DATA_KEY, inspector).build()
     val inputEvent = if (fromShortcut) mock<KeyEvent>() else mock<MouseEvent>()
-    return AnActionEvent(
-      inputEvent,
-      dataContext,
-      ActionPlaces.UNKNOWN,
-      Presentation(),
-      actionManager,
-      0,
-    )
+    return TestActionEvent.createTestEvent(null, dataContext, inputEvent)
   }
 
   private fun createLayoutInspector(

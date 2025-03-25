@@ -28,7 +28,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerTypeRegistrar;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
@@ -86,10 +85,9 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
     DesignerEditorPanel editorPanel = designEditor.getComponent();
     TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
     addCaretListener(textEditor, designEditor);
-    editorPanel.getSurface().setFileEditorDelegate(textEditor);
+    editorPanel.setFileEditorDelegate(textEditor);
     DesignToolsSplitEditor splitEditor = new DesignToolsSplitEditor(textEditor, designEditor, project);
     editorPanel.getWorkBench().setFileEditor(splitEditor);
-    DataManager.registerDataProvider(editorPanel, splitEditor);
     return splitEditor;
   }
 
@@ -137,8 +135,8 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
     designEditor.getComponent().getSurface().addListener(new DesignSurfaceListener() {
       @Override
       @UiThread
-      public void modelChanged(@NotNull DesignSurface<?> surface,
-                               @Nullable NlModel model) {
+      public void modelsChanged(@NotNull DesignSurface<?> surface,
+                                @NotNull List<? extends @Nullable NlModel> models) {
         surface.removeListener(this);
         CaretModel caretModel = editor.getEditor().getCaretModel();
         caretListener.caretPositionChanged(

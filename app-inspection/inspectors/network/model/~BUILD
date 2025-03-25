@@ -12,6 +12,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/app-inspection/api:app-inspection.api[module]",
         "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module]",
@@ -29,5 +30,6 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//prebuilts/tools/common/m2:brotli-dec-0.1.2",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

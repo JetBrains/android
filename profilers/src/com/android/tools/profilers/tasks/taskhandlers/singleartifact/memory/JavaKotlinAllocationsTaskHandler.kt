@@ -25,6 +25,8 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
@@ -88,8 +90,15 @@ class JavaKotlinAllocationsTaskHandler(private val sessionsManager: SessionsMana
     else -> throw IllegalStateException("Unexpected artifact type: $artifact")
   }
 
-  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
-    SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_JVM_RECORDING)
+  override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
+    val isFeatureSupported = SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_JVM_RECORDING)
+
+    if (isFeatureSupported) {
+      return null
+    }
+
+    return StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+  }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean {
     return artifact is AllocationSessionArtifact || artifact is LegacyAllocationsSessionArtifact

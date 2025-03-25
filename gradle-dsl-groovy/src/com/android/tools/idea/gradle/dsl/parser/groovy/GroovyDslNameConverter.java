@@ -23,7 +23,6 @@ import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.External
 import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.convertToExternalTextValue;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.decodeStringLiteral;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getGradleNameForPsiElement;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.gradleNameFor;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
@@ -85,8 +84,13 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
         return GradleNameElement.escape(sb.toString());
       }
     }
-    // TODO(xof): the project-massaging in getGradleNameForPsiElement should be rewritten in gradleNameFor
-    return getGradleNameForPsiElement(element);
+    if (element instanceof GrExpression expression) {
+      String name = gradleNameFor(expression);
+      return name == null ? "" : name;
+    }
+    else {
+      return element.getText();
+    }
   }
 
   @NotNull
@@ -146,7 +150,7 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
         if (e.versionConstraint != null && !e.versionConstraint.isOkWith(getContext().getAgpVersion())) continue;
         SemanticsDescription semantics = e.modelEffectDescription.semantics;
         if (semantics == GRADLE_PROPERTY) {
-          return new ExternalNameInfo(e.surfaceSyntaxDescription.name, SET_METHOD);
+          return new ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT);
         }
         if (Arrays.asList(SET, ADD_AS_LIST, AUGMENT_LIST, CLEAR_AND_AUGMENT_LIST, AUGMENT_MAP, OTHER).contains(semantics)) {
           return new ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD);

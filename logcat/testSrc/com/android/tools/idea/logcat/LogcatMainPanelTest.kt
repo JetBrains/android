@@ -19,8 +19,6 @@ import com.android.adblib.testing.FakeAdbSession
 import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
@@ -80,8 +78,6 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfig
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration.Preset
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatPanelEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.PANEL_ADDED
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionGroup.EMPTY_GROUP
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnAction.ACTIONS_KEY
@@ -127,6 +123,8 @@ import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 /** Tests for [LogcatMainPanel] */
 class LogcatMainPanelTest {
@@ -1487,16 +1485,15 @@ class LogcatMainPanelTest {
   fun countFilterMatches_excludesSystemMessages() {
     val logcatMainPanel = logcatMainPanel()
     val messageBacklog = logcatMainPanel.messageBacklog.get()
-    val messages = messageBacklog.messages
     val filter = StringFilter("Foo", TAG, matchCase = true, EMPTY_RANGE)
     messageBacklog.addAll(listOf(logcatMessage(tag = "Foo"), LogcatMessage(SYSTEM_HEADER, "")))
 
-    assertThat(LogcatMasterFilter(filter).filter(messages)).hasSize(2)
+    assertThat(LogcatMasterFilter(filter).filter(messageBacklog.messages)).hasSize(2)
     assertThat(logcatMainPanel.countFilterMatches(filter)).isEqualTo(1)
   }
 
   private fun logcatMainPanel(
-    splitterPopupActionGroup: ActionGroup = EMPTY_GROUP,
+    splitterPopupActionGroup: DefaultActionGroup = DefaultActionGroup(),
     logcatColors: LogcatColors = LogcatColors(),
     filter: String = "",
     state: LogcatPanelConfig? =

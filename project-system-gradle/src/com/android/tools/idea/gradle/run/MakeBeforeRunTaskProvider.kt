@@ -41,8 +41,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.gradle.util.DynamicAppUtils.useSelectApksFromBundleBuilder
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -58,6 +56,8 @@ import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
+import com.android.tools.idea.util.DynamicAppUtils.useSelectApksFromBundleBuilder
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.base.Joiner

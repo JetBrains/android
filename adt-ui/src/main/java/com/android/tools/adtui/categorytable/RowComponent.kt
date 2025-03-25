@@ -211,10 +211,10 @@ internal class ValueRowComponent<T>(
   }
 }
 
-typealias ValueRowDataProvider<T> = (DataSink, T) -> Any?
+typealias ValueRowDataProvider<T> = (DataSink, T) -> Unit
 
 object NullValueRowDataProvider : ValueRowDataProvider<Any?> {
-  override fun invoke(p1: DataSink, p2: Any?): Any? = null
+  override fun invoke(p1: DataSink, p2: Any?) { }
 }
 
 class DefaultValueRowDataProvider<T: Any>(private val dataKey: DataKey<T>) : ValueRowDataProvider<T> {

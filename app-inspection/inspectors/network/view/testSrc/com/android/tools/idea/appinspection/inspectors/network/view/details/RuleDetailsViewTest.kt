@@ -1228,6 +1228,61 @@ class RuleDetailsViewTest {
       .inOrder()
   }
 
+  @Test
+  fun warningShownAndRuleNotUpdatedOnBlankRuleName() {
+    val rule = addNewRule()
+    val ruleName = rule.name
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "nameTextField") as JTextField
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "nameWarningLabel") as JBLabel
+
+    textField.text = "  "
+    textField.onFocusLost()
+
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Rule name cannot be blank")
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
+    }
+    assertThat(rule.name).isEqualTo(ruleName)
+  }
+
+  @Test
+  fun warningShownAndRuleNotUpdatedOnDuplicateRuleName() {
+    val rule1 = addNewRule()
+    val rule2 = addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "nameTextField") as JTextField
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "nameWarningLabel") as JBLabel
+
+    textField.text = rule1.name
+    textField.onFocusLost()
+
+    assertThat(warningLabel.isVisible).isTrue()
+    assertThat(warningLabel.toolTipText).isEqualTo("Rule named 'New Rule' already exists")
+    tracker.verifyLatestEvent {
+      assertThat(it.type).isNotEqualTo(NetworkInspectorEvent.Type.RULE_UPDATED)
+    }
+    assertThat(rule2.name).isNotEqualTo(rule1.name)
+  }
+
+  @Test
+  fun warningClearedWhenRuleNameChanged() {
+    val rule = addNewRule()
+    val ruleDetailsView = detailsPanel.ruleDetailsView
+    val textField = findComponentWithUniqueName(ruleDetailsView, "nameTextField") as JTextField
+    val warningLabel = findComponentWithUniqueName(ruleDetailsView, "nameWarningLabel") as JBLabel
+    textField.text = "  "
+    textField.onFocusLost()
+    assertThat(warningLabel.isVisible).isTrue()
+
+    textField.text = "Valid Name"
+    textField.onFocusLost()
+
+    assertThat(warningLabel.isVisible).isFalse()
+    assertThat(rule.name).isEqualTo("Valid Name")
+  }
+
   private fun addNewRule(): RuleData {
     val rulesView = inspectorView.rulesView
     val addAction = findAction(rulesView.component, "Add")

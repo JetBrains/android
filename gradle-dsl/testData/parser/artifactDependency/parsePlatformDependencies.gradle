@@ -5,9 +5,9 @@ ext {
 }
 
 dependencies {
+  implementation enforcedPlatform('group:name:3.1415')
   implementation enforcedPlatform(map)
   implementation platform(string)
   implementation platform("group:name:$version")
   implementation platform(group: 'argGroup', name: 'argName', version: '3.141')
-  implementation enforcedPlatform('group:name:3.1415')
 }

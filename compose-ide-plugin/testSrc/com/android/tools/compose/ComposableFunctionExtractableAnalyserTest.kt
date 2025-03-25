@@ -19,11 +19,13 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.util.application
 import java.util.Collections
 import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
@@ -65,7 +67,8 @@ class ComposableFunctionExtractableAnalyserTest {
     private val finishedSemaphore = Semaphore(0)
 
     fun waitUntilFinished() {
-      finishedSemaphore.acquire()
+      // Use tryAcquire so as to not block if something fails.
+      assertThat(finishedSemaphore.tryAcquire(10, TimeUnit.SECONDS)).isTrue()
     }
 
     override fun configureAndRun(
@@ -91,7 +94,8 @@ class ComposableFunctionExtractableAnalyserTest {
     private val finishedSemaphore = Semaphore(0)
 
     fun waitUntilFinished() {
-      finishedSemaphore.acquire()
+      // Use tryAcquire so as to not block if something fails.
+      assertThat(finishedSemaphore.tryAcquire(10, TimeUnit.SECONDS)).isTrue()
     }
 
     override fun validate(descriptor: ExtractableCodeDescriptor) =
@@ -118,7 +122,8 @@ class ComposableFunctionExtractableAnalyserTest {
     private val finishedSemaphore = Semaphore(0)
 
     fun waitUntilFinished() {
-      finishedSemaphore.acquire()
+      // Use tryAcquire so as to not block if something fails.
+      assertThat(finishedSemaphore.tryAcquire(10, TimeUnit.SECONDS)).isTrue()
     }
 
     @OptIn(KaAllowAnalysisOnEdt::class)
@@ -152,7 +157,8 @@ class ComposableFunctionExtractableAnalyserTest {
     private val finishedSemaphore = Semaphore(0)
 
     fun waitUntilFinished() {
-      finishedSemaphore.acquire()
+      // Use tryAcquire so as to not block if something fails.
+      assertThat(finishedSemaphore.tryAcquire(10, TimeUnit.SECONDS)).isTrue()
     }
 
     override fun validate(
@@ -234,12 +240,6 @@ class ComposableFunctionExtractableAnalyserTest {
 
   @Test
   fun testComposableContext() {
-    // TODO(353683851): The upstream IntelliJ has an issue related to
-    //  annotation rendering for the container function. Enable K2 after
-    //  landing https://kotlin.jetbrains.space/p/kotlin/reviews/1095/files
-    //  to studio-main.
-    if (KotlinPluginModeProvider.isK2Mode()) return
-
     myFixture.loadNewFile(
       "src/com/example/MyViews.kt",
       // language=kotlin

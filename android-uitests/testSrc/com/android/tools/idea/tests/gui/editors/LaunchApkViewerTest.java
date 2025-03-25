@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectPathFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
@@ -54,12 +55,13 @@ public class LaunchApkViewerTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void launchApkViewer() throws Exception {
-    List<String> apkEntries = guiTest.importSimpleApplication()
-                                     .invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Generate App Bundle(s) / APK(s)", "Generate APK(s)")
+    EditorFixture myEditor = guiTest.importSimpleApplication()
+                                     .invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Generate App Bundles or APKs", "Generate APKs")
                                      .openFromMenu(SelectPathFixture::find, "Build", "Analyze APK...")
                                      .clickOK()
-                                     .getEditor()
-                                     .getApkViewer(APK_NAME)
+                                     .getEditor();
+    myEditor.waitForFileToActivate();
+    List<String> apkEntries =  myEditor.getApkViewer(APK_NAME)
                                      .getApkEntries();
     assertThat(apkEntries).contains("AndroidManifest.xml");
     assertThat(apkEntries).contains("classes.dex");

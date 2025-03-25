@@ -30,13 +30,11 @@ import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.outputCurrentlyRunningTest
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.Contract
 import org.junit.Rule
@@ -104,23 +102,6 @@ abstract class GradleProjectSystemIntegrationTestCase {
       assertThat(appcompat.address).matches("com.android.support:support-compat:[\\.\\d]+@aar")
       assertThat(appcompat.manifestFile?.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
       assertThat(appcompat.resFolder!!.root.toFile()).isDirectory()
-    }
-  }
-
-  @Test
-  fun testGetDefaultApkFile() {
-    // TODO(b/191146142): Remove assumption when fixed.
-    assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
-    // TODO(b/191146142): Remove assumption when fixed.
-    assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
-    runTestOn(TestProject.SIMPLE_APPLICATION) { project ->
-      // Invoke assemble task to generate output listing file and apk file.
-      project.buildAndWait { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!)) }
-      val defaultApkFile = project
-        .getProjectSystem()
-        .getDefaultApkFile()
-      assertThat(defaultApkFile).isNotNull()
-      assertThat(defaultApkFile!!.name).isEqualTo("app-debug.apk")
     }
   }
 

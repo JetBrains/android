@@ -18,6 +18,7 @@ package com.android.tools.idea.fonts;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.FontType;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.fonts.FontDownloader;
@@ -35,6 +36,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_EXACT;
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -71,7 +75,7 @@ public class DownloadableFontCacheServiceImplTest {
   @Test
   public void testFontFamilyXml() throws IOException {
     MutableFontDetail builder = new MutableFontDetail();
-    builder.setItalics(true);
+    builder.setItalics(ITALICS);
     builder.setStyleName("Regular Italic");
     File fakeTtfFile = FileUtil.createTempFile("fontFamily", ".ttf");
     // The font needs to exist to be added to the generated file so create a fake cache file
@@ -101,6 +105,6 @@ public class DownloadableFontCacheServiceImplTest {
                                              @NotNull String menuUrl,
                                              @NotNull String menuName) {
     return new FontFamily(provider, fontSource, name, menuUrl, menuName, Collections.singletonList(
-      new MutableFontDetail(400, 100, false, "https://fonts.com/roboto/v15/qrs.ttf", "", false, false)));
+      new MutableFontDetail(name, FontType.SINGLE, 400, 100f, NORMAL, DEFAULT_EXACT, "https://fonts.com/roboto/v15/qrs.ttf", "", false)));
   }
 }

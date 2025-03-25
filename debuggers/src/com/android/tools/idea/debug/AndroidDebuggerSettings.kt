@@ -19,15 +19,15 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.SimpleConfigurable
-import com.intellij.openapi.util.Getter
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.xdebugger.XDebuggerUtil
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory
 import com.intellij.xdebugger.settings.XDebuggerSettings
+import java.util.function.Supplier
 
 @State(name = "AndroidDebuggerSettings", storages = [Storage("android.debug.xml")])
 internal class AndroidDebuggerSettings :
-  XDebuggerSettings<AndroidDebuggerSettings>("android_debugger"), Getter<AndroidDebuggerSettings> {
+  XDebuggerSettings<AndroidDebuggerSettings>("android_debugger"), Supplier<AndroidDebuggerSettings> {
   var filterAndroidRuntimeClasses: Boolean = true
 
   companion object {

@@ -22,13 +22,15 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.ProximityLocation
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.android.compose.stubComposableAnnotation
+import kotlin.test.assertNotNull
+import org.jetbrains.android.compose.addComposeRuntimeDep
+import org.jetbrains.android.compose.addComposeUiDep
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.junit.Before
@@ -52,62 +54,63 @@ import org.junit.runners.JUnit4
  */
 @RunWith(JUnit4::class)
 class ComposeProximityWeigherTest {
-  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
-  private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+  private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+  private val project by lazy { fixture.project }
 
   @Before
   fun setUp() {
-    (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation()
+    (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    fixture.addComposeRuntimeDep()
+    fixture.addComposeUiDep()
   }
 
   @Test
-  fun validateWeigherIsWiredUp() {
-    // When two imports have equal weight (which will be the default in the unit test), the Kotlin
-    // plugin's logic falls back to using
-    // lexicographic ordering. This "Modifier" class will begin with "aaa", and thus would be listed
-    // first absent [ComposeProximityWeigher]
-    // changing the order.
-    myFixture.addFileToProject(
-      "src/aaa/example/foo/Modifier.kt",
+  fun composeModifierPromotedOverJavaModifier() {
+    // Regression test for b/355257785.
+    // The java Modifier class should exist because this test runs with an SDK, and the Compose
+    // Modifier interface should exist because we've added Compose dependencies.
+    // Due to the specific logic in the platform, it's important to validate the ordering is correct
+    // when both of these object are coming from libraries, not from the source (as would be the
+    // "normal" case when adding files to a project via the test fixture).
+
+    // First ensure that both types actually exist and can resolve in the editor.
+    fixture.loadNewFile(
+      "src/com/example/Resolve.kt",
       // language=kotlin
       """
-      package aaa.example.foo
-
-      interface Modifier
-      """,
-    )
-
-    myFixture.addFileToProject(
-      "src/androidx/compose/ui/Modifier.kt",
-      // language=kotlin
+      package com.example
+      fun foo(
+        m1: androidx.compose.ui.Modifier,
+        m2: java.lang.reflect.Modifier,
+      ) {}
       """
-      package androidx.compose.ui
-
-      interface Modifier
-      """,
+        .trimIndent(),
     )
+    invokeAndWaitIfNeeded { fixture.checkHighlighting(false, false, false) }
 
+    // Now that we know both types exist and can be referenced, check that the Compose Modifier is
+    // preferred for import.
     val psiFile =
-      myFixture.loadNewFile(
+      fixture.loadNewFile(
         "src/com/example/Test.kt",
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import androidx.compose.runtime.Composable
+        import androidx.compose.runtime.Composable
 
-      @Composable
-      fun HomeScreen(modifier: Mod${caret}ifier) {}
-      """
+        @Composable
+        fun HomeScreen(modifier: Mod${caret}ifier) {}
+        """
           .trimIndent(),
       )
 
-    val action = myFixture.getIntentionAction("Import class 'Modifier'")!!
-    runInEdt { action.invoke(myFixture.project, myFixture.editor, psiFile) }
+    val action = assertNotNull(fixture.getIntentionAction("Import class 'Modifier'"))
+    invokeAndWaitIfNeeded { action.invoke(project, fixture.editor, psiFile) }
 
-    myFixture.checkResult(
+    fixture.checkResult(
       // language=kotlin
       """
       package com.example
@@ -130,7 +133,7 @@ class ComposeProximityWeigherTest {
     // weigher runs before that one. This test
     // validates that scenario, by including a Java class in the potential import list and ensuring
     // it's below a promoted class.
-    myFixture.addFileToProject(
+    fixture.addFileToProject(
       "src/android/graphics/Color.java",
       // language=java
       """
@@ -140,7 +143,7 @@ class ComposeProximityWeigherTest {
       """,
     )
 
-    myFixture.addFileToProject(
+    fixture.addFileToProject(
       "src/androidx/compose/ui/graphics/Color.kt",
       // language=kotlin
       """
@@ -150,7 +153,7 @@ class ComposeProximityWeigherTest {
       """,
     )
 
-    myFixture.addFileToProject(
+    fixture.addFileToProject(
       "src/androidx/compose/material/Surface.kt",
       // language=kotlin
       """
@@ -165,7 +168,7 @@ class ComposeProximityWeigherTest {
     )
 
     val psiFile =
-      myFixture.loadNewFile(
+      fixture.loadNewFile(
         "src/com/example/Test.kt",
         // language=kotlin
         """
@@ -183,10 +186,10 @@ class ComposeProximityWeigherTest {
           .trimIndent(),
       )
 
-    val action = myFixture.getIntentionAction("Import class 'Color'")!!
-    runInEdt { action.invoke(myFixture.project, myFixture.editor, psiFile) }
+    val action = assertNotNull(fixture.getIntentionAction("Import class 'Color'"))
+    invokeAndWaitIfNeeded { action.invoke(project, fixture.editor, psiFile) }
 
-    myFixture.checkResult(
+    fixture.checkResult(
       // language=kotlin
       """
       package com.example
@@ -271,7 +274,7 @@ class ComposeProximityWeigherTest {
       )
 
     val locationFile =
-      myFixture.loadNewFile(
+      fixture.loadNewFile(
         "src/com/example/Test.kt",
         // language=kotlin
         """
@@ -280,7 +283,7 @@ class ComposeProximityWeigherTest {
           .trimIndent(),
       )
 
-    val proximityLocation = ProximityLocation(locationFile, myFixture.module)
+    val proximityLocation = ProximityLocation(locationFile, fixture.module)
     val sortedList = runReadAction {
       listOf(
           nonComposableFunction,
@@ -309,7 +312,7 @@ class ComposeProximityWeigherTest {
     targetElementText: String,
     targetElementClass: Class<T>,
   ): T {
-    val psiFile = myFixture.addFileToProject(relativePath, fileText)
+    val psiFile = fixture.addFileToProject(relativePath, fileText)
     return runReadAction {
       PsiTreeUtil.getParentOfType(
         psiFile.findElementAt(psiFile.text.indexOf(targetElementText)),

@@ -16,7 +16,8 @@
 <idea-plugin>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <taskManager implementation="com.android.tools.utp.UtpAndroidGradleTaskManagerExtension" />
+    <projectResolve implementation="com.android.tools.utp.GradleAndroidProjectResolverExtension" />
   </extensions>
 
+  <depends>com.intellij.gradle</depends>
 </idea-plugin>

@@ -29,7 +29,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -37,6 +36,7 @@ import com.intellij.openapi.project.ProjectCloseListener;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.platform.ide.customization.ExternalProductResourceUrls;
 import com.intellij.util.messages.SimpleMessageBusConnection;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -111,7 +111,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction implement
   }
 
   private static void browseToWhatsNewUrl() {
-    BrowserUtil.browse(ApplicationInfoEx.getInstanceEx().getWhatsNewUrl());
+    BrowserUtil.browse(ExternalProductResourceUrls.getInstance().getWhatIsNewPageUrl().toString());
   }
 
   public static class WhatsNewToolWindowListener implements ToolWindowManagerListener {

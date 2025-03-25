@@ -1,0 +1,30 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+
+    defaultConfig {
+        applicationId "google.simpleapplication"
+        minSdkVersion 19
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+// Use deprecated API to rename APKs to verify that the correct information is used
+android.applicationVariants.all { variant ->
+  variant.outputs.all { output ->
+    output.outputFileName = "overridden_${variant.name}.apk"
+  }
+}
+
+dependencies {
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    api 'com.android.support:appcompat-v7:+'
+    api 'com.google.guava:guava:19.0'
+    api 'com.android.support.constraint:constraint-layout:1.0.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:+'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
+}

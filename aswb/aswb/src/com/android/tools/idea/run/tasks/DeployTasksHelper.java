@@ -40,7 +40,8 @@ public class DeployTasksHelper {
                     deployOptions.getPmInstallFlags(),
                     deployOptions.getInstallOnAllUsers(),
                     deployOptions.getAlwaysInstallWithPm(),
-                    deployOptions.getAllowAssumeVerified())
+                    deployOptions.getAllowAssumeVerified(),
+                    true /* TODO: Assume blaze always build for now.  */)
                 .run(launchContext.getDevice(), launchContext.getProgressIndicator());
       } catch (DeployerException e) {
         throw new AndroidExecutionException(e.getId(), e.getMessage());

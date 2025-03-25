@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.DaggerDataIndexer
 import com.android.tools.idea.dagger.index.IndexValue
@@ -27,6 +25,8 @@ import com.intellij.psi.PsiJavaFile
 import com.intellij.util.indexing.FileContent
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFile
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -57,11 +57,12 @@ private fun DaggerConceptIndexers.runIndexerOn(
   psiFile: PsiFile,
   fileType: FileType,
 ): Map<String, Set<IndexValue>> {
-  val fileContent: FileContent = mock()
-  whenever(fileContent.psiFile).thenReturn(psiFile)
-  whenever(fileContent.contentAsText).thenReturn(psiFile.text)
-  whenever(fileContent.fileType).thenReturn(fileType)
-  whenever(fileContent.file).thenReturn(psiFile.viewProvider.virtualFile)
+  val fileContent: FileContent = mock {
+    on { this.psiFile } doReturn psiFile
+    on { contentAsText } doReturn psiFile.text
+    on { this.fileType } doReturn fileType
+    on { file } doReturn psiFile.viewProvider.virtualFile
+  }
 
   return DaggerDataIndexer(this).map(fileContent)
 }

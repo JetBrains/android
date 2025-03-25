@@ -15,61 +15,35 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
-import com.android.tools.rendering.ModuleRenderContext
-import com.intellij.openapi.application.runReadAction
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.intellij.openapi.module.Module
-import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.base.util.module
-import java.lang.ref.WeakReference
-import java.util.function.Supplier
 
 /**
- * Studio specific implementation of [ModuleRenderContext].
+ * Studio specific module render context.
  */
 open class StudioModuleRenderContext protected constructor(
-  module: Module,
-  override val fileProvider: Supplier<PsiFile?>
-) : ModuleRenderContext {
-  private val moduleWeakRef = WeakReference(module)
-  override val isDisposed: Boolean
-    get() = module?.isDisposed ?: true
+  val buildTargetReference: BuildTargetReference,
+)  {
 
-  override val module: Module?
-    get() = moduleWeakRef.get()
-  override fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
-    val moduleRef = WeakReference(module)
+  open fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
     return ProjectSystemClassLoader { fqcn ->
-      val module = moduleRef.get()
-      if (module == null || module.isDisposed) return@ProjectSystemClassLoader null
-
-      val psiFile = fileProvider.get()
-      val virtualFile = psiFile?.virtualFile
-
-      return@ProjectSystemClassLoader module.getModuleSystem()
-        .getClassFileFinderForSourceFile(virtualFile)
-        .findClassFile(fqcn)
+      val classFileFinder =
+        buildTargetReference.getBuildSystemFilePreviewServices().getRenderingServices(buildTargetReference).classFileFinder
+        ?: return@ProjectSystemClassLoader null
+      return@ProjectSystemClassLoader classFileFinder.findClassFile(fqcn)
     }
   }
 
   companion object {
     @JvmStatic
-    fun forFile(module: Module, fileProvider: Supplier<PsiFile?>) =
-      StudioModuleRenderContext(module, fileProvider)
+    fun forBuildTargetReference(buildTargetReference: BuildTargetReference) =
+      StudioModuleRenderContext(buildTargetReference)
 
     /** Always use one of the methods that can provide a file, only use this for testing. */
     @TestOnly
     @JvmStatic
-    fun forModule(module: Module) = StudioModuleRenderContext(module) { null }
-
-    @JvmStatic
-    fun forFile(file: PsiFile): ModuleRenderContext {
-      val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
-      val module = runReadAction { file.module!! }
-      return forFile(module) { runReadAction { filePointer.element } }
-    }
+    fun forModule(module: Module) = StudioModuleRenderContext(BuildTargetReference.gradleOnly(module))
   }
 }

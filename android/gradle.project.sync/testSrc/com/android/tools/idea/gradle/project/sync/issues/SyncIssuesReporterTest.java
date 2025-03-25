@@ -33,8 +33,10 @@ import static com.android.builder.model.SyncIssue.TYPE_TARGET_SDK_VERSION_IN_MAN
 import static com.android.builder.model.SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD;
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
-import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
@@ -48,35 +50,45 @@ import static org.mockito.Mockito.when;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects;
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.project.messages.SyncMessageWithContext;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
 
 /**
  * Tests for {@link SyncIssuesReporter}.
  */
-public class SyncIssuesReporterTest extends AndroidGradleTestCase {
+public class SyncIssuesReporterTest {
+  @Rule public AndroidProjectRule projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION);
+
   private IdeSyncIssue mySyncIssue;
   private BaseSyncIssuesReporter myStrategy1;
   private BaseSyncIssuesReporter myStrategy2;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     mySyncIssue = mock(IdeSyncIssue.class);
 
     myStrategy1 = mock(BaseSyncIssuesReporter.class);
@@ -85,60 +97,158 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     myStrategy2 = mock(BaseSyncIssuesReporter.class);
   }
 
+  @Test
   public void testReportError() throws Exception {
-    loadSimpleApplication();
-    Project project = getProject();
+    Project project = projectRule.getProject();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
     when(mySyncIssue.getType()).thenReturn(issueType);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
 
-    when(myStrategy2.getSupportedIssueType()).thenReturn(issueType); // This is the strategy to be invoked.
-
-    SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
-    SyncIssueUsageReporter usageReporter = spy(SyncIssueUsageReporter.Companion.getInstance(project));
-    ServiceContainerUtil.replaceService(project, SyncIssueUsageReporter.class, usageReporter, getTestRootDisposable());
-
     Module appModule = TestModuleUtil.findAppModule(project);
     VirtualFile buildFile = getGradleBuildFile(appModule);
     assertThat(buildFile).isNotNull();
+
+    when(myStrategy2.getSupportedIssueType()).thenReturn(issueType); // This is the strategy to be invoked.
+    when(myStrategy2.reportAll(anyList(), anyMap(), anyMap())).thenReturn(List.of(new SyncMessageWithContext(
+      new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, "text"),
+      List.of(appModule)
+    )));
+
+    SyncIssueUsageReporter usageReporter = spy(SyncIssueUsageReporter.Companion.getInstance(project));
+    projectRule.replaceProjectService(SyncIssueUsageReporter.class, usageReporter);
+
+    // Act
+    SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)), "/");
 
+    // Verify passed messages to GradleSyncMessages
+    assertThat(GradleSyncMessages.getInstance(project).getReportedMessages()).hasSize(1);
+    final var message = GradleSyncMessages.getInstance(project).getReportedMessages().get(0);
+    assertThat(message).isNotNull();
+    assertThat(message.getType()).isEqualTo(MessageType.ERROR);
+
+    // Verify invoked strategies
     verify(myStrategy1, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
     verify(myStrategy2)
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
+
+    // Verify interaction with usage tracker
+    verify(usageReporter).collect(ArgumentMatchers.assertArg(
+      arg -> assertThat(arg.getType()).isEqualTo(AndroidStudioEvent.GradleSyncIssueType.TYPE_GRADLE_TOO_OLD)
+    ));
     verify(usageReporter).reportToUsageTracker("/");
   }
 
+  @Test
   public void testReportWarning() throws Exception {
-    loadSimpleApplication();
-    Project project = getProject();
+    Project project = projectRule.getProject();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
     when(mySyncIssue.getType()).thenReturn(issueType);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_WARNING);
 
+    Module appModule = TestModuleUtil.findAppModule(project);
     when(myStrategy2.getSupportedIssueType()).thenReturn(issueType); // This is the strategy to be invoked.
+    when(myStrategy2.reportAll(anyList(), anyMap(), anyMap())).thenReturn(List.of(new SyncMessageWithContext(
+      new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.WARNING, "text"),
+      List.of(appModule)
+    )));
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
     SyncIssueUsageReporter usageReporter = spy(SyncIssueUsageReporter.Companion.getInstance(project));
-    ServiceContainerUtil.replaceService(project, SyncIssueUsageReporter.class, usageReporter, getTestRootDisposable());
+    projectRule.replaceProjectService(SyncIssueUsageReporter.class, usageReporter);
 
-    Module appModule = TestModuleUtil.findAppModule(project);
     VirtualFile buildFile = getGradleBuildFile(appModule);
     assertThat(buildFile).isNotNull();
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)), "/");
 
+    // Verify passed messages to GradleSyncMessages
+    assertThat(GradleSyncMessages.getInstance(project).getReportedMessages()).hasSize(1);
+    final var message = GradleSyncMessages.getInstance(project).getReportedMessages().get(0);
+    assertThat(message).isNotNull();
+    assertThat(message.getType()).isEqualTo(MessageType.WARNING);
+
+    // Verify invoked strategies
     verify(myStrategy1, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
     verify(myStrategy2)
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
+
+    // Verify interaction with usage tracker
+    verify(usageReporter).collect(ArgumentMatchers.assertArg(
+      arg -> assertThat(arg.getType()).isEqualTo(AndroidStudioEvent.GradleSyncIssueType.TYPE_GRADLE_TOO_OLD)
+    ));
     verify(usageReporter).reportToUsageTracker("/");
   }
 
+  @Test
+  public void testReportWithAdditionalLinks() {
+    Project project = projectRule.getProject();
+
+    int issueType = TYPE_GRADLE_TOO_OLD;
+    when(mySyncIssue.getType()).thenReturn(issueType);
+    when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
+
+    Module appModule = TestModuleUtil.findAppModule(project);
+    VirtualFile buildFile = getGradleBuildFile(appModule);
+    assertThat(buildFile).isNotNull();
+
+    when(myStrategy2.getSupportedIssueType()).thenReturn(issueType); // This is the strategy to be invoked.
+    when(myStrategy2.reportAll(anyList(), anyMap(), anyMap())).thenReturn(List.of(new SyncMessageWithContext(
+      new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, "text"),
+      List.of(appModule)
+    )));
+
+    SyncIssueUsageReporter usageReporter = spy(SyncIssueUsageReporter.Companion.getInstance(project));
+    projectRule.replaceProjectService(SyncIssueUsageReporter.class, usageReporter);
+    GradleErrorQuickFixProvider quickFixProvider = mock(GradleErrorQuickFixProvider.class);
+    ApplicationManager.getApplication().getExtensionArea().getExtensionPoint(GradleErrorQuickFixProvider.Companion.getEP_NAME())
+      .registerExtension(quickFixProvider, project);
+    //projectRule.registerExtension(GradleErrorQuickFixProvider.Companion.getEP_NAME(), quickFixProvider);
+    when(quickFixProvider.createSyncMessageAdditionalLink(any(), anyList(), anyMap(), anyString())).thenReturn(
+      new SyncMessageHyperlink("link.id", "Link Text") {
+        @Override
+        public @NotNull List<AndroidStudioEvent.GradleSyncQuickFix> getQuickFixIds() {
+          return List.of();
+        }
+
+        @Override
+        protected void execute(@NotNull Project project) {}
+      }
+    );
+
+    // Act
+    SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)), "/");
+
+    // Verify passed messages to GradleSyncMessages
+    assertThat(GradleSyncMessages.getInstance(project).getReportedMessages()).hasSize(1);
+    final var message = GradleSyncMessages.getInstance(project).getReportedMessages().get(0);
+    assertThat(message).isNotNull();
+    assertThat(message.getType()).isEqualTo(MessageType.ERROR);
+    assertThat(message.getMessage()).endsWith("<a href=\"link.id\">Link Text</a>");
+
+    // Verify invoked strategies
+    verify(myStrategy1, never())
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
+    verify(myStrategy2)
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)));
+
+    // Verify invoked additional link provider
+    verify(quickFixProvider).createSyncMessageAdditionalLink(any(), eq(ImmutableList.of(appModule)), eq(ImmutableMap.of(appModule, buildFile)), eq("/"));
+    verifyNoMoreInteractions(quickFixProvider);
+
+    // Verify interaction with usage tracker
+    verify(usageReporter).collect(ArgumentMatchers.assertArg(
+      arg -> assertThat(arg.getType()).isEqualTo(AndroidStudioEvent.GradleSyncIssueType.TYPE_GRADLE_TOO_OLD)
+    ));
+    verify(usageReporter).reportToUsageTracker("/");
+  }
+
+  @Test
   public void testReportUsingDefaultStrategy() throws Exception {
-    loadProject(DEPENDENT_MODULES);
 
     // This issue is created to be equal to mySyncIssue, in practice issues with the same fields will be classed as equal.
     IdeSyncIssue syncIssue2 = new IdeSyncIssue() {
@@ -188,20 +298,19 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     when(myStrategy2.getSupportedIssueType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
-    Project project = getProject();
+    Project project = projectRule.getProject();
     SyncIssueUsageReporter usageReporter = spy(SyncIssueUsageReporter.Companion.getInstance(project));
-    ServiceContainerUtil.replaceService(project, SyncIssueUsageReporter.class, usageReporter, getTestRootDisposable());
+    projectRule.replaceProjectService(SyncIssueUsageReporter.class, usageReporter);
 
     Module appModule = TestModuleUtil.findAppModule(project);
-    Module libModule = TestModuleUtil.findModule(project, "lib");
+    //Module libModule = TestModuleUtil.findModule(project, "lib");
     VirtualFile buildFile = getGradleBuildFile(appModule);
     assertThat(buildFile).isNotNull();
-    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)), "/");
+    reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue, syncIssue2)), "/");
 
-
-    assertSize(1, GradleSyncMessages.getInstance(project).getReportedMessages());
+    assertThat(GradleSyncMessages.getInstance(project).getReportedMessages()).hasSize(1);
     final var message = GradleSyncMessages.getInstance(project).getReportedMessages().get(0);
-    assertNotNull(message);
+    assertThat(message).isNotNull();
     assertThat(message.getType()).isEqualTo(MessageType.WARNING);
 
     verify(myStrategy1, never())
@@ -217,11 +326,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verifyNoMoreInteractions(usageReporter);
   }
 
+  @Test
   public void testStrategiesSetInConstructor() throws Exception {
-    loadSimpleApplication();
-
     SyncIssuesReporter reporter = SyncIssuesReporter.getInstance();
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
 
     BaseSyncIssuesReporter strategy = reporter.getDefaultMessageFactory();
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
@@ -278,8 +386,8 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertThat(strategy).isInstanceOf(MissingComposeCompilerGradlePluginReporter.class);
   }
 
+  @Test
   public void testReportErrorBeforeWarning() throws Exception {
-    loadSimpleApplication();
     IdeSyncIssue syncIssue2 = mock(IdeSyncIssue.class);
     IdeSyncIssue syncIssue3 = mock(IdeSyncIssue.class);
 
@@ -299,7 +407,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
     reporter.report(ImmutableMap.of(appModule, ImmutableList.of(mySyncIssue, syncIssue2, syncIssue3)), "/");
 
     InOrder inOrder = inOrder(myStrategy1, myStrategy2);

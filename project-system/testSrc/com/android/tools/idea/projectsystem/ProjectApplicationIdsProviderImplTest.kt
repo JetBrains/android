@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
@@ -35,6 +33,8 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /**
  * Tests for [ProjectApplicationIdsProviderImpl]

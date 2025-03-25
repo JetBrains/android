@@ -42,7 +42,7 @@ internal fun List<KtFile>.checkPsiErrorElement() {
   }
 }
 
-internal fun CompilerConfiguration.setOptions(languageVersionSettings: LanguageVersionSettings) {
+fun CompilerConfiguration.setOptions(languageVersionSettings: LanguageVersionSettings) {
   put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, languageVersionSettings)
 
   // Needed so we can diff changes to method parameters and parameter annotations.

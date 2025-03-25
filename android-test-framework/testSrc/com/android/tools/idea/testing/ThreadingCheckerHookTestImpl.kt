@@ -16,6 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerHook
+import com.intellij.openapi.application.ApplicationManager
 import javax.swing.SwingUtilities
 
 class ThreadingCheckerHookTestImpl : ThreadingCheckerHook {
@@ -41,6 +42,30 @@ class ThreadingCheckerHookTestImpl : ThreadingCheckerHook {
     if (SwingUtilities.isEventDispatchThread()) {
       hasThreadingViolation = true
       errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called on a worker thread."
+    }
+  }
+
+  override fun verifyReadLock() {
+    hasPerformedThreadingChecks = true
+    if (!ApplicationManager.getApplication().isReadAccessAllowed) {
+      hasThreadingViolation = true
+      errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called with a read lock"
+    }
+  }
+
+  override fun verifyWriteLock() {
+    hasPerformedThreadingChecks = true
+    if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
+      hasThreadingViolation = true
+      errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called with a write lock"
+    }
+  }
+
+  override fun verifyNoReadLock() {
+    hasPerformedThreadingChecks = true
+    if (!ApplicationManager.getApplication().isReadAccessAllowed) {
+      hasThreadingViolation = true
+      errorMessage = "Method ${getInstrumentedMethodName()} is expected to be called without a read lock"
     }
   }
 

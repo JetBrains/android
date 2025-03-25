@@ -18,10 +18,6 @@ package com.android.tools.idea.debug
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.debug.AndroidPositionManager.Companion.changeClassExtensionToJava
 import com.android.tools.idea.debug.AndroidPositionManager.MyXDebugSessionListener
 import com.android.tools.idea.execution.common.AndroidSessionInfo
@@ -65,13 +61,14 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito
-import org.mockito.Mockito.anyString
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import java.util.concurrent.Semaphore
 import kotlin.test.assertFailsWith
 
@@ -124,13 +121,13 @@ class AndroidPositionManagerTest {
     whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { targetDeviceAndroidVersion }
     // todo: In reality, `allClasses` throws so, add a mode where we test when it throws.
     whenever(mockVirtualMachineProxyImpl.allClasses()).thenReturn(allVirtualMachineClasses)
-    whenever(mockVirtualMachineProxyImpl.classesByName(anyString())).thenAnswer { invocation ->
+    whenever(mockVirtualMachineProxyImpl.classesByName(any())).thenAnswer { invocation ->
       allVirtualMachineClasses.filter { type ->
         type.name() == invocation.getArgument<String>(0)
       }
     }
     whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManagerImpl)
-    whenever(mockRequestManagerImpl.createClassPrepareRequest(any(), Mockito.anyString())).thenAnswer { invocation ->
+    whenever(mockRequestManagerImpl.createClassPrepareRequest(any(), any())).thenAnswer { invocation ->
       FakeClassPrepareRequest(invocation.arguments[1].toString())
     }
 
@@ -234,9 +231,9 @@ class AndroidPositionManagerTest {
     semaphore.acquire()
 
     // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
-    val runnableCaptor: ArgumentCaptor<Runnable> = argumentCaptor()
+    val runnableCaptor = argumentCaptor<Runnable>()
     verify(mockDebuggerManagerThreadImpl).invoke(any(), runnableCaptor.capture())
-    val runnable = runnableCaptor.value!!
+    val runnable = runnableCaptor.firstValue
     runnable.run()
 
     // Now the cache should have been cleared.
@@ -253,9 +250,9 @@ class AndroidPositionManagerTest {
     semaphore.acquire()
 
     // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
-    val runnableCaptor: ArgumentCaptor<Runnable> = argumentCaptor()
+    val runnableCaptor = argumentCaptor<Runnable>()
     verify(mockDebuggerManagerThreadImpl).invoke(any(), runnableCaptor.capture())
-    val runnable = runnableCaptor.value!!
+    val runnable = runnableCaptor.firstValue
     runnable.run()
 
     // Invoke and wait for an empty runnable to clear out any waiting tasks (which include the refresh we want to test).
@@ -278,9 +275,9 @@ class AndroidPositionManagerTest {
     semaphore.acquire()
 
     // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
-    val runnableCaptor: ArgumentCaptor<Runnable> = argumentCaptor()
+    val runnableCaptor = argumentCaptor<Runnable>()
     verify(mockDebuggerManagerThreadImpl).invoke(any(), runnableCaptor.capture())
-    val runnable = runnableCaptor.value!!
+    val runnable = runnableCaptor.firstValue
     runnable.run()
 
     // Invoke and wait for an empty runnable to clear out any waiting tasks (which include the refresh we want to test).

@@ -18,7 +18,7 @@ package com.google.idea.blaze.android.targetmapbuilder;
 import com.google.idea.blaze.base.sync.BlazeSyncIntegrationTestCase;
 
 /** Environment containing the common Blaze attributes shared across a target map. */
-public class BlazeInfoData {
+public final class BlazeInfoData {
   /**
    * The default value is taken from {@link BlazeSyncIntegrationTestCase} to keep target maps
    * default consistent with existing blaze integration tests.
@@ -27,9 +27,9 @@ public class BlazeInfoData {
       "bazel-out/gcc-4.X.Y-crosstool-v17-hybrid-grtev3-k8-fastbuild/bin";
 
   public static final BlazeInfoData DEFAULT = new BlazeInfoData(DEFAULT_EXEC_ROOT_REL_BIN_PATH);
-  private String blazeExecutablesRootPath;
+  private final String blazeExecutablesRootPath;
 
-  public BlazeInfoData(String blazeExecutablesRootPath) {
+  private BlazeInfoData(String blazeExecutablesRootPath) {
     this.blazeExecutablesRootPath = blazeExecutablesRootPath;
   }
 

@@ -47,9 +47,10 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.io.File
 import java.util.Arrays
 import java.util.Locale
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JPanel
 
 /**
@@ -62,23 +63,21 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
    */
   val rootPanel: JPanel
 
-  @VisibleForTesting val myTestResultLabel: JBLabel = JBLabel().apply { border = JBUI.Borders.empty(10) }
+  @VisibleForTesting val myTestResultLabel: JBLabel = JBLabel()
+  @VisibleForTesting val myDeviceTestResultLabel: JBLabel = JBLabel()
   @VisibleForTesting val myLogsView: ConsoleViewImpl
   @VisibleForTesting val myBenchmarkTab: TabInfo
   @VisibleForTesting val myBenchmarkView: ConsoleViewImpl
   @VisibleForTesting val myDeviceInfoTableView: AndroidDeviceInfoTableView
-  @VisibleForTesting val myRetentionView: RetentionView
-  @VisibleForTesting val myRetentionTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
   @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
+  @VisibleForTesting var lastSelectedTab: TabInfo? = null
 
   private var myAndroidDevice: AndroidDevice? = null
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
   private var myLogcat = ""
   private var myErrorStackTrace = ""
-  private var myRetentionSnapshot: File? = null
   private var needsRefreshLogsView: Boolean = true
-  private var lastSelectedTab: TabInfo? = null
 
   init {
     // Create logcat tab.
@@ -126,22 +125,15 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     deviceInfoTab.setTooltipText("Show device information")
     tabs.addTab(deviceInfoTab)
 
-    // Android Test Retention tab.
-    myRetentionView = RetentionView()
-    logger.addImpressionWhenDisplayed(
-      myRetentionView.component,
-      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_RETENTION_VIEW)
-    myRetentionTab = TabInfo(myRetentionView.rootPanel)
-    myRetentionTab.setText("Retention")
-    myRetentionTab.setTooltipText("Show emulator snapshots of failed tests")
-    tabs.addTab(myRetentionTab)
-    myRetentionTab.isHidden = true
-
-
     rootPanel = JPanel(BorderLayout()).apply {
-      add(JPanel(BorderLayout()).apply {
-        add(myTestResultLabel, BorderLayout.CENTER)
+      add(JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.LINE_AXIS)
         GuiUtils.setStandardLineBorderToPanel(this, 0, 0, 1, 0)
+        add(myDeviceTestResultLabel)
+        add(AndroidTestSuiteView.MyItemSeparator())
+        add(myTestResultLabel)
+        border = JBUI.Borders.empty(10)
+        add(Box.createHorizontalGlue())
       }, BorderLayout.NORTH)
       add(tabs.component, BorderLayout.CENTER)
       minimumSize = Dimension()
@@ -149,24 +141,15 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     tabs.setSelectionChangeHandler (MyTabSelectionHandler(this))
   }
 
-  fun setPackageName(packageName: String) {
-    myRetentionView.setPackageName(packageName)
-  }
-
   fun setAndroidDevice(androidDevice: AndroidDevice) {
     myAndroidDevice = androidDevice
     refreshTestResultLabel()
     myDeviceInfoTableView.setAndroidDevice(androidDevice)
-    myRetentionView.setAndroidDevice(androidDevice)
   }
 
   fun setAndroidTestCaseResult(result: AndroidTestCaseResult?) {
     myAndroidTestCaseResult = result
     refreshTestResultLabel()
-  }
-
-  fun setAndroidTestCaseStartTime(time: Long?) {
-    myRetentionView.setStartTime(time)
   }
 
   fun setLogcat(logcat: String) {
@@ -192,21 +175,11 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     for (line in benchmarkText.lines) {
       line.print(myBenchmarkView, ConsoleViewContentType.NORMAL_OUTPUT, BenchmarkLinkListener(project))
     }
-    myBenchmarkTab.isHidden = benchmarkText.lines.isEmpty()
-  }
-
-  fun setRetentionInfo(retentionInfo: File?) {
-    myRetentionView.setRetentionInfoFile(retentionInfo)
-  }
-
-  fun setRetentionSnapshot(rententionSnapshot: File?) {
-    myRetentionSnapshot = rententionSnapshot
-    refreshRetentionView()
-  }
-
-  private fun refreshRetentionView() {
-    myRetentionTab.isHidden = myRetentionSnapshot == null
-    myRetentionView.setSnapshotFile(myRetentionSnapshot)
+    val benchmarkOutputIsEmpty = benchmarkText.lines.isEmpty()
+    myBenchmarkTab.isHidden = benchmarkOutputIsEmpty
+    if (!benchmarkOutputIsEmpty) {
+      this.lastSelectedTab = myBenchmarkTab
+    }
   }
 
   private fun refreshTestResultLabel() {
@@ -216,8 +189,11 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       return
     }
     val testCaseResult = myAndroidTestCaseResult
+    myDeviceTestResultLabel.text = String.format(Locale.US,
+                                                 "<html>%s</html>",
+                                                 device.getName().htmlEscape())
     if (testCaseResult == null) {
-      myTestResultLabel.text = "No test status available on " + device.getName()
+      myTestResultLabel.text = "No test status available"
       return
     }
     if (testCaseResult.isTerminalState) {
@@ -225,9 +201,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       when (testCaseResult) {
         AndroidTestCaseResult.PASSED -> myTestResultLabel.text = String.format(
           Locale.US,
-          "<html><font color='%s'>Passed</font> on %s</html>",
-          ColorUtil.toHtmlColor(statusColor),
-          device.getName().htmlEscape())
+          "<html><font color='%s'>Passed</font></html>",
+          ColorUtil.toHtmlColor(statusColor))
         AndroidTestCaseResult.FAILED -> {
           val errorMessage =
             Arrays.stream(StringUtil.splitByLines(myErrorStackTrace))
@@ -236,29 +211,26 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
           if (StringUtil.isEmptyOrSpaces(errorMessage)) {
             myTestResultLabel.text = String.format(
               Locale.US,
-              "<html><font color='%s'>Failed</font> on %s</html>",
-              ColorUtil.toHtmlColor(statusColor),
-              device.getName().htmlEscape())
+              "<html><font color='%s'>Failed</font></html>",
+              ColorUtil.toHtmlColor(statusColor))
           }
           else {
             myTestResultLabel.text = String.format(
               Locale.US,
-              "<html><font size='+1'>%s</font><br><font color='%s'>Failed</font> on %s</html>",
-              errorMessage.htmlEscape(),
+              "<html><font color='%s'>Failed</font> %s</html>",
               ColorUtil.toHtmlColor(statusColor),
-              device.getName().htmlEscape())
+              errorMessage.htmlEscape()
+              )
           }
         }
         AndroidTestCaseResult.SKIPPED -> myTestResultLabel.text = String.format(
           Locale.US,
-          "<html><font color='%s'>Skipped</font> on %s</html>",
-          ColorUtil.toHtmlColor(statusColor),
-          device.getName().htmlEscape())
+          "<html><font color='%s'>Skipped</font></html>",
+          ColorUtil.toHtmlColor(statusColor))
         AndroidTestCaseResult.CANCELLED -> myTestResultLabel.text = String.format(
           Locale.US,
-          "<html><font color='%s'>Cancelled</font> on %s</html>",
-          ColorUtil.toHtmlColor(statusColor),
-          device.getName().htmlEscape())
+          "<html><font color='%s'>Cancelled</font></html>",
+          ColorUtil.toHtmlColor(statusColor))
         else -> {
           myTestResultLabel.text = ""
           Logger.getInstance(javaClass).warn(String.format(Locale.US, "Unexpected result type: %s", testCaseResult))

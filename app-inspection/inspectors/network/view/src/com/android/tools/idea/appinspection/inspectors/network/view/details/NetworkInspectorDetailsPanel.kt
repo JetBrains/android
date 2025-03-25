@@ -57,7 +57,10 @@ internal class NetworkInspectorDetailsPanel(
 
     cardLayoutView = JPanel(cardLayout)
     connectionDataDetailsView = ConnectionDataDetailsView(inspectorView, usageTracker)
-    ruleDetailsView = RuleDetailsView(usageTracker)
+    val getRuleNames: () -> Set<String> = {
+      inspectorView.rulesView.tableModel.items.mapTo(HashSet()) { it.name }
+    }
+    ruleDetailsView = RuleDetailsView(getRuleNames, usageTracker)
     cardLayoutView.add(connectionDataDetailsView, CONNECTION.name)
     cardLayoutView.add(ruleDetailsView, NetworkInspectorModel.DetailContent.RULE.name)
     val model = inspectorView.model

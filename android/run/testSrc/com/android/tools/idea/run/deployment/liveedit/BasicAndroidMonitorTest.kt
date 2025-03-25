@@ -20,7 +20,6 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
@@ -46,8 +45,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class BasicAndroidMonitorTest {
@@ -58,17 +57,15 @@ class BasicAndroidMonitorTest {
   private lateinit var client: ClientImpl
   private lateinit var connection: FakeLiveEditAdbListener
 
-  private var clients: Array<Client> = arrayOf<Client>()
+  private var clients: Array<Client> = arrayOf()
 
   private val appId = "com.test";
 
   private val gradleSyncString = "Gradle sync needs to be performed. Sync and rerun the app."
 
-  @Mock
-  private val mySyncState: GradleSyncState = MockitoKt.mock()
+  private val mySyncState: GradleSyncState = mock()
 
-  @Mock
-  private val device: IDevice = MockitoKt.mock()
+  private val device: IDevice = mock()
 
   @get:Rule
   var projectRule = AndroidProjectRule.onDisk()
@@ -78,25 +75,25 @@ class BasicAndroidMonitorTest {
     Logger.getInstance(
       LiveEditProjectMonitor::class.java).setLevel(LogLevel.ALL)
     project = projectRule.project
-    client = MockitoKt.mock()
-    `when`(client.device).thenReturn(device)
+    client = mock()
+    whenever(client.device).thenReturn(device)
 
     project.replaceService(GradleSyncState::class.java, mySyncState, projectRule.testRootDisposable)
     FakeBuildSystemLiveEditServices().register(projectRule.testRootDisposable)
-    val clientData: ClientData = MockitoKt.mock()
-    `when`(client.clientData).thenReturn(clientData)
-    `when`(clientData.packageName).thenReturn(appId)
+    val clientData: ClientData = mock()
+    whenever(client.clientData).thenReturn(clientData)
+    whenever(clientData.packageName).thenReturn(appId)
 
     connection = FakeLiveEditAdbListener()
     clients = clients.plus(client)
     service = LiveEditServiceImpl(project, MoreExecutors.directExecutor(), connection)
     monitor = service.getDeployMonitor()
 
-    `when`(device.serialNumber).thenReturn("1")
-    `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    `when`(device.isOnline).thenReturn(true)
-    `when`(device.clients).thenReturn(clients)
-    `when`(mySyncState.lastSyncFinishedTimeStamp).thenReturn(1)
+    whenever(device.serialNumber).thenReturn("1")
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    whenever(device.isOnline).thenReturn(true)
+    whenever(device.clients).thenReturn(clients)
+    whenever(mySyncState.lastSyncFinishedTimeStamp).thenReturn(1)
 
     LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
@@ -117,7 +114,7 @@ class BasicAndroidMonitorTest {
     connection.clientChanged(client, Client.CHANGE_NAME)
 
     val file = projectRule.createKtFile("Test.kt", "")
-    `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.YES)
+    whenever(mySyncState.isSyncNeeded()).thenReturn(ThreeState.YES)
 
     monitor.fileChanged(file.virtualFile)
     monitor.waitForThreadInTest(5000)
@@ -133,18 +130,18 @@ class BasicAndroidMonitorTest {
   fun userSyncTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
 
-    `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.NO)
+    whenever(mySyncState.isSyncNeeded()).thenReturn(ThreeState.NO)
 
     assertThat(monitor.isGradleSyncNeeded()).isFalse()
 
-    project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get()
+    project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get()
 
     assertThat(monitor.isGradleSyncNeeded()).isTrue()
   }
 
   @Test
   fun unknownDeviceTest() {
-    val unknownDevice : IDevice = MockitoKt.mock()
+    val unknownDevice : IDevice = mock()
     val status = monitor.status(unknownDevice)
     assertThat(status).isEqualTo(LiveEditStatus.Disabled)
   }

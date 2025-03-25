@@ -15,11 +15,7 @@
  */
 package com.google.idea.blaze.base.bazel;
 
-import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.CommandLineBlazeCommandRunner;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.Kind;
@@ -30,35 +26,15 @@ import com.google.idea.blaze.base.projectview.section.sections.BazelBinarySectio
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 class BazelBuildSystem implements BuildSystem {
-
-  class BazelInvoker extends AbstractBuildInvoker {
-
-    public BazelInvoker(Project project, BlazeContext blazeContext, String path) {
-      super(
-          project,
-          blazeContext,
-          BuildBinaryType.BAZEL,
-          path,
-          false,
-          BazelBuildSystem.this,
-          new CommandLineBlazeCommandRunner());
-    }
-
-    @Override
-    @MustBeClosed
-    public BuildResultHelper createBuildResultHelper() {
-      return new BuildResultHelperBep();
-    }
-  }
 
   @Override
   public BuildSystemName getName() {
@@ -66,38 +42,28 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(
-      Project project, BlazeContext context, ExecutorType executorType, Kind targetKind) {
+  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
     return getBuildInvoker(project, context);
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(
-      Project project, BlazeContext context, BlazeCommandName command) {
+  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, ExecutorType executorType, Kind targetKind) {
+    return getBuildInvoker(project, context);
+  }
+
+  @Override
+  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, BlazeCommandName command) {
     return getBuildInvoker(project, context);
   }
 
   @Override
   public BuildInvoker getBuildInvoker(Project project, BlazeContext context) {
-    String binaryPath;
-    File projectSpecificBinary = getProjectSpecificBazelBinary(project);
-    if (projectSpecificBinary != null) {
-      binaryPath = projectSpecificBinary.getPath();
-    } else {
-      BlazeUserSettings settings = BlazeUserSettings.getInstance();
-      binaryPath = settings.getBazelBinaryPath();
-    }
-    return new BazelInvoker(project, context, binaryPath);
+    return new LocalInvoker(project, context, this, BuildBinaryType.BAZEL);
   }
 
   @Override
   public Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context) {
     return Optional.empty();
-  }
-
-  @Override
-  public Optional<BuildInvoker> getLocalBuildInvoker(Project project, BlazeContext context) {
-    return Optional.of(getBuildInvoker(project, context));
   }
 
   @Override
@@ -115,8 +81,7 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public void populateBlazeVersionData(
-      WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {
+  public void populateBlazeVersionData(WorkspaceRoot workspaceRoot, BlazeInfo blazeInfo, BlazeVersionData.Builder builder) {
     builder.setBazelVersion(BazelVersion.parseVersion(blazeInfo));
   }
 

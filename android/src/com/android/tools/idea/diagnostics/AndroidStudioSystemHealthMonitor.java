@@ -68,7 +68,6 @@ import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.diagnostic.VMOptions;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.IdeBundle;
-import com.intellij.ide.PowerSaveMode;
 import com.intellij.ide.actions.CopyAction;
 import com.intellij.ide.actions.CutAction;
 import com.intellij.ide.actions.DeleteAction;
@@ -513,6 +512,8 @@ public final class AndroidStudioSystemHealthMonitor {
         LOG.debug(ex);
       }
     }
+
+    new VirtualizationDetector(new LoggingVirtualizationHandler()).detectVirtualization();
   }
 
   private void initDataCollection() {
@@ -523,7 +524,6 @@ public final class AndroidStudioSystemHealthMonitor {
     ourInitialPersistedExceptionCount.set(ourStudioExceptionCount.get());
     ourBundledPluginsExceptionCount.set(getPersistedExceptionCount(BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
     ourNonBundledPluginsExceptionCount.set(getPersistedExceptionCount(NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
-    sendInitialIdeMode();
 
     StudioCrashDetection.start();
     startActivityMonitoring();
@@ -566,26 +566,6 @@ public final class AndroidStudioSystemHealthMonitor {
 
   private void startSystemHealthDataCollection() {
     SystemHealthDataCollection.getInstance().start();
-  }
-
-  private void sendInitialIdeMode() {
-    // Power save mode
-    String powerSaveAction = metricsNameForClass(ActionManager.getInstance().getAction("TogglePowerSave").getClass());
-    UIActionStats.Builder powerSaveMode = getInitialUIStateAction();
-    powerSaveMode.setActionClassName(powerSaveAction);
-    powerSaveMode.setTogglingOn(PowerSaveMode.isEnabled());
-    AndroidStudioEvent.Builder powerSaveModeBuilder = buildStudioUiEvent(powerSaveMode);
-
-    UsageTracker.log(powerSaveModeBuilder);
-  }
-
-  @NotNull
-  private static UIActionStats.Builder getInitialUIStateAction() {
-    return UIActionStats.newBuilder()
-      .setInvocationKind(InvocationKind.UNKNOWN_INVOCATION_KIND)
-      .setInvocations(0)
-      .setDirect(true)
-      .setUiPlace("INITIAL_STARTUP");
   }
 
   /**

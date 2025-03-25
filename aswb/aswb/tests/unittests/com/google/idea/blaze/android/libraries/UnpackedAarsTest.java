@@ -183,13 +183,13 @@ public class UnpackedAarsTest extends BlazeTestCase {
     }
 
     @Override
-    public String getConfigurationMnemonic() {
-      return "";
+    public Path getArtifactPath() {
+      return artifactPath;
     }
 
     @Override
-    public Path getArtifactPath() {
-      return artifactPath;
+    public int getArtifactPathPrefixLength() {
+      return 0;
     }
 
     @Nullable

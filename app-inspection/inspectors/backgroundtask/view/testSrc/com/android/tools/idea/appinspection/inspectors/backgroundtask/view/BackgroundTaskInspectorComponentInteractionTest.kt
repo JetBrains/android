@@ -32,7 +32,6 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getCategoryPanel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getWorksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.table.BackgroundTaskTreeTableView
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -41,21 +40,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.util.concurrency.EdtExecutorService
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTree
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.TreePath
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -67,10 +62,16 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTree
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 
 class BackgroundTaskInspectorComponentInteractionTest {
 
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
@@ -78,7 +79,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
   private lateinit var client: BackgroundTaskInspectorClient
   private lateinit var tab: BackgroundTaskInspectorTab
-  private lateinit var uiDispatcher: ExecutorCoroutineDispatcher
+  private lateinit var uiDispatcher: CoroutineDispatcher
   private lateinit var selectionModel: EntrySelectionModel
   private lateinit var entriesView: BackgroundTaskEntriesView
   private lateinit var detailsView: EntryDetailsView
@@ -88,7 +89,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
   @Before
   fun setUp() = runBlocking {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
-    uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    uiDispatcher = Dispatchers.EDT as CoroutineDispatcher
     withContext(uiDispatcher) {
       val backgroundTaskInspectorMessenger =
         BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)

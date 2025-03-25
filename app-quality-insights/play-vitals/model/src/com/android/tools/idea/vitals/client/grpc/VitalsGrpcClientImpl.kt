@@ -26,8 +26,6 @@ import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.channelBuilderForAddress
 import com.android.tools.idea.insights.client.retryRpc
-import com.android.tools.idea.io.grpc.ClientInterceptor
-import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.vitals.datamodel.Dimension
 import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
@@ -48,13 +46,15 @@ import com.google.play.developer.reporting.ReportingServiceGrpc
 import com.google.play.developer.reporting.SearchAccessibleAppsRequest
 import com.google.play.developer.reporting.SearchErrorIssuesRequest
 import com.google.play.developer.reporting.SearchErrorReportsRequest
-import com.google.play.developer.reporting.TimeZone
 import com.google.play.developer.reporting.TimelineSpec
 import com.google.play.developer.reporting.VitalsErrorsServiceGrpc
+import com.google.type.TimeZone
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.IncorrectOperationException
+import io.grpc.ClientInterceptor
+import io.grpc.ManagedChannel
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.guava.await
@@ -191,6 +191,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
           parent = connection.clientId
           interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
           pageSize = maxNumResults
+          sampleErrorReportLimit = 1
           filter =
             FilterBuilder()
               .apply {
@@ -209,12 +210,43 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       .map { it.toIssueDetails() }
   }
 
-  override suspend fun searchErrorReports(
+  override suspend fun searchErrorReportByReportIds(
+    connection: Connection,
+    filters: QueryFilters,
+    reportIds: List<String>,
+  ): List<Event> {
+    val errorReports = mutableListOf<Event>()
+    val requestBase =
+      SearchErrorReportsRequest.newBuilder().apply {
+        parent = connection.clientId
+        interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
+        filter =
+          FilterBuilder()
+            .apply {
+              addVersions(filters.versions)
+              addVisibilityType(filters.visibilityType)
+              addDevices(filters.devices)
+              addOperatingSystems(filters.operatingSystems)
+              addReportIds(reportIds)
+            }
+            .build()
+      }
+
+    var nextPageToken = ""
+    do {
+      val request = requestBase.apply { pageToken = nextPageToken }.build()
+      val response = retryRpc { vitalsErrorGrpcClient.searchErrorReports(request).await() }
+      errorReports.addAll(response.errorReportsList.map { it.toSampleEvent() })
+      nextPageToken = response.nextPageToken
+    } while (nextPageToken.isNotEmpty())
+    return errorReports
+  }
+
+  override suspend fun searchErrorReportByIssueId(
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId,
-    maxNumResults: Int,
-  ): List<Event> {
+  ): Event {
     val searchErrorReportsRequest =
       SearchErrorReportsRequest.newBuilder()
         .apply {
@@ -230,13 +262,14 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
                 addOperatingSystems(filters.operatingSystems)
               }
               .build()
-          pageSize = maxNumResults
+          pageSize = 1
         }
         .build()
 
     return retryRpc { vitalsErrorGrpcClient.searchErrorReports(searchErrorReportsRequest).await() }
       .errorReportsList
       .map { it.toSampleEvent() }
+      .firstOrNull() ?: Event.EMPTY
   }
 
   companion object {

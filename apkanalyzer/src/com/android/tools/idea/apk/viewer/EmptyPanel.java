@@ -23,7 +23,9 @@ public class EmptyPanel implements ApkFileEditorComponent {
   @NotNull
   @Override
   public JComponent getComponent() {
-    return new JPanel();
+    JPanel panel = new JPanel();
+    panel.setName("EmptyPanel");
+    return panel;
   }
 
   @Override

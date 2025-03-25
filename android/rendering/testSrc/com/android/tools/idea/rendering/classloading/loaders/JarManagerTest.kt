@@ -29,7 +29,6 @@ import java.nio.file.Path
 import java.nio.file.spi.FileSystemProvider
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
-import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.util.prefixIfNot
 import org.junit.Assert
 import org.junit.Assert.assertEquals
@@ -37,6 +36,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 private class MapCache(val delegateMap: MutableMap<String, EntryCache>) :
   AbstractCache<String, EntryCache>() {

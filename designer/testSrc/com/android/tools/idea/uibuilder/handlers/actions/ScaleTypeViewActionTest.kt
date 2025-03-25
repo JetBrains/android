@@ -21,9 +21,14 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class ScaleTypeViewActionTest : SceneTest() {
 
+  @Test
   fun testChangeScaleType() {
     val imageView = myModel.treeReader.find("imageView")!!
     for (type in ScaleType.values()) {

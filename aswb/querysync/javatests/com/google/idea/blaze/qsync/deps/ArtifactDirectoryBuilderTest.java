@@ -44,7 +44,7 @@ public class ArtifactDirectoryBuilderTest {
             BuildArtifact.create(
                 "digest", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
             DependencyBuildContext.create(
-                "build-id", Instant.EPOCH.plusSeconds(1), Optional.empty()));
+                "build-id", Instant.EPOCH.plusSeconds(1)));
 
     assertThat(added).hasValue(ProjectPath.projectRelative("artifactDir/path/to/artifact"));
 
@@ -83,7 +83,7 @@ public class ArtifactDirectoryBuilderTest {
         Path.of("path/to/artifact"),
         BuildArtifact.create(
             "digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
-        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(1), Optional.empty()));
+        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(1)));
 
     Optional<ProjectPath> added =
         adb.addIfNewer(
@@ -91,7 +91,7 @@ public class ArtifactDirectoryBuilderTest {
             BuildArtifact.create(
                 "digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")),
             DependencyBuildContext.create(
-                "build-id", Instant.EPOCH.plusSeconds(2), Optional.empty()));
+                "build-id", Instant.EPOCH.plusSeconds(2)));
 
     assertThat(added).hasValue(ProjectPath.projectRelative("artifactDir/path/to/artifact"));
 
@@ -119,7 +119,7 @@ public class ArtifactDirectoryBuilderTest {
         Path.of("path/to/artifact"),
         BuildArtifact.create(
             "digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
-        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(2), Optional.empty()));
+        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(2)));
 
     Optional<ProjectPath> added =
         adb.addIfNewer(
@@ -127,7 +127,7 @@ public class ArtifactDirectoryBuilderTest {
             BuildArtifact.create(
                 "digest2", Path.of("build-out/path/to/newartifact"), Label.of("//path/to:target")),
             DependencyBuildContext.create(
-                "build-id", Instant.EPOCH.plusSeconds(1), Optional.empty()));
+                "build-id", Instant.EPOCH.plusSeconds(1)));
 
     assertThat(added).isEmpty();
 
@@ -154,7 +154,7 @@ public class ArtifactDirectoryBuilderTest {
         Path.of("path/to/artifact"),
         BuildArtifact.create(
             "digest1", Path.of("build-out/path/to/artifact"), Label.of("//path/to:target")),
-        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(1), Optional.empty()));
+        DependencyBuildContext.create("build-id", Instant.EPOCH.plusSeconds(1)));
 
     ProjectProto.ArtifactDirectories.Builder protoBuilder =
         TextFormat.parse(

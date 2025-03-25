@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="kotlin-language" name="Kotlin">
+      <configuration version="5" platform="JVM 17" allPlatforms="JVM [17]" useProjectSettings="false">
+        <compilerSettings>
+          <option name="additionalArguments" value="-version -Xjvm-default=all-compatibility -Xsam-conversions=class -Xcontext-receivers" />
+        </compilerSettings>
+        <compilerArguments>
+          <stringArguments>
+            <stringArg name="jvmTarget" arg="17" />
+            <stringArg name="apiVersion" arg="2.0" />
+            <stringArg name="languageVersion" arg="2.0" />
+          </stringArguments>
+          <arrayArguments>
+            <arrayArg name="pluginClasspaths">
+              <args>$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-compose-compiler-plugin/2.1.10/kotlin-compose-compiler-plugin-2.1.10.jar</args>
+            </arrayArg>
+          </arrayArguments>
+        </compilerArguments>
+      </configuration>
+    </facet>
+  </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$/testData">
@@ -13,6 +34,22 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.compose-designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
       <library name="ui-animation-tooling">
         <CLASSES>
@@ -103,6 +140,9 @@
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.visual-lint" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.backup.api" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-designer" />
 </module>

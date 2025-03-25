@@ -31,4 +31,9 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.kotlinxCoroutinesDebuggingLibProvider" interface="com.google.idea.blaze.kotlin.run.debug.KotlinxCoroutinesDebuggingLibProvider"/>
   </extensionPoints>
 
+  <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <!--suppress PluginXmlValidity -->
+    <supportsKotlinPluginMode supportsK2="true"/>
+  </extensions>
 </idea-plugin>

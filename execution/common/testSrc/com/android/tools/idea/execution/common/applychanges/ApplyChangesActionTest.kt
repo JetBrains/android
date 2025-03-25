@@ -18,9 +18,6 @@ package com.android.tools.idea.execution.common.applychanges
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
@@ -49,6 +46,9 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 
 class ApplyChangesActionTest  {
@@ -114,7 +114,7 @@ class ApplyChangesActionTest  {
     var applyChangesExecuted = false
     val executionServiceMock = mock<ExecutionManagerImpl>()
 
-    whenever(executionServiceMock.executeConfiguration(MockitoKt.any(), MockitoKt.any(), MockitoKt.any())).thenAnswer {
+    whenever(executionServiceMock.executeConfiguration(any(), any(), any())).thenAnswer {
       val swapInfo = (it.getArgument(0) as ExecutionEnvironment).getUserData(SwapInfo.SWAP_INFO_KEY)
       applyChangesExecuted = swapInfo?.type == SwapInfo.SwapType.APPLY_CHANGES
       return@thenAnswer Unit

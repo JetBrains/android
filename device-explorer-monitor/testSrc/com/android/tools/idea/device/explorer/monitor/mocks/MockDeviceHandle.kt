@@ -20,22 +20,23 @@ import com.android.adblib.DeviceInfo
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceState
-import com.android.testutils.MockitoKt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class MockDeviceHandle(override val scope: CoroutineScope, val serialNumber: String) : DeviceHandle {
   override val id = DeviceId("TEST", false, "")
-  private val mockDeviceState = MockitoKt.mock<DeviceState.Connected>()
-  private val mockConnectedDevice = MockitoKt.mock<ConnectedDevice>()
-  private val mockDeviceInfo = MockitoKt.mock<DeviceInfo>()
+  private val mockDeviceState = mock<DeviceState.Connected>()
+  private val mockConnectedDevice = mock<ConnectedDevice>()
+  private val mockDeviceInfo = mock<DeviceInfo>()
   private val deviceInfoFlow: StateFlow<DeviceInfo> = MutableStateFlow(mockDeviceInfo)
   override val stateFlow: StateFlow<DeviceState> = MutableStateFlow(mockDeviceState)
 
   init {
-    MockitoKt.whenever(mockDeviceState.connectedDevice).thenReturn(mockConnectedDevice)
-    MockitoKt.whenever(mockConnectedDevice.deviceInfoFlow).thenReturn(deviceInfoFlow)
-    MockitoKt.whenever(mockDeviceInfo.serialNumber).thenReturn(serialNumber)
+    whenever(mockDeviceState.connectedDevice).thenReturn(mockConnectedDevice)
+    whenever(mockConnectedDevice.deviceInfoFlow).thenReturn(deviceInfoFlow)
+    whenever(mockDeviceInfo.serialNumber).thenReturn(serialNumber)
   }
 }

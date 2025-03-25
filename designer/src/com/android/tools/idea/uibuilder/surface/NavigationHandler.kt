@@ -16,27 +16,43 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.intellij.openapi.Disposable
+import com.intellij.pom.Navigatable
 
 /** Navigation helper for when the surface is clicked. */
 interface NavigationHandler : Disposable {
   /**
-   * Triggered when preview in the design surface is clicked, returns true if the navigation was
-   * handled by this handler. This method receives the x and y coordinates of the click. You will
-   * usually only need the coordinates if your navigation can be different within a same
-   * [SceneComponent].
+   * Triggered when preview in the design surface is clicked, if [shouldFindAllNavigatables] returns
+   * the returns a list of all navigatables under the x y coordinates in the same file as the click.
+   * Otherwise, returns the deepest navigatable under the given coordinates.
    *
    * @param sceneView [SceneView] for which the navigation request is being issued
    * @param x X coordinate within the [SceneView] where the click action was initiated
    * @param y y coordinate within the [SceneView] where the click action was initiated
    * @param requestFocus true if the navigation should focus the editor
+   * @param shouldFindAllNavigatables true if all navigatables in the file should be found
    */
-  suspend fun handleNavigateWithCoordinates(
+  suspend fun findNavigatablesWithCoordinates(
     sceneView: SceneView,
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,
+    requestFocus: Boolean,
+    shouldFindAllNavigatables: Boolean,
+  ): List<Navigatable?>
+
+  /**
+   * Triggered when preview in the design surface is clicked, returns true if the navigation was
+   * handled by this handler. This method receives a navigatable to navigate to. If null is passed
+   * the component will be navigated to.
+   *
+   * @param sceneView [SceneView] for which the navigation request is being issued
+   * @param navigatable [Navigatable] the navigatable to navigate to
+   * @param requestFocus true if the navigation should focus the editor
+   */
+  suspend fun navigateTo(
+    sceneView: SceneView,
+    navigatable: Navigatable,
     requestFocus: Boolean,
   ): Boolean
 

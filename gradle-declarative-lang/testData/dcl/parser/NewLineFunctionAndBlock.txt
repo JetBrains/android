@@ -1,5 +1,5 @@
 FILE
-  PsiElement(FACTORY)
+  PsiElement(SIMPLE_FACTORY)
     PsiElement(IDENTIFIER)
       PsiElement(DeclarativeTokenType.token)('func1')
     PsiElement(DeclarativeTokenType.()('(')

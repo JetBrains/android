@@ -1,8 +1,12 @@
 filegroup(
-    name = "testData",
-    srcs = glob(
-        include = ["**"],
-    ),
+    name = "test_projects",
+    srcs = glob(["projects/**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "classloader",
+    srcs = glob(["classloader/**"]),
     visibility = ["//visibility:public"],
 )
 

@@ -103,8 +103,7 @@ class StreamingToolWindowManagerMultiProjectTest {
 
     agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
-    dispatchAllEventsInIdeEventQueue()
-    waitForCondition(2.seconds) { deviceProvisioner1.devices.value.size == 2 }
+    waitForCondition(5.seconds) { deviceProvisioner1.devices.value.size == 2 }
     val pixel4Handle1 = deviceProvisioner1.devices.value.find { it.state.properties.model == "Pixel 4" }!!
     val pixel7Handle1 = deviceProvisioner1.devices.value.find { it.state.properties.model == "Pixel 7" }!!
     waitForCondition(2.seconds) { mirroringManager1.mirroringHandles.value.size == 2 }

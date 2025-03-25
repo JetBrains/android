@@ -21,11 +21,15 @@ import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getToken
+import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.psi.KtFile
 
 interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationProjectContext> : Token {
   fun isApplicable(applicationProjectContext: ApplicationProjectContext): Boolean
@@ -67,11 +71,18 @@ interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationPr
 
 interface ApplicationLiveEditServices {
   fun getClassContent(file: VirtualFile, className: String): ClassContent?
+  fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration
 
-  class Legacy(private val project: Project): ApplicationLiveEditServices {
+  @TestOnly
+  class LegacyForTests(private val project: Project): ApplicationLiveEditServices {
     override fun getClassContent(file: VirtualFile, className: String): ClassContent? {
       val module = ModuleUtilCore.findModuleForFile(file, project) ?: return null
-      return module.getModuleSystem().getClassFileFinderForSourceFile(file).findClassFile(className)
+      // TODO: solodkyy - ??? this is not the same for non main modules in gradle but gradle should not be here.
+      return module.getModuleSystem().moduleClassFileFinder.findClassFile(className)
+    }
+
+    override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
+      return getCompilerConfiguration(ktFile.module!!, ktFile)
     }
   }
 
@@ -79,6 +90,11 @@ interface ApplicationLiveEditServices {
   class ApplicationLiveEditServicesForTests(private val classFiles: Map<String, ByteArray>): ApplicationLiveEditServices {
     override fun getClassContent(file: VirtualFile, className: String): ClassContent? {
       return classFiles[className]?.let { ClassContent.forTests(it) }
+    }
+
+    override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
+      return ktFile.module?.let { module -> getCompilerConfiguration(module, ktFile) }
+        ?: error("Cannot get kotlin compiler configuration for $ktFile")
     }
   }
 }

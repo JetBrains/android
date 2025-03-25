@@ -74,7 +74,7 @@ public class BuildToolsTooLowReporterTest extends HeavyPlatformTestCase {
     final var messages = spiedReporter.report(mySyncIssue, module, null);
     assertThat(messages).hasSize(1);
 
-    final var message = messages.get(0);
+    final var message = messages.get(0).getSyncMessage();
 
     assertEquals(MessageType.WARNING, message.getType());
     assertEquals("Upgrade Build Tools!\nAffected Modules: testReport", message.getMessage());
@@ -82,6 +82,9 @@ public class BuildToolsTooLowReporterTest extends HeavyPlatformTestCase {
     final var actualQuickFixes = message.getQuickFixes();
     assertEquals(quickFixes,
                  actualQuickFixes.subList(0, actualQuickFixes.size() - 1));
+
+    assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(module));
+
     assertEquals(
       GradleSyncIssue.newBuilder()
         .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_BUILD_TOOLS_TOO_LOW)

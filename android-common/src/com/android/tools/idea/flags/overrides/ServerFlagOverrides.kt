@@ -33,7 +33,7 @@ class ServerFlagOverrides : ImmutableFlagOverrides {
     val name = "studio_flags/$id"
 
     // Currently, only boolean and integer flag overrides are supported.
-    return when(flag) {
+    return when (flag) {
       is BooleanFlag -> service.getBoolean(name)?.toString()
       is IntFlag -> service.getInt(name)?.toString()
       else -> null

@@ -4,9 +4,12 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.events.StateTransition
+import com.android.tools.idea.insights.events.actions.Action
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import kotlin.reflect.KClass
 
 /** Represents the state of filters applied to a module. */
 data class Filters(
@@ -84,6 +87,8 @@ data class AppInsightsState(
    * over the network.
    */
   val currentInsight: LoadingState<AiInsight?> = LoadingState.Ready(null),
+  /** Set of currently disabled actions */
+  val disabledActions: Set<KClass<out Action>> = emptySet(),
 ) {
   val selectedIssue: AppInsightsIssue?
     get() = if (issues is LoadingState.Ready) issues.value.value.selected else null
@@ -121,6 +126,8 @@ data class AppInsightsState(
   /** Returns a new state with a new [FirebaseConnection] selected. */
   fun selectConnection(value: Connection): AppInsightsState =
     copy(connections = connections.select(value))
+
+  fun toEmptyTransition() = StateTransition(this, Action.NONE)
 }
 
 fun AppInsightsState.toIssueRequest(clock: Clock): IssueRequest? {

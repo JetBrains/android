@@ -33,12 +33,11 @@ import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import java.nio.file.Paths
 import kotlin.time.Duration.Companion.seconds
@@ -50,6 +49,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
 class OpenWearHealthServicesPanelActionTest {
@@ -70,25 +71,26 @@ class OpenWearHealthServicesPanelActionTest {
         whenever(it.deviceType).thenReturn(DeviceType.WEAR)
       }
     emulatorController =
-      mock<EmulatorController>().also {
-        whenever(it.emulatorId)
-          .thenReturn(
-            EmulatorId(
-              0,
-              null,
-              null,
-              "avdId",
-              "avdFolder",
-              Paths.get("avdPath"),
-              0,
-              0,
-              emptyList(),
-              "",
-            )
-          )
-        whenever(it.emulatorConfig).thenReturn(emulatorConfig)
-        Disposer.register(projectRule.testRootDisposable, it)
-      }
+      spy(
+        EmulatorController(
+          EmulatorId(
+            0,
+            null,
+            null,
+            "avdId",
+            "avdFolder",
+            Paths.get("avdPath"),
+            0,
+            0,
+            emptyList(),
+            "",
+          ),
+          projectRule.testRootDisposable,
+        )
+      )
+    doReturn(emulatorConfig).whenever(emulatorController).emulatorConfig
+    Disposer.register(projectRule.testRootDisposable, emulatorController)
+
     emulatorView =
       EmulatorView(
         projectRule.testRootDisposable,
@@ -106,8 +108,7 @@ class OpenWearHealthServicesPanelActionTest {
         .add(EMULATOR_CONTROLLER_KEY, emulatorController)
         .build()
 
-    actionEvent =
-      AnActionEvent(null, dataContext, "", Presentation(), ActionManager.getInstance(), 0)
+    actionEvent = TestActionEvent.createTestEvent(dataContext)
 
     val deviceProvisionerService: DeviceProvisionerService = mock()
     projectRule.project.replaceService(
@@ -123,6 +124,8 @@ class OpenWearHealthServicesPanelActionTest {
   fun `OpenWearHealthServicesPanelAction opens popup`() {
     val action = OpenWearHealthServicesPanelAction()
 
+    whenever(emulatorController.connectionState)
+      .thenReturn(EmulatorController.ConnectionState.CONNECTED)
     action.actionPerformed(actionEvent)
     assertThat(fakePopupRule.fakePopupFactory.balloonCount).isEqualTo(1)
   }

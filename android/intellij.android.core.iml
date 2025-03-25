@@ -91,10 +91,15 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" />
+    <orderEntry type="module" module-name="intellij.android.server-flags" />
+    <orderEntry type="module" module-name="intellij.android.threading-checker" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="module" module-name="intellij.android.server-flags" />
     <orderEntry type="module" module-name="intellij.android.smali" />
+    <orderEntry type="module" module-name="intellij.android.testartifacts" />
     <orderEntry type="module" module-name="intellij.android.threading-checker" />
     <orderEntry type="module" module-name="intellij.android.utp" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
@@ -138,6 +143,7 @@
     <orderEntry type="module" module-name="intellij.maven.server.indexer" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
+    <orderEntry type="module" module-name="intellij.platform.backend.observation" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle.impl" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" />
@@ -214,7 +220,9 @@
     <orderEntry type="module" module-name="intellij.xml.structureView" />
     <orderEntry type="module" module-name="intellij.xml.tests" />
     <orderEntry type="module" module-name="kotlin.base.analysis" />
+    <orderEntry type="module" module-name="kotlin.base.analysis-api.utils" />
     <orderEntry type="module" module-name="kotlin.base.code-insight" />
+    <orderEntry type="module" module-name="kotlin.code-insight.api" />
     <orderEntry type="module" module-name="kotlin.base.facet" />
     <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
     <orderEntry type="module" module-name="kotlin.base.fe10.code-insight" />
@@ -232,11 +240,10 @@
     <orderEntry type="module" module-name="intellij.idea.customization.base" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-platform-interface" level="project" />
-    <orderEntry type="library" name="javapoet" level="project" />
     <orderEntry type="module" module-name="intellij.android.backup.api" />
-    <orderEntry type="module" module-name="kotlin.base.analysis-api.utils" />
-    <orderEntry type="module" module-name="kotlin.gradle.gradle-java" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
-    <orderEntry type="library" name="jgoodies-forms" level="project" />
+    <orderEntry type="module" module-name="kotlin.gradle.gradle" />
+    <orderEntry type="module" module-name="intellij.android.completion" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-k2" level="project" />
   </component>
 </module>

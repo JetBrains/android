@@ -46,17 +46,6 @@ public class BazelModuleSystem extends BlazeModuleSystemBase {
     return blazeTargetName.substring(2).replaceAll("['/',':']", "_");
   }
 
-  @Override
-  public String getModuleNameForCompilation(VirtualFile virtualFile) {
-    String moduleName =
-        blazeTargetNameToKotlinModuleName(
-            SourceToTargetMap.getInstance(project)
-                .getTargetsToBuildForSourceFile(new File(virtualFile.getPath()))
-                .get(0) // use the first target
-                .toString());
-    return moduleName;
-  }
-
   /** Check every supporting extension point if they contain desugaring library config files */
   @Override
   public boolean getDesugarLibraryConfigFilesKnown() {

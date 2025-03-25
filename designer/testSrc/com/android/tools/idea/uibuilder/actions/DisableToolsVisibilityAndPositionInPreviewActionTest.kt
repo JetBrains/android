@@ -17,43 +17,38 @@ package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.testFramework.MapDataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.mock
 
 @RunWith(JUnit4::class)
 class DisableToolsVisibilityAndPositionInPreviewActionTest {
+  @get:Rule val applicationRule = ApplicationRule()
   private val disableToolsAction = DisableToolsVisibilityAndPositionInPreviewAction
-  private val actionManager: ActionManagerEx = mock(ActionManagerEx::class.java)
-  private lateinit var context: MapDataContext
+  private val context by lazy {
+    SimpleDataContext.builder().add(LAYOUT_PREVIEW_HANDLER_KEY, previewHandler).build()
+  }
 
   private val previewHandler: LayoutPreviewHandler =
     object : LayoutPreviewHandler {
       override var previewWithToolsVisibilityAndPosition: Boolean = false
     }
 
-  private fun createActionEvent(): AnActionEvent {
-    return AnActionEvent(
-      null,
+  private fun createActionEvent() =
+    AnActionEvent.createEvent(
       context,
-      "DesignSurface",
       disableToolsAction.templatePresentation.clone(),
-      actionManager,
-      0,
+      "DesignSurface",
+      ActionUiKind.NONE,
+      null,
     )
-  }
-
-  @Before
-  fun setUp() {
-    context = MapDataContext().apply { put(LAYOUT_PREVIEW_HANDLER_KEY, previewHandler) }
-  }
 
   @Test
   fun isSelected() {

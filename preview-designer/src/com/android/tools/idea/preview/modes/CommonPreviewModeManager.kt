@@ -28,17 +28,16 @@ class CommonPreviewModeManager : PreviewModeManager {
 
   private fun getStoredDefaultValue() =
     when (AndroidEditorSettings.getInstance().globalState.preferredPreviewLayoutMode) {
-      AndroidEditorSettings.LayoutType.LIST -> PreviewMode.Default(LIST_LAYOUT_OPTION)
       AndroidEditorSettings.LayoutType.GRID -> PreviewMode.Default(GRID_LAYOUT_OPTION)
-      AndroidEditorSettings.LayoutType.GALLERY -> PreviewMode.Gallery(null)
+      AndroidEditorSettings.LayoutType.GALLERY -> PreviewMode.Focus(null)
       else -> PreviewMode.Default()
     }
 
   /**
-   * When entering one of the [PreviewMode.Focus] modes (interactive, animation, etc.), the previous
-   * mode is saved into [restoreMode]. After exiting the special mode [restoreMode] is set.
+   * When entering one of the [PreviewMode.SingleItemMode] modes (interactive, animation, etc.), the
+   * previous mode is saved into [restoreMode]. After exiting the special mode [restoreMode] is set.
    *
-   * TODO(b/293257529) Need to restore selected tab as well in Gallery mode.
+   * TODO(b/293257529) Need to restore selected tab as well in Focus mode.
    */
   private var restoreMode: PreviewMode? = null
 

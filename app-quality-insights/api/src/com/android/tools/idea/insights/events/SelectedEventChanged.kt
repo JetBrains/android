@@ -17,9 +17,10 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.EventMovement
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 import com.intellij.openapi.diagnostic.Logger
 
@@ -28,15 +29,26 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     val selection =
       (state.currentEvents as? LoadingState.Ready)?.value
         ?: return StateTransition(state, Action.NONE)
     return if (movement == EventMovement.NEXT && selection.hasNext()) {
+      val newSelection = selection.next()
       StateTransition(
-          newState = state.copy(currentEvents = LoadingState.Ready(selection.next())),
-          action = Action.NONE,
+          newState = state.copy(currentEvents = LoadingState.Ready(newSelection)),
+          action =
+            if (newSelection.isLastIndexSelected() && newSelection.canRequestMoreEvents()) {
+              Action.ListEvents(
+                state.selectedIssue!!.id,
+                state.selectedVariant?.id,
+                newSelection.token,
+              )
+            } else {
+              Action.NONE
+            },
         )
         .also { trackEventView(tracker, it) }
     } else if (movement == EventMovement.PREVIOUS && selection.hasPrevious()) {
@@ -45,12 +57,6 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
           action = Action.NONE,
         )
         .also { trackEventView(tracker, it) }
-    } else if (movement == EventMovement.NEXT && selection.canRequestMoreEvents()) {
-      StateTransition(
-        newState = state,
-        action =
-          Action.ListEvents(state.selectedIssue!!.id, state.selectedVariant?.id, selection.token),
-      )
     } else {
       Logger.getInstance(this::class.java)
         .warn(
@@ -61,5 +67,5 @@ class SelectedEventChanged(private val movement: EventMovement) : ChangeEvent {
   }
 
   private fun trackEventView(tracker: AppInsightsTracker, transition: StateTransition<Action>) =
-    tracker.trackEventView(transition.newState, false)
+    tracker.trackEventView(transition.newState)
 }

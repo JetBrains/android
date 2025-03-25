@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module.recipes.benchmarkModule
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
+import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.androidManifestXml as testAndroidManifestXml
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.main.androidManifestXml
@@ -25,7 +26,6 @@ import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.androidManifestXml as testAndroidManifestXml
 
 private const val minRev = "1.2.4"
 private const val exampleBenchmarkName = "ExampleBenchmark"
@@ -33,7 +33,7 @@ private const val exampleBenchmarkName = "ExampleBenchmark"
 fun RecipeExecutor.generateBenchmarkModule(
   moduleData: ModuleTemplateData,
   useGradleKts: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
 ) {
   val projectData = moduleData.projectTemplateData
   val testOut = moduleData.testDir
@@ -47,21 +47,30 @@ fun RecipeExecutor.generateBenchmarkModule(
   addIncludeToSettings(moduleData.name)
   save(benchmarkProguardRules(), moduleOut.resolve("benchmark-proguard-rules.pro"))
 
-  val bg = buildGradle(
-    packageName = packageName,
-    buildApiString = buildApi.apiString,
-    minApi = minApi.apiString,
-    targetApiString = targetApi.apiString,
-    language = language,
-    agpVersion = projectData.agpVersion,
-    useGradleKts = useGradleKts,
-    useVersionCatalog = useVersionCatalog
-  )
+  val bg =
+    buildGradle(
+      packageName = packageName,
+      buildApiString = buildApi.apiString,
+      minApi = minApi.apiString,
+      targetApiString = targetApi.apiString,
+      language = language,
+      agpVersion = projectData.agpVersion,
+      useGradleKts = useGradleKts,
+      useVersionCatalog = useVersionCatalog,
+    )
   val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 
   save(bg, moduleOut.resolve(buildFile))
-  applyPlugin("com.android.library", projectData.agpVersion)
-  applyPlugin("androidx.benchmark", minRev)
+  addPlugin(
+    "com.android.library",
+    "com.android.tools.build:gradle",
+    projectData.agpVersion.toString(),
+  )
+  addPlugin(
+    "androidx.benchmark",
+    "androidx.benchmark:benchmark-baseline-profile-gradle-plugin",
+    minRev,
+  )
   addDependency("androidx.test:runner:+", "androidTestImplementation")
   addDependency("androidx.test.ext:junit:+", "androidTestImplementation")
   addDependency("junit:junit:4.+", "androidTestImplementation", "4.13.2")
@@ -72,11 +81,17 @@ fun RecipeExecutor.generateBenchmarkModule(
   save(gitignore(), moduleOut.resolve(".gitignore"))
 
   if (language == Language.Kotlin) {
-    save(exampleBenchmarkKt(exampleBenchmarkName, packageName), testOut.resolve("$exampleBenchmarkName.kt"))
-  }
-  else {
-    save(exampleBenchmarkJava(exampleBenchmarkName, packageName), testOut.resolve("$exampleBenchmarkName.java"))
+    save(
+      exampleBenchmarkKt(exampleBenchmarkName, packageName),
+      testOut.resolve("$exampleBenchmarkName.kt"),
+    )
+  } else {
+    save(
+      exampleBenchmarkJava(exampleBenchmarkName, packageName),
+      testOut.resolve("$exampleBenchmarkName.java"),
+    )
   }
 
   addKotlinIfNeeded(projectData, targetApi = targetApi.api, noKtx = true)
+  setJavaKotlinCompileOptions(language == Language.Kotlin)
 }

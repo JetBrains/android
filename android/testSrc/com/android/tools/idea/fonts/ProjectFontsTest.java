@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
 import static com.google.common.truth.Truth.assertThat;
@@ -75,7 +77,7 @@ public class ProjectFontsTest {
 
     assertThat(family.getFonts().size()).isEqualTo(1);
 
-    assertFontDetail(family.getFonts().get(0), "a_bee_zee_regular", "Regular", 400, 100, false,
+    assertFontDetail(family.getFonts().get(0), "a_bee_zee_regular", "Regular", 400, 100, NORMAL,
                      FILE_PROTOCOL_START + fontFilePath, fontFilePath.toFile());
   }
 
@@ -95,9 +97,9 @@ public class ProjectFontsTest {
 
     assertThat(family.getFonts().size()).isEqualTo(2);
 
-    assertFontDetail(family.getFonts().get(0), "fontb", "Regular Italic", 400, 100, true,
+    assertFontDetail(family.getFonts().get(0), "fontb", "Regular Italic", 400, 100, ITALICS,
                      FILE_PROTOCOL_START + fileB, fileB.toFile());
-    assertFontDetail(family.getFonts().get(1), "fonta", "Regular", 400, 100, false,
+    assertFontDetail(family.getFonts().get(1), "fonta", "Regular", 400, 100, NORMAL,
                      FILE_PROTOCOL_START + fileA, fileA.toFile());
   }
 
@@ -126,7 +128,7 @@ public class ProjectFontsTest {
     FontFamily family = assertFontFamily(project.getFont("@font/roboto"), "roboto", "roboto", "v16", "W5F8_SL0XFawnjxHGsZjJA.ttf");
     assertThat(family.getFonts().size()).isEqualTo(1);
 
-    assertFontDetail(family.getFonts().get(0), "Roboto", "Regular", 400, 100, false, "roboto", "v16", "W5F8_SL0XFawnjxHGsZjJA.ttf");
+    assertFontDetail(family.getFonts().get(0), "Roboto", "Regular", 400, 100, NORMAL, "roboto", "v16", "W5F8_SL0XFawnjxHGsZjJA.ttf");
   }
 
   @Test
@@ -140,7 +142,7 @@ public class ProjectFontsTest {
                                          "robotocondensed", "v14", "mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf");
     assertThat(family.getFonts().size()).isEqualTo(1);
 
-    assertFontDetail(family.getFonts().get(0), "Roboto", "Condensed Bold Italic", 700, 75, true,
+    assertFontDetail(family.getFonts().get(0), "Roboto", "Condensed Bold Italic", 700, 75, ITALICS,
                      "robotocondensed", "v14", "mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf");
   }
 
@@ -156,15 +158,15 @@ public class ProjectFontsTest {
                                          "alegreyasans", "v3", "KYNzioYhDai7mTMnx_gDgn8f0n03UdmQgF_CLvNR2vg.ttf");
     assertThat(family.getFonts().size()).isEqualTo(5);
 
-    assertFontDetail(family.getFonts().get(0), "Source Sans Pro", "ExtraLight", 200, 100, false,
+    assertFontDetail(family.getFonts().get(0), "Source Sans Pro", "ExtraLight", 200, 100, NORMAL,
                      "sourcesanspro", "v9", "toadOcfmlt9b38dHJxOBGKXvKVW_haheDNrHjziJZVk.ttf");
-    assertFontDetail(family.getFonts().get(1), "Alegreya Sans", "Regular", 400, 100, false,
+    assertFontDetail(family.getFonts().get(1), "Alegreya Sans", "Regular", 400, 100, NORMAL,
                      "alegreyasans", "v3", "KYNzioYhDai7mTMnx_gDgn8f0n03UdmQgF_CLvNR2vg.ttf");
-    assertFontDetail(family.getFonts().get(2), "Alegreya Sans", "Bold", 700, 100, false,
+    assertFontDetail(family.getFonts().get(2), "Alegreya Sans", "Bold", 700, 100, NORMAL,
                      "alegreyasans", "v3", "11EDm-lum6tskJMBbdy9aVCbmAUID8LN-q3pJpOk3Ys.ttf");
-    assertFontDetail(family.getFonts().get(3), "Exo 2", "Regular Italic", 400, 100, true,
+    assertFontDetail(family.getFonts().get(3), "Exo 2", "Regular Italic", 400, 100, ITALICS,
                      "exo2", "v3", "xxA5ZscX9sTU6U0lZJUlYA.ttf");
-    assertFontDetail(family.getFonts().get(4), "Exo 2", "Bold Italic", 700, 100, true,
+    assertFontDetail(family.getFonts().get(4), "Exo 2", "Bold Italic", 700, 100, ITALICS,
                      "exo2", "v3", "Sdo-zW-4_--pDkTg6bYrY_esZW2xOQ-xsNqO47m55DA.ttf");
   }
 
@@ -221,8 +223,8 @@ public class ProjectFontsTest {
                                 @NotNull String expectedFontName,
                                 @NotNull String expectedStyleName,
                                 int expectedWeight,
-                                int expectedWidth,
-                                boolean expectedItalics,
+                                float expectedWidth,
+                                float expectedItalics,
                                 @NotNull String expectedFolder1,
                                 @NotNull String expectedFolder2,
                                 @NotNull String expectedFilename) {
@@ -235,8 +237,8 @@ public class ProjectFontsTest {
                                        @NotNull String expectedFontName,
                                        @NotNull String expectedStyleName,
                                        int expectedWeight,
-                                       int expectedWidth,
-                                       boolean expectedItalics,
+                                       float expectedWidth,
+                                       float expectedItalics,
                                        @NotNull String expectedUrl,
                                        @NotNull File expectedFile) {
     expectedUrl = expectedUrl.replace('\\', '/');

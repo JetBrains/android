@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -40,8 +38,10 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -78,6 +78,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
@@ -1681,7 +1683,7 @@ class DeviceFileExplorerControllerTest {
     }
 
     private fun createContentMenuItemEvent(): AnActionEvent {
-      return AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, { dataId -> null })
+      return createEvent({ dataId: String -> null }, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null)
     }
 
     private fun getActionByText(actionGroup: ActionGroup, text: String): AnAction? {

@@ -9,6 +9,7 @@ import com.android.tools.idea.backup.BackupManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.RunConfigSection;
@@ -127,7 +128,9 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       @Override
       public Module getModule() {
         Module selectedModule = myModuleSelector.getModule();
-        return selectedModule == null ? null : ModuleSystemUtil.getMainModule(selectedModule);
+        if (selectedModule == null) return null;
+        Module mainModule = ProjectSystemUtil.getModuleSystem(selectedModule).getProductionAndroidModule();
+        return mainModule == null ? null : mainModule;
       }
     };
 

@@ -26,8 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
-  @get:Rule
-  val portableUiFontRule = PortableUiFontRule()
+  @get:Rule val portableUiFontRule = PortableUiFontRule()
 
   override fun setUp() {
     super.setUp()
@@ -56,11 +55,12 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
 
     // Act
     createModalDialogAndInteractWithIt({
-                                    action.update(event)
-                                    action.actionPerformed(event)
-                                  }) {
+      action.update(event)
+      action.actionPerformed(event)
+    }) {
       // Assert
-      val dialog = SimpleDialog.fromDialogWrapper(it) ?: throw AssertionError("Dialog Wrapper is not set")
+      val dialog =
+        SimpleDialog.fromDialogWrapper(it) ?: throw AssertionError("Dialog Wrapper is not set")
       Truth.assertThat(dialog.title).isEqualTo("Pair devices over Wi-Fi")
       Truth.assertThat(dialog.cancelButtonText).isEqualTo("Close")
       Truth.assertThat(dialog.rootPane).isNotNull()

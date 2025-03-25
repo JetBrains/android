@@ -42,8 +42,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.impl.model.util.FakeAction
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -141,8 +141,8 @@ class LayoutInspectorMainToolbarTest {
           "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
             "impact runtime performance."
         )
-      assertThat(commands).hasSize(2)
-      assertThat(commands[1].hasStartFetchCommand()).isTrue()
+      assertThat(commands).hasSize(3)
+      assertThat(commands[2].hasStartFetchCommand()).isTrue()
     }
 
   @Test
@@ -164,7 +164,7 @@ class LayoutInspectorMainToolbarTest {
           "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
             "impact runtime performance."
         )
-      assertThat(commands).hasSize(2)
+      assertThat(commands).hasSize(3)
       assertThat(commands[0].startFetchCommand.continuous).isFalse()
     }
 
@@ -252,8 +252,8 @@ class LayoutInspectorMainToolbarTest {
         )
 
       assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-      assertThat(commands).hasSize(4)
-      assertThat(commands[1].hasStartFetchCommand()).isTrue()
+      assertThat(commands).hasSize(5)
+      assertThat(commands[2].hasStartFetchCommand()).isTrue()
       // stop and update screenshot type can come in either order
       assertThat(commands.find { it.hasStopFetchCommand() }).isNotNull()
       assertThat(commands.find { it.hasUpdateScreenshotTypeCommand() }).isNotNull()
@@ -291,9 +291,9 @@ class LayoutInspectorMainToolbarTest {
         )
 
       assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-      assertThat(commands).hasSize(3)
+      assertThat(commands).hasSize(4)
       assertThat(commands[0].startFetchCommand.continuous).isFalse()
-      assertThat(commands[2].startFetchCommand.continuous).isTrue()
+      assertThat(commands[3].startFetchCommand.continuous).isTrue()
 
       assertThat(stats.currentModeIsLive).isTrue()
     }
@@ -392,6 +392,11 @@ class LayoutInspectorMainToolbarTest {
         layoutInspectorRule.inspector,
         fakeAction,
       )
+    FakeUi(
+      toolbar.component,
+      createFakeWindow = true,
+      parentDisposable = androidProjectRule.testRootDisposable,
+    )
     waitForCondition(5.seconds) { toolbar.component.components.isNotEmpty() }
     return toolbar
   }
@@ -408,13 +413,12 @@ class LayoutInspectorMainToolbarTest {
   private fun getPresentation(action: AnAction): Presentation {
     val presentation = Presentation()
     val event =
-      AnActionEvent(
-        null,
+      AnActionEvent.createEvent(
         DataContext.EMPTY_CONTEXT,
-        "LayoutInspector.MainToolbar",
         presentation,
-        ActionManager.getInstance(),
-        0,
+        "LayoutInspector.MainToolbar",
+        ActionUiKind.NONE,
+        null,
       )
     action.update(event)
     return presentation

@@ -34,6 +34,7 @@ import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCanaryTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth
+import junit.framework.TestCase.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -160,7 +161,7 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   fun `checkDeviceAndProcess - always returns true`() {
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
     val qDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.Q)
-    assertTrue(leakCanaryTaskHandler.supportsDeviceAndProcess (qDevice, debuggableProcess))
+    assertNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(qDevice, debuggableProcess))
   }
 
   @Test

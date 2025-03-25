@@ -18,7 +18,7 @@ package com.android.tools.adtui.workbench;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
 import static com.android.tools.adtui.workbench.PalettePanelToolContent.MIN_TOOL_WIDTH;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -51,6 +51,8 @@ import java.beans.PropertyChangeListener;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -413,6 +415,53 @@ public class WorkBenchTest extends WorkBenchTestCase {
 
     myToolWindow2.setPropertyAndUpdate(PropertyType.LEFT, true);
     assertThat(component.isVisible()).isTrue();
+  }
+
+  public void testShowToolWindow() {
+    assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2, myToolWindow3).inOrder();
+    // Minimize tool windows
+    myWorkBench.setContext("showToolWindow");
+    myWorkBench.setDefaultPropertiesForContext(true);
+    assertThat(myModel.getAllTools().stream().allMatch(AttachedToolWindow::isMinimized)).isTrue();
+
+    myWorkBench.showToolWindow(myToolWindow2.getToolName());
+
+    assertThat(myToolWindow1.isMinimized()).isTrue();
+    assertThat(myToolWindow2.isMinimized()).isFalse();
+    assertThat(myToolWindow3.isMinimized()).isTrue();
+
+    // Show all toolwindows but minimize toolwindow2 and show it again
+    // to test that only windows on same side and split are minimized
+    myWorkBench.setContext("showToolWindow2");
+    myWorkBench.setDefaultPropertiesForContext(false);
+    assertThat(myModel.getAllTools().stream().noneMatch(AttachedToolWindow::isMinimized)).isTrue();
+    myToolWindow2.setMinimized(true);
+
+    myWorkBench.showToolWindow(myToolWindow2.getToolName());
+
+    assertThat(myToolWindow1.isMinimized()).isFalse();
+    assertThat(myToolWindow2.isMinimized()).isFalse();
+    assertThat(myToolWindow3.isMinimized()).isFalse();
+  }
+
+  public void testWorkBenchToolWindowListener() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(1);
+    myWorkBench.addWorkBenchToolWindowListener(
+      visibleToolWindowNames -> {
+        assertThat(visibleToolWindowNames.size()).isEqualTo(1);
+        assertThat(visibleToolWindowNames).containsExactly(myToolWindow1.getToolName());
+        latch.countDown();
+      }
+    );
+
+    myWorkBench.setContext("toolWindowListener");
+    myWorkBench.setDefaultPropertiesForContext(true);
+    assertThat(myModel.getAllTools().stream().allMatch(AttachedToolWindow::isMinimized)).isTrue();
+
+    myToolWindow1.setMinimized(false);
+    myModel.update(myToolWindow1, PropertyType.MINIMIZED);
+
+    assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
   }
 
   @SuppressWarnings("SameParameterValue")

@@ -11,20 +11,46 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.adb" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.ide" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.database" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.ide" />
-    <orderEntry type="module" module-name="intellij.android.assistant" />
-    <orderEntry type="module" module-name="intellij.android.build-attribution" />
-    <orderEntry type="module" module-name="intellij.android.connection-assistant" />
-    <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.dagger" />
-    <orderEntry type="module" module-name="intellij.android.databinding" />
-    <orderEntry type="module" module-name="intellij.android.debuggers" />
-    <orderEntry type="module" module-name="intellij.android.device" />
-    <orderEntry type="module" module-name="intellij.android.device-explorer" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.streaming" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.ide" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.profilersAndroid" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.apkanalyzer" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.apkanalyzer.apk" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.apkanalyzer.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.ide" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.database" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.ide" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.debuggers" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.lang" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.apk" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.transport" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.lang-databinding" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.mlkit" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.layout-inspector" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.room" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.build-attribution" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.nav.safeargs" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.dagger" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.device" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.logcat" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.backup" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.device-explorer" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.templates" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.lint" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.wear-pairing" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.wear-whs" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
@@ -38,13 +64,15 @@
     <orderEntry type="module" module-name="intellij.android.mlkit" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
-    <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
+    <orderEntry type="module" module-name="intellij.android.profilersAndroid" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.profilersAndroid.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" />
     <orderEntry type="module" module-name="intellij.android.room" />
+    <orderEntry type="module" module-name="intellij.android.safemode" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="intellij.android.templates" />
@@ -72,7 +100,7 @@
     <orderEntry type="module" module-name="intellij.android.databinding.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.core.editing.documentation" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.core.editing.metrics" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.plugin.descriptor" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.profilersAndroid.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.screenshot-test" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.testartifacts" scope="RUNTIME" />
   </component>
 </module>

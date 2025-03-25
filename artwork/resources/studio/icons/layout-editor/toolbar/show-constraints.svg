@@ -1,1 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect width="16" height="16" fill="none"/><g fill="#6E6E6E" fill-rule="evenodd"><path d="M2 1L1 2l13 13 1-1z"/><path d="M14.23 11.23l-2.598-2.598a3.638 3.638 0 0 0-3.81-3.81L6.191 3.191A8.613 8.613 0 0 1 8 3c3.636 0 6.742 2.262 8 5.455a8.631 8.631 0 0 1-1.77 2.775zm-1.056.944A8.545 8.545 0 0 1 8 13.91c-3.636 0-6.742-2.262-8-5.454A8.64 8.64 0 0 1 4.67 3.67l1.59 1.59a3.637 3.637 0 1 0 4.934 4.934l1.98 1.98zM10.09 9.09A2.18 2.18 0 0 1 8 10.636a2.179 2.179 0 0 1-2.182-2.181c0-.987.651-1.818 1.548-2.09l2.723 2.724z"/></g></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.132 3.48C2.193 4.48.618 6.146 0 8c1 3 4.5 5.5 8 5.5 1.651 0 3.303-.557 4.692-1.46l-.725-.724C10.76 12.059 9.365 12.5 8 12.5c-1.518 0-3.072-.546-4.366-1.446C2.445 10.227 1.533 9.142 1.066 8c.467-1.142 1.379-2.227 2.568-3.054a8.473 8.473 0 011.245-.718l-.747-.747zM6.23 5.579a3 3 0 104.193 4.193l-.72-.72A1.999 1.999 0 016 8c0-.72.38-1.35.95-1.702l-.72-.72zm2.157.46l-.979-.98a3 3 0 013.534 3.534l-.978-.978a2.002 2.002 0 00-1.577-1.577zm4.568 4.568c.901-.754 1.593-1.66 1.98-2.606-.467-1.142-1.379-2.227-2.568-3.054C11.072 4.046 9.518 3.5 8 3.5c-.629 0-1.264.094-1.884.267l-.797-.797A8.16 8.16 0 018 2.5c3.5 0 7 2.5 8 5.5-.412 1.237-1.25 2.389-2.336 3.315l-.71-.71z" fill="#6C707E"/><path d="M2 2l12 12" stroke="#6C707E" stroke-linecap="round"/></svg>

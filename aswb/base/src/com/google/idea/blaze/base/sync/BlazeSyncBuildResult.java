@@ -52,7 +52,7 @@ public abstract class BlazeSyncBuildResult {
   public abstract BlazeInfo getBlazeInfo();
 
   @Nullable
-  public abstract BlazeBuildOutputs getBuildResult();
+  public abstract BlazeBuildOutputs.Legacy getBuildResult();
 
   public abstract ImmutableList<BuildPhaseSyncStats> getBuildPhaseStats();
 
@@ -67,7 +67,7 @@ public abstract class BlazeSyncBuildResult {
   public abstract static class Builder {
     public abstract Builder setBlazeInfo(BlazeInfo info);
 
-    public abstract Builder setBuildResult(BlazeBuildOutputs buildResult);
+    public abstract Builder setBuildResult(BlazeBuildOutputs.Legacy buildResult);
 
     public abstract Builder setBuildPhaseStats(Iterable<BuildPhaseSyncStats> stats);
 

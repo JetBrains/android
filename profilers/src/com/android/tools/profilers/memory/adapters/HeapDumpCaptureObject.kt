@@ -49,7 +49,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
-import gnu.trove.TObjectProcedure
+import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.OutputStream
 import java.util.concurrent.Executor
@@ -64,7 +64,8 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
                                  private val featureTracker: FeatureTracker,
                                  private val ideProfilerServices: IdeProfilerServices) : CaptureObject {
   private val _heapSets: MutableMap<Int, HeapSet> = HashMap()
-  private val instanceIndex = Long2ObjectOpenHashMap<InstanceObject>()
+  // A load factor of 0.5 is used for performance reasons due to the interaction of two hash tables. See b/372321482 for details.
+  private val instanceIndex = Long2ObjectOpenHashMap<InstanceObject>(16, Hash.FAST_LOAD_FACTOR)
 
   @get:VisibleForTesting
   val classDb = ClassDb()
@@ -134,14 +135,12 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
       }
     heapSetMappings.forEach { (heap, heapSet) ->
       heap.classes.forEach { addInstanceToRightHeap(heapSet, it.id, createClassObjectInstance(javaLangClassObject, it)) }
-      heap.forEachInstance(object : TObjectProcedure<Instance> {
-        override fun execute(instance: Instance): Boolean {
+      heap.forEachInstance { instance ->
           assert(ClassDb.JAVA_LANG_CLASS != instance.classObj!!.className)
           val classEntry = instance.classObj!!.makeEntry()
           addInstanceToRightHeap(heapSet, instance.id, HeapDumpInstanceObject(this@HeapDumpCaptureObject, instance, classEntry, null))
-          return true
-        }
-      })
+          true
+      }
       if ("default" != heap.name || snapshot.heaps.size == 1 || heap.instancesCount > 0) {
         _heapSets.put(heap.id, heapSet)
       }

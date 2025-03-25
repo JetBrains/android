@@ -15,25 +15,30 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.buildLlmPrompt
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.protobuf.Message
-import com.android.tools.idea.studiobot.Content
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
+import com.google.protobuf.Message
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.toList
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Guidelines for the model to provide context and fine tune the response. */
 @VisibleForTesting
-const val GEMINI_PREAMBLE =
+private val GEMINI_PREAMBLE =
   """
+    Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+    For headings, use H3 only. Initial explanation should not be under a heading.
     Begin with the explanation directly. Do not add fillers at the start of response.
   """
+    .trimIndent()
 
 private val GEMINI_INSIGHT_PROMPT_FORMAT =
   """
@@ -56,6 +61,9 @@ private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
   """
     .trimIndent()
 
+// Extra space reserved for system preamble
+private const val CONTEXT_WINDOW_PADDING = 150
+
 class GeminiAiInsightClient private constructor(private val project: Project) : AiInsightClient {
 
   override suspend fun fetchCrashInsight(
@@ -64,39 +72,45 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
   ): AiInsight {
     val request = GeminiInsightsRequest.parser().parseFrom(additionalContextMsg.toByteArray())
     val prompt =
-      buildPrompt(project) {
+      buildLlmPrompt(project) {
         systemMessage { text(GEMINI_PREAMBLE, emptyList()) }
         userMessage { text(createPrompt(request), emptyList()) }
       }
-    val generateContentFlow = StudioBot.getInstance().model(project).generateContent(prompt)
-    val response =
-      buildString {
-          generateContentFlow.collect { content ->
-            when (content) {
-              // Can't append text from FunctionCall
-              is Content.FunctionCall -> {}
-              is Content.TextContent -> appendLine(content.text)
-            }
-          }
-        }
-        .trim()
-    return AiInsight(response, insightSource = InsightSource.STUDIO_BOT)
+    return if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
+      val response =
+        GeminiPluginApi.getInstance().generate(project, prompt).toList().joinToString("\n")
+      AiInsight(response, insightSource = InsightSource.STUDIO_BOT)
+    } else {
+      // Simulate a delay that would come generating an actual insight
+      delay(2000)
+      AiInsight(createPrompt(request), insightSource = InsightSource.STUDIO_BOT)
+    }
   }
 
-  private fun createPrompt(request: GeminiInsightsRequest) =
-    "${
+  private fun createPrompt(request: GeminiInsightsRequest): String {
+    val initialPrompt =
       String.format(
-        if (request.codeSnippetsList.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT else GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT,
-        request.deviceName,
-        request.apiLevel,
-        request.stackTrace,
-      )
+          if (request.codeSnippetsList.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT
+          else GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT,
+          request.deviceName,
+          request.apiLevel,
+          request.stackTrace,
+        )
         .trim()
-    }${request.codeSnippetsList.toPromptString()}"
-
-  private fun List<CodeSnippet>.toPromptString() =
-    if (isEmpty()) ""
-    else "\n" + joinToString("\n") { "${it.filePath}:\n```\n${it.codeSnippet}\n```" }
+    var availableContextSpace =
+      GeminiPluginApi.getInstance().MAX_QUERY_CHARS - CONTEXT_WINDOW_PADDING - initialPrompt.count()
+    val codeContextPrompt =
+      request.codeSnippetsList
+        .takeWhile { codeSnippet ->
+          val nextContextString = "\n${codeSnippet.filePath}:\n```\n${codeSnippet.codeSnippet}\n```"
+          availableContextSpace -= nextContextString.count()
+          availableContextSpace >= 0
+        }
+        .fold("") { acc, codeSnippet ->
+          "$acc\n${codeSnippet.filePath}:\n```\n${codeSnippet.codeSnippet}\n```"
+        }
+    return "$initialPrompt$codeContextPrompt"
+  }
 
   companion object {
     fun create(project: Project) = GeminiAiInsightClient(project)
@@ -130,10 +144,12 @@ fun createGeminiInsightRequest(event: Event, codeContextData: CodeContextData) =
 private fun Event.prettyStackTrace() =
   buildString {
       stacktraceGroup.exceptions.forEachIndexed { idx, exception ->
-        if (idx == 0 || exception.rawExceptionMessage.startsWith("Caused by")) {
+        if (idx == 0 || exception.rawExceptionMessage.shouldTakeException()) {
           appendLine(exception.rawExceptionMessage)
           append(exception.stacktrace.frames.joinToString(separator = "") { "\t${it.rawSymbol}\n" })
         }
       }
     }
     .trim()
+
+private fun String.shouldTakeException() = startsWith("Caused by")

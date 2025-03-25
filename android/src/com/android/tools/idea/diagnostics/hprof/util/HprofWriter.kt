@@ -21,8 +21,8 @@ import com.android.tools.idea.diagnostics.hprof.parser.InstanceFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
 import com.android.tools.idea.diagnostics.hprof.parser.StaticFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.Type
-import gnu.trove.TLongObjectHashMap
-import gnu.trove.TObjectLongHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.DataOutput
@@ -43,8 +43,8 @@ class HprofWriter(
     dos.writeLong(timestamp)
   }
 
-  private val stringToIdMap = TObjectLongHashMap<String>()
-  private val idToStringMap = TLongObjectHashMap<String>()
+  private val stringToIdMap = Object2LongOpenHashMap<String>()
+  private val idToStringMap = Long2ObjectOpenHashMap<String>()
   private var nextStringId = 1L
   private val subtagsBaos = ByteArrayOutputStream()
   private var subtagsStream = DataOutputStream(subtagsBaos)
@@ -202,7 +202,7 @@ class HprofWriter(
   }
 
   private fun getOrCreateStringId(s: String): Long {
-    val id = stringToIdMap.get(s)
+    val id = stringToIdMap.getLong(s)
     if (id == 0L) {
       val newId = nextStringId++
       writeStringInUTF8(newId, s)

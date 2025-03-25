@@ -21,11 +21,11 @@ import static com.intellij.ide.impl.ProjectUtil.openOrImport;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
-import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
+import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.associateFileType;
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
-import com.android.tools.adtui.validation.Validator;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.adtui.validation.Validator;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.IdeBundle;
@@ -36,6 +36,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -47,8 +49,6 @@ import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
 import java.io.File;
-import java.nio.file.Path;
-import java.util.EnumSet;
 import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +64,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   public AndroidOpenFileAction(@NotNull String text) {
-    super(text);
+    super(text, null, AllIcons.Actions.MenuOpen);
     getTemplatePresentation().setApplicationScope(true);
   }
 
@@ -130,7 +130,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
    */
   @VisibleForTesting
   @NotNull
-  public static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor) {
+  static ValidationIssue validateFiles(List<VirtualFile> files, FileChooserDescriptor descriptor) {
     for (VirtualFile file : files) {
       if (!descriptor.isFileSelectable(file)) {
         Validator.Result result =
@@ -152,24 +152,23 @@ public class AndroidOpenFileAction extends DumbAwareAction {
           continue;
         }
         if (ProjectAttachProcessor.canAttachToProject()) {
-          Project openedProject = PlatformProjectOpenProcessor.doOpenProject(file, project, -1, null, EnumSet.noneOf(PlatformProjectOpenProcessor.Option.class));
+          Project openedProject = AndroidOpenFileActionUtils.doOpenProject(file, project);
           setLastOpenedFile(openedProject, file.toNioPath());
         }
         else {
-          openOrImportProject(file.toNioPath(), project);
+          openOrImportProject(file, project);
         }
         continue;
       }
 
       // try to open as a project - unless the file is an .ipr of the current one
       if ((project == null || !file.equals(project.getProjectFile())) && OpenProjectFileChooserDescriptor.isProjectFile(file)) {
-        if (openOrImportProject(file.toNioPath(), project)) {
+        if (openOrImportProject(file, project)) {
           continue;
         }
       }
 
-      FileType type = getKnownFileTypeOrAssociate(file, project);
-      if (type == null) {
+      if (getKnownFileTypeOrAssociate(file) == null) {
         continue;
       }
 
@@ -185,10 +184,25 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     }
   }
 
-  private static boolean openOrImportProject(@NotNull Path file, @Nullable Project project) {
-    Project opened = openOrImport(file, project, false);
+  private static @Nullable FileType getKnownFileTypeOrAssociate(@NotNull VirtualFile file) {
+    FileType type = file.getFileType();
+    if (type != FileTypes.UNKNOWN) {
+      return type;
+    }
+
+    String fileName = file.getName();
+    type = FileTypeManager.getInstance().getFileTypeByFileName(fileName);
+    if (type != FileTypes.UNKNOWN) {
+      return type;
+    }
+
+    return associateFileType(fileName);
+  }
+
+  private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
+    Project opened = openOrImport(file.getPath(), project, false);
     if (opened != null) {
-      setLastOpenedFile(opened, file);
+      setLastOpenedFile(opened, file.toNioPath());
       return true;
     }
     return false;
@@ -198,18 +212,18 @@ public class AndroidOpenFileAction extends DumbAwareAction {
    * Returned by validateFiles after validating a project if there is an issue.
    */
   @VisibleForTesting
-  public static final class ValidationIssue {
-    public @NotNull Validator.Result result;
+  static final class ValidationIssue {
+    @NotNull Validator.Result result;
     @Nullable VirtualFile file;
 
-    ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
+    public ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
       this.result = result;
       this.file = file;
     }
   }
 
   private static class ProjectOnlyFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
-    private ProjectOnlyFileChooserDescriptor() {
+    public ProjectOnlyFileChooserDescriptor() {
       setTitle(IdeBundle.message("title.open.project"));
     }
   }
@@ -217,13 +231,19 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   private static class ProjectOrFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
     private final FileChooserDescriptor myStandardDescriptor = createSingleFileNoJarsDescriptor().withHideIgnored(false);
 
-    private ProjectOrFileChooserDescriptor() {
+    public ProjectOrFileChooserDescriptor() {
       setTitle(IdeBundle.message("title.open.file.or.project"));
     }
 
     @Override
+    public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
+      return file.isDirectory() ? super.isFileVisible(file, showHiddenFiles) : myStandardDescriptor.isFileVisible(file, showHiddenFiles);
+    }
+
+    @Override
     public boolean isFileSelectable(@Nullable VirtualFile file) {
-      return file != null && (file.isDirectory() ? super.isFileSelectable(file) : myStandardDescriptor.isFileSelectable(file));
+      if (file == null) return false;
+      return file.isDirectory() ? super.isFileSelectable(file) : myStandardDescriptor.isFileSelectable(file);
     }
 
     @Override

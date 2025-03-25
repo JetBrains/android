@@ -17,9 +17,6 @@ package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
@@ -36,20 +33,23 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.google.common.truth.Truth.assertThat
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
-import java.io.File
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class BaselineProfilesMacrobenchmarkCommonTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun createModuleTest() {
-    val mockExecutor = MockitoKt.mock<RecipeExecutor>()
-    val projectTemplateDataMock = MockitoKt.mock<ProjectTemplateData>()
-    val newModuleData = MockitoKt.mock<ModuleTemplateData>()
+    val mockExecutor = mock<RecipeExecutor>()
+    val projectTemplateDataMock = mock<ProjectTemplateData>()
+    val newModuleData = mock<ModuleTemplateData>()
 
     val macrobenchmarkMinRev = "1.2.0"
     val gradleContent = "gradlecontent"
@@ -59,9 +59,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     val pluginVersion = AgpVersion.parse("0.0.0")
 
     var customizeCalled = false
-    val customizeModule: RecipeExecutor.() -> Unit = {
-      customizeCalled = true
-    }
+    val customizeModule: RecipeExecutor.() -> Unit = { customizeCalled = true }
 
     whenever(projectTemplateDataMock.agpVersion).thenReturn(pluginVersion)
     whenever(projectTemplateDataMock.language).thenReturn(Language.Kotlin)
@@ -79,36 +77,43 @@ class BaselineProfilesMacrobenchmarkCommonTest {
         useGradleKts = true,
         macrobenchmarkMinRev = macrobenchmarkMinRev,
         buildGradleContent = gradleContent,
-        customizeModule = customizeModule
+        customizeModule = customizeModule,
       )
     }
 
     verify(mockExecutor).run {
       addIncludeToSettings(moduleName)
-      save(eq(gradleContent), MockitoKt.any())
-      applyPlugin("com.android.test", pluginVersion)
+      save(eq(gradleContent), any())
+      applyPlugin("com.android.test", "com.android.tools.build:gradle", pluginVersion.toString())
 
       addDependency("androidx.test.ext:junit:+", "implementation")
       addDependency("androidx.test.espresso:espresso-core:+", "implementation")
       addDependency("androidx.test.uiautomator:uiautomator:+", "implementation")
-      addDependency("androidx.benchmark:benchmark-macro-junit4:+", "implementation", macrobenchmarkMinRev)
+      addDependency(
+        "androidx.benchmark:benchmark-macro-junit4:+",
+        "implementation",
+        macrobenchmarkMinRev,
+      )
 
-      save(eq("<manifest />"), MockitoKt.any())
-      save(eq(gitignore()), MockitoKt.any())
+      save(eq("<manifest />"), any())
+      save(eq(gitignore()), any())
     }
 
     assertThat(customizeCalled).isTrue()
   }
+
   @Test
   fun flavorsConfigurationsBuildGradle_empty() {
-    val flavorsBlock = flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(emptyList(), emptyList()), true)
+    val flavorsBlock =
+      flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(emptyList(), emptyList()), true)
     assertThat(flavorsBlock).isEmpty()
   }
 
   @Test
   fun flavorsConfigurationsBuildGradle_only_dimensions() {
     val dimen = listOf("tier", "env")
-    val flavorsBlock = flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(dimen, emptyList()), true)
+    val flavorsBlock =
+      flavorsConfigurationsBuildGradle(ProductFlavorsWithDimensions(dimen, emptyList()), true)
 
     assertThat(flavorsBlock).run {
       contains("flavorDimensions")
@@ -118,17 +123,18 @@ class BaselineProfilesMacrobenchmarkCommonTest {
 
   @Test
   fun flavorsConfigurationsBuildGradle_dimen_and_flavors() {
-    val flavors = ProductFlavorsWithDimensions(
-      listOf("tier", "env", "color"),
-      listOf(
-        ProductFlavorsWithDimensions.Item("demo", "env"),
-        ProductFlavorsWithDimensions.Item("prod", "env"),
-        ProductFlavorsWithDimensions.Item("free", "tier"),
-        ProductFlavorsWithDimensions.Item("paid", "tier"),
-        ProductFlavorsWithDimensions.Item("red", "color"),
-        ProductFlavorsWithDimensions.Item("blue", "color"),
+    val flavors =
+      ProductFlavorsWithDimensions(
+        listOf("tier", "env", "color"),
+        listOf(
+          ProductFlavorsWithDimensions.Item("demo", "env"),
+          ProductFlavorsWithDimensions.Item("prod", "env"),
+          ProductFlavorsWithDimensions.Item("free", "tier"),
+          ProductFlavorsWithDimensions.Item("paid", "tier"),
+          ProductFlavorsWithDimensions.Item("red", "color"),
+          ProductFlavorsWithDimensions.Item("blue", "color"),
+        ),
       )
-    )
 
     val flavorsBlock = flavorsConfigurationsBuildGradle(flavors, true)
 
@@ -147,55 +153,49 @@ class BaselineProfilesMacrobenchmarkCommonTest {
   fun getTargetModelProductFlavors_fromIdeModel() {
     projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
 
-    val flavorMock1 = MockitoKt.mock<IdeProductFlavorImpl>()
+    val flavorMock1 = mock<IdeProductFlavorImpl>()
     whenever(flavorMock1.name).thenReturn("flavor1")
     whenever(flavorMock1.dimension).thenReturn("ide")
 
-    val flavorMock2 = MockitoKt.mock<IdeProductFlavorImpl>()
+    val flavorMock2 = mock<IdeProductFlavorImpl>()
     whenever(flavorMock2.name).thenReturn("flavor2")
     whenever(flavorMock2.dimension).thenReturn("ide")
 
-    val targetModuleGradleModel = MockitoKt.mock<GradleAndroidModel>()
-    whenever(targetModuleGradleModel.productFlavorNamesByFlavorDimension).thenReturn(
-      mapOf(
-        "ide" to listOf("flavor1", "flavor2"),
-      )
-    )
+    val targetModuleGradleModel = mock<GradleAndroidModel>()
+    whenever(targetModuleGradleModel.productFlavorNamesByFlavorDimension)
+      .thenReturn(mapOf("ide" to listOf("flavor1", "flavor2")))
 
     val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
     assertThat(flavors.dimensions).containsExactly("ide")
-    assertThat(flavors.flavors).containsExactly(
-      ProductFlavorsWithDimensions.Item("flavor1", "ide"),
-      ProductFlavorsWithDimensions.Item("flavor2", "ide")
-    )
+    assertThat(flavors.flavors)
+      .containsExactly(
+        ProductFlavorsWithDimensions.Item("flavor1", "ide"),
+        ProductFlavorsWithDimensions.Item("flavor2", "ide"),
+      )
   }
 
   @Test
   fun getTargetModelProductFlavors_fromIdeModel_twoDimensions() {
     projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
 
-    val flavorMock1 = MockitoKt.mock<IdeProductFlavorImpl>()
+    val flavorMock1 = mock<IdeProductFlavorImpl>()
     whenever(flavorMock1.name).thenReturn("flavor1")
     whenever(flavorMock1.dimension).thenReturn("ide")
 
-    val flavorMock2 = MockitoKt.mock<IdeProductFlavorImpl>()
+    val flavorMock2 = mock<IdeProductFlavorImpl>()
     whenever(flavorMock2.name).thenReturn("flavor2")
     whenever(flavorMock2.dimension).thenReturn("env")
 
-    val targetModuleGradleModel = MockitoKt.mock<GradleAndroidModel>()
-    whenever(targetModuleGradleModel.productFlavorNamesByFlavorDimension).thenReturn(
-      mapOf(
-        "ide" to listOf("flavor1"),
-        "env" to listOf("flavor2"),
-      )
-    )
+    val targetModuleGradleModel = mock<GradleAndroidModel>()
+    whenever(targetModuleGradleModel.productFlavorNamesByFlavorDimension)
+      .thenReturn(mapOf("ide" to listOf("flavor1"), "env" to listOf("flavor2")))
 
     val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
     assertThat(flavors.dimensions).containsExactly("ide", "env")
-    assertThat(flavors.flavors).containsExactly(
-      ProductFlavorsWithDimensions.Item("flavor1", "ide"),
-      ProductFlavorsWithDimensions.Item("flavor2", "env")
-    )
+    assertThat(flavors.flavors)
+      .containsExactly(
+        ProductFlavorsWithDimensions.Item("flavor1", "ide"),
+        ProductFlavorsWithDimensions.Item("flavor2", "env"),
+      )
   }
-
 }

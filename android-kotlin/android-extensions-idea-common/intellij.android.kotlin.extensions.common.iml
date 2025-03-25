@@ -52,9 +52,11 @@
     <orderEntry type="module" module-name="kotlin.base.facet" />
     <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
     <orderEntry type="module" module-name="kotlin.base.plugin" />
+    <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="kotlin.base.project-structure" />
     <orderEntry type="module" module-name="kotlin.gradle.gradle-java" />
     <orderEntry type="module" module-name="kotlin.highlighting.k1" />
     <orderEntry type="module" module-name="kotlin.highlighting.minimal" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
   </component>
 </module>

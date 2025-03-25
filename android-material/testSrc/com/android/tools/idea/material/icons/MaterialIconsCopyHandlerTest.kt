@@ -156,7 +156,26 @@ private fun createMaterialVdIcons(dir: File): MaterialVdIcons {
     Pair("Style 1", HashMap()),
     Pair("Style 2", HashMap())
   )
-  return MaterialVdIcons(stylesCategoriesToIcons, stylesToSortedIcons)
+  return object: MaterialVdIcons {
+    private val style1Icons = listOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))
+    private val style2Icons = listOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))
+
+    override val styles: List<String> = listOf("Style 1", "Style 2")
+
+    override fun getCategories(style: String): List<String> = listOf("category1", "category2", "category3")
+
+    override fun getIcons(style: String,
+                          category: String): List<VdIcon> {
+     throw UnsupportedOperationException()
+    }
+
+    override fun getAllIcons(style: String): List<VdIcon> = when (style) {
+      "Style 1" -> style1Icons
+      "Style 2" -> style2Icons
+      else -> throw IllegalArgumentException("$style not found")
+    }
+
+  }
 }
 
 private fun createVdIcon(dir: File, name: String): VdIcon {

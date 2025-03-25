@@ -24,9 +24,34 @@ fun errorMessage(exception: LiveEditUpdateException) : String {
   val error = exception.error.message
   var details = exception.details
   if (!details.isEmpty()) {
-    details = "\n$details."
+    details = "\n${truncateDetail(details)}."
   }
   var inLocation = exception.sourceFilename?.let { " in $it" } ?: ""
   var cause = exception.cause?.let { "\n${it.stackTraceToString()}" } ?: ""
   return "$error$inLocation.$details$cause"
+}
+
+private fun String.findNthIndexOf(char: Char, nth: Int) : Int {
+  var occurr = nth;
+
+  var index = -1;
+  while (occurr > 0) {
+    val newIndex = this.indexOf(char, index + 1)
+    if (newIndex == -1) {
+      return index;
+    } else {
+      index = newIndex
+    }
+    occurr--;
+  }
+  return index
+}
+
+private fun truncateDetail(detail: String) : String{
+  val index = detail.findNthIndexOf('\n', 20)
+  return if (index == -1) {
+    detail
+  } else {
+    detail.substring(0, index) + "\n..."
+  }
 }

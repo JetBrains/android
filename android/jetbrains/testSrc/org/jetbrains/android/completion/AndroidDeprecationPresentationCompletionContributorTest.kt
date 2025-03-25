@@ -15,11 +15,15 @@
  */
 package org.jetbrains.android.completion
 
+import com.android.tools.idea.testing.deleteText
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiNamedElement
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestCase
 
 class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase() {
@@ -30,15 +34,15 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
       """
       package p1.p2;
 
-      import android.text.Html;
       import android.os.Build;
+      import android.os.Bundle;
 
       public class SomeActivity {
         public void foo() {
           /* all API levels */
 
-          if (Build.VERSION.SDK_INT > 24) {
-            /* 24+ */
+          if (Build.VERSION.SDK_INT > 33) {
+            /* 33+ */
           }
         }
       }
@@ -46,27 +50,17 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
     )
 
     myFixture.moveCaret("/* all API levels */|")
-    myFixture.type("Html.")
-    myFixture.completeBasic()
-
-    assertThat(getRelevantLookupElements()).containsExactly(
-      "fromHtml(String source, int flags)",
-      "fromHtml(String source, int flags, ImageGetter imageGetter, TagHandler tagHandler)",
-      // Deprecated since 24:
-      "fromHtml(String source)",
-      "fromHtml(String source, ImageGetter imageGetter, TagHandler tagHandler)"
+    assertThat(typeAndGetCompletions("new Bundle().getParcel", "getParcelable")).containsExactly(
+      "getParcelable(String key, Class<T> clazz)",
+      // Deprecated since 33:
+      "getParcelable(String key)",
     )
 
-    myFixture.moveCaret("/* 24+ */|")
-    myFixture.type("Html.")
-    myFixture.completeBasic()
-
-    assertThat(getRelevantLookupElements()).containsExactly(
-      "fromHtml(String source, int flags)",
-      "fromHtml(String source, int flags, ImageGetter imageGetter, TagHandler tagHandler)",
-      // Deprecated since 24:
-      "fromHtml(String source) [deprecated]",
-      "fromHtml(String source, ImageGetter imageGetter, TagHandler tagHandler) [deprecated]"
+    myFixture.moveCaret("/* 33+ */|")
+    assertThat(typeAndGetCompletions("new Bundle().getParcel", "getParcelable")).containsExactly(
+      "getParcelable(String key, Class<T> clazz)",
+      // Deprecated since 33:
+      "getParcelable(String key) [deprecated]",
     )
   }
 
@@ -83,15 +77,15 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
       """
       package p1.p2
 
-      import android.text.Html
       import android.os.Build
+      import android.os.Bundle
 
       class SomeActivity {
         fun foo() {
           /* all API levels */
 
-          if (Build.VERSION.SDK_INT > 24) {
-            /* 24+ */
+          if (Build.VERSION.SDK_INT > 33) {
+            /* 33+ */
           }
         }
       }
@@ -99,44 +93,47 @@ class AndroidDeprecationPresentationCompletionContributorTest : AndroidTestCase(
     )
 
     myFixture.moveCaret("/* all API levels */|")
-    myFixture.type("Html.")
-    myFixture.completeBasic()
 
     // If this assertion starts failing, it may mean that we have started striking out deprecated
     // items in Kotlin, but that the `isExcluded` functionality of the DeprecationFilter is not
     // correctly implemented. We should fix this, as we will be showing items as struck-out even in
     // contexts where they should not be considered deprecated.
-    assertThat(getRelevantLookupElements()).containsExactly(
-      "fromHtml(source: String!, flags: Int)",
-      "fromHtml(source: String!, flags: Int, imageGetter: Html.ImageGetter!, tagHandler: Html.TagHandler!)",
-      "fromHtml(source: String!, flags: Int, imageGetter: ((String!) -> Drawable!)!, tagHandler: ((Boolean, String!, Editable!, XMLReader!) -> Unit)!)",
-      // Deprecated since 24:
-      "fromHtml(source: String!)",
-      "fromHtml(source: String!, imageGetter: Html.ImageGetter!, tagHandler: Html.TagHandler!)",
-      "fromHtml(source: String!, imageGetter: ((String!) -> Drawable!)!, tagHandler: ((Boolean, String!, Editable!, XMLReader!) -> Unit)!)",
+    assertThat(typeAndGetCompletions("Bundle().getParcel", "getParcelable")).containsExactly(
+      "getParcelable(key: String?, clazz: Class<T!>)",
+      // Deprecated since 33:
+      "getParcelable(key: String?)",
     )
 
-    myFixture.moveCaret("/* 24+ */|")
-    myFixture.type("Html.")
-    myFixture.completeBasic()
-
+    myFixture.moveCaret("/* 33+ */|")
     // If this assertion starts failing, it may mean that we started striking out deprecated items in
-    // completion for Kotlin. If so, the last three items need to have " [deprecated]" appended to them.
-    assertThat(getRelevantLookupElements()).containsExactly(
-      "fromHtml(source: String!, flags: Int)",
-      "fromHtml(source: String!, flags: Int, imageGetter: Html.ImageGetter!, tagHandler: Html.TagHandler!)",
-      "fromHtml(source: String!, flags: Int, imageGetter: ((String!) -> Drawable!)!, tagHandler: ((Boolean, String!, Editable!, XMLReader!) -> Unit)!)",
-      // Deprecated since 24:
-      "fromHtml(source: String!)",
-      "fromHtml(source: String!, imageGetter: Html.ImageGetter!, tagHandler: Html.TagHandler!)",
-      "fromHtml(source: String!, imageGetter: ((String!) -> Drawable!)!, tagHandler: ((Boolean, String!, Editable!, XMLReader!) -> Unit)!)",
+    // completion for Kotlin. If so, the last item needs to have " [deprecated]" appended to it.
+    assertThat(typeAndGetCompletions("Bundle().getParcel", "getParcelable")).containsExactly(
+      "getParcelable(key: String?, clazz: Class<T!>)",
+      // Deprecated since 33:
+      "getParcelable(key: String?)",
     )
   }
 
-  private fun getRelevantLookupElements(): List<String> {
+  private fun typeAndGetCompletions(prefixToType: String, nameFilter: String): List<String> {
+    try {
+      myFixture.type(prefixToType)
+      myFixture.completeBasic()
+      return getRelevantLookupElements(nameFilter)
+    } finally {
+      // delete typed text
+      WriteCommandAction.runWriteCommandAction(project) {
+        with(myFixture.editor) {
+          val offset = caretModel.primaryCaret.offset
+          document.deleteString(offset - prefixToType.length, offset)
+        }
+      }
+    }
+  }
+
+  private fun getRelevantLookupElements(name: String): List<String> {
     return myFixture.lookupElements
       .orEmpty()
-      .filter { (it.psiElement as? PsiNamedElement)?.name == "fromHtml" }
+      .filter { (it.psiElement as? PsiNamedElement)?.name == name }
       .map {lookupElement ->
         val presentation = LookupElementPresentation()
         lookupElement.renderElement(presentation)

@@ -37,6 +37,7 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
+import com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -199,12 +200,18 @@ public class GradleSyncExecutor {
     projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
     ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
     @Nullable IdeResolvedLibraryTable libraryTable = null;
+    @Nullable KotlinMultiplatformIdeLibraryTable kmpLibraryTable = null;
 
     if (projectDataNode != null) {
       @SuppressWarnings("UnstableApiUsage") DataNode<ExternalProject> rootProjectNode = find(projectDataNode, ExternalProjectDataCache.KEY);
       DataNode<IdeResolvedLibraryTable> libraryTableNode = find(projectDataNode, AndroidProjectKeys.IDE_LIBRARY_TABLE);
       if (libraryTableNode != null) {
         libraryTable = libraryTableNode.getData();
+      }
+
+      DataNode<KotlinMultiplatformIdeLibraryTable> kmpLibraryTableNode = find(projectDataNode, AndroidProjectKeys.KMP_ANDROID_LIBRARY_TABLE);
+      if (kmpLibraryTableNode != null) {
+        kmpLibraryTable = kmpLibraryTableNode.getData();
       }
       Collection<DataNode<ModuleData>> moduleNodes = findAll(projectDataNode, MODULE);
       for (DataNode<ModuleData> moduleNode : moduleNodes) {
@@ -245,7 +252,7 @@ public class GradleSyncExecutor {
       }
     }
 
-    return new GradleProjectModels(builder.build(), libraryTable);
+    return new GradleProjectModels(builder.build(), libraryTable, kmpLibraryTable);
   }
 
   @Nullable

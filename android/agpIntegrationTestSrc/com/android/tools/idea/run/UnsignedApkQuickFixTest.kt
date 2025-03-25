@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -23,12 +22,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
-import junit.framework.TestCase.*
+import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
 
 @RunWith(JUnit4::class)
 class UnsignedApkQuickFixTest {
@@ -76,10 +76,10 @@ class UnsignedApkQuickFixTest {
 
   @Test
   fun differentModuleReCaches() {
-    val module1 = MockitoKt.mock<Module>()
+    val module1 = mock<Module>()
     UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", null)
 
-    val module2 = MockitoKt.mock<Module>()
+    val module2 = mock<Module>()
     quickFix = UnsignedApkQuickFix.create(module2, "release", null)
 
     assertEquals(module2, quickFix!!.module)
@@ -90,7 +90,7 @@ class UnsignedApkQuickFixTest {
 
   @Test
   fun differentBuildTypeReCaches() {
-    val module1 = MockitoKt.mock<Module>()
+    val module1 = mock<Module>()
     UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", null)
 
     quickFix = UnsignedApkQuickFix.create(module1, "debug", null)
@@ -107,10 +107,10 @@ class UnsignedApkQuickFixTest {
    */
   @Test
   fun nonNullCallbackReCachesIfCurrentlyNull() {
-    val module1 = MockitoKt.mock<Module>()
+    val module1 = mock<Module>()
     UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", null)
 
-    val callback = MockitoKt.mock<Runnable>()
+    val callback = mock<Runnable>()
     quickFix = UnsignedApkQuickFix.create(module1, "release", callback)
 
     assertEquals(callback, quickFix!!.callback)
@@ -125,8 +125,8 @@ class UnsignedApkQuickFixTest {
    */
   @Test
   fun nullCallbackDoesNotReCache() {
-    val module1 = MockitoKt.mock<Module>()
-    val callback = MockitoKt.mock<Runnable>()
+    val module1 = mock<Module>()
+    val callback = mock<Runnable>()
     UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", callback)
 
     quickFix = UnsignedApkQuickFix.create(module1, "release", null)
@@ -143,11 +143,11 @@ class UnsignedApkQuickFixTest {
    */
   @Test
   fun differentCallbackReCaches() {
-    val module1 = MockitoKt.mock<Module>()
-    val callback = MockitoKt.mock<Runnable>()
+    val module1 = mock<Module>()
+    val callback = mock<Runnable>()
     UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module1, "release", callback)
 
-    val callback2 = MockitoKt.mock<Runnable>()
+    val callback2 = mock<Runnable>()
     quickFix = UnsignedApkQuickFix.create(module1, "release", callback2)
 
     assertEquals(callback2, quickFix!!.callback)

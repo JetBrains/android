@@ -69,9 +69,9 @@ internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false
   else {
     name.append("unknown")
   }
-  val apiLevel = androidVersion?.apiLevel
-  if (apiLevel != null) {
-    name.append(" API ").append(apiLevel)
+  val api = androidVersion?.apiStringWithoutExtension
+  if (api != null) {
+    name.append(" API ").append(api)
   }
   return name.toString()
 }

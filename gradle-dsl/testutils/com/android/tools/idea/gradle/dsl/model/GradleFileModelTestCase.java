@@ -49,6 +49,8 @@ import static org.junit.runners.Parameterized.Parameters;
 import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -164,7 +166,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   protected void isIrrelevantForDeclarative(String reason) {
-    assumeFalse("test irrelevant for declarative: " + reason, isKotlinScript());
+    assumeFalse("test irrelevant for declarative: " + reason, isGradleDeclarative());
   }
 
   protected void skipGradleDeclarativeTemporary() {
@@ -498,9 +500,25 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   @NotNull
+  protected GradleDeclarativeSettingsModel getGradleDeclarativeSettingsModel() {
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleDeclarativeSettingsModel settingsModel = projectBuildModel.getDeclarativeSettingsModel();
+    assertNotNull(settingsModel);
+    return settingsModel;
+  }
+
+  @NotNull
   protected GradleBuildModel getGradleBuildModel() {
     ProjectBuildModel projectBuildModel = getProjectBuildModel();
     GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(myModule);
+    assertNotNull(buildModel);
+    return buildModel;
+  }
+
+  @NotNull
+  protected GradleDeclarativeBuildModel getGradleDeclarativeBuildModel() {
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleDeclarativeBuildModel buildModel = projectBuildModel.getDeclarativeModuleBuildModel(myModule);
     assertNotNull(buildModel);
     return buildModel;
   }
@@ -581,6 +599,10 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     assertEquals(propertyText, propertyModel.getValue(STRING_TYPE));
     assertEquals(propertyFilePath, propertyModel.getGradleFile().getPath());
     assertEquals(propertyName, propertyModel.getFullyQualifiedName());
+  }
+
+  public static void assertEquals(@NotNull String expected, @NotNull GradlePropertyModel actual) {
+    assertEquals(expected, expected, actual);
   }
 
   public static void assertEquals(@NotNull String message, @Nullable String expected, @NotNull GradlePropertyModel actual) {

@@ -42,8 +42,10 @@ class ValidatePluginConfigurationAction : AnAction() {
     for (plugin in essentialPlugins) {
       val descriptor = findPlugin(plugin) ?: error("Failed to find descriptor for essential plugin: $plugin")
       for (dependency in getNonOptionalDependenciesIds(descriptor)) {
-        // No need to worry about dependencies like "com.intellij.modules.*" because they are not true plugins (they cannot be disabled).
-        if (dependency !in essentialPlugins && !dependency.idString.startsWith("com.intellij.modules.")) {
+        // No need to worry about V1 modules of the form "com.intellij.modules.*". These are not true plugins; they cannot be disabled.
+        val dependencyDescriptor = checkNotNull(findPlugin(dependency)) { "Failed to find plugin descriptor for: $dependency" }
+        val isV1Module = dependency.idString.startsWith("com.intellij.modules.") && dependency != dependencyDescriptor.pluginId
+        if (dependency !in essentialPlugins && !isV1Module) {
           errors.add("Essential plugin '$plugin' depends on non-essential plugin '$dependency'")
         }
       }

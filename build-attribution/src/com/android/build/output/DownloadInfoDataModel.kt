@@ -108,14 +108,14 @@ class DownloadInfoDataModel(
 
     for (requestItem in newUpdates) {
       processedEvents[requestItem.requestKey] = requestItem
-      notifyListenersOnUpdate(requestItem)
     }
+    notifyListenersOnUpdate(newUpdates)
   }
 
   @UiThread
   fun subscribeUiModel(modelListener: Listener) {
     subscribedModels.add(modelListener)
-    processedEvents.forEach { (_, requestItem) -> modelListener.updateDownloadRequest(requestItem) }
+    modelListener.updateDownloadRequests(processedEvents.values.toList())
   }
 
   @UiThread
@@ -124,11 +124,11 @@ class DownloadInfoDataModel(
   }
 
   @UiThread
-  fun notifyListenersOnUpdate(updatedItem: DownloadRequestItem) {
-    subscribedModels.forEach { it.updateDownloadRequest(updatedItem) }
+  fun notifyListenersOnUpdate(updatedItems: List<DownloadRequestItem>) {
+    subscribedModels.forEach { it.updateDownloadRequests(updatedItems) }
   }
 
   interface Listener {
-    fun updateDownloadRequest(downloadRequest: DownloadRequestItem)
+    fun updateDownloadRequests(downloadRequests: List<DownloadRequestItem>)
   }
 }

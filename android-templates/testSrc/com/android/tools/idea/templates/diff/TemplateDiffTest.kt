@@ -25,13 +25,14 @@ import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
-import org.jetbrains.android.AndroidTestBase
+import kotlin.system.measureTimeMillis
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -42,7 +43,6 @@ import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
-import kotlin.system.measureTimeMillis
 
 /**
  * Template test that generates the template files and diffs them against golden files located in
@@ -54,7 +54,9 @@ import kotlin.system.measureTimeMillis
 class TemplateDiffTest(private val testMode: TestMode) {
   @get:Rule
   val projectRule: TestRule =
-    if (shouldUseGradle()) AndroidGradleProjectRule() else AndroidProjectRule.withAndroidModels()
+    if (shouldUseGradle())
+      AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getPinnedAgpVersion())
+    else AndroidProjectRule.withAndroidModels()
 
   @get:Rule val disposableRule = DisposableRule()
 
@@ -107,7 +109,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     // This is to enforce that new or changed dependencies are added to the BUILD file
     assertNotNull(
       "TemplateDiffTest golden file generator must be run from Bazel! See go/template-diff-tests",
-      System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
+      System.getenv("TEST_UNDECLARED_OUTPUTS_DIR"),
     )
 
     // By default, this makes the suite fail early if there is a validation error. If
@@ -133,7 +135,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   enum class TestMode {
     DIFFING,
     VALIDATING,
-    GENERATING
+    GENERATING,
   }
 
   private fun shouldUseGradle(): Boolean {
@@ -158,14 +160,19 @@ class TemplateDiffTest(private val testMode: TestMode) {
     category: Category? = null,
     formFactor: FormFactor? = null,
   ) {
-    AndroidTestBase.ensureSdkManagerAvailable(disposableRule.disposable)
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
     val goldenDirName = findEnclosingTestMethodName()
 
-    templateStateCustomizer.forEach { (parameterName: String, overrideValue: String) ->
-      val p = template.parameters.find { it.name == parameterName }!! as StringParameter
-      p.value = overrideValue
+    templateStateCustomizer.forEach { (parameterName: String, overrideValue: Any) ->
+      val parameter = template.parameters.find { it.name == parameterName }!!
+      when (parameter) {
+        is BooleanParameter -> parameter.value = overrideValue as Boolean
+        is StringParameter -> parameter.value = overrideValue as String
+        else -> {
+          throw IllegalStateException()
+        }
+      }
     }
 
     val msToCheck = measureTimeMillis {
@@ -180,7 +187,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectRenderer.renderProject(project, *customizers)
+      projectRenderer.renderProject(project, getPinnedAgpVersion(), *customizers)
 
       if (testMode == TestMode.GENERATING) {
         printUnzipInstructions()
@@ -282,7 +289,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     checkCreateTemplate(
       "Empty Views Activity",
       withApplicationId("com.mycompany.myapp"),
-      withPackage("com.mycompany.myapp.subpackage")
+      withPackage("com.mycompany.myapp.subpackage"),
     )
   }
 
@@ -297,7 +304,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
       "Empty Views Activity",
       withKotlin(),
       withApplicationId("com.mycompany.myapp"),
-      withPackage("com.mycompany.myapp.subpackage")
+      withPackage("com.mycompany.myapp.subpackage"),
     )
   }
 
@@ -366,7 +373,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     checkCreateTemplate(
       "Fullscreen Views Activity",
       withApplicationId("com.mycompany.myapp"),
-      withPackage("com.mycompany.myapp.subpackage")
+      withPackage("com.mycompany.myapp.subpackage"),
     )
   }
 
@@ -376,7 +383,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
       "Fullscreen Views Activity",
       withKotlin(),
       withApplicationId("com.mycompany.myapp"),
-      withPackage("com.mycompany.myapp.subpackage")
+      withPackage("com.mycompany.myapp.subpackage"),
     )
   }
 
@@ -408,6 +415,23 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @Test
   fun testNewSettingsActivityWithKotlin() {
     checkCreateTemplate("Settings Views Activity", withKotlin())
+  }
+
+  @Test
+  fun testNewSettingsActivityMultipleScreens() {
+    checkCreateTemplate(
+      "Settings Views Activity",
+      templateStateCustomizer = mapOf("Split settings hierarchy into separate sub-screens" to true),
+    )
+  }
+
+  @Test
+  fun testNewSettingsActivityWithKotlinMultipleScreens() {
+    checkCreateTemplate(
+      "Settings Views Activity",
+      withKotlin(),
+      templateStateCustomizer = mapOf("Split settings hierarchy into separate sub-screens" to true),
+    )
   }
 
   @Test
@@ -473,6 +497,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @Test
   fun testComposeActivityMaterial3() {
     checkCreateTemplate("Empty Activity", withSpecificKotlin) // Compose is always Kotlin
+  }
+
+  @Test
+  fun testComposeNavigationUiActivityMaterial3() {
+    checkCreateTemplate("Navigation UI Activity", withSpecificKotlin) // Compose is always Kotlin
   }
 
   @Test
@@ -701,11 +730,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
-  fun testNewAppActionsXmlFile() {
-    checkCreateTemplate("App Actions XML File (deprecated)")
-  }
-
-  @Test
   fun testNewLayoutXmlFile() {
     checkCreateTemplate("Layout XML File")
   }
@@ -745,11 +769,16 @@ class TemplateDiffTest(private val testMode: TestMode) {
     checkCreateTemplate(
       "Gemini API Starter",
       withSpecificKotlin,
-      templateStateCustomizer = mapOf("API Key" to "abcd")
+      templateStateCustomizer = mapOf("API Key" to "abcd"),
     )
   }
+
+   @Test
+   fun testXRBasicHeadsetActivity() {
+    checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
+   }
 }
 
-typealias TemplateStateCustomizer = Map<String, String>
+typealias TemplateStateCustomizer = Map<String, Any>
 
 typealias ProjectStateCustomizer = (ModuleTemplateDataBuilder, ProjectTemplateDataBuilder) -> Unit

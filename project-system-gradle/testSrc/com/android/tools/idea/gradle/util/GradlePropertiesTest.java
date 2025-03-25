@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.intellij.util.net.ProxyConfiguration.ProxyProtocol.HTTP;
+
 import com.google.common.collect.Comparators;
 import com.google.common.collect.ContiguousSet;
+import com.intellij.credentialStore.Credentials;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.ProxyConfiguration;
+import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration;
+import com.intellij.util.net.ProxySettings;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,20 +35,18 @@ import java.util.Properties;
  */
 public class GradlePropertiesTest extends HeavyPlatformTestCase {
   private GradleProperties myProperties;
-  private HttpConfigurable myOriginalIdeSettings;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     File propertiesFilePath = createTempFile("gradle.properties", "");
     myProperties = new GradleProperties(propertiesFilePath);
-    myOriginalIdeSettings = HttpConfigurable.getInstance().getState();
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      HttpConfigurable.getInstance().loadState(myOriginalIdeSettings);
+      ProxySettings.getInstance().setProxyConfiguration(ProxySettings.getDefaultProxyConfiguration());
     } finally {
       super.tearDown();
     }
@@ -53,15 +56,17 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     String host = "myproxy.test.com";
     int port = 443;
 
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = true;
-    ideSettings.PROXY_HOST = host;
-    ideSettings.PROXY_PORT = port;
-
-    ProxySettings proxySettings = new ProxySettings(ideSettings);
+    IdeProxyInfo info = IdeProxyInfo.getInstance();
+    ProxySettings ideSettings = info.getSettings();
+    StaticProxyConfiguration configuration = ProxyConfiguration.proxy(HTTP, host, port, "");
+    ideSettings.setProxyConfiguration(configuration);
+    IdeGradleProxySettingsBridge proxySettings = new IdeGradleProxySettingsBridge(info, configuration);
 
     assertEquals(host, proxySettings.getHost());
     assertEquals(port, proxySettings.getPort());
+    assertNull(proxySettings.getUser());
+    assertNull(proxySettings.getPassword());
+    assertEmpty(proxySettings.getExceptions());
   }
 
   public void testSetProxySettings() {
@@ -70,15 +75,11 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     String user = "johndoe";
     String password = "123456";
 
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = true;
-    ideSettings.PROXY_HOST = host;
-    ideSettings.PROXY_PORT = port;
-    ideSettings.PROXY_AUTHENTICATION = true;
-    ideSettings.setProxyLogin(user);
-    ideSettings.setPlainProxyPassword(password);
-
-    ProxySettings ideProxySettings = new ProxySettings(ideSettings);
+    IdeProxyInfo info = IdeProxyInfo.getInstance();
+    StaticProxyConfiguration configuration = ProxyConfiguration.proxy(HTTP, host, port, "");
+    info.getSettings().setProxyConfiguration(configuration);
+    info.getCredentialStore().setCredentials(host, port, new Credentials(user, password), false);
+    IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(info, configuration);
 
     // Verify that the proxy settings are stored properly in the actual properties file.
     ideProxySettings.applyProxySettings(myProperties.getProperties());
@@ -88,14 +89,14 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     assertEquals(user, myProperties.getProperty("systemProp.http.proxyUser"));
     assertEquals(password, myProperties.getProperty("systemProp.http.proxyPassword"));
 
-    ProxySettings gradleProxySetting = myProperties.getHttpProxySettings();
+    IdeGradleProxySettingsBridge gradleProxySetting = myProperties.getHttpProxySettings();
     assertEquals(host, gradleProxySetting.getHost());
     assertEquals(port, gradleProxySetting.getPort());
 
     // Verify that username is removed but password not if authentication is disabled in IDE settings.
-    ideSettings.PROXY_AUTHENTICATION = false;
+    info.getCredentialStore().setCredentials(host, port, null, false);
 
-    ideProxySettings = new ProxySettings(ideSettings);
+    ideProxySettings = new IdeGradleProxySettingsBridge(info, configuration);
     ideProxySettings.applyProxySettings(myProperties.getProperties());
 
     assertNull(myProperties.getProperty("systemProp.http.proxyUser"));
@@ -112,14 +113,11 @@ public class GradlePropertiesTest extends HeavyPlatformTestCase {
     Collections.shuffle(permutation);
     permutation.forEach(index -> properties.setProperty(String.format("key%02d", index), String.format("value%02d", index)));
     // Add some common properties
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = true;
-    ideSettings.PROXY_HOST = "myproxy.test.com";
-    ideSettings.PROXY_PORT = 443;
-    ideSettings.PROXY_AUTHENTICATION = true;
-    ideSettings.setProxyLogin("johndoe");
-    ideSettings.setPlainProxyPassword("123456");
-    ProxySettings ideProxySettings = new ProxySettings(ideSettings);
+    IdeProxyInfo info = IdeProxyInfo.getInstance();
+    StaticProxyConfiguration configuration = ProxyConfiguration.proxy(HTTP, "myproxy.test.com", 443, "");
+    info.getSettings().setProxyConfiguration(configuration);
+    info.getCredentialStore().setCredentials("myproxy.test.com", 443, new Credentials("johndoe", "123456"), false);
+    IdeGradleProxySettingsBridge ideProxySettings = new IdeGradleProxySettingsBridge(info, configuration);
     ideProxySettings.applyProxySettings(properties);
     properties.setProperty("org.gradle.parallel", "true");
     properties.setProperty("org.gradle.jvmargs", "-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8");

@@ -31,7 +31,7 @@ import java.util.function.Consumer
  * [ResourceIdManagerBase] allows it to resolve android framework ids.
  */
 class ApkResourceIdManager : ResourceIdManagerBase(
-  ResourceIdManagerModelModule.NO_NAMESPACING_APP,
+  ResourceIdManagerModelModule.noNamespacingApp(true),
   true
 ) {
   private val apkResources = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)

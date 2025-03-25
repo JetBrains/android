@@ -24,18 +24,20 @@ interface PairingCodePairingView {
   fun showDialog()
 
   fun showPairingInProgress()
+
   fun showWaitingForDeviceProgress(pairingResult: PairingResult)
+
   fun showPairingSuccess(service: MdnsService, device: AdbOnlineDevice)
+
   fun showPairingError(service: MdnsService, error: Throwable)
 
   fun addListener(listener: Listener)
+
   fun removeListener(listener: Listener)
 
   @UiThread
   interface Listener {
-    /**
-     * The pairing code value is in [PairingCodePairingModel.pairingCode]
-     */
+    /** The pairing code value is in [PairingCodePairingModel.pairingCode] */
     fun onPairInvoked()
   }
 }

@@ -33,6 +33,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.idea.lint.common.LintEditorResult;
 import com.android.tools.idea.lint.common.LintIgnoredResult;
 import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.model.AndroidModel;
@@ -41,10 +42,21 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.PlatformLookupKt;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.Cancellation;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.EmptyRunnable;
+import com.intellij.openapi.util.Ref;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.concurrency.Semaphore;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 import org.gradle.internal.impldep.org.junit.Rule;
 import org.gradle.internal.impldep.org.junit.rules.TemporaryFolder;
 import org.jetbrains.android.AndroidTestCase;
@@ -144,6 +156,51 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
     when(previewProject.isAndroidProject()).thenReturn(false);
     previewTarget = client.getCompileTarget(previewProject);
     assertThat(previewTarget).isNull();
+  }
+
+  public void testReadActionCancellation() {
+    // Regression test for b/382396705: cancellable read actions broken when run inside ExternalToolPass.
+    PlatformTestUtil.withSystemProperty("android.lint.use.cancelable.read.actions.in.tests", "true", () -> {
+      Application app = ApplicationManager.getApplication();
+      LintClient client = new AndroidLintIdeClient(ideaProject, mock(LintEditorResult.class));
+
+      var readActionStarted = new Semaphore(1);
+      var readActionEnded = new Semaphore(1);
+      var cancelledSuccessfully = new Ref<>(false);
+      long msTimeout = TimeUnit.SECONDS.toMillis(10);
+
+      // Start a read action on a background thread.
+      app.executeOnPooledThread(() -> {
+        // Simulate the behavior of Update.execute() used by ExternalToolPass, i.e., use Cancellation.withNonCancelableSection():
+        // https://github.com/JetBrains/intellij-community/blob/ef54fa808e/platform/ide-core/src/com/intellij/util/ui/update/Update.kt#L60
+        //noinspection UnstableApiUsage
+        try (var ignoredAccessToken = Cancellation.withNonCancelableSection()) {
+          client.runReadAction(() -> {
+            try {
+              readActionStarted.up();
+              // Spin for a while, hoping to be cancelled.
+              long msDeadline = System.currentTimeMillis() + msTimeout;
+              while (System.currentTimeMillis() < msDeadline) {
+                ProgressManager.checkCanceled();
+                LockSupport.parkNanos(1_000_000);
+              }
+            }
+            catch (ProcessCanceledException ignored) {
+              cancelledSuccessfully.set(true);
+            }
+            finally {
+              readActionEnded.up();
+            }
+          });
+        }
+      });
+
+      // Once the read action starts, cancel it, wait, and verify ProcessCanceledException was thrown.
+      assertThat(readActionStarted.waitFor(msTimeout)).isTrue();
+      app.runWriteAction(EmptyRunnable.getInstance());
+      assertThat(readActionEnded.waitFor(msTimeout)).isTrue();
+      assertThat(cancelledSuccessfully.get()).isTrue();
+    });
   }
 
   @NonNull

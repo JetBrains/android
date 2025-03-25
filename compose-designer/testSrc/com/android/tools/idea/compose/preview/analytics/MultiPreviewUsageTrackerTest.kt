@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.analytics
 
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder.getPreviewNodes
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
@@ -30,6 +29,7 @@ import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -70,7 +70,7 @@ class MultiPreviewUsageTrackerTest {
   @Test
   fun testLogEvent_empty() {
     val multiPreviewUsageTracker = MultiPreviewUsageTracker.getInstance(null)
-    val multiPreviewEvent = MultiPreviewEvent(emptySequence(), "fileName")
+    val multiPreviewEvent = MultiPreviewEvent(emptyList(), "fileName")
     val androidStudioEvent = multiPreviewUsageTracker.logEvent(multiPreviewEvent)
 
     assertEquals(AndroidStudioEvent.EventKind.COMPOSE_MULTI_PREVIEW, androidStudioEvent.kind)
@@ -332,7 +332,7 @@ class MultiPreviewUsageTrackerTest {
     StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     fun logAndGetMultiPreviewEvent() =
       MultiPreviewUsageTracker.getInstance(null)
-        .logEvent(MultiPreviewEvent(emptySequence(), ""))
+        .logEvent(MultiPreviewEvent(emptyList(), ""))
         .composeMultiPreviewEvent
 
     try {
@@ -473,9 +473,7 @@ class MultiPreviewUsageTrackerTest {
     return MultiPreviewEvent(clearComposableFqnData(getPreviewNodes(vFile)), "fileName")
   }
 
-  private fun clearComposableFqnData(
-    nodes: Sequence<MultiPreviewNode>
-  ): Sequence<MultiPreviewNode> {
+  private fun clearComposableFqnData(nodes: List<MultiPreviewNode>): List<MultiPreviewNode> {
     nodes.forEach { it.nodeInfo.withComposableFqn("") }
     return nodes
   }
@@ -490,7 +488,6 @@ class MultiPreviewUsageTrackerTest {
         getPreviewNodes(methods, true)
       }
       .filterIsInstance<MultiPreviewNode>()
-      .asSequence()
   }
 }
 

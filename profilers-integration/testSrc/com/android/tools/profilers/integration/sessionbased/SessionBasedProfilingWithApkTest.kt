@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers.integration.sessionbased
 
-import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.profilers.integration.TestConstants
 import org.junit.Test
 
 class SessionBasedProfilingWithApkTest : ProfilersTestBase() {
+
+  override val projectPath = TestConstants.APK_PROJECT_PATH
 
   /**
    * Validate Profile app using apk
@@ -43,7 +45,6 @@ class SessionBasedProfilingWithApkTest : ProfilersTestBase() {
   @Test
   fun test() {
     profileAppUsingApk(
-      systemImage = Emulator.SystemImage.API_33,
       enableTaskBasedProfiling = false,
       testFunction = { studio, _ ->
         profileAction(studio)

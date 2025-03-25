@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_library")
 load("//tools/adt/idea/jps-build:idea.bzl", "idea_source", "jps_library", "jps_test", "split")
 
 idea_source(

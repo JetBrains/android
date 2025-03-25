@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.compose.gradle.preview.runconfiguration
 
-import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
+import com.android.tools.idea.backup.BackupManager
+import com.android.tools.idea.backup.testing.FakeBackupManager
+import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
-import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.withKotlin
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerOrReplaceServiceInstance
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Assert.assertEquals
@@ -47,11 +49,17 @@ class ComposePreviewRunConfigurationGradleTest {
   private val noValidComposableErrorMessage =
     message("run.configuration.no.valid.composable.set", "")
 
-  @get:Rule val projectRule = AndroidGradleProjectRule(TEST_DATA_PATH)
+  private val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  private val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   @Before
   fun setUp() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
+    projectRule.project.registerOrReplaceServiceInstance(
+      BackupManager::class.java,
+      FakeBackupManager(),
+      disposableRule.disposable,
+    )
   }
 
   @Test
@@ -139,20 +147,22 @@ private fun validatePreview(
 
   val vFile =
     VfsUtil.findRelativeFile(filePath, ProjectRootManager.getInstance(project).contentRoots[0])!!
-  return runReadAction {
-    val file = vFile.toPsiFile(project)
-    // Always picking the last function in the file
-    val previewFun = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).last()
-    val context = ConfigurationContext(previewFun)
 
-    val setupResult =
-      previewRunConfigurationProducer.setupConfigurationFromContext(
-        previewRunConfiguration,
-        context,
-        Ref(previewFun),
-      )
-    assertEquals(expectedSetupResult, setupResult)
+  return runBlocking {
+    readAction {
+      val file = vFile.toPsiFile(project)
+      // Always picking the last function in the file
+      val previewFun = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).last()
+      val context = ConfigurationContext(previewFun)
 
-    previewRunConfiguration.validate(null)
+      val setupResult =
+        previewRunConfigurationProducer.setupConfigurationFromContext(
+          previewRunConfiguration,
+          context,
+          Ref(previewFun),
+        )
+      assertEquals(expectedSetupResult, setupResult)
+      previewRunConfiguration.validate(null)
+    }
   }
 }

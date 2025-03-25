@@ -28,7 +28,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CollectionComboBoxModel;
@@ -47,7 +46,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -68,7 +67,55 @@ import org.jetbrains.annotations.TestOnly;
  * A dialog to pick a pre-configured material icon in vector format.
  */
 public final class IconPickerDialog extends DialogWrapper implements DataProvider {
-  private final Logger LOG = Logger.getInstance(IconPickerDialog.class);
+  private static class Style {
+    private final String myName;
+    private final String myDisplayName;
+
+    static final Style EMPTY = new Style("", "");
+
+    private static String getShortenedStyleName(@NotNull String styleName) {
+      String styleShortened = StringUtil.trimStart(styleName, MATERIAL_ICONS_PREFIX).trim();
+      // The default 'Filled' style is not named as such, just "Material Icons".
+      if (styleShortened.isEmpty()) return "Filled";
+      return styleShortened;
+    }
+
+    private Style(@NotNull String styleName, @NotNull String displayName) {
+      myName = styleName;
+      myDisplayName = displayName;
+    }
+
+    Style(@NotNull String styleName) {
+      this(styleName, getShortenedStyleName(styleName));
+    }
+
+    @Override
+    public String toString() {
+      return myDisplayName;
+    }
+  }
+
+  private static class Category {
+    private final String myName;
+    private final String myDisplayName;
+
+    /** Special category that represents "no category selected". */
+    static final Category ALL = new Category("All", "All");
+
+    private Category(@NotNull String name, @NotNull String displayName) {
+      myName = name;
+      myDisplayName = displayName;
+    }
+
+    Category(@NotNull String name) {
+      this(name, name.equals("av") ? "Audio/Video" : StringUtil.capitalize(name));
+    }
+
+    @Override
+    public String toString() {
+      return myDisplayName;
+    }
+  }
 
   private static final String MATERIAL_ICONS_PREFIX = "Material Icons";
   private static final int COLUMN_NUMBER = 6;
@@ -124,35 +171,13 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   @SuppressWarnings("unused") private JPanel myLicensePanel;
   private HyperlinkLabel myLicenseLabel;
   private SearchTextField mySearchField;
-  private JComboBox<String> myCategoriesBox;
-  private JComboBox<String> myStylesBox;
+  private JComboBox<Category> myCategoriesBox;
+  private JComboBox<Style> myStylesBox;
 
   @Nullable private VdIcon mySelectedIcon;
   @Nullable private VdIcon myIconToSelectInTable;
 
-  private ItemListener myStylesBoxListener = new ItemListener() {
-    @Override
-    public void itemStateChanged(ItemEvent e) {
-      if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
-        return;
-      }
-      int categoryCurrentIndex = myCategoriesBox.getSelectedIndex();
-      setCategoriesBoxModel(myStylesBox.getSelectedIndex());
-      if (categoryCurrentIndex >= 0 && categoryCurrentIndex < myCategoriesBox.getItemCount()) {
-        myCategoriesBox.setSelectedIndex(categoryCurrentIndex);
-      }
-    }
-  };
-  private ItemListener myCategoriesBoxListener = new ItemListener() {
-    @Override
-    public void itemStateChanged(ItemEvent e) {
-      if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
-        return;
-      }
-      updateIconList();
-    }
-  };
-  private AtomicBoolean isBusy = new AtomicBoolean(false);
+  private final AtomicBoolean isBusy = new AtomicBoolean(false);
 
   public IconPickerDialog(@Nullable VdIcon selectedIcon) {
     this(selectedIcon, null, null);
@@ -238,9 +263,27 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
 
     myIconTable.getEmptyText().setText("Loading icons...");
     myStylesBox.setVisible(false);
+    myStylesBox.setName("Styles");
     myCategoriesBox.setVisible(false);
-    myStylesBox.addItemListener(myStylesBoxListener);
-    myCategoriesBox.addItemListener(myCategoriesBoxListener);
+    myCategoriesBox.setName("Categories");
+    ItemListener stylesBoxListener = e -> {
+      if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
+        return;
+      }
+      int categoryCurrentIndex = myCategoriesBox.getSelectedIndex();
+      setCategoriesBoxModel(myStylesBox.getSelectedIndex());
+      if (categoryCurrentIndex >= 0 && categoryCurrentIndex < myCategoriesBox.getItemCount()) {
+        myCategoriesBox.setSelectedIndex(categoryCurrentIndex);
+      }
+    };
+    myStylesBox.addItemListener(stylesBoxListener);
+    ItemListener categoriesBoxListener = e -> {
+      if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
+        return;
+      }
+      updateIconList();
+    };
+    myCategoriesBox.addItemListener(categoriesBoxListener);
     myStylesBox.setName("Styles");
     myCategoriesBox.setName("Categories");
     refreshIconList(metadataUrlProvider, iconsUrlProvider, true);
@@ -284,7 +327,8 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   }
 
   private void createUIComponents() {
-    mySearchField = new SearchTextField(false);
+    mySearchField = new SearchTextField(
+false);
     mySearchField.addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(@NotNull DocumentEvent e) {
@@ -333,6 +377,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   private void populateIcons(MaterialVdIcons icons) {
     boolean shouldUpdateIconList = myIcons == null || myIcons == MaterialVdIcons.EMPTY;
     myIcons = icons;
+
     // Set boxes, styles and categories model.
     setStylesBoxModel();
 
@@ -353,18 +398,15 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   }
 
   private void setStylesBoxModel() {
-    String[] stylesArray = Arrays.stream(myIcons.getStyles()).map((styleName) -> {
-      if (styleName.startsWith(MATERIAL_ICONS_PREFIX)) {
-        String styleShortened = styleName.substring(MATERIAL_ICONS_PREFIX.length()).trim();
-        if (styleShortened.isEmpty()) {
-          // The default 'Filled' style is not named as such, just "Material Icons".
-          return "Filled";
-        }
-        return styleShortened;
-      }
-      return styleName;
-    }).toArray(String[]::new);
-    myStylesBox.setModel(new DefaultComboBoxModel<String>(stylesArray));
+    Style[] stylesArray = myIcons.getStyles().stream()
+      .sorted(
+        Comparator
+          // Promote Material Symbols to the top of the list
+          .<String>comparingInt((style) -> style.startsWith("Material Symbols") ? -1 : 0)
+          .thenComparing(Object::toString))
+      .map(Style::new)
+      .toArray(Style[]::new);
+    myStylesBox.setModel(new DefaultComboBoxModel<>(stylesArray));
   }
 
   /**
@@ -374,17 +416,17 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
    * @param styleIndex The index that corresponds to a style in the {@link MaterialVdIcons#getStyles()} array
    */
   private void setCategoriesBoxModel(int styleIndex) {
-    String[] allStyles = myIcons.getStyles();
-    String style = styleIndex < allStyles.length ? myIcons.getStyles()[styleIndex] : "";
-    ArrayList<String> categoriesArray = Arrays.stream(myIcons.getCategories(style))
-      .map((categoryName) -> categoryName.equals("av") ? "Audio/Video" : StringUtil.capitalize(categoryName))
+    Style style = styleIndex < myStylesBox.getItemCount() ? myStylesBox.getModel().getElementAt(styleIndex) : Style.EMPTY;
+    ArrayList<Category> categoriesArray = myIcons.getCategories(style.myName).stream()
+      .sorted()
+      .map(Category::new)
       .collect(Collectors.toCollection(ArrayList::new));
 
     boolean hasCategories = !categoriesArray.isEmpty();
     if (hasCategories) {
-      categoriesArray.add(0, "All");
+      categoriesArray.add(0, Category.ALL);
     }
-    myCategoriesBox.setModel(new CollectionComboBoxModel<String>(categoriesArray, null));
+    myCategoriesBox.setModel(new CollectionComboBoxModel<>(categoriesArray, null));
   }
 
   @Nullable
@@ -407,14 +449,17 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
    */
   private void updateIconList() {
     myIconList.clear();
-    String style = myIcons.getStyles()[myStylesBox.getSelectedIndex()];
-    Object categoryItem = myCategoriesBox.getSelectedItem();
-    if (categoryItem instanceof String && categoryItem.equals("All")) {
-      myIconList.addAll(Arrays.asList(myIcons.getAllIcons(style)));
-    }
-    else {
-      String category = myIcons.getCategories(style)[myCategoriesBox.getSelectedIndex() - 1];
-      myIconList.addAll(Arrays.asList(myIcons.getIcons(style, category)));
+    Style style = (Style)myStylesBox.getSelectedItem();
+    if (style != null) {
+      Category categoryItem = (Category)myCategoriesBox.getSelectedItem();
+      // If the category is "All" or no category has been selected yet, add all
+      if (categoryItem == null || categoryItem == Category.ALL) {
+        myIconList.addAll(myIcons.getAllIcons(style.myName));
+      }
+      else {
+        myIconList.addAll(myIcons.getIcons(style.myName, categoryItem.myName));
+      }
+      myIconList.sort(Comparator.comparing(VdIcon::getDisplayName));
     }
 
     myIconTable.getColumnModel().setColumnSelectionAllowed(true);

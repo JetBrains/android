@@ -110,6 +110,7 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
     var numCriticalIssues = 0
     var numVulnerabilities = 0
     var numOutdatedIssues = 0
+    var numDeprecated = 0
     dependencies.forEach { library->
       val version = library.version.toString()
       if (sdkIndex.hasLibraryErrorOrWarning(library.group, library.name, version)) {
@@ -130,9 +131,12 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
       if (sdkIndex.isLibraryOutdated(library.group, library.name, version, null)) {
         numOutdatedIssues++
       }
+      if (sdkIndex.isLibraryDeprecated(library.group, library.name, version, null)) {
+        numDeprecated++
+      }
     }
     // Report stats even if not presented to user
-    reportProjectStats(project, numErrorsAndWarnings, numBlockingIssues, numPolicyIssues, numCriticalIssues, numVulnerabilities, numOutdatedIssues)
+    reportProjectStats(project, numErrorsAndWarnings, numBlockingIssues, numPolicyIssues, numCriticalIssues, numVulnerabilities, numOutdatedIssues, numDeprecated)
     if (numBlockingIssues > 0 && !wasNotificationShown) {
       val notification = SdkIndexNotification("There are $numBlockingIssues SDKs with warnings that will prevent app release in Google Play Console")
       val psdService = ProjectSettingsService.getInstance(project)
@@ -156,7 +160,7 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
     return null
   }
 
-  private fun reportProjectStats(project: Project, numErrorsAndWarnings: Int, numBlockingIssues: Int, numPolicyIssues: Int, numCriticalIssues: Int, numVulnerabilities: Int, numOutdatedIssues: Int) {
+  private fun reportProjectStats(project: Project, numErrorsAndWarnings: Int, numBlockingIssues: Int, numPolicyIssues: Int, numCriticalIssues: Int, numVulnerabilities: Int, numOutdatedIssues: Int, numDeprecatedIssues: Int) {
     val event = AndroidStudioEvent.newBuilder()
       .setCategory(AndroidStudioEvent.EventCategory.GOOGLE_PLAY_SDK_INDEX)
       .setKind(AndroidStudioEvent.EventKind.SDK_INDEX_PROJECT_STATS)
@@ -169,6 +173,7 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
           .setNumCriticalIssues(numCriticalIssues)
           .setNumVulnerabilityIssues(numVulnerabilities)
           .setNumOutdatedIssues(numOutdatedIssues)
+          .setNumDeprecatedIssues(numDeprecatedIssues)
       )
     UsageTracker.log(event)
   }

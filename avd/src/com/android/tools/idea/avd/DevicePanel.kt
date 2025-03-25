@@ -16,13 +16,16 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,13 +37,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
-import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
-import com.android.tools.idea.adddevicedialog.ApiFilter
+import com.android.tools.adtui.compose.LocalProject
+import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.SortOrder
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
@@ -48,16 +53,21 @@ import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableSortState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
+import com.intellij.ide.BrowserUtil
+import icons.StudioIconsCompose
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.separator
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
@@ -65,7 +75,8 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 @Composable
 internal fun DevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
-  devicePanelState: DevicePanelState,
+  systemImageFilterState: SystemImageFilterState,
+  imageState: SystemImageState,
   androidVersions: ImmutableList<AndroidVersion>,
   servicesCollection: ImmutableCollection<Services>,
   deviceNameValidator: DeviceNameValidator,
@@ -73,12 +84,14 @@ internal fun DevicePanel(
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val nameFocusRequester = remember { FocusRequester() }
   Column(modifier) {
     Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
     var nameError by remember { mutableStateOf<String?>(null) }
     val nameState = rememberTextFieldState(configureDevicePanelState.device.name)
     LaunchedEffect(Unit) {
+      nameFocusRequester.requestFocus()
       snapshotFlow { nameState.text.toString() }
         .collect {
           configureDevicePanelState.setDeviceName(it)
@@ -87,14 +100,12 @@ internal fun DevicePanel(
         }
     }
 
-    Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
-      ErrorTooltip(nameError) {
-        TextField(
-          nameState,
-          Modifier.padding(bottom = Padding.MEDIUM_LARGE).alignByBaseline(),
-          outline = if (nameError == null) Outline.None else Outline.Error,
-        )
-      }
+    ErrorTooltip(nameError) {
+      TextField(
+        nameState,
+        Modifier.padding(bottom = Padding.MEDIUM_LARGE).focusRequester(nameFocusRequester),
+        outline = if (nameError == null) Outline.None else Outline.Error,
+      )
     }
 
     Text(
@@ -104,51 +115,73 @@ internal fun DevicePanel(
       modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
     )
 
-    Row(horizontalArrangement = Arrangement.spacedBy(Padding.MEDIUM_LARGE)) {
+    Text(
+      "Use the filters to help find the system image that you prefer. The combination of device " +
+        "profile and system image is only an approximation of the equivalent physical hardware.",
+      color = JewelTheme.globalColors.text.info,
+      modifier = Modifier.padding(bottom = Padding.SMALL_MEDIUM),
+    )
+
+    Row(horizontalArrangement = Arrangement.spacedBy(Padding.LARGE)) {
       ApiFilter(
         androidVersions,
-        devicePanelState.selectedApi,
-        devicePanelState::setSelectedApi,
+        systemImageFilterState.selectedApi,
+        systemImageFilterState::setSelectedApi,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
 
       ServicesDropdown(
-        devicePanelState.selectedServices,
+        systemImageFilterState.selectedServices,
         servicesCollection,
-        devicePanelState::setSelectedServices,
+        systemImageFilterState::setSelectedServices,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
     }
 
+    val baseExtensionLevels = remember(imageState.images) { BaseExtensionLevels(imageState.images) }
+    val filteredSystemImages = systemImageFilterState.filter(imageState.images, baseExtensionLevels)
+    configureDevicePanelState.setIsSystemImageTableSelectionValid(
+      configureDevicePanelState.systemImageTableSelectionState.selection in filteredSystemImages
+    )
+
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
-      if (devicePanelState.filteredSystemImages.isEmpty()) {
-        Box(Modifier.fillMaxSize()) {
-          Text(
-            "No system images available matching the current set of filters.",
-            Modifier.align(Alignment.Center),
+      if (filteredSystemImages.isEmpty()) {
+        EmptyStatePanel(
+          "No system images available matching the current set of filters.",
+          Modifier.fillMaxSize(),
+        )
+      } else {
+        if (imageState.error != null) {
+          ErrorPanel(
+            Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
+            imageState.error,
+          )
+        } else if (!imageState.hasRemote) {
+          ProgressIndicatorPanel(
+            "Loading system images...",
+            Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
           )
         }
-      } else {
         SystemImageTable(
-          devicePanelState.filteredSystemImages,
+          filteredSystemImages,
           configureDevicePanelState.systemImageTableSelectionState,
-          configureDevicePanelState::setIsSystemImageTableSelectionValid,
           onDownloadButtonClick,
           onSystemImageTableRowClick,
+          Modifier.border(1.dp, JewelTheme.globalColors.borders.normal),
         )
       }
     }
 
     ShowSdkExtensionSystemImagesCheckbox(
-      devicePanelState.showSdkExtensionSystemImages,
-      devicePanelState::setShowSdkExtensionSystemImages,
+      systemImageFilterState.showSdkExtensionSystemImages,
+      systemImageFilterState::setShowSdkExtensionSystemImages,
       Modifier.padding(bottom = Padding.SMALL),
     )
 
     CheckboxRow(
-      "Show only recommended system images",
-      devicePanelState.showOnlyRecommendedSystemImages,
-      devicePanelState::setShowOnlyRecommendedSystemImages,
+      "Show unsupported system images",
+      systemImageFilterState.showUnsupportedSystemImages,
+      systemImageFilterState::setShowUnsupportedSystemImages,
     )
   }
 }
@@ -196,23 +229,35 @@ private fun ServicesDropdown(
 private fun SystemImageTable(
   images: List<ISystemImage>,
   selectionState: TableSelectionState<ISystemImage>,
-  onIsSystemImageTableSelectionValidChange: (Boolean) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onRowClick: (ISystemImage) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  onIsSystemImageTableSelectionValidChange(selectionState.selection in images)
-
   val sortedImages = images.sortedWith(SystemImageComparator)
-  val starredImage by rememberUpdatedState(sortedImages.last().takeIf { it.isRecommended() })
+  val starredImage by rememberUpdatedState(sortedImages.last().takeIf { it.isSupported() })
   val starColumn = remember {
-    TableColumn("", TableColumnWidth.Fixed(16.dp), comparator = SystemImageComparator) {
-      if (it == starredImage) {
-        Icon(
-          AllIconsKeys.Nodes.Favorite,
-          contentDescription = "Recommended",
-          modifier = Modifier.size(16.dp),
-        )
+    TableColumn("", TableColumnWidth.Fixed(16.dp), comparator = SystemImageComparator) { image, _ ->
+      if (image == starredImage) {
+        @OptIn(ExperimentalFoundationApi::class)
+        Tooltip(
+          tooltip = {
+            Text(
+              "This is the recommended system image for your workstation and selected device configuration.",
+              Modifier.widthIn(max = 300.dp),
+            )
+          }
+        ) {
+          Icon(
+            AllIconsKeys.Nodes.Favorite,
+            contentDescription = "Recommended",
+            modifier = Modifier.size(16.dp),
+          )
+        }
+      } else {
+        val warnings = image.imageWarnings()
+        if (warnings.isNotEmpty()) {
+          SystemImageWarningIcon(warnings)
+        }
       }
     }
   }
@@ -223,10 +268,10 @@ private fun SystemImageTable(
         "",
         TableColumnWidth.Fixed(16.dp),
         Comparator.comparing { it is RemoteSystemImage },
-      ) {
-        if (it is RemoteSystemImage) {
+      ) { image, _ ->
+        if (image is RemoteSystemImage) {
           DownloadButton(
-            onClick = { onDownloadButtonClick(it.`package`.path) },
+            onClick = { onDownloadButtonClick(image.`package`.path) },
             Modifier.size(16.dp),
           )
         }
@@ -257,63 +302,6 @@ private fun SystemImageTable(
   )
 }
 
-internal class DevicePanelState
-internal constructor(
-  selectedApi: AndroidVersionSelection,
-  selectedServices: Services?,
-  private val systemImages: List<ISystemImage>,
-  showSdkExtensionSystemImages: Boolean = false,
-  showOnlyRecommendedSystemImages: Boolean = true,
-) {
-  internal var selectedApi by mutableStateOf(selectedApi)
-    private set
-
-  internal var selectedServices by mutableStateOf(selectedServices)
-    private set
-
-  internal var filteredSystemImages by mutableStateOf(systemImages)
-    private set
-
-  internal var showSdkExtensionSystemImages by mutableStateOf(showSdkExtensionSystemImages)
-    private set
-
-  internal var showOnlyRecommendedSystemImages by mutableStateOf(showOnlyRecommendedSystemImages)
-    private set
-
-  init {
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  internal fun setSelectedApi(selectedApi: AndroidVersionSelection) {
-    this.selectedApi = selectedApi
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  internal fun setSelectedServices(selectedServices: Services?) {
-    this.selectedServices = selectedServices
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  internal fun setShowSdkExtensionSystemImages(showSdkExtensionSystemImages: Boolean) {
-    this.showSdkExtensionSystemImages = showSdkExtensionSystemImages
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  internal fun setShowOnlyRecommendedSystemImages(showOnlyRecommendedSystemImages: Boolean) {
-    this.showOnlyRecommendedSystemImages = showOnlyRecommendedSystemImages
-    filteredSystemImages = systemImages.filter(this::matches)
-  }
-
-  private fun matches(image: ISystemImage): Boolean {
-    val apiMatches = selectedApi.matches(image.androidVersion)
-    val servicesMatches = selectedServices == null || image.getServices() == selectedServices
-    val isSdkExtensionMatches = showSdkExtensionSystemImages || image.androidVersion.isBaseExtension
-    val isRecommendedMatches = !showOnlyRecommendedSystemImages || image.isRecommended()
-
-    return apiMatches && servicesMatches && isSdkExtensionMatches && isRecommendedMatches
-  }
-}
-
 @Composable
 private fun DownloadButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
   IconButton(onClick, modifier) { Icon(AllIconsKeys.Actions.Download, "Download") }
@@ -327,15 +315,46 @@ private fun ShowSdkExtensionSystemImagesCheckbox(
 ) {
   Row(modifier) {
     CheckboxRow(
-      "Show SDK extension system images",
+      "Show system images with SDK extensions",
       sdkExtensionSystemImagesVisible,
       onSdkExtensionSystemImagesVisibleChange,
       Modifier.padding(end = Padding.MEDIUM),
     )
 
-    InfoOutlineIcon(
-      "Select this option to see images of SDK extensions for the selected API level",
+    @OptIn(ExperimentalFoundationApi::class)
+    LingeringTooltip(
+      tooltip = {
+        Column(Modifier.widthIn(max = 400.dp)) {
+          Text("SDK extensions add new features to previous versions of Android.")
+          Spacer(Modifier.size(4.dp))
+          val project = LocalProject.current
+          val url = "https://developer.android.com/guide/sdk-extensions"
+          ExternalLink("Learn more", onClick = { BrowserUtil.browse(url, project) })
+        }
+      },
       Modifier.align(Alignment.CenterVertically),
+    ) {
+      Icon(AllIconsKeys.General.Note, null)
+    }
+  }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SystemImageWarningIcon(warnings: List<String>) {
+  Tooltip(
+    tooltip = {
+      Column(Modifier.widthIn(max = 400.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        for (warning in warnings) {
+          Text(warning)
+        }
+      }
+    }
+  ) {
+    Icon(
+      StudioIconsCompose.Common.Warning,
+      contentDescription = "Non-recommended image",
+      modifier = Modifier.size(16.dp),
     )
   }
 }

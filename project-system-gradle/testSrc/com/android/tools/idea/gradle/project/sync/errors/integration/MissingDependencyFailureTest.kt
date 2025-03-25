@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync.errors.integration
 
 import com.android.tools.idea.gradle.plugin.AgpVersions.latestKnown
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
@@ -60,7 +63,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
             expect.that(it.message).isEqualTo("Could not resolve androidx.databinding:databinding-common:$latestKnown")
             expect.that(it.description).isEqualTo("""
               |A problem occurred configuring root project 'project'.
-              |> Could not resolve all artifacts for configuration ':classpath'.
+              |> Could not resolve all artifacts for configuration 'classpath'.
               |   > Could not find androidx.databinding:databinding-common:$latestKnown.
               |     Required by:
               |         root project : > com.android.tools.build:gradle:$latestKnown
@@ -85,6 +88,20 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.api.ProjectConfigurationException
+                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+              exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+                at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+              exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+                at: no info
+            }
+          }
+        """.trimIndent())
       }
     )
   }
@@ -107,7 +124,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
             expect.that(it.message).isEqualTo("Could not resolve my.not.existing.dependency:gradle:1.2.3-dev")
             expect.that(it.description).startsWith("""
               |A problem occurred configuring root project 'project'.
-              |> Could not resolve all artifacts for configuration ':classpath'.
+              |> Could not resolve all artifacts for configuration 'classpath'.
               |   > Could not find my.not.existing.dependency:gradle:1.2.3-dev.
               |     Searched in the following locations:
               """.trimMargin())
@@ -133,6 +150,20 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
         expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
+        """.trimIndent())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.api.ProjectConfigurationException
+                at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+              exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+                at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+              exception: org.gradle.internal.resolve.ModuleVersionNotFoundException
+                at: no info
+            }
+          }
         """.trimIndent())
       }
     )
@@ -190,7 +221,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
           expect.that(it.message).isEqualTo("Could not resolve my.not.existing.dependency:gradle:1.2.3-dev")
           expect.that(it.description).isEqualTo("""
             |A problem occurred configuring project ':app'.
-            |> Could not resolve all artifacts for configuration ':app:classpath'.
+            |> Could not resolve all artifacts for configuration 'classpath'.
             |   > Could not resolve my.not.existing.dependency:gradle:1.2.3-dev.
             |     Required by:
             |         project :app
@@ -223,6 +254,22 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
       """.trimIndent())
+      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+              at: [0]org.gradle.api.internal.artifacts.ResolveExceptionMapper#mapFailure
+            exception: org.gradle.internal.resolve.ModuleVersionResolveException
+              at: no info
+            exception: org.gradle.internal.resolve.ModuleVersionResolveException
+              at: no info
+          }
+        }
+        """.trimIndent())
     }
   }
 }

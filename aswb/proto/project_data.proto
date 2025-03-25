@@ -162,6 +162,8 @@ message OutputArtifact {
   // The artifact path as returned by Bazel/s File.path (i.e. includes prefixes like bazel-out if present and maybe an absolute path).
   // Components of this path should not be inspected individually (except the file name).
   string artifact_path = 6;
+  // The length of the artifact prefix like `bazel-out/k8/bin`.
+  int32 prefix_length_plus_one = 7; // +1 to differentiate from the default.
 }
 
 message AndroidResourceModule {

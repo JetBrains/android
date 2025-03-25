@@ -26,7 +26,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.ReadActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
-import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
@@ -63,7 +62,7 @@ internal class LiveEditCompilerForK2(
     runWithCompileLock {
       LOGGER.info("Using Live Edit K2 CodeGen")
       ReadActionPrebuildChecks(project, file)
-      val result = backendCodeGenForK2(file, module, getCompilerConfiguration(module, file))
+      val result = backendCodeGenForK2(file, module, applicationLiveEditServices.getKotlinCompilerConfiguration(file))
       val compilerOutput = result.output.map { OutputFileForKtCompiledFile(it) }
 
       // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
@@ -78,10 +77,8 @@ internal class LiveEditCompilerForK2(
 
 @OptIn(KaExperimentalApi::class)
 fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerConfiguration): KaCompilationResult.Success {
-  module.let {
-    if (ModuleUtilCore.findModuleForFile(file) != it) {
-      throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
-    }
+  if (ModuleUtilCore.findModuleForFile(file) != module) {
+    throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
   }
 
   // Since K2 compile AA reports syntax error, this may be unnecessary, but it throws an exception early when it has a syntax error.

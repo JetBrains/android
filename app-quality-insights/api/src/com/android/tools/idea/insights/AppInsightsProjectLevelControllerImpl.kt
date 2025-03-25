@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.ai.GeminiToolkit
+import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.ActiveConnectionChanged
 import com.android.tools.idea.insights.events.AddNoteRequested
@@ -25,9 +26,12 @@ import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.ConnectionsChanged
 import com.android.tools.idea.insights.events.DeleteNoteRequested
 import com.android.tools.idea.insights.events.DevicesChanged
+import com.android.tools.idea.insights.events.DisableAction
+import com.android.tools.idea.insights.events.EnableAction
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.events.FatalityToggleChanged
+import com.android.tools.idea.insights.events.InsightFeedbackSubmitted
 import com.android.tools.idea.insights.events.IntervalChanged
 import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.OSesChanged
@@ -42,8 +46,10 @@ import com.android.tools.idea.insights.events.SelectedIssueVariantChanged
 import com.android.tools.idea.insights.events.SignalChanged
 import com.android.tools.idea.insights.events.VersionsChanged
 import com.android.tools.idea.insights.events.VisibilityChanged
+import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 import com.intellij.openapi.components.service
@@ -52,6 +58,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import java.time.Clock
 import javax.swing.event.HyperlinkListener
+import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -74,7 +81,7 @@ private data class ProjectState(
 )
 
 class AppInsightsProjectLevelControllerImpl(
-  override val key: InsightsProviderKey,
+  override val provider: InsightsProvider,
   override val coroutineScope: CoroutineScope,
   dispatcher: CoroutineDispatcher,
   appInsightsClient: AppInsightsClient,
@@ -86,7 +93,8 @@ class AppInsightsProjectLevelControllerImpl(
   override val project: Project,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
-  geminiToolkit: GeminiToolkit,
+  override val aiInsightToolkit: AiInsightToolkit,
+  private val cache: AppInsightsCache,
 ) : AppInsightsProjectLevelController {
 
   override val state: SharedFlow<AppInsightsState>
@@ -99,7 +107,7 @@ class AppInsightsProjectLevelControllerImpl(
       clock,
       appInsightsClient,
       defaultFilters,
-      geminiToolkit,
+      aiInsightToolkit,
       ::doEmit,
       onErrorAction,
     )
@@ -111,7 +119,7 @@ class AppInsightsProjectLevelControllerImpl(
   val eventFlow: MutableSharedFlow<ChangeEvent> = MutableSharedFlow(extraBufferCapacity = 2)
 
   private val settings: InsightsFilterSettings?
-    get() = project.service<AppInsightsSettings>().tabSettings[key.displayName]
+    get() = project.service<AppInsightsSettings>().tabSettings[provider.displayName]
 
   /** Restores persisted settings on the first non empty connections list. */
   private val connectionsFlow = flow {
@@ -152,11 +160,11 @@ class AppInsightsProjectLevelControllerImpl(
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
           LOG.debug("Got event $event for $project.")
-          val (newState, action) = event.transition(currentState, tracker, key)
+          val (newState, action) = event.transition(currentState, tracker, provider, cache)
           if (currentState.issues != newState.issues) {
             project
               .service<IssuesPerFileIndex>()
-              .updateIssueIndex(newState.issues.map { it.value }, key)
+              .updateIssueIndex(newState.issues.map { it.value }, provider.displayName)
           }
           if (currentState.mode != newState.mode) {
             offlineStatusManager.enterMode(newState.mode)
@@ -240,8 +248,12 @@ class AppInsightsProjectLevelControllerImpl(
     emit(SelectedIssueVariantChanged(variant))
   }
 
-  override fun refreshInsight(contextSharingOverride: Boolean) {
-    emit(RefreshInsight(contextSharingOverride))
+  override fun refreshInsight(regenerateWithContext: Boolean) {
+    emit(RefreshInsight(regenerateWithContext))
+  }
+
+  override fun submitInsightFeedback(insightFeedback: InsightFeedback) {
+    emit(InsightFeedbackSubmitted(insightFeedback))
   }
 
   override fun selectTimeInterval(value: TimeIntervalFilter) {
@@ -272,7 +284,7 @@ class AppInsightsProjectLevelControllerImpl(
     val issues =
       project
         .service<IssuesPerFileIndex>()
-        .getIssuesPerFilename(key)
+        .getIssuesPerFilename(provider.displayName)
         .get(file.virtualFile.name)
         .toList()
 
@@ -288,10 +300,18 @@ class AppInsightsProjectLevelControllerImpl(
         issue = issueInFrame.issue,
         stackFrame = issueInFrame.crashFrame.frame,
         cause = issueInFrame.crashFrame.cause,
-        provider = key,
+        providerName = provider.displayName,
         markAsSelectedCallback = selectIssueCallback,
       )
     }
+  }
+
+  override fun disableAction(action: KClass<out Action>) {
+    emit(DisableAction(action))
+  }
+
+  override fun enableAction(action: KClass<out Action>) {
+    emit(EnableAction(action))
   }
 
   private fun logIssues(issues: List<IssueInFrame>, file: PsiFile) {
@@ -306,5 +326,5 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   private fun wrapAdapters(event: ChangeEvent) =
-    PersistSettingsAdapter(SafeFiltersAdapter(event), project, key)
+    PersistSettingsAdapter(SafeFiltersAdapter(event), project, provider.displayName)
 }

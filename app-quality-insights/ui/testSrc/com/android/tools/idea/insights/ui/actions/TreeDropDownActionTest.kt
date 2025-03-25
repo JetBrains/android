@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
@@ -27,12 +26,14 @@ import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ui.TreeDropDownPopup
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.TestLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.ibm.icu.impl.Assert.fail
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.CheckedTreeNode
@@ -40,6 +41,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.ThreeStateCheckBox
 import java.awt.BorderLayout
 import java.util.Enumeration
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
@@ -53,6 +55,7 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -60,6 +63,8 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 
 data class SimpleValue(val groupingKey: String, val title: String)
 
@@ -78,11 +83,17 @@ private val VALUE5 = WithCount(1, SimpleValue("2", "Title 3"))
 class TreeDropDownActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val popupRule = JBPopupRule()
+  private val testLoggerRule = TestLoggerRule()
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(popupRule)!!
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(popupRule).around(testLoggerRule)!!
 
-  private val scope: CoroutineScope
-    get() = AndroidCoroutineScope(projectRule.testRootDisposable)
+  private lateinit var scope: CoroutineScope
+
+  @Before
+  fun setUp() {
+    scope = AndroidCoroutineScope(projectRule.testRootDisposable)
+  }
 
   private val enabledFlow = MutableStateFlow(true)
 
@@ -92,13 +103,14 @@ class TreeDropDownActionTest {
       val panel = JPanel(BorderLayout())
       val fakeUi = FakeUi(panel)
 
-      val flow = MutableSharedFlow<MultiSelection<WithCount<SimpleValue>>>()
+      val flow = MutableSharedFlow<MultiSelection<WithCount<SimpleValue>>>(replay = 1)
 
       val dropdown =
         TreeDropDownAction(
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -151,6 +163,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -171,12 +184,17 @@ class TreeDropDownActionTest {
       dropdown.update(actionEvent)
       verify(presentation, times(1)).isEnabled = true
       verify(presentation, times(1)).text = "All values"
+      verify(presentation, times(1))
+        .putClientProperty(eq(ActionUtil.SHOW_TEXT_IN_TOOLBAR), eq(true))
+      verifyNoMoreInteractions(presentation)
 
       enabledFlow.update { false }
       dropdown.update(actionEvent)
 
       verify(presentation, times(1)).isEnabled = false
       verify(presentation, times(2)).text = "All values"
+      verify(presentation, times(2))
+        .putClientProperty(eq(ActionUtil.SHOW_TEXT_IN_TOOLBAR), eq(true))
       verifyNoMoreInteractions(presentation)
     }
 
@@ -196,6 +214,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -216,6 +235,11 @@ class TreeDropDownActionTest {
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
       dropdown.titleState.waitForValue("All values")
+
+      with(FakeUi(lastPopup)) {
+        assertThat(findComponent<JLabel> { it.text == "Column" }).isNotNull()
+        assertThat(findComponent<JLabel> { it.text == "Events" }).isNotNull()
+      }
 
       fun verifyAllShown() {
         val (group1, group2) = lastPopup.root.checkedChildren()
@@ -274,6 +298,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -323,6 +348,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -387,6 +413,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -435,6 +462,7 @@ class TreeDropDownActionTest {
           "values",
           flow,
           scope,
+          primaryColumnName = "Column",
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           secondaryGroupSupplier = {

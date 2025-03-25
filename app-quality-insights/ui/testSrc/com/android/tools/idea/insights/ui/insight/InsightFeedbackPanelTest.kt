@@ -17,68 +17,65 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
-import com.android.tools.idea.insights.FailureType
-import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.InsightSource
-import com.android.tools.idea.insights.experiments.Experiment
-import com.android.tools.idea.insights.ui.APP_INSIGHTS_TRACKER_KEY
-import com.android.tools.idea.insights.ui.FAILURE_TYPE_KEY
-import com.android.tools.idea.insights.ui.INSIGHT_KEY
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
+import icons.StudioIcons
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.Mockito.verify
 
 class InsightFeedbackPanelTest {
-
-  private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
-
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(controllerRule)
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var fakeUi: FakeUi
 
+  private lateinit var feedbackStateFlow: MutableStateFlow<InsightFeedback>
+  private lateinit var submittedFeedback: MutableList<InsightFeedback>
+
   @Before
   fun setup() = runBlocking {
-    withContext(AndroidDispatchers.uiThread) { fakeUi = FakeUi(InsightFeedbackPanel()) }
+    submittedFeedback = mutableListOf<InsightFeedback>()
+    feedbackStateFlow = MutableStateFlow(InsightFeedback.NONE)
+    withContext(AndroidDispatchers.uiThread) {
+      fakeUi = FakeUi(InsightFeedbackPanel(feedbackStateFlow) { submittedFeedback.add(it) })
+    }
   }
 
   @Test
   fun `test upvote and downvote actions`() = runBlocking {
     val (upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
-    assertThat(upvote.icon).isEqualTo(AllIcons.Ide.Like)
+    assertThat(upvote.icon).isEqualTo(StudioIcons.Common.LIKE)
     assertThat(upvote.presentation.text).isEqualTo("Upvote this insight")
     assertThat(upvote.isSelected).isFalse()
 
-    assertThat(downvote.icon).isEqualTo(AllIcons.Ide.Dislike)
+    assertThat(downvote.icon).isEqualTo(StudioIcons.Common.DISLIKE)
     assertThat(downvote.presentation.text).isEqualTo("Downvote this insight")
     assertThat(upvote.isSelected).isFalse()
 
     val upvoteEvent = TestActionEvent.createTestEvent()
     val downvoteEvent = TestActionEvent.createTestEvent()
 
+    feedbackStateFlow.value = InsightFeedback.THUMBS_UP
     upvote.actionPerformed(upvoteEvent)
     downvote.updateAction(downvoteEvent)
     assertThat(upvoteEvent.isSelected).isTrue()
     assertThat(downvoteEvent.isSelected).isFalse()
 
+    feedbackStateFlow.value = InsightFeedback.THUMBS_DOWN
     downvote.actionPerformed(downvoteEvent)
     upvote.updateAction(upvoteEvent)
     assertThat(upvoteEvent.isSelected).isFalse()
     assertThat(downvoteEvent.isSelected).isTrue()
 
+    feedbackStateFlow.value = InsightFeedback.NONE
     downvote.actionPerformed(downvoteEvent)
     upvote.updateAction(upvoteEvent)
     assertThat(upvoteEvent.isSelected).isFalse()
@@ -88,41 +85,12 @@ class InsightFeedbackPanelTest {
   @Test
   fun `test sentiment tracked when feedback clicked`() = runBlocking {
     val (upvote, downvote) = fakeUi.findAllComponents<ActionButton>()
-    var insight = AiInsight("", Experiment.CONTROL, insightSource = InsightSource.CRASHLYTICS_TITAN)
-    val upvoteEvent =
-      TestActionEvent.createTestEvent { key ->
-        when (key) {
-          APP_INSIGHTS_TRACKER_KEY.name -> controllerRule.tracker
-          FAILURE_TYPE_KEY.name -> FailureType.ANR
-          INSIGHT_KEY.name -> insight
-          else -> null
-        }
-      }
-    upvote.actionPerformed(upvoteEvent)
-    verify(controllerRule.tracker)
-      .logInsightSentiment(
-        AppQualityInsightsUsageEvent.InsightSentiment.Sentiment.THUMBS_UP,
-        AppQualityInsightsUsageEvent.CrashType.ANR,
-        insight,
-      )
+    upvote.actionPerformed(TestActionEvent.createTestEvent())
+    downvote.actionPerformed(TestActionEvent.createTestEvent())
 
-    insight = AiInsight("", Experiment.TOP_SOURCE)
-    val downvoteEvent =
-      TestActionEvent.createTestEvent { key ->
-        when (key) {
-          APP_INSIGHTS_TRACKER_KEY.name -> controllerRule.tracker
-          FAILURE_TYPE_KEY.name -> FailureType.FATAL
-          INSIGHT_KEY.name -> insight
-          else -> null
-        }
-      }
-    downvote.actionPerformed(downvoteEvent)
-    verify(controllerRule.tracker)
-      .logInsightSentiment(
-        AppQualityInsightsUsageEvent.InsightSentiment.Sentiment.THUMBS_DOWN,
-        AppQualityInsightsUsageEvent.CrashType.FATAL,
-        insight,
-      )
+    assertThat(submittedFeedback)
+      .containsExactly(InsightFeedback.THUMBS_UP, InsightFeedback.THUMBS_DOWN)
+      .inOrder()
   }
 
   private val AnActionEvent.isSelected: Boolean

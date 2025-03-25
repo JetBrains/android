@@ -18,8 +18,6 @@ package com.android.tools.idea.adb.wireless
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -51,6 +49,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   @get:Rule val portableUiFontRule = PortableUiFontRule()
@@ -59,12 +59,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @get:Rule val iconLoaderRule = IconLoaderRule()
 
-  private val timeProvider: MockNanoTimeProvider by lazy { MockNanoTimeProvider() }
-
   private val randomProvider by lazy { MockRandomProvider() }
 
-  private val adbService =
-    mockOrActual<AdbServiceWrapper> { AdbServiceWrapperImpl(project, timeProvider) }
+  private val adbService = mockOrActual<AdbServiceWrapper> { AdbServiceWrapperAdbLibImpl(project) }
   private val mDNSConfigurationRetriever = mockOrActual {}
 
   class MockableSystem {
@@ -237,6 +234,27 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   }
 
   @Test
+  fun mDNSShowWhenDisabled() {
+    adbService.useMock = true
+    mDNSConfigurationRetriever.useMock = true
+    adbOptionRetriever.useMock = true
+    systemRetriever.useMock = true
+    runBlocking {
+      whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
+        .thenReturn(AdbCommandResult(0, listOf("ERROR: mdns discovery disabled"), listOf()))
+
+      whenever(systemRetriever.instance.isMac()).thenReturn(true)
+      whenever(adbService.instance.getServerStatus())
+        .thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
+      whenever(adbOptionRetriever.instance.getMdnsBackend())
+        .thenReturn(AdbServerMdnsBackend.DISABLED)
+
+      val support = devicePairingService.checkMdnsSupport()
+      Assert.assertEquals(MdnsSupportState.AdbDisabled, support)
+    }
+  }
+
+  @Test
   fun viewShouldShowErrorIfMdnsCheckIsNotSupported() {
     // Prepare
     adbService.useMock = true
@@ -318,6 +336,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
 
+    whenever(adbService.instance.getServerStatus())
+      .thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
+
     // Act
     createModalDialogAndInteractWithIt({ controller.showDialog() }) {
       // Assert
@@ -375,6 +396,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     adbService.useMock = true
     whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
+
+    whenever(adbService.instance.getServerStatus())
+      .thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
 
     whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan
@@ -487,6 +511,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
     adbService.useMock = true
     whenever(adbService.instance.executeCommand(listOf("mdns", "check"), ""))
       .thenReturn(AdbCommandResult(0, listOf("mdns daemon version [10970003]"), listOf()))
+
+    whenever(adbService.instance.getServerStatus())
+      .thenReturn(ServerStatus(version = adbVersionWorkingOnMac))
 
     whenever(adbService.instance.executeCommand(listOf("mdns", "services"), ""))
       .thenReturn(AdbCommandResult(0, listOf(), listOf())) // Simulate user taking some time to scan

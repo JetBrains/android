@@ -241,14 +241,14 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         case MOTION_PLAY: {
           LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
           manager.updateSceneViews();
-          manager.requestRenderAsync();
+          manager.requestRender();
           surface.setRenderSynchronously(true);
         }  break;
         case MOTION_STOP: {
           surface.setRenderSynchronously(false);
           surface.setAnimationScrubbing(false);
           LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
-          manager.requestRenderAsync();
+          manager.requestRender();
           stopScreenRotating();
         } break;
         case MOTION_CAPTURE: {
@@ -260,7 +260,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           String filename = mSelectedStartConstraintId + "->" + mSelectedEndConstraintId + ".gif";
           LayoutlibSceneManager manager = surface.getSceneManager(surface.getModel());
           manager.updateSceneViews();
-          manager.requestRenderAsync();
+          manager.requestRender();
           surface.setRenderSynchronously(true);
           FileSaverDescriptor descriptor = new FileSaverDescriptor("Save Transition as GIF",
                                                                    "Save the selected transition as GIF",

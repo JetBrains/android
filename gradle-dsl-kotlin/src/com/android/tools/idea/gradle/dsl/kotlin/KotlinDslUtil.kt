@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -49,7 +50,9 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
+import com.android.tools.idea.gradle.dsl.parser.isDomainObjectConfiguratorMethodName
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
@@ -99,12 +102,12 @@ import kotlin.reflect.KClass
 
 private val LOG = Logger.getInstance("KotlinDslUtil")
 
-internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
+internal fun String.addQuotes() = "\"$this\""
 
 internal fun KtCallExpression.isBlockElement(converter: GradleDslNameConverter, parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
-  val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
-  val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isValidBlockName(this.name()) } ?: false
+  val argumentsList = valueArgumentList?.arguments
+  val namedDomainBlockReference = parent is GradleDslNamedDomainContainer && argumentsList?.let { it.size == 1 && isDomainObjectConfiguratorMethodName(this.name()) } ?: false
   val zeroArguments = argumentsList == null || argumentsList.size == 0
   val knownBlockForParent = zeroArguments &&
                             (listOf("allprojects", APPLY_BLOCK_NAME, EXT.name).contains(this.name()) ||
@@ -306,8 +309,6 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
   }
 }
 
-internal fun isValidBlockName(blockName : String?) =
-  blockName != null && blockName in listOf("configure", "create", "maybeCreate", "register", "getByName")
 /**
  * Check if the caller psiElement is a transitive parent for the given psiElement.
  */
@@ -341,10 +342,10 @@ internal fun KtCallExpression.name() : String? {
   }
 }
 
-internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
+internal fun getParentPsi(parentDslElement : GradleDslElement?) : PsiElement? {
   // For extra block, we don't have a psiElement for the dslElement because in Kotlin we don't use the extra block, so we need to add
   // elements straight to the ExtDslElement' parent.
-  return if (dslElement.parent is ExtDslElement) dslElement.parent?.parent?.create() else dslElement.parent?.create()
+  return if (parentDslElement is ExtDslElement) parentDslElement.parent?.create() else parentDslElement?.create()
 }
 
 internal fun GradleDslElement.getBlockParent() : GradleDslElement? {
@@ -355,8 +356,11 @@ internal fun GradleDslElement.getBlockParent() : GradleDslElement? {
   }
 }
 
-internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslElement?) : PsiElement? {
-  var anchorAfter = if (dslAnchor == null) null else findLastPsiElementIn(dslAnchor)
+internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslAnchor) : PsiElement? {
+  var anchorAfter = when(dslAnchor) {
+    is GradleDslAnchor.Start -> null
+    is GradleDslAnchor.After -> findLastPsiElementIn(dslAnchor.dslElement)
+  }
   if (anchorAfter == null && parent is KtBlockExpression) {
     return adjustForKtBlockExpression(parent)?.prevSibling
   }
@@ -379,10 +383,8 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslEl
   }
 }
 
-internal fun needToCreateParent(element: GradleDslElement): Boolean {
-  val parent = element.parent
-  // If the parent is an extra block dslElement, we never create a psiElement for it because we don't use it in kotlin.
-  return parent != null && (parent.psiElement == null && parent !is ExtDslElement)
+internal fun needToCreateParent(parent: GradleDslElement?): Boolean {
+  return parent != null && (parent.psiElement == null && parent !is ExtDslElement && parent !is ProjectPropertiesDslElement)
 }
 
 /**
@@ -424,10 +426,10 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
       var valueText : String?
       if (StringUtil.isQuotedString(value)) {
         val unquoted = StringUtil.unquoteString(value)
-        valueText = StringUtil.escapeCharCharacters(unquoted).addQuotes(true)
+        valueText = StringUtil.escapeCharCharacters(unquoted).addQuotes()
       }
       else {
-        valueText = StringUtil.escapeCharCharacters(value).addQuotes(true)
+        valueText = StringUtil.escapeCharCharacters(value).addQuotes()
       }
       return KtPsiFactory(applyContext.dslFile.project).createExpression(valueText)
     }
@@ -449,7 +451,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
           builder.append(externalText ?: interpolation.referenceItem!!.referredElement!!.fullName)
         }
       }
-      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes(true))
+      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes())
     }
     is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
     else -> {
@@ -462,7 +464,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
 // Check if this is a block with a methodCall as name, and get the name... e.g. getByName("release") -> "release"
 internal fun methodCallBlockName(expression: KtCallExpression): String? {
   val callName = expression.name()
-  if (!isValidBlockName(callName)) return null
+  if (!isDomainObjectConfiguratorMethodName(callName)) return null
   val arguments = expression.valueArgumentList?.arguments ?: return null
   if (arguments.size != 1) return null
   // TODO(xof): we should handle injections / resolving here:
@@ -613,7 +615,7 @@ internal fun findInjections(
       else -> noInjections
     }
     is KtCallExpression -> return when {
-      isValidBlockName(psiElement.name()) -> {
+      isDomainObjectConfiguratorMethodName(psiElement.name()) -> {
         val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
         val element = context.resolveInternalSyntaxReference(name, true)
         mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
@@ -788,10 +790,10 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   val expressionRightValue =
     if (expressionValue is KtConstantExpression || expressionValue is KtNameReferenceExpression) expressionValue.text
-    else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
+    else StringUtil.unquoteString(expressionValue.text).addQuotes()
   val argumentStringExpression = when {
     parent.asNamedArgs -> "${expression.name}=$expressionRightValue"
-    else -> "${expression.name.addQuotes(true)} to $expressionRightValue"
+    else -> "${expression.name.addQuotes()} to $expressionRightValue"
   }
 
   val mapArgument = psiFactory.createExpression(argumentStringExpression)
@@ -866,10 +868,10 @@ internal fun createPsiElementInsideList(parentDslElement : GradleDslElement,
 
   // If the dslElement has an anchor that is not null and that the list is not empty, we add it to the list after the anchor ;
   // otherwise, we add it at the beginning of the list.
-  if (parentPsiElement.arguments.isNotEmpty() && anchor != null) {
+  if (parentPsiElement.arguments.isNotEmpty() && anchor is GradleDslAnchor.After) {
     val anchorPsi =
-      anchor.psiElement as? KtValueArgument ?:
-      getNextValidParentPsiElement(anchor.psiElement, KtValueArgument::class) as? KtValueArgument ?: return null
+      anchor.dslElement.psiElement as? KtValueArgument ?:
+      getNextValidParentPsiElement(anchor.dslElement.psiElement, KtValueArgument::class) as? KtValueArgument ?: return null
 
     return parentPsiElement.addArgumentAfter(argument, anchorPsi)
   }
@@ -928,7 +930,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
         STRING_TEMPLATE -> when {
           element.parent is DependenciesDslElement && KTS_KNOWN_CONFIGURATIONS.contains(newName) ->
             factory.createExpressionIfPossible(newName)
-          else -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+          else -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes())
         }
         ARRAY_ACCESS_EXPRESSION -> when {
           newName.startsWith("ext.") -> {
@@ -941,7 +943,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
         }
         else -> when {
           element.parent is DependenciesDslElement && !KTS_KNOWN_CONFIGURATIONS.contains(newName) ->
-            factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+            factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes())
           else -> factory.createExpressionIfPossible(newName)
         }
       } ?: return

@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.ml.xmltocompose
 
-import com.android.tools.idea.studiobot.MimeType
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.buildPrompt
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gemini.buildLlmPrompt
+import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.toList
@@ -62,19 +63,19 @@ private constructor(private val project: Project, private val nShots: List<Strin
 
   override suspend fun convertToCompose(xml: String): ConversionResponse {
     val prompt = getPrompt(xml)
-    val studioBot = StudioBot.getInstance()
+    val geminiPluginApi = GeminiPluginApi.getInstance()
     // The user must complete the Studio Bot onboarding and enable context sharing, otherwise we
     // can't use the sendQuery API.
-    if (!studioBot.isContextAllowed(project)) {
+    if (!geminiPluginApi.isContextAllowed(project)) {
       return ConversionResponse(
         generatedCode = contextSharingNeedsToBeEnabled,
         status = ConversionResponse.Status.ERROR,
       )
     }
     try {
-      val response = studioBot.model(project).generateContent(prompt).toList()
+      val response = geminiPluginApi.generate(project, prompt)
       return ConversionResponse(
-        generatedCode = response.map { it.text }.parseCode(),
+        generatedCode = extractKotlinCode(response.toList().joinToString("")),
         status = ConversionResponse.Status.SUCCESS,
       )
     } catch (t: Throwable) {
@@ -87,11 +88,11 @@ private constructor(private val project: Project, private val nShots: List<Strin
   }
 
   @VisibleForTesting
-  fun getPrompt(xml: String) =
-    buildPrompt(project) {
+  fun getPrompt(xml: String): LlmPrompt =
+    buildLlmPrompt(project) {
       userMessage {
         text("$PROMPT_PREFIX ${nShots.joinToString(" ")}", filesUsed = emptyList())
-        code(xml, MimeType.XML, filesUsed = emptyList())
+        code(xml, XMLLanguage.INSTANCE, filesUsed = emptyList())
       }
     }
 
@@ -168,17 +169,15 @@ private constructor(private val project: Project, private val nShots: List<Strin
   }
 }
 
-/**
- * Takes a list of strings returned by Studio Bot, filters out chunks of code (in Kotlin or an
- * unspecified language), and returns the content without metadata or formatting.
- *
- * See `LlmService#sendQuery` documentation for details about StudioBot's response formatting.
- */
-private fun List<String>.parseCode(): String {
-  val kotlinPattern = "```kotlin\n"
-  val textPattern = "```\n"
-  return filter { it.startsWith(kotlinPattern) || it.startsWith(textPattern) }
-    .joinToString("\n") { it.substringAfter("\n").trim('`').trim() }
+/** Returns just the code from a fenced code block in a string in markdown format. */
+private fun extractKotlinCode(md: String): String {
+  // The markdown block may begin with a ``` or ```kotlin
+  var code = md.substringAfter("```")
+  code = code.removePrefix("kotlin")
+
+  // Get all the code until the end of the fenced code block
+  code = code.substringBefore("```")
+  return code.trim()
 }
 
 enum class ComposeConverterDataType(val classFqn: String) {

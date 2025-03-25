@@ -21,8 +21,10 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.google.common.collect.ImmutableMultimap
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.testFramework.ApplicationRule
 import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
@@ -35,6 +37,12 @@ class PlatformComponentsPanelTest {
   @Mock private lateinit var myConfigurable: SdkUpdaterConfigurable
   @Mock private lateinit var propertiesComponent: PropertiesComponent
   private lateinit var closeable: AutoCloseable
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
+  }
 
   @Before
   fun setUp() {
@@ -53,8 +61,8 @@ class PlatformComponentsPanelTest {
     val typeDetails = AndroidSdkHandler.getRepositoryModule().createLatestFactory().createPlatformDetailsType() as TypeDetails
     panel.setPackages(ImmutableMultimap.of(
       AndroidVersion(30), UpdatablePackage(createLocalPackage("android-30", 1, typeDetails = typeDetails)),
-      AndroidVersion(30, null, 1, false), UpdatablePackage(createLocalPackage("android-30-1", 1, typeDetails = typeDetails)),
-      AndroidVersion(30, null, 2, false), UpdatablePackage(createLocalPackage("android-30-2", 1, typeDetails = typeDetails)),
+      AndroidVersion(30, null, 1, false), UpdatablePackage(createLocalPackage("android-30-ext1", 1, typeDetails = typeDetails)),
+      AndroidVersion(30, null, 2, false), UpdatablePackage(createLocalPackage("android-30-ext2", 1, typeDetails = typeDetails)),
       AndroidVersion(30, "Codename"), UpdatablePackage(createLocalPackage("android-Codename", 2, typeDetails = typeDetails))
     ))
     assertEquals("""
@@ -72,9 +80,9 @@ class PlatformComponentsPanelTest {
        Android 11.0 ("R")
         android-30
        Android 11.0 ("R")
-        android-30-1
+        android-30-ext1
        Android 11.0 ("R")
-        android-30-2
+        android-30-ext2
     """.trimIndent(), panel.myPlatformDetailsRootNode.asString())
   }
 
@@ -120,7 +128,7 @@ class PlatformComponentsPanelTest {
     assertEquals("""
       Root
        Android Codename Preview
-       Android API 500
+       Android API 500.0
        Android 11.0 ("R")
        Android 5.0 ("Lollipop")
     """.trimIndent(), panel.myPlatformSummaryRootNode.asString())
@@ -129,7 +137,7 @@ class PlatformComponentsPanelTest {
       Root
        Android Codename Preview
         android-501
-       Android API 500
+       Android API 500.0
         android-500
        Android 11.0 ("R")
         android-30

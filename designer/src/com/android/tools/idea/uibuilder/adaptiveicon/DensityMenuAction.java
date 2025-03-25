@@ -26,6 +26,9 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Toggleable;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,26 +37,44 @@ public class DensityMenuAction extends DropDownAction {
 
   public DensityMenuAction() {
     super("Device Screen Density", "Device Screen Density", null);
-    for (Density density : DENSITIES) {
-      add(new SetDensityAction(density));
-    }
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
+    e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
     Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
     if (configurations == null || configurations.isEmpty()) {
       return;
     }
     Configuration configuration = Iterables.getFirst(configurations, null);
+    Density currentDensity = getCurrentDensity(configuration);
+    e.getPresentation().setText(currentDensity.getResourceValue());
+  }
+
+  @Override
+  protected boolean updateActions(@NotNull DataContext context) {
+    removeAll();
+    Collection<Configuration> configurations = context.getData(CONFIGURATIONS);
+    if (configurations == null || configurations.isEmpty()) {
+      return true;
+    }
+    Configuration configuration = Iterables.getFirst(configurations, null);
+    Density currentDensity = getCurrentDensity(configuration);
+    for (Density density : DENSITIES) {
+      add(new SetDensityAction(density, density == currentDensity));
+    }
+    return true;
+  }
+
+  private Density getCurrentDensity(@NotNull Configuration configuration) {
     int currentValue = configuration.getDensity().getDpiValue();
-    for (int i = 0; i < DENSITIES.length; i++) {
-      if (DENSITIES[i].getDpiValue() >= currentValue || i == DENSITIES.length - 1) {
-        e.getPresentation().setText(DENSITIES[i].getResourceValue());
-        break;
+    for (Density density : DENSITIES) {
+      if (density.getDpiValue() >= currentValue) {
+        return density;
       }
     }
+    return DENSITIES[DENSITIES.length - 1];
   }
 
   @Override
@@ -61,17 +82,14 @@ public class DensityMenuAction extends DropDownAction {
     return ActionUpdateThread.BGT;
   }
 
-  @Override
-  public boolean displayTextInToolbar() {
-    return true;
-  }
-
-  private static class SetDensityAction extends AnAction {
+  private static class SetDensityAction extends AnAction implements Toggleable {
     private final Density myDensity;
+    private final boolean myIsCurrentDensity;
 
-    private SetDensityAction(@NotNull Density density) {
+    private SetDensityAction(@NotNull Density density, boolean isCurrentDensity) {
       super(density.getResourceValue());
       myDensity = density;
+      myIsCurrentDensity = isCurrentDensity;
     }
 
     @Override
@@ -93,6 +111,17 @@ public class DensityMenuAction extends DropDownAction {
 
         config.setEffectiveDevice(device, device.getDefaultState());
       });
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      Toggleable.setSelected(e.getPresentation(), myIsCurrentDensity);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
   }
 }

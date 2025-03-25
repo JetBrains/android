@@ -27,8 +27,8 @@ import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent.createTestEvent
@@ -50,11 +50,7 @@ class IssuePanelViewOptionActionGroupTest {
 
   @Before
   fun setup() {
-    context = DataContext { dataId ->
-      if (PlatformDataKeys.PROJECT.`is`(dataId)) {
-        rule.project
-      } else null
-    }
+    context = SimpleDataContext.getProjectContext(rule.project)
   }
 
   @Test
@@ -187,13 +183,11 @@ class VisualLintFilterActionTest {
     }
     val panel = IssuePanelService.getDesignerCommonIssuePanel(rule.project)!!
     val visualLintIssue = mock<VisualLintRenderIssue>()
-    val dataContext = DataContext {
-      when (it) {
-        DESIGNER_COMMON_ISSUE_PANEL.name -> panel
-        CommonDataKeys.PROJECT.name -> rule.project
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(DESIGNER_COMMON_ISSUE_PANEL, panel)
+        .add(CommonDataKeys.PROJECT, rule.project)
+        .build()
 
     VisualLintSettings.getInstance(rule.project).isVisualLintFilterSelected = true
     val action = VisualLintFilterAction()
@@ -217,9 +211,7 @@ class ToggleIssuePanelSortedBySeverityActionTest {
   fun testSelected() {
     val state = ProblemsViewState.getInstance(rule.project)
     val action = ToggleIssuePanelSortedBySeverityAction()
-    val context = DataContext { key ->
-      if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null
-    }
+    val context = SimpleDataContext.getProjectContext(rule.project)
 
     state.sortBySeverity = true
     assertTrue(action.isSelected(createTestEvent(context)))
@@ -235,9 +227,7 @@ class ToggleIssuePanelSortedBySeverityActionTest {
   fun testPerform() {
     val state = ProblemsViewState.getInstance(rule.project)
     val action = ToggleIssuePanelSortedBySeverityAction()
-    val context = DataContext { key ->
-      if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null
-    }
+    val context = SimpleDataContext.getProjectContext(rule.project)
 
     action.setSelected(createTestEvent(context), true)
     assertTrue(state.sortBySeverity)
@@ -258,9 +248,7 @@ class ToggleIssuePanelSortedByNameActionTest {
   fun testSelected() {
     val state = ProblemsViewState.getInstance(rule.project)
     val action = ToggleIssuePanelSortedByNameAction()
-    val context = DataContext { key ->
-      if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null
-    }
+    val context = SimpleDataContext.getProjectContext(rule.project)
 
     state.sortByName = true
     assertTrue(action.isSelected(createTestEvent(context)))
@@ -276,9 +264,7 @@ class ToggleIssuePanelSortedByNameActionTest {
   fun testPerform() {
     val state = ProblemsViewState.getInstance(rule.project)
     val action = ToggleIssuePanelSortedByNameAction()
-    val context = DataContext { key ->
-      if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null
-    }
+    val context = SimpleDataContext.getProjectContext(rule.project)
 
     action.setSelected(createTestEvent(context), true)
     assertTrue(state.sortByName)

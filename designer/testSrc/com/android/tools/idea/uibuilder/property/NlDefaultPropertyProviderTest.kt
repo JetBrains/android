@@ -20,6 +20,7 @@ import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.component
 import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.createComponents
@@ -34,7 +35,9 @@ import org.junit.rules.RuleChain
 class NlDefaultPropertyProviderTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule))!!
+  @get:Rule
+  val chain =
+    RuleChain.outerRule(projectRule).around(RenderTestRule()).around(MinApiRule(projectRule))!!
 
   @Test
   fun testAttributeWithoutDefaultValue() {

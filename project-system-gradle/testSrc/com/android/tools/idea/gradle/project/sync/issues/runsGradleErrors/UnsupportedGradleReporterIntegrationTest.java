@@ -63,7 +63,8 @@ public class UnsupportedGradleReporterIntegrationTest extends AndroidGradleTestC
     );
 
     final var messages = myReporter.report(syncIssue, appModule, null);
-    final var message = messages.get(0);
+    assertThat(messages).hasSize(1);
+    final var message = messages.get(0).getSyncMessage();
 
     assertNotNull(message);
     assertThat(message.getText()).isEqualTo(expectedText);
@@ -82,6 +83,8 @@ public class UnsupportedGradleReporterIntegrationTest extends AndroidGradleTestC
     quickFix = quickFixes.get(2);
     assertThat(quickFix).isInstanceOf(OpenGradleSettingsHyperlink.class);
 
+    assertThat(messages.get(0).getAffectedModules()).isEqualTo(ImmutableList.of(appModule));
+
     assertEquals(
       ImmutableList.of(
         GradleSyncIssue
@@ -91,7 +94,7 @@ public class UnsupportedGradleReporterIntegrationTest extends AndroidGradleTestC
           .addOfferedQuickFixes(GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
           .addOfferedQuickFixes(GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK)
           .build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
+      SyncIssueUsageReporter.createGradleSyncIssues(0, ImmutableList.of(message)));
   }
 
   private static void verifyOpenGradleWrapperPropertiesFile(@NotNull Project project, @NotNull SyncMessageFragment link) {

@@ -52,7 +52,10 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
+    create_token_set_(ASSIGNABLE_BARE, ASSIGNABLE_PROPERTY, ASSIGNABLE_QUALIFIED),
     create_token_set_(BARE, PROPERTY, QUALIFIED),
+    create_token_set_(BARE_RECEIVER, PROPERTY_RECEIVER, QUALIFIED_RECEIVER),
+    create_token_set_(FACTORY_RECEIVER, RECEIVER_PREFIXED_FACTORY, SIMPLE_FACTORY),
   };
 
   /* ********************************************************** */
@@ -365,14 +368,27 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // private_factory
-  public static boolean factory(PsiBuilder b, int l) {
+  // factory_receiver | factory_property_receiver
+  static boolean factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "factory")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
     boolean r;
+    r = factory_receiver(b, l + 1, -1);
+    if (!r) r = factory_property_receiver(b, l + 1);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // property_receiver OP_DOT property_simple_factory
+  public static boolean factory_property_receiver(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "factory_property_receiver")) return false;
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r;
     Marker m = enter_section_(b);
-    r = private_factory(b, l + 1);
-    exit_section_(b, m, FACTORY, r);
+    r = property_receiver(b, l + 1, -1);
+    r = r && consumeToken(b, OP_DOT);
+    r = r && property_simple_factory(b, l + 1);
+    exit_section_(b, m, FACTORY_PROPERTY_RECEIVER, r);
     return r;
   }
 
@@ -389,7 +405,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean
+  // multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null
   public static boolean literal(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal")) return false;
     boolean r;
@@ -402,14 +418,15 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, UNSIGNED_LONG);
     if (!r) r = consumeToken(b, UNSIGNED_INTEGER);
     if (!r) r = consumeToken(b, BOOLEAN);
+    if (!r) r = consumeToken(b, NULL);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   /* ********************************************************** */
-  // identifier
+  // assignable_property
   static boolean lvalue(PsiBuilder b, int l) {
-    return identifier(b, l + 1);
+    return assignable_property(b, l + 1, -1);
   }
 
   /* ********************************************************** */
@@ -497,6 +514,18 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // private_factory
+  public static boolean property_simple_factory(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "property_simple_factory")) return false;
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = private_factory(b, l + 1);
+    exit_section_(b, m, PROPERTY_SIMPLE_FACTORY, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // factory | property | literal
   static boolean rvalue(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "rvalue")) return false;
@@ -504,6 +533,120 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     r = factory(b, l + 1);
     if (!r) r = property(b, l + 1, -1);
     if (!r) r = literal(b, l + 1);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // Expression root: assignable_property
+  // Operator priority table:
+  // 0: POSTFIX(assignable_qualified)
+  // 1: ATOM(assignable_bare)
+  public static boolean assignable_property(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "assignable_property")) return false;
+    addVariant(b, "<assignable property>");
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, "<assignable property>");
+    r = assignable_bare(b, l + 1);
+    p = r;
+    r = r && assignable_property_0(b, l + 1, g);
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
+  }
+
+  public static boolean assignable_property_0(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "assignable_property_0")) return false;
+    boolean r = true;
+    while (true) {
+      Marker m = enter_section_(b, l, _LEFT_, null);
+      if (g < 0 && assignable_qualified_0(b, l + 1)) {
+        r = true;
+        exit_section_(b, l, m, ASSIGNABLE_QUALIFIED, r, true, null);
+      }
+      else {
+        exit_section_(b, l, m, null, false, false, null);
+        break;
+      }
+    }
+    return r;
+  }
+
+  // OP_DOT identifier
+  private static boolean assignable_qualified_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "assignable_qualified_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, OP_DOT);
+    r = r && identifier(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // identifier
+  public static boolean assignable_bare(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "assignable_bare")) return false;
+    if (!nextTokenIsSmart(b, TOKEN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = identifier(b, l + 1);
+    exit_section_(b, m, ASSIGNABLE_BARE, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // Expression root: factory_receiver
+  // Operator priority table:
+  // 0: POSTFIX(receiver_prefixed_factory)
+  // 1: ATOM(simple_factory)
+  public static boolean factory_receiver(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "factory_receiver")) return false;
+    addVariant(b, "<factory receiver>");
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, "<factory receiver>");
+    r = simple_factory(b, l + 1);
+    p = r;
+    r = r && factory_receiver_0(b, l + 1, g);
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
+  }
+
+  public static boolean factory_receiver_0(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "factory_receiver_0")) return false;
+    boolean r = true;
+    while (true) {
+      Marker m = enter_section_(b, l, _LEFT_, null);
+      if (g < 0 && receiver_prefixed_factory_0(b, l + 1)) {
+        r = true;
+        exit_section_(b, l, m, RECEIVER_PREFIXED_FACTORY, r, true, null);
+      }
+      else {
+        exit_section_(b, l, m, null, false, false, null);
+        break;
+      }
+    }
+    return r;
+  }
+
+  // OP_DOT private_factory
+  private static boolean receiver_prefixed_factory_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "receiver_prefixed_factory_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, OP_DOT);
+    r = r && private_factory(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // private_factory
+  public static boolean simple_factory(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "simple_factory")) return false;
+    if (!nextTokenIsSmart(b, TOKEN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = private_factory(b, l + 1);
+    exit_section_(b, m, SIMPLE_FACTORY, r);
     return r;
   }
 
@@ -561,6 +704,63 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = identifier(b, l + 1);
     exit_section_(b, m, BARE, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // Expression root: property_receiver
+  // Operator priority table:
+  // 0: POSTFIX(qualified_receiver)
+  // 1: ATOM(bare_receiver)
+  public static boolean property_receiver(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "property_receiver")) return false;
+    addVariant(b, "<property receiver>");
+    if (!nextTokenIs(b, TOKEN)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, "<property receiver>");
+    r = bare_receiver(b, l + 1);
+    p = r;
+    r = r && property_receiver_0(b, l + 1, g);
+    exit_section_(b, l, m, null, r, p, null);
+    return r || p;
+  }
+
+  public static boolean property_receiver_0(PsiBuilder b, int l, int g) {
+    if (!recursion_guard_(b, l, "property_receiver_0")) return false;
+    boolean r = true;
+    while (true) {
+      Marker m = enter_section_(b, l, _LEFT_, null);
+      if (g < 0 && notBeforeLParen(b, l + 1, DeclarativeParser::qualified_receiver_0_0)) {
+        r = true;
+        exit_section_(b, l, m, QUALIFIED_RECEIVER, r, true, null);
+      }
+      else {
+        exit_section_(b, l, m, null, false, false, null);
+        break;
+      }
+    }
+    return r;
+  }
+
+  // OP_DOT identifier
+  private static boolean qualified_receiver_0_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "qualified_receiver_0_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokenSmart(b, OP_DOT);
+    r = r && identifier(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // identifier
+  public static boolean bare_receiver(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "bare_receiver")) return false;
+    if (!nextTokenIsSmart(b, TOKEN)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = identifier(b, l + 1);
+    exit_section_(b, m, BARE_RECEIVER, r);
     return r;
   }
 

@@ -56,10 +56,15 @@ fun booleanValues(model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>>
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
 
 fun installedSdksAsStrings(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
-  immediateFuture(installedEnvironments().androidSdks.map { ValueDescriptor(it.value.getText { toString() }, it.description) })
+  immediateFuture(installedEnvironments().androidSdks)
 
 fun installedSdksAsInts(model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
-  immediateFuture(installedEnvironments().androidSdks)
+  immediateFuture(installedEnvironments().androidSdks
+                    .mapNotNull {
+                      it.value.getText { toString() }.toIntOrNull()?.let { intValue ->
+                        ValueDescriptor(intValue, it.description)
+                      }
+                    })
 
 fun installedBuildTools(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().buildTools)

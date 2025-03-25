@@ -53,7 +53,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(buildTarget), eq("mobile_install_INTERNAL_"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             getProject(), new File(getExecRoot()), fakeProto))
@@ -85,7 +86,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(buildTarget), eq("mobile_install_INTERNAL_"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             getProject(), new File(getExecRoot()), fakeProto))
@@ -125,7 +127,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(buildTarget), eq("mobile_install_INTERNAL_"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             getProject(), new File(getExecRoot()), fakeProto))
@@ -135,7 +138,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     AdbTunnelConfigurator tunnelConfigurator = mock(AdbTunnelConfigurator.class);
     when(tunnelConfigurator.isActive()).thenReturn(true);
     when(tunnelConfigurator.getAdbServerPort()).thenReturn(12345);
-    registerExtensionFirst(AdbTunnelConfiguratorProvider.EP_NAME, providerCxt -> tunnelConfigurator);
+    registerExtensionFirst(
+        AdbTunnelConfiguratorProvider.EP_NAME, providerCxt -> tunnelConfigurator);
 
     // Perform
     MobileInstallBuildStep buildStep =
@@ -163,7 +167,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(buildTarget), eq("mobile_install_INTERNAL_"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             getProject(), new File(getExecRoot()), fakeProto))
@@ -204,7 +209,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(buildTarget), eq("mobile_install_INTERNAL_"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             getProject(), new File(getExecRoot()), fakeProto))
@@ -234,7 +240,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     // Return fake deploy info proto and mocked deploy info data object.
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(buildTarget), eq("mobile_install_INTERNAL_"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(any(), any(), any()))
         .thenThrow(new GetDeployInfoException("Fake Exception"));
@@ -264,7 +271,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(buildTarget), eq("mobile_install_INTERNAL_"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             getProject(), new File(getExecRoot()), fakeProto))
@@ -296,7 +304,8 @@ public final class MobileInstallBuildStepIntegrationTest extends MobileInstallBu
     AndroidDeployInfo fakeProto = AndroidDeployInfo.newBuilder().build();
     BlazeAndroidDeployInfo mockDeployInfo = mock(BlazeAndroidDeployInfo.class);
     BlazeApkDeployInfoProtoHelper helper = mock(BlazeApkDeployInfoProtoHelper.class);
-    when(helper.readDeployInfoProtoForTarget(eq(buildTarget), any(BuildResultHelper.class), any()))
+    when(helper.readDeployInfoProtoForTarget(
+            eq(buildTarget), eq("mobile_install_INTERNAL_"), any(BuildResultHelper.class), any()))
         .thenReturn(fakeProto);
     when(helper.extractDeployInfoAndInvalidateManifests(
             getProject(), new File(getExecRoot()), fakeProto))

@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.events.actions.Action
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 /** The source-based controller which provides lifecycle and App Insights state data. */
 interface AppInsightsProjectLevelController {
   /** The source of insights data this controller is for. */
-  val key: InsightsProviderKey
+  val provider: InsightsProvider
 
   /**
    * This flow represents the App Insights state of a host Android app module.
@@ -51,6 +55,9 @@ interface AppInsightsProjectLevelController {
 
   /** The project this controller is associated with. */
   val project: Project
+
+  /** The set of tools used to assist with Ai */
+  val aiInsightToolkit: AiInsightToolkit
 
   // events
   fun refresh()
@@ -93,5 +100,20 @@ interface AppInsightsProjectLevelController {
 
   fun selectIssueVariant(variant: IssueVariant?)
 
-  fun refreshInsight(contextSharingOverride: Boolean)
+  fun refreshInsight(regenerateWithContext: Boolean)
+
+  fun submitInsightFeedback(insightFeedback: InsightFeedback)
+
+  /** Disables the [action]. Use [enableAction] to enable the action. */
+  fun disableAction(action: KClass<out Action>)
+
+  /**
+   * Enables the [action].
+   *
+   * **Enabling an action does not call it**. It is the enabler's responsibility to call the enabled
+   * action.
+   *
+   * Use [disableAction] to disable the action.
+   */
+  fun enableAction(action: KClass<out Action>)
 }

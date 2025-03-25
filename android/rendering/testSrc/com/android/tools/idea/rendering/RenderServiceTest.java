@@ -26,6 +26,18 @@ import java.util.concurrent.atomic.AtomicReference;
 import junit.framework.TestCase;
 
 public class RenderServiceTest extends TestCase {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    RenderTestUtil.beforeRenderTestCase();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    RenderTestUtil.afterRenderTestCase();
+    super.tearDown();
+  }
+
   public void testGetSafeBounds() {
     ViewInfo valid;
     ViewInfo invalid;

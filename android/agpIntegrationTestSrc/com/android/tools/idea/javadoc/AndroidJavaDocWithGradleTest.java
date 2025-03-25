@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.javadoc;
 
-import static com.android.tools.idea.testing.SnaphotComparisonTestHelpersKt.normalizeHtmlForTests;
+import static com.android.tools.idea.testing.SnapshotComparisonTestHelpersKt.normalizeHtmlForTests;
 import static com.android.tools.idea.testing.SnapshotComparisonTestUtilsKt.assertIsEqualToSnapshot;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.MULTIPLE_MODULE_DEPEND_ON_AAR;

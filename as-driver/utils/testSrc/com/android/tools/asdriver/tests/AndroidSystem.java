@@ -174,17 +174,31 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return system;
   }
 
+  public static AndroidSystem basicRemoteSDK(Display display, Path root) throws IOException {
+    TestFileSystem fileSystem = new TestFileSystem(root);
+
+    AndroidSystem system = new AndroidSystem(fileSystem, display, null);
+    AndroidStudioInstallation.Options options = new AndroidStudioInstallation.Options(system.fileSystem);
+    options.disableFirstRun = false;
+    system.install = AndroidStudioInstallation.fromZip(options);
+    system.setEnv("SDK_TEST_BASE_URL", String.format("file:///%s/",TestUtils.getRemoteSdk()));
+
+    createRemediationShutdownHook();
+
+    return system;
+  }
+
   public static void createRemediationShutdownHook() {
     // When running from Bazel on Windows, the JVM isn't terminated in such a way that the shutdown
     // hook is triggered, so we have to emit the remediation steps ahead of time (without knowing
     // if they'll even be needed).
     if (SystemInfo.isWindows && TestUtils.runningFromBazel()) {
-      System.out.println("Running on Bazel on Windows, so the shutdown hook may not be properly triggered. If this test fails, please " +
-                         "check go/e2e-find-log-files for more information on how to diagnose test issues.");
+      TestLogger.log("Running on Bazel on Windows, so the shutdown hook may not be properly triggered. If this test fails, please " +
+                     "check go/e2e-find-log-files for more information on how to diagnose test issues.");
     }
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      System.out.println("The test was terminated early (e.g. it was manually ended or Bazel may have timed out). Please see " +
-                         "go/e2e-find-log-files for more information on how to diagnose test issues.");
+      TestLogger.log("The test was terminated early (e.g. it was manually ended or Bazel may have timed out). Please see " +
+                     "go/e2e-find-log-files for more information on how to diagnose test issues.");
     }));
   }
 
@@ -293,8 +307,8 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   /** Runs and returns an emulator using the given {@link Emulator.SystemImage}. */
   public Emulator runEmulator(Emulator.SystemImage systemImage, List<String> extraEmulatorFlags) throws IOException, InterruptedException {
     String curEmulatorName = String.format("emu%d", emulators.size());
-    Path workspaceRoot = TestUtils.getWorkspaceRoot(systemImage.path);
-    Emulator.createEmulator(fileSystem, curEmulatorName, workspaceRoot);
+    Path systemImageDir = Workspace.getRoot(systemImage.path);
+    Emulator.createEmulator(fileSystem, curEmulatorName, systemImageDir);
     // Increase grpc port by one after spawning an emulator to avoid conflict
     Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++, extraEmulatorFlags);
     emulators.add(emulator);
@@ -347,7 +361,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
       }
     }
     catch (RuntimeException | IOException e) {
-      System.out.printf("*** Files being written while shutting down system: ***%n");
+      TestLogger.log("*** Files being written while shutting down system: ***");
       printContents(fileSystem.getRoot().toFile());
       throw e;
     }

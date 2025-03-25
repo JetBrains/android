@@ -19,7 +19,7 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.FindDependenciesWithResourcesToken
 import com.android.tools.idea.projectsystem.GradleToken
-import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.intellij.openapi.module.Module
 
 class FindDependenciesWithResourcesGradleToken : FindDependenciesWithResourcesToken<GradleModuleSystem>, GradleToken {

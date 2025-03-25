@@ -30,6 +30,20 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.profilers" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="module-library" scope="TEST">
       <library name="traceprocessor-protos" type="repository">
         <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:232.1.23.0">
@@ -57,8 +71,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
@@ -86,5 +98,6 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork-compose" />
     <orderEntry type="library" name="jewel-ide-laf-bridge" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

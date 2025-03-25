@@ -20,6 +20,7 @@ import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.LiveTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
@@ -84,5 +85,5 @@ class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTa
   /**
    * Always returns true since live view task is available regardless of devices feature level and process
    */
-  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) = true
+  override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? = null
 }

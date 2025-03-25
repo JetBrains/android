@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.editors.strings
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
@@ -25,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.event.KeyEvent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -33,14 +31,15 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import java.awt.event.KeyEvent
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests the [TranslationsEditorTextField] class. */
 @RunWith(JUnit4::class)
 class TranslationsEditorTextFieldTest {
   private val projectRule = AndroidProjectRule.withAndroidModel()
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   private val table: StringResourceTable = mock()
   private val model: StringResourceTableModel = mock()
@@ -87,11 +86,12 @@ class TranslationsEditorTextFieldTest {
   fun editsAppropriateColumn() {
     whenever(table.hasSelectedCell()).thenReturn(true)
     fakeUi.keyboard.setFocus(translationsEditorTextField)
-    val testData = listOf(
-      Triple("zweiundvierzig und sechzehn", 42, 16),
-      Triple("soixante-dix-huit et soixante-quatre", 78, 64),
-      Triple("trescientos veintinueve y quince", 329, 15),
-    )
+    val testData =
+      listOf(
+        Triple("zweiundvierzig und sechzehn", 42, 16),
+        Triple("soixante-dix-huit et soixante-quatre", 78, 64),
+        Triple("trescientos veintinueve y quince", 329, 15),
+      )
 
     testData.forEach { (text, i, j) ->
       translationsEditorTextField.text = text

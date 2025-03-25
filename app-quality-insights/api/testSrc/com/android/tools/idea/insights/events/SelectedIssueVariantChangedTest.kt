@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
+import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.ISSUE_VARIANT
@@ -24,9 +25,9 @@ import com.android.tools.idea.insights.ISSUE_VARIANT2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
-import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.common.truth.Truth.*
 import java.time.Instant
@@ -46,15 +47,20 @@ class SelectedIssueVariantChangedTest {
 
     val transition =
       SelectedIssueVariantChanged(ISSUE_VARIANT2)
-        .transition(currentState, TestAppInsightsTracker, TEST_KEY)
+        .transition(
+          currentState,
+          TestAppInsightsTracker,
+          FakeInsightsProvider(),
+          AppInsightsCacheImpl(),
+        )
 
     with(transition) {
       assertThat(transition.newState.currentIssueVariants)
         .isEqualTo(
           LoadingState.Ready(Selection(ISSUE_VARIANT2, listOf(ISSUE_VARIANT, ISSUE_VARIANT2)))
         )
-      assertThat(transition.newState.currentIssueDetails)
-        .isInstanceOf(LoadingState.Loading::class.java)
+      assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentInsight).isEqualTo(LoadingState.Loading)
 
       assertThat(action)
         .isEqualTo(
@@ -75,7 +81,13 @@ class SelectedIssueVariantChangedTest {
       )
 
     val transition =
-      SelectedIssueVariantChanged(null).transition(currentState, TestAppInsightsTracker, TEST_KEY)
+      SelectedIssueVariantChanged(null)
+        .transition(
+          currentState,
+          TestAppInsightsTracker,
+          FakeInsightsProvider(),
+          AppInsightsCacheImpl(),
+        )
 
     with(transition) {
       assertThat(transition.newState.currentIssueVariants)
@@ -102,7 +114,12 @@ class SelectedIssueVariantChangedTest {
 
     val transition =
       SelectedIssueVariantChanged(ISSUE_VARIANT)
-        .transition(currentState, TestAppInsightsTracker, TEST_KEY)
+        .transition(
+          currentState,
+          TestAppInsightsTracker,
+          FakeInsightsProvider(),
+          AppInsightsCacheImpl(),
+        )
 
     with(transition) {
       assertThat(transition.newState).isEqualTo(currentState)

@@ -8,6 +8,7 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
@@ -19,7 +20,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" />
     <orderEntry type="module" module-name="intellij.platform.core" />

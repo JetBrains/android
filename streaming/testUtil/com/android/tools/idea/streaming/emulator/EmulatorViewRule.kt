@@ -24,6 +24,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.project.Project
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import kotlinx.coroutines.runBlocking
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -69,7 +70,7 @@ class EmulatorViewRule : TestRule {
     val fakeEmulator = emulatorRule.newEmulator(avdCreator(tempFolder))
     fakeEmulators[fakeEmulator.grpcPort] = fakeEmulator
     fakeEmulator.start()
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     val emulatorController = emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
     val view = EmulatorView(disposable, emulatorController, project, PRIMARY_DISPLAY_ID, null, true)
     waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }

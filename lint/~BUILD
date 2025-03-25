@@ -40,6 +40,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
@@ -50,5 +51,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "@intellij//:org.jetbrains.kotlin[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

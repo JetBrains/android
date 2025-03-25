@@ -47,7 +47,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
-      Logger.getInstance(AnalyzeApkAction.class).warn("Unable to obtain project from event");
+      Logger.getInstance(AnalyzeApkAction.class).warn("Unable to obtain project from event (update)");
       return;
     }
 
@@ -64,7 +64,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
-      Logger.getInstance(AnalyzeApkAction.class).warn("Unable to obtain project from event");
+      Logger.getInstance(AnalyzeApkAction.class).warn("Unable to obtain project from event (actionPerformed)");
       return;
     }
 
@@ -100,8 +100,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
         return VfsUtil.findFileByIoFile(f, true);
       }
     }
-
-    return ProjectSystemUtil.getProjectSystem(project).getDefaultApkFile();
+    return ApkAnalyzerToken.getDefaultApkToAnalyze(project);
   }
 
   private static void saveLastSelectedApk(Project project, VirtualFile apk) {

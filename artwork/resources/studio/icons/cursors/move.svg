@@ -1,1 +1,16 @@
-<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect id="frame" width="32" height="32" fill="none"/><g fill="none" fill-rule="evenodd"><g fill="#FFF"><path d="M19 20v-2h-6v3h-1v-1h-1v-1h-1v-1H9v-1H8v-2h16v2h-1v1h-1v1h-1v1h-1v1h-1v-1z"/><path d="M19 12v2h-6v-3h-1v1h-1v1h-1v1H9v1H8v2h16v-2h-1v-1h-1v-1h-1v-1h-1v-1h-1v1z"/></g><path d="M12 19h2v-6h-3v-1h1v-1h1v-1h1V9h1V8h2v16h-2v-1h-1v-1h-1v-1h-1v-1h-1v-1h1z" fill="#FFF"/><path d="M20 19h-2v-6h3v-1h-1v-1h-1v-1h-1V9h-1V8h-2v16h2v-1h1v-1h1v-1h1v-1h1v-1h-1z" fill="#FFF"/><path d="M18 21v1h-1v1h-2v-1h-1v-1h-1v-1h2v-8h-2v-1h1v-1h1V9h2v1h1v1h1v1h-2v8h2v1h-1z" fill="#000"/><path d="M11 18h-1v-1H9v-2h1v-1h1v-1h1v2h8v-2h1v1h1v1h1v2h-1v1h-1v1h-1v-2h-8v2h-1v-1z" fill="#000"/></g></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 17v-2h16v2h-1v1h-1v1h-1v1h-1v1h-1v-3h-6v3h-1v-1h-1v-1h-1v-1H9v-1H8z" fill="#fff"/><path fill-rule="evenodd" clip-rule="evenodd" d="M8 15v2h16v-2h-1v-1h-1v-1h-1v-1h-1v-1h-1v3h-6v-3h-1v1h-1v1h-1v1H9v1H8z" fill="#fff"/><path fill-rule="evenodd" clip-rule="evenodd" d="M15 8h2v16h-2v-1h-1v-1h-1v-1h-1v-1h-1v-1h3v-6h-3v-1h1v-1h1v-1h1V9h1V8z" fill="#fff"/><path fill-rule="evenodd" clip-rule="evenodd" d="M17 8h-2v16h2v-1h1v-1h1v-1h1v-1h1v-1h-3v-6h3v-1h-1v-1h-1v-1h-1V9h-1V8z" fill="#fff"/><path fill-rule="evenodd" clip-rule="evenodd" d="M15 9h2v1h1v1h1v1h-2v8h2v1h-1v1h-1v1h-2v-1h-1v-1h-1v-1h2v-8h-2v-1h1v-1h1V9z" fill="#000"/><path fill-rule="evenodd" clip-rule="evenodd" d="M23 15v2h-1v1h-1v1h-1v-2h-8v2h-1v-1h-1v-1H9v-2h1v-1h1v-1h1v2h8v-2h1v1h1v1h1z" fill="#000"/></svg>

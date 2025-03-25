@@ -74,8 +74,6 @@ class SceneViewHeader(
     object : HeaderPositionableContent {
       override val organizationGroup = organizationGroup
       override val scale: Double = 1.0
-      override val topPanelHeight: Int
-        get() = 0
 
       override val x
         get() = this@SceneViewHeader.x
@@ -85,6 +83,11 @@ class SceneViewHeader(
 
       override val isFocusedContent: Boolean
         get() = isFocusOwner
+
+      override fun sizeForScale(scale: Double): Dimension {
+        // Header always has fixed size regardless of the scale.
+        return JBDimension(widthPx, heightPx)
+      }
 
       override fun getContentSize(dimension: Dimension?) = JBDimension(widthPx, heightPx)
 

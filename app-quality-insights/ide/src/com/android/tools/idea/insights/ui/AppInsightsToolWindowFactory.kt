@@ -28,12 +28,15 @@ import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.serviceContainer.AlreadyDisposedException
-import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import icons.StudioIcons
 import javax.swing.event.HyperlinkListener
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import org.jetbrains.annotations.VisibleForTesting
 
 class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
@@ -75,6 +78,8 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
     }
   }
 
+  private val activeTabFlow = MutableStateFlow("")
+
   override fun isApplicable(project: Project) =
     !AndroidProjectInfo.getInstance(project).isApkProject
 
@@ -85,13 +90,16 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   @VisibleForTesting
   fun createTabs(project: Project, toolWindow: ToolWindow) {
     val contentFactory = ContentFactory.getInstance()
-    var selectedTab: Content? = null
 
     AppInsightsTabProvider.EP_NAME.extensionList
       .filter { it.isApplicable() }
       .forEach { tabProvider ->
         val tabPanel = AppInsightsTabPanel()
-        tabProvider.populateTab(project, tabPanel)
+        tabProvider.populateTab(
+          project,
+          tabPanel,
+          activeTabFlow.map { it == tabProvider.displayName }.distinctUntilChanged(),
+        )
         val tabContent =
           contentFactory.createContent(tabPanel, tabProvider.displayName, false).apply {
             putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
@@ -100,22 +108,23 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
         tabContent.setDisposer(tabPanel)
         toolWindow.contentManager.addContent(tabContent)
         if (tabProvider.displayName == project.service<AppInsightsSettings>().selectedTabId) {
-          selectedTab = tabContent
+          toolWindow.contentManager.setSelectedContent(tabContent)
         }
       }
-    if (selectedTab != null) {
-      toolWindow.contentManager.setSelectedContent(selectedTab!!)
-    }
     toolWindow.contentManager.addContentManagerListener(
       object : ContentManagerListener {
         override fun selectionChanged(event: ContentManagerEvent) {
           project.service<AppInsightsSettings>().selectedTabId = event.content.tabName
+          activeTabFlow.update { event.content.displayName }
         }
       }
     )
 
     toolWindow.setContentUiType(ToolWindowContentUiType.TABBED, null)
     toolWindow.show()
+    toolWindow.contentManager.selectedContent?.let { content ->
+      activeTabFlow.update { content.displayName }
+    }
     toolWindow.stripeTitle = "App Quality Insights"
   }
 

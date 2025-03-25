@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.testing.ApplicationServiceRule
@@ -38,6 +37,7 @@ import kotlin.io.path.writeText
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
 
 /** Tests for [ImportLogcatAction] */
 class ImportLogcatActionTest {

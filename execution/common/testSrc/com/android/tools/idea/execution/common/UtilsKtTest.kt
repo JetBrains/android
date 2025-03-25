@@ -1,9 +1,6 @@
 package com.android.tools.idea.execution.common
 
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -14,6 +11,9 @@ import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.ui.RunContentDescriptor
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import javax.swing.JPanel
 
 class UtilsKtTest {

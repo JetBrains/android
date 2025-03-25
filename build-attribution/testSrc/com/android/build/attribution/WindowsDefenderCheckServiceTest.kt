@@ -16,7 +16,6 @@
 package com.android.build.attribution
 
 import com.android.build.diagnostic.WindowsDefenderCheckService
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.diagnostic.WindowsDefenderChecker
@@ -27,7 +26,9 @@ import com.intellij.testFramework.LoggedErrorProcessor
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.EnumSet
 
 class WindowsDefenderCheckServiceTest {
@@ -52,7 +53,7 @@ class WindowsDefenderCheckServiceTest {
   fun testServiceCreatedWithoutCheckOnProjectOpen() {
     val service = WindowsDefenderCheckService(projectRule.project) {
       Truth.assert_().fail("Checker should not be requested in this test case.")
-      Mockito.mock(WindowsDefenderChecker::class.java)
+      mock<WindowsDefenderChecker>()
     }
     Truth.assertThat(service.warningData).isEqualTo(WindowsDefenderCheckService.NO_WARNING)
   }
@@ -69,9 +70,9 @@ class WindowsDefenderCheckServiceTest {
 
   private fun testServiceCreatedAndStatusCheckRun(checkIgnored: Boolean, protectionStatus: Boolean?, expectedWarningShown: Boolean) {
     notificationCounter = 0
-    val checkerMock = Mockito.mock(WindowsDefenderChecker::class.java)
-    Mockito.`when`(checkerMock.isStatusCheckIgnored(MockitoKt.any())).thenReturn(checkIgnored)
-    Mockito.`when`(checkerMock.isRealTimeProtectionEnabled).thenReturn(protectionStatus)
+    val checkerMock = mock<WindowsDefenderChecker>()
+    whenever(checkerMock.isStatusCheckIgnored(any())).thenReturn(checkIgnored)
+    whenever(checkerMock.isRealTimeProtectionEnabled).thenReturn(protectionStatus)
 
     val service = WindowsDefenderCheckService(projectRule.project) { checkerMock }
     service.checkRealTimeProtectionStatus()
@@ -84,9 +85,9 @@ class WindowsDefenderCheckServiceTest {
 
   @Test
   fun testStatusCheckRunFailure() {
-    val checkerMock = Mockito.mock(WindowsDefenderChecker::class.java)
-    Mockito.`when`(checkerMock.isStatusCheckIgnored(MockitoKt.any())).thenReturn(false)
-    Mockito.`when`(checkerMock.isRealTimeProtectionEnabled).thenThrow(MyMockTestException())
+    val checkerMock = mock<WindowsDefenderChecker>()
+    whenever(checkerMock.isStatusCheckIgnored(any())).thenReturn(false)
+    whenever(checkerMock.isRealTimeProtectionEnabled).thenThrow(MyMockTestException())
 
     val service = WindowsDefenderCheckService(projectRule.project) { checkerMock }
     // Expect exception to be caught and logged.

@@ -30,6 +30,7 @@ import com.android.sdklib.deviceprovisioner.TemplateState
 import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.CategoryTablePersistentStateComponent
 import com.android.tools.adtui.categorytable.CategoryTableStateSerializer
@@ -45,6 +46,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceTableColumns.columns
 import com.android.tools.idea.devicemanagerv2.details.DeviceDetailsPanel
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.deviceprovisioner.NotificationBannersExtension
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ConcurrentHashMultiset
@@ -67,12 +69,14 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Component
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -80,6 +84,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -87,6 +92,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jdesktop.swingx.VerticalLayout
 import org.jetbrains.android.AndroidPluginDisposable
 
 /** The main Device Manager panel, containing a table of devices and a toolbar of buttons above. */
@@ -98,6 +104,7 @@ constructor(
   val uiDispatcher: CoroutineDispatcher,
   private val devices: StateFlow<List<DeviceHandle>>,
   private val templates: StateFlow<List<DeviceTemplate>>,
+  private val notificationBanners: Flow<List<EditorNotificationPanel>>,
   createDeviceActions: List<CreateDeviceAction>,
   createTemplateActions: List<CreateDeviceTemplateAction>,
   pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>,
@@ -115,6 +122,7 @@ constructor(
     uiThread,
     deviceProvisioner.devices,
     deviceProvisioner.templates,
+    deviceProvisioner.notificationBanners(),
     deviceProvisioner.createDeviceActions(),
     deviceProvisioner.createTemplateActions(),
     WearPairingManager.getInstance().pairedDevicesFlow(),
@@ -131,6 +139,7 @@ constructor(
     uiThread,
     deviceProvisioner.devices,
     deviceProvisioner.templates,
+    deviceProvisioner.notificationBanners(),
     deviceProvisioner.createDeviceActions(),
     deviceProvisioner.createTemplateActions(),
     WearPairingManager.getInstance().pairedDevicesFlow(),
@@ -206,11 +215,14 @@ constructor(
     )
   }
 
+  private val notificationHolderPanel = JPanel(VerticalLayout(0))
+
   init {
     layout = BorderLayout()
-
-    add(toolbar.component, BorderLayout.NORTH)
-
+    val northPanel = JPanel(VerticalLayout(0))
+    northPanel.add(notificationHolderPanel)
+    northPanel.add(toolbar.component)
+    add(northPanel, BorderLayout.NORTH)
     deviceTable.categoryIndent = 0
 
     val persistentState = project?.service<DeviceTablePersistentStateComponent>()
@@ -227,6 +239,7 @@ constructor(
 
     panelScope.launch(uiDispatcher) { trackDevices() }
     panelScope.launch(uiDispatcher) { trackDeviceTemplates() }
+    panelScope.launch(uiDispatcher) { trackNotificationBanners() }
 
     // Keep the device details synced with the selected row.
     panelScope.launch(uiDispatcher) {
@@ -278,6 +291,16 @@ constructor(
           }
         }
       }
+  }
+
+  private suspend fun trackNotificationBanners() {
+    notificationBanners.distinctUntilChanged().collect { banners ->
+      notificationHolderPanel.removeAll()
+      for (notificationBanner in banners) {
+        notificationHolderPanel.add(notificationBanner)
+      }
+      revalidate()
+    }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -333,7 +356,7 @@ constructor(
   }
 
   private fun <A : DeviceAction> A.toAnAction(
-    action: suspend A.() -> Unit,
+    action: suspend A.(Component?) -> Unit,
     isIconEnabled: Boolean = true,
   ): DumbAwareAction {
     panelScope.launch {
@@ -355,7 +378,7 @@ constructor(
       }
 
       override fun actionPerformed(e: AnActionEvent) {
-        panelScope.launch { action() }
+        panelScope.launch { action(e.componentToRestoreFocusTo()) }
       }
     }
   }
@@ -423,6 +446,11 @@ constructor(
     sink[DEVICE_MANAGER_COROUTINE_SCOPE_KEY] = panelScope
   }
 }
+
+private fun DeviceProvisioner.notificationBanners(): Flow<List<EditorNotificationPanel>> =
+  combine(extensions(NotificationBannersExtension::class.java).map { it.notificationBanners }) {
+    it.flatMap { it }
+  }
 
 @UiThread
 internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =

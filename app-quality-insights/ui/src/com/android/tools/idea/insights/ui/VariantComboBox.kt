@@ -34,7 +34,6 @@ import java.awt.Component
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 import kotlin.math.max
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -119,7 +118,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
       object : DefaultListCellRenderer() {
         override fun getListCellRendererComponent(
           list: JList<*>,
-          value: Any,
+          value: Any?,
           index: Int,
           isSelected: Boolean,
           cellHasFocus: Boolean,
@@ -136,7 +135,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
                 BorderLayout.CENTER,
               )
               border = JBUI.Borders.empty()
-              verticalTextPosition = SwingConstants.CENTER
+              verticalTextPosition = CENTER
             }
           }
           return when (value) {

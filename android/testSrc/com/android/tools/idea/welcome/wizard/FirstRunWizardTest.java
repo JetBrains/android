@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import static org.mockito.Mockito.mock;
+
+import com.android.prefs.AndroidLocationsSingleton;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.test.testutils.TestUtils;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.GlobalInstallerData;
 import com.android.tools.idea.welcome.config.InstallerData;
-import com.android.tools.idea.welcome.install.ComponentCategory;
+import com.android.tools.idea.welcome.install.SdkComponentCategoryTreeNode;
 import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
@@ -33,6 +39,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -52,10 +59,19 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   private void assertPagesVisible(@Nullable InstallerData data, boolean isComponentsStepVisible, boolean hasAndroidSdkPath) {
     GlobalInstallerData.set(data);
     FirstRunWizardMode mode = data == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
+    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, TestUtils.getSdk());
     assertVisible(
       new SdkComponentsStep(
-        new ComponentCategory("test", "test", Collections.emptyList()),
-        KEY_TRUE, createKey(String.class), mode, getTestRootDisposable()), data, isComponentsStepVisible
+        null,
+        new SdkComponentCategoryTreeNode("test", "test", Collections.emptyList()),
+        KEY_TRUE,
+        createKey(String.class),
+        mode,
+        new ObjectValueProperty<>(sdkHandler),
+        new LicenseAgreementStep(getTestRootDisposable(), ArrayList::new, () -> sdkHandler, mock()),
+        getTestRootDisposable(),
+        mock()
+      ), data, isComponentsStepVisible
     );
 
     if (data != null) {

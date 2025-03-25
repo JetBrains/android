@@ -1,28 +1,21 @@
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/bazel:proto.bzl", "INTELLIJ_PLATFORM_PROTO_VERSION", "java_proto_library")
+load("//tools/base/bazel:proto.bzl", "studio_java_proto_library")
 
-java_proto_library(
+studio_java_proto_library(
     name = "android-core-proto",
     srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
-    proto_java_runtime_library = [
-        "@intellij//:intellij-sdk",
-    ],
-    protoc_version = INTELLIJ_PLATFORM_PROTO_VERSION,
     visibility = ["//visibility:public"],
 )
 
-java_proto_library(
+studio_java_proto_library(
     name = "android-core-proto-test",
     srcs = glob(["testSrc/com/android/tools/idea/proto/*.proto"]),
-    proto_java_runtime_library = [
-        "@intellij//:intellij-sdk",
-    ],
-    protoc_version = INTELLIJ_PLATFORM_PROTO_VERSION,
     visibility = ["//visibility:public"],
 )
 
@@ -117,7 +110,6 @@ iml_module(
         "@intellij//:JUnit",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:intellij.webp",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/utp[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
@@ -139,6 +131,8 @@ iml_module(
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module]",
         "//tools/adt/idea/completion:intellij.android.completion[module]",
         "//tools/base/backup:studio.android.sdktools.backup[module]",
+        "@intellij//:com.intellij.modules.json",
+        "//tools/adt/idea/testartifacts:intellij.android.testartifacts[module]",
     ],
 )
 
@@ -150,15 +144,11 @@ iml_module(
     # keep sorted
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk:jdk_1_8",
-        "//prebuilts/studio/jdk/jdk11",
-        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
+        "//prebuilts/studio/jdk/jdk8:jdk_runtime_files",
+        "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:layoutlib_extensions",
-        "//prebuilts/studio/layoutlib/data:native_libs",
-        "//prebuilts/studio/layoutlib/data/fonts",
-        "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
@@ -199,6 +189,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -267,7 +258,6 @@ iml_module(
         "@intellij//:JUnit",
         "@intellij//:com.intellij.properties",
         "@intellij//:com.intellij.platform.images",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
@@ -298,15 +288,14 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module, test]",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 
 filegroup(
     name = "profiler-artifacts",
     srcs = [
-        "//tools/base/profiler:perfetto-protos",
         "//tools/base/profiler/app:perfa.jar",
-        "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
         "//tools/base/profiler/transform:profilers-transform.jar",
     ],
     visibility = ["//visibility:public"],
@@ -318,18 +307,13 @@ filegroup(
         "@platforms//os:windows": [
             "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/installer/tests:fake_device_proto",
-            "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
             "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer/tests:artifacts",
-            "//tools/base/deploy/proto:deploy_java_proto",
         ],
-    }) + [
-        "//tools/base/deploy/deployer:java_version",
-        "//tools/base/deploy/sites:java_sites",
-    ],
+    }),
     visibility = ["//visibility:public"],
 )
 
@@ -338,19 +322,6 @@ filegroup(
     srcs = [
         "//tools/base/transport:android",
         "//tools/base/transport/native/agent:android",
-        "//tools/base/transport/proto:transport_java_proto",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
-    name = "layout-inspector-artifacts",
-    srcs = [
-        "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto",
-        "//tools/adt/idea/layout-inspector/src/proto:layout_inspector_snapshot_java_proto",
-        "//tools/base/dynamic-layout-inspector/agent/appinspection:agent",
-        "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto",
-        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto",
     ],
     visibility = ["//visibility:public"],
 )
@@ -359,80 +330,40 @@ filegroup(
     name = "app-inspection-artifacts",
     srcs = [
         "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
-        "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
         "//tools/base/app-inspection/inspectors/backgroundtask:agent",
-        "//tools/base/app-inspection/inspectors/backgroundtask:backgroundtask_inspector_java_proto",
         "//tools/base/app-inspection/inspectors/database:agent",
-        "//tools/base/app-inspection/inspectors/database:database_inspector_java_proto",
         "//tools/base/app-inspection/inspectors/network:agent",
-        "//tools/base/app-inspection/inspectors/network:network_inspector_java_proto",
     ],
     visibility = ["//visibility:public"],
 )
 
-filegroup(
-    name = "directaccess-artifacts",
-    srcs = [
-        "//tools/base/adb-proxy:adb_proxy_proto",
-        "//tools/base/adb-proxy/reverse-daemon:daemon",
-        "//tools/vendor/google/directaccess-client:directaccess_client_proto",
-        "//tools/vendor/google/directaccess-oem-labs/proto:da_oem_labs_proto",
-    ],
-)
-
-# Various artifacts that the ANT and within-idea studio build depend on.
+# This is the list of targets that is built as a prebuild step when building Studio from the IDE.
+# It build `jps_artifacts` which is the autogenerated list of iml dependencies that are not part
+# of the jps build graph, and a bunch of nice to have utilities (agents, native code, etc)
+# that are very useful to have in sync when building Studio from the IDE.
 filegroup(
     name = "artifacts",
     srcs = [
-        ":android-core-proto",
-        ":android-core-proto-test",
         ":app-inspection-artifacts",
         ":deploy-artifacts",
-        ":directaccess-artifacts",
-        ":layout-inspector-artifacts",
+        ":jps_artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
-        "//tools/adt/idea/.idea/libraries:agp-version",
-        "//tools/adt/idea/app-quality-insights/api/proto:titan_java_proto",
-        "//tools/adt/idea/app-quality-insights/api/proto:gemini_java_proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/as-driver:asdriver.plugin",
-        "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
-        "//tools/adt/idea/logcat:logcat-proto",
-        "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
         "//tools/adt/idea/studio:default_user_jvm_args",
         "//tools/adt/idea/studio:required_jvm_args",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
-        "//tools/analytics-library/protos/src/main/proto:studio.proto",
-        "//tools/base/adblib:adb-server-proto",
-        "//tools/base/adblib-tools:adblib-tools-proto",
-        "//tools/base/bazel:studio-grpc",
-        "//tools/base/bazel:studio-proto",
-        "//tools/base/bazel:utp-core-proto-jarjar",
+        "//tools/base/adb-proxy/reverse-daemon:daemon",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
-        "//tools/base/build-system/gradle-core:common_proto",
         "//tools/base/ddmlib:adb-server-proto",
-        "//tools/base/ddmlib:am-instrumentation-data-proto",
-        "//tools/base/emulator/proto:emulator_java_proto",
-        "//tools/base/game-tools/protos:game-tools-protos",
-        "//tools/base/kotlin-multiplatform-models/proto:kotlin_multiplatform_android_models_proto",
+        "//tools/base/dynamic-layout-inspector/agent/appinspection:agent",
         "//tools/base/lint:lint-checks-proto",
         "//tools/base/process-monitor/process-tracker-agent:bundle",
-        "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
-        "//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto",
-        "//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto",
-        "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto",
-        "//tools/data-binding:compilerCommon.antlr.shaded",
-        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
-        "//tools/vendor/google/asfg/ext:studio-intellijext_plugin_deploy.jar",
-        "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
-        "//tools/vendor/google/ml/aiplugin/core/aida:aida_artifacts",
         "//tools/vendor/google/ml/aiplugin/ij-platform/atlas:atlas_artifacts",
-        "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
     ] + select({
         "@platforms//os:windows": [],
         "//conditions:default": [
@@ -440,6 +371,85 @@ filegroup(
         ],
     }),
     visibility = ["//tools/base/bazel:__pkg__"],
+)
+
+# managed by go/iml_to_build
+filegroup(
+    name = "jps_artifacts",
+    # do not sort: must match IML order
+    srcs = [
+        "//tools/adt/idea/.idea/libraries:agp-version",
+        "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
+        "//tools/adt/idea/.idea/libraries:emulator-proto",
+        "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
+        "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
+        "//tools/adt/idea/.idea/libraries:libadb-server-proto",
+        "//tools/adt/idea/.idea/libraries:libadblib-tools-proto",
+        "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
+        "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
+        "//tools/adt/idea/.idea/libraries:perfetto-proto",
+        "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
+        "//tools/adt/idea/android-common:libandroid-core-proto",
+        "//tools/adt/idea/android/diagnostics:libandroid-core-proto",
+        "//tools/adt/idea/android/gradle:libandroid-core-proto",
+        "//tools/adt/idea/android:libandroid-core-proto",
+        "//tools/adt/idea/android:libandroid-core-proto-test",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
+        "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
+        "//tools/adt/idea/app-quality-insights/api:libgemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:libtitan_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
+        "//tools/adt/idea/as-driver:asdriver_proto",
+        "//tools/adt/idea/as-driver:librunfiles",
+        "//tools/adt/idea/build-attribution:build-analysis-results-proto",
+        "//tools/adt/idea/debuggers:libjava_sites",
+        "//tools/adt/idea/logcat:logcat-proto",
+        "//tools/adt/idea/profilers-android:traceprocessor-proto",
+        "//tools/adt/idea/profilers-ui:traceprocessor-proto",
+        "//tools/adt/idea/profilers:traceprocessor-proto",
+        "//tools/adt/idea/project-system-gradle-psd:liblint-checks-proto.lib",
+        "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
+        "//tools/adt/idea/server-flags:libserver-flag-test-proto",
+        "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
+        "//tools/base/adb-proxy:adb_proxy_proto",
+        "//tools/base/deploy/deployer:deploy_java_proto",
+        "//tools/base/deploy/deployer:fake_device_proto",
+        "//tools/base/deploy/deployer:libjava_sites",
+        "//tools/base/deploy/deployer:libjava_version",
+        "//tools/base/lint/libs/lint-tests:liblint-checks-proto",
+        "//tools/base/lint:liblint-checks-proto",
+        "//tools/base/repository:schema-generated",
+        "//tools/base/sdk-common:aia-proto",
+        "//tools/base/sdklib:schema-generated",
+        "//tools/data-binding:compilerCommon.antlr.shaded",
+        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
+        "//tools/vendor/google/alt-lang/soong/plugin:libblueprint-lexer-parser",
+        "//tools/vendor/google/asfp/base:studio-intellijext",
+        "//tools/vendor/google/directaccess-client:directaccess_client_proto",
+        "//tools/vendor/google/firebase/integration:libtitan_java_proto",
+        "//tools/vendor/google/firebase:libfirebase_java_proto",
+        "//tools/vendor/google/firebase:libgemini_java_proto",
+        "//tools/vendor/google/firebase:libtitan_java_proto",
+        "//tools/vendor/google/game-tools/main:game-tools-protos",
+        "//tools/vendor/google/game-tools/packaging:game-tools-protos",
+        "//tools/vendor/google/ml/aiplugin/core:aida_grpc",
+        "//tools/vendor/google/ml/aiplugin/core:aida_proto",
+        "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
+        "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
+        "//tools/vendor/google/url-assistant:urlassistant_proto",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 maven_repository(
@@ -453,26 +463,30 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
         "@maven//:androidx.collection.collection-ktx_1.4.0",  # Required by SpecificActivityLocatorGradleTest after updating to Compose BOM 2024.04.01
-        "@maven//:androidx.compose.animation.animation_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.foundation.foundation_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.animation.animation_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.foundation.foundation_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.ui.ui-tooling_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.10.0",
-        "@maven//:androidx.core.core-ktx_1.12.0",  # Required by SpecificActivityLocatorGradleTest after updating to Compose BOM 2024.04.01
+        "@maven//:androidx.core.core-ktx_1.13.1",  # Required by SpecificActivityLocatorGradleTest after updating to Compose BOM 2024.09.00
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
         "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
-        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.3.1",
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",  # Still used in android/project/BUILD
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-process_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.3.1",  # Still used in android/run/BUILD
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.3",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
@@ -583,13 +597,6 @@ jvm_import(
 )
 
 # managed by go/iml_to_build
-jvm_import(
-    name = "libstudio.android-test-plugin-host-retention-proto",
-    jars = ["//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core.agp-integration-tests",
     iml_files = ["intellij.android.core.agp-integration-tests.iml"],
@@ -629,12 +636,8 @@ iml_module(
     # keep sorted
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/studio/layoutlib/data:native_libs",
-        "//prebuilts/studio/layoutlib/data/fonts",
-        "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -659,6 +662,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -688,5 +692,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k1[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.k2[module, test]",
         "//tools/adt/idea/android/editing/documentation:intellij.android.core.editing.documentation[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

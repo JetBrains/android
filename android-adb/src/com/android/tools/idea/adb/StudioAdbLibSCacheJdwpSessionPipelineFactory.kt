@@ -36,8 +36,8 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
   private var enableTracer: () -> Boolean = { false }
 
   /**
-   * SCache has a low priority, meaning it should be as close as possible to the device
-   * in the `(JDWP Device Process, pipeline1, pipeline2, ..., Java Debugger)` sequence
+   * SCache has a low priority, meaning it should be as close as possible to the device in the
+   * `(JDWP Device Process, pipeline1, pipeline2, ..., Java Debugger)` sequence
    */
   override val priority: Int
     get() = -1000
@@ -45,7 +45,7 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
   override fun create(
     device: ConnectedDevice,
     pid: Int,
-    previousPipeline: JdwpSessionPipeline
+    previousPipeline: JdwpSessionPipeline,
   ): JdwpSessionPipeline? {
     return enableForDevice(device).let { enabled ->
       logger.info("SCache for device $device, process=$pid: enabled=$enabled")
@@ -54,13 +54,19 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
           // If we (i.e. SCache) are enabled, we (as opposed to adblib) take ownership of tracing
           // JDWP packets, because SCache is the only component that has access to the "journaling"
           // (i.e. emulated) JDWP traffic.
-          val monitor = when (enableTracer()) {
-            true -> StudioAdbLibJdwpTracer()
-            false -> null
-          }
-          StudioAdbLibSCacheJdwpSessionPipeline(device, pid, scacheLogger, monitor, previousPipeline)
+          val monitor =
+            when (enableTracer()) {
+              true -> StudioAdbLibJdwpTracer()
+              false -> null
+            }
+          StudioAdbLibSCacheJdwpSessionPipeline(
+            device,
+            pid,
+            scacheLogger,
+            monitor,
+            previousPipeline,
+          )
         }
-
         else -> {
           null
         }
@@ -68,11 +74,11 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
     }
   }
 
-
-
   companion object {
-    private val key = CoroutineScopeCache.Key<StudioAdbLibSCacheJdwpSessionPipelineFactory>(
-      "StudioAdbLibSCacheJdwpSessionPipelineFactory session cache key")
+    private val key =
+      CoroutineScopeCache.Key<StudioAdbLibSCacheJdwpSessionPipelineFactory>(
+        "StudioAdbLibSCacheJdwpSessionPipelineFactory session cache key"
+      )
 
     @JvmStatic
     fun install(session: AdbSession) {
@@ -83,13 +89,14 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
     fun install(
       session: AdbSession,
       enableForDevice: (ConnectedDevice) -> Boolean,
-      enableJdwpTracer: () -> Boolean
+      enableJdwpTracer: () -> Boolean,
     ) {
-      val factory = session.cache.getOrPutSynchronized(key) {
-        StudioAdbLibSCacheJdwpSessionPipelineFactory().also {
-          session.addJdwpSessionPipelineFactory(it)
+      val factory =
+        session.cache.getOrPutSynchronized(key) {
+          StudioAdbLibSCacheJdwpSessionPipelineFactory().also {
+            session.addJdwpSessionPipelineFactory(it)
+          }
         }
-      }
       factory.enableForDevice = enableForDevice
       factory.enableTracer = enableJdwpTracer
     }
@@ -101,8 +108,7 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
         // Enable only if the device is remote
         if (StudioFlags.JDWP_SCACHE_REMOTE_ONLY.get()) {
           device.isRemote()
-        }
-        else {
+        } else {
           true
         }
       }
@@ -114,10 +120,11 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
 
     private fun ConnectedDevice.isRemote(): Boolean {
       val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(session)
-      val isDeviceRemote = deviceProvisioner?.devices?.value?.any { deviceHandle ->
-        (deviceHandle.state.connectedDevice === this) &&
-        (deviceHandle.state.properties.isRemote ?: false)
-      } ?: false
+      val isDeviceRemote =
+        deviceProvisioner?.devices?.value?.any { deviceHandle ->
+          (deviceHandle.state.connectedDevice === this) &&
+            (deviceHandle.state.properties.isRemote ?: false)
+        } ?: false
 
       return isDeviceRemote
     }

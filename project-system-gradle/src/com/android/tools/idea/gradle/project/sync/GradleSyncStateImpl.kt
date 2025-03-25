@@ -42,13 +42,13 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.SuccessResult
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -85,8 +85,8 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val SYNC_NOTIFICATION_GROUP =
-  NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
+private val SYNC_NOTIFICATION_GROUP: NotificationGroup =
+  NotificationGroupManager.getInstance().getNotificationGroup("Gradle Sync")
 
 /**
  * This class manages the state of Gradle sync for a project.
@@ -96,7 +96,7 @@ private val SYNC_NOTIFICATION_GROUP =
  * events to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific
  * invocation of sync.
  */
-class GradleSyncStateImpl constructor(project: Project) : GradleSyncState {
+class GradleSyncStateImpl(project: Project) : GradleSyncState {
   private val delegate = GradleSyncStateHolder.getInstance(project)
   override val isSyncInProgress: Boolean
     get() = delegate.isSyncInProgress
@@ -292,7 +292,7 @@ class GradleSyncStateHolder constructor(private val project: Project) {
   /**
    * Triggered when a sync has been found to have been cancelled.
    */
-  private fun syncCancelled(@Suppress("UNUSED_PARAMETER") rootProjectPath: @SystemIndependent String) {
+  private fun syncCancelled(rootProjectPath: @SystemIndependent String) {
     eventLogger.syncCancelled()
     val resultMessage = "Gradle sync cancelled"
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.INFO, null)
@@ -325,9 +325,7 @@ class GradleSyncStateHolder constructor(private val project: Project) {
     return when {
       PropertiesComponent.getInstance(project).getBoolean(
         ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED
-
       GradleFiles.getInstance(project).areGradleFilesModified() -> GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED
-      GradleFiles.getInstance(project).areExternalBuildFilesModified() -> GradleSyncNeededReason.EXTERNAL_BUILD_FILES_CHANGED
       isGradleJvmConfigurationModified -> GradleSyncNeededReason.GRADLE_JVM_CONFIG_CHANGED
       else -> null
     }
@@ -513,7 +511,6 @@ class GradleSyncStateHolder constructor(private val project: Project) {
       }
     }
 
-    @Suppress("UnstableApiUsage")
     override fun onImportFailed(projectPath: String?, t: Throwable) {
       LOG.info("onImportFailed($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)

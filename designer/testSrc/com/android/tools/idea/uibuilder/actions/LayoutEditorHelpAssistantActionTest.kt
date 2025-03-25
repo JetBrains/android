@@ -28,7 +28,6 @@ import org.mockito.kotlin.whenever
 
 class LayoutEditorHelpAssistantActionTest : AndroidTestCase() {
 
-  private val myDataContext: DataContext = Mockito.mock(DataContext::class.java)
   private val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
   private val psi: XmlFile = Mockito.mock(XmlFile::class.java)
   private val tag: XmlTag = Mockito.mock(XmlTag::class.java)
@@ -37,7 +36,7 @@ class LayoutEditorHelpAssistantActionTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     whenever(event.getData(PlatformDataKeys.PSI_FILE)).thenReturn(psi)
-    whenever(event.dataContext).thenReturn(myDataContext)
+    whenever(event.dataContext).thenReturn(DataContext.EMPTY_CONTEXT)
     whenever(event.project).thenReturn(myModule.project)
     whenever(event.presentation).thenReturn(presentation)
     whenever(psi.rootTag).thenReturn(tag)

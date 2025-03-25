@@ -37,12 +37,12 @@ import java.nio.file.StandardOpenOption.WRITE
 
 /**
  * Obtains logcat output from the device and writes messages related to the screen sharing agent
- * to `device_mirroring.logcat`.
+ * to `screen_sharing_agent.log`.
  */
 internal object AgentLogSaver {
 
   val logFile: Path
-    get() = PathManager.getLogDir().resolve("device_mirroring.logcat")
+    get() = PathManager.getLogDir().resolve("screen_sharing_agent.log")
 
   private val logger: Logger
     get() = thisLogger()

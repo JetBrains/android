@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.uibuilder.structure.TreeSearchUtil;
+import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.xml.XmlBuilder;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import icons.StudioIcons;
 import org.fest.swing.fixture.JTreeFixture;
@@ -185,5 +189,45 @@ public final class LinearLayoutTest {
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
     layoutEditor.getComponentToolbar().getButtonByIcon(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT).click();
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
+  }
+
+  public final class TreeSearchUtil {
+
+    private TreeSearchUtil() {
+    }
+
+    /**
+     * Provide a string representation of the given component to search
+     * help searching by different useful features that can identify a component
+     * (e.g text of a text view)
+     */
+    @NotNull
+    public static String toString(@NotNull NlComponent component) {
+      StringBuilder container = new StringBuilder();
+      String id = ResourceUrl.parse(component.getId()).getQualifiedName();
+      if (!id.isEmpty()) {
+        container.append(id);
+      }
+
+      StructurePaneComponentHandler handler = getViewHandler(component);
+      String title = handler.getTitle(component);
+
+      if (!StringUtil.startsWithIgnoreCase(id, title)) {
+        container.append(id.isEmpty() ? title : " (" + title + ')');
+      }
+
+      String attributes = handler.getTitleAttributes(component);
+
+      if (!attributes.isEmpty()) {
+        container.append(' ').append(attributes);
+      }
+      return container.toString();
+    }
+
+    @NotNull
+    private static StructurePaneComponentHandler getViewHandler(@NotNull NlComponent component) {
+      StructurePaneComponentHandler handler = NlComponentHelperKt.getViewHandler(component, () -> {});
+      return handler == null ? ViewHandlerManager.NONE : handler;
+    }
   }
 }

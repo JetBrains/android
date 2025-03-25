@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
@@ -28,7 +26,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert
@@ -36,6 +34,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class CommonViewControlActionTest {
 
@@ -51,12 +51,8 @@ class CommonViewControlActionTest {
       override var previewedFile: PsiFile? = null
     }
 
-  private val dataContext = DataContext {
-    when (it) {
-      PREVIEW_VIEW_MODEL_STATUS.name -> viewModelStatus
-      else -> null
-    }
-  }
+  val dataContext
+    get() = SimpleDataContext.getSimpleContext(PREVIEW_VIEW_MODEL_STATUS, viewModelStatus)
 
   @Test
   fun testLayoutOptions() {
@@ -81,7 +77,7 @@ class CommonViewControlActionTest {
 
     val designSurfaceMock = mock<NlDesignSurface>()
     whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, designSurfaceMock)
 
     val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
@@ -111,5 +107,5 @@ private fun createOption(
   displayText: String,
   layoutManager: SurfaceLayoutManager,
 ): SurfaceLayoutOption {
-  return SurfaceLayoutOption(displayText, layoutManager)
+  return SurfaceLayoutOption(displayText, { layoutManager })
 }

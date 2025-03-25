@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -179,10 +180,14 @@ public class MotionLayoutHandler extends ViewGroupHandler implements ConstraintL
   }
 
   @Override
-  @NotNull
+  @Nullable
   public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface<?> surface,
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent) {
+    if (!StudioFlags.MOTION_EDITOR.get()) {
+      return null;
+    }
+
     assert surface instanceof NlDesignSurface : "MotionLayoutHandler needs an NlDesignSurface";
     if (true) {
       switch (type) {

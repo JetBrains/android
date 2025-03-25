@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.cc.ConfigureCcCompilation;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
@@ -32,11 +32,11 @@ import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars;
 import com.google.idea.blaze.qsync.java.AddDependencySrcJars;
 import com.google.idea.blaze.qsync.java.AddProjectGenSrcJars;
 import com.google.idea.blaze.qsync.java.AddProjectGenSrcs;
-import com.google.idea.blaze.qsync.java.JavaSourcePackageNameMetadata;
+import com.google.idea.blaze.qsync.java.JavaSourcePackageExtractor;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
-import com.google.idea.blaze.qsync.java.SourceJarInnerPackageRoots;
-import com.google.idea.blaze.qsync.java.SourceJarInnerPathsAndPackagePrefixes;
 import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder;
+import com.google.idea.blaze.qsync.java.SrcJarPackageRootsExtractor;
+import com.google.idea.blaze.qsync.java.SrcJarPrefixedPackageRootsExtractor;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
@@ -65,10 +65,10 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
             .add(
                 new AddProjectGenSrcJars(
                     projectDefinition,
-                    new SourceJarInnerPathsAndPackagePrefixes(srcJarInnerPathFinder)))
+                    new SrcJarPrefixedPackageRootsExtractor(srcJarInnerPathFinder)))
             .add(
                 new AddProjectGenSrcs(
-                    projectDefinition, new JavaSourcePackageNameMetadata(packageReader)))
+                    projectDefinition, new JavaSourcePackageExtractor(packageReader)))
             .add(new ConfigureCcCompilation.UpdateOperation());
     if (attachDepsSrcjarsExperiment.get()) {
       updateOperations.add(
@@ -78,14 +78,14 @@ public class DependenciesProjectProtoUpdater implements ProjectProtoTransform {
               srcJarInnerPathFinder));
       updateOperations.add(
           new AddDependencyGenSrcsJars(
-              projectDefinition, new SourceJarInnerPackageRoots(srcJarInnerPathFinder)));
+              projectDefinition, new SrcJarPackageRootsExtractor(srcJarInnerPathFinder)));
     }
     this.updateOperations = updateOperations.build();
   }
 
-  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifactMetadata(
-      TargetBuildInfo forTarget) {
-    ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata> builder =
+  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>>
+      getRequiredArtifactMetadata(TargetBuildInfo forTarget) {
+    ImmutableSetMultimap.Builder<BuildArtifact, ArtifactMetadata.Extractor<?>> builder =
         ImmutableSetMultimap.builder();
     for (ProjectProtoUpdateOperation op : updateOperations) {
       builder.putAll(op.getRequiredArtifacts(forTarget));

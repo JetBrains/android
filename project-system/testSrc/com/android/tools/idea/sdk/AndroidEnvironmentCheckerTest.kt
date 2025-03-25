@@ -1,6 +1,5 @@
 package com.android.tools.idea.sdk
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.IdeInfo
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.ProjectFacetManager
@@ -15,6 +14,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 /**
  * Tests for [AndroidEnvironmentChecker]

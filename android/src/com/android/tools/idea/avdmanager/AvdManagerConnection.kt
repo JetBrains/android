@@ -31,6 +31,7 @@ import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.AvdManagerException
 import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.internal.avd.AvdNames.cleanAvdName
 import com.android.sdklib.internal.avd.ConfigKey
@@ -54,6 +55,7 @@ import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandB
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
@@ -66,13 +68,13 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.credentialStore.isFulfilled
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.project.Project
@@ -80,15 +82,10 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.util.net.HttpConfigurable
-import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardOpenOption
-import java.util.OptionalLong
-import java.util.WeakHashMap
-import java.util.concurrent.TimeUnit
+import com.intellij.util.net.ProxyConfiguration
+import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
+import com.intellij.util.net.ProxyCredentialStore
+import com.intellij.util.net.ProxySettings
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -97,6 +94,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
+import java.util.OptionalLong
+import java.util.WeakHashMap
+import java.util.concurrent.TimeUnit
 
 /**
  * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
@@ -338,14 +343,7 @@ constructor(
     // show it.
     val p =
       if (emulator.isQemu2)
-        BackgroundableProcessIndicator(
-          project,
-          "Launching emulator",
-          PerformInBackgroundOption.ALWAYS_BACKGROUND,
-          "",
-          "",
-          false,
-        )
+        BackgroundableProcessIndicator(project, "Launching emulator", null, "", false)
       else ProgressWindow(false, true, project)
     p.isIndeterminate = false
     p.setDelayInMillis(0)
@@ -417,30 +415,15 @@ constructor(
     if (!emulator!!.hasStudioParamsSupport()) {
       return null
     }
-    val httpInstance = HttpConfigurable.getInstance() ?: return null
 
-    // Extract the proxy information
-    val proxyParameters: MutableList<String> = ArrayList()
-
-    val myPropList = httpInstance.getJvmProperties(false, null)
-    for (kv in myPropList) {
-      when (kv.getFirst()) {
-        "http.proxyHost",
-        "http.proxyPort",
-        "https.proxyHost",
-        "https.proxyPort",
-        "proxy.authentication.username",
-        "proxy.authentication.password" ->
-          proxyParameters.add(kv.getFirst() + "=" + kv.getSecond() + "\n")
-        else -> {}
-      }
-    }
-
-    if (proxyParameters.isEmpty()) {
+    // These are defined in the HTTP Proxy section of the Settings dialog.
+    // We can only use static HTTP proxies; ignore the other types.
+    val config = ProxySettings.getInstance().getProxyConfiguration() as? StaticProxyConfiguration ?: return null
+    val params = config.toStudioParams(ProxyCredentialStore.getInstance())
+    if (params.isEmpty()) {
       return null
     }
-
-    return writeTempFile(proxyParameters)?.absoluteFile?.toPath()
+    return writeTempFile(params)?.absoluteFile?.toPath()
   }
 
   private suspend fun handleAccelerationError(
@@ -554,8 +537,10 @@ constructor(
         ScreenOrientation.LANDSCAPE.shortDisplayValue.lowercase()
     }
     if (currentInfo != null && avdName != currentInfo.name && removePrevious) {
-      val success = avdManager.moveAvd(currentInfo, avdName, currentInfo.dataFolderPath)
-      if (!success) {
+      try {
+        avdManager.moveAvd(currentInfo, avdName, currentInfo.dataFolderPath)
+      } catch (e: AvdManagerException) {
+        IJ_LOG.error("Could not move AVD ${currentInfo.name} to $avdName", e)
         return null
       }
     }
@@ -584,16 +569,8 @@ constructor(
     return null
   }
 
-  open fun findAvd(avdId: String): AvdInfo? {
-    return avdManager?.getAvd(avdId, false)
-  }
-
-  fun avdExists(candidate: String): Boolean {
-    return findAvd(candidate) != null
-  }
-
-  fun reloadAvd(avdId: String): AvdInfo? {
-    val avd = findAvd(avdId)
+  fun reloadAvd(avdFolder: Path): AvdInfo? {
+    val avd = findAvdWithFolder(avdFolder)
     if (avd != null) {
       return avdManager?.reloadAvd(avd)
     }
@@ -609,7 +586,7 @@ constructor(
     if (Files.exists(path)) {
       try {
         PathUtils.deleteRecursivelyIfExists(path)
-      } catch (e: IOException) {
+      } catch (_: IOException) {
         return false
       }
     }
@@ -617,7 +594,7 @@ constructor(
     val snapshotDirectory = avdInfo.dataFolderPath.resolve(AvdManager.SNAPSHOTS_DIRECTORY)
     try {
       PathUtils.deleteRecursivelyIfExists(snapshotDirectory)
-    } catch (ignore: IOException) {}
+    } catch (_: IOException) {}
 
     return true
   }
@@ -632,6 +609,10 @@ constructor(
 
   fun findAvdWithDisplayName(name: String): Boolean {
     return avdManager?.findAvdWithDisplayName(name) != null
+  }
+
+  open fun findAvdWithFolder(avdFolder: Path): AvdInfo? {
+    return avdManager?.findAvdWithFolder(avdFolder)
   }
 
   /**
@@ -701,7 +682,8 @@ constructor(
     /** Checks whether the emulator can be launched in the Running Device tool window. */
     private fun canLaunchInToolWindow(avd: AvdInfo, project: Project?): Boolean {
       return project != null &&
-        ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null
+        ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null  &&
+             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !avd.isXrDevice)
     }
 
     @JvmStatic
@@ -732,7 +714,7 @@ constructor(
         }
 
         Files.write(tempFile.toPath(), fileContents, StandardOpenOption.WRITE)
-      } catch (e: IOException) {
+      } catch (_: IOException) {
         // Try to remove the temporary file
         if (tempFile != null) {
           tempFile.delete()
@@ -766,3 +748,19 @@ constructor(
 }
 
 private fun OptionalLong.orNull(): Long? = if (isPresent) asLong else null
+
+internal fun StaticProxyConfiguration.toStudioParams(credentialStore: ProxyCredentialStore): List<String> {
+  // The emulator consumes this in settings-page-proxy.cpp:getStudioProxyString().
+  val proxyParameters = mutableListOf<String>()
+  if (protocol == ProxyConfiguration.ProxyProtocol.HTTP && host.isNotBlank() && port > 0) {
+    proxyParameters.add("http.proxyHost=${host}")
+    proxyParameters.add("http.proxyPort=${port}")
+
+    val credentials = credentialStore.getCredentials(host, port)
+    if (credentials != null && credentials.isFulfilled()) {
+      proxyParameters.add("proxy.authentication.username=${credentials.userName}")
+      proxyParameters.add("proxy.authentication.password=${credentials.getPasswordAsString()}")
+    }
+  }
+  return proxyParameters
+}

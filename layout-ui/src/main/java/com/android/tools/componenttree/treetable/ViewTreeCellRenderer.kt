@@ -20,8 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ui.ExperimentalUI
-import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.ui.NewUI
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
@@ -76,8 +75,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     renderer.selectedValue = selected
     renderer.focusedValue = hasFocus && selected
 
-    renderer.id =
-      SlowOperations.allowSlowOperations(ThrowableComputable { stripId(type.idOf(node)) })
+    renderer.id = SlowOperations.knownIssue("b/322464063").use { stripId(type.idOf(node)) }
     renderer.tagName = type.tagNameOf(node).substringAfterLast('.')
     renderer.textValue = type.textValueOf(node)
     renderer.treeIcon = type.iconOf(node)
@@ -188,7 +186,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       background = UIUtil.getTreeBackground(selectedValue, focusedValue)
       icon =
         treeIcon?.let {
-          if (focusedValue && !ExperimentalUI.isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it
+          if (focusedValue && !NewUI.isEnabled()) ColoredIconGenerator.generateWhiteIcon(it) else it
         }
       if (!selectedValue && (deEmphasized || !enabledValue)) {
         foreground = foreground.deEmphasize()

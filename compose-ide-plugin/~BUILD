@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -25,6 +24,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module]",
         "//tools/adt/idea/completion:intellij.android.completion[module]",
+        "@intellij//:com.intellij.modules.json",
     ],
 )
 
@@ -45,6 +45,10 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "@maven//:androidx.compose.runtime.runtime-android_1.7.1",
+        "@maven//:androidx.compose.runtime.runtime-saveable-android_1.7.1",
+        "@maven//:androidx.compose.ui.ui-android_1.7.1",
+        "@maven//:androidx.compose.ui.ui-graphics-android_1.7.1",
     ],
     test_friends = ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"],
     test_srcs = ["testSrc"],
@@ -56,6 +60,7 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
@@ -74,5 +79,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "@intellij//:com.intellij.modules.json[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
     ],
 )

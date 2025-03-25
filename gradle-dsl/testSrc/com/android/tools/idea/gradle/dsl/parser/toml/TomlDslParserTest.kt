@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -29,6 +28,7 @@ import com.intellij.testFramework.VfsTestUtil
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runners.Parameterized
+import org.mockito.Mockito.mock
 
 class TomlDslParserTest : LightPlatformTestCase() {
   companion object {

@@ -75,18 +75,17 @@ public class BlazeCoverageRunner extends CoverageRunner {
 
   private static LineData[] fromFileData(FileData fileData) {
     LineData[] lines = new LineData[maxLineNumber(fileData) + 1];
-    fileData.lineHits.forEachEntry(
+    fileData.lineHits.forEach(
         (line, hits) -> {
           LineData newLine = new LineData(line, null);
           newLine.setHits(hits);
           lines[line] = newLine;
-          return true;
         });
     return lines;
   }
 
   private static int maxLineNumber(FileData fileData) {
-    return Ints.max(fileData.lineHits.keys());
+    return Ints.max(fileData.lineHits.keySet().toIntArray());
   }
 
   @Override

@@ -17,7 +17,7 @@ package com.android.tools.idea.lint;
 
 import static org.junit.Assume.assumeTrue;
 
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDeprecatedConfigurationInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
@@ -49,7 +49,6 @@ import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -328,10 +327,6 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   }
 
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
-    // TODO(b/353566778): skip for K2 until 242 merge
-    if (extension.equals(".gradle.kts")) {
-      assumeTrue(KotlinPluginModeProvider.Companion.isK1Mode());
-    }
     createManifest();
     myFixture.enableInspections(inspection);
     String sourceName = BASE_PATH + getTestName(false) + extension;

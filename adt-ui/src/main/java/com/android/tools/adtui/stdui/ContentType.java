@@ -60,7 +60,7 @@ public enum ContentType {
     return myType;
   }
 
-  private ContentType withType(@NotNull String type) {
+  public ContentType withType(@NotNull String type) {
     myType = type;
     return this;
   }
@@ -74,6 +74,10 @@ public enum ContentType {
 
   public boolean isSupportedImageType() {
     return IMAGE_TYPES.contains(this);
+  }
+
+  public boolean isMultipart() {
+    return "multipart".equalsIgnoreCase(getType());
   }
 
   /**

@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Objects;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -61,7 +62,7 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
 
     UIUtil.findComponentsOfType(pickerDialog.createCenterPanel(), JComboBox.class).forEach(box -> {
       Object item = box.getSelectedItem();
-      if (item instanceof String && item.equals("Style 1")) {
+      if (Objects.requireNonNull(item).toString().equals("Style 1")) {
         // Select the "Style 2" style.
         box.setSelectedIndex(1);
       }
@@ -80,7 +81,7 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
 
     UIUtil.findComponentsOfType(pickerDialog.createCenterPanel(), JComboBox.class).forEach(box -> {
       Object item = box.getSelectedItem();
-      if (item instanceof String && item.equals("All")) {
+      if (Objects.requireNonNull(item).toString().equals("All")) {
         // Select category: "Category3" which should only have 1 icon: 'my_icon_2.xml'.
         box.setSelectedIndex(3);
       }
@@ -90,7 +91,7 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
   }
 
   public void testFiltering() {
-    IconPickerDialog dialog = getInitializedIconPickerDialog(null);
+    IconPickerDialog dialog = getInitializedIconPickerDialog();
 
     dialog.setFilter("icon 1");
     assertThat(tableToString(dialog.getTable())).isEqualTo(
@@ -101,6 +102,61 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
     assertThat(tableToString(dialog.getTable())).isEqualTo(
       "style1 my icon 2                                                                                                        \n"
     );
+    dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+  }
+
+  public void testEmptyStylesDialog() {
+    IconPickerDialog dialog = getInitializedIconPickerDialog(
+      new IconPickerDialog(null, new TestUrlMetadataProvider(ICONS_PATH + "icons_metadata_no_styles_test.txt"), new TestUrlLoaderProvider())
+    );
+
+    dialog.setFilter("icon 1");
+    assertThat(tableToString(dialog.getTable())).isEqualTo(
+      "style1 my icon 1                                                                                                        \n"
+    );
+
+    dialog.setFilter("icon 2");
+    assertThat(tableToString(dialog.getTable())).isEqualTo(
+      "style1 my icon 2                                                                                                        \n"
+    );
+    dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+  }
+
+  public void testMaterialSymbolsStylesShowAtTheTop() {
+    IconPickerDialog dialog = getInitializedIconPickerDialog(
+      new IconPickerDialog(null, new TestUrlMetadataProvider(ICONS_PATH + "icons_metadata_with_material_symbols_test.txt"), new TestUrlLoaderProvider())
+    );
+
+    JComboBox<?> stylesBox = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JComboBox.class)
+      .stream()
+      .filter((box) -> "Styles".equals(box.getName()))
+      .findFirst()
+      .orElseThrow();
+
+    WaitFor wait = new WaitFor(3000) {
+      @Override
+      protected boolean condition() {
+        return stylesBox.getModel().getSize() == 4;
+      }
+    };
+    assertTrue("Styles were not correctly populated", wait.isConditionRealized());
+
+    StringBuilder stylesString = new StringBuilder();
+    for (int i = 0; i < stylesBox.getModel().getSize(); i++) {
+      stylesString.append(stylesBox.getModel().getElementAt(i)).append("\n");
+    }
+
+    assertEquals(
+      """
+      Material Symbols Style 1
+      Material Symbols Style 2
+      Style 1
+      Style 2
+      """,
+      stylesString.toString()
+    );
+
+
     dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
   }
 
@@ -135,8 +191,7 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
     return sb.toString();
   }
 
-  private static IconPickerDialog getInitializedIconPickerDialog(@Nullable VdIcon initialIcon) {
-    IconPickerDialog dialog = new IconPickerDialog(initialIcon, new TestUrlMetadataProvider(), new TestUrlLoaderProvider());
+  private static IconPickerDialog getInitializedIconPickerDialog(@NotNull IconPickerDialog dialog) {
     JComponent pickerPanel = dialog.createCenterPanel();
     pickerPanel.setVisible(true);
 
@@ -149,12 +204,20 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
         JTable table = UIUtil.findComponentOfType(pickerPanel, JTable.class);
         JComboBox box = UIUtil.findComponentOfType(pickerPanel, JComboBox.class);
         boolean populatedTable = table != null && table.getValueAt(0, 0) != null;
-        boolean populatedComboBox = box != null && box.isEnabled() && box.getItemCount() >= 1;
+        boolean populatedComboBox = box != null && box.isEnabled();
         return !dialog.isBusy() && populatedComboBox && populatedTable;
       }
     };
     assertTrue(wait.isConditionRealized());
     return dialog;
+  }
+
+  private static IconPickerDialog getInitializedIconPickerDialog(@NotNull VdIcon initialIcon) {
+    return getInitializedIconPickerDialog(new IconPickerDialog(initialIcon, new TestUrlMetadataProvider(), new TestUrlLoaderProvider()));
+  }
+
+  private static IconPickerDialog getInitializedIconPickerDialog() {
+    return getInitializedIconPickerDialog(new IconPickerDialog(null, new TestUrlMetadataProvider(), new TestUrlLoaderProvider()));
   }
 
   private static class TestUrlLoaderProvider implements MaterialIconsUrlProvider {
@@ -172,10 +235,20 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
   }
 
   private static class TestUrlMetadataProvider implements MaterialIconsMetadataUrlProvider {
+    private final String myMetadataPath;
+
+    TestUrlMetadataProvider(String path) {
+      myMetadataPath = path;
+    }
+
+    TestUrlMetadataProvider() {
+      this(ICONS_PATH + "icons_metadata_test.txt");
+    }
+
     @Nullable
     @Override
     public URL getMetadataUrl() {
-      return IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "icons_metadata_test.txt");
+      return IconPickerDialogTest.class.getClassLoader().getResource(myMetadataPath);
     }
   }
 

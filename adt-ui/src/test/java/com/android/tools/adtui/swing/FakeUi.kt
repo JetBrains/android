@@ -21,6 +21,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -85,7 +86,11 @@ class FakeUi @JvmOverloads constructor(
       }
     }
 
+  val glassPane: IdeGlassPaneImpl?
+
   private var screenScaleInternal: Double = screenScale
+  private var lastActivityTrackerCount: Int = ActivityTracker.getInstance().count
+
 
   init {
     if (root.parent == null && createFakeWindow) {
@@ -104,6 +109,7 @@ class FakeUi @JvmOverloads constructor(
       }
       wrapInFakeWindow(rootPane, parentDisposable)
     }
+    glassPane = (getTopLevelComponent(root) as? JRootPane)?.glassPane as? IdeGlassPaneImpl
 
     if (screenScale != 1.0) {
       ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(screenScale))
@@ -111,7 +117,7 @@ class FakeUi @JvmOverloads constructor(
     if (!root.isPreferredSizeSet) {
       root.preferredSize = root.size
     }
-    updateToolbars()
+    doUpdateToolbars()
   }
 
   /**
@@ -280,11 +286,30 @@ class FakeUi @JvmOverloads constructor(
            target is ActionButton // ActionButton calls enableEvents and overrides processMouseEvent
   }
 
+  /** Updates toolbars if the [ActivityTracker.count] changed since the last toolbar update. */
+  fun updateToolbarsIfNecessary() {
+    if (ActivityTracker.getInstance().count > lastActivityTrackerCount) {
+      doUpdateToolbars()
+    }
+  }
+
   /**
-   * IJ doesn't always refresh the state of the toolbar buttons. This method forces it to refresh.
+   * This method exists only for historical reasons. Tests should use [updateToolbarsIfNecessary] instead.
+   * If a test fails after replacing [updateToolbars] with [updateToolbarsIfNecessary], most likely there
+   * a missing `ActivityTracker.getInstance().inc()` call in the production code.
    */
+  @Deprecated("Use updateToolbarsIfNecessary", replaceWith = ReplaceWith("updateToolbarsIfNecessary"))
   fun updateToolbars() {
-    updateToolbars(root)
+    doUpdateToolbars()
+  }
+
+  /**
+   * In a test environment the state of toolbar buttons is not always updated automatically.
+   * Calling this method forces an unconditional update.
+   */
+  private fun doUpdateToolbars() {
+    lastActivityTrackerCount = ActivityTracker.getInstance().count
+    doUpdateToolbars(root)
     if (SwingUtilities.isEventDispatchThread()) {
       UIUtil.dispatchAllInvocationEvents()
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -295,7 +320,7 @@ class FakeUi @JvmOverloads constructor(
     }
   }
 
-  private fun updateToolbars(component: Component) {
+  private fun doUpdateToolbars(component: Component) {
     val componentQueue = ArrayDeque<Component>()
     val futures = mutableListOf<Future<*>>()
     componentQueue.add(component)

@@ -24,6 +24,7 @@ import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
+import junit.framework.Assert
 import org.junit.Test
 
 class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
@@ -43,10 +44,11 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
 
     val syncIssue = setUpMockSyncIssue("pluginName", "pluginGroup", "2.3.4", listOf("path/one", "path/two"))
 
-    val messages = reporter.report(syncIssue, getModule("app"), null)
+    val module = getModule("app")
+    val messages = reporter.report(syncIssue, module, null)
 
     assertSize(1, messages)
-    val notification = messages[0]
+    val notification = messages[0].syncMessage
 
     assertEquals("Gradle Sync Issues", notification.group)
     assertEquals("This is some message:\npath/one\npath/two\n" +
@@ -55,7 +57,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
                  notification.message)
     assertEquals(MessageType.WARNING, notification.type)
 
-    val quickFixes = messages[0].quickFixes
+    val quickFixes = notification.quickFixes
     assertSize(1 + 1 /* affected modules */, quickFixes)
     assertInstanceOf(quickFixes[0], UpdatePluginHyperlink::class.java)
     val pluginHyperlink = quickFixes[0] as UpdatePluginHyperlink
@@ -64,6 +66,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
     assertEquals("pluginName", entry.key.name)
     assertEquals("pluginGroup", entry.key.group)
     assertEquals("2.3.4", entry.value)
+    assertEquals(listOf(module), messages[0].affectedModules)
 
     assertEquals(
       listOf(
@@ -72,7 +75,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK)
           .build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD, messages))
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD, messages.map { it.syncMessage }))
   }
 
   private fun setUpMockSyncIssue(name: String, group: String, minVersion: String, paths: List<String>): IdeSyncIssue = object : IdeSyncIssue {

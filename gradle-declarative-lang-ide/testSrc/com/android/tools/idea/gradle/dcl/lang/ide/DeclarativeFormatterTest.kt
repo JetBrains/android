@@ -101,6 +101,104 @@ false    )
   }
 
   @Test
+  fun testElementsWithDot() {
+    doTest("""
+      rootProject  .
+      name
+      = 
+      "name"
+      rootProject
+      .name
+      =
+      "name"
+      id("")
+      .version("")
+      id("").
+      version("")
+      ""","""
+      rootProject.name = "name"
+      rootProject.name = "name"
+      id("").version("")
+      id("").version("")
+      """)
+  }
+
+  @Test
+  fun testFactoryBlock() {
+    doTest("""
+        buildType
+        (   "debug")
+        {
+           prop
+           = "value" }
+        ""","""
+        buildType("debug") {
+            prop = "value"
+        }
+        """)
+  }
+
+  @Test
+  fun testLongString() {
+    val quotes = "\"\"\""
+    doTest("""
+      f(
+      $quotes "myValue" $quotes)
+      f($quotes "" "myValue" "" $quotes)
+      f($quotes\"myValue\"$quotes)
+      f(
+      $quotes
+      myValue
+      $quotes
+      )
+      a= $quotes
+      long string
+      $quotes
+      ""","""
+      f($quotes "myValue" $quotes)
+      f($quotes "" "myValue" "" $quotes)
+      f($quotes\"myValue\"$quotes)
+      f($quotes
+      myValue
+      $quotes)
+      a = $quotes
+      long string
+      $quotes
+      """)
+  }
+
+  @Test
+  fun testFileProperty() {
+    doTest("""
+      androidApp{ bundle{
+          deviceTargetingConfig = layout
+          .projectDirectory.   file( "someDir"
+          )
+          } }
+      ""","""
+      androidApp {
+          bundle {
+              deviceTargetingConfig = layout.projectDirectory.file("someDir")
+          }
+      }
+      """)
+  }
+
+  @Test
+  fun testEnum() {
+    doTest("""
+      androidApp{
+          someEnumProperty =
+            Enum
+          }
+      ""","""
+      androidApp {
+          someEnumProperty = Enum
+      }
+      """)
+  }
+
+  @Test
   fun testComplexFile() {
     val before = """
         plugins{ id("org.gradle.experimental.android-application")  }      
@@ -127,6 +225,20 @@ false    )
       }
       """
     doTest(before, after)
+  }
+
+  @Test
+  fun testPlugins() {
+    doTest("""
+      plugins{id("some").version("1")
+       id("other").version("2")
+      }
+      """, """
+      plugins {
+          id("some").version("1")
+          id("other").version("2")
+      }
+      """.trimIndent())
   }
 
   private fun doTest(before: String, after: String) {

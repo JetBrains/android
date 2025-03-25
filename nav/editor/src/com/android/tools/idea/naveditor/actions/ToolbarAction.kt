@@ -19,28 +19,19 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import javax.swing.Icon
-import javax.swing.JComponent
 
 abstract class ToolbarAction(description: String, icon: Icon) :
   IconWithTextAction("", description, icon) {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  private var buttonPresentation: Presentation? = null
-
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    buttonPresentation = presentation
-    return super.createCustomComponent(presentation, place)
-  }
-
   protected abstract fun isEnabled(surface: NavDesignSurface): Boolean
 
   override fun update(e: AnActionEvent) {
     super.update(e)
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface
-    buttonPresentation?.isEnabled = surface?.let { isEnabled(it) } ?: false
+    e.presentation.isEnabled = surface?.let { isEnabled(it) } ?: false
   }
 }

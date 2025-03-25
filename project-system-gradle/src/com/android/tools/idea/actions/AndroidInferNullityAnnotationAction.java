@@ -86,6 +86,7 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import javax.swing.JComponent;
 import one.util.streamex.StreamEx;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
@@ -250,7 +251,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     assert ApplicationManager.getApplication().isDispatchThread();
 
     ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
-      .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+      .getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
 
     Futures.addCallback(syncResult, new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
       @Override
@@ -261,8 +262,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       }
 
       @Override
-      public void onFailure(@Nullable Throwable t) {
-        throw new RuntimeException(t);
+      public void onFailure(@NotNull Throwable t) {
+        if (!(t instanceof CancellationException)) LOG.warn(t);
       }
     }, MoreExecutors.directExecutor());
   }

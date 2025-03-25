@@ -25,9 +25,10 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserDialog
@@ -131,10 +132,14 @@ class SnapshotActionTest {
       .whenever(client)
       .saveSnapshot(any())
     doAnswer { isConnected }.whenever(client).isConnected
-    val dataContext = DataContext { dataId ->
-      if (dataId == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null
-    }
-    AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), mock(), 0)
+    val dataContext = SimpleDataContext.getSimpleContext(LAYOUT_INSPECTOR_DATA_KEY, inspector)
+    AnActionEvent.createEvent(
+      dataContext,
+      Presentation(),
+      ActionPlaces.UNKNOWN,
+      ActionUiKind.NONE,
+      null,
+    )
   }
 
   @Suppress("SameParameterValue")

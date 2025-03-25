@@ -23,12 +23,13 @@ class SdkIndexPsdTest : SdkIndexTestBase() {
     system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon")
     system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.index.notes=true")
     system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.index.recommended.versions=true")
+    system.installation.addVmOption("-Dgoogle.play.sdk.index.show.sdk.index.deprecation.issues=true")
     verifySdkIndexIsInitializedAndUsedWhen(
       showFunction = { studio, _ ->
         openAndClosePSD(studio)
       },
       beforeClose = {
-        verifyPsdIssues(numErrors = 5, numWarnings = 4)
+        verifyPsdIssues(numErrors = 7, numWarnings = 4)
       },
       expectedIssues = listOf(
         // Error
@@ -41,7 +42,7 @@ class SdkIndexPsdTest : SdkIndexTestBase() {
           "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has Permissions policy issues that will block publishing of your app to Play Console.",
           "The library author recommends using versions:",
           "  - From 4.10.0 to 4.10.8",
-          "  - 4.10.11 or higher",
+          "  - 4.11.2 or higher",
           "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
         ),
         // Error
@@ -52,12 +53,33 @@ class SdkIndexPsdTest : SdkIndexTestBase() {
         // Error
         listOf(
           "**[Prevents app release in Google Play Console]** com.startapp:inapp-sdk version 3.9.1 has been reported as outdated by its author and will block publishing of your app to Play Console.",
-          "The library author recommends using versions:", "  - From 4.10.0 to 4.10.8", "  - 4.10.11 or higher",
+          "The library author recommends using versions:", "  - From 4.10.0 to 4.10.8", "  - 4.11.2 or higher",
           "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. Carefully evaluate any third-party SDKs before integrating them into your app.",
         ),
         // Error
         listOf(
           "com.startapp:inapp-sdk version 3.9.1 contains unsafe unzipping patterns.",
+        ),
+        // Error
+        listOf(
+          "**[Prevents app release in Google Play Console]** com.google.android.play:core version 1.10.3 has been reported as problematic by its author and will block publishing of your app to Play Console.",
+          // Yes, there is a space at the end, the message comes like that from the SDK Index snapshot
+          "**Note:** Update your Play Core Maven dependency to an Android 14 compatible version! ",
+          "Your current Play Core library is incompatible with targetSdkVersion 34 (Android 14), which introduces a " +
+          "backwards-incompatible change to broadcast receivers to improve user security. As a reminder, from August 31, Google Play " +
+          "requires all new app releases to target Android 14. Update to the latest Play Core library version dependency to avoid app " +
+          "crashes: https://developer.android.com/guide/playcore#playcore-migration"
+        ),
+        // Error
+        listOf(
+          "Google Play Core (com.google.android.play:core) has been deprecated by its developer. Consider updating to an alternative SDK before publishing a new release.",
+          "The developer has recommended these alternatives:",
+          "```",
+          " - Google Play Feature Delivery (com.google.android.play:feature-delivery)",
+          " - Google Play Asset Delivery (com.google.android.play:asset-delivery)",
+          " - Google Play In-App Updates (com.google.android.play:app-update)",
+          " - Google Play In-App Reviews (com.google.android.play:review)",
+          "```",
         ),
         // Warning
         listOf(

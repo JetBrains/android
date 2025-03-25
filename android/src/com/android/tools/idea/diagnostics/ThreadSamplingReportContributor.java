@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.diagnostics.freeze.ThreadCallTreeSorter;
 import com.android.tools.idea.diagnostics.util.FrameInfo;
 import com.android.tools.idea.diagnostics.util.ThreadCallTree;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -44,7 +45,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   private static final int MAX_REPORT_LENGTH_BYTES = 200_000;
   public static final int DEBUGDATA_MAX_LIST_ENTRIES = 1_000;
 
-  private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+  private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setNameFormat("ThreadSamplingReportContributor-%d").build());
   private final ThreadMXBean myThreadMXBean = ManagementFactory.getThreadMXBean();
   private final Object LOCK = new Object();
   private final Object DEBUGDATA_LOCK = new Object();

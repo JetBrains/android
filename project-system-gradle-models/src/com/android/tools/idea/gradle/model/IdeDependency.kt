@@ -17,14 +17,6 @@ package com.android.tools.idea.gradle.model
 
 import java.io.Serializable
 
-@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
-sealed interface IdeDependency<T>
-
-@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
-sealed interface IdeArtifactDependency<T : IdeArtifactLibrary> : IdeDependency<T> {
-  val target: T
-}
-
 interface IdeDependencyCore {
   val target: LibraryReference
 
@@ -36,12 +28,6 @@ interface IdeDependencyCore {
   val dependencies: List<Int>?
 }
 
-@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
-interface IdeAndroidLibraryDependency : IdeArtifactDependency<IdeAndroidLibrary>
-
-@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
-interface IdeJavaLibraryDependency : IdeArtifactDependency<IdeJavaLibrary>
-
 enum class ResolverType {
   GLOBAL,
   KMP_ANDROID
@@ -50,44 +36,5 @@ enum class ResolverType {
 data class LibraryReference(val libraryIndex: Int, val resolverType: ResolverType = ResolverType.GLOBAL) : Serializable
 
 interface IdeLibraryModelResolver {
-  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
-  fun resolveAndroidLibrary(unresolved: IdeDependencyCore): Sequence<IdeAndroidLibraryDependency>
-  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
-  fun resolveJavaLibrary(unresolved: IdeDependencyCore): Sequence<IdeJavaLibraryDependency>
-  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
-  fun resolveModule(unresolved: IdeDependencyCore): Sequence<IdeModuleDependency>
-  @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))
-  fun resolveUnknownLibrary(unresolved: IdeDependencyCore): Sequence<IdeUnknownDependency>
   fun resolve(unresolved: IdeDependencyCore) : Sequence<IdeLibrary>
 }
-
-@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
-interface IdeModuleDependency : IdeDependency<IdeModuleLibrary> {
-  val target: IdeModuleLibrary
-}
-
-@Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
-interface IdeUnknownDependency: IdeDependency<IdeUnknownLibrary> {
-  val target: IdeUnknownLibrary
-}
-
-/**
- * Returns the gradle path.
- */
-val IdeModuleDependency.projectPath: String get() = target.projectPath
-
-/**
- * Returns an optional variant name if the consumed artifact of the library is associated to
- * one.
- */
-val IdeModuleDependency.variant: String? get() = target.variant
-
-/**
- * Returns the build id.
- */
-val IdeModuleDependency.buildId: String get() = target.buildId
-
-/**
- * Returns the sourceSet associated with the library.
- */
-val IdeModuleDependency.sourceSet: IdeModuleSourceSet get() = target.sourceSet

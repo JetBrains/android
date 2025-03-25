@@ -38,6 +38,7 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.npw.model.AgpVersionSelector;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.module.ConfigureModuleStepKt;
@@ -70,6 +71,7 @@ import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ModalityState;
@@ -89,6 +91,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -111,6 +115,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private final ListenerManager myListeners = new ListenerManager();
   private final List<UpdatablePackage> myInstallRequests = new ArrayList<>();
   private final List<RemotePackage> myInstallLicenseRequests = new ArrayList<>();
+  private final LicenseAgreementStep myLicenseAgreementStep;
 
   private final @NotNull JBScrollPane myRootPanel;
   private JPanel myPanel;
@@ -141,18 +146,17 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myRootPanel = wrapWithVScroll(myValidatorPanel);
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+
+    myLicenseAgreementStep = new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), () -> myInstallLicenseRequests);
   }
 
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
-    LicenseAgreementStep licenseAgreementStep =
-      new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), myInstallLicenseRequests);
-
     InstallSelectedPackagesStep installPackagesStep =
       new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
 
-    return Lists.newArrayList(licenseAgreementStep, installPackagesStep);
+    return Lists.newArrayList(myLicenseAgreementStep, installPackagesStep);
   }
 
   @Override
@@ -202,22 +206,33 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     if (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() || (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&
          GradleExperimentalSettings.getInstance().SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD)) {
       AgpVersions.NewProjectWizardAgpVersion
-        placeholderCurrentVersion = new AgpVersions.NewProjectWizardAgpVersion(myProjectModel.getAgpVersion().get(), ImmutableList.of(), "");
+        placeholderCurrentVersion = new AgpVersions.NewProjectWizardAgpVersion(
+          /* Resolve as if IdeGoogleMavenRepository.getAgpVersions() is not available as a placeholder */
+          myProjectModel.getAgpVersionSelector().get().resolveVersion(ImmutableSet::of),
+          ImmutableList.of(),
+          "");
       myAndroidGradlePluginCombo.addItem(placeholderCurrentVersion);
-      myBindings.bind(myProjectModel.getAgpVersion(), ObjectProperty.wrap(new SelectedItemProperty<>(myAndroidGradlePluginCombo)).transform(it -> ((AgpVersions.NewProjectWizardAgpVersion)it).getVersion()));
+      myBindings.bind(myProjectModel.getAgpVersionSelector(), ObjectProperty.wrap(new SelectedItemProperty<>(myAndroidGradlePluginCombo)).transform(it -> new AgpVersionSelector.FixedVersion(((AgpVersions.NewProjectWizardAgpVersion)it).getVersion())));
       myBindings.bind(myProjectModel.getAdditionalMavenRepos(), ObjectProperty.wrap(new SelectedItemProperty<>(myAndroidGradlePluginCombo)).transform(it -> ((AgpVersions.NewProjectWizardAgpVersion)it).getAdditionalMavenRepositoryUrls()));
 
       BackgroundTaskUtil.executeOnPooledThread(this, () -> {
         List<AgpVersions.NewProjectWizardAgpVersion> suggestedAgpVersions = AgpVersions.INSTANCE.getNewProjectWizardVersions();
+        AgpVersion newProjectDefault = myProjectModel.getAgpVersionSelector().get()
+          // Use new project wizard versions to resolve here (rather than just AgpVersions.getAvailableVersions()) to avoid having to
+          // consider the corner case of skew between getNewProjectWizardVersions() and getAvailableVersions().
+          .resolveVersion(() -> suggestedAgpVersions.stream().map(AgpVersions.NewProjectWizardAgpVersion::getVersion).collect(Collectors.toSet()));
+
         ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
-          AgpVersion current = myProjectModel.getAgpVersion().get();
           boolean foundCurrent = false;
           for (AgpVersions.NewProjectWizardAgpVersion version : suggestedAgpVersions) {
-            myAndroidGradlePluginCombo.addItem(version);
-            if (!foundCurrent && version.getVersion().equals(current)) {
+            if (!foundCurrent && version.getVersion().equals(newProjectDefault) && version.getAdditionalMavenRepositoryUrls().isEmpty()) {
               foundCurrent = true;
-              myAndroidGradlePluginCombo.setSelectedItem(version);
-              myAndroidGradlePluginCombo.removeItem(placeholderCurrentVersion); // Delete the placeholder current version that was first
+              AgpVersions.NewProjectWizardAgpVersion newProjectWizardVersion = new AgpVersions.NewProjectWizardAgpVersion(version.getVersion(), ImmutableList.of(), "New project default");
+              myAndroidGradlePluginCombo.addItem(newProjectWizardVersion);
+              myAndroidGradlePluginCombo.setSelectedItem(newProjectWizardVersion);
+              myAndroidGradlePluginCombo.removeItem(placeholderCurrentVersion);
+            } else {
+              myAndroidGradlePluginCombo.addItem(version);
             }
           }
         });
@@ -292,6 +307,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myInstallRequests.addAll(myFormFactorSdkControls.getSdkInstallPackageList());
     myInstallLicenseRequests.addAll(ContainerUtil.map(myInstallRequests, UpdatablePackage::getRemote));
+
+    myLicenseAgreementStep.reload();
   }
 
   @Override

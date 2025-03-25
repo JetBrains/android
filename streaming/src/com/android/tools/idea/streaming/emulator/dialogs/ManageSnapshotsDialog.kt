@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.SnapshotPackage
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.adtui.common.AdtUiUtils.updateToolbars
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.adtui.util.getHumanizedSize
 import com.android.tools.concurrency.AndroidIoManager
@@ -27,6 +26,7 @@ import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.android.tools.idea.streaming.StreamingBundle.message
+import com.android.tools.idea.streaming.core.textComponent
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
@@ -34,6 +34,7 @@ import com.google.common.html.HtmlEscapers
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.CommonBundle
 import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
@@ -65,7 +66,6 @@ import com.intellij.ui.components.DialogManager
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.dialog
-import com.intellij.ui.components.htmlComponent
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.AlignY
@@ -93,7 +93,6 @@ import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
 import java.io.IOException
-import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.text.Collator
 import java.text.SimpleDateFormat
@@ -101,6 +100,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.imageio.ImageIO
@@ -143,13 +143,13 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     name = "runningOperationLabel"
   }
   private val snapshotImagePanel = ImagePanel(true)
-  private val selectionStateLabel = JLabel(message("manage.snapshots.label.no.snapshots.selected")).apply {
+  private val selectionStateLabel = JBLabel(message("manage.snapshots.label.no.snapshots.selected")).apply {
     name = "selectionStateLabel"
     verticalTextPosition = SwingConstants.CENTER
     horizontalAlignment = SwingConstants.CENTER
   }
   private val previewPanel = BorderLayoutPanelWithPreferredSize(270, 100)
-  private val snapshotInfoPanel = htmlComponent(lineWrap = true)
+  private val snapshotInfoPanel = textComponent("")
   private val coldBootCheckBox = JBCheckBox(message("manage.snapshots.checkbox.start.cold.boot")).apply {
     addItemListener {
       if (isSelected != snapshotTableModel.isColdBoot) {
@@ -257,7 +257,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     }
     val descriptionSection = if (snapshot.description.isEmpty()) "" else "<br><br>${htmlEscaper.escape(snapshot.description)}"
     snapshotInfoPanel.apply {
-      text = "<html><b>${name}</b><br>${attributeSection}${fileSection}${errorSection}${descriptionSection}</html>"
+      text = "<b>${name}</b><br>${attributeSection}${fileSection}${errorSection}${descriptionSection}"
       val fontMetrics = getFontMetrics(font)
       val wrappedDescriptionLines = if (width == 0) 0 else fontMetrics.stringWidth(snapshot.description) / width
       preferredSize = Dimension(0, fontMetrics.height * (countLineBreaks(text) + 1 + wrappedDescriptionLines.coerceAtMost(5)))
@@ -278,6 +278,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     }
   }
 
+  @Suppress("UnstableApiUsage")
   @NlsSafe
   private fun Color.toHtmlString(): String {
     return (rgb and 0xFFFFFF).toString(16)
@@ -322,25 +323,37 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
       }
 
       override fun onCompleted() {
+        EventQueue.invokeLater {
+          emulatorView.hideLongRunningOperationIndicator()
+        }
         invokeLaterIfDialogIsShowing {
           finished()
         }
-        backgroundExecutor.submit {
-          val snapshot = snapshotIoLock.read { snapshotManager.readSnapshotInfo(snapshotId) }
-          invokeLaterIfDialogIsShowing {
-            if (snapshot == null) {
-              showError()
-            } else {
-              snapshotTableModel.addRow(snapshot)
-              snapshotTable.selection = listOf(snapshot)
-              TableUtil.scrollSelectionToVisible(snapshotTable)
-              updateToolbars(decoratedTable)  // Workaround for https://youtrack.jetbrains.com/issue/IDEA-352328.
+        try {
+          backgroundExecutor.submit {
+            val snapshot = snapshotIoLock.read { snapshotManager.readSnapshotInfo(snapshotId) }
+            invokeLaterIfDialogIsShowing {
+              if (snapshot == null) {
+                showError()
+              }
+              else {
+                snapshotTableModel.addRow(snapshot)
+                snapshotTable.selection = listOf(snapshot)
+                TableUtil.scrollSelectionToVisible(snapshotTable)
+                ActivityTracker.getInstance().inc() // Update toolbar. Workaround for https://youtrack.jetbrains.com/issue/IDEA-352328.
+              }
             }
           }
+        }
+        catch (_: RejectedExecutionException) {
+          // The dialog has been closed already.
         }
       }
 
       override fun onError(t: Throwable) {
+        EventQueue.invokeLater {
+          emulatorView.hideLongRunningOperationIndicator()
+        }
         invokeLaterIfDialogIsShowing {
           showError()
           finished()
@@ -349,7 +362,6 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
 
       @UiThread
       private fun finished() {
-        emulatorView.hideLongRunningOperationIndicator()
         createSnapshotButton.isEnabled = true // Re-enable the button.
         endLongOperation()
       }
@@ -381,7 +393,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
           }
         }
         else {
-          val error = message.err.toString(UTF_8)
+          val error = message.err.toStringUtf8()
           val detail = if (error.isEmpty()) "" else " - $error"
           invokeLaterIfDialogIsShowing {
             showError(message("manage.snapshots.error.loading.snapshot", snapshotToLoad.displayName, detail))
@@ -390,20 +402,21 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
       }
 
       override fun onCompleted() {
-        finished()
-      }
-
-      override fun onError(t: Throwable) {
-        finished()
+        EventQueue.invokeLater {
+          emulatorView.hideLongRunningOperationIndicator()
+        }
         invokeLaterIfDialogIsShowing {
-          showError(message("manage.snapshots.error.loading.snapshot.with.log"))
+          endLongOperation()
         }
       }
 
-      private fun finished() {
-        invokeLaterIfDialogIsShowing {
-          endLongOperation()
+      override fun onError(t: Throwable) {
+        EventQueue.invokeLater {
           emulatorView.hideLongRunningOperationIndicator()
+        }
+        invokeLaterIfDialogIsShowing {
+          showError(message("manage.snapshots.error.loading.snapshot.with.log"))
+          endLongOperation()
         }
       }
     }
@@ -949,7 +962,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
 
     init {
       createDefaultColumnsFromModel()
-      setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS)
+      setAutoResizeMode(AUTO_RESIZE_ALL_COLUMNS)
 
       addPropertyChangeListener { event ->
         if (event.propertyName == "model") {

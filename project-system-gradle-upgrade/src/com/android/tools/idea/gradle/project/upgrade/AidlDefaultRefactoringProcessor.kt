@@ -35,7 +35,7 @@ class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor 
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override var necessityInfo = PointNecessity(AgpVersion.parse("8.0.0-alpha04"))
+  override var necessityInfo = PointNecessity(DEFAULT_CHANGED)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -96,6 +96,7 @@ class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor 
   companion object {
     val INSERT_AIDL_DIRECTIVE =
       UsageType(AndroidBundle.messagePointer("project.upgrade.aidlDefaultRefactoringProcessor.enable.usageType"))
+    val DEFAULT_CHANGED = AgpVersion.parse("8.0.0-alpha04")
   }
 }
 

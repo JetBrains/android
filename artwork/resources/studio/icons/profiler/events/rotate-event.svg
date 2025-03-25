@@ -1,1 +1,16 @@
-<svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><rect width="22" height="22" fill="none"/><g fill="#6E6E6E" fill-rule="evenodd"><path d="M6.85 6.234c.512-.512 1.338-.523 1.841-.02l8.236 8.236a1.309 1.309 0 0 1-.015 1.845l-4.652 4.652a1.309 1.309 0 0 1-1.846.016l-8.236-8.236a1.309 1.309 0 0 1 .016-1.846L6.85 6.234zm8.231 8.231L8.676 8.059l-4.652 4.652 6.405 6.406 4.652-4.652zM18.188 5.156c-1.426-1.349-3.308-2.023-5.183-2.023V.65L9.55 3.9l3.455 3.249V4.666c1.459 0 2.918.52 4.034 1.57 1.889 1.777 2.174 4.498.855 6.56l1.148 1.148c1.979-2.685 1.694-6.399-.854-8.788z"/></g></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.752 3.738a.75.75 0 00-.754 1.297l.754-1.297zm3.998 7.648H19h.75zm-5.185 5.637a.75.75 0 10.37 1.454l-.37-1.454zM18.5 4.5a.75.75 0 000-1.5v1.5zm-3.75-.75V3H14v.75h.75zM14 7.568a.75.75 0 001.5 0H14zm1.375-3.182c-.377.649-.377.649-.378.648a.813.813 0 01.034.02l.121.078c.108.07.265.178.456.321.383.288.893.715 1.402 1.27C18.033 7.84 19 9.417 19 11.386h1.5c0-2.484-1.22-4.407-2.385-5.677a11.903 11.903 0 00-2.141-1.832 6.883 6.883 0 00-.201-.127l-.014-.008-.004-.002-.002-.001-.378.647zm3.625 7c0 2.257-1.092 3.645-2.205 4.495a7.27 7.27 0 01-2.063 1.092 4.314 4.314 0 01-.164.05h-.005.001l.186.727a78.618 78.618 0 00.187.726h.002l.005-.002.016-.004a3.801 3.801 0 00.238-.072 8.77 8.77 0 002.507-1.325c1.387-1.059 2.795-2.852 2.795-5.687H19zM18.5 3h-3.75v1.5h3.75V3zm-4.5.75v3.818h1.5V3.75H14z" fill="#6C707E"/><rect x="1.75" y="3.75" width="9.5" height="14.5" rx="1.25" stroke="#6C707E" stroke-width="1.5"/><rect x="5" y="6" width="3" height="1.5" rx=".75" fill="#6C707E"/></svg>

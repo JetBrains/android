@@ -37,6 +37,7 @@ import com.android.tools.idea.run.configuration.DefaultComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.WearBaseClasses
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.android.tools.idea.run.configuration.parseRawComplicationTypes
+import com.intellij.compiler.options.CompileStepBeforeRun.MakeBeforeRunTask
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -129,7 +130,9 @@ class AndroidComplicationConfigurationExecutor(
 
     val apkInfo = ApkInfo(File(watchFaceInfo.apk), watchFaceInfo.appId)
     console.println("Installing test WatchFace...")
-    return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, indicator).app
+    val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+
+    return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, containsMakeBeforeRun,  indicator).app
   }
 
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {

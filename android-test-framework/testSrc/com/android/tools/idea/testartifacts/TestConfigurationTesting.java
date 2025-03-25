@@ -31,7 +31,9 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.lang.jvm.JvmMethod;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,7 +42,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -150,12 +151,11 @@ public class TestConfigurationTesting {
 
   @NotNull
   public static ConfigurationContext createContext(@NotNull Project project, @NotNull PsiElement psiElement) {
-    MapDataContext dataContext = new MapDataContext();
-    dataContext.put(CommonDataKeys.PROJECT, project);
-    if (PlatformCoreDataKeys.MODULE.getData(dataContext) == null) {
-      dataContext.put(PlatformCoreDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(psiElement));
-    }
-    dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(psiElement));
+    DataContext dataContext = SimpleDataContext.builder()
+      .add(CommonDataKeys.PROJECT, project)
+      .add(PlatformCoreDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(psiElement))
+      .add(Location.DATA_KEY, PsiLocation.fromPsiElement(psiElement))
+      .build();
     return ConfigurationContext.getFromContext(dataContext, ActionPlaces.UNKNOWN);
   }
 }

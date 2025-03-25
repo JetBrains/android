@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.completion
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.imports.GMavenIndexRepository
 import com.android.tools.idea.imports.MavenClassRegistry
 import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.android.tools.idea.testing.caret
@@ -33,17 +30,22 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.psi.KotlinReferenceProvidersService
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.nio.charset.StandardCharsets
 
 @RunsInEdt
 class GradleDependencyCompletionContributorTest : AndroidTestCase() {
+
+  private val fakeMavenClassRegistryManager = createFakeMavenClassRegistryManager()
+
   @Before
   override fun setUp() {
     super.setUp()
 
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
-      createFakeMavenClassRegistryManager(),
+      fakeMavenClassRegistryManager,
       myFixture.testRootDisposable
     )
 
@@ -83,6 +85,25 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     myFixture.completeBasic()
 
     assertThat(myFixture.lookupElementStrings).containsExactly("com.google.android.gms:play-services-maps:17.0.0", "implementation")
+  }
+
+  @Test
+  fun testBasicCompletionInGradleBuildFile_gmavenRegistryNotAvailable() {
+    val buildFile = myFixture.addFileToProject(
+      "build.gradle",
+      """
+        dependencies {
+          implementation 'com.google.a$caret'
+        }
+      """.trimIndent()
+    )
+
+    whenever(fakeMavenClassRegistryManager.tryGetMavenClassRegistry()).thenReturn(null)
+
+    myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).containsExactly("implementation")
   }
 
   @Test
@@ -202,6 +223,24 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
   }
 
   @Test
+  fun testBasicCompletionInLibsVersionsToml_gmavenRegistryNotAvailable() {
+    val tomlFile = myFixture.addFileToProject(
+      "gradle/libs.versions.toml",
+      """
+        [libraries]
+        camera = "androidx.$caret"
+      """.trimIndent()
+    )
+
+    whenever(fakeMavenClassRegistryManager.tryGetMavenClassRegistry()).thenReturn(null)
+
+    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).isEmpty()
+  }
+
+  @Test
   fun testBasicCompletionInLibsVersionsTomlModuleKey() {
     val tomlFile = myFixture.addFileToProject(
       "gradle/libs.versions.toml",
@@ -296,59 +335,60 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
   }
 
   private fun createFakeMavenClassRegistryManager(): MavenClassRegistryManager {
-    val mockGMavenIndexRepository: GMavenIndexRepository = MockitoKt.mock()
-    whenever(mockGMavenIndexRepository.loadIndexFromDisk()).thenReturn(
+    val inputStream =
+      //language=JSON
       """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.room",
-              "artifactId": "room-runtime",
-              "version": "2.2.6",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.room.Room",
-                "androidx.room.RoomDatabase",
-                "androidx.room.FakeClass"
-              ]
-            },
-            {
-              "groupId": "com.google.android.gms",
-              "artifactId": "play-services-maps",
-              "version": "17.0.0",
-              "ktxTargets": [],
-              "fqcns": [
-                "com.google.android.gms.maps.SupportMapFragment"
-              ]
-            },
-            {
-              "groupId": "androidx.camera",
-              "artifactId": "camera-core",
-              "version": "1.1.0-alpha03",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.camera.core.ExtendableBuilder",
-                "androidx.camera.core.ImageCapture"
-              ]
-            },
-            {
-              "groupId": "androidx.camera",
-              "artifactId": "camera-view",
-              "version": "1.0.0-alpha22",
-              "ktxTargets": [],
-              "fqcns": [
-                "androidx.camera.view.PreviewView"
-              ]
-            }
-          ]
-        }
-      """.trimIndent().byteInputStream(StandardCharsets.UTF_8)
-    )
+      {
+        "Index": [
+          {
+            "groupId": "androidx.room",
+            "artifactId": "room-runtime",
+            "version": "2.2.6",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.room.Room",
+              "androidx.room.RoomDatabase",
+              "androidx.room.FakeClass"
+            ]
+          },
+          {
+            "groupId": "com.google.android.gms",
+            "artifactId": "play-services-maps",
+            "version": "17.0.0",
+            "ktxTargets": [],
+            "fqcns": [
+              "com.google.android.gms.maps.SupportMapFragment"
+            ]
+          },
+          {
+            "groupId": "androidx.camera",
+            "artifactId": "camera-core",
+            "version": "1.1.0-alpha03",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.camera.core.ExtendableBuilder",
+              "androidx.camera.core.ImageCapture"
+            ]
+          },
+          {
+            "groupId": "androidx.camera",
+            "artifactId": "camera-view",
+            "version": "1.0.0-alpha22",
+            "ktxTargets": [],
+            "fqcns": [
+              "androidx.camera.view.PreviewView"
+            ]
+          }
+        ]
+      }
+      """
+        .trimIndent()
+        .byteInputStream(StandardCharsets.UTF_8)
 
-    val mavenClassRegistry = MavenClassRegistry(mockGMavenIndexRepository)
+    val mavenClassRegistry = MavenClassRegistry.createFrom { inputStream }
 
-    return MockitoKt.mock<MavenClassRegistryManager>().apply {
-      whenever(getMavenClassRegistry()).thenReturn(mavenClassRegistry)
+    return mock<MavenClassRegistryManager>().apply {
+      whenever(tryGetMavenClassRegistry()).thenReturn(mavenClassRegistry)
     }
   }
 }

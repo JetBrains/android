@@ -16,7 +16,6 @@
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -36,6 +35,8 @@ import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
@@ -49,9 +50,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.Mockito.spy
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 import perfetto.protos.PerfettoConfig
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
@@ -90,7 +95,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.N), false)
     // Simulate ongoing recording so that config is set.
-    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
+    whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration is AtraceConfiguration }
@@ -102,11 +107,11 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.R), false)
     // Simulate ongoing recording so that config is set.
-    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
+    whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration is PerfettoSystemTraceConfiguration }
-  1}
+  }
 
   @Test
   fun testCpuConfigIsNotSetIfTaskIsNotPerformingANewRecording() {
@@ -114,7 +119,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.R), false)
     // Simulate no ongoing recording, should not set the config as a consequence.
-    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(false)
+    whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(false)
     // Should not throw an exception.
     mySystemTraceTaskHandlerMock.setupStage()
   }
@@ -125,7 +130,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.M), true)
     // Simulate ongoing recording so that config is set.
-    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
+    whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration is PerfettoSystemTraceConfiguration }
@@ -333,42 +338,53 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   }
 
   @Test
-  fun testSupportsDeviceAndProcessWithTraceboxDisabled() {
+  fun testCheckSupportForDeviceAndProcessWithTraceboxDisabled() {
     val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
-    // System Trace requires device with AndroidVersion N or above if tracebox is disabled.
+    // System Trace requires device with AndroidVersion N or above if tracebox is disabled. Using below N will result in no
+    // system configuration support at all.
     val mDevice = createDevice(AndroidVersion.VersionCodes.M)
+    myProfilers.taskHomeTabModel.processListModel.onDeviceSelection(mDevice)
     var mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(mDevice, false)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(mDevice, process)).isFalse()
+    assertNotNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(mDevice, process))
+    assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(mDevice, process)!!.starTaskSelectionErrorCode,
+                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(mDevice, process)!!.actionableInfo,
+                 "No task configuration was found for API 23 device")
     val nDevice = createDevice(AndroidVersion.VersionCodes.N)
     mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(nDevice, false)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(nDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(nDevice, process))
     val oDevice = createDevice(AndroidVersion.VersionCodes.O)
     mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(oDevice, false)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(oDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(oDevice, process))
     val pDevice = createDevice(AndroidVersion.VersionCodes.P)
     mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(pDevice, false)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(pDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(pDevice, process))
     val qDevice = createDevice(AndroidVersion.VersionCodes.Q)
     mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(qDevice, false)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(qDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(qDevice, process))
   }
 
   @Test
-  fun testSupportsDeviceAndProcessWithTraceboxEnabled() {
+  fun testCheckSupportForDeviceAndProcessWithTraceboxEnabled() {
     val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
-    // System Trace requires device with AndroidVersion M or above if tracebox is enabled.
+    // System Trace requires device with AndroidVersion M or above if tracebox is enabled. Using below M will result in no
+    // system configuration support at all.
     val lDevice = createDevice(AndroidVersion.VersionCodes.LOLLIPOP)
     var mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(lDevice, true)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(lDevice, process)).isFalse()
+    assertNotNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(lDevice, process))
+    assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(lDevice, process)!!.starTaskSelectionErrorCode,
+                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(lDevice, process)!!.actionableInfo,
+                 "No task configuration was found for API 21 device")
     val mDevice = createDevice(AndroidVersion.VersionCodes.M)
     mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(mDevice, true)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(mDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(mDevice, process))
     val nDevice = createDevice(AndroidVersion.VersionCodes.N)
     mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(mDevice, true)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(nDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(nDevice, process))
     val rDevice = createDevice(AndroidVersion.VersionCodes.R)
     mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(rDevice, true)
-    assertThat(mySystemTraceTaskHandlerMock.supportsDeviceAndProcess(rDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(rDevice, process))
   }
 
   @Test
@@ -380,10 +396,18 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val nDevice = createDevice(24, "arm", isVirtual = true)
     // Explicitly set the device to be used to simulate reading device selection from main toolbar.
     selectDevice(nDevice)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(nDevice, process)).isFalse()
+    assertNotNull(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(nDevice, process))
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.starTaskSelectionErrorCode,
+                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.actionableInfo,
+                 "No task configuration was found for API 24 device")
     val oDevice = createDevice(25, "arm", isVirtual = true)
     selectDevice(oDevice)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(oDevice, process)).isFalse()
+    assertNotNull(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(oDevice, process))
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(oDevice, process)!!.starTaskSelectionErrorCode,
+                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(oDevice, process)!!.actionableInfo,
+                 "No task configuration was found for API 25 device")
   }
 
   @Test
@@ -395,10 +419,10 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val nDevice = createDevice(24, "arm", isVirtual = false)
     // Explicitly set the device to be used to simulate reading device selection from main toolbar.
     selectDevice(nDevice)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(nDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(nDevice, process))
     val oDevice = createDevice(25, "arm", isVirtual = false)
     selectDevice(oDevice)
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(oDevice, process)).isTrue()
+    assertNull(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(oDevice, process))
   }
 
   @Test
@@ -406,7 +430,11 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
     // Api 23 devices should not be supported by either ATrace or Perfetto.
     val mDevice = createDevice(23, "arm")
-    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(mDevice, process)).isFalse()
+    assertNotNull(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(mDevice, process))
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(mDevice, process)!!.starTaskSelectionErrorCode,
+                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(mDevice, process)!!.actionableInfo,
+                 "No task configuration was found for API 23 device")
   }
 
   @Test
@@ -421,10 +449,10 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
       myTimer
     ))
     val taskHomeTabModel = spy(profilersNow.taskHomeTabModel)
-    MockitoKt.whenever(profilersNow.taskHomeTabModel).thenReturn(taskHomeTabModel)
+    whenever(profilersNow.taskHomeTabModel).thenReturn(taskHomeTabModel)
     val sessionManagerNow = spy(profilersNow.sessionsManager)
-    MockitoKt.whenever(sessionManagerNow.studioProfilers).thenReturn(profilersNow)
-    MockitoKt.whenever(taskHomeTabModel.selectedDevice).thenReturn(
+    whenever(sessionManagerNow.studioProfilers).thenReturn(profilersNow)
+    whenever(taskHomeTabModel.selectedDevice).thenReturn(
       device?.let { ProfilerDeviceSelection(device.model, 30, true, false, device) })
     return SystemTraceTaskHandler(sessionManagerNow, taskBasedUxEnabled);
   }

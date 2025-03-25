@@ -158,6 +158,9 @@ abstract class SyncedProjectTest(
   fun testKotlinMultiplatform() = testProject(TestProject.KOTLIN_MULTIPLATFORM)
 
   @Test
+  fun testKotlinMultiplatformModuleOnly() = testProject(TestProject.KOTLIN_MULTIPLATFORM_MODULE_ONLY)
+
+  @Test
   fun testKotlinMultiplatform_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_WITHJS)
 
   @Test
@@ -337,6 +340,7 @@ data class KotlinScriptIndexingDisabled(override val agpVersion: AgpVersionSoftw
 
   override fun runTest(root: File, project: Project) {
     assertThat(DumbService.isDumb(project)).isFalse()
+
     // NOTE: This class is directly used in the test project to make sure this assertion is not outdated.
     val files = FilenameIndex.getVirtualFilesByName("KotlinBasePlugin.class", GlobalSearchScope.everythingScope(project))
     assertThat(files.isEmpty()).isTrue()

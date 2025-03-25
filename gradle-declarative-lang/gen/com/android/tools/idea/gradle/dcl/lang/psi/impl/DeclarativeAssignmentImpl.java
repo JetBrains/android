@@ -45,15 +45,9 @@ public class DeclarativeAssignmentImpl extends CompositePsiElement implements De
   }
 
   @Override
-  @Nullable
-  public DeclarativeFactory getFactory() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeFactory.class);
-  }
-
-  @Override
   @NotNull
-  public DeclarativeIdentifier getIdentifier() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeIdentifier.class);
+  public DeclarativeAssignableProperty getAssignableProperty() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativeAssignableProperty.class);
   }
 
   @Override
@@ -72,6 +66,12 @@ public class DeclarativeAssignmentImpl extends CompositePsiElement implements De
   @Nullable
   public DeclarativeValue getValue() {
     return PsiImplUtil.getValue(this);
+  }
+
+  @Override
+  @NotNull
+  public DeclarativeIdentifier getIdentifier() {
+    return PsiImplUtil.getIdentifier(this);
   }
 
 }

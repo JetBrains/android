@@ -29,8 +29,8 @@ import com.android.tools.idea.uibuilder.visual.TestVisualizationContentProvider
 import com.android.tools.idea.uibuilder.visual.VisualizationTestToolWindowManager
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.fileEditor.OpenFileDescriptor

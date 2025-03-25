@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
-
+import com.intellij.openapi.module.Module
 
 /**
  * This interface should be implemented by extension that knows about project version catalog files
@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project
  */
 interface VersionCatalogFilesModel {
   fun getCatalogNameToFileMapping(project: Project): Map<String, String>
+  fun getCatalogNameToFileMapping(module: Module): Map<String, String>
 }
 
 /**
@@ -44,5 +45,13 @@ fun getGradleVersionCatalogFiles(project: Project): Map<String, String> {
   return result
 }
 
-private val EP_NAME: ExtensionPointName<VersionCatalogFilesModel> =
+fun getGradleVersionCatalogFiles(module: Module): Map<String, String> {
+  val result = mutableMapOf<String, String>()
+  for (extension in EP_NAME.extensionList) {
+    result.putAll(extension.getCatalogNameToFileMapping(module))
+  }
+  return result
+}
+
+val EP_NAME: ExtensionPointName<VersionCatalogFilesModel> =
   ExtensionPointName.create("com.android.tools.idea.versionCatalogFilesGradleModel")

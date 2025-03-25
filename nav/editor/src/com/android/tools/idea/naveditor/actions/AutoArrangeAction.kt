@@ -40,7 +40,7 @@ class AutoArrangeAction private constructor() : AnAction() {
         ?.children
         ?.map { it.nlComponent }
         ?.forEach { it.putClientProperty(SKIP_PERSISTED_LAYOUT, true) }
-      surface.model?.let { surface.getSceneManager(it) }?.requestRenderAsync()
+      surface.model?.let { surface.getSceneManager(it) }?.requestRender()
       surface.scene
         ?.root
         ?.children

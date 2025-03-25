@@ -79,7 +79,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
                .onSuccess(dataContext -> {
                  final XmlFile newFile =
                    CreateResourceFileAction
-                     .createFileResource(myFacet, myResourceType, myResourceName + ".xml", null, null, myChooseResName, null,
+                     .createFileResource(myFacet, myResourceType, getDefaultFilename(), null, null, myChooseResName, null,
                                          null, dataContext);
                  if (newFile != null) {
                    UndoUtil.markPsiFileForUndo(myFile);
@@ -106,21 +106,24 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     PsiDirectory resSubdir = psiResDir.findSubdirectory(resDirName);
 
     if (resSubdir == null) {
-      resSubdir = ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
-        @Override
-        public PsiDirectory compute() {
-          return psiResDir.createSubdirectory(resDirName);
-        }
-      });
+      resSubdir = ApplicationManager.getApplication().runWriteAction(
+        (Computable<PsiDirectory>)() -> psiResDir.createSubdirectory(resDirName));
     }
 
     try {
-      IdeResourcesUtil.createFileResource(
-        myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myFacet.getModule(), myResourceType), resDirName, false);
+      IdeResourcesUtil.createXmlFileResource(
+        myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myFacet.getModule(), myResourceType), myResourceType.getResourceType(), false);
       UndoUtil.markPsiFileForUndo(myFile);
     }
     catch (Exception e) {
       LOG.error(e);
     }
+  }
+
+  private String getDefaultFilename() {
+    if (myResourceType == ResourceFolderType.RAW) {
+      return myResourceName;
+    }
+    return myResourceName + ".xml";
   }
 }

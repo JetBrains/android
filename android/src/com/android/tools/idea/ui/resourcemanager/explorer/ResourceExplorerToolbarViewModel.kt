@@ -39,7 +39,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -221,7 +220,7 @@ class ResourceExplorerToolbarViewModel(
   override fun getOrChooseDirectory() = DirectoryChooserUtil.getOrChooseDirectory(this)
 
   /**
-   * Implementation of [DataProvider] needed for [CreateResourceFileAction]
+   * Implementation of [DataSnapshotProvider] needed for [CreateResourceFileAction]
    */
   override fun dataSnapshot(sink: DataSink) {
     sink[CommonDataKeys.PROJECT] = facet.module.project

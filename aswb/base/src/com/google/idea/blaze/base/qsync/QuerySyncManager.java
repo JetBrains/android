@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -62,7 +61,6 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -94,10 +92,6 @@ public class QuerySyncManager implements Disposable {
   public static final String NOTIFICATION_GROUP = "QuerySyncBuild";
 
   private final Project project;
-  protected final ListeningExecutorService executor =
-      MoreExecutors.listeningDecorator(
-          AppExecutorUtil.createBoundedApplicationPoolExecutor("QuerySync", 128));
-
   private final ProjectLoader loader;
   private volatile QuerySyncProject loadedProject;
 
@@ -143,10 +137,10 @@ public class QuerySyncManager implements Disposable {
   @NonInjectable
   public QuerySyncManager(Project project, @Nullable ProjectLoader loader) {
     this.project = project;
-    this.loader = loader != null ? loader : createProjectLoader(executor, project);
+    this.loader = loader != null ? loader : createProjectLoader(project);
     this.syncStatus = new QuerySyncStatus(project);
     this.fileListener = QuerySyncAsyncFileListener.createAndListen(project, this);
-    this.cacheCleaner = new CacheCleaner(project, this);
+    this.cacheCleaner = new CacheCleaner(project);
   }
 
   /**
@@ -157,8 +151,8 @@ public class QuerySyncManager implements Disposable {
     return Optional.empty();
   }
 
-  protected ProjectLoader createProjectLoader(ListeningExecutorService executor, Project project) {
-    return new ProjectLoader(executor, project);
+  protected ProjectLoader createProjectLoader(Project project) {
+    return new ProjectLoaderImpl(project);
   }
 
   public ModificationTracker getProjectModificationTracker() {
@@ -474,6 +468,18 @@ public class QuerySyncManager implements Disposable {
         OperationType.OTHER);
   }
 
+  @CanIgnoreReturnValue
+  public ListenableFuture<Boolean> resetQuerySyncState(
+      QuerySyncActionStatsScope querySyncActionStats, TaskOrigin taskOrigin) {
+    return run(
+        "Resetting query sync",
+        "Clearing artifacts and running full query",
+        querySyncActionStats,
+        loadedProject::resetQuerySyncState,
+        taskOrigin,
+        OperationType.OTHER);
+  }
+
   public boolean canEnableAnalysisFor(Path workspaceRelativePath) {
     if (loadedProject == null) {
       return false;
@@ -510,11 +516,11 @@ public class QuerySyncManager implements Disposable {
         taskOrigin);
   }
 
-  public boolean isReadyForAnalysis(PsiFile psiFile) {
+  public boolean isReadyForAnalysis(VirtualFile virtualFile) {
     if (loadedProject == null) {
       return false;
     }
-    return loadedProject.isReadyForAnalysis(psiFile);
+    return loadedProject.isReadyForAnalysis(virtualFile);
   }
 
   /**

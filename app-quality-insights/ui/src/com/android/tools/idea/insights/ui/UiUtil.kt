@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.ui.actions.InsightAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.NewUI
 import com.intellij.ui.SimpleColoredComponent
@@ -195,3 +196,11 @@ fun createInsightToolBar(place: String, target: JComponent) =
     }
 
 val MINIMUM_ACTION_BUTTON_SIZE = JBUI.size(26)
+
+val ISSUE_DETAILS_PANEL_MIN_SIZE = Dimension(JBUI.scale(300), 0)
+
+/** Used by toolbars to ensure they are of the same height. */
+fun commonToolbarHeight() = JBUI.scale(35)
+
+fun ActionToolbar.getTotalHeight() =
+  component.height.div(2) + component.border.getBorderInsets(component).bottom

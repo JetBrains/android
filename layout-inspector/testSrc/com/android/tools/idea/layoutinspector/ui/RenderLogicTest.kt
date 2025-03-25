@@ -79,6 +79,8 @@ private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector",
 private const val DIFF_THRESHOLD = 0.2
 private val activityMain =
   ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+private val systemLayout =
+  ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "abc_dialog")
 
 class RenderLogicTest {
   private lateinit var treeSettings: TreeSettings
@@ -524,6 +526,17 @@ class RenderLogicTest {
   }
 
   @Test
+  fun testPaintSelectedViewWithHiddenChild() {
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithHiddenChildView()
+    renderSettings.drawLabel = false
+    val windowRoot = inspectorModel[VIEW1]!!
+    inspectorModel.setSelection(windowRoot, SelectionOrigin.INTERNAL)
+    paint(renderImage, centerTransform, renderLogic, renderDimension)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
   fun testPaintOverlay() {
     val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
       createPaintBordersConfig()
@@ -937,6 +950,29 @@ class RenderLogicTest {
       model(projectRule.disposable) {
         view(ROOT, 0, 0, 100, 150, layout = null) {
           view(VIEW1, 10, 15, 25, 25, layout = activityMain) { image() }
+        }
+      }
+
+    val renderDimension = Dimension(120, 200)
+    return createPaintConfig(inspectorModel, renderDimension)
+  }
+
+  private fun createPaintWithHiddenChildView(): TestConfig {
+    val image1 = BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB)
+    image1.graphics.run {
+      color = Color.RED
+      fillRect(0, 0, 20, 20)
+    }
+    val inspectorModel =
+      model(projectRule.disposable) {
+        view(ROOT, 0, 0, 100, 150, layout = null) {
+          view(VIEW1, 10, 15, 75, 125, layout = activityMain) {
+            view(VIEW2, 20, 20, 40, 20, layout = systemLayout) {
+              view(VIEW3, 10, 15, 75, 125, layout = activityMain)
+              // This image should not be drawn as being selected when VIEW2 is selected
+              image(image1)
+            }
+          }
         }
       }
 

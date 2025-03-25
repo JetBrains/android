@@ -29,7 +29,7 @@ public interface DeclarativeBlock extends DeclarativeEntry, DeclarativeIdentifie
   @Nullable
   DeclarativeEmbeddedFactory getEmbeddedFactory();
 
-  @Nullable
+  @NotNull
   DeclarativeIdentifier getIdentifier();
 
   @NotNull

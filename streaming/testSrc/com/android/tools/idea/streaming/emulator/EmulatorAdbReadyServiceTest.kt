@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
 import com.android.testutils.delayUntilCondition
@@ -26,6 +27,7 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ActivityTracker
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.Disposable
@@ -114,8 +116,9 @@ class EmulatorAdbReadyServiceTest {
     val serialNumber = panel.emulator.emulatorId.serialNumber
     val deviceHandle = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
     deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(serialNumber)
+    val count = ActivityTracker.getInstance().count
     deviceHandle.connectToMockDevice(serialNumber)
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { button.isEnabled }
+    waitForCondition(TIMEOUT) { ActivityTracker.getInstance().count > count }
   }
 
   @Test
@@ -132,8 +135,9 @@ class EmulatorAdbReadyServiceTest {
     val button = ui.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
     assertThat(button.isEnabled).isTrue()
 
+    val count = ActivityTracker.getInstance().count
     deviceHandle.disconnect()
-    delayUntilCondition(ITERATION_DELAY_MS, TIMEOUT) { !button.isEnabled }
+    waitForCondition(TIMEOUT) { ActivityTracker.getInstance().count > count }
   }
 
   private fun FakeDeviceHandle.connectToMockDevice(serialNumber: String) {
@@ -149,7 +153,7 @@ class EmulatorAdbReadyServiceTest {
   }
 
   private fun createFakeEmulator(): FakeEmulator {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, api = 34)
+    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(34))
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     return emulator
@@ -157,7 +161,7 @@ class EmulatorAdbReadyServiceTest {
 
   private fun createWindowPanel(): EmulatorToolWindowPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     return EmulatorToolWindowPanel(disposable, project, emulatorController)
@@ -184,7 +188,7 @@ class EmulatorAdbReadyServiceTest {
       view.displayOrientationQuadrants == fakeEmulator.displayRotation.number &&
       view.currentPosture?.posture == fakeEmulator.devicePosture
       fakeEmulator.frameNumber > 0u && renderAndGetFrameNumber(ui, view) == fakeEmulator.frameNumber &&
-      settingsButtonIsVisible(ui, panel)
+      settingsButtonIsVisible(ui)
     }
   }
 
@@ -193,8 +197,8 @@ class EmulatorAdbReadyServiceTest {
     return view.frameNumber
   }
 
-  private fun settingsButtonIsVisible(fakeUi: FakeUi, panel: EmulatorToolWindowPanel): Boolean {
-    panel.updateMainToolbar()
+  private fun settingsButtonIsVisible(fakeUi: FakeUi): Boolean {
+    fakeUi.updateToolbarsIfNecessary()
     return fakeUi.findComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT } != null
   }
 }

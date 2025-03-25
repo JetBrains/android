@@ -28,14 +28,14 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.system.CpuArch
-
 import java.io.File
 
 /**
  * Checks SDK install to ensure install may proceed.
  *
- * This is done by trying to run the mksdcard executable from the SDK emulator directory (falling back to the older tools directory).
- * This ensures that the tools are installed and that necessary shared libraries are present.
+ * This is done by trying to run the mksdcard executable from the SDK emulator directory (falling
+ * back to the older tools directory). This ensures that the tools are installed and that necessary
+ * shared libraries are present.
  */
 class CheckSdkOperation(context: InstallContext) : InstallOperation<File, File>(context, 0.0) {
   @Throws(WizardException::class, InstallationCancelledException::class)
@@ -60,26 +60,34 @@ class CheckSdkOperation(context: InstallContext) : InstallOperation<File, File>(
   override fun cleanup(result: File) {}
 }
 
-private val MESSAGE_CANT_RUN_TOOL = "<html><p>" + Joiner.on("</p><p>").join(unableToRunMessage) + "</p></html>"
+private val MESSAGE_CANT_RUN_TOOL =
+  "<html><p>" + Joiner.on("</p><p>").join(unableToRunMessage) + "</p></html>"
 private val TOOL_NAME = "mksdcard" + (".exe".takeIf { SystemInfo.isWindows } ?: "")
-private val ERROR_CANT_RUN_TOOL = "Unable to run $TOOL_NAME SDK tool." +
-                                  ("\nTry installing the latest Visual C++ Runtime from Microsoft.".takeIf { SystemInfo.isWindows } ?: "")
-private const val URL_MISSING_LIBRARIES = "https://developer.android.com/studio/troubleshoot.html#linux-libraries"
+private val ERROR_CANT_RUN_TOOL =
+  "Unable to run $TOOL_NAME SDK tool." +
+    ("\nTry installing the latest Visual C++ Runtime from Microsoft."
+      .takeIf { SystemInfo.isWindows } ?: "")
+private const val URL_MISSING_LIBRARIES =
+  "https://developer.android.com/studio/troubleshoot.html#linux-libraries"
 private const val LINK_MISSING_LIBRARIES = "Show Android SDK web page"
 private const val ERROR_NO_EMULATOR_DIR = "SDK emulator directory is missing"
 
 private val unableToRunMessage: Collection<String>
-  get() = sequence {
-    val isLinux64 = SystemInfo.isLinux && !CpuArch.is32Bit()
-    val missingLibrariesDescription = if (isLinux64) "32-bit compatibility" else "required"
+  get() =
+    sequence {
+        val isLinux64 = SystemInfo.isLinux && !CpuArch.is32Bit()
+        val missingLibrariesDescription = if (isLinux64) "32-bit compatibility" else "required"
 
-    yield("Unable to run <strong>$TOOL_NAME</strong> SDK tool.")
-    yield( "One common reason for this failure is missing $missingLibrariesDescription libraries.")
-    yield("Please fix the underlying issue and retry.")
-    if (isLinux64) {
-      yield("<a href=\"$URL_MISSING_LIBRARIES\">$LINK_MISSING_LIBRARIES</a>")
-    }
-  }.toList()
+        yield("Unable to run <strong>$TOOL_NAME</strong> SDK tool.")
+        yield(
+          "One common reason for this failure is missing $missingLibrariesDescription libraries."
+        )
+        yield("Please fix the underlying issue and retry.")
+        if (isLinux64) {
+          yield("<a href=\"$URL_MISSING_LIBRARIES\">$LINK_MISSING_LIBRARIES</a>")
+        }
+      }
+      .toList()
 
 private fun checkCanRunSdkTool(executable: File): Boolean {
   val commandLine = GeneralCommandLine(executable.absolutePath)
@@ -87,10 +95,18 @@ private fun checkCanRunSdkTool(executable: File): Boolean {
   return handler.runProcess().exitCode == 1 // 1 means help was printed
 }
 
-private fun checkExecutePermission(executable: File) = executable.canExecute() || (SystemInfo.isUnix && executable.setExecutable(true))
+private fun checkExecutePermission(executable: File) =
+  executable.canExecute() || (SystemInfo.isUnix && executable.setExecutable(true))
 
 private fun retryPrompt(): Boolean {
-  val button = Messages.showOkCancelDialog(MESSAGE_CANT_RUN_TOOL, ApplicationNamesInfo.getInstance().fullProductName, "Retry", "Cancel", Messages.getErrorIcon())
+  val button =
+    Messages.showOkCancelDialog(
+      MESSAGE_CANT_RUN_TOOL,
+      "Android Studio",
+      "Retry",
+      "Cancel",
+      Messages.getErrorIcon(),
+    )
   return button == Messages.OK
 }
 
@@ -103,8 +119,7 @@ private fun checkRuns(executable: File): Boolean {
         return false
       }
     }
-  }
-  catch (e: ExecutionException) {
+  } catch (e: ExecutionException) {
     return false
   }
   return true

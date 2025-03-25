@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

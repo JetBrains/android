@@ -15,6 +15,6 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
-import com.google.play.developer.reporting.DateTime
+import com.google.type.DateTime
 
 data class Freshness(val timeGranularity: TimeGranularity, val latestEndTime: DateTime)

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
@@ -23,7 +23,6 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.openapi.util.Ref
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 
 /**
@@ -33,25 +32,25 @@ import com.intellij.psi.PsiElement
 abstract class AndroidWearRunConfigurationProducer<T : AndroidWearConfiguration>(val type: Class<out ConfigurationType>)
   : LazyRunConfigurationProducer<T>() {
 
-  abstract fun isValidService(psiClass: PsiClass): Boolean
+  abstract fun isValidService(psiElement: PsiElement): Boolean
 
   override fun getConfigurationFactory(): ConfigurationFactory =
     ConfigurationTypeUtil.findConfigurationType(type).configurationFactories[0]
 
   override fun isConfigurationFromContext(configuration: T, context: ConfigurationContext): Boolean {
-    val serviceName = context.psiLocation.getPsiClass()?.qualifiedName
+    val serviceName = context.psiLocation.getClassQualifiedName()
     return configuration.componentLaunchOptions.componentName == serviceName
   }
 
   public override fun setupConfigurationFromContext(configuration: T,
                                                     context: ConfigurationContext,
                                                     sourceElement: Ref<PsiElement>): Boolean {
-    val psiClass = context.psiLocation.getPsiClass()
+    val psiClass = context.psiLocation?.parent
     if (psiClass == null || !isValidService(psiClass)) {
       return false
     }
-    val serviceName = psiClass.qualifiedName ?: return false
-    val module = context.module?.getHolderModule() ?: return false
+    val serviceName = context.psiLocation.getClassQualifiedName() ?: return false
+    val module = context.module?.getModuleSystem()?.getHolderModule() ?: return false
 
     configuration.name = JavaExecutionUtil.getPresentableClassName(serviceName)!!
     configuration.setModule(module)

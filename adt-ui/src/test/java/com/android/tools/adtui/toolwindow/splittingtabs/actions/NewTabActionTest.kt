@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
-import com.android.testutils.MockitoKt.mock
+import org.mockito.kotlin.mock
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAware

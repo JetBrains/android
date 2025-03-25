@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingActionGroup
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -30,6 +31,6 @@ internal class StreamingFoldingActionGroup : StreamingActionGroup(EmulatorFoldin
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    enableRichTooltip(event.presentation)
+    event.presentation.enableRichTooltip(this)
   }
 }

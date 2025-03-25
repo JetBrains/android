@@ -302,6 +302,15 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_TEST_COVERAGE_ENABLED_TO_UNIT_AND_ANDROID_COVERAGE.RefactoringProcessor(this),
     UseAndroidXDefaultRefactoringProcessor(this),
     ExcludeLibraryDefaultRefactoringProcessor(this),
+    ResValuesDefaultRefactoringProcessor(this),
+    BlockAidlProcessor(this),
+    BlockRenderScriptProcessor(this),
+    BlockAnalysisPerComponentProcessor(this),
+    BlockEmulatorControlProcessor(this),
+    BlockMinifyLocalDependenciesLibrariesProcessor(this),
+    BlockPreciseShrinkingProcessor(this),
+    BlockResourceOptimizationsProcessor(this),
+    BlockUnifiedTestPlatformProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()

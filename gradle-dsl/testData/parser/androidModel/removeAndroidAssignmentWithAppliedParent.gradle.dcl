@@ -1,0 +1,4 @@
+androidApp {
+  buildToolsVersion = "23.0.0"
+  compileSdkVersion = "android-J"
+}

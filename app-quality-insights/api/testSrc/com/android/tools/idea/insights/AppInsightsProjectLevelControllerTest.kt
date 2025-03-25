@@ -19,11 +19,14 @@ import com.android.testutils.time.FakeClock
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import java.time.Duration
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -677,6 +680,7 @@ class AppInsightsProjectLevelControllerTest {
               )
             ),
           detailsState = LoadingState.Ready(ISSUE1_DETAILS),
+          eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
           notesState = LoadingState.Ready(emptyList()),
         )
       )
@@ -686,6 +690,7 @@ class AppInsightsProjectLevelControllerTest {
             LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE2, ISSUE1)), clock.instant())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
+          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")),
           permission = Permission.FULL,
           currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
         )
@@ -1010,6 +1015,7 @@ class AppInsightsProjectLevelControllerTest {
           ),
         issueVariantsState = LoadingState.Ready(emptyList()),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
       )
     assertThat(newModel)
       .isEqualTo(
@@ -1019,6 +1025,7 @@ class AppInsightsProjectLevelControllerTest {
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList()),
           currentInsight = LoadingState.Ready(DEFAULT_AI_INSIGHT),
+          currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")),
         )
       )
 
@@ -1028,6 +1035,7 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(
         newModel.copy(
           issues = LoadingState.UnknownFailure(null),
+          currentEvents = LoadingState.Ready(null),
           currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
@@ -1504,11 +1512,11 @@ class AppInsightsProjectLevelControllerTest {
             Permission.READ_ONLY,
           )
         ),
-        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "abc")),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2")), "abc")),
       )
 
       controllerRule.controller.nextEvent()
-      client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("2")), "")))
+      client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("3")), "")))
       val state = controllerRule.consumeNext()
 
       assertThat(state.selectedEvent).isEqualTo(Event("2"))
@@ -1553,12 +1561,64 @@ class AppInsightsProjectLevelControllerTest {
 
     controllerRule.controller.refreshInsight(true)
     state = controllerRule.consumeNext()
-    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading("Regenerating insight..."))
 
     val newInsight = AiInsight("Insight")
     client.completeFetchInsightCallWith(LoadingState.Ready(newInsight))
     state = controllerRule.consumeNext()
     assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(newInsight))
+  }
+
+  @Test
+  fun `disableAction disables action, enableAction enables action`() = runBlocking {
+    var state =
+      controllerRule.consumeInitialState(
+        state =
+          LoadingState.Ready(
+            IssueResponse(
+              listOf(ISSUE1, ISSUE2),
+              emptyList(),
+              emptyList(),
+              emptyList(),
+              DEFAULT_FETCHED_PERMISSIONS,
+            )
+          ),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+        insightState = LoadingState.Ready(AiInsight("insight")),
+      )
+
+    assertThat(state.disabledActions).isEmpty()
+    controllerRule.controller.disableAction(Action.FetchInsight::class)
+    state = controllerRule.consumeNext()
+    assertThat(state.disabledActions).containsExactly(Action.FetchInsight::class)
+
+    controllerRule.controller.refreshInsight(false)
+    state = controllerRule.consumeNext()
+
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+
+    try {
+      withTimeout(1000) {
+        client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+      }
+    } catch (e: TimeoutCancellationException) {}
+
+    // Assert that the insight did not change
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Loading)
+
+    controllerRule.controller.enableAction(Action.FetchInsight::class)
+    state = controllerRule.consumeNext()
+    assertThat(state.disabledActions).isEmpty()
+
+    controllerRule.controller.refreshInsight(false)
+    try {
+      withTimeout(1000) {
+        client.completeFetchInsightCallWith(LoadingState.Ready(DEFAULT_AI_INSIGHT))
+      }
+    } catch (e: TimeoutCancellationException) {}
+
+    state = controllerRule.consumeNext()
+    assertThat(state.currentInsight).isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT))
   }
 }
 

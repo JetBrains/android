@@ -137,6 +137,7 @@ public class BlazeCommandRunConfigurationRunManagerImplTest extends BlazeIntegra
     final XMLOutputter xmlOutputter = new XMLOutputter(Format.getCompactFormat());
     final BlazeCommandRunConfigurationSettingsEditor editor =
         new BlazeCommandRunConfigurationSettingsEditor(configuration);
+    configuration.setKeepInSync(false); // Except keep in sync: null is translated to false;
     configuration.setTarget(Label.create("//package:rule"));
 
     final Element initialElement = runManager.getState();

@@ -37,8 +37,13 @@ import java.util.WeakHashMap
 open class DefaultNavigationHandler(
   private val componentNavigationDelegate:
     (
-      sceneView: SceneView, hitX: Int, hitY: Int, requestFocus: Boolean, fileName: String,
-    ) -> Navigatable?
+      sceneView: SceneView,
+      hitX: Int,
+      hitY: Int,
+      requestFocus: Boolean,
+      fileName: String,
+      shouldFindAllNavigatables: Boolean,
+    ) -> List<Navigatable?>
 ) : PreviewNavigationHandler {
   private val LOG = Logger.getInstance(DefaultNavigationHandler::class.java)
   // Default location to use when components are not found
@@ -60,22 +65,24 @@ open class DefaultNavigationHandler(
       .also { LOG.debug { "Navigated to default? $it" } }
   }
 
-  override suspend fun handleNavigateWithCoordinates(
+  override suspend fun findNavigatablesWithCoordinates(
     sceneView: SceneView,
     @SwingCoordinate hitX: Int,
     @SwingCoordinate hitY: Int,
     requestFocus: Boolean,
-  ): Boolean {
+    isOptionDown: Boolean,
+  ): List<Navigatable?> {
     val fileName = defaultNavigationMap[sceneView.sceneManager.model]?.first ?: ""
-    componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName)?.let {
-      withContext(uiThread) { it.navigate(requestFocus) }
-      return true
-    }
+    return componentNavigationDelegate(sceneView, hitX, hitY, requestFocus, fileName, isOptionDown)
+  }
 
-    // Only allow default navigation when double clicking since it might take us to a different file
-    if (!requestFocus) return true
-
-    return handleNavigate(sceneView, requestFocus)
+  override suspend fun navigateTo(
+    sceneView: SceneView,
+    navigatable: Navigatable,
+    requestFocus: Boolean,
+  ): Boolean {
+    withContext(uiThread) { navigatable.navigate(requestFocus) }
+    return true
   }
 
   override fun dispose() {

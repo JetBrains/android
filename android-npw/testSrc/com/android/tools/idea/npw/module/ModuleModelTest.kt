@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
+import com.android.tools.idea.npw.model.AgpVersionSelector
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.multiplatform.NewKotlinMultiplatformLibraryModuleModel
@@ -31,46 +32,51 @@ import org.jetbrains.android.util.AndroidBundle
 class ModuleModelTest : AndroidGradleTestCase() {
   private val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
 
-  private val multiTemplateRenderer: MultiTemplateRenderer get() = MultiTemplateRenderer { renderer ->
-    object : Task.Modal(project, AndroidBundle.message("android.compile.messages.generating.r.java.content.name"), false) {
-      override fun run(indicator: ProgressIndicator) {
-        renderer(project)
-      }
-    }.queue()
-    projectSyncInvoker.syncProject(project)
-  }
+  private val multiTemplateRenderer: MultiTemplateRenderer
+    get() = MultiTemplateRenderer { renderer ->
+      object :
+          Task.Modal(
+            project,
+            AndroidBundle.message("android.compile.messages.generating.r.java.content.name"),
+            false,
+          ) {
+          override fun run(indicator: ProgressIndicator) {
+            renderer(project)
+          }
+        }
+        .queue()
+      projectSyncInvoker.syncProject(project)
+    }
 
   fun testInitFillsAllTheDataForLibraryModule() {
     loadSimpleApplication()
 
-    val libraryModuleModel = NewLibraryModuleModel(project, ":", projectSyncInvoker).apply {
-      packageName.set("com.google.lib")
-    }
+    val libraryModuleModel =
+      NewLibraryModuleModel(project, ":", projectSyncInvoker).apply {
+        packageName.set("com.google.lib")
+      }
 
     multiTemplateRenderer.requestRender(libraryModuleModel.renderer)
 
     val module = myFixture.project.findModule("lib")
     val modulesToCompile = arrayOf(module)
 
-    val invocationResult = invokeGradle(project) {
-      it.compileJava(modulesToCompile)
-    }
+    val invocationResult = invokeGradle(project) { it.compileJava(modulesToCompile) }
     TestCase.assertTrue(invocationResult.isBuildSuccessful)
   }
 
   fun testKmpModuleCreationAndAssemble() {
-    loadProject(TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM)
+    loadProject(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
 
-    val kmpModuleModel = NewKotlinMultiplatformLibraryModuleModel(project, ":", projectSyncInvoker).apply {
-      packageName.set("com.example.shared")
-      agpVersion.set(AgpVersion(8, 1, 0))
-    }
+    val kmpModuleModel =
+      NewKotlinMultiplatformLibraryModuleModel(project, ":", projectSyncInvoker).apply {
+        packageName.set("com.example.shared")
+        agpVersionSelector.set(AgpVersionSelector.FixedVersion(AgpVersion(8, 1, 0)))
+      }
     multiTemplateRenderer.requestRender(kmpModuleModel.renderer)
 
     val module = myFixture.project.findModule("shared")
-    val invocationResult = invokeGradle(project) {
-      it.assemble(arrayOf(module))
-    }
+    val invocationResult = invokeGradle(project) { it.assemble(arrayOf(module)) }
     TestCase.assertTrue(invocationResult.isBuildSuccessful)
   }
 }

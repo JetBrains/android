@@ -65,6 +65,16 @@ def write_spec_file(out, mac_bundle_name, ides):
       file.write("    },\n")
 
     file.write(f'    mac_bundle_name = "{mac_bundle_name}",\n')
+
+    file.write(f"    add_exports = [\n")
+    for entry in sorted({item for ide in ides.values() for item in ide.jvm_add_exports}):
+      file.write('        "' + entry + '",\n')
+    file.write("    ],\n")
+
+    file.write(f"    add_opens = [\n")
+    for entry in sorted({item for ide in ides.values() for item in ide.jvm_add_opens}):
+      file.write('        "' + entry + '",\n')
+    file.write("    ],\n")
     file.write(")\n")
 
 

@@ -19,6 +19,8 @@ import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
@@ -61,12 +63,13 @@ class FastPreviewUtilTest {
 
   @Test
   fun `fast compile call`() {
+    FakeBuildSystemFilePreviewServices().register(projectRule.testRootDisposable)
     setUpComposeInProjectFixture(projectRule)
     runBlocking(workerThread) {
       val (result, _) =
         fastCompile(
           projectRule.testRootDisposable,
-          runReadAction { testFile.module }!!,
+          runReadAction { BuildTargetReference.gradleOnly(testFile.module!!) },
           setOf(testFile),
         )
       assertEquals(CompilationResult.Success, result)
@@ -75,6 +78,7 @@ class FastPreviewUtilTest {
 
   @Test
   fun `fast compile call cancellation`() {
+    val buildTargetReference = runReadAction { BuildTargetReference.from(testFile)!! }
     val blockingDaemon = BlockingDaemonClient()
     val testPreviewManager =
       FastPreviewManager.getTestInstance(projectRule.project, { _, _, _, _ -> blockingDaemon })
@@ -90,7 +94,7 @@ class FastPreviewUtilTest {
               val (result, _) =
                 fastCompile(
                   projectRule.testRootDisposable,
-                  runReadAction { testFile.module }!!,
+                  buildTargetReference,
                   setOf(testFile),
                   testPreviewManager,
                 )

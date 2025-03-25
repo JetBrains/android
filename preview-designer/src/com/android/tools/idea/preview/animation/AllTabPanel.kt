@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.animation
 
 import com.android.annotations.TestOnly
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -31,13 +32,18 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Insets
 import java.beans.PropertyChangeListener
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.border.MatteBorder
+import kotlin.concurrent.read
+import kotlin.concurrent.write
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Component and its layout for `All animations` tab. */
 class AllTabPanel
@@ -82,7 +88,10 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
       this.setViewportView(splitter)
     }
 
-  @VisibleForTesting val cards = mutableListOf<Card>()
+  private val cardsLock = ReentrantReadWriteLock()
+  @VisibleForTesting @GuardedBy("cardsLock") val cards = mutableListOf<Card>()
+
+  private val jobsByCard = mutableMapOf<Card, Job>()
 
   constructor(parentDisposable: Disposable) : this(parentDisposable, {})
 
@@ -95,9 +104,9 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   private fun updateDimension() {
+    val sumOfCardHeights = cardsLock.read { cards.sumOf { it.getCurrentHeight() } }
     val preferredHeight =
-      InspectorLayout.timelineHeaderHeightScaled() +
-        JBUI.scale(cards.sumOf { it.getCurrentHeight() })
+      InspectorLayout.timelineHeaderHeightScaled() + JBUI.scale(sumOfCardHeights)
     splitter.firstComponent.preferredSize =
       Dimension(splitter.firstComponent.width, preferredHeight)
     splitter.secondComponent.preferredSize =
@@ -118,22 +127,25 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   fun addCard(card: Card) {
-    if (cards.contains(card)) return
-    splitter.firstComponent.add(card.component, TabularLayout.Constraint(cards.size, 0))
-    cards.add(card)
-    cardsLayout.setRowSizing(
-      cards.indexOf(card),
-      TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()),
-    )
+    cardsLock.read {
+      if (cards.contains(card)) return
+      splitter.firstComponent.add(card.component, TabularLayout.Constraint(cards.size, 0))
+      cardsLock.write { cards.add(card) }
+      cardsLayout.setRowSizing(
+        cards.indexOf(card),
+        TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()),
+      )
+    }
     updateDimension()
     if (card is AnimationCard) {
-      scope.launch(uiThread) { card.expanded.collect { updateCardSize(card) } }
+      jobsByCard[card] =
+        scope.launch { card.expanded.collect { withContext(uiThread) { updateCardSize(card) } } }
     }
   }
 
   fun updateCardSize(card: Card) {
     cardsLayout.setRowSizing(
-      cards.indexOf(card),
+      cardsLock.read { cards.indexOf(card) },
       TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()),
     )
     updateDimension()
@@ -141,10 +153,12 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   fun removeCard(card: Card) {
-    cards.remove(card)
+    cardsLock.write { cards.remove(card) }
     splitter.firstComponent.remove(card.component)
     updateDimension()
     splitter.firstComponent.revalidate()
+    jobsByCard[card]?.cancel()
+    jobsByCard.remove(card)
   }
 
   private fun getCardsBorder() = JBUI.Borders.emptyTop(InspectorLayout.TIMELINE_HEADER_HEIGHT)

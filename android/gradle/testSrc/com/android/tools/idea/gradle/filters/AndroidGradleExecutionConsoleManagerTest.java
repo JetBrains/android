@@ -20,10 +20,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.getConsoleManagerFor;
 import static org.mockito.Mockito.verify;
 
+import com.android.tools.idea.gemini.GeminiPluginApi;
+import com.android.tools.idea.gemini.LlmPrompt;
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.AndroidReRunSyncFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.studiobot.StudioBot;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -45,6 +46,7 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.filters.ReRunSyncFilter;
 import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -89,8 +91,8 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
   public void testGetCustomContextActionsAndFilters() {
     var disposable = Disposer.newDisposable("ApplicationServiceRule");
     try {
-      ServiceContainerUtil.registerOrReplaceServiceInstance(ApplicationManager.getApplication(), StudioBot.class, myStudioBot,
-                                                            disposable);
+      ServiceContainerUtil.registerExtension(ApplicationManager.getApplication(), GeminiPluginApi.Companion.getEP_NAME(),
+                                             fakeGeminiPluginApi, disposable);
       var resolveProjectTask = createResolveProjectTask();
       var consoleManager = getConsoleManagerFor(resolveProjectTask);
       assertThat(consoleManager).isInstanceOf(AndroidGradleExecutionConsoleManager.class);
@@ -107,10 +109,26 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     }
   }
 
-  private final StudioBot myStudioBot = new StudioBot.StubStudioBot() {
+  private final GeminiPluginApi fakeGeminiPluginApi = new GeminiPluginApi() {
+    @Override
+    public int getMAX_QUERY_CHARS() {
+      return Integer.MAX_VALUE;
+    }
+
     @Override
     public boolean isAvailable() {
       return true;
+    }
+
+    @Override
+    public void sendChatQuery(@NotNull Project project,
+                              @NotNull LlmPrompt prompt,
+                              @Nullable String displayText,
+                              @NotNull GeminiPluginApi.RequestSource requestSource) {
+    }
+
+    @Override
+    public void stageChatQuery(@NotNull Project project, @NotNull String prompt, @NotNull GeminiPluginApi.RequestSource requestSource) {
     }
   };
 

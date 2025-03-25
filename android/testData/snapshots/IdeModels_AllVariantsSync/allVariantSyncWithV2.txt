@@ -3,7 +3,7 @@ BuildId                       : <ROOT>
 ProjectPath                   : :app
 ModelVersion                  : <AGP_VERSION>
 ProjectType                   : PROJECT_TYPE_APP
-CompileTarget                 : android-<SDK_VERSION>
+CompileTarget                 : android-34
 BuildFolder                   : <ROOT>/app/build [-]
 buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
 IsBaseSplit                   : true
@@ -46,6 +46,7 @@ AgpFlags
     MlModelBindingEnabled         : false
     AndroidResourcesEnabled       : true
     DataBindingEnabled            : false
+    GenerateManifestClass         : false
 - basicVariant:               : basicBarDebug
     applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
     testApplicationId             : com.example.psd.sample.app.default.test
@@ -88,7 +89,7 @@ AgpFlags
     buildType                     : specialRelease
 FlavorDimensions              : foo
 FlavorDimensions              : bar
-BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
 DynamicFeatures               : :dyn_feature
 ViewBindingOptions
     Enabled                       : false
@@ -114,8 +115,8 @@ DefaultConfig
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         VectorDrawables
             UseSupportLibrary             : false
     SourceProvider
@@ -351,8 +352,8 @@ ProductFlavors
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         TestInstrumentationRunnerArguments
             a                             : AAA
             b                             : BBB
@@ -1274,8 +1275,8 @@ IdeVariants
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vns
@@ -2208,8 +2209,8 @@ IdeVariants
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vns
@@ -3145,8 +3146,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoo
@@ -4083,8 +4084,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoo
@@ -5024,8 +5025,8 @@ IdeVariants
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vnsvsuffix
@@ -5720,8 +5721,8 @@ IdeVariants
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vnsvsuffix
@@ -6419,8 +6420,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
@@ -7119,8 +7120,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovsuffix
@@ -7822,8 +7823,8 @@ IdeVariants
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vnsvnsSpecial
@@ -8514,8 +8515,8 @@ IdeVariants
             ApiLevel                      : 16
             ApiString                     : 16
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 26
         VersionCode                   : 1
         VersionNameSuffix             : vnsvnsSpecial
@@ -9209,8 +9210,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovnsSpecial
@@ -9905,8 +9906,8 @@ IdeVariants
             ApiLevel                      : 10
             ApiString                     : 10
         TargetSdkVersion
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
         MaxSdkVersion                 : 25
         VersionCode                   : 2
         VersionNameSuffix             : vnsvnsFoovnsSpecial

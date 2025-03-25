@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +29,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
+  public static final PropertiesElementDescription<ProjectPropertiesDslElement> PROJECT_PROPERTIES =
+    new PropertiesElementDescription<>(null, ProjectPropertiesDslElement.class, ProjectPropertiesDslElement::new);
+
   @NonNls public static final String PROJECT_DIR = "projectDir";
   @NonNls public static final String BUILD_FILE_NAME = "buildFileName";
 
@@ -42,15 +48,20 @@ public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
     return null;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
+  public GradleDslAnchor requestAnchor(@NotNull GradleDslElement element) {
     // This element should not be involved in anchoring, skip and request anchor from parent.
     if (myParent instanceof GradlePropertiesDslElement) {
       return myParent.requestAnchor(element);
     }
 
     return super.requestAnchor(element);
+  }
+
+  @Override
+  public @Nullable PsiElement create() {
+    return myParent != null ? myParent.create() : null;
   }
 
   @Nullable

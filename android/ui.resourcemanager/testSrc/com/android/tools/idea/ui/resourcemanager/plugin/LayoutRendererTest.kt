@@ -39,7 +39,7 @@ import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.awt.Image
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -85,7 +85,7 @@ class LayoutRendererTest {
       resourceExplorerListViewModel = ResourceExplorerListViewModelImpl(
         androidFacet,
         null,
-        Mockito.mock(ResourceResolver::class.java),
+        mock<ResourceResolver>(),
         FilterOptions.createDefault(),
         ResourceType.DRAWABLE,
         ImageCache.createImageCache(rule.fixture.projectDisposable),

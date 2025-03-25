@@ -20,8 +20,6 @@ import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -47,6 +45,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class AttachAndroidSdkSourcesNotificationProviderTest {

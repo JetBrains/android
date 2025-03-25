@@ -50,7 +50,9 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     shortDescription = "Cannot find AGP version in build files.",
     description = "Cannot locate the version specification for the Android Gradle Plugin dependency, \n" +
                   "possibly because the project's build files use features not currently supported by the \n" +
-                  "Upgrade Assistant (for example: using constants defined in buildSrc).",
+                  "Upgrade Assistant (for example: using constants defined in buildSrc).\n" +
+                  "If the project was modified externally while this project was open, syncing your project \n" +
+                  "may help locating the currently used AGP version; this window will update once sync finishes.",
     readMoreUrl = ReadMoreUrlRedirect("agp-version-not-found")
   )
 

@@ -18,8 +18,8 @@ package com.android.tools.adtui.toolwindow.splittingtabs.actions
 import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -74,7 +74,7 @@ class RenameTabActionTest {
   fun update_splittingTabContent_visible() {
     val content = contentFactory.createContent(null, "Content", false).also {
       it.component = SplittingPanel(it, null, object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
+        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
       })
     }
     Disposer.register(toolWindow.contentManager, content)

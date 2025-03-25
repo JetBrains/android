@@ -22,23 +22,21 @@ import com.android.tools.idea.lang.androidSql.resolution.BindParameter
 import com.android.tools.idea.lang.androidSql.resolution.JavaFieldSqlType
 import com.android.tools.idea.lang.androidSql.resolution.SqlType
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.removeUserData
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.Processor
 import com.intellij.util.containers.ContainerUtil
 
-fun PsiFile.setTestSqlSchema(block: AndroidSqlTestSchema.() -> Unit): AndroidSqlTestSchema {
-  val schema = AndroidSqlTestSchema(this).apply(block)
+inline fun PsiFile.withTestSqlSchema(schema: AndroidSqlTestSchema, action: () -> Unit) {
   virtualFile.putUserData(AndroidSqlTestContext.TEST_SQLITE_SCHEMA_KEY, schema)
-  return schema
+  try {
+    action()
+  }
+  finally {
+    virtualFile.removeUserData(AndroidSqlTestContext.TEST_SQLITE_SCHEMA_KEY)
+  }
 }
-
-fun PsiFile.setTestSqlSchema(schema: AndroidSqlTestSchema): AndroidSqlTestSchema {
-  virtualFile.putUserData(AndroidSqlTestContext.TEST_SQLITE_SCHEMA_KEY, schema)
-  return schema
-}
-
-fun androidSqlTestSchema(psiFile: PsiFile, block: AndroidSqlTestSchema.() -> Unit) = AndroidSqlTestSchema(psiFile).apply(block)
 
 class AndroidSqlTestSchema(private val psiFile: PsiFile, var tables: MutableList<AndroidSqlTestTable> = mutableListOf()) {
   fun table(table: AndroidSqlTestTable.() -> Unit) {

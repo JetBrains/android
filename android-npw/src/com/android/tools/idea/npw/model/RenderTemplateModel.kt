@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
@@ -29,8 +30,8 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.templates.KeystoreUtils.getSha1DebugKeystoreSilently
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
@@ -52,69 +53,89 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 
 private val log = logger<RenderTemplateModel>()
 
 private class ExistingNewModuleModelData(
-  existingProjectModelData: ExistingProjectModelData, facet: AndroidFacet, template: NamedModuleTemplate,
-  override val wizardContext: WizardUiContext
+  existingProjectModelData: ExistingProjectModelData,
+  facet: AndroidFacet,
+  template: NamedModuleTemplate,
+  override val wizardContext: WizardUiContext,
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(
-    projectTemplateDataBuilder = ProjectTemplateDataBuilder(false),
-    isNewModule = false,
-    viewBindingSupport = existingProjectModelData.viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE)
-  )
+  override val moduleTemplateDataBuilder =
+    ModuleTemplateDataBuilder(
+      projectTemplateDataBuilder = ProjectTemplateDataBuilder(false),
+      isNewModule = false,
+      viewBindingSupport =
+        existingProjectModelData.viewBindingSupport.getValueOr(
+          ViewBindingSupport.SUPPORTED_4_0_MORE
+        ),
+    )
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = AndroidStudioEvent.TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
 
-  override val formFactor: ObjectValueProperty<FormFactor> get() =
-    throw UnsupportedOperationException("We cannot reliably know formFactor of an existing module")
-  override val category: ObjectValueProperty<Category> get() =
-    throw UnsupportedOperationException("We cannot reliably know category of an existing module")
+  override val formFactor: ObjectValueProperty<FormFactor>
+    get() =
+      throw UnsupportedOperationException(
+        "We cannot reliably know formFactor of an existing module"
+      )
+
+  override val category: ObjectValueProperty<Category>
+    get() =
+      throw UnsupportedOperationException("We cannot reliably know category of an existing module")
+
   override val isLibrary: Boolean = false
-  override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
+  override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> =
+    OptionalValueProperty.absent()
   override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
-  override val useVersionCatalog: BoolProperty = BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
+  override val useVersionCatalog: BoolProperty =
+    BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
 }
 
 /**
- * A model responsible for instantiating a [Template] into the current project representing an Android component.
+ * A model responsible for instantiating a [Template] into the current project representing an
+ * Android component.
  */
-class RenderTemplateModel private constructor(
+class RenderTemplateModel
+private constructor(
   private val moduleModelData: ModuleModelData,
   val androidFacet: AndroidFacet?,
   private val commandName: String,
-  private val shouldOpenFiles: Boolean
+  private val shouldOpenFiles: Boolean,
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
-   * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
-   * try to render anything.
+   * The target template we want to render. If null, the user is skipping steps that would
+   * instantiate a template and this model shouldn't try to render anything.
    */
   lateinit var wizardParameterData: WizardParameterData
   var newTemplate: Template = Template.NoActivity
-  set(value) {
-    field = value
-    wizardParameterData = WizardParameterData(
-      packageName.get(),
-      module == null,
-      template.get().name,
-      value.parameters
-    )
-  }
+    set(value) {
+      field = value
+      wizardParameterData =
+        WizardParameterData(
+          packageName.get(),
+          module == null,
+          template.get().name,
+          value.parameters,
+        )
+    }
+
   init {
     language.addListener {
-      PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, language.value.toString())
+      PropertiesComponent.getInstance()
+        .setValue(PROPERTIES_RENDER_LANGUAGE_KEY, language.value.toString())
     }
   }
 
   val module: Module?
     get() = androidFacet?.module?.getMainModule()
 
-  val hasActivity: Boolean get() = newTemplate != Template.NoActivity
+  val hasActivity: Boolean
+    get() = newTemplate != Template.NoActivity
 
   val createdFiles: MutableList<File> = arrayListOf()
 
@@ -133,7 +154,9 @@ class RenderTemplateModel private constructor(
     override fun init() {
       val paths = template.get().paths
       if (paths.moduleRoot == null) {
-        log.error("RenderTemplateModel can't create files because module root is not found. Please report this error.")
+        log.error(
+          "RenderTemplateModel can't create files because module root is not found. Please report this error."
+        )
         return
       }
 
@@ -144,7 +167,10 @@ class RenderTemplateModel private constructor(
         projectTemplateDataBuilder.setProjectDefaults(project)
         formFactor = newTemplate.formFactor
         moduleTemplateDataBuilder.setModuleRoots(
-          paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
+          paths,
+          projectLocation.get(),
+          moduleName.get(),
+          this@RenderTemplateModel.packageName.get(),
         )
         category = newTemplate.category
         isCompose = newTemplate.constraints.contains(TemplateConstraint.Compose)
@@ -152,7 +178,8 @@ class RenderTemplateModel private constructor(
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value
-        projectTemplateDataBuilder.agpVersion = agpVersion.get()
+        projectTemplateDataBuilder.agpVersion =
+          agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
 
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
 
@@ -185,8 +212,7 @@ class RenderTemplateModel private constructor(
 
       try {
         renderSuccess = renderTemplate(false, project, paths)
-      }
-      catch (t: Throwable) {
+      } catch (t: Throwable) {
         log.warn(t)
       }
     }
@@ -194,22 +220,29 @@ class RenderTemplateModel private constructor(
     @UiThread
     override fun finish() {
       if (renderSuccess && shouldOpenFiles) {
-        DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, createdFiles, true) }
+        DumbService.getInstance(project).smartInvokeLater {
+          TemplateUtils.openEditors(project, createdFiles, true)
+        }
       }
     }
 
     override fun logUsage() {
       val templateModel = this@RenderTemplateModel
-      val params = templateModel.newTemplate.parameters.joinToString("\n") { parameter ->
-        val value = if (parameter.loggable) parameter.value else "[suppressed]"
-        "${parameter.name}: $value"
-      }
-      log.info("Rendering template \"${templateModel.newTemplate.name}\" with commandName " +
-               "\"${templateModel.commandName}\" and parameters:\n$params")
+      val params =
+        templateModel.newTemplate.parameters.joinToString("\n") { parameter ->
+          val value = if (parameter.loggable) parameter.value else "[suppressed]"
+          "${parameter.name}: $value"
+        }
+      log.info(
+        "Rendering template \"${templateModel.newTemplate.name}\" with commandName " +
+          "\"${templateModel.commandName}\" and parameters:\n$params"
+      )
     }
 
     private fun renderTemplate(
-      dryRun: Boolean, project: Project, paths: AndroidModulePaths
+      dryRun: Boolean,
+      project: Project,
+      paths: AndroidModulePaths,
     ): Boolean {
       paths.moduleRoot ?: return false
 
@@ -219,28 +252,33 @@ class RenderTemplateModel private constructor(
           getComposeKotlinVersion()
       }
 
-      val context = RenderingContext(
-        project = project,
-        module = module,
-        commandName = commandName,
-        templateData = moduleTemplateDataBuilder.build(), // FIXME
-        moduleRoot = paths.moduleRoot!!,
-        dryRun = dryRun,
-        showErrors = true
-      )
+      val context =
+        RenderingContext(
+          project = project,
+          module = module,
+          commandName = commandName,
+          templateData = moduleTemplateDataBuilder.build(), // FIXME
+          moduleRoot = paths.moduleRoot!!,
+          dryRun = dryRun,
+          showErrors = true,
+        )
 
-      val metrics = TemplateMetrics(
-        templateType = titleToTemplateType(newTemplate.name, newTemplate.formFactor),
-        wizardContext = wizardContext,
-        moduleType = moduleTemplateRendererToModuleType(moduleModelData.loggingEvent),
-        minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
-        bytecodeLevel = (moduleModelData as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
-        useGradleKts = useGradleKts.get(),
-        useAppCompat = false
-      )
+      val metrics =
+        TemplateMetrics(
+          templateType = titleToTemplateType(newTemplate.name, newTemplate.formFactor),
+          wizardContext = wizardContext,
+          moduleType = moduleTemplateRendererToModuleType(moduleModelData.loggingEvent),
+          minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
+          minSdkCodename = androidSdkInfo.valueOrNull?.minApiLevelStr ?: "",
+          targetSdk = androidSdkInfo.valueOrNull?.targetApiLevel ?: 0,
+          targetSdkCodename = androidSdkInfo.valueOrNull?.targetApiLevelStr ?: "",
+          bytecodeLevel = (moduleModelData as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
+          useGradleKts = useGradleKts.get(),
+          useAppCompat = false,
+        )
 
-      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else
-        DefaultRecipeExecutor(context)
+      val executor =
+        if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
 
       return newTemplate.render(context, executor, metrics).also {
         if (!dryRun) {
@@ -261,38 +299,51 @@ class RenderTemplateModel private constructor(
       commandName: String,
       projectSyncInvoker: ProjectSyncInvoker,
       shouldOpenFiles: Boolean,
-      wizardContext: WizardUiContext
-    ) = RenderTemplateModel(
-      moduleModelData = ExistingNewModuleModelData(
-        ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply { initialPackageSuggestion?.let { packageName.set(it) }},
-        facet, template, wizardContext),
-      androidFacet = facet,
-      commandName = commandName,
-      shouldOpenFiles = shouldOpenFiles)
+      wizardContext: WizardUiContext,
+    ) =
+      RenderTemplateModel(
+        moduleModelData =
+          ExistingNewModuleModelData(
+            ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply {
+              initialPackageSuggestion?.let { packageName.set(it) }
+            },
+            facet,
+            template,
+            wizardContext,
+          ),
+        androidFacet = facet,
+        commandName = commandName,
+        shouldOpenFiles = shouldOpenFiles,
+      )
 
     @JvmStatic
     fun fromModuleModel(
       moduleModel: NewAndroidModuleModel,
-      commandName: String = "Render new ${moduleModel.formFactor.get().name} template"
-    ) = RenderTemplateModel(
-      moduleModelData = moduleModel,
-      androidFacet = null,
-      commandName = commandName,
-      shouldOpenFiles = true
-    ).apply { multiTemplateRenderer.incrementRenders() }
+      commandName: String = "Render new ${moduleModel.formFactor.get().name} template",
+    ) =
+      RenderTemplateModel(
+          moduleModelData = moduleModel,
+          androidFacet = null,
+          commandName = commandName,
+          shouldOpenFiles = true,
+        )
+        .apply { multiTemplateRenderer.incrementRenders() }
 
     /**
-     * Design: If there are no kotlin facets in the project, the default should be Java, whether or not you previously chose Kotlin
-     * (presumably in a different project which did have Kotlin).
-     * If it *does* have a Kotlin facet, then remember the previous selection (if there was no previous selection yet, default to Kotlin)
+     * Design: If there are no kotlin facets in the project, the default should be Java, whether or
+     * not you previously chose Kotlin (presumably in a different project which did have Kotlin). If
+     * it *does* have a Kotlin facet, then remember the previous selection (if there was no previous
+     * selection yet, default to Kotlin)
      */
     fun getInitialSourceLanguage(project: Project?): Language {
       return if (project != null && project.hasAnyKotlinModules())
-        Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.Kotlin)
-      else
-        Language.Java
+        Language.fromName(
+          PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY),
+          Language.Kotlin,
+        )
+      else Language.Java
     }
 
-    fun getComposeKotlinVersion(): String = "2.0.0"
+    fun getComposeKotlinVersion(): String = "2.0.21"
   }
 }

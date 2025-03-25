@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
@@ -25,7 +24,10 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 fun createNavDesignSurfaceZoomController(
   navDesignSurface: NavDesignSurface,
@@ -50,14 +52,13 @@ fun mockNavDesignSurface(
   val width = 100
   val height = 500
 
-  val sceneManager =
-    Mockito.mock<NavSceneManager>().apply { MockitoKt.whenever(this.isEmpty).thenReturn(false) }
+  val sceneManager = mock<NavSceneManager> { on { isEmpty } doReturn false }
 
   val viewportMock =
-    Mockito.mock<DesignSurfaceViewport>().apply {
-      MockitoKt.whenever(this.viewPosition).thenReturn(Point(1, 1))
-      MockitoKt.whenever(this.extentSize).thenReturn(surfaceSize)
-      MockitoKt.whenever(this.viewportComponent)
+    mock<DesignSurfaceViewport>().apply {
+      whenever(this.viewPosition).thenReturn(Point(1, 1))
+      whenever(this.extentSize).thenReturn(surfaceSize)
+      whenever(this.viewportComponent)
         .thenReturn(
           object : Component() {
             override fun getWidth() = width
@@ -67,16 +68,13 @@ fun mockNavDesignSurface(
         )
     }
 
-  val model = Mockito.mock<NlModel>()
+  val model = mock<NlModel>()
 
-  val navDesignSurface =
-    Mockito.mock<NavDesignSurface>().apply {
-      MockitoKt.whenever(this.viewport).thenReturn(viewportMock)
-      MockitoKt.whenever(this.size).thenReturn(Dimension(1, 1))
-      MockitoKt.whenever(this.focusedSceneView).thenReturn(focusedSceneView)
-      MockitoKt.whenever(this.model).thenReturn(model)
-      MockitoKt.whenever(this.getSceneManager(MockitoKt.any())).thenReturn(sceneManager)
-    }
-
-  return navDesignSurface
+  return mock<NavDesignSurface> {
+    on { viewport } doReturn viewportMock
+    on { size } doReturn Dimension(1, 1)
+    on { this.focusedSceneView } doReturn focusedSceneView
+    on { this.model } doReturn model
+    on { getSceneManager(any()) } doReturn sceneManager
+  }
 }

@@ -1,7 +1,5 @@
 package com.android.tools.idea.logcat.messages
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -30,11 +28,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -42,6 +35,13 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JSpinner
 import kotlin.test.fail
+import org.junit.After
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 
 /** Tests for [LogcatFormatDialog] */
 @RunsInEdt
@@ -857,7 +857,7 @@ class LogcatFormatDialogTest {
 
   private inline fun <reified T : JComponent> DialogWrapper.findComponent(name: String): T {
     return TreeWalker(rootPane).descendants().filterIsInstance<T>().find { it.name == name }
-      ?: fail("${T::class.simpleName} named $name was not found")
+           ?: fail("${T::class.simpleName} named $name was not found")
   }
 
   private fun FakeUi.clickApply() =

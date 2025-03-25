@@ -23,11 +23,11 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.TestDefaultDeviceActionPresentation
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import icons.StudioIcons
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.Duration
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 internal class FakeDeviceTemplate(override val properties: DeviceProperties) : DeviceTemplate {
   constructor(

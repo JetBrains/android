@@ -15,29 +15,37 @@
  */
 package com.android.tools.idea.wear.preview.animation
 
+import com.android.ide.common.rendering.api.Result.Status
 import com.android.testutils.delayUntilCondition
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.model.NlDataProvider
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.DEFAULT_ANIMATION_PREVIEW_MAX_DURATION_MS
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.wear.preview.PsiWearTilePreviewElement
-import com.android.tools.idea.wear.preview.WearTilePreviewElement
 import com.android.tools.idea.wear.preview.animation.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.wear.preview.animation.analytics.WearTileAnimationTracker
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.rendering.RenderLogger
+import com.android.tools.rendering.RenderResult
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import javax.swing.JComponent
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -100,34 +108,44 @@ class WearTileAnimationPreviewTest {
 
   @Before
   fun setUp() = runBlocking {
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", "").virtualFile
+    val psiFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", "")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val model =
       SyncNlModel.create(
         projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         AndroidBuildTargetReference.gradleOnly(facet),
-        layoutFile,
+        psiFile.virtualFile,
       )
 
-    model.dataContext = DataContext {
-      if (it == PREVIEW_ELEMENT_INSTANCE.name) {
-        return@DataContext wearTilePreviewElement
+    model.dataProvider =
+      object : NlDataProvider(PREVIEW_ELEMENT_INSTANCE) {
+        override fun getData(dataId: String): Any? =
+          wearTilePreviewElement.takeIf { dataId == PREVIEW_ELEMENT_INSTANCE.name }
       }
-      return@DataContext null
-    }
+
+    val successfulRenderResult =
+      RenderResult.createErrorRenderResult(
+        Status.SUCCESS,
+        AndroidFacetRenderModelModule(AndroidBuildTargetReference.from(facet, psiFile.virtualFile)),
+        { psiFile },
+        null,
+        RenderLogger(),
+      )
 
     val surface =
       NlSurfaceBuilder(
           projectRule.project,
           projectRule.testRootDisposable,
-          { s, _ ->
-            SyncLayoutlibSceneManager(s, model).apply {
+          { s, m ->
+            SyncLayoutlibSceneManager(s, m).apply {
               Disposer.register(projectRule.testRootDisposable, this)
+              renderResult = successfulRenderResult
             }
           },
         )
         .build()
+
     surface.setModel(model)
     delayUntilCondition(200) { surface.models.contains(model) }
 
@@ -242,5 +260,36 @@ class WearTileAnimationPreviewTest {
     }
 
     assertThat(animationPreview.maxDurationPerIteration.value).isEqualTo(500L)
+  }
+
+  @Test
+  fun errorInSurface_showErrorPanel() = runTest {
+    val psiFile = projectRule.fixture.addFileToProject("res/layout/layout_error.xml", "")
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val errorRenderResult =
+      RenderResult.createErrorRenderResult(
+        Status.ERROR_RENDER_TASK,
+        AndroidFacetRenderModelModule(AndroidBuildTargetReference.from(facet, psiFile.virtualFile)),
+        { psiFile },
+        null,
+        RenderLogger(),
+      )
+
+    (animationPreview.sceneManagerProvider() as SyncLayoutlibSceneManager).renderResult =
+      errorRenderResult
+
+    // trigger collect
+    wearTilePreviewElement.tileServiceViewAdapter.value =
+      object {
+        fun getAnimations() = listOf(TestDynamicTypeAnimator())
+      }
+
+    delayUntilCondition(200) {
+      val errorPanel =
+        withContext(uiThread) {
+          FakeUi(animationPreview.component).findComponent<JComponent> { it.name == "Error Panel" }
+        }
+      errorPanel != null && errorPanel.isVisible
+    }
   }
 }

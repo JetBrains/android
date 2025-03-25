@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
@@ -61,6 +60,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import perfetto.protos.PerfettoTrace
 import java.awt.Cursor
 import java.awt.HeadlessException

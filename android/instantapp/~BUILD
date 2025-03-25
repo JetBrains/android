@@ -28,6 +28,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -43,5 +44,6 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

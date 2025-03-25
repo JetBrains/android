@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;

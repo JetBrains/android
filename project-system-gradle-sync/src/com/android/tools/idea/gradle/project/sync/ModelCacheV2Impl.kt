@@ -1269,6 +1269,7 @@ internal fun modelCacheV2Impl(
       useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.getValue(flags, gradlePropertiesModel.useAndroidX),
       dataBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.DATA_BINDING_ENABLED
         .getValue(flags, legacyAndroidGradlePluginProperties?.dataBindingEnabled),
+      generateManifestClass = AndroidGradlePluginProjectFlags.BooleanFlag.GENERATE_MANIFEST_CLASS.getValue(flags, gradlePropertiesModel.generateManifestClass)
     )
 
   fun copyProjectType(projectType: ProjectType): IdeAndroidProjectType = when (projectType) {
@@ -1325,7 +1326,7 @@ internal fun modelCacheV2Impl(
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(basicProject.bootClasspath.map { it.absolutePath })
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = androidDsl.signingConfigs.map { signingConfigFrom(it) }
-    val lintOptionsCopy: IdeLintOptionsImpl = lintOptionsFrom(androidDsl.lintOptions)
+    val lintOptionsCopy: IdeLintOptionsImpl? = androidDsl?.lintOptions?.let { lintOptionsFrom(it) }
     val javaCompileOptionsCopy = javaCompileOptionsFrom(project.javaCompileOptions)
     val aaptOptionsCopy = aaptOptionsFrom(androidDsl.aaptOptions)
     val dynamicFeaturesCopy: Collection<String> = project.dynamicFeatures?.deduplicateStrings() ?: listOf()

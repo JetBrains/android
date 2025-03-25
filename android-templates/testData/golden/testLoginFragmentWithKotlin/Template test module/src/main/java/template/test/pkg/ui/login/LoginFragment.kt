@@ -49,7 +49,8 @@ class LoginFragment : Fragment() {
         val loginButton = binding.login
         val loadingProgressBar = binding.loading
 
-        loginViewModel.loginFormState.observe(viewLifecycleOwner,
+        loginViewModel.loginFormState.observe(
+            viewLifecycleOwner,
             Observer { loginFormState ->
                 if (loginFormState == null) {
                     return@Observer
@@ -63,7 +64,8 @@ class LoginFragment : Fragment() {
                 }
             })
 
-        loginViewModel.loginResult.observe(viewLifecycleOwner,
+        loginViewModel.loginResult.observe(
+            viewLifecycleOwner,
             Observer { loginResult ->
                 loginResult ?: return@Observer
                 loadingProgressBar.visibility = View.GONE

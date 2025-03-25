@@ -20,11 +20,11 @@ import com.android.ide.common.gradle.Version
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -58,7 +58,7 @@ private object NopCompilerDaemonClient : CompilerDaemonClient {
   override suspend fun compileRequest(
     applicationLiveEditServices: ApplicationLiveEditServices,
     files: Collection<PsiFile>,
-    module: Module,
+    contextBuildTargetReference: BuildTargetReference,
     outputDirectory: Path,
     indicator: ProgressIndicator
   ): CompilationResult = CompilationResult.Success
@@ -129,7 +129,7 @@ internal class FastPreviewManagerTest {
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertTrue(createdVersions.isEmpty())
     // Start 10 requests to ensure only one daemon is started
-    coroutineScope { repeat(10) { launch { manager.compileRequest(file, projectRule.module) } } }
+    coroutineScope { repeat(10) { launch { manager.compileRequest(file, BuildTargetReference.from(file)!!) } } }
     assertEquals("0.0.1-test", createdVersions.single())
   }
 
@@ -157,7 +157,7 @@ internal class FastPreviewManagerTest {
     val latch = CountDownLatch(10)
     repeat(10) {
       scope.launch {
-        manager.compileRequest(file, projectRule.module)
+        manager.compileRequest(file, BuildTargetReference.from(file)!!)
         latch.countDown()
       }
     }
@@ -203,7 +203,7 @@ internal class FastPreviewManagerTest {
     val latch = CountDownLatch(10)
     repeat(10) {
       scope.launch {
-        manager.compileRequest(file, projectRule.module)
+        manager.compileRequest(file, BuildTargetReference.from(file)!!)
         latch.countDown()
       }
     }
@@ -250,7 +250,7 @@ internal class FastPreviewManagerTest {
         if (it % 2 == 0) { // Only change the file 5 times
           modificationCount++
         }
-        manager.compileRequest(mockFile, projectRule.module)
+        manager.compileRequest(mockFile, BuildTargetReference.from(mockFile)!!)
 
         latch.countDown()
       }
@@ -281,13 +281,13 @@ internal class FastPreviewManagerTest {
               override suspend fun compileRequest(
                 applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
-                module: Module,
+                contextBuildTargetReference: BuildTargetReference,
                 outputDirectory: Path,
                 indicator: ProgressIndicator
               ): CompilationResult {
                 compilationRequests.add(
                   files.map { it.virtualFile.path }.toList() +
-                    module.name +
+                    contextBuildTargetReference.module.name +
                     listOf(outputDirectory.toString())
                 )
                 return CompilationResult.Success
@@ -298,7 +298,7 @@ internal class FastPreviewManagerTest {
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertTrue(compilationRequests.isEmpty())
-    assertTrue(manager.compileRequest(file, projectRule.module).first == CompilationResult.Success)
+    assertTrue(manager.compileRequest(file, BuildTargetReference.from(file)!!).first == CompilationResult.Success)
     run {
       val requestParameters =
         compilationRequests
@@ -330,7 +330,7 @@ internal class FastPreviewManagerTest {
               .trimIndent()
           )
         assertTrue(
-          manager.compileRequest(listOf(file2), projectRule.module).first ==
+          manager.compileRequest(listOf(file2), BuildTargetReference.from(file2)!!).first ==
             CompilationResult.Success
         )
         val requestParameters =
@@ -363,7 +363,7 @@ internal class FastPreviewManagerTest {
             .trimIndent()
         )
       assertTrue(
-        manager.compileRequest(listOf(file, file2), projectRule.module).first ==
+        manager.compileRequest(listOf(file, file2), BuildTargetReference.from(file /* both from the same module */)!!).first ==
           CompilationResult.Success
       )
       val requestParameters =
@@ -401,7 +401,7 @@ internal class FastPreviewManagerTest {
           moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
-    val result = manager.compileRequest(file, projectRule.module).first
+    val result = manager.compileRequest(file, BuildTargetReference.from(file)!!).first
     assertTrue(result.toString(), result is CompilationResult.DaemonStartFailure)
   }
 
@@ -423,7 +423,7 @@ internal class FastPreviewManagerTest {
               override suspend fun compileRequest(
                 applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
-                module: Module,
+                contextBuildTargetReference: BuildTargetReference,
                 outputDirectory: Path,
                 indicator: ProgressIndicator
               ): CompilationResult {
@@ -434,7 +434,7 @@ internal class FastPreviewManagerTest {
           moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
-    val result = manager.compileRequest(file, projectRule.module).first
+    val result = manager.compileRequest(file, BuildTargetReference.from(file)!!).first
     assertTrue(result.toString(), result is CompilationResult.RequestException)
   }
 
@@ -456,7 +456,7 @@ internal class FastPreviewManagerTest {
               override suspend fun compileRequest(
                 applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
-                module: Module,
+                contextBuildTargetReference: BuildTargetReference,
                 outputDirectory: Path,
                 indicator: ProgressIndicator
               ): CompilationResult = CompilationResult.DaemonError(-1)
@@ -465,7 +465,7 @@ internal class FastPreviewManagerTest {
           moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
-    val result = manager.compileRequest(file, projectRule.module).first
+    val result = manager.compileRequest(file, BuildTargetReference.from(file)!!).first
     assertTrue(result.toString(), result is CompilationResult.DaemonError)
   }
 
@@ -489,7 +489,7 @@ internal class FastPreviewManagerTest {
               override suspend fun compileRequest(
                 applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
-                module: Module,
+                contextBuildTargetReference: BuildTargetReference,
                 outputDirectory: Path,
                 indicator: ProgressIndicator
               ): CompilationResult {
@@ -502,7 +502,7 @@ internal class FastPreviewManagerTest {
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertNull(manager.disableReason)
     assertTrue(manager.isEnabled)
-    manager.compileRequest(file, projectRule.module).first.also { result ->
+    manager.compileRequest(file, BuildTargetReference.from(file)!!).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertFalse("FastPreviewManager should have been disable after a failure", manager.isEnabled)
       assertTrue(
@@ -519,7 +519,7 @@ internal class FastPreviewManagerTest {
 
     manager.allowAutoDisable = false
     // Repeat the failure but set autoDisable to false
-    manager.compileRequest(file, projectRule.module).first.also { result ->
+    manager.compileRequest(file, BuildTargetReference.from(file)!!).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertTrue(manager.isEnabled)
       assertTrue(FastPreviewConfiguration.getInstance().isEnabled)
@@ -561,7 +561,7 @@ internal class FastPreviewManagerTest {
               override suspend fun compileRequest(
                 applicationLiveEditServices: ApplicationLiveEditServices,
                 files: Collection<PsiFile>,
-                module: Module,
+                contextBuildTargetReference: BuildTargetReference,
                 outputDirectory: Path,
                 indicator: ProgressIndicator
               ): CompilationResult {
@@ -577,7 +577,7 @@ internal class FastPreviewManagerTest {
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertNull(manager.disableReason)
     assertTrue(manager.isEnabled)
-    manager.compileRequest(file, projectRule.module).first.also { result ->
+    manager.compileRequest(file, BuildTargetReference.from(file)!!).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.CompilationError)
       assertTrue("FastPreviewManager should remain enabled after a syntax error", manager.isEnabled)
       assertNull(manager.disableReason)
@@ -585,7 +585,7 @@ internal class FastPreviewManagerTest {
 
     optionallyThrow = { throw ExecutionException(null) }
     manager.invalidateRequestsCache()
-    manager.compileRequest(file, projectRule.module).first.also { result ->
+    manager.compileRequest(file, BuildTargetReference.from(file)!!).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertFalse("FastPreviewManager should disabled after a request exception", manager.isEnabled)
       assertNotNull(manager.disableReason)
@@ -647,7 +647,7 @@ internal class FastPreviewManagerTest {
     val compilationComplete = CompletableDeferred<Unit>()
     assertFalse(manager.isCompiling)
     scope.launch {
-      manager.compileRequest(file, projectRule.module)
+      manager.compileRequest(file, BuildTargetReference.from(file)!!)
       compilationComplete.complete(Unit)
     }
     runBlocking {
@@ -678,7 +678,7 @@ internal class FastPreviewManagerTest {
         override suspend fun compileRequest(
           applicationLiveEditServices: ApplicationLiveEditServices,
           files: Collection<PsiFile>,
-          module: Module,
+          contextBuildTargetReference: BuildTargetReference,
           outputDirectory: Path,
           indicator: ProgressIndicator
         ): CompilationResult {
@@ -714,7 +714,7 @@ internal class FastPreviewManagerTest {
       val compilationComplete = CompletableDeferred<Unit>()
       assertFalse(manager.isCompiling)
       scope.launch {
-        manager.compileRequest(file, projectRule.module)
+        manager.compileRequest(file, BuildTargetReference.from(file)!!)
         compilationComplete.complete(Unit)
       }
       runBlocking { compilationComplete.await() }

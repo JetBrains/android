@@ -17,6 +17,7 @@
 package com.android.tools.adtui.actions
 
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -96,7 +97,7 @@ fun createTestActionEvent(
   presentationFactory: PresentationFactory? = null
 ): AnActionEvent {
   val presentation = presentationFactory?.getPresentation(action) ?: action.templatePresentation.clone()
-  return AnActionEvent(inputEvent, dataContext, "", presentation, ActionManager.getInstance(), 0)
+  return AnActionEvent.createEvent(dataContext, presentation, "", ActionUiKind.NONE, inputEvent)
 }
 
 /**

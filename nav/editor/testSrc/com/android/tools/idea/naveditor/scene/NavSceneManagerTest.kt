@@ -19,7 +19,6 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.TestPannable
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
@@ -33,7 +32,8 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import java.awt.Point
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class NavSceneManagerTest : NavTestCase() {
 
@@ -61,7 +61,7 @@ class NavSceneManagerTest : NavTestCase() {
     // the release position isn't used
     dragTarget.mouseRelease(2, 2, listOf())
 
-    scene.sceneManager.requestRenderAsync()
+    scene.sceneManager.requestRender()
 
     assertEquals(100, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(50, scene.getSceneComponent("fragment1")!!.drawY)
@@ -106,16 +106,16 @@ class NavSceneManagerTest : NavTestCase() {
   fun testConfigurations() {
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
 
-    val configuration = Mockito.mock(Configuration::class.java)
+    val configuration = mock<Configuration>()
     model.setConfiguration(configuration)
 
-    val state = Mockito.mock(State::class.java)
+    val state = mock<State>()
     whenever(configuration.deviceState).thenReturn(state)
 
-    val hardware = Mockito.mock(Hardware::class.java)
+    val hardware = mock<Hardware>()
     whenever(state.hardware).thenReturn(hardware)
 
-    val screen = Mockito.mock(Screen::class.java)
+    val screen = mock<Screen>()
     whenever(hardware.screen).thenReturn(screen)
 
     whenever(screen.xDimension).thenReturn(1920)

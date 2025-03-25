@@ -43,7 +43,6 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -252,7 +251,7 @@ public class NlPaletteModel implements Disposable {
     Project project = myModule.getProject();
     ReadAction
       .nonBlocking(() -> CustomViewInfo.fromPsiClasses(viewClasses.apply(project)))
-      .expireWhen(() -> Disposer.isDisposed(this))
+      .expireWhen(() -> myDisposed)
       .inSmartMode(project)
       .submit(AppExecutorUtil.getAppExecutorService())
       .onSuccess(viewInfos -> {

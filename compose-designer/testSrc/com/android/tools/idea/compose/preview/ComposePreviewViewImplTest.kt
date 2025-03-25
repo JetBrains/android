@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.SdkConstants
 import com.android.flags.junit.FlagRule
+import com.android.testutils.delayUntilCondition
+import com.android.testutils.retryUntilPassing
 import com.android.tools.adtui.instructions.HyperlinkInstruction
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
@@ -25,6 +27,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.common.model.DefaultModelUpdater
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -37,37 +40,41 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.projectsystem.SourceProviderManager
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.registerExtension
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -77,19 +84,25 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private class TestPreviewElementDataContext(
-  private val project: Project,
-  private val composePreviewManager: ComposePreviewManager,
-  private val previewElement: ComposePreviewElementInstance<*>,
-) : DataContext {
-  override fun getData(dataId: String): Any? =
-    when (dataId) {
-      COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
-      PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-      CommonDataKeys.PROJECT.name -> project
-      else -> null
-    }
-}
+private fun createTestPreviewElementDataContext(
+  project: Project,
+  composePreviewManager: ComposePreviewManager,
+  previewElement: PsiComposePreviewElementInstance,
+) =
+  object :
+    NlDataProvider(
+      COMPOSE_PREVIEW_MANAGER,
+      PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
+      CommonDataKeys.PROJECT,
+    ) {
+    override fun getData(dataId: String): Any? =
+      when (dataId) {
+        COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
+        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+        CommonDataKeys.PROJECT.name -> project
+        else -> null
+      }
+  }
 
 private fun configureLayoutlibSceneManagerForPreviewElement(
   displaySettings: PreviewDisplaySettings,
@@ -100,8 +113,7 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
     showDecorations = displaySettings.showDecoration,
     isInteractive = false,
     requestPrivateClassLoader = false,
-    runAtfChecks = false,
-    runVisualLinting = false,
+    runVisualAnalysis = false,
     quality = 1f,
   )
 
@@ -142,17 +154,39 @@ class ComposePreviewViewImplTest {
   private lateinit var previewView: ComposePreviewView
   private lateinit var fakeUi: FakeUi
 
-  private val studioBot =
-    object : StudioBot.StubStudioBot() {
-      var contextAllowed = true
+  private val geminiPluginApi =
+    object : GeminiPluginApi {
+      var contextAllowed = false
+
+      override val MAX_QUERY_CHARS = Int.MAX_VALUE
+
+      override fun isAvailable() = true
 
       override fun isContextAllowed(project: Project) = contextAllowed
+
+      override fun sendChatQuery(
+        project: Project,
+        prompt: LlmPrompt,
+        displayText: String?,
+        requestSource: GeminiPluginApi.RequestSource,
+      ) {}
+
+      override fun stageChatQuery(
+        project: Project,
+        prompt: String,
+        requestSource: GeminiPluginApi.RequestSource,
+      ) {}
     }
 
   @Before
   fun setUp() {
     ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, projectRule.testRootDisposable)
+      .registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
+    ExtensionTestUtil.maskExtensions(
+      ComposeStudioBotActionFactory.EP_NAME,
+      listOf(FakeStudioBotActionFactory()),
+      projectRule.testRootDisposable,
+    )
     runBlocking(uiThread) {
       // Setup a fake manifest so rendering works correctly
       val manifest =
@@ -277,8 +311,8 @@ class ComposePreviewViewImplTest {
   android:text="Hello world ${previewElement.displaySettings.name}" />
 """
 
-        override fun createDataContext(previewElement: PsiComposePreviewElementInstance) =
-          TestPreviewElementDataContext(project, composePreviewManager, previewElement)
+        override fun createDataProvider(previewElement: PsiComposePreviewElementInstance) =
+          createTestPreviewElementDataContext(project, composePreviewManager, previewElement)
       }
     runBlocking(workerThread) {
       surface.updatePreviewsAndRefresh(
@@ -309,22 +343,21 @@ class ComposePreviewViewImplTest {
   @Test
   fun `empty preview state when generate all previews is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(false)
-    ApplicationManager.getApplication().invokeAndWait {
-      previewView.hasRendered = true
-      previewView.hasContent = false
-      previewView.updateVisibilityAndNotifications()
-      fakeUi.root.validate()
-    }
+    previewView.hasRendered = true
+    previewView.hasContent = false
+    runBlocking { previewView.updateVisibilityAndNotifications() }
 
-    assertEquals(
+    retryUntilPassing(2.seconds) {
+      assertEquals(
+        """
+        No preview found.
+        Add preview by annotating Composables with @Preview
+        [Using the Compose preview]
       """
-      No preview found.
-      Add preview by annotating Composables with @Preview
-      [Using the Compose preview]
-    """
-        .trimIndent(),
-      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
-    )
+          .trimIndent(),
+        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })?.toDisplayText(),
+      )
+    }
   }
 
   @Test
@@ -339,54 +372,54 @@ class ComposePreviewViewImplTest {
 
   private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(true)
-    studioBot.contextAllowed = contextSharingEnabled
-    ApplicationManager.getApplication().invokeAndWait {
-      previewView.hasRendered = true
-      previewView.hasContent = false
-      previewView.updateVisibilityAndNotifications()
-      fakeUi.root.validate()
-    }
+    geminiPluginApi.contextAllowed = contextSharingEnabled
 
-    assertEquals(
+    previewView.hasRendered = true
+    previewView.hasContent = false
+    runBlocking { previewView.updateVisibilityAndNotifications() }
+
+    retryUntilPassing(2.seconds) {
+      assertEquals(
+        """
+        No preview found.
+        Add preview by annotating Composables with @Preview
+        [Using the Compose preview]
+        ${if (contextSharingEnabled) "[Auto-generate Compose Previews for this file]" else ""}
       """
-      No preview found.
-      Add preview by annotating Composables with @Preview
-      [Using the Compose preview]
-      ${if (contextSharingEnabled) "[Auto-generate Compose Previews for this file]" else ""}
-    """
-        .trimIndent()
-        .trim(),
-      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
-    )
+          .trimIndent()
+          .trim(),
+        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })?.toDisplayText(),
+      )
+    }
   }
 
   @Test
   fun `test compilation error state`() {
-    ApplicationManager.getApplication().invokeAndWait {
-      previewView.hasRendered = true
-      previewView.hasContent = false
-      statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
-      previewView.updateVisibilityAndNotifications()
-      fakeUi.root.validate()
-    }
+    previewView.hasRendered = true
+    previewView.hasContent = false
+    statusManager.statusFlow.value = RenderingBuildStatus.NeedsBuild
 
-    val shortcutRegEx = Regex("\\(.+.\\)")
-    val instructionsText =
-      (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!
-        .toDisplayText()
-        .replace(shortcutRegEx, "(shortcut)")
-    assertEquals(
+    runBlocking { previewView.updateVisibilityAndNotifications() }
+
+    retryUntilPassing(2.seconds) {
+      val shortcutRegEx = Regex("\\(.+.\\)")
+      val instructionsText =
+        (fakeUi.findComponent<InstructionsPanel> { it.isShowing })
+          ?.toDisplayText()
+          ?.replace(shortcutRegEx, "(shortcut)")
+      assertEquals(
+        """
+        A successful build is needed before the preview can be displayed
+        [Build & Refresh... (shortcut)]
       """
-      A successful build is needed before the preview can be displayed
-      [Build & Refresh... (shortcut)]
-    """
-        .trimIndent(),
-      instructionsText,
-    )
+          .trimIndent(),
+        instructionsText,
+      )
+    }
   }
 
   @Test
-  fun `create compose view with two elements`() {
+  fun `create compose view with two elements`() = runBlocking {
     val composePreviewManager = TestComposePreviewManager()
     val previews =
       listOf(
@@ -406,6 +439,7 @@ class ComposePreviewViewImplTest {
       previewView.mainSurface.zoomController.zoomToFit()
       fakeUi.root.validate()
     }
+    delayUntilCondition(100, 1.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().size == 2 }
 
     assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
@@ -454,10 +488,11 @@ class ComposePreviewViewImplTest {
       previewView.onRefreshCancelledByTheUser()
       fakeUi.root.validate()
     }
+    val shortcut = if (SystemInfo.isMac) "⌥⇧⌘R" else "Ctrl+Shift+F5"
     assertEquals(
       """
       Refresh was cancelled and needs to be completed before the preview can be displayed
-      [Build & Refresh... (Ctrl+Shift+F5)]
+      [Build & Refresh... ($shortcut)]
     """
         .trimIndent(),
       (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText(),
@@ -488,4 +523,15 @@ class ComposePreviewViewImplTest {
 
     assertNull(fakeUi.findComponent<InstructionsPanel> { it.isShowing })
   }
+}
+
+class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
+  private val fakeAction =
+    object : AnAction() {
+      override fun actionPerformed(e: AnActionEvent) {}
+    }
+
+  override fun createPreviewGenerator() = fakeAction
+
+  override fun createSendPreviewAction() = fakeAction
 }

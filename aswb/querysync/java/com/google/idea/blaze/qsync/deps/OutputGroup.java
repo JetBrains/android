@@ -17,12 +17,12 @@ package com.google.idea.blaze.qsync.deps;
 
 /** Represents an output group produced by the {@code build_dependencies.bzl} aspect. */
 public enum OutputGroup {
-  JARS("qsync_jars"),
-  AARS("qsync_aars"),
-  GENSRCS("qsync_gensrcs"),
-  ARTIFACT_INFO_FILE("artifact_info_file"),
-  CC_HEADERS("cc_headers"),
-  CC_INFO_FILE("cc_info_file");
+  JARS("qs_jars"),
+  AARS("qs_aars"),
+  GENSRCS("qs_gensrcs"),
+  ARTIFACT_INFO_FILE("qs_info"),
+  CC_HEADERS("qs_cc_headers"),
+  CC_INFO_FILE("qs_cc_info");
 
   private final String name;
 

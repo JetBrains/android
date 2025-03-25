@@ -11,6 +11,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -26,6 +27,7 @@ profilers_test_common_data = [
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     INTEGRATION_TEST_GRADLE_VERSION,
+    "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
 ]
 
 iml_test(
@@ -151,9 +153,7 @@ iml_test(
 iml_test(
     name = "SystemTraceTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
@@ -167,9 +167,7 @@ iml_test(
 iml_test(
     name = "HeapDumpTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "noci:studio-linux",
@@ -187,9 +185,7 @@ iml_test(
 iml_test(
     name = "CallstackSampleTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
@@ -203,9 +199,7 @@ iml_test(
 iml_test(
     name = "NativeAllocationsTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
@@ -219,9 +213,7 @@ iml_test(
 iml_test(
     name = "JavaKotlinMethodRecordingTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [],
     tags_mac = [],
@@ -235,9 +227,7 @@ iml_test(
 iml_test(
     name = "LiveViewTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = ["block-network"],
     tags_mac = [],
@@ -251,9 +241,7 @@ iml_test(
 iml_test(
     name = "JavaKotlinAllocationsTaskTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ],
+    data = profilers_test_common_data,
     module = ":intellij.android.profilers.integration",
     tags_linux = [
         "noci:studio-linux",
@@ -269,13 +257,66 @@ iml_test(
 )
 
 iml_test(
+    name = "StartupSystemTraceTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/369429660
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupSystemTraceTaskTest",
+)
+
+iml_test(
+    name = "StartupJavaKotlinMethodRecordingTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/369429660
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupJavaKotlinMethodRecordingTaskTest",
+)
+
+iml_test(
+    name = "StartupNativeAllocationsTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "noci:studio-linux",
+        "ci:studio-linux_very_flaky",  # b/369429660
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupNativeAllocationsTaskTest",
+)
+
+iml_test(
     name = "SessionBasedProfilingWithApkTest",
     timeout = "long",
     data = profilers_test_common_data + [
         ":helloworldapk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-31",
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
@@ -297,7 +338,6 @@ iml_test(
         ":helloworldapk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-31",
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.profilers.integration",
     tags_linux = [
@@ -310,6 +350,20 @@ iml_test(
         "noci:studio-win",
     ],
     test_class = "com.android.tools.profilers.integration.taskbased.TaskBasedProfilingWithApkTest",
+)
+
+iml_test(
+    name = "ImportAndExportTraceTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.ImportAndExportTraceTest",
 )
 
 maven_repository(

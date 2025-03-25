@@ -59,17 +59,18 @@ load(
     "ALWAYS_BUILD_RULES",
     "DependenciesInfo",
     "collect_all_dependencies_for_tests",
-    "package_dependencies",
+    "package_dependencies_for_tests",
 )
 
 def _test_build_deps_impl(ctx):
     f = []
     for t in ctx.attr.deps:
-        f += t[DependenciesInfo].compile_time_jars.to_list()
-        f += t[DependenciesInfo].aars.to_list()
-        f += t[DependenciesInfo].gensrcs.to_list()
-        f += t[DependenciesInfo].cc_headers.to_list()
-        test_mode_own_files = t[DependenciesInfo].test_mode_own_files
+        dep_info = t[DependenciesInfo]
+        f += dep_info.compile_time_jars.to_list() if dep_info.compile_time_jars else []
+        f += dep_info.aars.to_list() if dep_info.aars else []
+        f += dep_info.gensrcs.to_list() if dep_info.gensrcs else []
+        f += dep_info.cc_headers.to_list() if dep_info.cc_headers else []
+        test_mode_own_files = dep_info.test_mode_own_files if dep_info.test_mode_own_files else []
         if test_mode_own_files:
             f += test_mode_own_files.test_mode_within_scope_own_jar_files
             f += test_mode_own_files.test_mode_within_scope_own_ide_aar_files
@@ -87,7 +88,8 @@ def _test_build_deps_impl(ctx):
 def _collect_deps_sources_impl(ctx):
     f = []
     for t in ctx.attr.deps:
-        for src_file in t[DependenciesInfo].test_mode_cc_src_deps.to_list():
+        dep_info = t[DependenciesInfo]
+        for src_file in dep_info.test_mode_cc_src_deps.to_list() if dep_info.test_mode_cc_src_deps else []:
             dest_file = ctx.actions.declare_file(src_file.path)
 
             # Many of these files are symlinks, using them directly will break
@@ -194,8 +196,8 @@ def _test_build_dep_desc_impl(ctx):
     output_groups = {}
     for t in ctx.attr.deps:
         label = str(t.label)
-        f += t[OutputGroupInfo].artifact_info_file.to_list()
-        f += t[OutputGroupInfo].cc_info_file.to_list()
+        f += t[OutputGroupInfo].qs_info.to_list()
+        f += t[OutputGroupInfo].qs_cc_info.to_list()
 
         # Add all output groups to a dict of [target name] -> [OutputGroupInfo]
         output_groups[label] = t[OutputGroupInfo]
@@ -265,7 +267,7 @@ test_build_deps_desc = rule(
     implementation = _test_build_dep_desc_impl,
     attrs = {
         "deps": attr.label_list(
-            aspects = [collect_all_dependencies_for_tests, package_dependencies],
+            aspects = [collect_all_dependencies_for_tests, package_dependencies_for_tests],
         ),
     },
 )
@@ -337,7 +339,7 @@ def test_project_package(name, all_targets, visibility, external_sources = []):
         # happens an error is reported when a test attempts to build
         # dependencies of such a target.
         expression = expression,
-        opts = ["--output=streamed_proto"],
+        opts = ["--output=streamed_proto", "--consistent_labels=true"],
         testonly = 1,
         scope = all_targets + [all_srcs_label],
         visibility = visibility,

@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.refEq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
@@ -41,7 +37,6 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.createSqliteStatement
-import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.utils.SqliteTestUtil
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
@@ -64,6 +59,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.EdtExecutorService
+import org.jetbrains.concurrency.any
 import org.jetbrains.ide.PooledThreadExecutor
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -78,6 +74,10 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.refEq
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -155,7 +155,7 @@ class SqliteEvaluatorControllerTest {
     sqliteEvaluatorController.setUp()
 
     // Assert
-    verify(sqliteEvaluatorView).addListener(any(SqliteEvaluatorView.Listener::class.java))
+    verify(sqliteEvaluatorView).addListener(any())
     verify(sqliteEvaluatorView).setQueryHistory(listOf("fake query"))
   }
 
@@ -373,7 +373,7 @@ class SqliteEvaluatorControllerTest {
   fun testEvaluateStatementWithoutParametersDoesNotShowParamsBindingDialog() {
     // Prepare
     val parametersBindingDialogView = viewFactory.parametersBindingDialogView
-    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
+    whenever(mockDatabaseConnection.query(any()))
       .thenReturn(Futures.immediateFuture(EmptySqliteResultSet()))
     sqliteEvaluatorController.setUp()
 
@@ -670,8 +670,7 @@ class SqliteEvaluatorControllerTest {
       mockTrackerService,
     )
 
-    whenever(mockDatabaseConnection.execute(any(SqliteStatement::class.java)))
-      .thenReturn(Futures.immediateFuture(Unit))
+    whenever(mockDatabaseConnection.execute(any())).thenReturn(Futures.immediateFuture(Unit))
     sqliteEvaluatorController.setUp()
 
     // Act
@@ -689,7 +688,7 @@ class SqliteEvaluatorControllerTest {
   fun testNotifyDataMightBeStaleUpdatesTable() {
     // Prepare
     val sqliteResultSet = FakeSqliteResultSet()
-    whenever(mockDatabaseConnection.query(any(SqliteStatement::class.java)))
+    whenever(mockDatabaseConnection.query(any()))
       .thenReturn(Futures.immediateFuture(sqliteResultSet))
     sqliteEvaluatorController.setUp()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()

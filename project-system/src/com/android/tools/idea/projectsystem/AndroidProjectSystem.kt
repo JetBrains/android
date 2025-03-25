@@ -37,7 +37,6 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.util.SlowOperations
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
-import java.nio.file.Path
 
 /**
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
@@ -59,17 +58,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * Returns path to android.jar
    */
   fun getBootClasspath(module: Module): Collection<String>
-
-  /**
-   * Uses build-system-specific heuristics to locate the APK file produced by the given project, or null if none. The heuristics try
-   * to determine the most likely APK file corresponding to the application the user is working on in the project's current configuration.
-   */
-  fun getDefaultApkFile(): VirtualFile?
-
-  /**
-   * Returns the absolute filesystem path to the aapt executable being used for the given project.
-   */
-  fun getPathToAapt(): Path
 
   /**
    * Returns true if the project allows adding new modules.
@@ -152,11 +140,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * more than one module, each with their own [AndroidFacet].
    */
   fun getAndroidFacets(): Collection<AndroidFacet> = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
-
-  @Deprecated("replaced by method without the project parameter",
-              replaceWith = ReplaceWith("getAndroidFacetsWithPackageName(packageName)"))
-  fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> =
-    getAndroidFacetsWithPackageName(packageName)
 
   /**
    * Returns a collection of [AndroidFacet]s by given package name.
@@ -250,14 +233,14 @@ fun PsiElement.getModuleSystem(): AndroidModuleSystem? = ModuleUtilCore.findModu
 
 
 /**
- * Returns a list of all Android holder modules. These are the intellij [Module] objects that correspond to an emptyish (no roots/deps)
- * module that contains the other source set modules as children. If you need to obtain the actual module for the currently active source
- * set then please use [getMainModule] on the return [Module] objects.
+ * Returns a list of all Android holder modules. For Gradle projects, these are the intellij [Module] objects that correspond to
+ * an emptyish (no roots/deps) module that contains the other source set modules as children. If you need to obtain the module for
+ * the currently active production source set, use [AndroidModuleSystem.getProductionAndroidModule] on the returned [Module] objects.
  */
 fun Project.getAndroidModulesForDisplay(): List<Module> = getProjectSystem().getAndroidFacets().map { it.module }
 
 /**
- * Returns a list of the substantively-distinct [AndroidFacet]s in the project.
+ * Returns a list of the substantively-distinct [AndroidFacet]s in the project.need
  *
  * Note: there might be modules in the project that the project system associates with [AndroidFacet], which are not returned from this
  * method; for example, representing individual SourceSets as IDEA [Module]s each with an [AndroidFacet] attached.  Facets corresponding

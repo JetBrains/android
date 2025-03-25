@@ -257,7 +257,7 @@ jvm_import(
 # managed by go/iml_to_build
 jvm_import(
     name = "gradle-shared-proto",
-    jars = ["//tools/base/build-system/gradle-core:common_proto.jar"],
+    jars = ["//tools/base/build-system/gradle-core:libcommon_proto.jar"],
     visibility = ["//visibility:public"],
 )
 
@@ -326,7 +326,7 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "gradle-declarative-dsl",
-    jars = ["//prebuilts/tools/common/m2:gradle-declarative-dsl_files"],
+    name = "junit4",
+    jars = ["//prebuilts/tools/common/m2:junit4_files"],
     visibility = ["//visibility:public"],
 )

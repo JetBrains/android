@@ -22,13 +22,11 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.testing.KeepTasksAsynchronousRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.OutputBuildEvent
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.impl.CoreProgressManager
 import com.intellij.testFramework.RunsInEdt
@@ -44,9 +42,6 @@ class BuildCancellationTest {
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
-
-  @get:Rule
-  val keepTasksAsynchronous: KeepTasksAsynchronousRule = KeepTasksAsynchronousRule(overrideKeepTasksAsynchronous = false)
 
   @Test
   @RunsInEdt
@@ -84,15 +79,8 @@ class BuildCancellationTest {
         }
       }
 
-      invokeAndWaitIfNeeded {
-
-        keepTasksAsynchronous.keepTasksAsynchronous()
-
-        project.buildAndWait(eventHandler = ::buildEventHandler) { buildInvoker ->
-          buildInvoker.compileJava(arrayOf(project.gradleModule(":app")!!));
-        }
-
-        keepTasksAsynchronous.runTasksSynchronously()
+      project.buildAndWait(eventHandler = ::buildEventHandler) { buildInvoker ->
+        buildInvoker.compileJava(arrayOf(project.gradleModule(":app")!!))
       }
     }
   }

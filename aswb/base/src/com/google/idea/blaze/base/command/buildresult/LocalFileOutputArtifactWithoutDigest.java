@@ -35,13 +35,13 @@ public class LocalFileOutputArtifactWithoutDigest
 
   private final File file;
   private final Path artifactPath;
-  private final String configurationMnemonic;
+  private final int prefixLength;
 
   public LocalFileOutputArtifactWithoutDigest(
-    File file, Path artifactPath, String configurationMnemonic) {
+    File file, Path artifactPath, int prefixLength) {
     this.file = file;
     this.artifactPath = artifactPath;
-    this.configurationMnemonic = configurationMnemonic;
+    this.prefixLength = prefixLength;
   }
 
   private long getLastModifiedTime() {
@@ -56,13 +56,13 @@ public class LocalFileOutputArtifactWithoutDigest
   }
 
   @Override
-  public String getConfigurationMnemonic() {
-    return configurationMnemonic;
+  public Path getArtifactPath() {
+    return artifactPath;
   }
 
   @Override
-  public Path getArtifactPath() {
-    return artifactPath;
+  public int getArtifactPathPrefixLength() {
+    return prefixLength;
   }
 
   @Override
@@ -99,7 +99,6 @@ public class LocalFileOutputArtifactWithoutDigest
     return MoreObjects.toStringHelper(this)
         .add("file", file.getPath())
         .add("artifactPath", artifactPath)
-        .add("configurationMnemonic", configurationMnemonic)
         .toString();
   }
 }

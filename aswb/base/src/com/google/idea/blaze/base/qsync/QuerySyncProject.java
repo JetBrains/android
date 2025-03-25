@@ -21,7 +21,10 @@ import static com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuild
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.ByteSource;
+import com.google.common.io.MoreFiles;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
@@ -61,6 +64,7 @@ import com.google.idea.blaze.qsync.project.SnapshotDeserializer;
 import com.google.idea.blaze.qsync.project.SnapshotSerializer;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.google.protobuf.CodedOutputStream;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -72,8 +76,10 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -84,6 +90,8 @@ import java.util.zip.GZIPOutputStream;
  * project state to the rest of the plugin and IDE.
  */
 public class QuerySyncProject {
+
+  private static final Logger logger = Logger.getInstance(QuerySyncProject.class);
 
   private final Path snapshotFilePath;
   private final Project project;
@@ -350,6 +358,20 @@ public class QuerySyncProject {
     onNewSnapshot(context, newSnapshot);
   }
 
+  public void resetQuerySyncState(BlazeContext context) throws BuildException {
+    invalidateQuerySyncState(context);
+    fullSync(context);
+  }
+
+  public void invalidateQuerySyncState(BlazeContext context) throws BuildException {
+    try {
+      artifactTracker.clear();
+    } catch (IOException e) {
+      throw new BuildException("Failed to clear dependency info", e);
+    }
+    onNewSnapshot(context, QuerySyncProjectSnapshot.EMPTY);
+  }
+
   public void build(BlazeContext parentContext, DependencyTracker.DependencyBuildRequest request)
       throws IOException, BuildException {
     try (BlazeContext context = BlazeContext.create(parentContext)) {
@@ -375,10 +397,10 @@ public class QuerySyncProject {
   }
 
   public ImmutableCollection<Path> buildAppInspector(
-      BlazeContext parentContext, List<Label> inspectors) throws IOException, BuildException {
+      BlazeContext parentContext, Label inspector) throws IOException, BuildException {
     try (BlazeContext context = BlazeContext.create(parentContext)) {
       context.push(new BuildDepsStatsScope());
-      return appInspectorTracker.buildAppInspector(context, inspectors);
+      return appInspectorTracker.buildAppInspector(context, inspector);
     }
   }
 
@@ -427,11 +449,7 @@ public class QuerySyncProject {
     }
   }
 
-  public boolean isReadyForAnalysis(PsiFile psiFile) {
-    VirtualFile virtualFile = psiFile.getVirtualFile();
-    if (virtualFile == null) {
-      return true;
-    }
+  public boolean isReadyForAnalysis(VirtualFile virtualFile) {
     Path p = virtualFile.getFileSystem().getNioPath(virtualFile);
     if (p == null || !p.startsWith(workspaceRoot.path())) {
       // Not in the workspace.
@@ -467,11 +485,14 @@ public class QuerySyncProject {
             .map(Glob::toString)
             .collect(ImmutableSet.toImmutableSet());
     ProjectDefinition projectDefinition =
-        ProjectDefinition.create(
-            importRoots.rootPaths(),
-            importRoots.excludePaths(),
-            LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()),
-            testSourceGlobs);
+        ProjectDefinition.builder()
+            .setProjectIncludes(importRoots.rootPaths())
+            .setProjectExcludes(importRoots.excludePaths())
+            .setLanguageClasses(
+                LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
+            .setTestSources(testSourceGlobs)
+            .setSystemExcludes(importRoots.systemExcludes())
+            .build();
 
     return this.projectDefinition.equals(projectDefinition);
   }
@@ -534,7 +555,7 @@ public class QuerySyncProject {
     Path workspaceRelative = workspaceRoot.path().relativize(absolutePath);
     if (snapshotHolder
         .getCurrent()
-        .map(s -> s.graph().getAllSourceFiles().contains(workspaceRelative))
+        .map(s -> s.graph().sourceFileToLabel(workspaceRelative).isPresent())
         .orElse(false)) {
       return Optional.of(false);
     }
@@ -571,6 +592,25 @@ public class QuerySyncProject {
 
   private void onNewSnapshot(BlazeContext context, QuerySyncProjectSnapshot newSnapshot)
       throws BuildException {
+    // update the artifact store for the new snapshot
+    ProjectArtifactStore.UpdateResult result = artifactStore.update(context, newSnapshot);
+    if (!result.incompleteTargets().isEmpty()) {
+      final int limit = 20;
+      logger.warn(
+          String.format(
+              "%d project deps had missing artifacts:\n  %s",
+              result.incompleteTargets().size(),
+              result.incompleteTargets().stream()
+                  .limit(limit)
+                  .map(Objects::toString)
+                  .collect(Collectors.joining("\n  "))));
+      if (result.incompleteTargets().size() > limit) {
+        logger.warn(String.format("  (and %d more)", result.incompleteTargets().size() - limit));
+      }
+    }
+    // update the snapshot with any missing artifacts:
+    newSnapshot = newSnapshot.toBuilder().incompleteTargets(result.incompleteTargets()).build();
+
     snapshotHolder.setCurrent(context, newSnapshot);
     projectData = projectData.withSnapshot(newSnapshot);
     try {
@@ -580,10 +620,13 @@ public class QuerySyncProject {
     }
   }
 
-  public Iterable<Path> getBugreportFiles() {
-    return ImmutableList.<Path>builder()
-        .add(snapshotFilePath)
-        .addAll(artifactTracker.getBugreportFiles())
+  public ImmutableMap<String, ByteSource> getBugreportFiles() {
+    return ImmutableMap.<String, ByteSource>builder()
+        .put(snapshotFilePath.getFileName().toString(), MoreFiles.asByteSource(snapshotFilePath))
+        .putAll(artifactTracker.getBugreportFiles())
+        .putAll(snapshotHolder.getBugreportFiles())
+        .putAll(artifactStore.getBugreportFiles())
+        .putAll(buildArtifactCache.getBugreportFiles())
         .build();
   }
 }

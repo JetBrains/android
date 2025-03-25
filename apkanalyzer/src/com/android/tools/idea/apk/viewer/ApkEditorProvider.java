@@ -33,15 +33,10 @@ final class ApkEditorProvider implements FileEditorProvider, DumbAware {
   }
 
   @Override
-  public boolean acceptRequiresReadAction() {
-    return true;
-  }
-
-  @Override
   public @NotNull FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     VirtualFile root = ApkFileSystem.getInstance().getRootByLocal(file);
     assert root != null; // see accept above
-    return new ApkEditor(project, file, root);
+    return new ApkEditor(project, file, root, new AndroidApplicationInfoProviderImpl());
   }
 
   @Override

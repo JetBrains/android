@@ -35,6 +35,7 @@ import com.android.tools.idea.wear.preview.animation.analytics.WearTileAnimation
 import com.android.tools.idea.wear.preview.animation.detectAnimations
 import com.android.tools.preview.PreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer

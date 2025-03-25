@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.flow
 
-import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.asCollection
@@ -43,6 +42,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Rule

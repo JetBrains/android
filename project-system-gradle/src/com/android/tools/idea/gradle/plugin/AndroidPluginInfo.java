@@ -89,18 +89,20 @@ public class AndroidPluginInfo {
 
   @Nullable
   public static AndroidPluginInfo findFromModel(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      GradleFacet gradleModel = GradleFacet.getInstance(module);
-      if (gradleModel != null && gradleModel.getGradleModuleModel() != null &&
-          getModuleSystem(module).getType() == AndroidModuleSystem.Type.TYPE_APP) {
-        // This is the 'app' module in the project.
-        String agpStringVersion = gradleModel.getGradleModuleModel().getAgpVersion();
-        if (agpStringVersion != null) {
-          return new AndroidPluginInfo(module, AgpVersion.tryParse(agpStringVersion), null);
+    return ReadAction.compute(() -> {
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        GradleFacet gradleModel = GradleFacet.getInstance(module);
+        if (gradleModel != null && gradleModel.getGradleModuleModel() != null &&
+            getModuleSystem(module).getType() == AndroidModuleSystem.Type.TYPE_APP) {
+          // This is the 'app' module in the project.
+          String agpStringVersion = gradleModel.getGradleModuleModel().getAgpVersion();
+          if (agpStringVersion != null) {
+            return new AndroidPluginInfo(module, AgpVersion.tryParse(agpStringVersion), null);
+          }
         }
       }
-    }
-    return null;
+      return null;
+    });
   }
 
   /**

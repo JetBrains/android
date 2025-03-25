@@ -17,7 +17,6 @@ package com.android.tools.idea.execution.common.processhandler
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
@@ -29,10 +28,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class AndroidProcessMonitorManagerTest {
@@ -67,7 +67,7 @@ class AndroidProcessMonitorManagerTest {
 
       stateChangeListener = listener
 
-      val monitor = mock(SingleDeviceAndroidProcessMonitor::class.java)
+      val monitor = mock<SingleDeviceAndroidProcessMonitor>()
       whenever(monitor.targetDevice).thenReturn(device)
       mockSingleDeviceAndroidProcessMonitors[device] = monitor
 
@@ -246,7 +246,7 @@ class AndroidProcessMonitorManagerTest {
   }
 
   private fun createMockDevice(apiVersion: Int): IDevice {
-    val mockDevice = mock(IDevice::class.java)
+    val mockDevice = mock<IDevice>()
     whenever(mockDevice.isOnline).thenReturn(true)
     whenever(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
     return mockDevice

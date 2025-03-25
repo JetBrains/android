@@ -118,7 +118,7 @@ PROJECT                       : BuildSrcWithComposite
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -361,7 +361,7 @@ PROJECT                       : BuildSrcWithComposite
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -878,96 +878,96 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
             Scope                         : Runtime
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar
                 *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
+        LIBRARY                       : Gradle: groovy-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-ant-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-ant-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-astbuilder-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-astbuilder-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-console-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-console-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-datetime-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-datetime-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-dateutil-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-dateutil-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-groovydoc-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-groovydoc-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-json-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-json-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-nio-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-nio-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-sql-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-sql-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-templates-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-templates-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-test-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-test-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-xml-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-xml-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.22.jar!/
+        LIBRARY                       : Gradle: javaparser-core-3.17.0.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: javaparser-core-3.17.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
+        LIBRARY                       : Gradle: kotlin-reflect-2.0.20.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-reflect-2.0.20.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-2.0.20.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-2.0.20.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         Classes
             -                             : file://<PROJECT>/buildSrc/build/classes/java/main
             -                             : file://<PROJECT>/buildSrc/build/classes/groovy/main
@@ -999,96 +999,96 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
             Scope                         : Runtime
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.main
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: gradle-api-<GRADLE_VERSION>.jar
                 *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.22.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
+        LIBRARY                       : Gradle: groovy-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-ant-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-ant-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-astbuilder-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-astbuilder-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-console-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-console-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-datetime-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-datetime-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-dateutil-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-dateutil-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-groovydoc-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-groovydoc-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-json-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-json-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-nio-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-nio-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-sql-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-sql-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-templates-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-templates-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-test-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-test-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.22.jar!/
+        LIBRARY                       : Gradle: groovy-xml-3.0.22.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-xml-3.0.22.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.22.jar!/
+        LIBRARY                       : Gradle: javaparser-core-3.17.0.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: javaparser-core-3.17.0.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
+        LIBRARY                       : Gradle: kotlin-reflect-2.0.20.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-reflect-2.0.20.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-2.0.20.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-2.0.20.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         BUILD_TASKS
     MODULE                        : android-included
         ExternalModuleGroup           : com.test.composite1
@@ -1207,7 +1207,7 @@ PROJECT                       : BuildSrcWithComposite
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1364,7 +1364,7 @@ PROJECT                       : BuildSrcWithComposite
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1699,7 +1699,7 @@ PROJECT                       : BuildSrcWithComposite
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false

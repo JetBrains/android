@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Class responsible for handling all the [StateFlow]s related to Compose Previews, e.g. managing
@@ -136,12 +137,14 @@ internal class ComposePreviewFlowManager(
       }
 
       // Flow to collate and process refreshNotificationsAndVisibilityFlow requests.
-      launch(workerThread) {
+      launch {
         refreshNotificationsAndVisibilityFlow.conflate().collect {
-          refreshNotificationsAndVisibilityFlow
-            .resetReplayCache() // Do not keep re-playing after we have received the element.
-          log.debug("refreshNotificationsAndVisibilityFlow, request=$it")
-          updateVisibilityAndNotifications()
+          withContext(workerThread) {
+            refreshNotificationsAndVisibilityFlow
+              .resetReplayCache() // Do not keep re-playing after we have received the element.
+            log.debug("refreshNotificationsAndVisibilityFlow, request=$it")
+            updateVisibilityAndNotifications()
+          }
         }
       }
 

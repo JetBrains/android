@@ -53,6 +53,12 @@ public abstract class GradleModelProvider {
   @NotNull
   public abstract GradleSettingsModel getSettingsModel(@NotNull VirtualFile settingsFile, @NotNull Project hostProject);
 
+  @Nullable
+  public abstract GradleSettingsModel getSettingsModel(@NotNull Project hostProject, @NotNull String compositeRoot);
+
   @NotNull
   public abstract GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject);
+
+  @Nullable
+  public abstract GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject, @NotNull String compositeRoot);
 }

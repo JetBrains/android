@@ -38,10 +38,10 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.extensions.SdkExtensions;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.collect.ImmutableList;
@@ -92,7 +92,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
 
     Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
-    myAndroidSdks = new AndroidSdks(myIdeInfo);
+    myAndroidSdks = new AndroidSdksImpl(myIdeInfo);
     myIdeSdks = new IdeSdks(myAndroidSdks, jdks, myEmbeddedDistributionPaths, myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());
     Sdks.allowAccessToSdk(getTestRootDisposable());

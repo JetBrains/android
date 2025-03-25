@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import com.android.sdklib.computeFullReleaseName
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.getFullReleaseName
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource.PLAY_VITALS
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
@@ -39,6 +41,7 @@ import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
 import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
+import com.android.tools.idea.insights.ui.ISSUE_DETAILS_PANEL_MIN_SIZE
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.android.tools.idea.insights.ui.StackTraceConsole
@@ -49,7 +52,6 @@ import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.shortenEventId
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.android.tools.idea.insights.ui.vcs.VcsCommitLabel
-import com.android.tools.idea.studiobot.StudioBot.RequestSource.PLAY_VITALS
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
@@ -65,7 +67,6 @@ import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.CardLayout
-import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -176,7 +177,7 @@ class VitalsIssueDetailsPanel(
   private val header = DetailsPanelHeader()
 
   // Affected versions
-  private val affectedVersionsLabel = JLabel()
+  private val affectedVersionsLabel = JLabel().apply { border = JBUI.Borders.empty(6, 0, 2, 0) }
 
   // Event id, console link
   private val eventIdLabel =
@@ -221,7 +222,7 @@ class VitalsIssueDetailsPanel(
       .apply {
         appendText(NOTHING_SELECTED_LABEL, EMPTY_STATE_TITLE_FORMAT)
         appendSecondaryText(
-          "Select an issue to view the stacktrace.",
+          "Select an issue to view the stack trace.",
           EMPTY_STATE_TEXT_FORMAT,
           null,
         )
@@ -230,7 +231,7 @@ class VitalsIssueDetailsPanel(
   private val scrollPane: JScrollPane
 
   init {
-    minimumSize = Dimension(90, 0)
+    minimumSize = ISSUE_DETAILS_PANEL_MIN_SIZE
     background = primaryContentBackground
     Disposer.register(parentDisposable, stackTraceConsole)
     scope.launch(AndroidDispatchers.uiThread) {
@@ -376,12 +377,9 @@ class VitalsIssueDetailsPanel(
     eventIdLabel.text = "Event ${issue.sampleEvent.name.shortenEventId()}"
     affectedApiLevelsLabel.text =
       try {
-        computeFullReleaseName(
-          issue.sampleEvent.eventData.operatingSystemInfo.displayVersion.toInt(),
-          null,
-          includeApiLevel = true,
-        )
-      } catch (e: NumberFormatException) {
+        AndroidVersion.fromString(issue.sampleEvent.eventData.operatingSystemInfo.displayVersion)
+          .getFullReleaseName(includeApiLevel = true)
+      } catch (_: IllegalArgumentException) {
         Logger.getInstance(this::class.java)
           .warn(
             "Unable to read OS version number. Sample event may be missing for Issue ${issue.id.value}"

@@ -96,6 +96,10 @@ DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
 vector<int32_t> DisplayManager::GetDisplayIds(Jni jni) {
   InitializeStatics(jni);
   JObject display_ids = display_manager_global_.CallObjectMethod(jni, get_display_ids_method_);
+  if (display_ids.IsNull()) {
+    jni.CheckAndClearException();
+    return {};
+  }
   auto id_array = down_cast<jintArray>(display_ids.ref());
   jsize size = jni->GetArrayLength(id_array);
   jboolean is_copy;
@@ -179,10 +183,17 @@ bool DisplayManager::RequestDisplayPower(Jni jni, int32_t display_id, int state)
   }
   Log::D("%s display %d", state == DisplayInfo::STATE_OFF ? "Turning off" : "Restoring power of", display_id);
   if (!display_manager_global_.CallBooleanMethod(jni, request_display_power_method_, display_id, state)) {
-    Log::W(jni.GetAndClearException(), "Unable to turn display %d off", display_id);
+    Log::W(jni.GetAndClearException(),
+           state == DisplayInfo::STATE_OFF ? "Unable to turn display %d off" : "Unable to restore power of display %d", display_id);
     return false;
   }
+  Log::I(state == DisplayInfo::STATE_OFF ? "Turned display %d off" : "Restored power of display %d", display_id);
   return true;
+}
+
+bool DisplayManager::DisplayPowerControlSupported(Jni jni) {
+  InitializeStatics(jni);
+  return request_display_power_method_ != nullptr;
 }
 
 JClass DisplayManager::display_manager_global_class_;

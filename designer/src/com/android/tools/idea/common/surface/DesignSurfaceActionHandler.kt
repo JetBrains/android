@@ -30,21 +30,29 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ide.CopyPasteManager
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.UnsupportedFlavorException
+import java.lang.ref.WeakReference
 
-abstract class DesignSurfaceActionHandler
-protected constructor(
-  protected val mySurface: DesignSurface<*>,
-  private val myCopyPasteManager: CopyPasteManager,
-) : DeleteProvider, CutProvider, CopyProvider, PasteProvider {
-  constructor(surface: DesignSurface<*>) : this(surface, CopyPasteManager.getInstance())
+abstract class DesignSurfaceActionHandler<T : DesignSurface<*>>
+protected constructor(surface: T, private val myCopyPasteManager: CopyPasteManager) :
+  DeleteProvider, CutProvider, CopyProvider, PasteProvider {
+  constructor(surface: T) : this(surface, CopyPasteManager.getInstance())
+
+  private val surfaceRef = WeakReference(surface)
+  protected val surfaceOrNull: T?
+    get() {
+      val surface = surfaceRef.get() ?: return null
+      if (surface.isDisposed()) return null
+      return surface
+    }
 
   protected abstract val flavor: DataFlavor
 
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun performCopy(dataContext: DataContext) {
-    if (!mySurface.selectionModel.isEmpty) {
-      myCopyPasteManager.setContents(mySurface.selectionAsTransferable)
+    val surface = surfaceOrNull ?: return
+    if (!surface.selectionModel.isEmpty) {
+      myCopyPasteManager.setContents(surface.selectionAsTransferable)
     }
   }
 
@@ -57,8 +65,9 @@ protected constructor(
   }
 
   override fun performCut(dataContext: DataContext) {
-    if (!mySurface.selectionModel.isEmpty) {
-      val transferable = mySurface.selectionAsTransferable
+    val surface = surfaceOrNull ?: return
+    if (!surface.selectionModel.isEmpty) {
+      val transferable = surface.selectionAsTransferable
       try {
         val transferItem = transferable.getTransferData(flavor) as DnDTransferItem
         transferItem.setIsCut()
@@ -79,8 +88,9 @@ protected constructor(
   }
 
   override fun deleteElement(dataContext: DataContext) {
-    val model = mySurface.model ?: return
-    val selectionModel = mySurface.selectionModel
+    val surface = surfaceOrNull ?: return
+    val model = surface.model ?: return
+    val selectionModel = surface.selectionModel
     model.treeWriter.delete(selectionModel.selection)
     selectionModel.clear()
   }
@@ -112,10 +122,12 @@ protected constructor(
   }
 
   private fun hasNonEmptySelection(): Boolean {
-    return !mySurface.selectionModel.isEmpty
+    val surface = surfaceOrNull ?: return false
+    return !surface.selectionModel.isEmpty
   }
 
   private fun pasteOperation(checkOnly: Boolean, generateNewIds: Boolean): Boolean {
+    val surface = surfaceOrNull ?: return false
     var receiver = pasteTarget ?: return false
     val model = receiver.model
 
@@ -149,10 +161,10 @@ protected constructor(
       receiver,
       before,
       insertType,
-      mySurface.selectionModel,
+      surface.selectionModel,
     )
     if (insertType.isPasteOperation()) {
-      mySurface.selectionModel.setSelection(pasted)
+      surface.selectionModel.setSelection(pasted)
     }
     return true
   }

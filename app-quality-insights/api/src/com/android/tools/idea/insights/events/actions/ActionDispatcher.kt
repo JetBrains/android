@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.events.actions
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Connection
@@ -25,7 +26,7 @@ import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.ai.GeminiToolkit
+import com.android.tools.idea.insights.ai.AiInsightToolkit
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.ChangeEvent
@@ -86,7 +87,7 @@ class ActionDispatcher(
   private val clock: Clock,
   private val appInsightsClient: AppInsightsClient,
   private val defaultFilters: Filters,
-  private val geminiToolkit: GeminiToolkit,
+  private val aiInsightToolkit: AiInsightToolkit,
   private val eventEmitter: suspend (ChangeEvent) -> Unit,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit,
 ) {
@@ -114,6 +115,8 @@ class ActionDispatcher(
     val (action, currentState, lastGoodState) = ctx
     val connection = currentState.connections.selected ?: return CancellationToken.noop(Action.NONE)
 
+    if (action::class in currentState.disabledActions) return CancellationToken.noop(Action.NONE)
+
     return when (action) {
       is Action.Multiple ->
         CompositeCancellationToken(
@@ -131,6 +134,8 @@ class ActionDispatcher(
       is Action.FetchIssueVariants -> fetchIssueVariants(currentState, action)
       is Action.ListEvents -> listEvents(currentState, action)
       is Action.FetchInsight -> fetchInsight(connection, currentState, action)
+      is Action.DisableAction -> CancellationToken.noop(action)
+      is Action.EnableAction -> CancellationToken.noop(action)
     }
   }
 
@@ -141,7 +146,7 @@ class ActionDispatcher(
           val result = appInsightsClient.updateIssueState(connection, action.id, IssueState.OPEN)
         ) {
           is LoadingState.Failure -> {
-            onErrorAction("Unable to open issue: ${result.cause?.message ?: ""}", null)
+            onErrorAction("Unable to open issue: ${result.getCauseMessageOrDefault()}", null)
             eventEmitter(IssueToggled(action.id, IssueState.CLOSED, isUndo = true))
           }
           else -> {
@@ -159,7 +164,7 @@ class ActionDispatcher(
           val result = appInsightsClient.updateIssueState(connection, action.id, IssueState.CLOSED)
         ) {
           is LoadingState.Failure -> {
-            onErrorAction("Unable to close issue: ${result.cause?.message ?: ""}", null)
+            onErrorAction("Unable to close issue: ${result.getCauseMessageOrDefault()}", null)
             eventEmitter(IssueToggled(action.id, IssueState.OPEN, isUndo = true))
           }
           else -> {
@@ -195,7 +200,7 @@ class ActionDispatcher(
           }
           is LoadingState.Failure -> {
             onErrorAction(
-              "Unable to post this note: ${result.cause?.message ?: result.message ?: "Unknown failure."}" +
+              "Unable to post this note: ${result.getCauseMessageOrDefault()}" +
                 "<br><a href=\"copy\">Copy note to clipboard</a>",
               HyperlinkListener {
                 val clipboard = Toolkit.getDefaultToolkit().systemClipboard
@@ -220,10 +225,7 @@ class ActionDispatcher(
             eventEmitter(NoteDeleted(action.noteId))
           }
           is LoadingState.Failure -> {
-            onErrorAction(
-              "Unable to delete this note: ${result.cause?.message ?: result.message ?: "Unknown failure."}",
-              null,
-            )
+            onErrorAction("Unable to delete this note: ${result.getCauseMessageOrDefault()}", null)
             eventEmitter(RollbackDeleteNoteRequest(action.noteId, result))
             if (result is LoadingState.NetworkFailure) {
               eventEmitter(EnterOfflineMode)
@@ -288,10 +290,10 @@ class ActionDispatcher(
             if (connectionMode == ConnectionMode.ONLINE && state.mode == ConnectionMode.OFFLINE) {
               eventEmitter(EnterOnlineMode)
             }
-            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState, reason))
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
           }
           is LoadingState.Failure -> {
-            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState, reason))
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
           }
         }
       }
@@ -355,21 +357,22 @@ class ActionDispatcher(
       .launch {
         val insight =
           when {
-            !geminiToolkit.isGeminiEnabled -> LoadingState.Unauthorized("Gemini is not enabled")
+            aiInsightToolkit.insightDeprecationData.isDeprecated() -> LoadingState.Deprecated
+            !GeminiPluginApi.getInstance().isAvailable() ->
+              LoadingState.Unauthorized("Gemini is not enabled")
             state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)
             else -> {
               val timeFilter =
                 state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
-              val codeContextData =
-                geminiToolkit.getSource(action.event.stacktraceGroup, action.contextSharingOverride)
+              val codeContextData = aiInsightToolkit.getSource(action.event.stacktraceGroup)
               appInsightsClient.fetchInsight(
                 connection,
                 action.id,
+                action.variantId,
                 action.issueFatality,
                 action.event,
                 timeFilter,
                 codeContextData,
-                action.contextSharingOverride || action.forceFetch,
               )
             }
           }

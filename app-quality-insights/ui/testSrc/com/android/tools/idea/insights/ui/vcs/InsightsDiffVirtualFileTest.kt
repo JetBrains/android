@@ -1,12 +1,12 @@
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class InsightsDiffVirtualFileTest {
   @get:Rule val projectRule = ProjectRule()

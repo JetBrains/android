@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.debug.utils
 
-import com.android.testutils.MockitoKt
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.evaluation.EvaluationContext
 import com.intellij.debugger.engine.requests.RequestManagerImpl
@@ -33,6 +32,7 @@ import com.sun.jdi.ReferenceType
 import com.sun.jdi.Value
 import com.sun.jdi.request.ClassPrepareRequest
 import org.gradle.internal.impldep.org.eclipse.jgit.errors.NotSupportedException
+import org.mockito.kotlin.mock
 
 interface MockDebugProcessScope {
   val virtualMachineProxy: VirtualMachineProxyImpl
@@ -125,7 +125,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
         pattern: String,
       ): ClassPrepareRequest? {
         prepareRequestPatterns.add(pattern)
-        return MockitoKt.mock()
+        return mock()
       }
     }
 

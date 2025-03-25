@@ -7,9 +7,11 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="inheritedJdk" />

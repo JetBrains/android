@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 class HyperlinkUtil {
   static void requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
-    GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(trigger), null);
+    ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager()
+      .requestSyncProject(new ProjectSystemSyncManager.SyncReason(trigger));
   }
 }

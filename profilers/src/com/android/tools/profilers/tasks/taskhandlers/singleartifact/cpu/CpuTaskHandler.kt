@@ -21,6 +21,9 @@ import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.getMinApiStartTaskErrorMessage
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
@@ -73,11 +76,26 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
 
   override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = CpuTaskArgs(false, artifact as CpuCaptureSessionArtifact)
 
-  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
-    this.isDeviceSupported(device, getCpuRecordingConfig())
+  override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
+    val config = getCpuRecordingConfig()
+    val isDeviceSupported = this.isDeviceSupported(device, config)
 
-  protected open fun isDeviceSupported(device: Common.Device?, config: ProfilingConfiguration?) =
-    device != null && config != null && device.featureLevel >= config.requiredDeviceLevel
+    if (isDeviceSupported) {
+      return null
+    }
+
+    if (config == null) {
+      // config being null is only possible if the device does not support any configuration.
+      return StartTaskSelectionError(StarTaskSelectionErrorCode.INVALID_DEVICE,
+                                     "No task configuration was found for API ${device.featureLevel} device")
+    }
+
+    return StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+                                   getMinApiStartTaskErrorMessage(config.requiredDeviceLevel))
+  }
+
+  protected open fun isDeviceSupported(device: Common.Device, config: ProfilingConfiguration?) =
+    config != null && device.featureLevel >= config.requiredDeviceLevel
 
   protected abstract fun getCpuRecordingConfig(): ProfilingConfiguration?
 }

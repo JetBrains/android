@@ -51,11 +51,11 @@ java_test(
     test_class = "com.google.idea.common.async.process.CommandLineTaskTest",
     deps = [
         ":process",
+        "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",  # unuseddeps: keep for @Nullable
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/plugin_api:truth",
-        "//tools/vendor/google/aswb/third_party/java/junit",
     ],
 )

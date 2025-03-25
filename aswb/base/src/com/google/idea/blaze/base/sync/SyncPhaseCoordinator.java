@@ -69,8 +69,8 @@ import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.sync.SyncScope.SyncCanceledException;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
-import com.google.idea.blaze.base.sync.aspects.BuildResult.Status;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.libraries.BlazeLibraryCollector;
@@ -524,7 +524,7 @@ final class SyncPhaseCoordinator {
     if (buildOutputs == null || !syncBuildResult.hasValidOutputs()) {
       return SyncResult.FAILURE;
     }
-    if (buildOutputs.buildResult.status == Status.FATAL_ERROR) {
+    if (buildOutputs.buildResult().status == Status.FATAL_ERROR) {
       if (BuildPhaseSyncTask.continueSyncOnOom.getValue()) {
         context.output(
             PrintOutput.error(
@@ -535,7 +535,7 @@ final class SyncPhaseCoordinator {
         return SyncResult.FAILURE;
       }
     }
-    if (buildOutputs.buildResult.status == BuildResult.Status.BUILD_ERROR) {
+    if (buildOutputs.buildResult().status == BuildResult.Status.BUILD_ERROR) {
       String buildSystem = Blaze.buildSystemName(project);
       String message =
           String.format(

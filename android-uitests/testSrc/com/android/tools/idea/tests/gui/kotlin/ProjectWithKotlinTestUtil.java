@@ -57,11 +57,11 @@ public class ProjectWithKotlinTestUtil {
   public static final String ENUM_NAME = "KotlinEnum";
   public static final String OBJECT_NAME = "KotlinObject";
   // Types for Kotlin File/Class
-  public static final String TYPE_CLASS = "Class";
-  public static final String TYPE_FILE = "File";
-  public static final String TYPE_INTERFACE = "Interface";
-  public static final String TYPE_ENUMCLASS = "Enum class";
-  public static final String TYPE_OBJECT = "Object";
+  public static final String TYPE_CLASS = ".*kind=Class.*";
+  public static final String TYPE_FILE = ".*kind=File.*";
+  public static final String TYPE_INTERFACE = ".*kind=Interface.*";
+  public static final String TYPE_ENUMCLASS = ".*kind=Enum class.*";
+  public static final String TYPE_OBJECT = ".*kind=Object.*";
   public static final Pattern RUN_OUTPUT =
     Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
 

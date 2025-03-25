@@ -20,13 +20,15 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
-import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
+import com.android.tools.idea.avd.showAddDeviceDialog
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.CanonicalDeviceType
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -50,6 +52,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
@@ -62,6 +65,8 @@ import javax.swing.Icon
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
+import org.jetbrains.android.AndroidPluginDisposable
 
 private val PIXEL_DEVICE_COMPARATOR =
   PixelDeviceComparator(VarianceComparator.reversed()).reversed()
@@ -125,11 +130,10 @@ class DeviceMenuAction(
     )
   }
 
-  override fun displayTextInToolbar(): Boolean = true
-
   override fun update(e: AnActionEvent) {
     super.update(e)
     updatePresentation(e)
+    e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   private fun updatePresentation(e: AnActionEvent) {
@@ -137,13 +141,14 @@ class DeviceMenuAction(
     val configuration = e.getData(CONFIGURATIONS)?.firstOrNull()
     val visible = configuration != null
     if (visible) {
-      val device = configuration!!.cachedDevice
+      val device = configuration.cachedDevice
       val label = getDeviceLabel(device, true)
       presentation.setText(label, false)
     }
     if (visible != presentation.isVisible) {
       presentation.isVisible = visible
     }
+    presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -161,6 +166,7 @@ class DeviceMenuAction(
     addWearDeviceSection(groupedDevices, currentDevice)
     addTvDeviceSection(groupedDevices, currentDevice)
     addAutomotiveDeviceSection(groupedDevices, currentDevice)
+    addXrDeviceSection(groupedDevices, currentDevice)
     addCustomDeviceSection(currentDevice)
     addAvdDeviceSection(configuration.settings.avdDevices, currentDevice)
     addGenericDeviceAndNewDefinitionSection(groupedDevices, currentDevice)
@@ -278,6 +284,30 @@ class DeviceMenuAction(
     addSeparator()
   }
 
+  private fun addXrDeviceSection(
+    groupedDevices: Map<DeviceGroup, List<Device>>,
+    currentDevice: Device?,
+  ) {
+    val xrDevices = groupedDevices.get(DeviceGroup.XR) ?: return
+    add(
+      DeviceCategory("XR", "Android XR devices", StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_HEADSET)
+    )
+    for (device in xrDevices) {
+      val selected = device == currentDevice
+      add(
+        SetDeviceAction(
+          getDeviceLabel(device),
+          { updatePresentation(it) },
+          deviceChangeListener,
+          device,
+          null,
+          selected,
+        )
+      )
+    }
+    addSeparator()
+  }
+
   private fun addCustomDeviceSection(currentDevice: Device?) {
     add(SetCustomDeviceAction({ updatePresentation(it) }, currentDevice))
     addSeparator()
@@ -358,6 +388,7 @@ class DeviceMenuAction(
           groupedDevices.get(DeviceGroup.WEAR),
           groupedDevices.get(DeviceGroup.TV),
           groupedDevices.get(DeviceGroup.AUTOMOTIVE),
+          groupedDevices.get(DeviceGroup.XR),
           config.settings.avdDevices,
           groupedDevices.get(DeviceGroup.GENERIC),
         )
@@ -409,14 +440,12 @@ class AddDeviceDefinitionAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val config = e.dataContext.getData(CONFIGURATIONS)?.firstOrNull() ?: return
     val project = ConfigurationManager.getFromConfiguration(config).project
+    val coroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project))
 
-    val optionsModel = AvdOptionsModel(null)
-    val dialog = AvdWizardUtils.createAvdWizard(null, project, optionsModel)
-
-    if (dialog.showAndGet()) {
-      optionsModel.createdAvd.map(config.settings::createDeviceForAvd).ifPresent { device ->
-        config.setDevice(device, true)
-      }
+    coroutineScope.launch(uiThread) {
+      val avdInfo = showAddDeviceDialog(project, e.componentToRestoreFocusTo()) ?: return@launch
+      val device = config.settings.createDeviceForAvd(avdInfo) ?: return@launch
+      config.setDevice(device, true)
     }
   }
 }

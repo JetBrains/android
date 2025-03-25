@@ -139,10 +139,22 @@ class ComposeCompletionContributor : CompletionContributor() {
     val psi = lookupElement.psiElement ?: return completionResult
 
     if (psi.isComposableFunction()) {
-      // Get rid of the extra version of the lookup element shown with trailing lambda
-      // syntax (i.e. "{ }").
-      if (lookupElement.isForSpecialLambdaLookupElement()) return null
-      return completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
+      val functionInfo =
+        (lookupElement.psiElement as? KtNamedFunction)?.getFunctionInfoForCompletion()
+          ?: return completionResult
+
+      // Get rid of the extra variants suggested by the Kotlin plugin that aren't wanted for
+      // @Composable methods.
+      if (
+        lookupElement.isForSpecialLambdaLookupElement() ||
+          lookupElement.isVariantWithTrailingLambda(functionInfo)
+      ) {
+        return null
+      }
+
+      return completionResult.withLookupElement(
+        ComposableFunctionLookupElement(lookupElement, functionInfo)
+      )
     }
     if (ComposeMaterialIconLookupElement.appliesTo(psi)) {
       return completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
@@ -161,19 +173,46 @@ class ComposeCompletionContributor : CompletionContributor() {
     renderElement(presentation)
     return presentation.tailText?.startsWith(" {...} (..., ") ?: false
   }
+
+  /**
+   * Checks if the [LookupElement] has a required final lambda argument written as a trailing
+   * lambda.
+   *
+   * In K2 starting with 2024.3, the Kotlin plugin is returning two autocomplete variants for
+   * functions with required final lambda arguments:
+   * 1. foo(a: Int) { b: () -> Unit } (com.example)
+   * 2. foo(a: Int, b: () -> Unit) (com.example)
+   *
+   * After rewriting the lookup string, both of these will look the same so we want to exclude one.
+   * Excluding the one with curly braces is safer to detect since parentheses are used in multiple
+   * ways in the lookup string, and the variant with parentheses allows us to customize the
+   * insertion more easily.
+   */
+  private fun LookupElement.isVariantWithTrailingLambda(functionInfo: FunctionInfo): Boolean {
+    // This variant is only returned in K2.
+    if (!KotlinPluginModeProvider.isK2Mode()) return false
+
+    // If there's no required or varargs lambda at the end, don't worry about this case.
+    if (!functionInfo.endsInRequiredLambda && !functionInfo.endsInVarargLambda) return false
+
+    val presentation = LookupElementPresentation()
+    renderElement(presentation)
+    val tailTextWithArguments = presentation.tailFragments.firstOrNull() ?: return false
+    return tailTextWithArguments.text.endsWith("}")
+  }
 }
 
 /** Wraps original Kotlin [LookupElement]s for composable functions to make them stand out more. */
-private class ComposableFunctionLookupElement(original: LookupElement) :
-  LookupElementDecorator<LookupElement>(original) {
+private class ComposableFunctionLookupElement(
+  original: LookupElement,
+  private val functionInfo: FunctionInfo,
+) : LookupElementDecorator<LookupElement>(original) {
   /** Set of [CallType]s that should be handled by the [ComposeInsertHandler]. */
   private val validCallTypes = setOf(CallType.DEFAULT, CallType.DOT)
 
   init {
     require(original.psiElement?.isComposableFunction() == true)
   }
-
-  private val functionInfo = psiElement.getFunctionInfoForCompletion()
 
   override fun getPsiElement(): KtNamedFunction = super.getPsiElement() as KtNamedFunction
 
@@ -215,16 +254,18 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     if (context.getLastElementInOffset()?.text == "}") return
 
     // There's a special case where the cursor (prior to completion) was immediately before a block
-    // opening, in which case we don't need to add the lambda.
-    if (context.getNextElementAfterOffset()?.text?.startsWith("{") == true) return
+    // opening, in which case we don't need to add the braces for the lambda.
+    val cursorWasBeforeBlockOpening =
+      context.getNextElementAfterOffset()?.text?.startsWith("{") ?: false
+    if (!cursorWasBeforeBlockOpening) {
+      // When there are no required parameters before the lambda, the caret will be placed in the
+      // lambda, so there needs to be an extra space.
+      val trailingLambda = if (functionInfo.hasRequiredParametersBeforeLambda) " { }" else " {  }"
 
-    // When there are no required parameters before the lambda, the caret will be placed in the
-    // lambda, so there needs to be an extra space.
-    val trailingLambda = if (functionInfo.hasRequiredParametersBeforeLambda) " { }" else " {  }"
-
-    // Insert the lambda.
-    context.document.insertString(context.tailOffset, trailingLambda)
-    psiDocumentManager.commitDocument(context.document)
+      // Insert the lambda.
+      context.document.insertString(context.tailOffset, trailingLambda)
+      psiDocumentManager.commitDocument(context.document)
+    }
 
     // If there are required parameters before the lambda, then we can just leave the function's
     // parens there.
@@ -251,9 +292,8 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
   }
 
   private fun LookupElementPresentation.rewriteSignature(parts: ComposableFunctionRenderParts) {
-    // If there are fewer than two parameters, then there's no need to rewrite the completion entry
-    // to handle verbose @Composable functions.
-    if (parts.totalParameterCount < 2) return
+    // If there are no parameters, don't spend any time rewriting.
+    if (parts.totalParameterCount < 1) return
 
     // Rewrite the function signature to avoid showing too many parameters, since @Composable
     // functions often have a large number. The first fragment contains the portion we want to
@@ -265,19 +305,14 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     parts.parameters?.let { appendTailText(it, /* grayed= */ false) }
     parts.tail?.let { appendTailText(" $it", /* grayed= */ true) }
 
-    // K2 does not split tail into multiple fragments. For example, K1 has
-    // {"(a: Int)", " ", "(com.example)"} as the tail fragments, while K2 has
-    // {"(a: Int) (com.example)"} as one single tail fragment. We manually remove parameters
-    // from the tail to match their behaviors.
-    if (KotlinPluginModeProvider.isK2Mode()) {
-      existingTailFragments.firstOrNull()?.let {
-        appendTailText(it.removeParameters(), it.isGrayed)
-        return
-      }
-    }
-
-    // Copy the remaining fragments that came from the Kotlin plugin.
-    for (fragment in existingTailFragments.drop(1)) {
+    // We need to drop one or two fragments from the existing tail.
+    // The first fragment from the Kotlin plugin contains the parameters, which we've already
+    // written out above; these are always dropped.
+    // If the second fragment contains the string "->", then it's a type specifier for the trailing
+    // lambda that we want to omit for rewritten Composables.
+    val dropCount =
+      if (existingTailFragments.elementAtOrNull(1)?.text?.contains("->") == true) 2 else 1
+    for (fragment in existingTailFragments.drop(dropCount)) {
       // Technically each fragment may have a color associated with it which we are not persisting.
       // But the only time that can be set is with LookupElementPresentation.setTailText, which
       // clears the tail before adding the fragment with color. That means only the first fragment
@@ -289,20 +324,14 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
   }
 }
 
-/** A function to remove the first "(.*)" string from [LookupElementPresentation.TextFragment]. */
+/**
+ * A function to extract the package name (eg " (com.example)") at the end of a
+ * [LookupElementPresentation.TextFragment].
+ */
 private fun LookupElementPresentation.TextFragment.removeParameters(): String {
-  if (text.firstOrNull() != '(') return text
-  var parenOpenCount = 0
-  for (i in text.indices) {
-    when (text[i]) {
-      '(' -> ++parenOpenCount
-      ')' -> {
-        --parenOpenCount
-        if (parenOpenCount == 0) return text.substring(startIndex = i + 1)
-      }
-    }
-  }
-  return ""
+  val lastParen = text.lastIndexOf(" (")
+  if (lastParen == -1) return text
+  return text.substring(lastParen)
 }
 
 /**
@@ -437,6 +466,7 @@ private fun InsertionContext.getNextElementAfterOffset(): PsiElement? =
 /** A class used to keep the result of analysis API for information about parameters. */
 private data class FunctionInfo(
   val endsInRequiredLambda: Boolean,
+  val endsInVarargLambda: Boolean,
   val hasRequiredParametersBeforeLambda: Boolean,
 )
 
@@ -444,13 +474,17 @@ private fun KtNamedFunction.getFunctionInfoForCompletion(): FunctionInfo =
   analyze(this) {
     val allParameters = symbol.valueParameters
 
+    val lastParameter = allParameters.lastOrNull()
     val endsInRequiredLambda =
-      allParameters.lastOrNull()?.let {
-        !it.isVararg && it.returnType is KaFunctionType && !it.hasDefaultValue
-      } ?: false
+      lastParameter?.let { !it.isVararg && it.returnType is KaFunctionType && !it.hasDefaultValue }
+        ?: false
+
+    val endsInVarargLambda =
+      lastParameter?.let { it.isVararg && it.returnType is KaFunctionType && !it.hasDefaultValue }
+        ?: false
 
     val hasRequiredParametersBeforeLambda =
       endsInRequiredLambda && allParameters.dropLast(1).any { !it.hasDefaultValue && !it.isVararg }
 
-    return FunctionInfo(endsInRequiredLambda, hasRequiredParametersBeforeLambda)
+    return FunctionInfo(endsInRequiredLambda, endsInVarargLambda, hasRequiredParametersBeforeLambda)
   }

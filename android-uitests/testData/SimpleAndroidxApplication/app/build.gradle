@@ -6,7 +6,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.google.androidx"
-        minSdkVersion 15
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"

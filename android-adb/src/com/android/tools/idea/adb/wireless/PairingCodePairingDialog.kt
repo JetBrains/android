@@ -33,30 +33,34 @@ class PairingCodePairingDialog(project: Project) {
   private val pairingPanel by lazy { PairingCodeInputPanel(disposable) }
 
   init {
-    val options = SimpleDialogOptions(project,
-                                      true,
-                                      DialogWrapper.IdeModalityType.IDE,
-                                      title = "Enter pairing code",
-                                      isModal = true,
-                                      okButtonText = "Pair",
-                                      centerPanelProvider = { createCenterPanel() },
-                                      okActionHandler = { okButtonHandler() },
-                                      preferredFocusProvider = { pairingPanel.firstPairingCodeDigitComponent },
-                                      validationHandler = { validationHandler() }
-    )
+    val options =
+      SimpleDialogOptions(
+        project,
+        true,
+        DialogWrapper.IdeModalityType.IDE,
+        title = "Enter pairing code",
+        isModal = true,
+        okButtonText = "Pair",
+        centerPanelProvider = { createCenterPanel() },
+        okActionHandler = { okButtonHandler() },
+        preferredFocusProvider = { pairingPanel.firstPairingCodeDigitComponent },
+        validationHandler = { validationHandler() },
+      )
     dialog = SimpleDialog(options)
     dialog.init()
 
     // Install a custom focus traversal policy that ensures focus is set to the "Pair" button
     // when the last digit of the pairing code is entered
     val focusPolicy = OneTimeOverrideFocusTraversalPolicy.install(dialog.rootPane)
-    pairingPanel.lastPairingCodeDigitComponent.addListener(object: JSingleDigitTextField.Listener {
-      override fun onDigitEntered(event: JSingleDigitTextField.Event) {
-        focusPolicy.oneTimeComponentAfter.set(dialog.okButton)
-        event.component.transferFocus()
-        event.consumed = true
+    pairingPanel.lastPairingCodeDigitComponent.addListener(
+      object : JSingleDigitTextField.Listener {
+        override fun onDigitEntered(event: JSingleDigitTextField.Event) {
+          focusPolicy.oneTimeComponentAfter.set(dialog.okButton)
+          event.component.transferFocus()
+          event.consumed = true
+        }
       }
-    })
+    )
   }
 
   var validationHandler: () -> ValidationInfo? = { null }

@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createGradleBuildModel;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogView;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.GradleVersionCatalogViewImpl;
+import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
+import com.android.tools.idea.gradle.dsl.model.SimplifiedVersionCatalogViewImpl;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -102,6 +109,13 @@ public final class GradleModelSource extends GradleModelProvider {
     return parseSettingsFile(createContext(hostProject), settingsFile, hostProject, "settings");
   }
 
+  @Override
+  public @Nullable GradleSettingsModel getSettingsModel(@NotNull Project hostProject, @NotNull String compositeRoot) {
+    BuildModelContext context = createContext(hostProject);
+    VirtualFile file = context.getGradleSettingsFile(new File(compositeRoot));
+    return file != null ? parseSettingsFile(context, file, hostProject, "settings") : null;
+  }
+
   @NotNull
   @Override
   public GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject) {
@@ -114,11 +128,22 @@ public final class GradleModelSource extends GradleModelProvider {
     }
   }
 
+  @Override
+  public @Nullable GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject, @NotNull String compositeRoot) {
+    GradleSettingsModel settings = getSettingsModel(hostProject, compositeRoot);
+    if (settings != null) {
+      return new GradleVersionCatalogViewImpl(settings);
+    }
+    else {
+      return new SimplifiedVersionCatalogViewImpl(compositeRoot);
+    }
+  }
+
   @NotNull
   private static GradleBuildModel internalCreateBuildModel(@NotNull BuildModelContext context,
                                                            @NotNull VirtualFile file,
                                                            @NotNull String moduleName) {
-    return new GradleBuildModelImpl(context.getOrCreateBuildFile(file, moduleName, false));
+    return createGradleBuildModel(context.getOrCreateBuildFile(file, moduleName, false));
   }
 
   /**

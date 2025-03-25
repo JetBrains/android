@@ -118,7 +118,7 @@ PROJECT                       : kotlinMultiPlatform
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -291,7 +291,7 @@ PROJECT                       : kotlinMultiPlatform
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -567,9 +567,6 @@ PROJECT                       : kotlinMultiPlatform
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : :jsModule:assemble
-                REBUILD                       : :jsModule:assemble, :jsModule:clean
-                COMPILE_JAVA                  : :jsModule:compileJava
     MODULE                        : kotlinMultiPlatform.jsModule.main
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -591,7 +588,7 @@ PROJECT                       : kotlinMultiPlatform
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule -Xir-only -Xir-per-module-output-name=kotlinMultiPlatform-jsModule -Xir-produce-klib-dir -main call
+                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule -Xir-per-module-output-name=kotlinMultiPlatform-jsModule -Xir-produce-klib-dir -main call
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :jsModule
@@ -616,9 +613,6 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION> [=]
         BUILD_TASKS
-                ASSEMBLE                      : :jsModule:assemble
-                REBUILD                       : :jsModule:assemble, :jsModule:clean
-                COMPILE_JAVA                  : :jsModule:compileJava
     MODULE                        : kotlinMultiPlatform.jsModule.test
         ExternalModuleGroup           : kotlinMultiPlatform
         ExternalModuleType            : sourceSet
@@ -642,7 +636,7 @@ PROJECT                       : kotlinMultiPlatform
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule_test -Xir-only -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test -Xir-produce-klib-dir -main call
+                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule_test -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test -Xir-produce-klib-dir -main call
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :jsModule
@@ -671,9 +665,6 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : kotlinMultiPlatform.jsModule.main
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :jsModule:assemble
-                REBUILD                       : :jsModule:assemble, :jsModule:clean
-                COMPILE_JAVA                  : :jsModule:compileJava
     MODULE                        : kotlinMultiPlatform.module2
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.module2
@@ -712,7 +703,7 @@ PROJECT                       : kotlinMultiPlatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/module2
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/module2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/module2/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1234,9 +1225,9 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::jsModule:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::jsModule:assemble, <PROJECT>::jsModule:clean, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::jsModule:compileJava, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileDebugUnitTestSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

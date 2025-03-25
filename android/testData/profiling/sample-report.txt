@@ -122,10 +122,10 @@ Root 2:
 
 CLASS: java.lang.Class (711 objects)
 Root 1:
-[    1/  0%/  100B]   100B          1   ROOT: Static field: java.lang.Void.TYPE
+[    1/  0%/  100B]   100B          1   ROOT: Sticky class
 [    1/  0%/  100B]   100B          1 * (root): java.lang.Class
 Root 2:
-[    1/  0%/  100B]   100B          1   ROOT: Static field: java.lang.Short.TYPE
+[    1/  0%/  100B]   100B          1   ROOT: Class definition: [Lsun.launcher.LauncherHelper;
 [    1/  0%/  100B]   100B          1 * (root): java.lang.Class
 
 CLASS: java.lang.String (3097 objects)
@@ -248,11 +248,11 @@ Root 1:
 
 CLASS: sun.util.locale.BaseLocale (19 objects)
 Root 1:
-[    1/  5%/   44B]   116B          1   ROOT: Static field: java.util.Locale.KOREA
+[    1/  5%/   44B]   116B          1   ROOT: Static field: java.util.Locale.FRANCE
 [    1/  5%/   44B]   116B          1   (root): java.util.Locale
 [    1/  5%/   44B]    80B          1 * baseLocale: sun.util.locale.BaseLocale
 Root 2:
-[    1/  5%/   44B]    80B          1   ROOT: Static field: java.util.Locale.JAPANESE
+[    1/  5%/   44B]    80B          1   ROOT: Static field: java.util.Locale.ROOT
 [    1/  5%/   44B]    80B          1   (root): java.util.Locale
 [    1/  5%/   44B]    44B          1 * baseLocale: sun.util.locale.BaseLocale
 
@@ -263,8 +263,8 @@ Root 1:
 [    1/ 16%/   79B]   128B          1   lb: java.nio.DirectLongBufferU
 [    1/ 16%/   79B]    72B          1 * att: java.nio.DirectByteBuffer
 Root 2:
-[    1/ 16%/   79B]   240B          1   ROOT: Static field: sun.misc.PerfCounter$CoreCounters.lc
-[    1/ 16%/   79B]   240B          1   (root): sun.misc.PerfCounter
+[    1/ 16%/   79B]   260B          1   ROOT: Static field: sun.misc.PerfCounter$CoreCounters.rcbt
+[    1/ 16%/   79B]   260B          1   (root): sun.misc.PerfCounter
 [    1/ 16%/   79B]   128B          1   lb: java.nio.DirectLongBufferU
 [    1/ 16%/   79B]    72B          1 * att: java.nio.DirectByteBuffer
 

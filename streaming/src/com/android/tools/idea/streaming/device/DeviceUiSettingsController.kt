@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
@@ -37,7 +37,8 @@ internal class DeviceUiSettingsController(
   model: UiSettingsModel,
   parentDisposable: Disposable
 ) : UiSettingsController(model, UiSettingsStats(deviceConfig.deviceProperties.deviceInfoProto)) {
-  private val scope = AndroidCoroutineScope(parentDisposable)
+
+  private val scope = parentDisposable.createCoroutineScope()
 
   override suspend fun populateModel() {
     populateModel(deviceController.getUiSettings())

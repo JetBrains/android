@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.gradle.preview
 
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.getPsiFile
@@ -31,18 +32,19 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.Companion.createVisualLintRenderIssue
 import com.android.tools.preview.applyTo
 import com.android.tools.rendering.RenderResult
-import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.smartReadActionBlocking
+import com.android.tools.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.analyzers.ButtonSizeAnalyzer
+import com.android.tools.visuallint.analyzers.TextFieldSizeAnalyzer
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.concurrency.AppExecutorUtil
+import kotlin.test.assertEquals
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
@@ -69,13 +71,13 @@ class ComposeVisualLintSuppressTaskTest {
           )
         psiFile.virtualFile to
           // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
-          smartReadActionBlocking(projectRule.project) {
+          smartReadAction(projectRule.project) {
               PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
                 .asSequence()
                 .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
                 .mapNotNull { it.getContainingUMethod() }
                 .toSet()
-                .flatMap { getPreviewNodes(it, null, false) }
+                .flatMap { runBlocking { getPreviewNodes(it, null, false).toList() } }
                 .filterIsInstance<PsiComposePreviewElementInstance>()
                 .toList()
             }
@@ -115,21 +117,24 @@ class ComposeVisualLintSuppressTaskTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    nlModel.dataContext = DataContext {
-      when (it) {
-        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-        else -> null
+    nlModel.dataProvider =
+      object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+        override fun getData(dataId: String): Any? =
+          previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
       }
-    }
     nlModel.setModelUpdater(AccessibilityModelUpdater())
     NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
 
     val issueProvider = ComposeVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     val buttonIssues =
-      ButtonSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+      ButtonSizeAnalyzer.findIssues(renderResult, nlModel.configuration).map {
+        createVisualLintRenderIssue(it, nlModel, ButtonSizeAnalyzer.type)
+      }
     assertEquals(1, buttonIssues.size)
     val textFieldIssues =
-      TextFieldSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+      TextFieldSizeAnalyzer.findIssues(renderResult, nlModel.configuration).map {
+        createVisualLintRenderIssue(it, nlModel, TextFieldSizeAnalyzer.type)
+      }
     assertEquals(1, textFieldIssues.size)
     issueProvider.addAllIssues(buttonIssues)
     issueProvider.addAllIssues(textFieldIssues)
@@ -172,13 +177,13 @@ class ComposeVisualLintSuppressTaskTest {
           )
         psiFile.virtualFile to
           // needs to be a smartReadAction as RootsChangedDumbModeTask may be queued
-          smartReadActionBlocking(projectRule.project) {
+          smartReadAction(projectRule.project) {
               PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
                 .asSequence()
                 .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
                 .mapNotNull { it.getContainingUMethod() }
                 .toSet()
-                .flatMap { getPreviewNodes(it, null, false) }
+                .flatMap { runBlocking { getPreviewNodes(it, null, false).toList() } }
                 .filterIsInstance<PsiComposePreviewElementInstance>()
                 .toList()
             }
@@ -218,21 +223,25 @@ class ComposeVisualLintSuppressTaskTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    nlModel.dataContext = DataContext {
-      when (it) {
-        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-        else -> null
+    nlModel.dataProvider =
+      object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+        override fun getData(dataId: String): Any? =
+          previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
       }
-    }
+
     nlModel.setModelUpdater(AccessibilityModelUpdater())
     NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
 
     val issueProvider = ComposeVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     val buttonIssues =
-      ButtonSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+      ButtonSizeAnalyzer.findIssues(renderResult, nlModel.configuration).map {
+        createVisualLintRenderIssue(it, nlModel, ButtonSizeAnalyzer.type)
+      }
     assertEquals(1, buttonIssues.size)
     val textFieldIssues =
-      TextFieldSizeAnalyzer.analyze(renderResult, nlModel, HighlightSeverity.WARNING, false)
+      TextFieldSizeAnalyzer.findIssues(renderResult, nlModel.configuration).map {
+        createVisualLintRenderIssue(it, nlModel, TextFieldSizeAnalyzer.type)
+      }
     assertEquals(1, textFieldIssues.size)
     issueProvider.addAllIssues(buttonIssues)
     issueProvider.addAllIssues(textFieldIssues)

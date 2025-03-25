@@ -22,11 +22,16 @@ import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
 import kotlin.time.Duration
 
+/**
+ * A description of a device that can be displayed in a [DeviceTable].
+ *
+ * This interface uses an "extensible data class" pattern. Concrete subtypes are implemented as data
+ * classes, and are free to add additional fields. The Builder class exists in order to allow
+ * updates to the common fields generically. (This ended up being mostly irrelevant after the
+ * de-unification of the dialog.)
+ */
 interface DeviceProfile {
-  // TODO: alert icon, text
-
   val apiRange: Range<Int>
-
   val manufacturer: String
   val name: String
   val resolution: Resolution
@@ -43,18 +48,16 @@ interface DeviceProfile {
   val abis: List<Abi>
   val formFactor: String
 
-  /** Indicates that the device already exists, and we cannot create another. */
-  val isAlreadyPresent: Boolean
-  /** An estimate of how long it will take to acquire the device. */
-  val availabilityEstimate: Duration
-
   fun toBuilder(): Builder
 
   @Composable fun Icon(modifier: Modifier)
 
+  /**
+   * Subtypes should extend this Builder with the additional fields needed, and create their own
+   * [copyFrom] overload that calls super.copyFrom() to initialize the superclass fields.
+   */
   abstract class Builder {
     lateinit var apiRange: Range<Int>
-
     lateinit var manufacturer: String
     lateinit var name: String
     lateinit var resolution: Resolution
@@ -85,8 +88,6 @@ interface DeviceProfile {
       isRemote = profile.isRemote
       abis = profile.abis
       formFactor = profile.formFactor
-      isAlreadyPresent = profile.isAlreadyPresent
-      availabilityEstimate = profile.availabilityEstimate
     }
   }
 }
@@ -101,4 +102,5 @@ object FormFactors {
   const val TV = "TV"
   const val AUTO = "Automotive"
   const val DESKTOP = "Desktop"
+  const val XR = "XR"
 }

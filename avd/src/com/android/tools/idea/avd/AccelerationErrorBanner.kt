@@ -16,32 +16,15 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import com.android.tools.adtui.compose.rememberColor
-import com.android.tools.idea.adddevicedialog.LocalProject
+import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution
-import icons.StudioIconsCompose
-import org.jetbrains.jewel.foundation.theme.JewelTheme
-import org.jetbrains.jewel.ui.Orientation
-import org.jetbrains.jewel.ui.component.Divider
-import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
-import org.jetbrains.jewel.ui.theme.colorPalette
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,16 +33,10 @@ internal fun AccelerationErrorBanner(
   refresh: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Column(modifier.fillMaxWidth()) {
-    Divider(orientation = Orientation.Horizontal, color = BannerUi.Error.border)
-    Row(
-      modifier = Modifier.background(BannerUi.Error.background).padding(10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Icon(StudioIconsCompose.Common.Error, contentDescription = "Error")
-      Spacer(modifier = Modifier.width(8.dp))
-      Text(text = accelerationError.problem, color = BannerUi.Error.foreground)
-      Spacer(modifier = Modifier.weight(1f))
+  ErrorBanner(
+    accelerationError.problem,
+    modifier,
+    rightContent = {
       if (accelerationError.solution == AccelerationErrorSolution.SolutionCode.NONE) {
         AccelerationErrorLink(accelerationError, refresh)
       } else {
@@ -67,9 +44,8 @@ internal fun AccelerationErrorBanner(
           AccelerationErrorLink(accelerationError, refresh)
         }
       }
-    }
-    Divider(orientation = Orientation.Horizontal, color = BannerUi.Error.border)
-  }
+    },
+  )
 }
 
 @Composable
@@ -82,41 +58,4 @@ private fun AccelerationErrorLink(accelerationError: AccelerationErrorCode, refr
     },
     overflow = TextOverflow.Ellipsis,
   )
-}
-
-private object BannerUi {
-  object Error {
-    val border: Color
-      @Composable
-      get() =
-        rememberColor(
-          key = "Banner.Error.borderColor",
-          darkFallbackKey = "ColorPalette.Red3",
-          darkDefault = JewelTheme.colorPalette.red(3),
-          lightFallbackKey = "ColorPalette.Red9",
-          lightDefault = JewelTheme.colorPalette.red(9),
-        )
-
-    val background: Color
-      @Composable
-      get() =
-        rememberColor(
-          key = "Banner.Error.background",
-          darkFallbackKey = "ColorPalette.Red1",
-          darkDefault = JewelTheme.colorPalette.red(1),
-          lightFallbackKey = "ColorPalette.Red12",
-          lightDefault = JewelTheme.colorPalette.red(12),
-        )
-
-    val foreground: Color
-      @Composable
-      get() =
-        rememberColor(
-          key = "Banner.Error.foreground",
-          darkFallbackKey = "ColorPalette.Gray12",
-          darkDefault = JewelTheme.globalColors.text.normal,
-          lightFallbackKey = "ColorPalette.Gray1",
-          lightDefault = JewelTheme.globalColors.text.normal,
-        )
-  }
 }

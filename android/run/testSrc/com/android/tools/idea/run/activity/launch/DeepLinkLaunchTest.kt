@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.util.concurrent.TimeUnit
 
 class DeepLinkLaunchTest {
@@ -39,7 +40,7 @@ class DeepLinkLaunchTest {
   fun testLaunch() {
     val state = DeepLinkLaunch.State()
     state.DEEP_LINK = "com.example"
-    val device = Mockito.mock(IDevice::class.java)
+    val device = mock<IDevice>()
 
     val app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
     val stats = RunStats(projectRule.project);

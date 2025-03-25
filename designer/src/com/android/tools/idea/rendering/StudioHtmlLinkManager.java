@@ -72,14 +72,13 @@ import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
@@ -139,8 +138,8 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
    * {@link NotificationGroup} used to let the user now that the click on a link did something. This is meant to be used
    * in those actions that do not trigger any UI updates (like Copy stack trace to clipboard).
    */
-  private static final NotificationGroup NOTIFICATIONS_GROUP = new NotificationGroup(
-    "Render error panel notifications", NotificationDisplayType.BALLOON, false, null, null, null, PluginId.getId("org.jetbrains.android"));
+  private static final NotificationGroup NOTIFICATIONS_GROUP =
+    NotificationGroupManager.getInstance().getNotificationGroup("Render error panel notifications");
 
   @Override
   public void showNotification(@NotNull String content) {
@@ -240,7 +239,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     else if ((url.startsWith(URL_ADD_DEPENDENCY) || url.startsWith(URL_ADD_DEBUG_DEPENDENCY)) && module != null) {
       handleAddDependency(url, module);
       ProjectSystemUtil.getSyncManager(module.getProject())
-        .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
+        .requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
     }
     else if (url.startsWith(URL_REFRESH_RENDER)) {
       surface.handleRefreshRenderUrl();
@@ -346,7 +345,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     assert url.equals(URL_SYNC) : url;
 
     ProjectSystemSyncManager.SyncReason reason = project.isInitialized() ? ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED : ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
-    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason);
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().requestSyncProject(reason);
   }
 
   private static void handleEditClassPathUrl(@NotNull String url, @NotNull Module module) {

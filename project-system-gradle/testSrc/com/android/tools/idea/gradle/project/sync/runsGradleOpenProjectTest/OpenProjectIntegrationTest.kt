@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -52,6 +52,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.utils.io.deleteRecursively
 import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -98,6 +99,8 @@ class OpenProjectIntegrationTest {
 
   @Test
   fun testReopenProject_kmpWithAndroid() {
+    // TODO b/364570943 ignored test for K2 due to KTIJ-32501
+    if (KotlinPluginModeProvider.isK2Mode()) return
     val preparedProject = projectRule.prepareTestProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
     val before = preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { project ->
       project.saveAndDump()
@@ -160,6 +163,10 @@ class OpenProjectIntegrationTest {
     val buildFile = VfsUtil.findFileByIoFile(preparedProject.root.resolve("app/build.gradle"), true)!!
 
     val (snapshots, lastSyncFinishedTimestamp) = preparedProject.open { project ->
+      // Beginning with Gradle 8.11.1, the build dir exists after the project's sync failure below. This behavior is consistent, so we add
+      // the build dir to `initial` here to properly test the assertion below that the snapshots are the same
+      val buildDir = File(project.getBasePath(), "build")
+      buildDir.mkdirs()
       val initial = project.saveAndDump()
       runWriteAction {
         buildFile.setBinaryContent("*bad*".toByteArray())

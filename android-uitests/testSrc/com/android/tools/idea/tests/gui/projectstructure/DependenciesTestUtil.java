@@ -93,9 +93,10 @@ public class DependenciesTestUtil {
       .moveBetween("", "import android")
       .enterText("\n")
       .enterText("\nimport android.com." + module1 + "." + CLASS_NAME_1 + ";" +
-                 "\nimport android.com." + modeule2 + "." + CLASS_NAME_2 + ";")
+                 "\nimport android.com." + modeule2 + "." + CLASS_NAME_2 + ";\n")
       //.moveBetween("", "setContentView(R.layout.activity_main);")
       .moveBetween("protected void onCreate(Bundle savedInstanceState) {", "")
+      .moveBetween("protected void onCreate(Bundle savedInstanceState) {", "") //To reduce flakiness
       .enterText("\n" + CLASS_NAME_1 + " classNameA = new " + CLASS_NAME_1 + "();")
       .enterText("\n" + CLASS_NAME_2 + " classNameB = new " + CLASS_NAME_2 + "();");
     result = ideFrame.invokeProjectMake(Wait.seconds(240));
@@ -131,7 +132,7 @@ public class DependenciesTestUtil {
                                              @NotNull String library,
                                              @NotNull String anotherModule,
                                              @NotNull String scope) {
-    ideFrame.invokeMenuPath("File", "Project Structure...");
+    ideFrame.invokeMenuPath("File", "Project Structure\u2026");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
     DependenciesPerspectiveConfigurableFixture dependenciesFixture =

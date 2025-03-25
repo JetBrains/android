@@ -43,11 +43,12 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
   override fun getDisplayName(): String = dependenciesPerspectiveDisplayName
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
-    when (module) {
-      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, this)
-      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, this)
-      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, this)
-      is PsEmptyModule -> ModuleUnsupportedConfigurable(context, this, module, message = AndroidGradlePsdBundle.message("android.module.unsupported.configurable.label.empty.module"))
+    when {
+      module is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, this)
+      module is PsAndroidModule && module.isKmpModule.not() -> AndroidModuleDependenciesConfigurable(module, context, this)
+      module is PsAndroidModule && module.isKmpModule -> ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
+      module is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, this)
+      module is PsEmptyModule -> ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
       else -> throw IllegalStateException()
     }
 

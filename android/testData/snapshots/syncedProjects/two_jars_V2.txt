@@ -39,7 +39,7 @@ PROJECT                       : My Application
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -182,15 +182,15 @@ PROJECT                       : My Application
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: liba.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: liba.jar
                 *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: liba.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: liba.jar
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
         Classes
             -                             : file://<PROJECT>/lib/build/classes/java/main
@@ -220,15 +220,15 @@ PROJECT                       : My Application
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: liba.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: liba.jar
                 *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: liba.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: liba.jar
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
         ORDER_ENTRY                   : My_Application.lib.main
         BUILD_TASKS

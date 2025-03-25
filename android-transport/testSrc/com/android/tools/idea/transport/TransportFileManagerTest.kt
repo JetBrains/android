@@ -17,7 +17,6 @@ package com.android.tools.idea.transport
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.profiler.proto.Agent
@@ -33,20 +32,21 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.Timeout
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.eq
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.Mockito
-import org.mockito.Mockito.any
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import java.io.File
 
 class TransportFileManagerTest {
   @get:Rule
-  val timeout = Timeout.seconds(60)
+  val timeout: Timeout = Timeout.seconds(60)
 
   @JvmField
   @Rule
@@ -71,7 +71,7 @@ class TransportFileManagerTest {
 
     ApplicationManager.getApplication().registerExtension(TransportConfigContributor.EP_NAME, fakeExtension, disposableRule.disposable)
 
-    mockDevice = mock(IDevice::class.java)
+    mockDevice = mock()
     fileManager = TransportFileManager(mockDevice)
   }
 
@@ -90,8 +90,8 @@ class TransportFileManagerTest {
       .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
-    val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
-    val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+    val hostPathCaptor = argumentCaptor<String>()
+    val devicePathCaptor = argumentCaptor<String>()
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
@@ -140,8 +140,8 @@ class TransportFileManagerTest {
       Abi.ARMEABI
     ).map { it.toString() })
 
-    val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
-    val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+    val hostPathCaptor = argumentCaptor<String>()
+    val devicePathCaptor = argumentCaptor<String>()
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
@@ -193,8 +193,8 @@ class TransportFileManagerTest {
       Abi.X86_64
     ).map { it.toString() })
 
-    val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
-    val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+    val hostPathCaptor = argumentCaptor<String>()
+    val devicePathCaptor = argumentCaptor<String>()
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
@@ -247,8 +247,8 @@ class TransportFileManagerTest {
       Abi.X86_64
     ).map { it.toString() })
 
-    val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
-    val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+    val hostPathCaptor = argumentCaptor<String>()
+    val devicePathCaptor = argumentCaptor<String>()
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
@@ -300,18 +300,18 @@ class TransportFileManagerTest {
 
   private fun testNumberOfFilesToCopy(traceboxFlag: Boolean, apiLevel: Int, expectedNumberOfFiles: Int) {
     StudioFlags.PROFILER_TRACEBOX.override(traceboxFlag)
-    val device = mock(IDevice::class.java, Mockito.RETURNS_DEEP_STUBS)
-    val mockMessageBus = mock(MessageBus::class.java, Mockito.RETURNS_DEEP_STUBS)
+    val device = mock<IDevice>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    val mockMessageBus = mock<MessageBus>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
     val transportDeviceManagerListener =
-      mock(TransportDeviceManager.TransportDeviceManagerListener::class.java, Mockito.RETURNS_DEEP_STUBS)
+      mock<TransportDeviceManager.TransportDeviceManagerListener>(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
 
-    doReturn(transportDeviceManagerListener).whenever(mockMessageBus).syncPublisher(TransportDeviceManager.TOPIC)
+    whenever(mockMessageBus.syncPublisher(TransportDeviceManager.TOPIC)).thenReturn(transportDeviceManagerListener)
     val fileManagerSpy = spy(TransportFileManager(device))
 
-    doReturn(ArrayList<String>()).whenever(fileManagerSpy).copyFileToDevice(any(DeployableFile::class.java))
+    doReturn(ArrayList<String>()).whenever(fileManagerSpy).copyFileToDevice(any())
     whenever(device.version.featureLevel).thenReturn(apiLevel)
 
-    fileManagerSpy.copyFilesToDevice();
-    verify(fileManagerSpy, times(expectedNumberOfFiles)).copyFileToDevice(any(DeployableFile::class.java))
+    fileManagerSpy.copyFilesToDevice()
+    verify(fileManagerSpy, times(expectedNumberOfFiles)).copyFileToDevice(any())
   }
 }

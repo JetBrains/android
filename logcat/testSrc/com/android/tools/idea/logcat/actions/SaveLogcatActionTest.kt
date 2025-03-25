@@ -1,6 +1,5 @@
 package com.android.tools.idea.logcat.actions
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
@@ -34,11 +33,12 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
+import java.io.File
+import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
-import java.io.File
-import java.nio.file.Path
+import org.mockito.kotlin.mock
 
 /** Tests for [SaveLogcatAction] */
 class SaveLogcatActionTest {
@@ -200,7 +200,7 @@ class SaveLogcatActionTest {
     assertThat(notificationRule.notifications).hasSize(1)
     val openInEditorAction =
       notificationRule.notifications.first().actions.find { it.templateText == "Open in Editor" }
-        ?: throw AssertionError("Expected action not found")
+      ?: throw AssertionError("Expected action not found")
 
     runInEdtAndWait { openInEditorAction.actionPerformed(event) }
 
@@ -223,7 +223,7 @@ class SaveLogcatActionTest {
     assertThat(notificationRule.notifications).hasSize(1)
     val openInLogcatAction =
       notificationRule.notifications.first().actions.find { it.templateText == "Open in Logcat" }
-        ?: throw AssertionError("Expected action not found")
+      ?: throw AssertionError("Expected action not found")
     val mockShowLogcatListener = mock<ShowLogcatListener>()
     project.messageBus.connect().subscribe(ShowLogcatListener.TOPIC, mockShowLogcatListener)
 

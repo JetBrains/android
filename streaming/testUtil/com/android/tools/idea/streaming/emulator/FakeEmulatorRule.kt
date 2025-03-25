@@ -23,6 +23,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.AndroidSdksImpl
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.intellij.openapi.Disposable
@@ -69,7 +70,7 @@ class FakeEmulatorRule : TestRule {
       registrationDirectory = Files.createDirectories(root.resolve("avd/running"))
       emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
       AvdManagerConnection.setConnectionFactory { sdkHandler, _ -> TestAvdManagerConnection(sdkHandler, avdRoot) }
-      val androidSdks = object : AndroidSdks() {
+      val androidSdks = object : AndroidSdksImpl() {
         override fun tryToChooseSdkHandler(): AndroidSdkHandler {
           val sdkRoot = FakeEmulator.getSdkFolder(avdRoot)
           return AndroidSdkHandler(sdkRoot, sdkRoot)

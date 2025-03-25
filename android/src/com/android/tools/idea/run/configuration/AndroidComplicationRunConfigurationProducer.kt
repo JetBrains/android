@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.intellij.psi.PsiClass
-import com.intellij.psi.util.InheritanceUtil
+import com.intellij.psi.PsiElement
 
 /**
  * Producer of [AndroidComplicationConfiguration] for classes that extend
@@ -26,9 +25,9 @@ import com.intellij.psi.util.InheritanceUtil
 class AndroidComplicationRunConfigurationProducer :
   AndroidWearRunConfigurationProducer<AndroidComplicationConfiguration>(AndroidComplicationConfigurationType::class.java) {
 
-  override fun isValidService(psiClass: PsiClass): Boolean = psiClass.isValidComplicationService()
+  override fun isValidService(psiElement: PsiElement): Boolean = psiElement.isValidComplicationService()
 }
 
-internal fun PsiClass.isValidComplicationService(): Boolean {
-  return WearBaseClasses.COMPLICATIONS.any { wearBase -> InheritanceUtil.isInheritor(this, wearBase) }
+internal fun PsiElement.isValidComplicationService(): Boolean {
+  return WearBaseClasses.COMPLICATIONS.any { wearBase -> isSubtypeOf(wearBase) }
 }

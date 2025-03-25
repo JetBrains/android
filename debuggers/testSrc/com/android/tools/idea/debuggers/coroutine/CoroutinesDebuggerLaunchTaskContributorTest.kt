@@ -18,14 +18,14 @@ package com.android.tools.idea.debuggers.coroutine
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import org.mockito.Mockito.spy
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 
 class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 

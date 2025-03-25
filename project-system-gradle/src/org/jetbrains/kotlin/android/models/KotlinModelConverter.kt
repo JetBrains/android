@@ -207,7 +207,11 @@ class KotlinModelConverter {
 
     dataBindingEnabled = booleanFlagValuesList.firstOrNull {
       it.flag == ProtoBooleanFlag.DATA_BINDING_ENABLED
-    }?.value ?: BooleanFlag.DATA_BINDING_ENABLED.legacyDefault
+    }?.value ?: BooleanFlag.DATA_BINDING_ENABLED.legacyDefault,
+
+    generateManifestClass = booleanFlagValuesList.firstOrNull {
+      it.flag == ProtoBooleanFlag.GENERATE_MANIFEST_CLASS
+    }?.value ?: BooleanFlag.GENERATE_MANIFEST_CLASS.legacyDefault
   )
 
   private fun SigningConfig.convert() = IdeSigningConfigImpl(

@@ -33,7 +33,6 @@ public abstract class BuildDepsStats implements QuerySyncOperationStats {
           .setBuildTargets(ImmutableSet.of())
           .setRequestedTargets(ImmutableSet.of())
           .setBuildFlags(ImmutableList.of())
-          .setBuildIds(ImmutableList.of())
           .setBlazeBinaryType(BuildBinaryType.NONE)
           .build();
 
@@ -43,13 +42,9 @@ public abstract class BuildDepsStats implements QuerySyncOperationStats {
 
   public abstract ImmutableList<String> buildFlags();
 
-  public abstract ImmutableList<String> buildIds();
-
   public abstract ImmutableSet<Label> requestedTargets();
 
   public abstract ImmutableSet<Label> buildTargets();
-
-  public abstract Optional<Long> bepByteConsumed();
 
   public abstract Optional<Long> artifactBytesConsumed();
 
@@ -87,10 +82,6 @@ public abstract class BuildDepsStats implements QuerySyncOperationStats {
     }
 
     public abstract Builder setBuildFlags(ImmutableList<String> value);
-
-    public abstract Builder setBuildIds(ImmutableList<String> value);
-
-    public abstract Builder setBepByteConsumed(@Nullable Long value);
 
     public abstract Builder setArtifactBytesConsumed(@Nullable Long value);
 

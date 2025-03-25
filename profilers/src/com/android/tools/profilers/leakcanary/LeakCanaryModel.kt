@@ -36,7 +36,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -211,7 +212,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
     }
     val navigator = this.studioProfilers.ideServices.codeNavigator
     val action = NavigateToCodeAction(codeLocationSupplier, navigator)
-    val event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.CODE_INSPECTION, DataContext.EMPTY_CONTEXT)
+    val event = createEvent(action, DataContext.EMPTY_CONTEXT, null, ActionPlaces.CODE_INSPECTION, ActionUiKind.NONE, null)
     action.actionPerformed(event)
   }
 

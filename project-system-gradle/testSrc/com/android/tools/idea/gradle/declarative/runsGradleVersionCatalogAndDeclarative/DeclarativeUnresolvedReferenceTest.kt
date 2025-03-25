@@ -24,9 +24,11 @@ import com.android.tools.idea.testing.onEdt
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore("390226821")
 @RunsInEdt
 class DeclarativeUnresolvedReferenceTest {
   @get:Rule

@@ -16,7 +16,6 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -42,6 +41,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.kotlin.mock
 
 /** Test basic cases for the [ComposeUsageGroupingRuleProvider]. */
 @RunWith(JUnit4::class)

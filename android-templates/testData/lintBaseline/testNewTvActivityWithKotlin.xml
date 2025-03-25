@@ -63,4 +63,15 @@
             file="src/main/res/drawable/movie.png"/>
     </issue>
 
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="        playerAdapter.setDataSource(Uri.parse(videoUrl))"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/pkg/PlaybackVideoFragment.kt"
+            line="32"
+            column="37"/>
+    </issue>
+
 </issues>

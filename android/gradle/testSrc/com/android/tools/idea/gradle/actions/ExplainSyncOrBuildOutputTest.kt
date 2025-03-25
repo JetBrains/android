@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetails
-import com.android.tools.idea.studiobot.ChatService
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.StudioBotExternalFlags
-import com.android.tools.idea.studiobot.prompts.buildPrompt
-import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.gemini.StudioBotExternalFlags
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.util.toIoFile
+import com.google.common.truth.Truth.assertThat
 import com.intellij.build.ExecutionNode
 import com.intellij.build.FileNavigatable
 import com.intellij.build.FilePosition
@@ -34,13 +34,14 @@ import com.intellij.build.events.MessageEventResult
 import com.intellij.build.events.impl.FailureImpl
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.ide.util.treeView.NodeDescriptor
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -59,34 +60,43 @@ import junit.framework.TestCase.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
 import java.util.function.Supplier
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @RunsInEdt
 class ExplainSyncOrBuildOutputTest {
-
-  private class MockStudioBot : StudioBot.StubStudioBot() {
+  private class FakeGeminiPluginApi : GeminiPluginApi {
+    override val MAX_QUERY_CHARS: Int = Int.MAX_VALUE
     var available = true
     var contextAllowed = true
 
-    override fun isAvailable() = available
+    var sentPrompt: LlmPrompt? = null
+    var displayedText: String? = null
+    var requestSource: GeminiPluginApi.RequestSource? = null
 
+    var stagedPrompt: String? = null
+
+    override fun isAvailable() = available
     override fun isContextAllowed(project: Project) = contextAllowed
 
-    private val _chatService = spy(object : ChatService.StubChatService() {})
+    override fun isFileExcluded(project: Project, file: VirtualFile) = false
 
-    override fun chat(project: Project): ChatService = _chatService
+    override fun sendChatQuery(project: Project, prompt: LlmPrompt, displayText: String?, requestSource: GeminiPluginApi.RequestSource) {
+      sentPrompt = prompt
+      displayedText = displayText
+      this.requestSource = requestSource
+    }
+
+    override fun stageChatQuery(project: Project, prompt: String, requestSource: GeminiPluginApi.RequestSource) {
+      stagedPrompt = prompt
+    }
   }
 
   class MockStudioBotExternalFlags : StudioBotExternalFlags {
-    override fun isCompilerErrorContextEnabled(): Boolean = isCompilerErrorContextEnabled
+    var compilerErrorContextEnabled = true
 
-    companion object {
-      var isCompilerErrorContextEnabled = true
-    }
+    override fun isCompilerErrorContextEnabled(): Boolean = compilerErrorContextEnabled
   }
 
   private val projectRule = ProjectRule()
@@ -100,17 +110,26 @@ class ExplainSyncOrBuildOutputTest {
     RuleChain(
       ApplicationRule(),
       projectRule,
-      ApplicationServiceRule(StudioBot::class.java, MockStudioBot()),
       EdtRule(),
     )
 
+  private lateinit var geminiPluginApi: FakeGeminiPluginApi
+  private lateinit var studioBotExternalFlags: MockStudioBotExternalFlags
+
   @Before
   fun setUp() {
-    MockStudioBotExternalFlags.isCompilerErrorContextEnabled = true
+    geminiPluginApi = FakeGeminiPluginApi()
+    studioBotExternalFlags = MockStudioBotExternalFlags()
 
     ApplicationManager.getApplication().registerExtension(
       StudioBotExternalFlags.EP_NAME,
-      MockStudioBotExternalFlags(),
+      studioBotExternalFlags,
+      projectRule.disposable
+    )
+
+    ApplicationManager.getApplication().registerExtension(
+      GeminiPluginApi.EP_NAME,
+      geminiPluginApi,
       projectRule.disposable
     )
   }
@@ -122,16 +141,12 @@ class ExplainSyncOrBuildOutputTest {
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
-    verify(StudioBot.getInstance().chat(project))
-      .sendChatQuery(
-        buildPrompt(project) {
-          userMessage {
-            text(
-              """
+    val expected = """
+USER
 I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
 
 Full error details/trace:
@@ -148,15 +163,12 @@ The error is located at the line marked with --->:
 ```
 
 Explain this error and how to fix it.
+<${errorFile.name}>
       """
-                .trimIndent(),
-              listOf(errorFile),
-            )
-          }
-        },
-        StudioBot.RequestSource.BUILD,
-        "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)",
-      )
+      .trimIndent()
+    assertThat(geminiPluginApi.sentPrompt!!.formatForTests()).isEqualTo(expected)
+    assertThat(geminiPluginApi.displayedText!!).isEqualTo("Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)")
+    assertThat(geminiPluginApi.requestSource!!).isEqualTo(GeminiPluginApi.RequestSource.BUILD)
   }
 
   @Test
@@ -170,16 +182,12 @@ Explain this error and how to fix it.
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
-    verify(StudioBot.getInstance().chat(project))
-      .sendChatQuery(
-        buildPrompt(project) {
-          userMessage {
-            text(
-              """
+    val expectedFullPrompt = """
+USER
 I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)
 This is another line of the error description.
 Multiple lines shouldn't mess up the query format.".
@@ -198,55 +206,47 @@ The error is located at the line marked with --->:
 ```
 
 Explain this error and how to fix it.
+<${errorFile.name}>
       """
-                .trimIndent(),
-              listOf(errorFile),
-            )
-          }
-        },
-        StudioBot.RequestSource.BUILD,
-        "Explain build error: $multilineErrorMessage"
-      )
+      .trimIndent()
+    assertThat(geminiPluginApi.sentPrompt!!.formatForTests()).isEqualTo(expectedFullPrompt)
+    assertThat(geminiPluginApi.displayedText!!).isEqualTo("Explain build error: $multilineErrorMessage")
   }
 
   @Test
   fun testActionPerformedWithContextSettingDisabled() {
-    (StudioBot.getInstance() as MockStudioBot).contextAllowed = false
+    geminiPluginApi.contextAllowed = false
     val panel = createTree()
     panel.setSelectionRow(4)
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
-    verify(StudioBot.getInstance().chat(project))
-      .stageChatQuery(
+
+    assertThat(geminiPluginApi.sentPrompt).isNull()
+    assertThat(geminiPluginApi.stagedPrompt!!).isEqualTo(
         """
           Explain build error: MyFile.kt:2:18 Unexpected tokens (use ';' to separate expressions on the same line). This is some extra description.
-        """.trimIndent(),
-        StudioBot.RequestSource.BUILD,
-      )
+        """.trimIndent()
+    )
   }
 
   @Test
   fun testActionPerformedWithCompilerErrorContextFlagDisabled() {
-    MockStudioBotExternalFlags.isCompilerErrorContextEnabled = false
+    studioBotExternalFlags.compilerErrorContextEnabled = false
     val panel = createTree()
     panel.setSelectionRow(4)
 
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     action.actionPerformed(event)
 
-    verify(StudioBot.getInstance().chat(project))
-      .sendChatQuery(
-        buildPrompt(project) {
-          userMessage {
-            text(
-              """
+    val expected = """
+USER
 I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
 
 Full error details/trace:
@@ -254,15 +254,9 @@ MyFile.kt:2:18 Unexpected tokens (use ';' to separate expressions on the same li
 
 Explain this error and how to fix it.
       """
-                .trimIndent(),
-              emptyList(),
-            )
-          }
-        },
-        StudioBot.RequestSource.BUILD,
-        "Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)",
-      )
-    MockStudioBotExternalFlags.isCompilerErrorContextEnabled = true
+                .trimIndent()
+    assertThat(geminiPluginApi.sentPrompt!!.formatForTests()).isEqualTo(expected)
+    assertThat(geminiPluginApi.displayedText!!).isEqualTo("Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)")
   }
 
   @Test
@@ -270,7 +264,7 @@ Explain this error and how to fix it.
     val panel = createTree()
     val action = ExplainSyncOrBuildOutput()
     val event =
-      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+      createEvent(testDataContext(panel), Presentation(), "AnActionEvent", ActionUiKind.NONE, null)
 
     assertTrue(event.presentation.isEnabled)
     // no selection
@@ -284,24 +278,14 @@ Explain this error and how to fix it.
     panel.setSelectionRow(3)
     action.update(event)
     assertFalse(event.presentation.isEnabled)
-    verifyNoInteractions(StudioBot.getInstance().chat(project))
+    assertNull(geminiPluginApi.sentPrompt)
+    assertThat(geminiPluginApi.stagedPrompt)
   }
 
-  inner class TestDataContext(val panel: Tree) : DataContext {
-
-    override fun getData(dataId: String): Any? {
-      throw NotImplementedError()
-    }
-
-    override fun <T> getData(key: DataKey<T>): T? {
-      @Suppress("UNCHECKED_CAST")
-      return when (key) {
-        CommonDataKeys.PROJECT -> project as T
-        PlatformCoreDataKeys.CONTEXT_COMPONENT -> panel as T
-        else -> null
-      }
-    }
-  }
+  fun testDataContext(panel: Tree): DataContext = SimpleDataContext.builder()
+    .add(CommonDataKeys.PROJECT, project)
+    .add(PlatformCoreDataKeys.CONTEXT_COMPONENT, panel)
+    .build()
 
   @Test
   fun testActionUpdateThread() {

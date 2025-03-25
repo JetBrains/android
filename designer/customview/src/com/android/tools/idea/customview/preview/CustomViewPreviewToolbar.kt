@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import icons.StudioIcons
@@ -48,6 +49,8 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
       super.update(e)
       removeAll()
 
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
+
       // We need just a single previewEditor here (any) to retrieve (read) the states and currently
       // selected state
       findPreviewEditorsForContext(e.dataContext).firstOrNull()?.let { previewEditor ->
@@ -55,8 +58,6 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         e.presentation.setText(previewEditor.currentView, false)
       }
     }
-
-    override fun displayTextInToolbar() = true
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }

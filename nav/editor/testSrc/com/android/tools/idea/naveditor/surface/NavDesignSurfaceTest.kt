@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.testutils.MockitoKotlinUtils.safeEq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.DesignSurfaceTestUtil
@@ -68,14 +66,15 @@ import javax.swing.JPanel
 import kotlin.test.assertNotEquals
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.doCallRealMethod
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doCallRealMethod
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 
 /** Tests for [NavDesignSurface] */
 class NavDesignSurfaceTest : NavTestCase() {
@@ -103,8 +102,6 @@ class NavDesignSurfaceTest : NavTestCase() {
       verify(tracker).logEvent(expectedEvent)
     }
   }
-
-  private fun <T> any(): T = ArgumentMatchers.any() as T
 
   fun testComponentActivated() {
     val surface = NavDesignSurface(project).also { Disposer.register(testRootDisposable, it) }
@@ -215,8 +212,8 @@ class NavDesignSurfaceTest : NavTestCase() {
         }
       }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
-    val modelListener = mock(ModelListener::class.java)
-    val surfaceListener = mock(DesignSurfaceListener::class.java)
+    val modelListener = mock<ModelListener>()
+    val surfaceListener = mock<DesignSurfaceListener>()
     model.addListener(modelListener)
     surface.addListener(surfaceListener)
     assertEquals(model.treeReader.components[0], surface.currentNavigation)
@@ -248,7 +245,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val y = Coordinates.getSwingY(view, fragment.drawY) + 5
     LayoutTestUtilities.clickMouse(guiInputHandler, MouseEvent.BUTTON1, 2, x, y, 0)
 
-    verify(surface).notifyComponentActivate(safeEq(fragment.nlComponent), anyInt(), anyInt())
+    verify(surface).notifyComponentActivate(eq(fragment.nlComponent), any(), any())
   }
 
   fun testScrollToCenter() {
@@ -280,7 +277,7 @@ class NavDesignSurfaceTest : NavTestCase() {
         null
       }
       .whenever(surface)
-      .setScrollPosition(anyInt(), anyInt())
+      .setScrollPosition(any(), any())
 
     val f1 = model.treeReader.find("fragment1")!!
     val f2 = model.treeReader.find("fragment2")!!
@@ -490,12 +487,11 @@ class NavDesignSurfaceTest : NavTestCase() {
     // Wait for dependencies to be ready
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
-    val editor = mock(DesignerEditorPanel::class.java)
+    val editor = mock<DesignerEditorPanel>()
     val surface =
       NavDesignSurface(project, editor).also { Disposer.register(testRootDisposable, it) }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })
-    @Suppress("UNCHECKED_CAST")
-    val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface<*>>
+    val workbench = mock<WorkBench<DesignSurface<*>>>()
     whenever(editor.workBench).thenReturn(workbench)
     val lock = Semaphore(1)
     lock.acquire()
@@ -614,7 +610,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     IndexingTestUtil.waitUntilIndexesAreReady(project)
     NavigationSchema.createIfNecessary(myModule)
     val surface =
-      NavDesignSurface(project, mock(DesignerEditorPanel::class.java)).also {
+      NavDesignSurface(project, mock<DesignerEditorPanel>()).also {
         Disposer.register(testRootDisposable, it)
       }
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model("nav.xml") { navigation() })

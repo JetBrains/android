@@ -1,1 +1,1 @@
-com.android.tools.test.Test3$Nested2.testNested10
+Test3$Nested2.testNested10

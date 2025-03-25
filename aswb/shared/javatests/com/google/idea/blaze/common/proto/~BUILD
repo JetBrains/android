@@ -21,8 +21,8 @@ java_test(
     deps = [
         ":test_java_proto",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common/proto",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
         "@maven//:io.grpc.grpc-protobuf",
     ],

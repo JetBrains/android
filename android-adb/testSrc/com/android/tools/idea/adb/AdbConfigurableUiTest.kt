@@ -20,9 +20,7 @@ import com.intellij.testFramework.LightPlatform4TestCase
 import org.junit.Assert
 import org.junit.Test
 
-/**
- * Tests synchronization of settings between the config panel and AdbOptionsService.
- */
+/** Tests synchronization of settings between the config panel and AdbOptionsService. */
 class AdbConfigurableUiTest : LightPlatform4TestCase() {
   private lateinit var myConfigurable: AdbConfigurableUi
   private lateinit var myAdbOptionsService: AdbOptionsService
@@ -32,47 +30,67 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
     super.setUp()
     myAdbOptionsService = AdbOptionsService.getInstance()
     myOriginalOptions = myAdbOptionsService.getOptionsUpdater()
-    myConfigurable = AdbConfigurableUi().also {
-      // Force lazy-init of JComboBoxes
-      it.component
-    }
+    myConfigurable =
+      AdbConfigurableUi().also {
+        // Force lazy-init of JComboBoxes
+        it.component
+      }
   }
 
   override fun tearDown() {
     // Restore the AdbOptionsService singleton to its original state so it doesn't break other tests
     myOriginalOptions.commit()
-    super.tearDown()  // clears all fields of this class (!) so do it last
+    super.tearDown() // clears all fields of this class (!) so do it last
   }
 
   @Test
   fun testApply() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
+    myAdbOptionsService
+      .getOptionsUpdater()
+      .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
+      .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
+      .setBurstMode(AdbServerBurstMode.DEFAULT)
+      .commit()
     myConfigurable.reset(myAdbOptionsService)
 
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
     myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
+    myConfigurable.setAdbServerBurstMode(AdbServerBurstMode.ENABLED)
     myConfigurable.apply(myAdbOptionsService)
 
     assertThat(myAdbOptionsService.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.LIBUSB)
     assertThat(myAdbOptionsService.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.OPENSCREEN)
+    assertThat(myAdbOptionsService.adbServerBurstMode).isEqualTo(AdbServerBurstMode.ENABLED)
   }
 
   @Test
   fun testReset() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
+    myAdbOptionsService
+      .getOptionsUpdater()
+      .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
+      .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
+      .setBurstMode(AdbServerBurstMode.DEFAULT)
+      .commit()
     myConfigurable.reset(myAdbOptionsService)
 
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
     myConfigurable.setAdbServerMdnsBackend(AdbServerMdnsBackend.OPENSCREEN)
+    myConfigurable.setAdbServerBurstMode(AdbServerBurstMode.ENABLED)
     myConfigurable.reset(myAdbOptionsService)
 
     assertThat(myConfigurable.adbServerUsbBackend).isEqualTo(AdbServerUsbBackend.DEFAULT)
     assertThat(myConfigurable.adbServerMdnsBackend).isEqualTo(AdbServerMdnsBackend.DEFAULT)
+    assertThat(myConfigurable.adbServerBurstMode).isEqualTo(AdbServerBurstMode.DEFAULT)
   }
 
   @Test
   fun testIsModified() {
-    myAdbOptionsService.getOptionsUpdater().setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT).setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT).commit();
+    myAdbOptionsService
+      .getOptionsUpdater()
+      .setAdbServerUsbBackend(AdbServerUsbBackend.DEFAULT)
+      .setAdbServerMdnsBackend(AdbServerMdnsBackend.DEFAULT)
+      .setBurstMode(AdbServerBurstMode.DEFAULT)
+      .commit()
     myConfigurable.reset(myAdbOptionsService)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isFalse()
 
@@ -82,6 +100,10 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
     myConfigurable.reset(myAdbOptionsService)
     myConfigurable.setAdbServerUsbBackend(AdbServerUsbBackend.LIBUSB)
     assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
+
+    myConfigurable.reset(myAdbOptionsService)
+    myConfigurable.adbServerBurstMode = AdbServerBurstMode.ENABLED
+    assertThat(myConfigurable.isModified(myAdbOptionsService)).isTrue()
   }
 
   @Test
@@ -90,7 +112,7 @@ class AdbConfigurableUiTest : LightPlatform4TestCase() {
       assertThat(AdbServerUsbBackend.fromDisplayText(it.displayText)).isEqualTo(it)
     }
     try {
-       AdbServerUsbBackend.fromDisplayText("NotInTheEnum")
+      AdbServerUsbBackend.fromDisplayText("NotInTheEnum")
       Assert.fail("fromDisplayText did no throw")
     } catch (_: IllegalArgumentException) {
       // Expected

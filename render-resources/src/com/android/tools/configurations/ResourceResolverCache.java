@@ -43,6 +43,7 @@ import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.text.Strings;
 import java.util.Collections;
@@ -104,6 +105,26 @@ public class ResourceResolverCache {
     mySettings = settings;
   }
 
+  /**
+   * Returns the cached {@link ResourceResolver} for the given configuration only if it exists. If it doesn't this method
+   * does not create it and will return null.
+   */
+  @Nullable
+  ResourceResolver getCachedResourceResolver(@Nullable IAndroidTarget target,
+                                             @NonNull String themeStyle,
+                                             @NonNull FolderConfiguration fullConfiguration,
+                                             @NonNull List<FrameworkOverlay> overlays) {
+    ResourceRepositoryManager repositoryManager = mySettings.getConfigModule().getResourceRepositoryManager();
+    if (repositoryManager == null) return null;
+
+    String qualifierString = fullConfiguration.getQualifierString();
+    String resolverKey = getResolverKey(themeStyle, qualifierString, overlays);
+    return getCachedResolver(resolverKey);
+  }
+
+  /**
+   * Returns a {@link ResourceResolver}. If it does not exist yet, it creates it.
+   */
   @Slow
   public @NonNull ResourceResolver getResourceResolver(@Nullable IAndroidTarget target,
                                                        @NonNull String themeStyle,
@@ -126,14 +147,6 @@ public class ResourceResolverCache {
       myCachedGeneration = resources.getModificationCount();
     }
 
-    // When looking up the configured project and framework resources, the theme doesn't matter, so we look up only
-    // by the configuration qualifiers; for example, here's a sample key:
-    // -ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
-    // Note that the target version is already baked in via the -v qualifier.
-    //
-    // However, the resource resolver also depends on the theme, so we use a more specific key for the resolver map than
-    // for the configured resource maps, by prepending the theme name:
-    // @style/MyTheme-ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
     String qualifierString = fullConfiguration.getQualifierString();
     String resolverKey = getResolverKey(themeStyle, qualifierString, overlays);
     ResourceResolver resolver = getCachedResolver(resolverKey);
@@ -150,7 +163,7 @@ public class ResourceResolverCache {
       Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppRes = getCachedAppResources(qualifierString);
       if (configuredAppRes == null) {
         // Get the project resource values based on the current config.
-        configuredAppRes = ReadAction.compute(() -> ResourceRepositoryUtil.getConfiguredResources(resources, fullConfiguration));
+        configuredAppRes = ResourceRepositoryUtil.getConfiguredResources(resources, fullConfiguration);
         cacheAppResources(qualifierString, configuredAppRes);
       }
 
@@ -210,6 +223,14 @@ public class ResourceResolverCache {
   @NonNull
   private static String getResolverKey(@NonNull String themeStyle, @NonNull String qualifierString,
                                        @NonNull List<FrameworkOverlay> overlays) {
+    // When looking up the configured project and framework resources, the theme doesn't matter, so we look up only
+    // by the configuration qualifiers; for example, here's a sample key:
+    // -ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
+    // Note that the target version is already baked in via the -v qualifier.
+    //
+    // However, the resource resolver also depends on the theme, so we use a more specific key for the resolver map than
+    // for the configured resource maps, by prepending the theme name:
+    // @style/MyTheme-ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
     return (qualifierString.isEmpty() ? themeStyle : themeStyle + SdkConstants.RES_QUALIFIER_SEP + qualifierString)
            + getOverlaysString(overlays);
   }

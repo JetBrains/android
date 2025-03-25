@@ -26,6 +26,8 @@ import com.intellij.ui.TitlePanel
 import com.intellij.ui.WindowMoveListener
 import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.ui.components.DialogPanel
+import com.intellij.ui.dsl.builder.components.DslLabel
+import com.intellij.ui.dsl.builder.components.DslLabelType
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
@@ -38,14 +40,12 @@ import java.util.Locale
 import javax.swing.Box
 import javax.swing.JButton
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
 import javax.swing.border.Border
+import javax.swing.text.JTextComponent
 
-/**
- * Modeless dialog shown during device screen recording.
- */
+/** Modeless dialog shown during device screen recording. */
 internal class ScreenRecorderDialog(
   private val dialogTitle: String,
   project: Project,
@@ -69,7 +69,7 @@ internal class ScreenRecorderDialog(
       recordingLabel.text = value
     }
 
-  private lateinit var recordingLabel: JLabel
+  private lateinit var recordingLabel: JTextComponent
   private lateinit var stopButton: JButton
 
   init {
@@ -107,6 +107,7 @@ internal class ScreenRecorderDialog(
 
   private fun stopRecordingTimer() {
     alarm.cancelAllRequests()
+    onStop.run()
     recordingLabelText = AndroidAdbUiBundle.message("screenrecord.action.stopping")
     stopButton.isEnabled = false
   }
@@ -127,9 +128,7 @@ internal class ScreenRecorderDialog(
     return 1000 - recordingTimeMillis % 1000
   }
 
-  /**
-   * Creates contents of the dialog.
-   */
+  /** Creates contents of the dialog. */
   private fun createPanel(): DialogPanel {
     val dialogPanel = DialogPanel(dialogTitle)
     val titlePanel = TitlePanel()
@@ -146,13 +145,13 @@ internal class ScreenRecorderDialog(
 
     val centerPanel = BorderLayoutPanel()
     centerPanel.border = JBUI.Borders.empty(15, 10)
-    recordingLabel = JLabel(recordingTimeText(recordingTimeMillis))
+    @Suppress("UnstableApiUsage")
+    recordingLabel = DslLabel(DslLabelType.LABEL).apply { text = recordingTimeText(recordingTimeMillis) }
     centerPanel.addToLeft(recordingLabel)
     centerPanel.addToCenter(Box.createRigidArea(Dimension(JBUIScale.scale(20), 0)))
     stopButton = JButton(AndroidAdbUiBundle.message("screenrecord.dialog.stop.recording"))
     stopButton.addActionListener {
       stopRecordingTimer()
-      onStop.run()
     }
     centerPanel.addToRight(stopButton)
     dialogPanel.add(centerPanel, BorderLayout.CENTER)

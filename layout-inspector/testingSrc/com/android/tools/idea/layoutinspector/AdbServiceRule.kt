@@ -17,9 +17,6 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.google.common.util.concurrent.Futures
@@ -28,10 +25,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
-import org.junit.rules.ExternalResource
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.spy
 import java.io.File
+import org.junit.rules.ExternalResource
+import org.mockito.Mockito.spy
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Rule for making AdbUtils.getAdbFuture(Project) return AdbRule.bridge. */
 class AdbServiceRule(private val projectSupplier: () -> Project, private val adbRule: FakeAdbRule) :
@@ -47,20 +45,16 @@ class AdbServiceRule(private val projectSupplier: () -> Project, private val adb
     projectSupplier().replaceService(AdbFileProvider::class.java, adbFileProvider, disposable)
     val service: AdbService = mock()
     ApplicationManager.getApplication().replaceService(AdbService::class.java, service, disposable)
-    doAnswer {
-        serverKilled = false
-        Futures.immediateFuture(bridge)
+    whenever(service.getDebugBridge(adbFile)).thenAnswer {
+      serverKilled = false
+      Futures.immediateFuture(bridge)
+    }
+    whenever(bridge.devices).thenAnswer {
+      if (serverKilled) {
+        error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
       }
-      .whenever(service)
-      .getDebugBridge(eq(adbFile))
-    doAnswer {
-        if (serverKilled) {
-          error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
-        }
-        adbRule.bridge.devices
-      }
-      .whenever(bridge)
-      .devices
+      adbRule.bridge.devices
+    }
   }
 
   override fun after() {

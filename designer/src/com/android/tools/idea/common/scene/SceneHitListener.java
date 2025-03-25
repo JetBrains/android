@@ -43,7 +43,6 @@ class SceneHitListener {
 
   public SceneHitListener(@NotNull SelectionModel selectionModel) {
     mySelectionModel = selectionModel;
-    myPicker.setSelectListener((a, b) -> over(a, b));
   }
 
   public void setTargetFilter(@Nullable Predicate<Target> filter) {
@@ -61,7 +60,8 @@ class SceneHitListener {
     myClosestTargetDistance = Double.MAX_VALUE;
     myPicker.reset();
     root.addHit(transform, myPicker, modifiersEx);
-    myPicker.find(transform.getSwingXDip(x), transform.getSwingYDip(y));
+    myPicker.find(transform.getSwingXDip(x), transform.getSwingYDip(y))
+      .forEach((hit) -> over(hit.object(), hit.distance()));
   }
 
   @SuppressWarnings("FloatingPointEquality")  // The values are directly assigned with no math, so this should be fine.

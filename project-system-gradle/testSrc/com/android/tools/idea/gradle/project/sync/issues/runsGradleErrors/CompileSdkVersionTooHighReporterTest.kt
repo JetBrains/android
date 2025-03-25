@@ -16,30 +16,31 @@
 package com.android.tools.idea.gradle.project.sync.issues.runsGradleErrors
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.mockStatic
+import com.android.mockito.kotlin.whenever
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.project.sync.hyperlink.SuppressUnsupportedSdkVersionHyperlink
+import com.android.tools.idea.gradle.project.sync.issues.CompileSdkVersionTooHighReporter
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.project.messages.MessageType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.MockitoAnnotations
-import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
-import com.android.tools.idea.gradle.project.sync.hyperlink.SuppressUnsupportedSdkVersionHyperlink
-import com.android.tools.idea.gradle.project.sync.issues.CompileSdkVersionTooHighReporter
-import com.android.tools.idea.project.messages.MessageType
 import com.intellij.testFramework.UsefulTestCase.assertInstanceOf
 import com.intellij.testFramework.UsefulTestCase.assertSize
 import junit.framework.Assert.assertEquals
 import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 
 @RunsInEdt
@@ -67,10 +68,11 @@ class CompileSdkVersionTooHighReporterTest {
 
     preparedProject.open { project ->
       val syncIssue = setUpMockSyncIssue(syncMessage, syncData)
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      val module = project.gradleModule(":app")!!
+      val messages = reporter.report(syncIssue, module, null)
 
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
@@ -82,10 +84,11 @@ class CompileSdkVersionTooHighReporterTest {
       )
       assertEquals(MessageType.INFO, notification.type)
 
-      val quickFixes = messages[0].quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], SuppressUnsupportedSdkVersionHyperlink::class.java)
       assertEquals("android.suppressUnsupportedCompileSdk=UpsideDownCake", (quickFixes[0] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty)
+      assertEquals(listOf(module), messages[0].affectedModules)
     }
   }
 
@@ -102,10 +105,11 @@ class CompileSdkVersionTooHighReporterTest {
       mock.whenever<Any?> { AndroidPluginInfo.find(project) }.thenReturn(pluginInfo)
 
       val syncIssue = setUpMockSyncIssue(syncMessage, syncData)
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      val module = project.gradleModule(":app")!!
+      val messages = reporter.report(syncIssue, module, null)
 
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
@@ -117,10 +121,11 @@ class CompileSdkVersionTooHighReporterTest {
       )
       assertEquals(MessageType.INFO, notification.type)
 
-      val quickFixes = messages[0].quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], SuppressUnsupportedSdkVersionHyperlink::class.java)
       assertEquals("android.suppressUnsupportedCompileSdk=UpsideDownCake", (quickFixes[0] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty)
+      assertEquals(listOf(module), messages[0].affectedModules)
       mock.close()
     }
   }
@@ -138,10 +143,11 @@ class CompileSdkVersionTooHighReporterTest {
       mock.whenever<Any?> { AndroidPluginInfo.find(project) }.thenReturn(pluginInfo)
 
       val syncIssue = setUpMockSyncIssue(syncMessage, syncData)
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      val module = project.gradleModule(":app")!!
+      val messages = reporter.report(syncIssue, module, null)
 
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
         """
@@ -152,8 +158,9 @@ class CompileSdkVersionTooHighReporterTest {
       )
       assertEquals(MessageType.INFO, notification.type)
 
-      val quickFixes = messages[0].quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(0 + 1 /* affected modules */, quickFixes)
+      assertEquals(listOf(module), messages[0].affectedModules)
       mock.close()
     }
   }

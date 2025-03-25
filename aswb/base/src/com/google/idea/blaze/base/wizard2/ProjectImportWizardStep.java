@@ -23,7 +23,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import javax.annotation.Nullable;
 import javax.swing.Icon;
 
-abstract class ProjectImportWizardStep extends StepAdapter {
+public abstract class ProjectImportWizardStep extends StepAdapter {
   private final WizardContext myContext;
 
   ProjectImportWizardStep(WizardContext context) {

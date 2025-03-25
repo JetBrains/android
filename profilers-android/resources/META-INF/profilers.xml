@@ -77,6 +77,14 @@
     </action>
     <action id="Android.SetRecordingTypeToSampling" class="com.android.tools.idea.profilers.actions.SetRecordingTypeToSamplingAction">
     </action>
+    <action id="Android.SelectLastRecordingFromRecordingList" class="com.android.tools.idea.profilers.actions.SelectLastRecordingFromRecordingListAction">
+    </action>
+    <action id="Android.SetHideNewTaskPromptToTrue" class="com.android.tools.idea.profilers.actions.SetHideNewTaskPromptToTrueAction">
+    </action>
+    <action id="Android.OpenProfilersPastRecordingsTab" class="com.android.tools.idea.profilers.actions.OpenProfilersPastRecordingsTabAction">
+    </action>
+    <action id="Android.ProfilerExportRecording" class="com.android.tools.idea.profilers.actions.ExportRecordingAction">
+    </action>
     <action id="Android.Profile" class="com.android.tools.idea.profilers.actions.ProfileAction">
     </action>
   </actions>

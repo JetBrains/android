@@ -24,6 +24,7 @@ import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -53,11 +54,13 @@ class PickerButtonAction(val tracker: ComposeAnimationTracker) : CustomComponent
         addActionListener {
           val ctx = DataManager.getInstance().getDataContext(it.source as Component)
           val event =
-            AnActionEvent.createFromAnAction(
+            AnActionEvent.createEvent(
               this@PickerButtonAction,
+              ctx,
               null,
               ActionPlaces.TOOLBAR,
-              ctx,
+              ActionUiKind.TOOLBAR,
+              null,
             )
           ActionUtil.performDumbAwareWithCallbacks(this@PickerButtonAction, event) {
             this@PickerButtonAction.actionPerformed(event)

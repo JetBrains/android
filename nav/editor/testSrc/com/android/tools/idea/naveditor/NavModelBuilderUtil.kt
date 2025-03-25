@@ -31,7 +31,6 @@ import com.android.SdkConstants.TAG_ACTIVITY
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TAG_INCLUDE
 import com.android.SdkConstants.TOOLS_URI
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.TestPannable
@@ -56,7 +55,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCL
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.createIfNecessary
 import org.jetbrains.android.facet.AndroidFacet
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @DslMarker annotation class NavTestDsl
 
@@ -88,7 +88,7 @@ object NavModelBuilderUtil {
 
       whenever(surface.actionHandlerProvider).thenReturn { TestActionHandler(it) }
 
-      val sceneView = mock(SceneView::class.java)
+      val sceneView = mock<SceneView>()
       whenever(sceneView.configuration).thenReturn(model.configuration)
       val selectionModel = surface.selectionModel
       whenever(sceneView.selectionModel).thenReturn(selectionModel)

@@ -17,9 +17,9 @@ package com.android.tools.idea.structure.dialog
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -187,6 +187,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       if (detailsContent == null) {
         detailsContent = toSelect.createComponent()
         myConfigurables[toSelect] = detailsContent
+        (toSelect as? Disposable)?.let { configurableDisposable ->
+          Disposer.register(configurableDisposable) {
+            if (mySelectedConfigurable === toSelect) mySelectedConfigurable = null
+          }
+        }
       }
       myDetails.setContent(detailsContent)
       myUiState.lastEditedConfigurable = toSelect.displayName
@@ -327,7 +332,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     if (needsSync) {
       // NOTE: If the user applied the changes in the dialog and then cancelled the dialog, sync still needs to happen here since
       //       we do not perform a sync when applying changes on "apply".
-      GradleSyncInvoker.getInstance().requestProjectSync(myProject, GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES)
+      myProject.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES.toReason())
     }
   }
 
@@ -382,11 +387,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   private fun initSidePanel() {
-
     mySidePanel = SidePanel(this, myHistory)
-
-    if (myDisposable.disposed) myDisposable = MyDisposable()
-
     addConfigurables()
   }
 
@@ -406,6 +407,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   private fun addConfigurable(configurable: Configurable) {
     myConfigurables[configurable] = null
+    (configurable as? Disposable)?.let { configurableDisposable ->
+      Disposer.register(configurableDisposable) {
+        myConfigurables.remove(configurable)
+      }
+    }
     (configurable as? Place.Navigator)?.setHistory(myHistory)
     val counterDisplayConfigurable = configurable as? CounterDisplayConfigurable
     val validationDisplayConfigurable = configurable as? ValidationAggregateDisplayConfigurable
@@ -441,7 +447,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   override fun reset() {
     HeavyProcessLatch.INSTANCE.performOperation(HeavyProcessLatch.Type.Processing, "Resetting Project Structure") {
-      val configurables = myConfigurables.keys
+      val configurables = myConfigurables.keys.toList()
 
       for (each in configurables) {
         each.disposeUIResources()
@@ -469,13 +475,14 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     try {
       myUiState.proportion = mySplitter!!.proportion
       (mySelectedConfigurable as? MasterDetailsComponent)?.saveSideProportion()
-      myConfigurables.keys.forEach(Consumer<Configurable> { it.disposeUIResources() })
+      myConfigurables.keys.toList().forEach(Consumer<Configurable> { it.disposeUIResources() })
 
       myUiState.save(myProject)
 
       Disposer.dispose(myDisposable)
     }
     finally {
+      myDisposable = MyDisposable()
       myConfigurables.clear()
       mySelectedConfigurable = null
       mySidePanel?.clear()

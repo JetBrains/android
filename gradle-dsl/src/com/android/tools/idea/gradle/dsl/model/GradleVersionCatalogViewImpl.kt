@@ -46,7 +46,7 @@ class GradleVersionCatalogViewImpl(private val parsedModel: GradleSettingsModel?
       val name = versionCatalogModel.name
       val path = versionCatalogModel.from().getValue(GradlePropertyModel.STRING_TYPE)
       if (path != null) {
-        normalisePath(path, parsedModel?.project)?.let { result[name] = it }
+        normalisePath(path, settings.virtualFile.parent.path)?.let { result[name] = it }
       }
     }
     return result
@@ -69,17 +69,19 @@ class GradleVersionCatalogViewImpl(private val parsedModel: GradleSettingsModel?
   }
 }
 
-private fun normalisePath(path: String, project: Project?): VirtualFile? {
-  val fromPath = FileUtil.toSystemIndependentName(path)
-  val rootPath = project?.guessProjectDir()?.path ?: return null
-  val normalizedPath = "$rootPath/$fromPath"
+private fun normalisePath(relativePath: String, projectRootPath: String?): VirtualFile? {
+  projectRootPath ?: return null
+  val fromPath = FileUtil.toSystemIndependentName(relativePath)
+  val file = File(projectRootPath, fromPath)
+  val normalizedPath = file.absolutePath
   return VfsUtil.findFileByIoFile(File(FileUtil.toSystemDependentName(
     normalizedPath)), false)
 }
 
-class SimplifiedVersionCatalogViewImpl(val project: Project) : GradleVersionCatalogView {
+class SimplifiedVersionCatalogViewImpl(private val rootPath: String?) : GradleVersionCatalogView {
+  constructor(project: Project):this(project.guessProjectDir()?.path)
   override fun getCatalogToFileMap(): Map<String, VirtualFile> {
-    return normalisePath(DEFAULT_CATALOG_FILE, project)?.let {
+    return normalisePath(DEFAULT_CATALOG_FILE, rootPath)?.let {
       mapOf(DEFAULT_CATALOG_NAME to it)
     } ?: mapOf()
   }

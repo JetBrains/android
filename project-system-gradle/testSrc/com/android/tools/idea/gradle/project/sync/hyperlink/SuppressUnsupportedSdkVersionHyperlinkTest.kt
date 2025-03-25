@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.intellij.openapi.project.Project
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 class SuppressUnsupportedSdkVersionHyperlinkTest: AndroidGradleTestCase() {

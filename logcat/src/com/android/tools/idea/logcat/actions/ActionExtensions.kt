@@ -60,7 +60,7 @@ private fun AnActionEvent.getLogcatMessages(start: Int, end: Int): List<LogcatMe
 }
 
 private fun SelectionModel.endsOnLineBreak(): Boolean {
-  if (selectionStart == selectionEnd && selectionEnd <= 0) {
+  if (selectionStart >= selectionEnd || selectionEnd <= 0) {
     return false
   }
   return editor.document.immutableCharSequence[selectionEnd - 1] == '\n'

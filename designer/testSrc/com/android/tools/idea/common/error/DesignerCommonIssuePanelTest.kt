@@ -20,8 +20,8 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
 import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue

@@ -20,15 +20,16 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.SimpleConfigurable
-import com.intellij.openapi.util.Getter
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.xdebugger.XDebuggerUtil
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory
 import com.intellij.xdebugger.settings.XDebuggerSettings
+import java.util.function.Supplier
 
 @State(name = "ComposeDebuggerSettings", storages = [Storage("compose.debug.xml")])
 class ComposeDebuggerSettings :
-  XDebuggerSettings<ComposeDebuggerSettings>("compose_debugger"), Getter<ComposeDebuggerSettings> {
+  XDebuggerSettings<ComposeDebuggerSettings>("compose_debugger"),
+  Supplier<ComposeDebuggerSettings> {
   var filterComposeRuntimeClasses: Boolean = true
 
   companion object {

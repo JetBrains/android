@@ -148,7 +148,7 @@ class KtDeviceSpecInjectionPerformer : LanguageInjectionPerformer {
     if (injectionSegments.isEmpty()) {
       return false
     }
-    registrar.startInjecting(injection.injectedLanguage ?: DeviceSpecLanguage)
+    registrar.startInjecting(injection.injectedLanguage ?: return false)
     injectionSegments.forEach { it.injectTo(registrar) }
     registrar.doneInjecting()
     return true

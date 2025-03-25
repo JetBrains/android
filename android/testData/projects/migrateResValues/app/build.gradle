@@ -1,0 +1,26 @@
+plugins {
+  id 'com.android.application'
+}
+
+android {
+  namespace 'com.example.migrateresvalues.app'
+  compileSdk = 33
+
+  defaultConfig {
+    applicationId = 'com.example.migrateresvalues.app'
+    minSdk = 24
+    targetSdk = 33
+    versionCode = 1
+    versionName = '1.0'
+    resValue("string", "res_name", "SomeResValue")
+  }
+
+  buildTypes {
+    debug {
+      resValue("string", "res_name", "SomeResValue")
+    }
+    release {
+      resValue("string", "res_name", "SomeResValue")
+    }
+  }
+}

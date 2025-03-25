@@ -1,1 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect width="16" height="16" fill="none"/><g fill="#9AA7B0" fill-rule="evenodd"><path d="M7 3H6V2H2v6h2v1H1.99A.998.998 0 0 1 1 8.003V1.997c0-.55.451-.997.99-.997h4.02c.546 0 .99.453.99.997V3z"/><path d="M11 6h-1V5H6v6h2v1H5.99a.998.998 0 0 1-.99-.997V4.997c0-.55.451-.997.99-.997h4.02c.546 0 .99.453.99.997V6z"/><path d="M9 7.997c0-.55.451-.997.99-.997h4.02c.546 0 .99.453.99.997v6.006c0 .55-.451.997-.99.997H9.99a.998.998 0 0 1-.99-.997V7.997zM10 8v6h4V8h-4z"/></g></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 2a1 1 0 011-1h4a1 1 0 011 1v1H6V2H2v6h2v1H2a1 1 0 01-1-1V2z" fill="#6C707E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M5 5a1 1 0 011-1h4a1 1 0 011 1v1h-1V5H6v6h2v1H6a1 1 0 01-1-1V5z" fill="#6C707E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M10 7a1 1 0 00-1 1v6a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1h-4zm4 1h-4v6h4V8z" fill="#6C707E"/></svg>

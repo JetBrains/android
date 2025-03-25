@@ -14,11 +14,15 @@
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="assertJ" level="project" />
+    <orderEntry type="library" scope="TEST" name="icu4j" level="project" />
+    <orderEntry type="library" scope="TEST" name="rd-core" level="project" />
     <orderEntry type="module" module-name="intellij.platform.editor.ex" />
     <orderEntry type="library" scope="TEST" name="commons-io" level="project" />
     <orderEntry type="library" scope="TEST" name="commons-lang3" level="project" />
     <orderEntry type="library" scope="TEST" name="jackson-module-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -108,6 +112,8 @@
     <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.gradle.code-insight-common" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.gradle.gradle-tooling.impl" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.code-insight.inspections.k2" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.groovy" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
@@ -127,5 +133,8 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" scope="TEST" />
   </component>
 </module>

@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 # managed by go/iml_to_build
 iml_module(
@@ -57,6 +58,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/r8",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/gmaven:intellij.android.gmaven[module]",
     ],
 )
 
@@ -132,6 +134,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.tests[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
@@ -183,6 +186,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common[module, test]",
@@ -198,5 +202,19 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/.idea/libraries:opentest4j[test]",
+    ],
+)
+
+kotlin_library(
+    name = "android-dexer",
+    srcs = ["idea-android/common/src/org/jetbrains/kotlin/android/debugger/AndroidDexerImpl.kt"],
+    coverage_baseline_enabled = False,
+    lint_enabled = False,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//prebuilts/r8",
+        "@intellij//:intellij-sdk",
+        "@intellij//:org.jetbrains.kotlin",
     ],
 )

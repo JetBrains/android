@@ -24,12 +24,11 @@ import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.serviceAsync
 import com.intellij.openapi.util.LowMemoryWatcher
 import java.util.concurrent.TimeUnit
 
 @Service
-internal class LowMemoryReporter : Disposable {
+class LowMemoryReporter : Disposable {
   private var lowMemoryWatcherAll: LowMemoryWatcher? = null
   private var lowMemoryWatcherAfterGc: LowMemoryWatcher? = null
 
@@ -80,7 +79,7 @@ internal class LowMemoryReporter : Disposable {
 
   private class OnStartup : ApplicationInitializedListener {
     override suspend fun execute() {
-      serviceAsync<LowMemoryReporter>()
+      getInstance();
     }
   }
 }

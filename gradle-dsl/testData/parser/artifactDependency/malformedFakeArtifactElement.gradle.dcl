@@ -1,0 +1,5 @@
+androidApp {
+  dependenciesDcl {
+    compile("[]#$a")
+  }
+}

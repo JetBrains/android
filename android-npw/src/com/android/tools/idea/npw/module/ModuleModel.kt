@@ -18,7 +18,9 @@ package com.android.tools.idea.npw.module
 import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -56,30 +58,34 @@ import com.intellij.openapi.project.DumbService
 import java.io.File
 import java.io.IOException
 
-private val log: Logger get() = logger<ModuleModel>()
+private val log: Logger
+  get() = logger<ModuleModel>()
 
 abstract class ModuleModel(
   name: String,
   private val commandName: String = "New Module",
   override val isLibrary: Boolean,
   val projectModelData: ProjectModelData,
-  _template: NamedModuleTemplate = with(projectModelData) {
-    if (isNewProject) createSampleTemplate()
-    else createDefaultModuleTemplate(project, name)
-  },
+  _template: NamedModuleTemplate =
+    with(projectModelData) {
+      if (isNewProject) createSampleTemplate() else createDefaultModuleTemplate(project, name)
+    },
   val moduleParent: String,
-  override val wizardContext: WizardUiContext
+  override val wizardContext: WizardUiContext,
+  val recommendedBuildSdk: AndroidVersion? = null,
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
   override val category: ObjectProperty<Category> = ObjectValueProperty(Category.Activity)
   final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(
-    projectTemplateDataBuilder = projectTemplateDataBuilder,
-    isNewModule = true,
-    viewBindingSupport = projectModelData.viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE)
-  )
+  override val moduleTemplateDataBuilder =
+    ModuleTemplateDataBuilder(
+      projectTemplateDataBuilder = projectTemplateDataBuilder,
+      isNewModule = true,
+      viewBindingSupport =
+        projectModelData.viewBindingSupport.getValueOr(ViewBindingSupport.SUPPORTED_4_0_MORE),
+    )
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
   override val viewBindingSupport = projectModelData.viewBindingSupport
   override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
@@ -101,13 +107,12 @@ abstract class ModuleModel(
       |Language: ${language.value}
       |Minimum SDK: ${androidSdkInfo.valueOrNull?.minApiLevel ?: "N/A"}
       |Kotlin DSL: ${useGradleKts.get()}
-    """.trimMargin()
+    """
+      .trimMargin()
   }
 
   abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    /**
-     * A [Recipe] which should be run from [render].
-     */
+    /** A [Recipe] which should be run from [render]. */
     protected abstract val recipe: Recipe
 
     private var success = false
@@ -119,12 +124,23 @@ abstract class ModuleModel(
         projectTemplateDataBuilder.apply {
           setProjectDefaults(project)
           language = this@ModuleModel.language.value
-          agpVersion = this@ModuleModel.agpVersion.get()
+          agpVersion =
+            this@ModuleModel.agpVersionSelector
+              .get()
+              .resolveVersion(AgpVersions::getAvailableVersions)
         }
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()
-        setBuildVersion(androidSdkInfo.value, project)
-        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
+        val buildVersion =
+          if (recommendedBuildSdk != null) androidSdkInfo.value.withBuildSdk(recommendedBuildSdk)
+          else androidSdkInfo.value
+        setBuildVersion(buildVersion, project)
+        setModuleRoots(
+          template.get().paths,
+          project.basePath!!,
+          moduleName.get(),
+          this@ModuleModel.packageName.get(),
+        )
         isLibrary = this@ModuleModel.isLibrary
       }
       useVersionCatalog.set(projectModelData.useVersionCatalog.get())
@@ -132,73 +148,99 @@ abstract class ModuleModel(
 
     @WorkerThread
     override fun doDryRun(): Boolean {
-      // Returns false if there was a render conflict and the user chose to cancel creating the template
+      // Returns false if there was a render conflict and the user chose to cancel creating the
+      // template
       return renderTemplate(true)
     }
 
     @WorkerThread
     override fun render() {
-      success = WriteCommandAction.writeCommandAction(project).withName(commandName).compute<Boolean, Exception> {
-        renderTemplate(false)
-      }
+      success =
+        WriteCommandAction.writeCommandAction(project).withName(commandName).compute<
+          Boolean,
+          Exception,
+        > {
+          renderTemplate(false)
+        }
 
       if (!success) {
-        log.warn("A problem occurred while creating a new Module. Please check the log file for possible errors.")
+        log.warn(
+          "A problem occurred while creating a new Module. Please check the log file for possible errors."
+        )
       }
     }
 
     @UiThread
     override fun finish() {
       if (success) {
-        DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, createdFiles, true) }
+        DumbService.getInstance(project).smartInvokeLater {
+          TemplateUtils.openEditors(project, createdFiles, true)
+        }
       }
     }
 
     override fun logUsage() {
       val moduleModel = this@ModuleModel
-      log.info("Rendering module with commandName \"${moduleModel.commandName}\" " +
-               "for form factor \"${moduleModel.formFactor}\" " +
-               "and category \"${moduleModel.category}\". " +
-               "Parameters:\n${moduleModel.getParamsToLog()}")
+      log.info(
+        "Rendering module with commandName \"${moduleModel.commandName}\" " +
+          "for form factor \"${moduleModel.formFactor}\" " +
+          "and category \"${moduleModel.category}\". " +
+          "Parameters:\n${moduleModel.getParamsToLog()}"
+      )
     }
 
     protected open fun renderTemplate(dryRun: Boolean): Boolean {
       val moduleRoot = getModuleRootForNewModule(project.basePath!!, moduleName.get())
-      val context = RenderingContext(
-        project = project,
-        module = null,
-        commandName = commandName,
-        templateData = moduleTemplateDataBuilder.build(),
-        moduleRoot = moduleRoot,
-        dryRun = dryRun,
-        showErrors = true
-      )
+      val context =
+        RenderingContext(
+          project = project,
+          module = null,
+          commandName = commandName,
+          templateData = moduleTemplateDataBuilder.build(),
+          moduleRoot = moduleRoot,
+          dryRun = dryRun,
+          showErrors = true,
+        )
 
-      // TODO(qumeric) We should really only have one root - Update RenderingContext2 to get it from templateData?
+      // TODO(qumeric) We should really only have one root - Update RenderingContext2 to get it from
+      // templateData?
       // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
 
-      val metrics = if (!dryRun && sendModuleMetrics.get()) {
-        TemplateMetrics(
-          templateType = NO_ACTIVITY,
-          wizardContext = wizardContext,
-          moduleType = moduleTemplateRendererToModuleType(loggingEvent),
-          minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
-          bytecodeLevel = (this@ModuleModel as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
-          useGradleKts = useGradleKts.get(),
-          useAppCompat = false
-        )
-      } else null
+      val metrics =
+        if (!dryRun && sendModuleMetrics.get()) {
+          TemplateMetrics(
+            templateType = NO_ACTIVITY,
+            wizardContext = wizardContext,
+            moduleType = moduleTemplateRendererToModuleType(loggingEvent),
+            minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
+            minSdkCodename = androidSdkInfo.valueOrNull?.minApiLevelStr ?: "",
+            targetSdk = androidSdkInfo.valueOrNull?.targetApiLevel ?: 0,
+            targetSdkCodename = androidSdkInfo.valueOrNull?.targetApiLevelStr ?: "",
+            bytecodeLevel =
+              (this@ModuleModel as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
+            useGradleKts = useGradleKts.get(),
+            useAppCompat = false,
+          )
+        } else null
 
-      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else
-        DefaultRecipeExecutor(context)
+      val executor =
+        if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
 
-      if (StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() && isNewProject && useVersionCatalog.get()) {
-        // Create a conventional default toml file for the new project because GradleVersionCatalogModel expects
+      if (
+        StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() &&
+          isNewProject &&
+          useVersionCatalog.get()
+      ) {
+        // Create a conventional default toml file for the new project because
+        // GradleVersionCatalogModel expects
         // the toml file already exists. This needs to be before start rendering the template.
         WriteCommandAction.writeCommandAction(project).run<IOException> {
           executor.copy(
-            File(FileUtils.join("fileTemplates", "internal", "Version_Catalog_File.versions.toml.ft")),
-            File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)))
+            File(
+              FileUtils.join("fileTemplates", "internal", "Version_Catalog_File.versions.toml.ft")
+            ),
+            File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)),
+          )
           if (executor is DefaultRecipeExecutor) {
             executor.applyChanges()
           }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
@@ -53,6 +51,8 @@ import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
   private lateinit var view: SqliteEvaluatorViewImpl
@@ -66,8 +66,7 @@ class SqliteEvaluatorViewImplTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
     mockSchemaProvider = mock(SchemaProvider::class.java)
-    whenever(mockSchemaProvider.getSchema(any(SqliteDatabaseId::class.java)))
-      .thenReturn(SqliteSchema(emptyList()))
+    whenever(mockSchemaProvider.getSchema(any())).thenReturn(SqliteSchema(emptyList()))
 
     dropPsiCachesCallCounter = 0
     view =

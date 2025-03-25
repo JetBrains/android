@@ -29,7 +29,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.application
-import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.addComposeRuntimeDep
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
@@ -39,14 +39,14 @@ import org.junit.Test
 /** Tests for [ComposeCompletionContributor]. */
 class ComposeCompletionContributorTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().withKotlin()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation()
+    myFixture.addComposeRuntimeDep()
   }
 
   @Test
@@ -60,6 +60,8 @@ class ComposeCompletionContributorTest {
       import androidx.compose.runtime.Composable
 
       // "Foobar" is a unique prefix that no other lookup elements will match.
+      @Composable
+      fun FoobarZero() {}
 
       @Composable
       fun FoobarOne(required: Int) {}
@@ -78,22 +80,27 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun FoobarSix(icon: String, optionalOnClick: () -> Unit = {}) {}
+
+      @Composable
+      fun FoobarSeven(a: Int, b: Int, c: Int, d: Int, children: @Composable () -> Unit) {}
+
+      @Composable
+      fun FoobarEight(a: Int, b: Int = 0, c: Int = 0, d: Int = 0, children: @Composable () -> Unit) {}
       """
         .trimIndent(),
     )
 
     val expectedLookupItems =
       listOf(
+        "FoobarZero() (com.example)",
         "FoobarOne(required: Int) (com.example)",
         "FoobarTwo(required: Int, ...) (com.example)",
         "FoobarThree(...) {...} (com.example)",
-        if (KotlinPluginModeProvider.isK2Mode()) {
-          "FoobarFour {...} (children: @Composable (() -> Unit)) (com.example)"
-        } else {
-          "FoobarFour {...} (children: () -> Unit) (com.example)"
-        },
+        "FoobarFour {...} (com.example)",
         "FoobarFive(icon: String) {...} (com.example)",
         "FoobarSix(icon: String, ...) (com.example)",
+        "FoobarSeven(a: Int, b: Int, c: Int, d: Int) {...} (com.example)",
+        "FoobarEight(a: Int, ...) {...} (com.example)",
       )
 
     // Given:
@@ -430,7 +437,6 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-      // Space after caret.
         $caret {
 
         }
@@ -454,54 +460,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-      // Space after caret.
         FoobarOne {
-
-        }
-      }
-      """
-        .trimIndent(),
-      true,
-    )
-
-    // Given:
-    file =
-      myFixture.addFileToProject(
-        "src/com/example/Test2.kt",
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun HomeScreen() {
-      // No space after caret.
-        $caret{
-
-        }
-      }
-      """
-          .trimIndent(),
-      )
-
-    // When:
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    myFixture.type("Foobar")
-    myFixture.completeBasic()
-
-    // Then:
-    myFixture.checkResult(
-      // language=kotlin
-      """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun HomeScreen() {
-      // No space after caret.
-        FoobarOne{
 
         }
       }
@@ -962,11 +921,11 @@ class ComposeCompletionContributorTest {
     val expectedLookupItems =
       listOf(
         "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...) (com.example)",
-        "FoobarTwo(optionalArg: Int = ...) (com.example)",
+        "FoobarTwo(...) (com.example)",
         "FoobarThree(requiredArg: $parameterWithComposeAnnotation, optionalArg: Int = ...) (com.example) Unit",
         "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
         "FoobarFive(requiredArg: () -> Unit, ...) (com.example)",
-        "FoobarSix(optionalArg: Int = ...) (com.example)",
+        "FoobarSix(...) (com.example)",
       )
 
     // Given:
@@ -1161,7 +1120,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        ${if (KotlinPluginModeProvider.isK2Mode()) "FoobarOne {  }" else "FoobarOne()"}
+        FoobarOne()
       }
       """
         .trimIndent(),

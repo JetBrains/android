@@ -42,7 +42,7 @@
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/template/test/pkg/MainActivity.kt"
-            line="145"
+            line="146"
             column="30"/>
     </issue>
 
@@ -53,7 +53,7 @@
         errorLine2="                              ~~~~~~">
         <location
             file="src/main/java/template/test/pkg/MainActivity.kt"
-            line="145"
+            line="146"
             column="31"/>
     </issue>
 

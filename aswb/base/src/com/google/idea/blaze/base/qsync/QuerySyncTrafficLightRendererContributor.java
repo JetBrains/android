@@ -17,14 +17,21 @@ package com.google.idea.blaze.base.qsync;
 
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
-import com.google.idea.sdkcompat.editor.markup.UIControllerCreator;
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer;
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.AnalyzerStatus;
+import com.intellij.openapi.editor.markup.InspectionsLevel;
+import com.intellij.openapi.editor.markup.LanguageHighlightLevel;
 import com.intellij.openapi.editor.markup.UIController;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.ui.GridBag;
+import java.awt.Container;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +51,11 @@ public class QuerySyncTrafficLightRendererContributor implements TrafficLightRen
       @Override
       @NotNull
       public AnalyzerStatus getStatus() {
-        if (QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(psiFile)) {
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        if (virtualFile == null) {
+          return super.getStatus();
+        }
+        if (QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(virtualFile)) {
           return super.getStatus();
         }
         return new AnalyzerStatus(
@@ -62,7 +73,44 @@ public class QuerySyncTrafficLightRendererContributor implements TrafficLightRen
 
       @NotNull
       protected UIController createCustomController() {
-        return UIControllerCreator.create();
+        return new UIController() {
+          @Override
+          public void toggleProblemsView() {}
+
+          @Override
+          public void setHighLightLevel(LanguageHighlightLevel level) {}
+
+          @Override
+          public void onClosePopup() {}
+
+          @Override
+          public List<LanguageHighlightLevel> getHighlightLevels() {
+            return new ArrayList<>();
+          }
+
+          @Override
+          public List<InspectionsLevel> getAvailableLevels() {
+            return new ArrayList<>();
+          }
+
+          @Override
+          public List<AnAction> getActions() {
+            return new ArrayList<>();
+          }
+
+          @Override
+          public void fillHectorPanels(Container container, GridBag bag) {}
+
+          @Override
+          public boolean canClosePopup() {
+            return true;
+          }
+
+          @Override
+          public boolean isToolbarEnabled() {
+            return true;
+          }
+        };
       }
     };
   }

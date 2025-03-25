@@ -1692,6 +1692,21 @@ MODULE                        : MainActivity
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :javaLib:test
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :lib:testDebugUnitTest
+                testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testLocalDebugUnitTest
+                testLocalReleaseUnitTest      : testLocalReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testLocalReleaseUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :lib:testReleaseUnitTest
+                testRemoteDebugUnitTest       : testRemoteDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testRemoteDebugUnitTest
+                testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testRemoteReleaseUnitTest
 MODULE                        : MainActivity.app
     GradleModuleModel
         agpVersion                    : 4.1.0
@@ -1710,8 +1725,8 @@ MODULE                        : MainActivity.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -1760,6 +1775,7 @@ MODULE                        : MainActivity.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : localDebug
         applicationId                 : com.example.mainactivity
         testApplicationId             : com.example.mainactivity.test
@@ -1792,8 +1808,8 @@ MODULE                        : MainActivity.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2069,8 +2085,8 @@ MODULE                        : MainActivity.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameSuffix             :
             VersionNameWithSuffix         : 1.0
@@ -2427,6 +2443,11 @@ MODULE                        : MainActivity.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 7
+            patch                         : 20
+            versionString                 : 1.7.20
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             localDebug                    : KotlinTaskPropertiesImpl
@@ -2443,31 +2464,31 @@ MODULE                        : MainActivity.app
                 pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/app/src/localDebugUnitTest/kotlin [-]
     kaptGradleModel               : <PROXY>
-        buildDirectory                : <ROOT>/app/build [-]
         isEnabled                     : true
+        buildDirectory                : <ROOT>/app/build [-]
         - sourceSets                  : localDebug (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
             generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
             generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
         - sourceSets                  : localDebugAndroidTest (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
+            isTest                        : true
             generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
             generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
-            isTest                        : true
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
         - sourceSets                  : localDebugUnitTest (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
-            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
-            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
             isTest                        : true
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
+            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MainActivity.app.androidTest
 MODULE                        : MainActivity.app.main
@@ -2554,6 +2575,11 @@ MODULE                        : MainActivity.javaLib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 7
+            patch                         : 20
+            versionString                 : 1.7.20
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -2603,8 +2629,8 @@ MODULE                        : MainActivity.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
@@ -2653,6 +2679,7 @@ MODULE                        : MainActivity.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
         buildType                     : debug
@@ -2670,8 +2697,8 @@ MODULE                        : MainActivity.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2834,8 +2861,8 @@ MODULE                        : MainActivity.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.example.lib
@@ -3188,6 +3215,11 @@ MODULE                        : MainActivity.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 7
+            patch                         : 20
+            versionString                 : 1.7.20
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

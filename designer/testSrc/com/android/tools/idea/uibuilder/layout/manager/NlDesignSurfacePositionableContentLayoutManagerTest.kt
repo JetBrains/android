@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.layout.manager
 
-import com.android.testutils.MockitoKotlinUtils.safeAny
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.intellij.openapi.Disposable
@@ -34,6 +33,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -41,8 +41,6 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
   @get:Rule val applicationRule = ApplicationRule()
 
   private lateinit var parentDisposable: Disposable
-
-  val testOption = SurfaceLayoutOption.DEFAULT_OPTION
 
   @Before
   fun setUp() {
@@ -59,19 +57,32 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
     runBlocking(uiThread) {
       val mockedSurface = mock<NlDesignSurface>()
       var layoutUpdates = 0
-      whenever(mockedSurface.onLayoutUpdated(safeAny(SurfaceLayoutOption::class.java, testOption)))
-        .then { layoutUpdates++ }
+      whenever(mockedSurface.onLayoutUpdated(any())).then { layoutUpdates++ }
 
-      val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
-      val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
+      val layoutManager1 = GridLayoutManager()
+      val layoutManager2 = GridLayoutManager()
       val contentLayoutManager =
-        NlDesignSurfacePositionableContentLayoutManager(SurfaceLayoutOption("", layoutManager1))
-          .apply { surface = mockedSurface }
+        NlDesignSurfacePositionableContentLayoutManager(
+            SurfaceLayoutOption(
+              "",
+              { layoutManager1 },
+              layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+            )
+          )
+          .apply {
+            surface = mockedSurface
+            Disposer.register(parentDisposable, this)
+          }
       assertEquals(0, layoutUpdates)
       AndroidCoroutineScope(parentDisposable).launch(uiThread) {
-        contentLayoutManager.currentLayout.collect { mockedSurface.onLayoutUpdated(it) }
+        contentLayoutManager.currentLayoutOption.collect { mockedSurface.onLayoutUpdated(it) }
       }
-      contentLayoutManager.currentLayout.value = SurfaceLayoutOption("", layoutManager2)
+      contentLayoutManager.currentLayoutOption.value =
+        SurfaceLayoutOption(
+          "",
+          { layoutManager2 },
+          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+        )
       delayUntilCondition(250) { layoutUpdates == 1 }
       assertEquals(1, layoutUpdates)
     }
@@ -81,33 +92,46 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
   fun testMeasurePosition() {
     runBlocking(uiThread) {
       val mockedSurface = mock<NlDesignSurface>()
-      whenever(mockedSurface.onLayoutUpdated(safeAny(SurfaceLayoutOption::class.java, testOption)))
-        .then {}
-      val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
-      val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
+      whenever(mockedSurface.onLayoutUpdated(any())).then {}
+      val layoutManager1 = GridLayoutManager()
+      val layoutManager2 = GridLayoutManager()
       val contentLayoutManager =
-        NlDesignSurfacePositionableContentLayoutManager(SurfaceLayoutOption("", layoutManager1))
-          .apply { surface = mockedSurface }
-      contentLayoutManager.currentLayout.value = SurfaceLayoutOption("", layoutManager2)
+        NlDesignSurfacePositionableContentLayoutManager(
+            SurfaceLayoutOption(
+              "",
+              { layoutManager1 },
+              layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+            )
+          )
+          .apply {
+            surface = mockedSurface
+            Disposer.register(parentDisposable, this)
+          }
+      contentLayoutManager.currentLayoutOption.value =
+        SurfaceLayoutOption(
+          "",
+          { layoutManager2 },
+          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+        )
 
-      val content1 = TestPositionableContent(width = 100, height = 100)
-      val content2 = TestPositionableContent(width = 100, height = 100)
-      val content3 = TestPositionableContent(width = 100, height = 100)
-      val content4 = TestPositionableContent(width = 100, height = 100)
+      val content1 = TestPositionableContent(width = 80, height = 80)
+      val content2 = TestPositionableContent(width = 80, height = 80)
+      val content3 = TestPositionableContent(width = 80, height = 80)
+      val content4 = TestPositionableContent(width = 80, height = 80)
       val contents = listOf(content1, content2, content3, content4)
 
       // The layout of these content should be 2 x 2
       val positions =
         contentLayoutManager.getMeasuredPositionableContentPosition(contents, 200, 200)
 
-      assertEquals(0, positions[content1]!!.x)
-      assertEquals(0, positions[content1]!!.y)
-      assertEquals(100, positions[content2]!!.x)
-      assertEquals(0, positions[content2]!!.y)
-      assertEquals(0, positions[content3]!!.x)
-      assertEquals(100, positions[content3]!!.y)
-      assertEquals(100, positions[content4]!!.x)
-      assertEquals(100, positions[content4]!!.y)
+      assertEquals(10, positions[content1]!!.x)
+      assertEquals(10, positions[content1]!!.y)
+      assertEquals(105, positions[content2]!!.x)
+      assertEquals(10, positions[content2]!!.y)
+      assertEquals(10, positions[content3]!!.x)
+      assertEquals(97, positions[content3]!!.y)
+      assertEquals(105, positions[content4]!!.x)
+      assertEquals(97, positions[content4]!!.y)
 
       // After measuring, the position of the given contents shouldn't be changed.
       assertEquals(0, content1.x)

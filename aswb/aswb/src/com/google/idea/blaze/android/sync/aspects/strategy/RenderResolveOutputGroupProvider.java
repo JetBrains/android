@@ -25,8 +25,7 @@ import com.intellij.openapi.util.SystemInfo;
 
 /** Adds output group required by {@link RenderJarClassFileFinder} when it is enabled. */
 public class RenderResolveOutputGroupProvider implements OutputGroupsProvider {
-  public static final ImmutableSet<String> RESOLVE_OUTPUT_GROUP =
-      ImmutableSet.of("intellij-render-resolve-android");
+  public static final String RESOLVE_OUTPUT_GROUP = "intellij-render-resolve-android";
 
   /**
    * Experiment to toggle render jar generation during syncs. By default, render jars should be
@@ -45,7 +44,7 @@ public class RenderResolveOutputGroupProvider implements OutputGroupsProvider {
       return ImmutableSet.of();
     }
 
-    return RESOLVE_OUTPUT_GROUP;
+    return ImmutableSet.of(RESOLVE_OUTPUT_GROUP);
   }
 
   /** Returns a set of {@link OutputGroup} for which render jars should be built. */

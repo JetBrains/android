@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,58 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+plugins {
+  alias(libs.plugins.android.application)
+  alias(libs.plugins.kotlin.android)
+  alias(libs.plugins.kotlin.compose)
+}
 
 android {
-    compileSdkVersion 33
+  namespace 'google.simpleapplication'
+  compileSdk 35 // compileSdk version will be replaced by AndroidGradleTestCase
 
-    defaultConfig {
-        applicationId "google.simpleapplication"
-        minSdkVersion 21
-        targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-    lintOptions {
-        abortOnError false
-    }
+  defaultConfig {
+    applicationId "google.simpleapplication"
+    minSdk 23
+    targetSdk 34 // targetSdk version will be replaced by AndroidGradleTestCase
+    versionCode 1
+    versionName "1.0"
 
-    buildFeatures {
-        compose true
-    }
+    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+  }
 
-    composeOptions {
-      // This version needs to be kept compatible with the Kotlin version specified in ComposeRenderTestBase.DEFAULT_KOTLIN_VERSION,
-      // currently set at 1.8.10.
-      // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin for compatibility table.
-      kotlinCompilerExtensionVersion = "1.5.1"
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs += [
-          "-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true",
-        ]
-    }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_11
+    targetCompatibility JavaVersion.VERSION_11
+  }
+  kotlinOptions {
+    jvmTarget = '11'
+  }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:+'
-    implementation 'androidx.activity:activity-compose:+'
-    implementation 'androidx.compose.ui:ui:+'
-    implementation 'androidx.compose.material:material:+'
-    implementation 'androidx.compose.ui:ui-tooling:+'
-    implementation 'androidx.lifecycle:lifecycle-common-java8:+'
+  implementation libs.androidx.appcompat
+  implementation libs.androidx.activity.compose
+  implementation libs.ui
+  implementation libs.material
+  implementation libs.ui.tooling
 }

@@ -84,5 +84,5 @@ fun createBlank(file: PsiFile): RenderResult {
 fun createRenderTaskErrorResult(file: PsiFile, logger: RenderLogger): RenderResult =
   createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult(), logger)
 
-fun createRenderTaskErrorResult(file: PsiFile, throwable: Throwable?): RenderResult =
-  createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable), null)
+fun createRenderTaskErrorResult(file: PsiFile, throwable: Throwable?, logger: RenderLogger?): RenderResult =
+  createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable), logger)

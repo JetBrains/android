@@ -16,7 +16,12 @@
 package com.android.tools.idea.common.model
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.rendering.api.ResourceNamespace.ANDROID
+import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
+import com.android.ide.common.rendering.api.ResourceReference.style
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.lint.LintAnnotationsModel
@@ -27,7 +32,7 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.util.ListenerCollection.Companion.createWithDirectExecutor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -54,10 +59,11 @@ import org.jetbrains.android.facet.AndroidFacet
  *   custom Android [View]s)that do not have explicit conversion to [XmlFile] (but might have
  *   implicit). This provider should provide us with [XmlFile] representation of the VirtualFile fed
  *   to the model.
- * @param dataContext Returns the [DataContext] associated to this model. The [DataContext] allows
- *   storing information that is specific to this model but is not part of it. For example, context
- *   information about how the model should be represented in a specific surface. The [DataContext]
- *   might change at any point so make sure you always call this method to obtain the latest data.
+ * @param dataProvider Returns the [UiDataProvider] associated to this model. The [UiDataProvider]
+ *   allows storing information that is specific to this model but is not part of it. For example,
+ *   context information about how the model should be represented in a specific surface. The
+ *   [UiDataProvider] might change at any point so make sure you always call this method to obtain
+ *   the latest data.
  */
 open class NlModel
 @VisibleForTesting
@@ -68,15 +74,12 @@ protected constructor(
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
   private val xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>,
-  // TODO must not be a DataContext, convert to UiDataProvider or avoid altogether.
-  //   A data-context must not be queried during another data-context creation.
-  override var dataContext: DataContext,
-) : ModificationTracker, DataContextHolder {
+  override var dataProvider: NlDataProvider?,
+) : ModificationTracker, NlDataProviderHolder {
 
   val treeWriter =
     NlTreeWriter(buildTarget.facet, { file }, ::notifyModified, { createComponent(it) })
   val treeReader = NlTreeReader { file }
-  val themeUpdater = NlThemeUpdater({ configuration }, this)
 
   /**
    * Adds information to the model from a render result. A given model can use different updaters
@@ -160,7 +163,7 @@ protected constructor(
       // update
 
       if (configuration.modificationCount != configurationModificationCount) {
-        themeUpdater.updateTheme()
+        updateTheme()
       }
       listeners.forEach { listener: ModelListener -> listener.modelActivated(this) }
       if (notifyModificationWhenActivated.getAndSet(false))
@@ -269,6 +272,19 @@ protected constructor(
     return component
   }
 
+  private fun updateTheme() {
+    val themeUrl = ResourceUrl.parse(configuration.theme) ?: return
+    if (themeUrl.type != ResourceType.STYLE) {
+      return
+    }
+    val resolver = configuration.resourceItemResolver
+    val themeReference = style(if (themeUrl.isFramework) ANDROID else RES_AUTO, themeUrl.name)
+    if (resolver.getStyle(themeReference) == null) {
+      val theme = configuration.preferredTheme
+      configuration.setTheme(theme)
+    }
+  }
+
   override fun dispose() {
     isDisposed = true
     var shouldDeactivate: Boolean
@@ -311,7 +327,7 @@ protected constructor(
 
   private fun fireNotifyModified(reason: ChangeType) {
     modelVersion.increase(reason)
-    themeUpdater.updateTheme()
+    updateTheme()
     lastChangeType = reason
     listeners.forEach { listener: ModelListener -> listener.modelChanged(this) }
   }
@@ -351,7 +367,7 @@ protected constructor(
       BiFunction { project, virtualFile ->
         getDefaultFile(project, virtualFile)
       }
-    private var dataContext: DataContext = DataContext.EMPTY_CONTEXT
+    private var dataProvider: NlDataProvider? = null
 
     fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): Builder = also {
       this.componentRegistrar = componentRegistrar
@@ -362,7 +378,9 @@ protected constructor(
         this.xmlFileProvider = xmlFileProvider
       }
 
-    fun withDataContext(dataContext: DataContext): Builder = also { this.dataContext = dataContext }
+    fun withDataProvider(dataProvider: NlDataProvider): Builder = also {
+      this.dataProvider = dataProvider
+    }
 
     /** Instantiate a new [NlModel]. */
     @Slow
@@ -374,7 +392,7 @@ protected constructor(
         configuration,
         componentRegistrar,
         xmlFileProvider,
-        dataContext,
+        dataProvider,
       )
   }
 }

@@ -60,6 +60,7 @@ public class IdeaTestSuiteBase {
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
     System.setProperty("idea.log.config.properties.file", resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.properties").toString());
     System.setProperty("idea.split.test.logs", "true"); // For each failing test, write info-level logs to a file instead of stderr.
+    System.setProperty("intellij.testFramework.rethrow.logged.errors", "true"); // Temporary solution for b/374338221
     System.out.println("See Bazel test outputs for idea.log");
 
     // Run in headless mode by default. This property is set by the IntelliJ test framework too,

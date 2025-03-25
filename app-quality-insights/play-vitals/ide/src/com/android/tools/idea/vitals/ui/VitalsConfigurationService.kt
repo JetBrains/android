@@ -17,14 +17,17 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
-import com.android.tools.idea.insights.VITALS_KEY
-import com.android.tools.idea.insights.ai.GeminiToolkitImpl
+import com.android.tools.idea.insights.ai.AiInsightToolkitImpl
+import com.android.tools.idea.insights.ai.GeminiAiInsightsOnboardingProvider
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.client.AppConnection
@@ -36,6 +39,7 @@ import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
@@ -44,6 +48,7 @@ import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -115,6 +120,9 @@ class VitalsConfigurationManager(
       .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
   override val offlineStatusManager = OfflineStatusManagerImpl()
+
+  override val deprecationData: DevServicesDeprecationData
+    get() = service<DevServicesDeprecationDataProvider>().getCurrentDeprecationData("aqi/vitals")
 
   override val configuration =
     flow {
@@ -220,7 +228,7 @@ class VitalsConfigurationManager(
           }
         val vitalsController =
           AppInsightsProjectLevelControllerImpl(
-            key = VITALS_KEY,
+            provider = VitalsInsightsProvider,
             uiScope,
             AndroidDispatchers.workerThread,
             clientDeferred.await(),
@@ -238,7 +246,13 @@ class VitalsConfigurationManager(
               )
             },
             defaultFilters = createVitalsFilters(),
-            geminiToolkit = GeminiToolkitImpl(project),
+            aiInsightToolkit =
+              AiInsightToolkitImpl(
+                project,
+                GeminiAiInsightsOnboardingProvider(project),
+                CodeContextResolverImpl(project),
+              ),
+            cache = cache,
           )
         controllerDeferred.complete(vitalsController)
       }

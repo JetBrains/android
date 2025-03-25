@@ -77,13 +77,15 @@ object VisualizationFormProvider : VisualizationContentProvider {
       VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
     val contentPanel = visualizationForm.component
     val contentManager = toolWindow.contentManager
-    contentManager.addDataProvider(EdtNoGetDataProvider { sink ->
-      val fileEditor = visualizationForm.editor
-      if (fileEditor != null) {
-        DataSink.uiDataSnapshot(sink, fileEditor.component)
+    contentManager.addDataProvider(
+      EdtNoGetDataProvider { sink ->
+        val fileEditor = visualizationForm.editor
+        if (fileEditor != null) {
+          DataSink.uiDataSnapshot(sink, fileEditor.component)
+        }
+        sink[VisualizationContent.VISUALIZATION_CONTENT] = visualizationForm
       }
-      sink[VisualizationContent.VISUALIZATION_CONTENT] = visualizationForm
-    })
+    )
     val content = contentManager.factory.createContent(contentPanel, null, false)
     content.setDisposer(visualizationForm)
     content.isCloseable = false

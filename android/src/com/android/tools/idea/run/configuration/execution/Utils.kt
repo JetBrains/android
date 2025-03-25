@@ -158,7 +158,7 @@ suspend fun createRunContentDescriptor(
 @WorkerThread
 fun prepareDevices(project: Project, indicator: ProgressIndicator, deployTarget: DeployTarget): DeviceFutures {
   indicator.text = "Launching devices"
-  return deployTarget.getDevices(project)
+  return deployTarget.launchDevices(project)
 }
 
 private const val TARGET_DEVICE_NOT_FOUND = "TARGET_DEVICE_NOT_FOUND"

@@ -43,15 +43,10 @@ import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
-import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
 import java.awt.Component
 import java.awt.Insets
 import java.awt.Rectangle
@@ -69,14 +64,25 @@ import javax.swing.JList
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 
-private val DELETE_ICON = FILTER_HISTORY_DELETE
+private val DELETE_ICON = AllIcons.General.Delete
 @Suppress("UseDPIAwareInsets") private val COMBO_ITEM_INSETS = Insets(2, 8, 2, 4)
 private val DELETE_KEY_CODES = arrayOf(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE)
 
 private val PHYSICAL_ICONS = StudioDefaultDeviceIcons
 private val EMULATOR_ICONS =
-  DeviceIcons(VIRTUAL_DEVICE_PHONE, VIRTUAL_DEVICE_WEAR, VIRTUAL_DEVICE_TV, VIRTUAL_DEVICE_CAR)
+  DeviceIcons(
+    VIRTUAL_DEVICE_PHONE,
+    VIRTUAL_DEVICE_WEAR,
+    VIRTUAL_DEVICE_TV,
+    VIRTUAL_DEVICE_CAR,
+    VIRTUAL_DEVICE_HEADSET,
+  )
 
 /**
  * A [ComboBox] for selecting a device.
@@ -140,9 +146,9 @@ internal class DeviceComboBox(
   fun handleItemError(item: DeviceComboItem, message: String): Boolean {
     val answer =
       MessageDialogBuilder.yesNo(
-          LogcatBundle.message("logcat.device.combo.error.title"),
-          LogcatBundle.message("logcat.device.combo.error.message", message),
-        )
+        LogcatBundle.message("logcat.device.combo.error.title"),
+        LogcatBundle.message("logcat.device.combo.error.message", message),
+      )
         .ask(project)
     if (answer) {
       deviceComboModel.remove(item)
@@ -209,7 +215,7 @@ internal class DeviceComboBox(
   fun addOrSelectFile(path: Path) {
     val fileItem =
       deviceComboModel.items.find { it is FileItem && it.path.pathString == path.pathString }
-        ?: deviceComboModel.addFile(path)
+      ?: deviceComboModel.addFile(path)
     selectedItem = fileItem
   }
 

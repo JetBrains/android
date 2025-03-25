@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -36,14 +35,15 @@ import icons.StudioIcons.NavEditor.Tree.PLACEHOLDER
 import javax.swing.Icon
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class NavComponentHelperTest {
 
   @Test
   fun testUiName() {
-    val component = mock(NlComponent::class.java)
+    val component = mock<NlComponent>()
     whenever(component.id).thenCallRealMethod()
     whenever(component.tagName).thenReturn("myTag")
     assertEquals("myTag", component.uiName)

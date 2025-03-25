@@ -91,7 +91,7 @@ class InsightsVcsTestRule(private val projectRule: AndroidProjectRule) : Externa
 
     repositoryManager.waitForAsyncTaskCompletion()
 
-    val newRepo = repositoryManager.repositories.find { it.root == rootVFile && it.vcs == vcs }
+    val newRepo = repositoryManager.getRepositories().find { it.root == rootVFile && it.vcs == vcs }
     assertThat(newRepo).isNotNull()
 
     return rootVFile

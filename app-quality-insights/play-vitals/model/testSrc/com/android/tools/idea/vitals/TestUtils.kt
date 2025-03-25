@@ -45,7 +45,7 @@ val TEST_ISSUE1 =
       "Issue1",
       "com.google.crash.Crash1",
       FailureType.FATAL,
-      "",
+      "apps/com.labpixies.flood/MmRlYzYzZGRlODkyMTM4N2RkZTAxNTI0YWZlYzE4Mjc",
       "12",
       "32",
       8L,
@@ -58,7 +58,7 @@ val TEST_ISSUE1 =
       emptyList(),
     ),
     Event(
-      name = "apps/com.labpixies.flood/MmRlYzYzZGRlODkyMTM4N2RkZTAxNTI0YWZlYzE4Mjc=",
+      name = "apps/com.labpixies.flood/MmRlYzYzZGRlODkyMTM4N2RkZTAxNTI0YWZlYzE4Mjc",
       eventData =
         EventData(
           device = MOST_AFFECTED_DEVICE,
@@ -123,7 +123,7 @@ val TEST_ISSUE2 =
       "Issue2",
       "com.google.crash.Crash2",
       FailureType.FATAL,
-      "",
+      "apps/com.labpixies.flood/MzU4ZDdkMDc3YTljMzRlNWQ4MGY4MjQxYTFlMzdhODM",
       "43",
       "55",
       12L,
@@ -136,7 +136,7 @@ val TEST_ISSUE2 =
       emptyList(),
     ),
     Event(
-      name = "apps/com.labpixies.flood/MzU4ZDdkMDc3YTljMzRlNWQ4MGY4MjQxYTFlMzdhODM=",
+      name = "apps/com.labpixies.flood/MzU4ZDdkMDc3YTljMzRlNWQ4MGY4MjQxYTFlMzdhODM",
       eventData =
         EventData(
           device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),

@@ -16,7 +16,6 @@
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -42,6 +41,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import kotlin.test.assertNull
 
 class LiveTaskHandlerTest {
   private val myTimer = FakeTimer()
@@ -85,22 +86,22 @@ class LiveTaskHandlerTest {
   }
 
   @Test
-  fun testCheckDeviceAndProcess() {
+  fun testCheckSupportForDeviceAndProcess() {
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
     val qDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.Q)
     val pDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.P)
-    assertThat(liveTaskHandler.supportsDeviceAndProcess(qDevice, debuggableProcess)).isTrue()
-    assertThat(liveTaskHandler.supportsDeviceAndProcess(pDevice, debuggableProcess)).isTrue()
+    assertNull(liveTaskHandler.checkSupportForDeviceAndProcess(qDevice, debuggableProcess))
+    assertNull(liveTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess))
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
-    assertThat(liveTaskHandler.supportsDeviceAndProcess(qDevice, profileableProcess)).isTrue()
-    assertThat(liveTaskHandler.supportsDeviceAndProcess(pDevice, profileableProcess)).isTrue()
+    assertNull(liveTaskHandler.checkSupportForDeviceAndProcess(qDevice, profileableProcess))
+    assertNull(liveTaskHandler.checkSupportForDeviceAndProcess(pDevice, profileableProcess))
   }
 
   @Test
   fun `test startTask called on enter`() {
     val liveViewHandlerSpy = Mockito.spy(liveTaskHandler)
-    val mockArgs = MockitoKt.mock<TaskArgs>()
+    val mockArgs = mock<TaskArgs>()
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
                                       myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
     liveViewHandlerSpy.enter(mockArgs)
@@ -112,7 +113,7 @@ class LiveTaskHandlerTest {
 
   @Test
   fun `test enter stage sets the Stage to LiveView`() {
-    val mockArgs = MockitoKt.mock<TaskArgs>()
+    val mockArgs = mock<TaskArgs>()
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
                                       myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
     liveTaskHandler.enter(mockArgs)
@@ -123,7 +124,7 @@ class LiveTaskHandlerTest {
 
   @Test(expected = Throwable::class)
   fun `test enter stage throw error when the task type is not mentioned in the session`() {
-    val mockArgs = MockitoKt.mock<TaskArgs>()
+    val mockArgs = mock<TaskArgs>()
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
                                       myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.UNSPECIFIED_TASK)
     liveTaskHandler.enter(mockArgs)

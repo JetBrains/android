@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.HitProvider
@@ -48,7 +47,9 @@ import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 import org.mockito.InOrder
 import org.mockito.Mockito
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 
 private val SELECTED_COLOR = Color(0x1886f7)
 private val TEXT_COLOR = Color(0xa7a7a7)
@@ -175,7 +176,7 @@ class DecoratorTest : NavTestCase() {
     val refinableImage = RefinableImage(BUFFERED_IMAGE)
 
     val origThumbnailManager = ThumbnailManager.getInstance(myFacet)
-    val thumbnailManager = Mockito.mock(ThumbnailManager::class.java)
+    val thumbnailManager = mock<ThumbnailManager>()
     val configuration = model.surface.configurations.single()
 
     val sceneComponent = makeSceneComponent(FRAGMENT_ID, SceneComponent.DrawState.NORMAL)
@@ -428,7 +429,7 @@ class DecoratorTest : NavTestCase() {
       SceneComponent(
         surface.scene!!,
         surface.models.first().treeReader.find(id)!!,
-        Mockito.mock(HitProvider::class.java),
+        mock<HitProvider>(),
       )
     if (drawState == SceneComponent.DrawState.SELECTED) {
       sceneComponent.isSelected = true
@@ -445,9 +446,9 @@ class DecoratorTest : NavTestCase() {
     context: SceneContext,
     verifier: (InOrder, Graphics2D) -> Unit,
   ) {
-    val root = Mockito.mock(Graphics2D::class.java)
+    val root = mock<Graphics2D>()
 
-    val child = Mockito.mock(Graphics2D::class.java)
+    val child = mock<Graphics2D>()
     whenever(root.create()).thenReturn(child)
 
     val graphics = makeGraphicsMock()
@@ -468,7 +469,7 @@ class DecoratorTest : NavTestCase() {
       SceneComponent(
         surface.scene!!,
         surface.models.first().treeReader.find(id)!!,
-        Mockito.mock(HitProvider::class.java),
+        mock<HitProvider>(),
       )
 
     sceneComponent.setPosition(40, 40)

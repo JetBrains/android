@@ -57,9 +57,7 @@ open class DeviceAndSnapshotComboBoxExecutionTarget(
   }
 
   override fun getRunningDevices(): Collection<IDevice> {
-    return devices().filter(DeploymentTargetDevice::isConnected).map {
-      Futures.getUnchecked(it.ddmlibDeviceAsync)
-    }
+    return devices().mapNotNull { it.ddmlibDevice }
   }
 
   protected fun devices(): List<DeploymentTargetDevice> {

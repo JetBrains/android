@@ -68,9 +68,6 @@ class HProfEventBasedParserTest {
       if (it.javaFrame) {
         javaFrameRootsCount++
       } else {
-        if (!counts.containsKey(it)) {
-          counts.put(it, 0)
-        }
         counts.addTo(it, 1)
       }
     }

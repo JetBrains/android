@@ -125,7 +125,7 @@ internal class NetworkInspectorView(
   /** A common component for showing the current selection range. */
   private val selectionTimeLabel = createSelectionTimeLabel()
 
-  @VisibleForTesting val connectionsView = ConnectionsView(model)
+  @VisibleForTesting val connectionsView = ConnectionsView(project, model)
 
   val rulesView =
     RulesTableView(project, inspectorServices.client, scope, model, inspectorServices.usageTracker)

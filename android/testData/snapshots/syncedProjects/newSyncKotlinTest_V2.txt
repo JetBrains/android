@@ -16,7 +16,7 @@ PROJECT                       : project
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -118,7 +118,7 @@ PROJECT                       : project
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -327,7 +327,7 @@ PROJECT                       : project
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -717,7 +717,7 @@ PROJECT                       : project
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : 1.5
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false

@@ -23,8 +23,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
 import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
@@ -314,11 +313,9 @@ data class SelectedTabState(
     tabComponents.tabContentPanelContainer.repaint()
   }
 
-  private val selectionChangedListener:
-    (old: ViewNode?, new: ViewNode?, origin: SelectionOrigin) -> Unit =
-    { _, _, _ ->
-      layoutInspectorRenderer.refresh()
-    }
+  private val selectionChangedListener: SelectionListener = SelectionListener { _, _, _ ->
+    layoutInspectorRenderer.refresh()
+  }
 
   private val selectedProcessListener = {
     // Sometimes on project close "SelectedTabContent#dispose" can be called after the listeners

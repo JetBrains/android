@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
@@ -27,6 +26,7 @@ import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 
 class CaptureNodeAnalysisModelTest {

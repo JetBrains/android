@@ -105,7 +105,7 @@ suspend inline fun delayUntilCondition(
  * pumps the EDT in between checks.
  */
 fun <R> retryUntilPassing(timeout: Duration, block: () -> R): R {
-  var lastError: AssertionError? = null
+  var lastError: AssertionError?
   val isEdt = EDT.isCurrentThreadEdt()
   // TODO: Use kotlin.time.TimeSource.markNow() when it is no longer experimental
   val startNanos = System.nanoTime()
@@ -121,8 +121,7 @@ fun <R> retryUntilPassing(timeout: Duration, block: () -> R): R {
     }
     Thread.sleep(20)
   } while (System.nanoTime() - startNanos < timeoutNanos)
-  when (lastError) {
-    null -> throw TimeoutException()
-    else -> throw AssertionError("Expected state not reached before timeout", lastError)
-  }
+  lastError?.let {
+    throw AssertionError("Expected state not reached before timeout", lastError)
+  } ?: throw TimeoutException()
 }

@@ -54,6 +54,7 @@ public interface RemoteOutputArtifact
   default ProjectData.OutputArtifact toProto() {
     return ProjectData.OutputArtifact.newBuilder()
         .setArtifactPath(getArtifactPath().toString())
+        .setPrefixLengthPlusOne(getArtifactPathPrefixLength() + 1)
         .setId(getHashId())
         .setSyncStartTimeMillis(getSyncTimeMillis())
         .setFileLength(getLength())

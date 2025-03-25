@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.MultiSelectionModel
@@ -33,6 +32,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class CpuThreadTrackModelTest {
   private lateinit var myProfilers: StudioProfilers

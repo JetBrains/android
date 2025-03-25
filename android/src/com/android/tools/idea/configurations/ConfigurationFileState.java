@@ -84,16 +84,10 @@ public class ConfigurationFileState {
       }
     }
 
-    // Null out if same as the default
-
     UiMode dockMode = configuration.getUiMode();
-    if (dockMode != UiMode.NORMAL) {
-      myDockMode = dockMode.getResourceValue();
-    } else {
-      myDockMode = null;
-    }
-
+    // Null is same as default
     myDockMode = Strings.emptyToNull(dockMode.getResourceValue());
+
     NightMode nightMode = configuration.getNightMode();
     if (nightMode != NightMode.NOTNIGHT) {
       myNightMode = nightMode.getResourceValue();

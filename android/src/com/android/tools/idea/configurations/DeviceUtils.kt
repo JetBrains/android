@@ -47,6 +47,7 @@ enum class DeviceGroup {
   OTHER,
   ADDITIONAL_DEVICE,
   CANONICAL_DEVICE,
+  XR,
 }
 
 /**
@@ -99,6 +100,7 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
         Device.isWear(it) -> DeviceGroup.WEAR
         Device.isDesktop(it) -> DeviceGroup.DESKTOP
         Device.isTv(it) -> DeviceGroup.TV
+        Device.isXr(it) -> DeviceGroup.XR
         isNexus(it) && it.manufacturer != HardwareConfig.MANUFACTURER_GENERIC -> sizeGroupNexus(it)
         Device.isMobile(it) && it.manufacturer == HardwareConfig.MANUFACTURER_GENERIC -> DeviceGroup.GENERIC
         else -> DeviceGroup.OTHER

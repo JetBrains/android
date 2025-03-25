@@ -18,7 +18,8 @@ package com.android.tools.idea.adb
 enum class AdbServerMdnsBackend(val displayText: String) {
   DEFAULT("default"),
   BONJOUR("bonjour"),
-  OPENSCREEN("openscreen");
+  OPENSCREEN("openscreen"),
+  DISABLED("disabled");
 
   override fun toString(): String {
     return displayText
@@ -27,7 +28,7 @@ enum class AdbServerMdnsBackend(val displayText: String) {
   companion object {
 
     @JvmStatic
-    fun fromDisplayText(text: String) : AdbServerMdnsBackend {
+    fun fromDisplayText(text: String): AdbServerMdnsBackend {
       values().forEach {
         if (it.displayText == text) {
           return it

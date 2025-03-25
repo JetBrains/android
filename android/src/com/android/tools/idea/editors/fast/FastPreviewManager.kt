@@ -26,6 +26,8 @@ import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.util.toDisplayString
 import com.google.common.cache.CacheBuilder
@@ -212,14 +214,14 @@ private typealias CompileRequestId = String
  * Creates a [CompileRequestId] for the given inputs. [files] will be used to ensure the [CompileRequestId] changes if
  * one of the given files contents have changed.
  */
-private fun createCompileRequestId(files: Collection<PsiFile>, module: Module): CompileRequestId {
+private fun createCompileRequestId(files: Collection<PsiFile>, project: Project): CompileRequestId {
   val filesDependency = files
     .sortedBy { it.virtualFile.path }.joinToString("\n") {
       "${it.virtualFile.path}@${it.modificationStamp}"
     }
   val compilationRequestContents = """
         $filesDependency
-        ${ProjectRootModificationTracker.getInstance(module.project).modificationCount}
+        ${ProjectRootModificationTracker.getInstance(project).modificationCount}
         """.trimIndent()
 
   @Suppress("UnstableApiUsage")
@@ -353,11 +355,11 @@ class FastPreviewManager private constructor(
    * The given [FastPreviewTrackerManager.Request] is used to track the metrics of this request.
    */
   suspend fun compileRequest(files: Collection<PsiFile>,
-                             module: Module,
+                             contextBuildTargetReference: BuildTargetReference,
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
                              tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> = compilingMutex.withLock {
     val startTime = System.currentTimeMillis()
-    val requestId = createCompileRequestId(files, module)
+    val requestId = createCompileRequestId(files, project)
     val (existingRequest: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
       var existingRequest = true
       val request = requestTracker.get(requestId) {
@@ -376,7 +378,8 @@ class FastPreviewManager private constructor(
     val outputDir = Files.createTempDirectory("overlay")
     log.debug("Compiling $outputDir (id=$requestId)")
     indicator.text = "Looking for compiler daemon"
-    val runtimeVersion = moduleRuntimeVersionLocator(module).toString()
+    // TODO: solodkyy - this needs to bemoved to the new api.
+    val runtimeVersion = moduleRuntimeVersionLocator(contextBuildTargetReference.module).toString()
 
     val result = try {
       val daemon = daemonRegistry.getOrCreateDaemon(runtimeVersion)
@@ -388,7 +391,14 @@ class FastPreviewManager private constructor(
       }
       indicator.text = "Compiling"
       try {
-        daemon.compileRequest(ApplicationLiveEditServices.Legacy(project), files, module, outputDir, indicator)
+        daemon.compileRequest(
+          contextBuildTargetReference.getBuildSystemFilePreviewServices()
+            .getApplicationLiveEditServices(contextBuildTargetReference),
+          files,
+          contextBuildTargetReference,
+          outputDir,
+          indicator
+        )
       }
       catch (t: CancellationException) {
         CompilationResult.CompilationAborted(t)
@@ -472,10 +482,10 @@ class FastPreviewManager private constructor(
    * Sends a compilation request for a single [file]. See [FastPreviewManager.compileRequest].
    */
   suspend fun compileRequest(file: PsiFile,
-                             module: Module,
+                             contextBuildTargetReference: BuildTargetReference,
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
                              tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> =
-    compileRequest(listOf(file), module, indicator, tracker)
+    compileRequest(listOf(file), contextBuildTargetReference, indicator, tracker)
 
   /**
    * Adds a [FastPreviewManagerListener] that will be notified when this manager has completed a build.

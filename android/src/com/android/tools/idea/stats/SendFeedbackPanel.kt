@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.stats
 
-import com.android.tools.idea.actions.SendFeedbackAction
+import com.android.tools.idea.actions.SubmitBugReportAction
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
@@ -44,6 +44,6 @@ class SendFeedbackPanel : StatusBarWidget.Multiframe, StatusBarWidget.IconPresen
   override fun getTooltipText(): String = "Send feedback to Google"
 
   override fun getClickConsumer(): Consumer<MouseEvent> = Consumer { _ ->
-    SendFeedbackAction.submit(project, "Source: send_feedback_icon")
+    SubmitBugReportAction.submit(project, "Source: send_feedback_icon")
   }
 }

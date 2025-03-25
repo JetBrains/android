@@ -20,10 +20,9 @@ import com.android.gmdcodecompletion.ftl.FtlDeviceCatalog
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogState
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogState
+import com.android.mockito.kotlin.mockStatic
+import com.android.prefs.AndroidLocationsProvider
 import com.android.sdklib.devices.DeviceManager
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
 import com.google.api.services.testing.model.AndroidDeviceCatalog
@@ -34,6 +33,8 @@ import com.google.api.services.testing.model.Locale
 import com.google.api.services.testing.model.Orientation
 import com.intellij.codeInsight.lookup.LookupElement
 import org.junit.Assert.assertEquals
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import java.util.Calendar
 
 enum class BuildFileName(val fileName: String) {
@@ -126,7 +127,7 @@ fun managedVirtualDeviceCatalogTestHelper(
       whenever(AndroidSdks.getInstance()).thenReturn(androidSdks)
       mockStatic<StudioSdkUtil>().use {
         whenever(StudioSdkUtil.reloadRemoteSdk(false)).thenAnswer {}
-        whenever(DeviceManager.createInstance(any(), any(), any())).thenReturn(deviceManager)
+        whenever(DeviceManager.createInstance(any<AndroidLocationsProvider>(), any(), any())).thenReturn(deviceManager)
         callback()
       }
     }

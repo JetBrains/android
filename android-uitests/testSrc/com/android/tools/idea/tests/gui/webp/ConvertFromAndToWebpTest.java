@@ -74,7 +74,7 @@ public class ConvertFromAndToWebpTest {
       .selectAndroidPane()
       .expand(30)
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test2.webp")
-      .invokeContextualMenuPath("Convert to PNG...");
+      .invokeContextualMenuPath("Convert to PNG\u2026");
 
     MessagesFixture.findByTitle(guiTest.robot(), "Convert from WebP to PNG")
       .clickYes();
@@ -117,7 +117,7 @@ public class ConvertFromAndToWebpTest {
       .selectAndroidPane()
       .expand(30)
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
-      .invokeContextualMenuPath("Convert to WebP...");
+      .invokeContextualMenuPath("Convert to WebP\u2026");
 
     WebpConversionDialogFixture.findDialog(guiTest.robot())
       .selectLossless()
@@ -164,7 +164,7 @@ public class ConvertFromAndToWebpTest {
       .selectAndroidPane()
       .expand(30)
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
-      .invokeContextualMenuPath("Convert to WebP...");
+      .invokeContextualMenuPath("Convert to WebP\u2026");
 
     // Settings dialog
     WebpConversionDialogFixture.findDialog(guiTest.robot())

@@ -39,22 +39,34 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-/** Max number of tasks that can be waiting to execute */
-private val DEFAULT_MAX_QUEUED_TASKS = Integer.getInteger("layoutlib.thread.max.queued", 50)
+/**
+ * Max number of tasks that can be waiting to execute, without considering cleaning tasks (i.e.
+ * tagged with [RenderingTopic.CLEAN]).
+ */
+private val DEFAULT_MAX_QUEUED_TASKS_SOFT =
+  Integer.getInteger("layoutlib.thread.max.queued.soft", 50)
+
+/** Max number of tasks that can be waiting to execute, including cleaning tasks. */
+private val DEFAULT_MAX_QUEUED_TASKS_HARD =
+  Integer.getInteger("layoutlib.thread.max.queued.hard", 300)
 
 /**
  * Intended to be used for executing render tasks of layoutlib [RenderSession]. Currently, all calls
  * to the layoutlib should be done from the same thread. This executor guarantees that unit of work
  * passed to [runAction] or [runAsyncAction] will be executed sequentially from the same thread.
  *
- * @param maxQueueingTasks max number of tasks that can be queueing waiting for a task to complete.
+ * @param maxQueueingTasksSoftLimit max number of tasks that can be queueing waiting for a task to
+ *   complete, ignoring cleaning tasks.
+ * @param maxQueueingTasksHardLimit max number of tasks that can be queueing waiting for a task to
+ *   complete, including cleaning tasks.
  * @param renderingExecutorService a provider of the [ExecutorService] using the given
  *   [ThreadFactory].
  * @param scheduledExecutorService a [ScheduledExecutorService] to keep track of the task timeout.
  */
 class RenderExecutor
 private constructor(
-  private val maxQueueingTasks: Int,
+  private val maxQueueingTasksSoftLimit: Int,
+  private val maxQueueingTasksHardLimit: Int,
   private val renderingExecutorService: SingleThreadExecutorService,
   private val scheduledExecutorService: ScheduledExecutorService,
 ) : RenderAsyncActionExecutor {
@@ -148,27 +160,21 @@ private constructor(
         // added to the queue.
         null
       }
-    pendingActionsQueueLock
-      .withLock {
-        allPendingActionsQueue.add(future)
-        pendingActionsQueueByTopic.getOrPut(renderingTopic) { PriorityQueue() }.add(future)
-        // We have reached the maximum, evict overflow
-        return@withLock if (maxQueueingTasks > 0) {
-          val evictedTasks = mutableListOf<CompletableFuture<*>>()
-          while (allPendingActionsQueue.size > maxQueueingTasks) {
-            val evicted = allPendingActionsQueue.remove()
-            pendingActionsQueueByTopic[evicted.renderingTopic]?.remove(evicted)
-            evictedTasks.add(evicted)
-          }
-          evictedTasks
-        } else emptyList()
+    pendingActionsQueueLock.withLock {
+      allPendingActionsQueue.add(future)
+      pendingActionsQueueByTopic.getOrPut(renderingTopic) { PriorityQueue() }.add(future)
+      // We have reached the maximum (soft or hard), evict overflow.
+      // Clean actions are only evicted if hard limit is reached
+      while (tasksQueueSoftLimitExceeded() || tasksQueueHardLimitExceeded()) {
+        val evictedException =
+          if (tasksQueueHardLimitExceeded()) createHardLimitExceededException()
+          else createSoftLimitExceededException()
+        allPendingActionsQueue.remove().let {
+          pendingActionsQueueByTopic[it.renderingTopic]?.remove(it)
+          it.completeExceptionally(evictedException)
+        }
       }
-      .forEach {
-        // Complete all the evicted tasks
-        it.completeExceptionally(
-          EvictedException("Max number ($maxQueueingTasks) of render actions reached")
-        )
-      }
+    }
     renderingExecutorService.execute(
       PriorityRunnable(renderingTopic) {
         runningRenderLock.withLock { runningRender = future }
@@ -210,14 +216,7 @@ private constructor(
         }
       }
     )
-    return future.whenComplete { result, exception ->
-      queueTimeoutFuture?.cancel(true)
-      if (exception != null) {
-        future.completeExceptionally(exception)
-      } else {
-        future.complete(result)
-      }
-    }
+    return future.whenComplete { _, _ -> queueTimeoutFuture?.cancel(true) }
   }
 
   override fun cancelActionsByTopic(
@@ -285,7 +284,8 @@ private constructor(
           it.rejectedExecutionHandler = DiscardPolicy()
         }
       return RenderExecutor(
-        DEFAULT_MAX_QUEUED_TASKS,
+        DEFAULT_MAX_QUEUED_TASKS_SOFT,
+        DEFAULT_MAX_QUEUED_TASKS_HARD,
         renderingExecutorService =
           SingleThreadExecutorService.create(
             "Layoutlib Render Thread",
@@ -302,7 +302,13 @@ private constructor(
     fun createForTests(
       executorService: SingleThreadExecutorService,
       scheduledExecutorService: ScheduledExecutorService,
-    ) = RenderExecutor(DEFAULT_MAX_QUEUED_TASKS, executorService, scheduledExecutorService)
+    ) =
+      RenderExecutor(
+        DEFAULT_MAX_QUEUED_TASKS_SOFT,
+        DEFAULT_MAX_QUEUED_TASKS_HARD,
+        executorService,
+        scheduledExecutorService,
+      )
   }
 
   /**
@@ -356,5 +362,36 @@ private constructor(
       }
       return creationTime.compareTo(other.creationTime)
     }
+  }
+
+  /**
+   * True when the number of pending actions that are not tagged with [RenderingTopic.CLEAN] is
+   * bigger than [maxQueueingTasksSoftLimit].
+   */
+  private fun tasksQueueSoftLimitExceeded(): Boolean =
+    pendingActionsQueueLock.withLock {
+      maxQueueingTasksSoftLimit > 0 &&
+        allPendingActionsQueue.size -
+          (pendingActionsQueueByTopic[RenderingTopic.CLEAN]?.size ?: 0) > maxQueueingTasksSoftLimit
+    }
+
+  /** True when the total number of pending actions is bigger than [maxQueueingTasksHardLimit]. */
+  private fun tasksQueueHardLimitExceeded(): Boolean =
+    pendingActionsQueueLock.withLock {
+      maxQueueingTasksHardLimit > 0 && allPendingActionsQueue.size > maxQueueingTasksHardLimit
+    }
+
+  private fun createSoftLimitExceededException() =
+    EvictedException("Max number ($maxQueueingTasksSoftLimit) of non-clean render actions reached")
+
+  private fun createHardLimitExceededException(): EvictedException {
+    Logger.getInstance(RenderExecutor::class.java)
+      .warn(
+        "At least ${maxQueueingTasksHardLimit - maxQueueingTasksSoftLimit} cleaning actions are " +
+          "waiting, potential starvation in the render thread and potential memory leak"
+      )
+    return EvictedException(
+      "Max number ($maxQueueingTasksHardLimit) of all types render actions reached"
+    )
   }
 }

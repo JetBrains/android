@@ -15,237 +15,85 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioBotBuildIssueQuickFix
-import com.android.tools.idea.studiobot.ChatService
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.buildPrompt
+
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.utils.FileUtils
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildIssueEvent
-import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.MessageEvent.Kind.ERROR
-import com.intellij.build.events.MessageEvent.Kind.INFO
-import com.intellij.build.events.MessageEvent.Kind.WARNING
-import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
-import com.intellij.openapi.project.Project
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.registerExtension
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 class BuildOutputParserWrapperTest {
-
   @get:Rule
   val temporaryFolder = TemporaryFolder()
 
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val tempDirRule = TemporaryDirectoryRule()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  private val mockGradleErrorQuickFixProvider = mock<GradleErrorQuickFixProvider>()
   private lateinit var myParserWrapper: BuildOutputParserWrapper
   private lateinit var messageEvent: MessageEvent
 
   @Before
-  fun setUp() {
-    // Set StudioBot's availability to true by default.
-    setStudioBotInstanceAvailability(true)
+  fun setup() {
     val parser = BuildOutputParser { _, _, messageConsumer ->
       messageConsumer?.accept(messageEvent)
       true
     }
     myParserWrapper = BuildOutputParserWrapper(parser, ID)
     whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
+
+    ApplicationManager.getApplication().registerExtension(GradleErrorQuickFixProvider.EP_NAME, mockGradleErrorQuickFixProvider, projectRule.project)
+  }
+
+
+  @Test
+  fun `test when GradleErrorQuickFixProvider is not available, quick fix is not added to the build event`() {
+    messageEvent = createMessageEvent(ERROR)
+    myParserWrapper.parse(null, null) { event ->
+      // MessageEvent is not converted into a BuildIssueEvent which holds the quickfix.
+      assertThat(event).isSameAs(messageEvent)
+    }
   }
 
   @Test
-  fun `test 'Ask Gemini' link is added for ERROR FileMessageEvent`() {
-    messageEvent = createFileMessageEvent(ERROR)
+  fun `test when GradleErrorQuickFixProvider is available, a quick fix is added to the build event`() {
+    messageEvent = createMessageEvent(ERROR)
+
+    whenever(mockGradleErrorQuickFixProvider.createBuildIssueAdditionalQuickFix(messageEvent, ID)).thenReturn(
+      object: DescribedBuildIssueQuickFix{
+        override val description: String
+          get() = "Quick fix description"
+        override val id: String
+          get() = "com.some.plugin.quickfix"
+      }
+    )
 
     myParserWrapper.parse(null, null) { event ->
-
+      // MessageEvent is converted into a BuildIssueEvent which holds the quickfix.
       assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
+      assertThat(event.description).isEqualTo("""
+        ${messageEvent.description}
+        <a href="com.some.plugin.quickfix">Quick fix description</a>""".trimIndent())
       val quickFixes = (event as BuildIssueEvent).issue.quickFixes
       assertThat(quickFixes).hasSize(1)
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
     }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' link is added for ERROR MessageEvent`() {
-    messageEvent = createMessageEvent(ERROR)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      assertThat(event).isInstanceOf(BuildIssueEvent::class.java)
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes).hasSize(1)
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' link is not added for WARNING MessageEvent`() {
-    messageEvent = createFileMessageEvent(WARNING)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
-    }
-  }
-
-
-  @Test
-  fun `test 'Ask Gemini' link is not added for INFO MessageEvent`() {
-    messageEvent = createFileMessageEvent(INFO)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
-    }
-  }
-
-  @Test
-  fun `test when StudioBot is not available, 'Ask Gemini' links is not added for ERROR MessageEvent`() {
-    setStudioBotInstanceAvailability(false)
-    messageEvent = createMessageEvent(ERROR)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      assertThat(event).isNotInstanceOf(BuildIssueEvent::class.java)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' quick fix sends query to ChatService when context allowed`() {
-    // Given: Context is allowed.
-    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = true)
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.RESOLVE_PROJECT)
-    messageEvent = createMessageEvent(ERROR)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      verify(StudioBot.getInstance().chat(projectRule.project)).sendChatQuery(
-        buildPrompt(projectRule.project){
-          userMessage {
-            text("""
-            I'm getting the following error while syncing my project. The error is: !!some error message!!
-            ```
-            Detailed error message
-            ```
-            How do I fix this?
-        """.trimIndent(), emptyList())
-          }
-        },
-        StudioBot.RequestSource.BUILD)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' quick fix sends query to ChatService without gradle command`() {
-    // Given: Context is allowed.
-    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = true)
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
-    messageEvent = createMessageEvent(ERROR)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      verify(StudioBot.getInstance().chat(projectRule.project)).sendChatQuery(
-        buildPrompt(projectRule.project){
-          userMessage {
-            text("""
-            I'm getting the following error while building my project. The error is: !!some error message!!
-            ```
-            Detailed error message
-            ```
-            How do I fix this?
-        """.trimIndent(), emptyList())
-          }
-        },
-        StudioBot.RequestSource.BUILD)
-    }
-  }
-
-
-  @Test
-  fun `test 'Ask Gemini' quick fix stages query to ChatService when context not allowed`() {
-    // Given: Context is not allowed
-    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = false)
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
-    messageEvent = createMessageEvent(ERROR)
-
-    myParserWrapper.parse(null, null) { event ->
-
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      verify(StudioBot.getInstance().chat(projectRule.project)).stageChatQuery(
-        """
-        I'm getting the following error while building my project. The error is: !!some error message!!
-        ```
-        Detailed error message
-        ```
-        How do I fix this?
-        """.trimIndent(),
-        StudioBot.RequestSource.BUILD)
-    }
-  }
-
-  @Test
-  fun `test 'Ask Gemini' quick fix parses Gradle command from projectId`() {
-    // Given: Context is not allowed
-    setStudioBotInstanceAvailability(isAvailable = true, isContextAllowed = false)
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.EXECUTE_TASK)
-    messageEvent = createMessageEvent(ERROR, id = "[-4474:2441] > [Task :app:compileDebugJavaWithJavac]")
-
-    myParserWrapper.parse(null, null) { event ->
-
-      val quickFixes = (event as BuildIssueEvent).issue.quickFixes
-      assertThat(quickFixes.first()).isInstanceOf(OpenStudioBotBuildIssueQuickFix::class.java)
-      quickFixes.first().runQuickFix(projectRule.project) { }
-
-      verify(StudioBot.getInstance().chat(projectRule.project)).stageChatQuery(
-        """
-        I'm getting the following error while building my project. The error is: !!some error message!!
-        ```
-        ${'$'} ./gradlew :app:compileDebugJavaWithJavac
-        Detailed error message
-        ```
-        How do I fix this?
-        """.trimIndent(),
-        StudioBot.RequestSource.BUILD)
-    }
-  }
-
-  private fun setStudioBotInstanceAvailability(isAvailable: Boolean, isContextAllowed: Boolean = false) {
-    val studioBot = object : StudioBot.StubStudioBot() {
-      override fun isContextAllowed(project: Project): Boolean = isContextAllowed
-      override fun isAvailable(): Boolean = isAvailable
-      private val _chatService = spy(object : ChatService.StubChatService() {})
-      override fun chat(project: Project): ChatService = _chatService
-    }
-    ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, projectRule.project)
   }
 
   private fun createMessageEvent(
@@ -261,23 +109,6 @@ class BuildOutputParserWrapperTest {
       group,
       message,
       detailedMessage)
-  }
-
-  private fun createFileMessageEvent(
-    kind: MessageEvent.Kind,
-    group: String = "Compiler",
-    message: String = "!!some error message!!",
-    detailedMessage: String = "Detailed error message",
-    id: Any = ID,
-  ): FileMessageEvent {
-    val folder = temporaryFolder.newFolder("test")
-    return FileMessageEventImpl(
-      id,
-      kind,
-      group,
-      message,
-      detailedMessage,
-      FilePosition(FileUtils.join(folder, "main", "src", "main.java"),1, 1))
   }
 
   companion object {

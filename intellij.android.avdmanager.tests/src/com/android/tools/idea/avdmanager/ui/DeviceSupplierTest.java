@@ -18,9 +18,8 @@ package com.android.tools.idea.avdmanager.ui;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.DeviceManager.DeviceFilter;
+import com.android.sdklib.devices.DeviceManager.DeviceCategory;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
-import com.android.tools.idea.avdmanager.ui.DeviceSupplier;
 import java.util.EnumSet;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +34,7 @@ public final class DeviceSupplierTest {
   private final DeviceManagerConnection myConnection = Mockito.mock(DeviceManagerConnection.class);
 
   @NotNull
-  private final EnumSet<DeviceFilter> mySystemImageFilter = EnumSet.of(DeviceFilter.SYSTEM_IMAGES);
+  private final EnumSet<DeviceCategory> mySystemImageFilter = EnumSet.of(DeviceCategory.SYSTEM_IMAGES);
 
   private final DeviceSupplier mySupplier = new DeviceSupplier(() -> myConnection);
 

@@ -28,7 +28,9 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 import java.util.UUID
@@ -275,4 +277,4 @@ private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0):
 }
 
 private fun createFakeEvent(): AnActionEvent =
-  AnActionEvent.createFromDataContext("", null, DataContext.EMPTY_CONTEXT)
+  createEvent(DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)

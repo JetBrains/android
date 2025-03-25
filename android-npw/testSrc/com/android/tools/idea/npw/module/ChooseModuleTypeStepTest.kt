@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
@@ -25,84 +24,144 @@ import com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.util.AndroidBundle.message
-import org.mockito.Mockito
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
 
   fun testSortSingleModuleEntries() {
-    assertThat(sort(message("android.wizard.module.new.mobile"))).containsExactly(message("android.wizard.module.new.mobile")).inOrder()
+    assertThat(sort(message("android.wizard.module.new.mobile")))
+      .containsExactly(message("android.wizard.module.new.mobile"))
+      .inOrder()
   }
 
   fun testSortTwoModuleEntries() {
-    assertThat(sort(message("android.wizard.module.new.library"), message("android.wizard.module.new.mobile")))
-      .containsExactly(message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library")).inOrder()
+    assertThat(
+        sort(
+          message("android.wizard.module.new.library"),
+          message("android.wizard.module.new.mobile"),
+        )
+      )
+      .containsExactly(
+        message("android.wizard.module.new.mobile"),
+        message("android.wizard.module.new.library"),
+      )
+      .inOrder()
     assertThat(sort("A", message("android.wizard.module.new.mobile")))
-      .containsExactly(message("android.wizard.module.new.mobile"), "A").inOrder()
+      .containsExactly(message("android.wizard.module.new.mobile"), "A")
+      .inOrder()
     assertThat(sort(message("android.wizard.module.new.wear"), "A"))
-      .containsExactly(message("android.wizard.module.new.wear"), "A").inOrder()
+      .containsExactly(message("android.wizard.module.new.wear"), "A")
+      .inOrder()
     assertThat(sort("C", "A")).containsExactly("A", "C").inOrder()
   }
 
   fun testSortFullModuleEntries() {
     assertThat(
-      sort("Z", message("android.wizard.module.new.library"), message("android.wizard.module.new.mobile"),
-           message("android.wizard.module.new.wear"), message("android.wizard.module.new.tv"),
-           message("android.wizard.module.import.gradle.title"), message("android.wizard.module.import.eclipse.title"),
-           message("android.wizard.module.new.google.cloud"), message("android.wizard.module.new.java.or.kotlin.library"),
-           message("android.wizard.module.new.benchmark.module.app"), "A"))
+        sort(
+          "Z",
+          message("android.wizard.module.new.library"),
+          message("android.wizard.module.new.mobile"),
+          message("android.wizard.module.new.wear"),
+          message("android.wizard.module.new.tv"),
+          message("android.wizard.module.import.gradle.title"),
+          message("android.wizard.module.import.eclipse.title"),
+          message("android.wizard.module.new.google.cloud"),
+          message("android.wizard.module.new.java.or.kotlin.library"),
+          message("android.wizard.module.new.benchmark.module.app"),
+          "A",
+        )
+      )
       .containsExactly(
-        message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"),
-        message("android.wizard.module.new.wear"), message("android.wizard.module.new.tv"),
-        message("android.wizard.module.import.gradle.title"), message("android.wizard.module.import.eclipse.title"),
-        message("android.wizard.module.new.java.or.kotlin.library"), message("android.wizard.module.new.google.cloud"),
-        message("android.wizard.module.new.benchmark.module.app"), "A", "Z")
+        message("android.wizard.module.new.mobile"),
+        message("android.wizard.module.new.library"),
+        message("android.wizard.module.new.wear"),
+        message("android.wizard.module.new.tv"),
+        message("android.wizard.module.import.gradle.title"),
+        message("android.wizard.module.import.eclipse.title"),
+        message("android.wizard.module.new.java.or.kotlin.library"),
+        message("android.wizard.module.new.google.cloud"),
+        message("android.wizard.module.new.benchmark.module.app"),
+        "A",
+        "Z",
+      )
       .inOrder()
   }
 
   fun testSortExistingModuleEntries() {
-    val providers = listOf(
-      ImportModuleGalleryEntryProvider(),
-      NewAndroidModuleDescriptionProvider(),
-      NewDynamicAppModuleDescriptionProvider(),
-      NewLibraryModuleDescriptionProvider(),
-      NewBenchmarkModuleDescriptionProvider(),
-      NewBaselineProfilesModuleDescriptionProvider()
-    )
+    val providers =
+      listOf(
+        ImportModuleGalleryEntryProvider(),
+        NewAndroidModuleDescriptionProvider(),
+        NewDynamicAppModuleDescriptionProvider(),
+        NewLibraryModuleDescriptionProvider(),
+        NewBenchmarkModuleDescriptionProvider(),
+        NewBaselineProfilesModuleDescriptionProvider(),
+      )
     val moduleDescriptions = providers.flatMap { it.getDescriptions(project) }
 
-    val sortedEntries = sortModuleEntries(moduleDescriptions).map { it.name }
+    val sortedEntries = sortModuleEntries(moduleDescriptions, ":").map { it.name }
 
-    val expectedEntries = listOf(
-      message("android.wizard.module.new.mobile"),
-      message("android.wizard.module.new.library"),
-      message("android.wizard.module.new.native.library"),
-      message("android.wizard.module.new.dynamic.module"),
-      message("android.wizard.module.new.dynamic.module.instant"),
-      message("android.wizard.module.new.automotive"),
-      message("android.wizard.module.new.wear"),
-      message("android.wizard.module.new.tv"),
-      message("android.wizard.module.import.gradle.title"),
-      message("android.wizard.module.import.eclipse.title"),
-      message("android.wizard.module.new.java.or.kotlin.library"),
-      if (StudioFlags.NPW_NEW_BASELINE_PROFILES_MODULE.get()) message("android.wizard.module.new.baselineprofiles.module.app") else null,
-      message("android.wizard.module.new.benchmark.module.app"),
-      if (StudioFlags.NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE.get()) message("android.wizard.module.new.kotlin.multiplatform.library") else null,
-      ).filterNot {
-      it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title")
-    }.filterNotNull()
+    val expectedEntries =
+      listOf(
+          message("android.wizard.module.new.mobile"),
+          message("android.wizard.module.new.library"),
+          message("android.wizard.module.new.native.library"),
+          message("android.wizard.module.new.dynamic.module"),
+          message("android.wizard.module.new.dynamic.module.instant"),
+          message("android.wizard.module.new.automotive"),
+          message("android.wizard.module.new.wear"),
+          message("android.wizard.module.new.tv"),
+          message("android.wizard.module.import.gradle.title"),
+          message("android.wizard.module.import.eclipse.title"),
+          message("android.wizard.module.new.java.or.kotlin.library"),
+          if (StudioFlags.NPW_NEW_BASELINE_PROFILES_MODULE.get())
+            message("android.wizard.module.new.baselineprofiles.module.app")
+          else null,
+          message("android.wizard.module.new.benchmark.module.app"),
+          if (StudioFlags.NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE.get())
+            message("android.wizard.module.new.kotlin.multiplatform.library")
+          else null,
+        )
+        .filterNot {
+          it == message("android.wizard.module.import.gradle.title") ||
+            it == message("android.wizard.module.import.eclipse.title")
+        }
+        .filterNotNull()
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }
 
-  private fun sort(vararg entries: String): List<String> {
-    val moduleDescriptions = entries.map {
-      Mockito.mock(ModuleGalleryEntry::class.java).apply {
-        whenever(name).thenReturn(it)
-      }
-    }
+  fun testKMPOnlyInTopLevel() {
+    assertThat(
+        sort(
+          message("android.wizard.module.new.mobile"),
+          message("android.wizard.module.new.kotlin.multiplatform.library"),
+          moduleParent = ":",
+        )
+      )
+      .containsExactly(
+        message("android.wizard.module.new.mobile"),
+        message("android.wizard.module.new.kotlin.multiplatform.library"),
+      )
+      .inOrder()
 
-    val sortedEntries = sortModuleEntries(moduleDescriptions)
-    assertEquals(entries.size, sortedEntries.size)
+    assertThat(
+        sort(
+          message("android.wizard.module.new.mobile"),
+          message("android.wizard.module.new.kotlin.multiplatform.library"),
+          moduleParent = ":app",
+        )
+      )
+      .containsExactly(message("android.wizard.module.new.mobile"))
+      .inOrder()
+  }
+
+  private fun sort(vararg entries: String, moduleParent: String = ":"): List<String> {
+    val moduleDescriptions =
+      entries.map { entry -> mock<ModuleGalleryEntry> { on { name } doReturn entry } }
+
+    val sortedEntries = sortModuleEntries(moduleDescriptions, moduleParent)
 
     return sortedEntries.map { it.name }
   }

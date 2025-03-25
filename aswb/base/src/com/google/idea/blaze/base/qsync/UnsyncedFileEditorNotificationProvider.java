@@ -24,6 +24,7 @@ import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -99,15 +100,6 @@ public class UnsyncedFileEditorNotificationProvider implements EditorNotificatio
         .createActionLabel("Sync now", IncrementalSyncProjectAction.ID)
         .addHyperlinkListener(
             event -> EditorNotifications.getInstance(project).updateAllNotifications());
-    panel.createActionLabel(
-        "Enable automatic syncing",
-        () -> {
-          QuerySyncSettings.getInstance().enableSyncOnFileChanges(true);
-          showAutoSyncNotification(project);
-          IncrementalSyncProjectAction.doIncrementalSync(
-              UnsyncedFileEditorNotificationProvider.class, project, null);
-          EditorNotifications.getInstance(project).updateAllNotifications();
-        });
     return panel;
   }
 
@@ -133,6 +125,11 @@ public class UnsyncedFileEditorNotificationProvider implements EditorNotificatio
       ShowSettingsUtil.getInstance()
           .showSettingsDialog(
               anActionEvent.getProject(), QuerySyncConfigurableProvider.getConfigurableClass());
+    }
+
+    @Override
+    public ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
   }
 }

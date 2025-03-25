@@ -29,6 +29,7 @@ public class GradleProjectSystemStructureTestSuite extends IdeaTestSuiteBase {
 
   static {
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/declarative_android_gradle_plugin.zip");
     linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle-psd/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");

@@ -105,9 +105,7 @@ public class InstantApps {
   }
 
   public static boolean isPostO(IDevice device) {
-    AndroidVersion version = device.getVersion();
-
-    // Previews of O have api level 25, so comparing with #isGreaterOrEqualThan(apiLevel) doesn't work here.
-    return version.compareTo(25, "O") >= 0;
+    // This will accept both O (API 26) and O Previews (API 25 codename Oreo).
+    return device.getVersion().isAtLeast(25, "O");
   }
 }

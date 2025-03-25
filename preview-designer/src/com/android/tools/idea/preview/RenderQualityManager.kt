@@ -16,24 +16,19 @@
 package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.editor.PanZoomListener
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.rendering.isCancellationException
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.openapi.util.Disposer
 import java.awt.Rectangle
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.abs
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
@@ -100,34 +95,7 @@ class DefaultRenderQualityManager(
 
   init {
     scope.launch {
-      disposableCallbackFlow<Unit>(
-          "RenderQualityManager flow",
-          logger = null,
-          parentDisposable = mySurface,
-        ) {
-          val panZoomListener =
-            object : PanZoomListener {
-              override fun zoomChanged(previousScale: Double, newScale: Double) {
-                trySend(Unit)
-              }
-
-              override fun panningChanged() {
-                trySend(Unit)
-              }
-            }
-          val designSurfaceListener =
-            object : DesignSurfaceListener {
-              override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-                trySend(Unit)
-              }
-            }
-          mySurface.addPanZoomListener(panZoomListener)
-          mySurface.addListener(designSurfaceListener)
-          Disposer.register(disposable) {
-            mySurface.removePanZoomListener(panZoomListener)
-            mySurface.removeListener(designSurfaceListener)
-          }
-        }
+      merge(mySurface.panningChanged, mySurface.zoomChanged, mySurface.modelChanged)
         .debounce(myPolicy.debounceTimeMillis)
         .collect {
           // Mark the ui data as outdated,

@@ -35,7 +35,6 @@ import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.io.TestFileUtils;
-import com.android.tools.idea.profilers.performance.TimeUnit;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
@@ -48,6 +47,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -93,7 +93,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -353,6 +352,7 @@ public class EditorFixture {
 
         SelectTarget target = new SelectTarget();
         target.component = editor.getContentComponent();
+        target.component.requestFocus();
         target.startPoint = editor.logicalPositionToXY(startPosition);
         target.endPoint = editor.logicalPositionToXY(endPosition);
         return target;
@@ -660,7 +660,7 @@ public class EditorFixture {
     else {
       EdtTestUtil.runInEdtAndWait(() -> {
         DataContext context = DataManager.getInstance().getDataContext(component);
-        AnActionEvent event = AnActionEvent.createFromAnAction(anAction, null, "menu", context);
+        AnActionEvent event = AnActionEvent.createEvent(anAction, context, null, "menu", ActionUiKind.NONE, null);
         anAction.actionPerformed(event);
       });
     }

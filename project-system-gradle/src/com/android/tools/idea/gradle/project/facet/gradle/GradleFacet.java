@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.project.facet.gradle;
 
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -36,18 +37,22 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
 
   @Nullable private GradleModuleModel myGradleModuleModel;
 
-  @Nullable
-  public static GradleFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    return modelsProvider.getModifiableFacetModel(ModuleSystemUtil.getHolderModule(module)).getFacetByType(TYPE_ID);
-  }
-
   public static boolean isAppliedTo(@NotNull Module module) {
     return getInstance(module) != null;
   }
 
   @Nullable
   public static GradleFacet getInstance(@NotNull Module module) {
-    return FacetManager.getInstance(ModuleSystemUtil.getHolderModule(module)).getFacetByType(getFacetTypeId());
+    if (module.isDisposed()) {
+      Logger.getInstance(GradleFacet.class).warn(ANDROID_GRADLE_FACET_NAME + " facet is requested on a disposed module " + module);
+      return null;
+    }
+    Module holderModule = LinkedAndroidModuleGroupUtilsKt.getHolderModule(module);
+    if (holderModule.isDisposed()) {
+      Logger.getInstance(GradleFacet.class).warn(ANDROID_GRADLE_FACET_NAME + " facet is requested on " + module + " but holder module is disposed " + holderModule);
+      return null;
+    }
+    return FacetManager.getInstance(holderModule).getFacetByType(getFacetTypeId());
   }
 
   public GradleFacet(@NotNull Module module,

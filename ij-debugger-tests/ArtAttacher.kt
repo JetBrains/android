@@ -16,6 +16,9 @@
 
 package com.google.android.tools.debugger.test
 
+import com.android.tools.idea.debug.AndroidFieldVisibilityProvider
+import com.intellij.core.CoreApplicationEnvironment
+import com.intellij.debugger.engine.FieldVisibilityProvider
 import com.intellij.debugger.engine.RemoteStateState
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.debugger.impl.RemoteConnectionBuilder
@@ -23,12 +26,20 @@ import com.intellij.debugger.settings.DebuggerSettings
 import com.intellij.execution.configurations.JavaParameters
 import com.intellij.execution.configurations.RemoteConnection
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.observable.util.whenDisposed
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.ui.classFilter.ClassFilter
 import com.intellij.util.io.Compressor
 import com.intellij.util.io.delete
-import java.io.FileOutputStream
+import org.jetbrains.kotlin.android.debugger.AndroidDexerImpl
+import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer
+import org.jetbrains.kotlin.idea.debugger.test.KotlinDescriptorTestCase
+import org.jetbrains.kotlin.idea.debugger.test.VmAttacher
 import java.lang.ProcessBuilder.Redirect.PIPE
 import java.lang.reflect.Method
 import java.net.URL
@@ -37,11 +48,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
 import kotlin.LazyThreadSafetyMode.NONE
-import kotlin.io.path.*
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit.MILLISECONDS
-import org.jetbrains.kotlin.idea.debugger.test.VmAttacher
-import org.jetbrains.kotlin.idea.debugger.test.KotlinDescriptorTestCase
+import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.pathString
 
 private const val STUDIO_ROOT_ENV = "INTELLIJ_DEBUGGER_TESTS_STUDIO_ROOT"
 private const val STUDIO_ROOT_PROPERTY = "intellij.debugger.tests.studio.root"
@@ -63,10 +74,17 @@ private val DEX_CACHE by lazy { getDexCache() }
 private val ROOT by lazy(NONE) { getStudioRoot() }
 private val D8_COMPILER by lazy(NONE) { loadD8Compiler() }
 
+/** Private in [FieldVisibilityProvider] */
+@Suppress("UnresolvedPluginConfigReference")
+private val FIELD_VISIBILITY_PROVIDER_EP = ExtensionPointName.create<FieldVisibilityProvider>(
+  "com.intellij.debugger.fieldVisibilityProvider")
+
 /** Attaches to an ART VM */
+@Suppress("unused")
 internal class ArtAttacher : VmAttacher {
   private lateinit var steppingFilters: Array<ClassFilter>
-
+  private val disposable = Disposer.newDisposable("ArtAttacher")
+  
   override fun setUp() {
     steppingFilters = DebuggerSettings.getInstance().steppingFilters
     DebuggerSettings.getInstance().steppingFilters += arrayOf(
@@ -80,6 +98,7 @@ internal class ArtAttacher : VmAttacher {
 
   override fun tearDown() {
     DebuggerSettings.getInstance().steppingFilters = steppingFilters
+    Disposer.dispose(disposable)
   }
 
   override fun attachVirtualMachine(
@@ -87,17 +106,28 @@ internal class ArtAttacher : VmAttacher {
     javaParameters: JavaParameters,
     environment: ExecutionEnvironment
   ): DebuggerSession {
+    val project = testCase.project
+    val application = ApplicationManager.getApplication()
+
+    // Register extensions
+    project.registerExtension(AndroidDexer.extensionPointName, AndroidDexerImpl(project), disposable)
+    application.registerExtension(FIELD_VISIBILITY_PROVIDER_EP, AndroidFieldVisibilityProvider(), disposable)
+
     val remoteConnection = getRemoteConnection(testCase, javaParameters)
-    val remoteState = RemoteStateState(testCase.project, remoteConnection)
+    val remoteState = RemoteStateState(project, remoteConnection)
     return testCase.attachVirtualMachine(remoteState, environment, remoteConnection, false)
   }
 
   private fun getRemoteConnection(testCase: KotlinDescriptorTestCase, javaParameters: JavaParameters): RemoteConnection {
     println("Running on ART VM with DEX Cache")
-    testCase.setTimeout(getTestTimeoutMillis())
+    val timeout = getTestTimeoutMillis()
+    if (timeout != null) {
+      testCase.setTimeout(timeout.toInt())
+    }
     val mainClass = javaParameters.mainClass
     val dexFiles = buildDexFiles(javaParameters.classPath.pathList)
     if (DEX_CACHE == null) {
+      @Suppress("UnstableApiUsage")
       testCase.testRootDisposable.whenDisposed {
         dexFiles.forEach { it.delete() }
       }
@@ -195,7 +225,6 @@ internal class ArtAttacher : VmAttacher {
       mainClass,
     )
   }
-
 }
 
 private fun getConfig(property: String, env: String): String? {
@@ -203,7 +232,7 @@ private fun getConfig(property: String, env: String): String? {
 }
 
 private fun getTestTimeoutMillis() =
-  getConfig(TIMEOUT_MILLIS_PROPERTY, TIMEOUT_MILLIS_ENV)?.toIntOrNull() ?: 30.seconds.toInt(MILLISECONDS)
+  getConfig(TIMEOUT_MILLIS_PROPERTY, TIMEOUT_MILLIS_ENV)?.toIntOrNull()
 
 private fun getStudioRoot(): Path {
   val path = getConfig(STUDIO_ROOT_PROPERTY, STUDIO_ROOT_ENV) ?: throw IllegalStateException("Studio Root was not provided")
@@ -233,14 +262,8 @@ private fun loadD8Compiler(): Method {
   return d8.getDeclaredMethod("main", Array<String>::class.java)
 }
 
-private fun <T> Path?.withLock(block: () -> T): T {
-  if (this == null) {
-    return block()
-  }
-  val lock = resolve("lockfile")
-  FileOutputStream(lock.pathString).use {
-    it.channel.lock()
-    // Lock is released when use block completes.
-    return block()
-  }
+@Suppress("SameParameterValue")
+private inline fun <reified T : Any> ComponentManager.registerExtension(ep: ExtensionPointName<T>, extension: T, disposable: Disposable) {
+  CoreApplicationEnvironment.registerExtensionPoint(extensionArea, ep, T::class.java)
+  extensionArea.getExtensionPoint(ep).registerExtension(extension, disposable)
 }

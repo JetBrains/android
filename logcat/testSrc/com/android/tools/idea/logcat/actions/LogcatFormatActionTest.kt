@@ -22,10 +22,7 @@ import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
 import com.intellij.testFramework.DisposableRule
@@ -33,12 +30,13 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import com.intellij.testFramework.TestActionEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [LogcatFormatAction] */
 @RunsInEdt
@@ -47,8 +45,9 @@ class LogcatFormatActionTest {
   private val popupRule = JBPopupRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 popupRule, disposableRule, EdtRule())
+  @get:Rule
+  val rule =
+    RuleChain(projectRule, WaitForIndexRule(projectRule), popupRule, disposableRule, EdtRule())
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
@@ -89,11 +88,8 @@ class LogcatFormatActionTest {
 }
 
 private fun anActionEvent(component: JComponent) =
-  AnActionEvent(
-    MouseEvent(component, 0, 0L, 0, 0, 0, 1, true),
+  TestActionEvent.createTestEvent(
+    null,
     EMPTY_CONTEXT,
-    "place",
-    Presentation(),
-    ActionManager.getInstance(),
-    0,
+    MouseEvent(component, 0, 0L, 0, 0, 0, 1, true),
   )

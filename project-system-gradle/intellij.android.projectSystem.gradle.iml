@@ -62,6 +62,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
+    <orderEntry type="module" module-name="intellij.android.lint.common" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" />
@@ -155,6 +156,7 @@
     <orderEntry type="module" module-name="kotlin.project-wizard.core" />
     <orderEntry type="module" module-name="kotlin.refactorings.common" />
     <orderEntry type="module" module-name="kotlin.gradle.code-insight-common" />
+    <orderEntry type="module" module-name="kotlin.gradle.code-insight-toml" />
     <orderEntry type="module" module-name="kotlin.idea" />
     <orderEntry type="module" module-name="kotlin.highlighting.minimal" />
     <orderEntry type="module" module-name="kotlin.base.plugin" />
@@ -165,5 +167,10 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-fe10" level="project" />
     <orderEntry type="module" module-name="kotlin.base.project-structure" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
+    <orderEntry type="module" module-name="intellij.android.gmaven" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
+    <orderEntry type="module" module-name="intellij.android.testartifacts" />
   </component>
 </module>

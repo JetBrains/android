@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.junit.After
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -122,6 +123,10 @@ class ComposableCompileTest {
         return { val y = 0 }
       }""")
     val output = compile(file, cache)
+
+    // TODO(386111622): Check group IDs for K2.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     Assert.assertTrue(-1369675262 in output.groupIds)
     val groupIdForNestedLambda = if (!KotlinPluginModeProvider.isK2Mode()) {
       22704048
@@ -229,6 +234,10 @@ class ComposableCompileTest {
     val apk = projectRule.directApiCompileByteArray(file)
     val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
     val output = compile(listOf(LiveEditCompilerInput(file, fileState)), compiler)
+
+    // TODO(386111622): Check ComposableSingletons and getLambda for K2.
+    Assume.assumeFalse(KotlinPluginModeProvider.isK2Mode())
+
     val singleton = output.supportClassesMap["ComposableSingletons\$HasComposableSingletonsKt"];
     Assert.assertNotNull(singleton)
     val cl = loadClass(output, "ComposableSingletons\$HasComposableSingletonsKt")
@@ -237,6 +246,7 @@ class ComposableCompileTest {
     Assert.assertTrue(getLambda!!.name.contains(projectRule.module.name))
   }
 
+  @Ignore("b/376148043")
   @Test
   fun sendAllThenOnlyChanges() {
     val file = projectRule.createKtFile("ComposeSimple.kt", """

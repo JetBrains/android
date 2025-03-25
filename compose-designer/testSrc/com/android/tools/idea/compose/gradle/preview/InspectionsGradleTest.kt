@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.ComposePreviewNotSupportedInUnitTestFiles
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
@@ -23,7 +22,6 @@ import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.compose.preview.descriptionWithLineNumber
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.testing.withKotlin
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.roots.ProjectRootManager
@@ -42,7 +40,7 @@ class InspectionsGradleTest {
 
   @Before
   fun setUp() {
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT)
   }
 
   @Test

@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.issues.processor
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * Tool to rewrite build.gradle file to add or update android.ndkVersion section.
  */
 class FixNdkVersionProcessor(
-  project: Project,
+  private val project: Project,
   private val buildFiles: List<VirtualFile>,
   private val version: String) : BaseRefactoringProcessor(project) {
 
@@ -107,7 +107,7 @@ class FixNdkVersionProcessor(
   public override fun performRefactoring(usages: Array<UsageInfo>) {
     updateProjectBuildModel()
 
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_NDK_INSTALLED)
+    project.getSyncManager().requestSyncProject(TRIGGER_QF_NDK_INSTALLED.toReason())
   }
 
   @VisibleForTesting

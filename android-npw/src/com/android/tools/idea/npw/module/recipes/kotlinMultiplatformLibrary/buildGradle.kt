@@ -64,7 +64,7 @@ fun buildKmpGradle(
         }
       }
 
-      getByName("androidInstrumentedTest") {
+      getByName("androidDeviceTest") {
         dependencies {
         }
       }
@@ -115,14 +115,10 @@ private fun androidTargetConfig(
       ${toAndroidFieldVersion("compileSdk", compileApiString, agpVersion)}
       ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
 
-      withAndroidTestOnJvmBuilder {
-          compilationName = "unitTest"
-          defaultSourceSetName = "androidUnitTest"
+      withHostTestBuilder {
       }
 
-      withAndroidTestOnDeviceBuilder {
-          compilationName = "instrumentedTest"
-          defaultSourceSetName = "androidInstrumentedTest"
+      withDeviceTestBuilder {
           sourceSetTreeName = "test"
       }.configure {
         instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -140,7 +136,7 @@ private fun iosTargetConfig(name: String): String {
     // A step-by-step guide on how to include this library in an XCode
     // project can be found here:
     // https://developer.android.com/kotlin/multiplatform/migrate
-    val xcfName = "$name"
+    val xcfName = "${name}Kit"
 
     iosX64 {
       binaries.framework {

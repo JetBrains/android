@@ -31,8 +31,9 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.impl.table.EditorPanel
 import com.android.tools.property.ptable.impl.PTableImpl
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.runInEdtAndGet
@@ -179,7 +180,7 @@ private fun SectionFixture.invokeButtonInAttribute(attributeName: String) {
 private fun invokeAction(anAction: AnAction, component: Component) {
   runInEdt {
     val context = DataManager.getInstance().getDataContext(component)
-    val event = AnActionEvent.createFromAnAction(anAction, null, "menu", context)
+    val event = createEvent(anAction, context, null, "menu", ActionUiKind.NONE, null)
     anAction.actionPerformed(event)
   }
 }

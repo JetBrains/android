@@ -1,0 +1,26 @@
+[versions]
+agp = "8.9.0-dev" # AGP version will be replaced by AndroidGradleTestCase
+appcompat = "1.7.0"
+kotlin = "2.1.0-RC" # kotlin version will be replaced by AndroidGradleTestCase
+coreKtx = "1.15.0"
+kotlinStdlibJdk7 = "1.8.20"
+lifecycleRuntimeKtx = "2.8.7"
+activityCompose = "1.9.3"
+material = "1.8.0-alpha06"
+ui = "1.7.5"
+uiTooling = "1.8.0-alpha06"
+
+[libraries]
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlinStdlibJdk7" }
+material = { module = "androidx.compose.material:material", version.ref = "material" }
+ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "uiTooling" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

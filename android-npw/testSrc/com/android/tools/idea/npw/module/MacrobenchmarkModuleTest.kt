@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.addProfileableToTargetManifest
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.getUniqueBuildTypeName
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -23,18 +22,19 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.readText
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.verify
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 
 class MacrobenchmarkModuleTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun uniqueBuildType_noBuildTypes() {
@@ -64,7 +64,7 @@ class MacrobenchmarkModuleTest {
   fun checkProfileableAddedToTargetModule() {
     projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
 
-    val mockExecutor = MockitoKt.mock<RecipeExecutor>()
+    val mockExecutor = mock<RecipeExecutor>()
     val targetModule = projectRule.getModule("app")
 
     mockExecutor.addProfileableToTargetManifest(targetModule)
@@ -78,7 +78,7 @@ class MacrobenchmarkModuleTest {
     assertThat(primaryManifest.readText()).doesNotContain("<profileable android:shell=\"true\"")
 
     verify(mockExecutor).run {
-      mergeXml(Mockito.contains("<profileable android:shell=\"true\""), MockitoKt.any())
+      mergeXml(Mockito.contains("<profileable android:shell=\"true\""), any())
     }
   }
 }

@@ -195,8 +195,10 @@ class RulesTableView(
       }
     }
 
-  private fun createRuleDataWithListener(id: Int) =
-    RuleData(id, "New Rule", true).apply { ruleDataListener = createNewRuleDataListener() }
+  private fun createRuleDataWithListener(id: Int): RuleData {
+    val name = RunManager.suggestUniqueName("New Rule", table.items.map { it.name })
+    return RuleData(id, name, true).apply { ruleDataListener = createNewRuleDataListener() }
+  }
 
   private fun reorderRules() {
     scope.launch {

@@ -1,13 +1,10 @@
-cc_library(
+cc_binary(
     name = "jnibleakhelper",
     srcs = [
         "jniBleakHelper.cpp",
         "jniBleakHelper.h",
     ],
-    copts = [
-        "-fPIC",
-        "-shared",
-    ] + select({
+    copts = select({
         "@platforms//os:macos": [
             "-Iprebuilts/studio/jdk/mac/Contents/Home/include",
         ],
@@ -16,6 +13,7 @@ cc_library(
             "-Iprebuilts/studio/jdk/linux/include/linux",
         ],
     }),
+    linkshared = 1,
     target_compatible_with = select({
         "@platforms//os:windows": ["@platforms//:incompatible"],
         "//conditions:default": [],

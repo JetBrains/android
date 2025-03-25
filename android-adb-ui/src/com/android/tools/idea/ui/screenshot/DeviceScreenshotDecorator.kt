@@ -20,16 +20,23 @@ import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.device.DeviceArtPainter
+import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinDefinitionCache
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
+import java.nio.file.Files
 import java.nio.file.Path
 
 /**
  * Screenshot framer accepting a [DeviceFramingOption].
  */
 class DeviceScreenshotDecorator : ScreenshotDecorator {
+
+  /** Keys are skin folders, values are skin subfolders keyed by the corresponding display sizes. */
+  private val skinSubfolderInfo = mutableMapOf<Path, Map<Dimension, Path>>()
+
   @Slow
   override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
     if (framingOption == null) {
@@ -49,7 +56,7 @@ class DeviceScreenshotDecorator : ScreenshotDecorator {
 
   private fun addSkinBasedFrame(screenshotImage: ScreenshotImage, skinFolder: Path): BufferedImage {
     val image = screenshotImage.image
-    val skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(skinFolder) ?: return image
+    val skinDefinition = getSkinDefinition(skinFolder, screenshotImage.displaySize) ?: return image
     val w = image.width
     val h = image.height
     val skin = skinDefinition.createScaledLayout(w, h, screenshotImage.screenshotRotationQuadrants)
@@ -62,6 +69,34 @@ class DeviceScreenshotDecorator : ScreenshotDecorator {
     skin.drawFrameAndMask(graphics, displayRectangle)
     graphics.dispose()
     return result
+  }
+
+  private fun getSkinDefinition(skinFolder: Path, displaySize: Dimension?): SkinDefinition? {
+    val skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(skinFolder)
+    if (skinDefinition != null || displaySize == null) {
+      return skinDefinition
+    }
+    val subfolderInfo = skinSubfolderInfo.computeIfAbsent(skinFolder) {
+      getSubfolderSkinInfo(skinFolder)
+    }
+    return subfolderInfo[displaySize]?.let { SkinDefinitionCache.getInstance().getSkinDefinition(it) }
+  }
+
+  private fun getSubfolderSkinInfo(skinFolder: Path): Map<Dimension, Path> {
+    val map = mutableMapOf<Dimension, Path>()
+    Files.list(skinFolder).use { stream ->
+      stream
+        .filter { Files.isDirectory(it) }
+        .forEach { dir ->
+          try {
+            val displaySize = SkinDefinition.getSkinDisplaySize(dir)
+            map[displaySize] = dir
+          }
+          catch (_: Exception) {
+          }
+        }
+    }
+    return map
   }
 
   private fun addDeviceArtBasedFrame(screenshotImage: ScreenshotImage, frameDescriptor: DeviceArtDescriptor): BufferedImage {

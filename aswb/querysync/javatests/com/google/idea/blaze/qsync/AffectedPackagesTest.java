@@ -21,6 +21,7 @@ import static com.google.idea.blaze.qsync.query.QuerySummaryTestUtil.createProto
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Expect;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation;
 import com.google.idea.blaze.qsync.query.QuerySummary;
@@ -266,9 +267,9 @@ public class AffectedPackagesTest {
             new QuerySummaryTestBuilder()
                 .addPackages("//my/build/package1:rule", "//my/build/package2:rule")
                 .addSubincludes(
-                    ImmutableMultimap.<String, String>builder()
-                        .put("//my/build/package1:BUILD", "//my/build/package1:macro.bzl")
-                        .put("//my/build/package2:BUILD", "//my/build/package1:macro.bzl")
+                    ImmutableMultimap.<Label, Label>builder()
+                        .put(Label.of("//my/build/package1:BUILD"), Label.of("//my/build/package1:macro.bzl"))
+                        .put(Label.of("//my/build/package2:BUILD"), Label.of("//my/build/package1:macro.bzl"))
                         .build())
                 .build());
 
@@ -297,7 +298,7 @@ public class AffectedPackagesTest {
                 .addPackages("//my/build/package:rule")
                 .addSubincludes(
                     ImmutableMultimap.of(
-                        "//my/build/package:BUILD", "//other/build/package1:macro.bzl"))
+                        Label.of("//my/build/package:BUILD"), Label.of("//other/build/package1:macro.bzl")))
                 .build());
 
     AffectedPackages affected =
@@ -562,5 +563,32 @@ public class AffectedPackagesTest {
     expect.that(affected.isIncomplete()).isFalse();
     expect.that(affected.getModifiedPackages()).isEmpty();
     expect.that(affected.getDeletedPackages()).containsExactly(Path.of("my/build/package/lib1"));
+  }
+
+  @Test
+  public void testAllDirectoriesIncluded_modifyBuildFile() {
+    QuerySummary query =
+        QuerySummary.create(
+            createProtoForPackages(
+                "//my/build/package1:rule",
+                "//my/build/package2:rule",
+                "//another/build/package1:rule"));
+
+    AffectedPackages affected =
+        AffectedPackagesCalculator.builder()
+            .context(NOOP_CONTEXT)
+            .lastQuery(query)
+            // this represents the case of directories: .
+            .projectIncludes(ImmutableSet.of(Path.of("")))
+            .changedFiles(
+                ImmutableSet.of(
+                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package1/BUILD"))))
+            .build()
+            .getAffectedPackages();
+
+    expect.that(affected.isEmpty()).isFalse();
+    expect.that(affected.isIncomplete()).isFalse();
+    expect.that(affected.getModifiedPackages()).containsExactly(Path.of("my/build/package1"));
+    expect.that(affected.getDeletedPackages()).isEmpty();
   }
 }

@@ -16,7 +16,9 @@
 package com.google.idea.blaze.qsync;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteSource;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
 import java.util.List;
@@ -58,5 +60,13 @@ public class SnapshotHolder {
     synchronized (lock) {
       return Optional.ofNullable(currentInstance);
     }
+  }
+
+  public ImmutableMap<String, ByteSource> getBugreportFiles() {
+    QuerySyncProjectSnapshot instance = currentInstance;
+    if (instance == null) {
+      return ImmutableMap.of("projectProto", ByteSource.empty());
+    }
+    return ImmutableMap.of("projectProto", ByteSource.wrap(instance.project().toByteArray()));
   }
 }

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.NavigationHy
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
+import com.android.tools.lint.detector.api.TextFormat
 import java.awt.Component
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
@@ -33,7 +34,7 @@ class SuggestionViewer(
 ) : SuggestionViewerUi(isLast) {
 
   val component: Component get() = myPanel
-  val hyperlinkListener = NavigationHyperlinkListener(context)
+  private val hyperlinkListener = NavigationHyperlinkListener(context)
 
   init {
     renderIssue(issue, scope)
@@ -48,10 +49,10 @@ class SuggestionViewer(
     myUpdateButton.isVisible = issue.quickFixes.isNotEmpty()
 
     myUpdateButton.action = issue.quickFixes.firstOrNull()?.toAction()
-    myUpdateButton.options = issue.quickFixes.drop(1).mapNotNull { it.toAction() }.toTypedArray()
+    myUpdateButton.options = issue.quickFixes.drop(1).map { it.toAction() }.toTypedArray()
   }
 
-  private fun PsQuickFix.toAction(): Action = action(text) { execute(context) }
+  private fun PsQuickFix.toAction(): Action = action("<html>${TextFormat.RAW.toHtml(text)}</html>") { execute(context) }
 }
 
 private fun action(text: String, handler: () -> Unit): Action =

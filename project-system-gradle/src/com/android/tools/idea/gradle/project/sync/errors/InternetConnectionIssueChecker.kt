@@ -43,7 +43,7 @@ class InternetConnectionIssueChecker : GradleIssueChecker {
     return BuildIssueComposer(message).apply {
       val project = fetchIdeaProjectForGradleProject(issueData.projectPath) ?: return@apply
       if (GradleSettings.getInstance(project).isOfflineWork) {
-        addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
+        addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(false))
       }
     }.composeBuildIssue()
   }

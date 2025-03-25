@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -30,7 +29,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
@@ -121,7 +121,7 @@ class NavigationSlowPreviewProviderTest {
   }
 
   private fun setupRenderer(xmlFile: XmlFile, configuration: Configuration) {
-    val mockRenderer = Mockito.mock(LayoutRenderer::class.java)
+    val mockRenderer = mock<LayoutRenderer>()
     val mockImage = ImageUtil.createImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
       val g = createGraphics()
       g.color = Color.RED

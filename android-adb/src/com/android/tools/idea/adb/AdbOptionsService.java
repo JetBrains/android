@@ -40,6 +40,7 @@ public final class AdbOptionsService {
 
   private static final String USB_BACKEND_NAME = "adb.usb.backend.name";
   private static final String MDNS_BACKEND_NAME = "adb.mdns.backend.name3";
+  private static final String BURST_MODE_NAME = "adb.burst.mode";
   private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
   private static final String USER_MANAGED_ADB_PORT = "AdbOptionsService.user.managed.adb.port";
   private static final boolean USE_USER_MANAGED_ADB_DEFAULT = false;
@@ -78,6 +79,17 @@ public final class AdbOptionsService {
     }
   }
 
+  @NotNull
+  public AdbServerBurstMode getAdbServerBurstMode() {
+    AdbServerBurstMode defaultBurstMode = AdbServerBurstMode.DEFAULT;
+    String value = PropertiesComponent.getInstance().getValue(BURST_MODE_NAME, defaultBurstMode.name());
+    try {
+      return AdbServerBurstMode.valueOf(value);
+    } catch(IllegalArgumentException e) {
+      return defaultBurstMode;
+    }
+  }
+
   boolean shouldUseUserManagedAdb() {
     return PropertiesComponent.getInstance().getBoolean(USE_USER_MANAGED_ADB, USE_USER_MANAGED_ADB_DEFAULT);
   }
@@ -97,6 +109,7 @@ public final class AdbOptionsService {
     props.setValue(MDNS_BACKEND_NAME, options.getAdbServerMdnsBackend().name());
     props.setValue(USE_USER_MANAGED_ADB, options.useUserManagedAdb());
     props.setValue(USER_MANAGED_ADB_PORT, options.getUserManagedAdbPort(), USER_MANAGED_ADB_PORT_DEFAULT);
+    props.setValue(BURST_MODE_NAME, options.getBurstMode().name());
     updateListeners();
   }
 
@@ -129,6 +142,7 @@ public final class AdbOptionsService {
     private AdbServerMdnsBackend myServerMdnsBackend;
     private boolean myUseUserManagedAdb;
     private int myUserManagedAdbPort;
+    private AdbServerBurstMode myServerBurstMode;
 
     private AdbOptionsUpdater(@NotNull AdbOptionsService service) {
       myService = service;
@@ -136,6 +150,7 @@ public final class AdbOptionsService {
       myServerMdnsBackend = service.getAdbServerMdnsBackend();
       myUseUserManagedAdb = service.shouldUseUserManagedAdb();
       myUserManagedAdbPort = service.getUserManagedAdbPort();
+      myServerBurstMode = service.getAdbServerBurstMode();
     }
 
     public AdbServerUsbBackend getAdbServerUsbBackend() {
@@ -171,6 +186,15 @@ public final class AdbOptionsService {
 
     public AdbOptionsUpdater setUserManagedAdbPort(int userManagedAdbPort) {
       myUserManagedAdbPort = userManagedAdbPort;
+      return this;
+    }
+
+    public AdbServerBurstMode getBurstMode() {
+      return myServerBurstMode;
+    }
+
+    public AdbOptionsUpdater setBurstMode(AdbServerBurstMode burstMode) {
+      myServerBurstMode = burstMode;
       return this;
     }
 

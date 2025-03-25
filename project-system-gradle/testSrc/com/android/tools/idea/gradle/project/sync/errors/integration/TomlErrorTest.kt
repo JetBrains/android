@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -49,6 +53,18 @@ class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
         """.trimIndent())
+      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: java.lang.RuntimeException
+              at: [0]org.gradle.api.internal.catalog.DefaultDependenciesAccessors#generateAccessors
+            exception: org.gradle.api.InvalidUserDataException
+              at: [0]org.gradle.api.internal.catalog.parser.TomlCatalogFileParser#assertNoParseErrors
+          }
+        }
+      """.trimIndent())
     },
   )
 

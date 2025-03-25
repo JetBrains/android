@@ -20,8 +20,8 @@ import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.android.tools.visuallint.VisualLintBaseConfigIssues
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager

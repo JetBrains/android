@@ -19,5 +19,6 @@ import com.android.ide.gradle.model.GradlePropertiesModel
 
 data class GradlePropertiesModelImpl(
   override val useAndroidX: Boolean?,
-  override val excludeLibraryComponentsFromConstraints: Boolean?
+  override val excludeLibraryComponentsFromConstraints: Boolean?,
+  override val generateManifestClass: Boolean?,
 ) : GradlePropertiesModel

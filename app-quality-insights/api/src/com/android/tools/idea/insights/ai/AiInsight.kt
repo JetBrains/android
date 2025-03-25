@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.insights.ai
 
+import com.android.tools.idea.insights.ai.codecontext.CodeContextTrackingInfo
 import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.experiments.supportsContextSharing
 
 data class AiInsight(
@@ -24,6 +26,8 @@ data class AiInsight(
   val experiment: Experiment = Experiment.UNKNOWN,
   val isCached: Boolean = false,
   val insightSource: InsightSource = InsightSource.UNKNOWN,
+  val feedback: InsightFeedback = InsightFeedback.NONE,
+  val codeContextTrackingDetails: CodeContextTrackingInfo = CodeContextTrackingInfo.EMPTY,
 ) {
   fun isEnhancedWithCodeContext() = experiment.supportsContextSharing()
 }

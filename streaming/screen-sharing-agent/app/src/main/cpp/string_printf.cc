@@ -44,13 +44,4 @@ string StringVPrintf(const char* format, va_list args) {
   return string(buf.get(), buf.get() + size - 1);  // Without the '\0'.
 }
 
-string HexString(const void* buf, size_t size) {
-  string result;
-  result.reserve(size * 2);
-  for (size_t i = 0; i < size; ++i) {
-    result += StringPrintf("%02X", static_cast<const uint8_t*>(buf)[i]);
-  }
-  return result;
-}
-
 }  // namespace screensharing

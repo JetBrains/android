@@ -20,6 +20,8 @@ import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.util.ui.HTMLEditorKitBuilder
@@ -50,7 +52,15 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) :
     text.addHyperlinkListener { event ->
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
         val context = DataManager.getInstance().getDataContext(this@EmptyTablePanel)
-        val actionEvent = AnActionEvent.createFromAnAction(addAction, null, "", context)
+        val actionEvent =
+          AnActionEvent.createEvent(
+            addAction,
+            context,
+            null,
+            ActionPlaces.UNKNOWN,
+            ActionUiKind.NONE,
+            null,
+          )
         addAction.actionPerformed(actionEvent)
       }
     }

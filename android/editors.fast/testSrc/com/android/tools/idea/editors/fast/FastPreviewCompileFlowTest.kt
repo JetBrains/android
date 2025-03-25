@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.fast
 
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -70,7 +71,7 @@ class FastPreviewCompileFlowTest {
       flowIsReady.await() // Wait for the flow to be listening
       repeat(4) {
         manager.invalidateRequestsCache()
-        val request = scope.launch { manager.compileRequest(file, projectRule.module) }
+        val request = scope.launch { manager.compileRequest(file, BuildTargetReference.gradleOnly(projectRule.module)) }
         blockingDaemon.completeOneRequest()
         request.join()
       }

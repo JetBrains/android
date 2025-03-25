@@ -18,12 +18,11 @@ package org.jetbrains.android.uipreview
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.structure.model.getModuleByGradlePath
 import com.android.tools.idea.layoutlib.LayoutLibrary
-import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -41,6 +40,7 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil
 import org.jetbrains.android.uipreview.nontransitive.app.R
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 import kotlin.test.fail
 
 class NonTransitiveResourcesLoaderTest() {
@@ -112,8 +112,13 @@ class NonTransitiveResourcesLoaderTest() {
     val staticLoader = StaticLoader(
       R::class.java.name to loadClassBytes(
         R::class.java),
+      R.string::class.java.name to loadClassBytes(
+        R.string::class.java),
       org.jetbrains.android.uipreview.nontransitive.lib.R::class.java.name to loadClassBytes(
-        org.jetbrains.android.uipreview.nontransitive.lib.R::class.java)
+        org.jetbrains.android.uipreview.nontransitive.lib.R::class.java,
+      ),
+      org.jetbrains.android.uipreview.nontransitive.lib.R.string::class.java.name to loadClassBytes(
+        org.jetbrains.android.uipreview.nontransitive.lib.R.string::class.java)
     )
     val delegateClassLoader = DelegatingClassLoader(
       NonTransitiveResourcesLoaderTest::class.java.classLoader,

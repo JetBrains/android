@@ -16,8 +16,8 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.applicationCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -29,8 +29,7 @@ import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.UiCommand
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.toTitleCase
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -82,7 +81,7 @@ internal class DeviceController(
 
   init {
     Disposer.register(disposableParent, this)
-    receiverScope = AndroidCoroutineScope(this)
+    receiverScope = createCoroutineScope()
     startReceivingMessages()
   }
 
@@ -95,7 +94,7 @@ internal class DeviceController(
         send(message)
       }
     }
-    catch (ignore: RejectedExecutionException) {
+    catch (_: RejectedExecutionException) {
       // Executor has been shut down by the dispose method.
     }
   }
@@ -193,7 +192,7 @@ internal class DeviceController(
               send(request)
             }
           }
-          catch (e: RejectedExecutionException) {
+          catch (_: RejectedExecutionException) {
             continuation.cancel() // Executor has been shut down by the dispose method.
           }
           catch (e: Throwable) {
@@ -202,7 +201,7 @@ internal class DeviceController(
         }
       }
     }
-    catch (e: TimeoutCancellationException) {
+    catch (_: TimeoutCancellationException) {
       throw TimeoutException()
     }
     finally {
@@ -218,7 +217,7 @@ internal class DeviceController(
   override fun dispose() {
     executor.shutdown()
     responseCallbacks.cancelAll()
-    applicationCoroutineScope.launch((Dispatchers.IO)) { controlChannel.close() }
+    applicationCoroutineScope.launch(Dispatchers.IO) { controlChannel.close() }
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
     }
@@ -271,7 +270,7 @@ internal class DeviceController(
             is DeviceStateNotification -> onDeviceStateChanged(message)
             is DisplayAddedOrChangedNotification -> onDisplayAddedOrChanged(message)
             is DisplayRemovedNotification -> onDisplayRemoved(message)
-            else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
+            else -> logger.error("Unexpected type of a received message: ${message.type}")
           }
         }
         catch (_: EOFException) {
@@ -364,7 +363,7 @@ internal class DeviceController(
     @Synchronized
     fun put(requestId: Int, callback: CancellableContinuation<ControlMessage>) {
       if (responseCallbacks.put(requestId, callback) != null) {
-        logger<DeviceController>().error("Duplicate request ID: $requestId")
+        logger.error("Duplicate request ID: $requestId")
       }
     }
 
@@ -413,6 +412,8 @@ private val DeviceState.adjustedName: String
     }
     return toTitleCase(adjustedName.replace('_', ' ').lowercase())
   }
+
+private val logger get() = Logger.getInstance(DeviceController::class.java)
 
 private val DeviceState.adjustedSystemProperties: Set<Property>
   // For some unclear reason the video encoder connected to the second display on Samsung Fold5 doesn't

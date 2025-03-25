@@ -1,0 +1,9 @@
+dependencyResolutionManagement {
+  repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+  repositories {
+    google()
+    jcenter()
+  }
+}
+rootProject.name = 'My Application'
+include ':app'

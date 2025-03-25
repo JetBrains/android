@@ -48,9 +48,8 @@ public class ApkVirtualFolder extends LightVirtualFileBase {
     throw new IOException();
   }
 
-  @NotNull
   @Override
-  public byte[] contentsToByteArray() throws IOException {
+  public byte @NotNull [] contentsToByteArray() throws IOException {
     return new byte[0];
   }
 

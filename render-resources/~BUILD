@@ -68,6 +68,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -111,6 +112,7 @@ kotlin_test(
         "//tools/base/resource-repository:tools.resource-repository",
         "//tools/base/resource-repository:tools.resource-repository.test.util",
         "//tools/base/sdk-common:tools.sdk-common",
+        "//tools/base/sdklib:tools.sdklib",
         "//tools/base/testutils:tools.testutils",
         "@maven//:com.google.truth.truth",
         "@maven//:junit.junit",

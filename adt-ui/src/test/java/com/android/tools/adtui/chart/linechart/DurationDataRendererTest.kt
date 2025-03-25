@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.chart.linechart
 
-import com.android.testutils.MockitoKt.whenever
+import org.mockito.kotlin.whenever
 import com.android.tools.adtui.model.DefaultDataSeries
 import com.android.tools.adtui.model.DurationData
 import com.android.tools.adtui.model.DurationDataModel
