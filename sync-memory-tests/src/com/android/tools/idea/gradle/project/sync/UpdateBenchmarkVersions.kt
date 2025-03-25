@@ -142,7 +142,7 @@ private fun runGitCommit(repoDir: String, gitPath: String, message: String, chan
   runCommand(repoDir,*"git -C $repoDir/$gitPath commit -m".split(" ").toTypedArray() + message)
 }
 
-private fun String.runCommand(directory: String) = runCommand(directory, *split(" ").toTypedArray())
+fun String.runCommand(directory: String) = runCommand(directory, *split(" ").toTypedArray())
 
 private fun runCommand(directory: String, vararg command: String) {
   ProcessBuilder(command.toList())

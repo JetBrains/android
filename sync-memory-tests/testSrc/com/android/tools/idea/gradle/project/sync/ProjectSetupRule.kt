@@ -33,6 +33,7 @@ private const val DIRECTORY = "benchmark"
 private val rootDirectory = if (TestUtils.runningFromBazel()) Paths.get("") else TestUtils.getTestOutputDir()
 
 private const val STANDARD_PATH = "prebuilts/studio/buildbenchmarks/extra-large.2022.9"
+private const val KMP_PATH = "prebuilts/studio/buildbenchmarks/extra-large-kmp.2022.9"
 
 /**
  * Represents a specific project used for to collect metrics from.
@@ -72,6 +73,7 @@ enum class BenchmarkProject(val projectPath: String, val maxHeapMB: Int, val dif
   // x1.55 - 17000 mb -> ~13,000 ms -> GOOD
   STANDARD_2000(STANDARD_PATH, maxHeapMB = 15300, listOf("diff-2200")),
   STANDARD_4200(STANDARD_PATH, maxHeapMB = 30000, emptyList()),
+  KMP_1000(KMP_PATH, maxHeapMB = 30000, listOf("diff-1000")),
   MULTI_APP_100(STANDARD_PATH, maxHeapMB = 6000, listOf("diff-100-apps-1300-modules")),
   MULTI_APP_190(STANDARD_PATH, maxHeapMB = 15300, listOf("diff-190-apps-2200-modules"));
 }
@@ -113,7 +115,9 @@ class ProjectSetupRuleImpl(
     testEnvironmentRule.prepareTestProject(
       testProjectTemplateFromPath(
         path = DIRECTORY,
-        testDataPath = rootDirectory.toString()),
+        testDataPath = rootDirectory.toString(),
+        autoMigratePackageAttribute = project != BenchmarkProject.KMP_1000
+      ),
         agpVersion =
         if (useLatestGradle)
           AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
@@ -137,13 +141,21 @@ class ProjectSetupRuleImpl(
 
   companion object : IdeaTestSuiteBase() {
     fun setUpProject(project: BenchmarkProject) {
-      setUpSourceZip(
-        "${project.projectPath}/src.zip",
-        rootDirectory.resolve(DIRECTORY).toString(),
-        "diff-properties".toSpec(project),
-        "diff-compose-plugin".toSpec(project),
-        *(project.diffs.map2Array { it.toSpec(project) })
-      )
+      if(project == BenchmarkProject.KMP_1000) {
+        setUpSourceZip(
+          "${project.projectPath}/src.zip",
+          rootDirectory.resolve(DIRECTORY).toString(),
+          *(project.diffs.map2Array { it.toSpec(project) })
+        )
+      } else {
+        setUpSourceZip(
+          "${project.projectPath}/src.zip",
+          rootDirectory.resolve(DIRECTORY).toString(),
+          "diff-properties".toSpec(project),
+          "diff-compose-plugin".toSpec(project),
+          *(project.diffs.map2Array { it.toSpec(project) })
+        )
+      }
 
       unzipIntoOfflineMavenRepo("${project.projectPath}/repo.zip")
       if (TestUtils.runningFromBazel()) {
@@ -173,5 +185,3 @@ internal fun mutateGradleProperties(function: GradleProperties.() -> Unit) {
     save()
   }
 }
-
-

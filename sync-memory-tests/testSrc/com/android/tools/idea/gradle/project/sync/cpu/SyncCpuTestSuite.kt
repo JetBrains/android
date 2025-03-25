@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.cpu
 
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.KMP_1000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.MULTI_APP_100
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.MULTI_APP_190
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
@@ -33,7 +34,9 @@ import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_500_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_KMP_1000_NAME
 import com.android.tools.idea.gradle.project.sync.createBenchmarkTestRule
+import com.android.tools.idea.gradle.project.sync.memory.CaptureSyncMemoryFromHistogramRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import org.junit.Rule
 import org.junit.Test
@@ -56,6 +59,13 @@ class Benchmark500CpuTest {
 class Benchmark1000CpuTest {
   @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_1000_NAME, STANDARD_1000)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15, enableAnalyzers = false)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
+  @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+}
+
+class Benchmark1000KotlinMultiplatformCpuTest {
+  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_KMP_1000_NAME, KMP_1000)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }

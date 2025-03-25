@@ -338,12 +338,14 @@ fun testProjectTemplateFromAbsolutePath(path: String): TemplateBasedTestProject 
   }
 }
 
-fun testProjectTemplateFromPath(path: String, testDataPath: String): TemplateBasedTestProject {
+fun testProjectTemplateFromPath(path: String, testDataPath: String, autoMigratePackageAttribute: Boolean = true): TemplateBasedTestProject {
   return object: TemplateBasedTestProject{
     override val name: String
       get() = File(path).name
     override val template: String
       get() = path
+    override val autoMigratePackageAttribute: Boolean
+      get() = autoMigratePackageAttribute
 
     override fun getTestDataDirectoryWorkspaceRelativePath(): String = testDataPath
 

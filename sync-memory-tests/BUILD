@@ -19,6 +19,14 @@ iml_module(
                 "ci:perfgate-win",
             ],
         },
+        "Benchmark1000KotlinMultiplatformCpu": {
+            "test_filer": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000KotlinMultiplatformCpuTest",
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+        },
         # This test is run in release branch, too but not analyzed due to small number of runs per test
         # A larger number of runs per test allows to detect regressions amongst the noise
         "Benchmark2000Cpu": {
@@ -187,6 +195,15 @@ iml_module(
                 "ci:perfgate-linux",
             ],
         },
+        "Benchmark1000KotlinMultiplatformMemory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000KotlinMultiplatformMemoryTest",
+            "tags": [
+                "manual",
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+        },
         "BenchmarkMultiApp100Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
             "tags": [
@@ -209,6 +226,7 @@ iml_module(
     test_data = [
         "testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt",
         "//prebuilts/studio/buildbenchmarks:ExtraLarge2022_project",
+        "//prebuilts/studio/buildbenchmarks:ExtraLarge_KMP_project",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-32",  # Used for model v1 tests that needs AGP 7.1 (which needs compile sdk 32)
