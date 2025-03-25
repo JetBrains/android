@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.TestActionEvent
@@ -59,7 +58,7 @@ class GotoComponentActionTest {
     nlDesignSurface = mock {
       on { it.project }.thenReturn(projectRule.project)
       on { it.selectionModel }.thenReturn(selectionModel)
-      on { it.models }.thenReturn(ImmutableList.of(model))
+      on { it.models }.thenReturn(listOf(model))
     }
     projectRule.fixture.configureFromExistingVirtualFile(model.virtualFile)
 

@@ -41,6 +41,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.UIUtil;
+import java.util.Collections;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 
 public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
@@ -51,7 +52,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);
     when(surface.getZoomController()).thenReturn(createZoomControllerFake(0.5, null));
     Configuration configuration = getConfigurationMock();
-    when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
+    when(surface.getConfigurations()).thenReturn(Collections.singletonList(configuration));
 
     VirtualFile kotlinFile = mock(VirtualFile.class);
     when(kotlinFile.getFileType()).thenReturn(KotlinFileType.INSTANCE);
