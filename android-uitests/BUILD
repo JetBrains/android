@@ -38,7 +38,7 @@ COMMON_DATA = [
     "//tools/vendor/google/testing/display:xvfb",
 ] + select({
     "@platforms//os:windows": [],
-    "//conditions:default": ["//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper"],
+    "//conditions:default": ["//tools/adt/idea/bleak/native:jnibleakhelper"],
 })
 
 COMMON_TAGS = [

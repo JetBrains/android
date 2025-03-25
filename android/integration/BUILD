@@ -616,7 +616,7 @@ iml_test(
         ":minapp",
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
-        "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
+        "//tools/adt/idea/bleak/native:jnibleakhelper",
     ],
     exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",

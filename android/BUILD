@@ -371,7 +371,7 @@ filegroup(
     ] + select({
         "@platforms//os:windows": [],
         "//conditions:default": [
-            "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
+            "//tools/adt/idea/bleak/native:jnibleakhelper",
         ],
     }),
     visibility = ["//tools/base/bazel:__pkg__"],

@@ -180,7 +180,7 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       try {
-        val jvmtiAgent = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so").toRealPath()
+        val jvmtiAgent = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/bleak/native/libjnibleakhelper.so").toRealPath()
         options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
         options += "-Djava.library.path=${System.getProperty("java.library.path")}:${jvmtiAgent.parent}"
