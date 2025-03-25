@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard
 
+import com.android.flags.junit.FlagRule
 import com.android.repository.api.License
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
@@ -80,6 +81,8 @@ class SetupSdkApplicationServiceTest {
   @get:Rule
   val chain =
     RuleChain(
+      FlagRule(StudioFlags.NPW_COMPILE_SDK_VERSION, 35),
+      FlagRule(StudioFlags.SDK_SETUP_MIGRATED_WIZARD_ENABLED),
       projectRule,
       HeadlessDialogRule(),
       EdtRule(),
