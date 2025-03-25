@@ -91,6 +91,7 @@ import java.util.OptionalLong
 import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
+import kotlin.io.path.listDirectoryEntries
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -487,28 +488,26 @@ constructor(
     return null
   }
 
-  /** Kills the emulator if it is running and deletes the `userdata-qemu.img` file and the `snapshots` directory. */
+  /**
+   * Kills the emulator if it is running and deletes all AVD files and subdirectories except the ones that were created
+   * when the AVD itself was created.
+   */
   @Slow
   fun wipeUserData(avdInfo: AvdInfo): Boolean {
     avdManager ?: return false
     checkNotNull(sdkHandler)
     stopAvd(avdInfo, forcibly = true)
 
-    // Delete the current user data file
-    val path = avdInfo.dataFolderPath.resolve(AvdManager.USERDATA_QEMU_IMG)
-    if (Files.exists(path)) {
-      try {
-        PathUtils.deleteRecursivelyIfExists(path)
-      } catch (_: IOException) {
-        return false
+    val avdFolder = avdInfo.dataFolderPath
+    avdFolder.listDirectoryEntries().forEach { path ->
+      if (!avdManager.isFoundationalAvdFile(path, avdInfo)) {
+        try {
+          PathUtils.deleteRecursivelyIfExists(path)
+        } catch (_: IOException) {
+          return false
+        }
       }
     }
-    // Delete the snapshots directory
-    val snapshotDirectory = avdInfo.dataFolderPath.resolve(AvdManager.SNAPSHOTS_DIRECTORY)
-    try {
-      PathUtils.deleteRecursivelyIfExists(snapshotDirectory)
-    } catch (_: IOException) {}
-
     return true
   }
 
