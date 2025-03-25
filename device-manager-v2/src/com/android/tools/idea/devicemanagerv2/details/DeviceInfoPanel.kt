@@ -84,7 +84,10 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
   val densityLabel = LabeledValue("Density")
   var density by densityLabel
 
-  val abiListLabel = LabeledValue("ABI list")
+  val preferredAbiLabel = LabeledValue("Preferred ABI")
+  var preferredAbi by preferredAbiLabel
+
+  val abiListLabel = LabeledValue("Supported ABIs")
   var abiList by abiListLabel
 
   val availableStorageLabel = LabeledValue("Available storage")
@@ -102,6 +105,7 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
         resolutionLabel,
         resolutionDpLabel,
         densityLabel,
+        preferredAbiLabel,
         abiListLabel,
         availableStorageLabel,
         sizeOnDiskLabel,
@@ -232,7 +236,9 @@ class LabeledValue(label: String) {
 
 internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
   apiLevel = properties.androidVersion?.apiStringWithExtension ?: "Unknown"
-  abiList = properties.primaryAbi?.toString() ?: "Unknown"
+  preferredAbi =
+    properties.preferredAbi?.toString() ?: properties.primaryAbi?.toString() ?: "Unknown"
+  abiList = properties.abiList.joinToString(",").ifBlank { "Unknown" }
   resolution = properties.resolution?.toString() ?: "Unknown"
   val resolutionDp = properties.resolutionDp
   this.resolutionDp = resolutionDp?.toString() ?: "Unknown"

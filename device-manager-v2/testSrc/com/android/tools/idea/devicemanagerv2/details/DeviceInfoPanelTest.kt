@@ -186,7 +186,10 @@ class DeviceInfoPanelTest {
     }
 
     ApplicationManager.getApplication().invokeAndWait {
-      retryUntilPassing(5.seconds) { assertThat(panel.abiList).isEqualTo("arm64-v8a") }
+      retryUntilPassing(5.seconds) {
+        assertThat(panel.preferredAbi).isEqualTo("arm64-v8a")
+        assertThat(panel.abiList).isEqualTo("arm64-v8a")
+      }
     }
   }
 
