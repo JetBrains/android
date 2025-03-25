@@ -3091,7 +3091,7 @@ Android Studio Preview.app/Contents/plugins/gradle/lib/ant/ant-swing.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/ant/ant-testutil.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/ant/ant-xz.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/ant/ant.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-8.14-milestone-4.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-8.14-milestone-7.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-api.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-impl.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle.jar
