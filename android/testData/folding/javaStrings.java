@@ -30,7 +30,8 @@ public class MyActivity extends Activity {
     String label5 = <fold text='"resolved"' expand='false'>c.getString(R.string.alias)</fold>;
     String label6 = getString(R.string.unknown);
     String label7 = <fold text='shortint: 1' expand='false'>getResources().getInteger(R.integer.shortint)</fold>;
+    String label8 = <fold text='longerint: 1502' expand='false'>getResources().getInteger(R.integer.longerint)</fold>;
     // Regression test for b/295349275 - reference with cycle must terminate.
-    String label8 = <fold text='"@string/cycle3"' expand='false'>getString(R.string.cycle)</fold>;
+    String label9 = <fold text='"@string/cycle3"' expand='false'>getString(R.string.cycle)</fold>;
   }</fold>
 }

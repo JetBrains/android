@@ -53,5 +53,5 @@
     <item quantity="other">%d songs found from %d.</item>
   </plurals>
   <integer name="shortint">1</integer>
-
+  <integer name="longerint">1502</integer>
 </resources>

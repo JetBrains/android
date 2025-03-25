@@ -45,5 +45,9 @@ public class MyActivity extends Activity {
     String label13 = <fold text='shortint: 1' expand='false'>getResources().getInteger(R.integer.shortint)</fold>;
     String label14 = <fold text='shortint: 1' expand='false'>getResources().getInteger(integer.shortint)</fold>;
     String label15 = <fold text='shortint: 1' expand='false'>getResources().getInteger(shortint)</fold>;
+
+    String label16 = <fold text='longerint: 1502' expand='false'>getResources().getInteger(R.integer.longerint)</fold>;
+    String label17 = <fold text='longerint: 1502' expand='false'>getResources().getInteger(integer.longerint)</fold>;
+    String label18 = <fold text='longerint: 1502' expand='false'>getResources().getInteger(longerint)</fold>;
   }</fold>
 }
