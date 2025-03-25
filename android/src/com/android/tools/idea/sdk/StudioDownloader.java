@@ -255,7 +255,14 @@ public class StudioDownloader implements Downloader {
       }
       catch (Throwable e) {
         if (allowNetworkCaches) {
-          indicator.logWarning("This download could not be finalized from the interim state. Retrying without caching.");
+          indicator.logWarning("This download could not be finalized from the interim state. Retrying without caching.", e);
+          try {
+            Files.delete(interimDownload);
+            Files.delete(target);
+          }
+          catch (Exception deleteException) {
+            indicator.logWarning("Error removing interim files, continuing with download", deleteException);
+          }
           doDownloadFully(url, target, checksum, false, indicator);
           return null;
         }

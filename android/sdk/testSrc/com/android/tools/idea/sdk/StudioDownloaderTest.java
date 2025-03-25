@@ -22,12 +22,15 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import com.android.flags.junit.FlagRule;
+import com.android.repository.api.Checksum;
+import com.android.repository.api.Downloader;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeSettingsController;
 import com.android.testutils.file.DelegatingFileSystemProvider;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.utils.Pair;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -37,6 +40,7 @@ import com.intellij.util.io.HttpRequests;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpServer;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -74,6 +78,7 @@ public class StudioDownloaderTest {
 
   private HttpServer myServer;
   private String myUrl;
+  private List<Pair<Integer, Integer>> requestedRanges = new ArrayList<>();
 
   @Before
   public void setUp() throws Exception {
@@ -131,12 +136,16 @@ public class StudioDownloaderTest {
           else {
             contentToReturn = content.substring(fromByte);
           }
+          requestedRanges.add(Pair.of(fromByte, toByte));
           httpResponseCode = 206;
           Headers responseHeaders = ex.getResponseHeaders();
           responseHeaders.add("Content-Range", String.format("bytes $1%s-$2%s/$3%s", fromByte,
                                                              (toByte == 0) ? "" : toByte,
                                                              content.length()));
         }
+      }
+      else {
+        requestedRanges.add(Pair.of(-1, -1));
       }
 
       response.append(contentToReturn);
@@ -214,6 +223,64 @@ public class StudioDownloaderTest {
 
     String downloadedContent = new String(Files.readAllBytes(downloadResult));
     assertEquals(content, downloadedContent);
+    // We should have made 11 requests total
+    assertEquals(11, requestedRanges.size());
+    // Assert that all but the first request were for partial content
+    assertTrue(requestedRanges.subList(1, requestedRanges.size()).stream().map(Pair::getFirst).allMatch((v) -> v > 0));
+  }
+
+
+  @Test
+  public void testCorruptedPartialDownload() throws Exception {
+    FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
+    // Create some sizeable custom content to download.
+    int howMany = (1 << 15);
+    String stuff = "A quick brown brown fox jumps over the lazy dog.";
+    String content = stuff.repeat(howMany);
+    String sha = Downloader.hash(new ByteArrayInputStream(content.getBytes()), content.length(), "sha1", new FakeProgressIndicator());
+    createServerContextThatReturnsCustomContent(content);
+
+    Path downloadResult = FileOpUtils.getNewTempDir("testResumableDownloads", fs).resolve("studio_partial_downloads_test.txt");
+
+    FakeSettingsController settingsController = new FakeSettingsController(true);
+    StudioDownloader downloader = new StudioDownloader(settingsController);
+    Path intermediatesLocation = FileOpUtils.getNewTempDir("intermediates", fs);
+    downloader.setDownloadIntermediatesLocation(intermediatesLocation);
+
+    Path interimDownload = intermediatesLocation.resolve(downloadResult.getFileName().toString()
+                                                         + StudioDownloader.DOWNLOAD_SUFFIX_FN);
+    try {
+      FakeProgressIndicator interruptingProgressIndicator = new FakeProgressIndicator() {
+        @Override
+        public void setFraction(double fraction) {
+          super.setFraction(fraction);
+          if (fraction >= 0.5) {
+            cancel();
+          }
+        }
+      };
+      downloader.downloadFullyWithCaching(new URL(myUrl), downloadResult, null, interruptingProgressIndicator);
+    }
+    catch (ProcessCanceledException e) {
+      // ignore
+    }
+    assertFalse(Files.exists(downloadResult));
+    assertTrue(Files.exists(interimDownload));
+    // Corrupt the partial download
+    Files.write(interimDownload, new byte[] {'a', 'a', 'a'}, StandardOpenOption.WRITE);
+
+    downloader.downloadFullyWithCaching(new URL(myUrl), downloadResult, Checksum.create(sha, "sha1"), new FakeProgressIndicator());
+    // Assert that the download was in the end complete
+    assertTrue(Files.exists(downloadResult));
+    assertFalse(Files.exists(interimDownload));
+    String downloadedContent = new String(Files.readAllBytes(downloadResult));
+    assertEquals(content, downloadedContent);
+    assertEquals(sha, Downloader.hash(new ByteArrayInputStream(downloadedContent.getBytes()), downloadedContent.length(), "sha1",
+                                      new FakeProgressIndicator()));
+    // There should have been three requests total
+    assertEquals(3, requestedRanges.size());
+    // Last request should have been for complete content
+    assertEquals(Pair.of(-1, -1), requestedRanges.get(2));
   }
 
   @Test
