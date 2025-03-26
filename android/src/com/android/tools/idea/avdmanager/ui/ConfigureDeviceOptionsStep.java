@@ -517,7 +517,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     myNavigationControlsCombo.setToolTipText(
-      "<html>No Navigation - No navigational controls  <br>Directional Pad - Enables direction pad support in emulator <br>Trackball - Enables trackball support in emulator</html>");
+      "<html>No Navigation - No navigational controls  <br>Directional Pad - Enables direction pad support in emulator <br>Trackball - Enables trackball support in emulator <br>Wheel - Enables wheel support in emulator</html>");
     panel5.add(myNavigationControlsCombo,
                new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_GROW,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
