@@ -18,6 +18,7 @@ package com.android.tools.idea.adb
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import java.io.File
+import kotlinx.coroutines.CancellationException
 
 /**
  * Supplier of ADB executable path. It can be obtained for the application or a project, although
@@ -39,7 +40,12 @@ fun interface AdbFileProvider {
      * Project.
      */
     @JvmStatic
-    fun fromApplication(): AdbFileProvider =
-      ApplicationManager.getApplication().getService(AdbFileProvider::class.java)
+    fun fromApplication(): AdbFileProvider {
+      val application = ApplicationManager.getApplication()
+      if (application.isExitInProgress) {
+        throw CancellationException()
+      }
+      return application.getService(AdbFileProvider::class.java)
+    }
   }
 }
