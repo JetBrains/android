@@ -28,18 +28,13 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.ui.UIUtil
-import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.whenever
 import java.awt.Component
 import java.awt.Container
 import java.awt.Graphics2D
@@ -111,7 +106,7 @@ class FakeUi @JvmOverloads constructor(
         // Replace TestWindowManager with a more lenient version.
         application.registerServiceInstance(WindowManager::class.java, FakeUiWindowManager())
       }
-      wrapInFakeWindow(rootPane, parentDisposable)
+      createFakeWindow<Window>(rootPane, parentDisposable)
     }
     glassPane = (getTopLevelComponent(root) as? JRootPane)?.glassPane as? IdeGlassPaneImpl
 
@@ -417,31 +412,6 @@ class FakeUi @JvmOverloads constructor(
   }
 }
 
-private fun wrapInFakeWindow(rootPane: JRootPane, parentDisposable: Disposable?) {
-  // A mock is used here because in a headless environment it is not possible to instantiate
-  // Window or any of its subclasses due to checks in the Window constructor.
-  val mockWindow = mock(Window::class.java)
-  whenever(mockWindow.treeLock).thenCallRealMethod()
-  whenever(mockWindow.toolkit).thenReturn(fakeToolkit)
-  whenever(mockWindow.isShowing).thenReturn(true)
-  whenever(mockWindow.isVisible).thenReturn(true)
-  whenever(mockWindow.isEnabled).thenReturn(true)
-  whenever(mockWindow.isLightweight).thenReturn(true)
-  whenever(mockWindow.isFocusableWindow).thenReturn(true)
-  whenever(mockWindow.locationOnScreen).thenReturn(Point(0, 0))
-  whenever(mockWindow.size).thenReturn(rootPane.size)
-  whenever(mockWindow.bounds).thenReturn(Rectangle(0, 0, rootPane.width, rootPane.height))
-  whenever(mockWindow.ownedWindows).thenReturn(emptyArray())
-  whenever(mockWindow.isFocused).thenReturn(true)
-  whenever(mockWindow.getFocusTraversalKeys(anyInt())).thenCallRealMethod()
-  ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
-  ComponentAccessor.setParent(rootPane, mockWindow)
-  rootPane.addNotify()
-  if (parentDisposable != null) {
-    Disposer.register(parentDisposable) { runInEdtAndWait { rootPane.removeNotify() } }
-  }
-}
-
 private fun getTopLevelComponent(component: Component): Component {
   var c = component
   while (c.parent != null && c.parent !is Window) {
@@ -449,5 +419,3 @@ private fun getTopLevelComponent(component: Component): Component {
   }
   return c
 }
-
-private val fakeToolkit = FakeUiToolkit()

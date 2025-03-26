@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.swing;
 
+import static org.mockito.Mockito.mock;
+
 import java.awt.AWTEvent;
 import java.awt.AWTException;
 import java.awt.BufferCapabilities;
@@ -42,6 +44,8 @@ import java.awt.peer.WindowPeer;
 import sun.java2d.pipe.Region;
 
 class FakeWindowPeer implements WindowPeer {
+  private Graphics myGraphics = mock();
+
   @Override
   public boolean isObscured() {
     return false;
@@ -102,7 +106,7 @@ class FakeWindowPeer implements WindowPeer {
 
   @Override
   public Graphics getGraphics() {
-    throw new UnsupportedOperationException();
+    return myGraphics;
   }
 
   @Override
