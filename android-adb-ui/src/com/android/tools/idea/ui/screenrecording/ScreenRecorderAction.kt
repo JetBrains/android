@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
@@ -39,11 +38,11 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
+import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.awt.Dimension
 import java.nio.file.Path
 import java.time.Duration
@@ -65,7 +64,7 @@ class ScreenRecorderAction : DumbAwareAction(
   private val logger = thisLogger()
 
   /** Serial numbers of devices that are currently recording. */
-  private val recordingInProgress = mutableSetOf<String>()
+  private val recordingInProgress = ConcurrentSet<String>()
 
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT
@@ -141,12 +140,10 @@ class ScreenRecorderAction : DumbAwareAction(
         recorder.recordScreen(timeLimit)
       }
       finally {
+        recordingInProgress.remove(serialNumber)
+        ActivityTracker.getInstance().inc()
         if (recorderOptions.showTouches != showTouchEnabled) {
           setShowTouch(adbSession, serialNumber, showTouchEnabled)
-        }
-        withContext(Dispatchers.EDT) {
-          recordingInProgress.remove(serialNumber)
-          ActivityTracker.getInstance().inc()
         }
       }
     }
