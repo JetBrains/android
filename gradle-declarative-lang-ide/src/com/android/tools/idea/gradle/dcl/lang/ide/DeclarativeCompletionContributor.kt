@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dcl.lang.ide
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.ENUM
+import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.EXPRESSION
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_BLOCK
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.OBJECT_VALUE
@@ -29,6 +30,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LONG_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
+import com.android.tools.idea.gradle.dcl.lang.psi.AssignmentType.APPEND
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgument
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
@@ -44,10 +46,13 @@ import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
 import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
+import com.android.tools.idea.gradle.dcl.lang.sync.Named
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleDataType
 import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
+import com.android.tools.idea.gradle.dcl.lang.sync.AugmentationKind
+import com.android.tools.idea.gradle.dcl.lang.sync.FullName
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
@@ -75,10 +80,11 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.nextLeaf
+import com.intellij.psi.util.prevLeaf
 import com.intellij.psi.util.prevLeafs
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import org.jetbrains.kotlin.idea.completion.or
+import org.gradle.declarative.dsl.schema.FqName
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import kotlin.math.max
 
@@ -114,6 +120,17 @@ private val factoryArgument = object : PatternCondition<PsiElement>(null) {
   }
 }
 
+private val LEFT_ELEMENT_ASSIGNMENT:ElementPattern<LeafPsiElement> = psiElement(LeafPsiElement::class.java).andOr(
+  psiElement().afterLeafSkipping(
+    psiElement().whitespace(),
+    psiElement().withText("=")
+  ),
+  psiElement().afterLeafSkipping(
+    psiElement().whitespace(),
+    psiElement().withText("+=")
+  )
+)
+
 private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
     .with(declarativeFlag)
@@ -122,10 +139,7 @@ private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafP
       psiElement().withParent(DeclarativeBlockGroup::class.java),
       psiElement().withParent(DeclarativeFile::class.java),
     ).andNot(psiElement().withText("{"))
-    .andNot(psiElement().afterLeafSkipping(
-      psiElement().whitespace(),
-      psiElement().withText("=")
-    ))
+    .andNot(LEFT_ELEMENT_ASSIGNMENT)
     .andNot(psiElement().afterLeafSkipping(
       psiElement().whitespace(),
       psiElement().withText(".")
@@ -137,10 +151,7 @@ private val DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN: PsiElementPattern.Capture<L
   psiElement(LeafPsiElement::class.java)
     .with(declarativeFlag)
     .withParents(DeclarativeIdentifier::class.java, DeclarativeBare::class.java, DeclarativeAssignment::class.java)
-    .afterLeafSkipping(
-      psiElement().whitespace(),
-      psiElement().withText("=")
-    )
+    .and(LEFT_ELEMENT_ASSIGNMENT)
 
 private val DECLARATIVE_FACTORY_ARGUMENT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
@@ -240,15 +251,31 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val project = parameters.originalFile.project
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
 
+        // if user edit existing assignment - we don't need to add += with augmentations
+        val includeAugmentation = !isLeftHandAssignment(parameters.position)
         val parent = parameters.position.parent
         val adjustedParent = if (parent is DeclarativeIdentifier && parent.parent is DeclarativeBlock) parent.parent else parent
-        result.addAllElements(getSuggestionList(adjustedParent, schema).map { (entry, suggestion) ->
+        var suggestionList = getSuggestionList(adjustedParent, schema)
+        if (includeAugmentation) {
+          suggestionList = updateSuggestionListWithAugmentations(suggestionList, schema, parent)
+        }
+        result.addAllElements(suggestionList.map { (entry, suggestion) ->
           LookupElementBuilder.create(suggestion.name)
             .withTypeText(suggestion.type.str, null, true)
             .withInsertHandler(smartInsert(suggestion, adjustedParent, entry, schema))
         })
       }
     }
+  }
+
+  private fun isLeftHandAssignment(element: PsiElement): Boolean {
+    val text = element.nextLeaf(true)?.skipWhitespaces()?.text
+    return text == "+=" || text == "="
+  }
+
+  private fun isAppendValue(element: PsiElement): Boolean {
+    val assignment = element.findParentOfType<DeclarativeAssignment>()
+    return assignment?.assignmentType == APPEND
   }
 
   private fun createPropertyCompletionProvider(): CompletionProvider<CompletionParameters> {
@@ -270,7 +297,21 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val project = parameters.originalFile.project
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
 
-        val identifier = parameters.position.findParentOfType<DeclarativeAssignment>()?.identifier ?: return
+        val element = parameters.position
+        // do not show any suggestions if += is used for inappropriate property
+        if (isAppendValue(element)) {
+          element.findParentOfType<DeclarativeAssignment>()?.let { assignment ->
+            val hasAppendAugmentation = getSuggestionList(assignment.parent, schema)
+              .filter { it.second.name == assignment.identifier.name }
+              .any {
+                val list = schema.getAugmentedTypes(element.containingFile.name)[it.first.getFqName()]
+                list?.any { it == AugmentationKind.PLUS } == true
+              }
+            if (!hasAppendAugmentation) return
+          }
+        }
+
+        val identifier = element.findParentOfType<DeclarativeAssignment>()?.identifier ?: return
         var suggestions = getMaybeEnumList(identifier, schema) + getMaybeBooleanList(identifier, schema)
         if (suggestions.isEmpty()) {
           suggestions = getRootFunctions(identifier, schema).map { Suggestion(it.name, FACTORY) } +
@@ -476,7 +517,11 @@ class DeclarativeCompletionContributor : CompletionContributor() {
           document.insertString(context.tailOffset, ".")
         }
       }
-
+      EXPRESSION -> {
+        // if expression ends with function call - need to insert cursor between ()
+        if (element?.prevLeaf(true)?.text == ")")
+          editor.caretModel.moveToOffset(context.tailOffset - 1)
+      }
       else -> insert(suggestion.type).handleInsert(context, item)
     }
   }
@@ -536,6 +581,43 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     }
     receivers = receivers.flatMap { it.getNextLevel() }
     return receivers.distinctBy { it.entry }
+  }
+
+  // update suggestions with possible += expressions
+  private fun updateSuggestionListWithAugmentations(pairs: List<Pair<Entry, Suggestion>>,
+                                                    schemas: BuildDeclarativeSchemas,
+                                                    parent: PsiElement): List<Pair<Entry, Suggestion>> =
+    pairs.flatMap { entry -> updateSuggestionPair(entry,schemas,parent) }
+
+  private fun updateSuggestionPair(pair: Pair<Entry, Suggestion>, schemas: BuildDeclarativeSchemas,
+                                   parent: PsiElement): List<Pair<Entry, Suggestion>> {
+    val first = pair.first
+    val fqName = first.getFqName() ?: return listOf(pair)
+    val augmentedList = schemas.getAugmentedTypes(parent.containingFile.name)[fqName]
+    if (augmentedList?.any { it == AugmentationKind.PLUS } == true) {
+      val rootFunctions = getRootFunctions(parent, schemas).distinct()
+        .filter {
+          // reason is that function type has generic type T and data property has concrete type argument (like String)
+          (it.semantic as? PlainFunction)?.returnValue?.compareIgnoringGeneric((first as DataProperty).valueType) == true
+        }
+      if (rootFunctions.size == 1) {
+        val function = rootFunctions.first()
+        return listOf(first to Suggestion("${pair.second.name} = ${function.name}()", EXPRESSION),
+                      first to Suggestion("${pair.second.name} += ${function.name}()", EXPRESSION))
+
+      }
+
+
+    }
+    return listOf(pair)
+  }
+
+  private fun Entry.getFqName(): FullName? {
+    if (this is DataProperty) {
+      val type = valueType
+      if (type is Named) return type.fqName
+    }
+    return null
   }
 
   private fun getSuggestionList(parent: PsiElement,

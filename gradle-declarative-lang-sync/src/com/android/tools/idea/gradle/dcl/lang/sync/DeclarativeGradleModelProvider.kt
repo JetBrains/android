@@ -19,6 +19,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.AssignmentAugmentation
+import org.gradle.declarative.dsl.schema.AssignmentAugmentationKind
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
@@ -31,6 +33,7 @@ import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
@@ -72,7 +75,8 @@ private fun DeclarativeSchemaModel.convertSettings(): SettingsSchemas {
 fun AnalysisSchema.convert(): BuildDeclarativeSchema {
   val dataClasses = mutableMapOf<FullName, ClassType>()
   val topFunctions = mutableMapOf<String, SchemaFunction>()
-  val schema = BuildDeclarativeSchema(null, dataClasses, topFunctions)
+  val augmentedTypes = mutableMapOf<FullName, List<AugmentationKind>>()
+  val schema = BuildDeclarativeSchema(null, dataClasses, topFunctions, augmentedTypes)
   val top = topLevelReceiverType.convert(schema)
   schema.topLevelReceiver = top
   dataClasses.putAll(
@@ -86,6 +90,14 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
         // deliberately ignore generic type for now
         keyValue ->
         keyValue.value.values.firstOrNull()?.convert(schema)?.let { keyValue.key.convert() to it }
+      }.toMap()
+    )
+  }
+  safeRun {
+    augmentedTypes.putAll(
+      assignmentAugmentationsByTypeName.mapNotNull {
+        // deliberately ignore generic type for now
+        keyValue -> keyValue.key.convert() to keyValue.value.mapNotNull { it.convert() }
       }.toMap()
     )
   }
@@ -138,6 +150,9 @@ private fun DataType.ParameterizedTypeInstance.convert(): ParameterizedClassMode
 
 private fun EnumClass.convert(): EnumModel =
   EnumModel(FullName(name.qualifiedName), this.entryNames)
+
+private fun AssignmentAugmentation.convert(): AugmentationKind? =
+  if (this.kind is AssignmentAugmentationKind.Plus) AugmentationKind.PLUS else null
 
 private fun FunctionSemantics.convert(): FunctionSemantic? = when (this) {
   is FunctionSemantics.AccessAndConfigure ->

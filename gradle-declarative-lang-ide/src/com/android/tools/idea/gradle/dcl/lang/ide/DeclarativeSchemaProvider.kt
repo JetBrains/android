@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.sync.AugmentationKind
 import com.android.tools.idea.gradle.dcl.lang.sync.BuildDeclarativeSchema
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.FullName
+import com.intellij.ide.troubleshooting.scale
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -68,6 +70,9 @@ data class BuildDeclarativeSchemas(val settings: Set<BuildDeclarativeSchema>, va
         EntryWithContext(it, schema)
       }
     }
+
+  fun getAugmentedTypes(fileName: String): Map<FullName, List<AugmentationKind>> =
+    getSchemas(fileName).flatMap { schema -> schema.augmentedTypes.map { it.toPair() } }.toMap()
 
   private fun isSettings(name: String) = name == "settings.gradle.dcl"
 }

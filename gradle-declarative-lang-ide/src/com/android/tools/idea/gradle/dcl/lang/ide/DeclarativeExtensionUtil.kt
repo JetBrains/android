@@ -59,7 +59,8 @@ enum class ElementType(val str: String) {
   FACTORY("Factory"),
   PROPERTY("Property"),
   ENUM_CONSTANT("Enum Constant"),
-  GENERIC_TYPE("Generic Type")
+  GENERIC_TYPE("Generic Type"),
+  EXPRESSION("Expression")
 }
 
 fun getType(type: DataTypeReference, rootFunction: List<PlainFunction>, resolve: (FullName) -> ClassType?): ElementType = when (type) {

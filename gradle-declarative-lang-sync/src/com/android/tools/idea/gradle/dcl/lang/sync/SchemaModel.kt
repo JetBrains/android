@@ -127,20 +127,29 @@ enum class SimpleDataType : PrimitiveType {
 }
 data object GenericType : PrimitiveType
 
+interface Named {
+  val fqName: FullName
+}
+
 sealed class DataTypeReference : Serializable
-data class DataClassRef(val fqName: FullName) : DataTypeReference()
+data class DataClassRef(override val fqName: FullName) : DataTypeReference(), Named
 data class SimpleTypeRef(val dataType: SimpleDataType) : DataTypeReference()
 data object GenericTypeRef : DataTypeReference()
-data class DataClassRefWithTypes(val fqName: FullName, val typeArgument: List<GenericTypeArgument>) : DataTypeReference()
+data class DataClassRefWithTypes(override val fqName: FullName, val typeArgument: List<GenericTypeArgument>) : DataTypeReference(), Named
 
 interface GenericTypeArgument : Serializable
 data class ConcreteGeneric(val reference: DataTypeReference) : GenericTypeArgument
 data object StarGeneric : GenericTypeArgument
 
+enum class AugmentationKind : Serializable {
+  PLUS;
+}
+
 class BuildDeclarativeSchema(
   var topLevelReceiver: ClassModel?,
   val dataClassesByFqName: Map<FullName, ClassType>,
-  val topLevelFunctions: Map<String, SchemaFunction>
+  val topLevelFunctions: Map<String, SchemaFunction>,
+  val augmentedTypes: Map<FullName, List<AugmentationKind>>
 ) : Serializable {
   fun resolveRef(fqName: FullName): ClassType? = dataClassesByFqName[fqName]
 
