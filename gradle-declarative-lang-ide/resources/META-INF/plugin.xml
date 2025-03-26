@@ -68,6 +68,9 @@
         serviceInterface="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIconProviderService"
         serviceImplementation="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeIconProviderService"/>
   </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <autoReloadSettingsCollector implementation="com.android.tools.idea.gradle.dcl.lang.ide.GradleDeclarativeScriptCollector"/>
+  </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.gradle.dcl.ide.declarativeSchemaProvider"
                     interface="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeSchemaProvider"/>
