@@ -15,59 +15,39 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.tools.idea.gradle.actions.AndroidStudioGradleAction.isGradleSyncInProgress;
 
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class GenerateApkAction extends DumbAwareAction {
+public class GenerateApkAction extends AndroidStudioGradleAction {
   private static final String ACTION_TEXT = "Generate APKs";
 
   public GenerateApkAction() {
     super(ACTION_TEXT);
   }
 
-  @NotNull
   @Override
-  public ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
+  protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
+    e.getPresentation().setEnabled(!isGradleSyncInProgress(project));
   }
 
   @Override
-  public void update(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project != null) {
-      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
-      e.getPresentation().setVisible(ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem);
-      e.getPresentation().setEnabled(!isGradleSyncInProgress(project) && projectSystem instanceof GradleProjectSystem);
-    }
-  }
-
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project != null && ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem) {
-      List<Module> appModules = ProjectStructure.getInstance(project).getAppHolderModules().stream()
-        .flatMap(module -> GradleProjectSystemUtil.getModulesToBuild(module).stream())
-        .collect(Collectors.toList());
-      if (!appModules.isEmpty()) {
-        GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-        GoToApkLocationTask task = new GoToApkLocationTask(project, appModules, ACTION_TEXT);
-        Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-        task.executeWhenBuildFinished(gradleBuildInvoker.assemble(modulesToBuild));
-      }
+  protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
+    List<Module> appModules = ProjectStructure.getInstance(project).getAppHolderModules().stream()
+      .flatMap(module -> GradleProjectSystemUtil.getModulesToBuild(module).stream())
+      .collect(Collectors.toList());
+    if (!appModules.isEmpty()) {
+      GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
+      GoToApkLocationTask task = new GoToApkLocationTask(project, appModules, ACTION_TEXT);
+      Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
+      task.executeWhenBuildFinished(gradleBuildInvoker.assemble(modulesToBuild));
     }
   }
 }
