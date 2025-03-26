@@ -30,6 +30,7 @@ iml_module(
         "//tools/vendor/google/firebase:firebase",
         "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
     ],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

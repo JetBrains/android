@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.gradle.dsl.toml",
     srcs = ["src"],
     iml_files = ["intellij.android.gradle.dsl.toml.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

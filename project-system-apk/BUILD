@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.projectSystem.apk",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.apk.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

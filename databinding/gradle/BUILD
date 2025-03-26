@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.databinding.gradle",
     srcs = ["src"],
     iml_files = ["intellij.android.databinding.gradle.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

@@ -7,6 +7,7 @@ iml_module(
     # do not sort: must match IML order
     srcs = ["src"],
     iml_files = ["intellij.android.gradle.dsl.flags.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     deps = ["@intellij//:intellij-sdk"],
 )

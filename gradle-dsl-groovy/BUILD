@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.gradle.dsl.groovy",
     srcs = ["src"],
     iml_files = ["intellij.android.gradle.dsl.groovy.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
