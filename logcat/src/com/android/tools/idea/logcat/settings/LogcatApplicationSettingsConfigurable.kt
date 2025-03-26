@@ -68,6 +68,22 @@ internal class LogcatApplicationSettingsConfigurable(
       addActionListener { defaultFilterTextField.isEnabled = !isSelected }
     }
 
+  @VisibleForTesting
+  internal val fontSize =
+    JTextField().apply {
+      text = logcatSettings.fontSize.toString()
+      minimumSize = Dimension(JBUIScale.scale(60), minimumSize.height)
+      preferredSize = minimumSize
+    }
+
+  @VisibleForTesting
+  internal val overrideFontSize =
+    JCheckBox(LogcatBundle.message("logcat.settings.override.font.size")).apply {
+      isSelected = logcatSettings.overrideFontSize
+      addActionListener { fontSize.isEnabled = isSelected }
+      fontSize.isEnabled = isSelected
+    }
+
   // VisibleForTesting
   internal val ignoreTagsTextField by
     lazy(NONE) { IgnoreValuesTextField(logcatSettings.ignoredTags, LogcatPresenter::getTags) }
@@ -137,6 +153,10 @@ internal class LogcatApplicationSettingsConfigurable(
         )
         defaultFilterTextField.text = logcatSettings.defaultFilter
 
+        add(overrideFontSize, gridBag.nextLine().next().anchor(WEST))
+        add(Box.createHorizontalStrut(JBUIScale.scale(20)), gridBag.next())
+        add(fontSize, gridBag.next().anchor(WEST))
+
         add(
           JLabel(LogcatBundle.message("logcat.settings.ignore.tags.label")),
           gridBag.nextLine().next().anchor(WEST),
@@ -197,6 +217,8 @@ internal class LogcatApplicationSettingsConfigurable(
       mostRecentlyUsedFilterIsDefaultCheckbox.isSelected !=
         logcatSettings.mostRecentlyUsedFilterIsDefault ||
       filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete ||
+      overrideFontSize.isSelected != logcatSettings.overrideFontSize ||
+      fontSize.text != logcatSettings.fontSize.toString() ||
       ignoreTagsTextField.getIgnoredValues() != logcatSettings.ignoredTags ||
       ignoreAppsTextField.getIgnoredValues() != logcatSettings.ignoredApps
   }
@@ -207,6 +229,8 @@ internal class LogcatApplicationSettingsConfigurable(
     logcatSettings.mostRecentlyUsedFilterIsDefault =
       mostRecentlyUsedFilterIsDefaultCheckbox.isSelected
     logcatSettings.filterHistoryAutocomplete = filterHistoryAutocompleteCheckbox.isSelected
+    logcatSettings.overrideFontSize = overrideFontSize.isSelected
+    logcatSettings.fontSize = fontSize.text.toIntOrNull() ?: 13
     logcatSettings.ignoredTags = ignoreTagsTextField.getIgnoredValues()
     logcatSettings.ignoredApps = ignoreAppsTextField.getIgnoredValues()
 

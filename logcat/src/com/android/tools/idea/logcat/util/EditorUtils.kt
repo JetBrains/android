@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.util
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.FilterHint.AppName
 import com.android.tools.idea.logcat.util.FilterHint.Level
 import com.android.tools.idea.logcat.util.FilterHint.Tag
@@ -35,6 +36,7 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.project.Project
+import com.intellij.util.ui.JBUI
 
 /**
  * Creates an Editor and initializes it.
@@ -61,21 +63,25 @@ fun createLogcatEditor(project: Project, disposable: Disposable): EditorEx {
   editorSettings.isShowingSpecialChars = false
   editor.gutterComponentEx.isPaintBackground = false
 
-  val updateFontSize = {
-    val fontSize = UISettingsUtils.getInstance().scaledConsoleFontSize
-    editor.setFontSize(fontSize)
-    editor.colorsScheme =
-      ConsoleViewUtil.updateConsoleColorScheme(editor.colorsScheme).apply {
-        setEditorFontSize(fontSize)
-      }
-  }
-  updateFontSize()
-  val uiSettingsListener = UISettingsListener { updateFontSize() }
+  editor.updateFontSize()
+  val uiSettingsListener = UISettingsListener { editor.updateFontSize() }
   val bus = ApplicationManager.getApplication().messageBus.connect(disposable)
   bus.subscribe(UISettingsListener.TOPIC, uiSettingsListener)
-  bus.subscribe(EditorColorsManager.TOPIC, EditorColorsListener { updateFontSize() })
+  bus.subscribe(EditorColorsManager.TOPIC, EditorColorsListener { editor.updateFontSize() })
 
   return editor
+}
+
+internal fun EditorEx.updateFontSize() {
+  val logcatSettings = AndroidLogcatSettings.getInstance()
+  val fontSize =
+    when (logcatSettings.overrideFontSize) {
+      true -> JBUI.scale(logcatSettings.fontSize).toFloat()
+      false -> UISettingsUtils.getInstance().scaledConsoleFontSize
+    }
+  setFontSize(fontSize)
+  colorsScheme =
+    ConsoleViewUtil.updateConsoleColorScheme(colorsScheme).apply { setEditorFontSize(fontSize) }
 }
 
 /** Returns true if the caret is at the bottom of the editor document. */

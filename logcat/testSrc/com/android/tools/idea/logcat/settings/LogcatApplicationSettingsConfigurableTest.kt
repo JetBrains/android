@@ -167,6 +167,8 @@ class LogcatApplicationSettingsConfigurableTest {
     configurable.cycleBufferSizeTextField.text = "200"
     configurable.defaultFilterTextField.text = "bar"
     configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = true
+    configurable.overrideFontSize.isSelected = true
+    configurable.fontSize.text = "20"
     configurable.ignoreTagsTextField.component.text = " foo  bar "
     configurable.ignoreAppsTextField.component.text = " app1  app2 "
 
@@ -178,6 +180,8 @@ class LogcatApplicationSettingsConfigurableTest {
           bufferSize = 200 * 1024,
           defaultFilter = "bar",
           mostRecentlyUsedFilterIsDefault = true,
+          overrideFontSize = true,
+          fontSize = 20,
           ignoredTags = setOf("foo", "bar"),
           ignoredApps = setOf("app1", "app2"),
         )
@@ -225,6 +229,28 @@ class LogcatApplicationSettingsConfigurableTest {
     assertThat(configurable.isModified).isFalse()
 
     runInEdtAndWait { configurable.ignoreTagsTextField.component.text = "changed" }
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun isModified_overrideFontSize() {
+    logcatSettings.overrideFontSize = false
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    assertThat(configurable.isModified).isFalse()
+
+    runInEdtAndWait { configurable.overrideFontSize.isSelected = true }
+
+    assertThat(configurable.isModified).isTrue()
+  }
+
+  @Test
+  fun isModified_fontSize() {
+    logcatSettings.fontSize = 13
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    assertThat(configurable.isModified).isFalse()
+
+    runInEdtAndWait { configurable.fontSize.text = "20" }
 
     assertThat(configurable.isModified).isTrue()
   }

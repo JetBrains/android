@@ -33,6 +33,8 @@ internal data class AndroidLogcatSettings(
   var mostRecentlyUsedFilterIsDefault: Boolean = false,
   var filterHistoryAutocomplete: Boolean = false,
   var ignoredTags: Set<String> = emptySet(),
+  var overrideFontSize: Boolean = false,
+  var fontSize: Int = 13,
   var ignoredApps: Set<String> = emptySet(),
 ) : PersistentStateComponent<AndroidLogcatSettings> {
 

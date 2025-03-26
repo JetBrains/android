@@ -98,6 +98,7 @@ import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
 import com.android.tools.idea.logcat.util.trackVisibility
+import com.android.tools.idea.logcat.util.updateFontSize
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.ProjectApplicationIdsListener
@@ -707,7 +708,10 @@ constructor(
     val bufferSize = logcatSettings.bufferSize
     documentAppender.setMaxDocumentSize(bufferSize)
     messageBacklog.get().setMaxSize(bufferSize)
-    runInEdt { reloadMessages() }
+    runInEdt {
+      editor.updateFontSize()
+      reloadMessages()
+    }
   }
 
   @UiThread
