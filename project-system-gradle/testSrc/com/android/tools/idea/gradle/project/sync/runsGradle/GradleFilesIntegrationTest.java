@@ -255,7 +255,8 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   public void testNotModifiedWhenAddingWhitespaceInWrapperPropertiesFile() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
-    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
+    GradleWrapper wrapper = GradleWrapper.find(project);
+    assertNotNull(wrapper);
     VirtualFile virtualFile = wrapper.getPropertiesFile();
     runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
@@ -263,7 +264,8 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   public void testModifiedWhenAddingTextChildInWrapperPropertiesFile() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
-    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
+    GradleWrapper wrapper = GradleWrapper.find(project);
+    assertNotNull(wrapper);
     VirtualFile virtualFile = wrapper.getPropertiesFile();
     runGroovyFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
                                   virtualFile);
@@ -310,10 +312,12 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
-      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+      assertThat(file.getChildren()[0].getText()).isEqualTo("apply plugin: 'com.android.application'");
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: \"com.android.application\""));
     }), true);
     runGroovyFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
+      assertThat(file.getChildren()[0].getText()).isEqualTo("apply plugin: \"com.android.application\"");
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.android.application'"));
     }), false, false, getAppBuildFile());
   }
@@ -322,11 +326,13 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
-      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+      assertThat(file.getChildren()[0].getText()).isEqualTo("apply plugin: 'com.android.application'");
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: \"com.android.application\""));
     }), true);
     simulateSyncForGradleFilesUpdate();
     runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
+      assertThat(file.getChildren()[0].getText()).isEqualTo("apply plugin: \"com.android.application\"");
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.android.application'"));
     }), true);
   }
@@ -335,7 +341,8 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     runGroovyAppBuildFileFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
-      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+      assertThat(file.getChildren()[0].getText()).isEqualTo("apply plugin: 'com.android.application'");
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: \"com.android.application\""));
     }, true);
     simulateSyncForGradleFilesUpdate();
     assertThat(myGradleFiles.areGradleFilesModified()).isFalse();
@@ -345,16 +352,19 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     runGroovyAppBuildFileFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
-      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
+      assertThat(file.getChildren()[0].getText()).isEqualTo("apply plugin: 'com.android.application'");
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: \"com.android.application\""));
     }), true);
     simulateSyncForGradleFilesUpdate();
     runGroovyAppBuildFileFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
-      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
+      assertThat(file.getChildren()[0].getText()).isEqualTo("apply plugin: \"com.android.application\"");
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.android.application'"));
     }, true);
     runGroovyFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
-      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
+      assertThat(file.getChildren()[0].getText()).isEqualTo("apply plugin: 'com.android.application'");
+      file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: \"com.android.application\""));
     }), false, false, getAppBuildFile());
   }
 
