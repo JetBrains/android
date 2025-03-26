@@ -44,6 +44,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -225,6 +226,15 @@ public class AndroidRunConfigurationTest {
 
     DeepLinkLaunch.State s2 = (DeepLinkLaunch.State) myRunConfiguration.getLaunchOptionState(LAUNCH_DEEP_LINK);
     Assert.assertEquals("a very deep link", s2.DEEP_LINK);
+  }
+
+  @Test
+  public void testSerialization() {
+    myRunConfiguration.ARTIFACT_NAME = "CUSTOMIZED ARTIFACT NAME";
+    Element output = new Element("configuration");
+    myRunConfiguration.writeExternal(output);
+    String xml = JDOMUtil.write(output);
+    Assert.assertTrue(xml.contains("option name=\"ARTIFACT_NAME\" value=\"CUSTOMIZED ARTIFACT NAME\""));
   }
 
   private void testDeepLink(String link, String extraFlags, String expectedCommand) throws Exception {
