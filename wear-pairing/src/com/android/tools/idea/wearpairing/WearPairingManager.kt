@@ -105,11 +105,11 @@ class WearPairingManager(
   private var runningJob: Job? = null
   private var model = WearDevicePairingModel()
   private var wizardAction: WizardAction? = null
-  private var virtualDevicesProvider: () -> List<AvdInfo> = {
-    getDefaultAvdManagerConnection().getAvds(false)
+  private var virtualDevicesProvider: suspend () -> List<AvdInfo> = suspend {
+    withContext(ioDispatcher) { getDefaultAvdManagerConnection().getAvds(false) }
   }
   private var connectedDevicesProvider: suspend () -> List<IDevice> = suspend {
-    findAdb()?.devices?.toList() ?: emptyList()
+    withContext(ioDispatcher) { findAdb()?.devices?.toList() ?: emptyList() }
   }
 
   data class PhoneWearPair(val phone: PairingDevice, val wear: PairingDevice) {
@@ -130,7 +130,7 @@ class WearPairingManager(
 
   @TestOnly
   fun setDataProviders(
-    virtualDevices: () -> List<AvdInfo>,
+    virtualDevices: suspend () -> List<AvdInfo>,
     connectedDevices: suspend () -> List<IDevice>,
   ) {
     virtualDevicesProvider = virtualDevices
@@ -345,23 +345,27 @@ class WearPairingManager(
         val phoneDevice = connectedDevices[phoneWearPair.phone.deviceID]
         val wearDevice = connectedDevices[phoneWearPair.wear.deviceID]
         phoneDevice?.apply {
-          LOG.warn("[$name] Remove AUTO-forward")
-          runCatching {
-            removeForward(5601)
-          } // Make sure there is no manual connection hanging around
-          runCatching { if (phoneWearPair.hostPort > 0) removeForward(phoneWearPair.hostPort) }
-          if (wearDevice?.getCompanionAppIdForWatch() == PIXEL_COMPANION_APP_ID) {
-            // The Pixel OEM app will re-connect via CloudSync even if we unpair. This will ensure
-            // that the data for the Companion app is cleared forcing unpair to happen.
-            runShellCommand("pm clear com.google.android.apps.wear.companion")
+          withContext(ioDispatcher) {
+            LOG.info("[$name] Remove AUTO-forward")
+            runCatching {
+              removeForward(5601)
+            } // Make sure there is no manual connection hanging around
+            runCatching { if (phoneWearPair.hostPort > 0) removeForward(phoneWearPair.hostPort) }
+            if (wearDevice?.getCompanionAppIdForWatch() == PIXEL_COMPANION_APP_ID) {
+              // The Pixel OEM app will re-connect via CloudSync even if we unpair. This will ensure
+              // that the data for the Companion app is cleared forcing unpair to happen.
+              runShellCommand("pm clear com.google.android.apps.wear.companion")
+            }
           }
         }
 
         wearDevice?.apply {
-          LOG.warn("[$name] Remove AUTO-reverse")
-          runCatching { removeReverse(5601) }
-          if (restartWearGmsCore) {
-            refreshEmulatorConnection()
+          withContext(ioDispatcher) {
+            LOG.info("[$name] Remove AUTO-reverse")
+            runCatching { removeReverse(5601) }
+            if (restartWearGmsCore) {
+              refreshEmulatorConnection()
+            }
           }
         }
       } catch (ex: Throwable) {
@@ -438,21 +442,26 @@ class WearPairingManager(
       }
     }
 
-  internal suspend fun launchDevice(project: Project?, deviceId: String, avdInfo: AvdInfo) =
-    withContext(defaultDispatcher) {
-      connectedDevicesProvider()
-        .find { it.getDeviceID() == deviceId }
-        ?.apply {
-          return@withContext this
-        }
+  internal suspend fun launchDevice(
+    project: Project?,
+    deviceId: String,
+    avdInfo: AvdInfo,
+  ): IDevice {
+    connectedDevicesProvider()
+      .find { it.getDeviceID() == deviceId }
+      ?.apply {
+        return this
+      }
+    return withContext(ioDispatcher) {
       getDefaultAvdManagerConnection().startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
     }
+  }
 
   private suspend fun findAdb(): AndroidDebugBridge? {
     AndroidDebugBridge.getBridge()?.also {
       return it // Instance found, just return it
     }
-    return withContext(defaultDispatcher) {
+    return withContext(ioDispatcher) {
       AndroidSdkUtils.findAdb(null).adbPath?.let {
         try {
           AdbService.getInstance().getDebugBridge(it).await()
@@ -531,7 +540,7 @@ class WearPairingManager(
     }
 
   private suspend fun IDevice.getDeviceID() =
-    withContext(defaultDispatcher) {
+    withContext(ioDispatcher) {
       when {
         // normalizeAvdId is applied to the returned path from the AVD data to remove any .. in the
         // path. They were added in https://r.android.com/2441481 and, since we use the path as an
