@@ -326,6 +326,24 @@ class OnDeviceRendererModelTest {
   }
 
   @Test
+  fun testDisablingInterceptClicksClearsSelection() = runTest {
+    inspectorModel.setSelection(inspectorModel[VIEW1], SelectionOrigin.INTERNAL)
+    inspectorModel.hoveredNode = inspectorModel[VIEW1]
+
+    onDeviceRendererModel.setInterceptClicks(true)
+    testScheduler.advanceUntilIdle()
+
+    assertThat(inspectorModel.selection).isEqualTo(inspectorModel[VIEW1])
+    assertThat(inspectorModel.hoveredNode).isEqualTo(inspectorModel[VIEW1])
+
+    onDeviceRendererModel.setInterceptClicks(false)
+    testScheduler.advanceUntilIdle()
+
+    assertThat(inspectorModel.selection).isNull()
+    assertThat(inspectorModel.hoveredNode).isNull()
+  }
+
+  @Test
   fun testDisposeRemovesListeners() = runTest {
     assertThat(inspectorModel.hoverListeners.size()).isEqualTo(1)
     assertThat(inspectorModel.modificationListeners.size()).isEqualTo(2)

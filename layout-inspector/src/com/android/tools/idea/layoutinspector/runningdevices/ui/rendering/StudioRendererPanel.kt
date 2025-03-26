@@ -19,6 +19,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
@@ -65,6 +66,17 @@ class StudioRendererPanel(
 ) : LayoutInspectorRenderer() {
 
   override var interceptClicks = false
+    set(value) {
+      field = value
+
+      if (!value) {
+        // TODO(b/406518519): remove this once this class is refactored to use OnDeviceRendererModel
+        // Clear selection and hover to avoid keeping a selected rectangles in the ui, that would be
+        // un-selectable since clicks are not being intercepted.
+        renderModel.model.setSelection(null, SelectionOrigin.INTERNAL)
+        renderModel.model.hoveredNode = null
+      }
+    }
 
   private val repaintDisplayView = { refresh() }
 

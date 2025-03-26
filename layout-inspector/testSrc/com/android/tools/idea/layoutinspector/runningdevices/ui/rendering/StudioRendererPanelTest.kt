@@ -554,6 +554,36 @@ class StudioRendererPanelTest {
     assertThat(seenNotificationIds).isEmpty()
   }
 
+  @Test
+  @RunsInEdt
+  fun testDisablingInterceptClicksClearsSelection() {
+    val layoutInspectorRenderer = createRenderer()
+    val parent = BorderLayoutPanel()
+    parent.add(layoutInspectorRenderer)
+    parent.size = screenDimension
+    layoutInspectorRenderer.size = screenDimension
+    layoutInspectorRenderer.interceptClicks = true
+
+    val fakeUi = FakeUi(layoutInspectorRenderer)
+
+    fakeUi.render()
+
+    // click mouse above VIEW1.
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+    fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+
+    fakeUi.render()
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(renderModel.model.selection).isEqualTo(renderModel.model[VIEW1])
+    assertThat(renderModel.model.hoveredNode).isEqualTo(renderModel.model[VIEW1])
+
+    layoutInspectorRenderer.interceptClicks = false
+
+    assertThat(renderModel.model.selection).isNull()
+    assertThat(renderModel.model.hoveredNode).isNull()
+  }
+
   private fun paint(
     image: BufferedImage,
     layoutInspectorRenderer: StudioRendererPanel,

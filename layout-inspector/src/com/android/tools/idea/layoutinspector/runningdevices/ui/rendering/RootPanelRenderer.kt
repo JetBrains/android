@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -50,13 +49,6 @@ class RootPanelRenderer(
   override var interceptClicks: Boolean
     set(value) {
       currentRenderer?.interceptClicks = value
-
-      if (!value) {
-        // Clear selection to avoid keeping a selected rectangle in the ui, that would be
-        // un-selectable since clicks are not being intercepted.
-        inspectorModel.setSelection(null, SelectionOrigin.INTERNAL)
-        inspectorModel.hoveredNode = null
-      }
     }
     get() = currentRenderer?.interceptClicks == true
 

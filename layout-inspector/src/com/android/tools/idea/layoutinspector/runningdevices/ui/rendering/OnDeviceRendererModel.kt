@@ -143,6 +143,13 @@ class OnDeviceRendererModel(
 
   fun setInterceptClicks(enable: Boolean) {
     _interceptClicks.value = enable
+
+    if (!enable) {
+      // Clear selection and hover to avoid keeping a selected rectangles in the ui, that would be
+      // un-selectable since clicks are not being intercepted.
+      inspectorModel.setSelection(null, SelectionOrigin.INTERNAL)
+      inspectorModel.hoveredNode = null
+    }
   }
 
   fun selectNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
