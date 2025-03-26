@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererModel
@@ -353,17 +352,9 @@ private fun createRendererPanel(
     disposable = tabComponents,
     inspectorModel = layoutInspector.inspectorModel,
     onDeviceRendererProvider = { parentDisposable ->
-      val viewInspector =
-        (layoutInspector.currentClient as? AppInspectionInspectorClient)?.viewInspector
-      if (viewInspector == null) {
-        throw IllegalStateException(
-          "Trying to initialize on-device rendering with a null view inspector."
-        )
-      }
       OnDeviceRendererPanel(
         disposable = parentDisposable,
         scope = layoutInspector.coroutineScope,
-        client = viewInspector.onDeviceRendering,
         renderModel =
           OnDeviceRendererModel(
             parentDisposable = parentDisposable,

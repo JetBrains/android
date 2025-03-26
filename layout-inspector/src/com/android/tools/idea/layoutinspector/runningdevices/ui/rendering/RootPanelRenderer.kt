@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -72,20 +71,6 @@ class RootPanelRenderer(
       value?.let { addToCenter(it) }
     }
 
-  private val connectionListener =
-    object : InspectorModel.ConnectionListener {
-      // Each time the connection changes the OnDeviceRendererPanel holds a stale instance of
-      // OnDeviceRenderingClient. Resetting currentRenderer is a workaround to force the
-      // OnDeviceRendererPanel to be recreated for each new connection.
-      // TODO("b/403288855"): RootPanelRenderer shouldn't know about connections, refactor the code
-      // to remove this workaround.
-      override fun onConnectionChanged(newClient: InspectorClient) {
-        if (!newClient.isConnected) {
-          currentRenderer = null
-        }
-      }
-    }
-
   /**
    * [InspectorModel.ModificationListener] responsible for setting the correct renderer, if the app
    * is XR or not.
@@ -136,12 +121,10 @@ class RootPanelRenderer(
     }
 
     inspectorModel.addModificationListener(modificationListener)
-    inspectorModel.addConnectionListener(connectionListener)
   }
 
   override fun dispose() {
     inspectorModel.removeModificationListener(modificationListener)
-    inspectorModel.removeConnectionListener(connectionListener)
   }
 
   override fun refresh() {

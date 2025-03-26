@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -25,7 +24,6 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
 import com.android.tools.idea.layoutinspector.runningdevices.allChildren
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
@@ -42,8 +40,6 @@ import java.awt.Dimension
 import java.awt.Rectangle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -205,30 +201,6 @@ class RootRendererPanelTest {
     assertThat(studioRenderer2).isNull()
     assertThat(deviceRenderer2).isNotNull()
   }
-
-  @Test
-  fun testSwitchConnection() {
-    val rootPanelRenderer =
-      RootPanelRenderer(
-        disposable = disposableRule.disposable,
-        inspectorModel = inspectorModel,
-        onDeviceRendererProvider = { onDeviceRendererPanel },
-        studioRendererProvider = { studioRendererPanel },
-      )
-
-    assertThat(rootPanelRenderer.currentRenderer).isInstanceOf(StudioRendererPanel::class.java)
-    inspectorModel.updateConnection(DisconnectedClient)
-    assertThat(rootPanelRenderer.currentRenderer).isNull()
-
-    inspectorModel.clear()
-    val xrWindow =
-      viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) { image() } }
-    inspectorModel.update(xrWindow, listOf(ROOT), 0)
-
-    assertThat(rootPanelRenderer.currentRenderer).isInstanceOf(OnDeviceRendererPanel::class.java)
-    inspectorModel.updateConnection(DisconnectedClient)
-    assertThat(rootPanelRenderer.currentRenderer).isNull()
-  }
 }
 
 private val RootPanelRenderer.currentRenderer: LayoutInspectorRenderer?
@@ -244,19 +216,9 @@ private fun createOnDeviceRenderer(
   scope: CoroutineScope,
   renderModel: OnDeviceRendererModel,
 ): OnDeviceRendererPanel {
-  val messenger =
-    object : AppInspectorMessenger {
-      override suspend fun sendRawCommand(rawData: ByteArray) = ByteArray(0)
-
-      override val eventFlow: Flow<ByteArray> = emptyFlow()
-      override val scope: CoroutineScope = CoroutineScope(Job())
-    }
-  val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
-
   return OnDeviceRendererPanel(
     disposable = disposable,
     scope = scope,
-    client = onDeviceRenderingClient,
     renderModel = renderModel,
     enableSendRightClicksToDevice = {},
   )
