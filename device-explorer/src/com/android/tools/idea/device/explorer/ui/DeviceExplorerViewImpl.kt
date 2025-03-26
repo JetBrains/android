@@ -29,6 +29,7 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLoadingPanel
 import icons.StudioIllustrations
@@ -62,6 +63,7 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
   override fun setup() {
     loadingPanel.add(panel.component, BorderLayout.CENTER)
     panel.deviceCombo.renderer = DeviceNameRenderer()
+    panel.deviceCombo.background = JBColor.background()
     panel.deviceCombo.addActionListener {
       val sel = panel.deviceCombo.selectedItem
       if (sel is DeviceHandle) {
