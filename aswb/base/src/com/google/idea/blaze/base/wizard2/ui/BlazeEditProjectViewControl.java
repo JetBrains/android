@@ -30,6 +30,7 @@ import com.google.idea.blaze.base.projectview.ProjectViewVerifier;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.ProjectViewDefaultValueProvider;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
+import com.google.idea.blaze.base.projectview.section.Section;
 import com.google.idea.blaze.base.projectview.section.SectionKey;
 import com.google.idea.blaze.base.projectview.section.SectionParser;
 import com.google.idea.blaze.base.projectview.section.sections.DirectoryEntry;
@@ -37,6 +38,9 @@ import com.google.idea.blaze.base.projectview.section.sections.DirectorySection;
 import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
 import com.google.idea.blaze.base.projectview.section.sections.Sections;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
+import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.OutputSink.Propagation;
 import com.google.idea.blaze.base.scope.Scope;
@@ -594,12 +598,16 @@ public final class BlazeEditProjectViewControl {
 
     final ProjectView projectView;
     final ProjectViewSet projectViewSet;
+    ScalarSection<String> workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
+      .set(workspaceData.workspaceRoot().toString()).build();
     if (useSharedProjectView && selectProjectViewOption.getSharedProjectView() != null) {
       projectView =
           ProjectView.builder()
               .add(
                   ScalarSection.builder(ImportSection.KEY)
                       .set(selectProjectViewOption.getSharedProjectView()))
+              .add(TextBlockSection.of(TextBlock.newLine()))
+              .add(workspaceRootSection)
               .build();
       projectViewSet =
           ProjectViewSet.builder()
@@ -609,7 +617,9 @@ public final class BlazeEditProjectViewControl {
     } else {
       ProjectViewSet.ProjectViewFile projectViewFile = parseResult.getTopLevelProjectViewFile();
       assert projectViewFile != null;
-      projectView = projectViewFile.projectView;
+      ProjectView.Builder projectViewBuilder = ProjectView.builder(projectViewFile.projectView);
+      projectViewBuilder.add(workspaceRootSection);
+      projectView = projectViewBuilder.build();
       projectViewSet = parseResult;
     }
 
