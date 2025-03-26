@@ -537,11 +537,14 @@ class WearPairingManager(
           avdData.get()?.avdFolder?.normalize()?.toString() ?: name
         isEmulator ->
           EmulatorConsole.getConsole(this@getDeviceID)?.avdNioPath?.normalize()?.toString() ?: name
-        getProperty(PROP_FIREBASE_TEST_LAB_SESSION) != null ->
-          getProperty(PROP_FIREBASE_TEST_LAB_SESSION) ?: name
         else -> {
-          val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(serialNumber)
-          if (matcher.matches()) matcher.group(1) else serialNumber
+          val firebaseTestLabSession = getProperty(PROP_FIREBASE_TEST_LAB_SESSION)
+          if (firebaseTestLabSession != null) {
+            firebaseTestLabSession
+          } else {
+            val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(serialNumber)
+            if (matcher.matches()) matcher.group(1) else serialNumber
+          }
         }
       }
     }
