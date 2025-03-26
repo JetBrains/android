@@ -28,6 +28,8 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.AndroidBackgroundTaskReceiver
+import com.android.tools.idea.run.configuration.execution.println
+import com.android.utils.ILogger
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
@@ -81,7 +83,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)
     val receiver = AndroidBackgroundTaskReceiver(console)
-    val activator = Activator(app, logger)
+    val activator = Activator(app, ConsoleLogger(logger, console))
     activator.activate(componentType, activityQualifiedName, extraFlags, mode, receiver, device)
     val matcher = activityDoesNotExistPattern.matcher(receiver.output.joinToString())
     if (matcher.find()) {
@@ -108,4 +110,15 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
   }
 
   abstract fun getQualifiedActivityName(device: IDevice, apkProvider: ApkProvider, appId: String): String
+}
+
+class ConsoleLogger(val delegate: ILogger, val console: ConsoleView) : ILogger {
+  override fun error(t: Throwable?, msgFormat: String?, vararg args: Any?) = delegate.error(t, msgFormat, *args)
+  override fun warning(msgFormat: String, vararg args: Any?) = delegate.warning(msgFormat, *args)
+  override fun verbose(msgFormat: String, vararg args: Any?) = delegate.verbose(msgFormat, *args)
+
+  override fun info(msgFormat: String, vararg args: Any?) {
+    console.println(String.format(msgFormat, *args))
+    delegate.info(msgFormat, *args)
+  }
 }
