@@ -15,17 +15,24 @@
  */
 package com.android.tools.fonts;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.ide.common.fonts.*;
-import com.google.common.primitives.Ints;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.tools.fonts.Fonts.AVAILABLE_FAMILIES;
+
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontLoader;
+import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.MutableFontDetail;
+import com.google.common.primitives.Ints;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * There are TTF files loaded from the jar file which can be used to display
@@ -36,11 +43,11 @@ public class SystemFonts {
 
   private final Map<String, FontFamily> myFonts;
 
-  public SystemFonts(@NonNull FontLoader fontLoader) {
+  public SystemFonts(@NotNull FontLoader fontLoader) {
     myFonts = createFonts(fontLoader);
   }
 
-  @NonNull
+  @NotNull
   public Collection<FontFamily> getFontFamilies() {
     return myFonts.values();
   }
@@ -50,7 +57,7 @@ public class SystemFonts {
     return myFonts.get(name);
   }
 
-  private static Map<String, FontFamily> createFonts(@NonNull FontLoader fontLoader) {
+  private static Map<String, FontFamily> createFonts(@NotNull FontLoader fontLoader) {
     Map<String, FontFamily> fonts = new TreeMap<>();
     for (String fontName : AVAILABLE_FAMILIES) {
       FontFamily family = createFont(fontLoader, fontName);
@@ -62,7 +69,7 @@ public class SystemFonts {
   }
 
   @Nullable
-  private static FontFamily createFont(@NonNull FontLoader fontLoader, @NonNull String systemFontName) {
+  private static FontFamily createFont(@NotNull FontLoader fontLoader, @NotNull String systemFontName) {
     switch (systemFontName) {
       case "sans-serif-thin":
         return findFont(fontLoader, systemFontName, "Roboto", DEFAULT_WIDTH, 100, 400);
@@ -99,9 +106,9 @@ public class SystemFonts {
   }
 
   @Nullable
-  private static FontFamily findFont(@NonNull FontLoader fontLoader,
-                                     @NonNull String systemFontName,
-                                     @NonNull String name,
+  private static FontFamily findFont(@NotNull FontLoader fontLoader,
+                                     @NotNull String systemFontName,
+                                     @NotNull String name,
                                      float width,
                                      int... weights) {
     FontFamily family = fontLoader.findFont(FontProvider.GOOGLE_PROVIDER, name);

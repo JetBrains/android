@@ -16,13 +16,13 @@
 package com.android.tools.res
 
 import com.android.SdkConstants.DOT_JAR
-import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.aar.CachingData
 import com.android.resources.aar.FrameworkResourceRepository
 import com.android.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.hash.Hashing
+import org.jetbrains.annotations.TestOnly
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path

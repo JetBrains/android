@@ -131,6 +131,7 @@ public class MotionKeepDimensTest extends SceneTest {
     when(configuration.getSettings()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
     when(configuration.getFullConfig()).thenReturn(FolderConfiguration.createDefault());
     when(configuration.getTheme()).thenReturn("@android:style/Theme");
+    when(configuration.getPreferredTheme()).thenReturn("@android:style/Theme");
     myModel.setConfiguration(configuration);
   }
 

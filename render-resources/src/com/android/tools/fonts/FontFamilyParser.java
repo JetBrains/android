@@ -15,30 +15,29 @@
  */
 package com.android.tools.fonts;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.ide.common.fonts.FontQueryParserError;
-import com.android.ide.common.fonts.MutableFontDetail;
-import com.android.ide.common.fonts.ParseResult;
-import com.android.ide.common.fonts.QueryResolver;
-import com.android.tools.environment.Logger;
-import java.io.InputStream;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
 import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
+
+import com.android.ide.common.fonts.FontQueryParserError;
+import com.android.ide.common.fonts.MutableFontDetail;
+import com.android.ide.common.fonts.ParseResult;
+import com.android.ide.common.fonts.QueryResolver;
+import com.android.tools.environment.Logger;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Parse a font xml file.
@@ -47,8 +46,8 @@ import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
  */
 public class FontFamilyParser {
 
-  @NonNull
-  public static ParseResult parseFontFamily(@NonNull InputStream xmlStream, @NonNull String fileName) {
+  @NotNull
+  public static ParseResult parseFontFamily(@NotNull InputStream xmlStream, @NotNull String fileName) {
     try {
       return parseFontReference(xmlStream, fileName);
     }
@@ -62,7 +61,7 @@ public class FontFamilyParser {
     }
   }
 
-  private static ParseResult parseFontReference(@NonNull InputStream xmlStream, @NonNull String fileName)
+  private static ParseResult parseFontReference(@NotNull InputStream xmlStream, @NotNull String fileName)
     throws SAXException, ParserConfigurationException, IOException {
     SAXParserFactory factory = SAXParserFactory.newInstance();
     factory.setNamespaceAware(true);
@@ -75,7 +74,7 @@ public class FontFamilyParser {
   static class ParseErrorResult extends ParseResult {
     private final String myMessage;
 
-    ParseErrorResult(@NonNull String message) {
+    ParseErrorResult(@NotNull String message) {
       myMessage = message;
     }
 
@@ -97,11 +96,11 @@ public class FontFamilyParser {
     private final String myFileName;
     private ParseResult myResult;
 
-    private FontFamilyHandler(@NonNull String fileName) {
+    private FontFamilyHandler(@NotNull String fileName) {
       myFileName = fileName;
     }
 
-    @NonNull
+    @NotNull
     private ParseResult getResult() {
       if (myResult == null) {
         myResult = new ParseErrorResult("The font file is empty");
@@ -110,7 +109,7 @@ public class FontFamilyParser {
     }
 
     @Override
-    public void startElement(@NonNull String uri, @NonNull String localName, @NonNull String name, @NonNull Attributes attributes)
+    public void startElement(@NotNull String uri, @NotNull String localName, @NotNull String name, @NotNull Attributes attributes)
       throws SAXException {
       switch (name) {
         case FONT_FAMILY:
@@ -132,7 +131,7 @@ public class FontFamilyParser {
     }
 
     @Nullable
-    private static String getAttributeValue(@NonNull Attributes attributes, @NonNull String attrName) {
+    private static String getAttributeValue(@NotNull Attributes attributes, @NotNull String attrName) {
       String value = attributes.getValue(ANDROID_URI, attrName);
       if (value != null) {
         return value;
@@ -195,12 +194,12 @@ public class FontFamilyParser {
       myFonts = new LinkedHashMap<>();
     }
 
-    @NonNull
+    @NotNull
     public Map<String, MutableFontDetail> getFonts() {
       return myFonts;
     }
 
-    private void addFont(@NonNull String fontName, int weight, float width, float italics, boolean hasExplicitStyle) {
+    private void addFont(@NotNull String fontName, int weight, float width, float italics, boolean hasExplicitStyle) {
       myFonts.put(fontName, new MutableFontDetail(fontName, weight, width, italics, hasExplicitStyle));
     }
   }

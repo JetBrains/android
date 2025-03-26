@@ -15,8 +15,6 @@
  */
 package com.android.tools.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
@@ -46,6 +44,8 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /**
@@ -61,21 +61,21 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   private static final Logger LOG = Logger.getInstance(MultiResourceRepository.class);
 
   @GuardedBy("ITEM_MAP_LOCK")
-  @NonNull private ImmutableList<LocalResourceRepository<T>> myLocalResources = ImmutableList.of();
+  @NotNull private ImmutableList<LocalResourceRepository<T>> myLocalResources = ImmutableList.of();
   /** A concatenation of {@link #myLocalResources} and library resources. */
   @GuardedBy("ITEM_MAP_LOCK")
-  @NonNull private ImmutableList<ResourceRepository> myChildren = ImmutableList.of();
+  @NotNull private ImmutableList<ResourceRepository> myChildren = ImmutableList.of();
   /** Leaf resource repositories keyed by namespace. */
   @GuardedBy("ITEM_MAP_LOCK")
-  @NonNull private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myLeafsByNamespace =
+  @NotNull private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myLeafsByNamespace =
       ImmutableListMultimap.of();
   /** Contained single-namespace resource repositories keyed by namespace. */
   @GuardedBy("ITEM_MAP_LOCK")
-  @NonNull private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myRepositoriesByNamespace =
+  @NotNull private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myRepositoriesByNamespace =
       ImmutableListMultimap.of();
 
   @GuardedBy("ITEM_MAP_LOCK")
-  @NonNull private PerConfigResourceMap.ResourceItemComparator myResourceComparator =
+  @NotNull private PerConfigResourceMap.ResourceItemComparator myResourceComparator =
       new PerConfigResourceMap.ResourceItemComparator(ImmutableList.of());
 
   @GuardedBy("ITEM_MAP_LOCK")
@@ -94,13 +94,13 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   private final Table<ResourceNamespace, ResourceType, Set<SingleNamespaceResourceRepository>> myUnreconciledResources =
       Tables.newCustomTable(new HashMap<>(), () -> Maps.newEnumMap(ResourceType.class));
 
-  protected MultiResourceRepository(@NonNull String displayName) {
+  protected MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
   }
 
-  protected void setChildren(@NonNull List<? extends LocalResourceRepository<T>> localResources,
-                             @NonNull Collection<? extends AarResourceRepository> libraryResources,
-                             @NonNull Collection<? extends ResourceRepository> otherResources) {
+  protected void setChildren(@NotNull List<? extends LocalResourceRepository<T>> localResources,
+                             @NotNull Collection<? extends AarResourceRepository> libraryResources,
+                             @NotNull Collection<? extends ResourceRepository> otherResources) {
     synchronized (ITEM_MAP_LOCK) {
       release();
       setModificationCount(ourModificationCounter.incrementAndGet());
@@ -144,8 +144,8 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   }
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private static <T> void computeLeafs(@NonNull ResourceRepository repository,
-                                   @NonNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
+  private static <T> void computeLeafs(@NotNull ResourceRepository repository,
+                                   @NotNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
     if (repository instanceof MultiResourceRepository) {
       for (ResourceRepository child : ((MultiResourceRepository<T>)repository).myChildren) {
         computeLeafs(child, result);
@@ -159,8 +159,8 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
 
   @GuardedBy("ITEM_MAP_LOCK")
   private static <T> void computeNamespaceMap(
-      @NonNull ResourceRepository repository,
-      @NonNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
+      @NotNull ResourceRepository repository,
+      @NotNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
     if (repository instanceof SingleNamespaceResourceRepository) {
       SingleNamespaceResourceRepository singleNamespaceRepository = (SingleNamespaceResourceRepository)repository;
       ResourceNamespace namespace = singleNamespaceRepository.getNamespace();
@@ -179,7 +179,7 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
     }
   }
 
-  @NonNull
+  @NotNull
   public final List<ResourceRepository> getChildren() {
     synchronized (ITEM_MAP_LOCK) {
       return myChildren;
@@ -194,8 +194,8 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
    * @param namespace the namespace to return resource repositories for
    * @return a list of namespaces for the given namespace
    */
-  @NonNull
-  public final List<SingleNamespaceResourceRepository> getRepositoriesForNamespace(@NonNull ResourceNamespace namespace) {
+  @NotNull
+  public final List<SingleNamespaceResourceRepository> getRepositoriesForNamespace(@NotNull ResourceNamespace namespace) {
     synchronized (ITEM_MAP_LOCK) {
       return myRepositoriesByNamespace.get(namespace);
     }
@@ -228,7 +228,7 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
       return myRepositoriesByNamespace.keySet();
@@ -236,8 +236,8 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   }
 
   @Override
-  @NonNull
-  public ResourceVisitor.VisitResult accept(@NonNull ResourceVisitor visitor) {
+  @NotNull
+  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
     synchronized (ITEM_MAP_LOCK) {
       for (ResourceNamespace namespace : getNamespaces()) {
         if (visitor.shouldVisitNamespace(namespace)) {
@@ -263,7 +263,7 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   @GuardedBy("ITEM_MAP_LOCK")
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@NonNull ResourceNamespace namespace, @NonNull ResourceType type) {
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);
     if (repositoriesForNamespace.size() == 1) {
       SingleNamespaceResourceRepository repository = repositoriesForNamespace.get(0);
@@ -351,10 +351,10 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   }
 
   @GuardedBy("ITEM_MAP_LOCK")
-  @NonNull
-  private static <T> ListMultimap<String, ResourceItem> getResourcesUnderLock(@NonNull SingleNamespaceResourceRepository repository,
-                                                                              @NonNull ResourceNamespace namespace,
-                                                                              @NonNull ResourceType type) {
+  @NotNull
+  private static <T> ListMultimap<String, ResourceItem> getResourcesUnderLock(@NotNull SingleNamespaceResourceRepository repository,
+                                                                              @NotNull ResourceNamespace namespace,
+                                                                              @NotNull ResourceType type) {
     ListMultimap<String, ResourceItem> map;
     if (repository instanceof LocalResourceRepository) {
       map = ((LocalResourceRepository<T>)repository).getMapPackageAccessible(namespace, type);
@@ -401,7 +401,7 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
    * resources of the given types.
    */
   @GuardedBy("ITEM_MAP_LOCK")
-  public void invalidateCache(@NonNull SingleNamespaceResourceRepository repository, @NonNull ResourceType... types) {
+  public void invalidateCache(@NotNull SingleNamespaceResourceRepository repository, @NotNull ResourceType... types) {
     ResourceNamespace namespace = repository.getNamespace();
 
     // Since myLeafsByNamespace updates are not atomic with respect to grandchildren updates, it is
@@ -430,7 +430,7 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   }
 
   @Override
-  public void invokeAfterPendingUpdatesFinish(@NonNull Executor executor, @NonNull Runnable callback) {
+  public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
     List<LocalResourceRepository<T>> repositories = getLocalResources();
     AtomicInteger count = new AtomicInteger(repositories.size());
     for (LocalResourceRepository<T> childRepository : repositories) {
@@ -443,7 +443,7 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected Set<T> computeResourceDirs() {
     synchronized (ITEM_MAP_LOCK) {
       Set<T> result = new HashSet<>();
@@ -455,7 +455,7 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
     synchronized (ITEM_MAP_LOCK) {
       return myLeafsByNamespace.values();

@@ -20,11 +20,9 @@ import static com.android.SdkConstants.JAR_PROTOCOL;
 import static com.android.SdkConstants.JAR_SEPARATOR;
 
 import com.android.SdkConstants;
-import com.android.annotations.Nullable;
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
 import com.android.tools.apk.analyzer.BinaryXmlParser;
-import com.android.annotations.NonNull;
 import com.android.tools.apk.analyzer.ResourceIdResolver;
 import com.android.utils.XmlUtils;
 import com.android.zipflinger.ZipMap;
@@ -45,6 +43,8 @@ import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -63,7 +63,7 @@ public class FileResourceReader {
     .expireAfterAccess(5, TimeUnit.MINUTES)
     .build(new CacheLoader<String, ZipMap>() {
       @Override
-      public ZipMap load(@NonNull String path) throws IOException {
+      public ZipMap load(@NotNull String path) throws IOException {
         return ZipMap.from(Paths.get(path));
       }
     });
@@ -79,10 +79,10 @@ public class FileResourceReader {
    * @throws FileNotFoundException if the resource doesn't exist
    * @throws IOException in case of an I/O error
    */
-  @NonNull
+  @NotNull
   public static byte[] readBytes(
-    @NonNull PathString resourcePath,
-    @NonNull ResourceIdResolver resourceIdResolver
+    @NotNull PathString resourcePath,
+    @NotNull ResourceIdResolver resourceIdResolver
   ) throws IOException {
     String scheme = resourcePath.getFilesystemUri().getScheme();
     switch (scheme) {
@@ -109,7 +109,7 @@ public class FileResourceReader {
     }
   }
 
-  private static boolean isBinaryEncoded(@NonNull String scheme, @NonNull String path, @NonNull byte[] resourceBytes) {
+  private static boolean isBinaryEncoded(@NotNull String scheme, @NotNull String path, @NotNull byte[] resourceBytes) {
     return scheme.equals(APK_PROTOCOL) &&
            path.endsWith(SdkConstants.DOT_XML) &&
            resourceBytes.length > 2 &&
@@ -126,8 +126,8 @@ public class FileResourceReader {
    * @throws FileNotFoundException if the resource doesn't exist
    * @throws IOException in case of an I/O error
    */
-  @NonNull
-  public static byte[] readBytes(@NonNull String resourcePath) throws IOException {
+  @NotNull
+  public static byte[] readBytes(@NotNull String resourcePath) throws IOException {
     if (resourcePath.startsWith("apk:") || resourcePath.startsWith("jar:")) {
       int prefixLength = "apk:".length(); // "jar:" has the same length as "apk:".
       if (resourcePath.startsWith("//", prefixLength)) {
@@ -151,7 +151,7 @@ public class FileResourceReader {
     return readFileBytes(resourcePath);
   }
 
-  @NonNull
+  @NotNull
   private static byte[] readFileBytes(String filePath) throws IOException {
     try (FileInputStream fileStream = new FileInputStream(filePath)) {
       ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
@@ -160,7 +160,7 @@ public class FileResourceReader {
     }
   }
 
-  @NonNull
+  @NotNull
   private static byte[] readZipEntryBytes(String zipPath, String zipEntryPath) throws IOException {
     // Cache ZipMap as its creation is time consuming.
     ZipMap zipMap;
@@ -199,8 +199,8 @@ public class FileResourceReader {
    */
   @Nullable
   public static XmlPullParser createXmlPullParser(
-    @NonNull PathString resourcePath,
-    @NonNull ResourceIdResolver resIdResolver
+    @NotNull PathString resourcePath,
+    @NotNull ResourceIdResolver resIdResolver
   ) throws IOException {
     try {
       byte[] contents = readBytes(resourcePath, resIdResolver);
@@ -218,8 +218,8 @@ public class FileResourceReader {
    * @param contents the contents of a file resource
    * @return the parser for the resource
    */
-  @NonNull
-  public static XmlPullParser createXmlPullParser(@NonNull byte[] contents) {
+  @NotNull
+  public static XmlPullParser createXmlPullParser(@NotNull byte[] contents) {
     try {
       // Instantiate an XML pull parser based on the contents of the file.
       XmlPullParser parser;

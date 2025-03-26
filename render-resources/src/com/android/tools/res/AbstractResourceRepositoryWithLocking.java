@@ -15,8 +15,6 @@
  */
 package com.android.tools.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
@@ -29,6 +27,8 @@ import com.google.common.collect.ListMultimap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper around a {@link ResourceTable} that:
@@ -53,49 +53,49 @@ public abstract class AbstractResourceRepositoryWithLocking extends AbstractReso
   @GuardedBy("ITEM_MAP_LOCK")
   @Nullable
   protected abstract ListMultimap<String, ResourceItem> getMap(
-    @NonNull ResourceNamespace namespace, @NonNull ResourceType resourceType);
+    @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType);
 
   @SuppressWarnings("InstanceGuardedByStatic")
   @GuardedBy("ITEM_MAP_LOCK")
   @Override
-  @NonNull
+  @NotNull
   protected ListMultimap<String, ResourceItem> getResourcesInternal(
-      @NonNull ResourceNamespace namespace, @NonNull ResourceType resourceType) {
+      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
     ListMultimap<String, ResourceItem> map = getMap(namespace, resourceType);
     return map == null ? ImmutableListMultimap.of() : map;
   }
 
   @Override
-  @NonNull
-  public List<ResourceItem> getResources(@NonNull ResourceNamespace namespace,
-                                         @NonNull ResourceType resourceType,
-                                         @NonNull String resourceName) {
+  @NotNull
+  public List<ResourceItem> getResources(@NotNull ResourceNamespace namespace,
+                                         @NotNull ResourceType resourceType,
+                                         @NotNull String resourceName) {
     synchronized (ITEM_MAP_LOCK) {
       return super.getResources(namespace, resourceType, resourceName);
     }
   }
 
   @Override
-  @NonNull
-  public List<ResourceItem> getResources(@NonNull ResourceNamespace namespace,
-                                         @NonNull ResourceType resourceType,
-                                         @NonNull Predicate<ResourceItem> filter) {
+  @NotNull
+  public List<ResourceItem> getResources(@NotNull ResourceNamespace namespace,
+                                         @NotNull ResourceType resourceType,
+                                         @NotNull Predicate<ResourceItem> filter) {
     synchronized (ITEM_MAP_LOCK) {
       return super.getResources(namespace, resourceType, filter);
     }
   }
 
   @Override
-  @NonNull
-  public ListMultimap<String, ResourceItem> getResources(@NonNull ResourceNamespace namespace, @NonNull ResourceType resourceType) {
+  @NotNull
+  public ListMultimap<String, ResourceItem> getResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
     synchronized (ITEM_MAP_LOCK) {
       return super.getResources(namespace, resourceType);
     }
   }
 
   @Override
-  @NonNull
-  public Set<String> getResourceNames(@NonNull ResourceNamespace namespace, @NonNull ResourceType resourceType) {
+  @NotNull
+  public Set<String> getResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
     synchronized (ITEM_MAP_LOCK) {
       ListMultimap<String, ResourceItem> map = getMap(namespace, resourceType);
       return map == null ? ImmutableSet.of() : ImmutableSet.copyOf(map.keySet());
@@ -103,22 +103,22 @@ public abstract class AbstractResourceRepositoryWithLocking extends AbstractReso
   }
 
   @Override
-  public boolean hasResources(@NonNull ResourceNamespace namespace, @NonNull ResourceType resourceType, @NonNull String resourceName) {
+  public boolean hasResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, @NotNull String resourceName) {
     synchronized (ITEM_MAP_LOCK) {
       return super.hasResources(namespace, resourceType, resourceName);
     }
   }
 
   @Override
-  public boolean hasResources(@NonNull ResourceNamespace namespace, @NonNull ResourceType resourceType) {
+  public boolean hasResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
     synchronized (ITEM_MAP_LOCK) {
       return super.hasResources(namespace, resourceType);
     }
   }
 
   @Override
-  @NonNull
-  public Set<ResourceType> getResourceTypes(@NonNull ResourceNamespace namespace) {
+  @NotNull
+  public Set<ResourceType> getResourceTypes(@NotNull ResourceNamespace namespace) {
     synchronized (ITEM_MAP_LOCK) {
       return super.getResourceTypes(namespace);
     }

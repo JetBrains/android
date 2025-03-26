@@ -1,20 +1,19 @@
 package com.android.tools.dom.attrs;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceReference;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Information about an styleable resource.
  */
 public interface StyleableDefinition {
-  @NonNull
+  @NotNull
   ResourceReference getResourceReference();
 
-  @NonNull
+  @NotNull
   String getName();
 
-  @NonNull
+  @NotNull
   List<AttributeDefinition> getAttributes();
 }

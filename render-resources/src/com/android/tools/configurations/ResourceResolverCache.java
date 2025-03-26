@@ -18,8 +18,6 @@ package com.android.tools.configurations;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -38,20 +36,20 @@ import com.android.tools.res.CacheableResourceRepository;
 import com.android.tools.res.FrameworkOverlay;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidTargetData;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.text.Strings;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.android.tools.sdk.AndroidTargetData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Cache for resolved resources. */
 // TODO(namespaces): Cache AAR contents if namespaces are used.
@@ -111,9 +109,9 @@ public class ResourceResolverCache {
    */
   @Nullable
   ResourceResolver getCachedResourceResolver(@Nullable IAndroidTarget target,
-                                             @NonNull String themeStyle,
-                                             @NonNull FolderConfiguration fullConfiguration,
-                                             @NonNull List<FrameworkOverlay> overlays) {
+                                             @NotNull String themeStyle,
+                                             @NotNull FolderConfiguration fullConfiguration,
+                                             @NotNull List<FrameworkOverlay> overlays) {
     ResourceRepositoryManager repositoryManager = mySettings.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) return null;
 
@@ -126,10 +124,10 @@ public class ResourceResolverCache {
    * Returns a {@link ResourceResolver}. If it does not exist yet, it creates it.
    */
   @Slow
-  public @NonNull ResourceResolver getResourceResolver(@Nullable IAndroidTarget target,
-                                                       @NonNull String themeStyle,
-                                                       @NonNull FolderConfiguration fullConfiguration,
-                                                       @NonNull List<FrameworkOverlay> overlays) {
+  public @NotNull ResourceResolver getResourceResolver(@Nullable IAndroidTarget target,
+                                                       @NotNull String themeStyle,
+                                                       @NotNull FolderConfiguration fullConfiguration,
+                                                       @NotNull List<FrameworkOverlay> overlays) {
     // Are caches up to date?
     ResourceRepositoryManager repositoryManager = mySettings.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) {
@@ -201,10 +199,10 @@ public class ResourceResolverCache {
   }
 
   @Slow
-  @NonNull
-  public Map<ResourceType, ResourceValueMap> getConfiguredFrameworkResources(@NonNull IAndroidTarget target,
-                                                                             @NonNull FolderConfiguration fullConfiguration,
-                                                                             @NonNull List<FrameworkOverlay> overlays) {
+  @NotNull
+  public Map<ResourceType, ResourceValueMap> getConfiguredFrameworkResources(@NotNull IAndroidTarget target,
+                                                                             @NotNull FolderConfiguration fullConfiguration,
+                                                                             @NotNull List<FrameworkOverlay> overlays) {
     ResourceRepository resourceRepository = getFrameworkResources(fullConfiguration, target, overlays);
     if (resourceRepository == null) {
       return Collections.emptyMap();
@@ -220,9 +218,9 @@ public class ResourceResolverCache {
     return frameworkResources;
   }
 
-  @NonNull
-  private static String getResolverKey(@NonNull String themeStyle, @NonNull String qualifierString,
-                                       @NonNull List<FrameworkOverlay> overlays) {
+  @NotNull
+  private static String getResolverKey(@NotNull String themeStyle, @NotNull String qualifierString,
+                                       @NotNull List<FrameworkOverlay> overlays) {
     // When looking up the configured project and framework resources, the theme doesn't matter, so we look up only
     // by the configuration qualifiers; for example, here's a sample key:
     // -ldltr-sw384dp-w384dp-h640dp-normal-notlong-port-notnight-xhdpi-finger-keyssoft-nokeys-navhidden-nonav-1280x768-v17
@@ -235,8 +233,8 @@ public class ResourceResolverCache {
            + getOverlaysString(overlays);
   }
 
-  @NonNull
-  private static String getOverlaysString(@NonNull List<FrameworkOverlay> overlays) {
+  @NotNull
+  private static String getOverlaysString(@NotNull List<FrameworkOverlay> overlays) {
     return SdkConstants.RES_QUALIFIER_SEP + "Overlays:" + Strings.join(overlays, SdkConstants.RES_QUALIFIER_SEP);
   }
 
@@ -247,8 +245,8 @@ public class ResourceResolverCache {
    */
   @Slow
   @Nullable
-  public ResourceRepository getFrameworkResources(@NonNull FolderConfiguration configuration, @NonNull IAndroidTarget target,
-                                                  @NonNull List<FrameworkOverlay> overlays) {
+  public ResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target,
+                                                  @NotNull List<FrameworkOverlay> overlays) {
     int apiLevel = target.getVersion().getFeatureLevel();
 
     AndroidTargetData targetData = getCachedTargetData(apiLevel);
@@ -285,8 +283,8 @@ public class ResourceResolverCache {
    * @param themeStyle new theme
    * @param fullConfiguration new full configuration
    */
-  public void replaceCustomConfig(@NonNull String themeStyle, @NonNull FolderConfiguration fullConfiguration,
-                                  @NonNull List<FrameworkOverlay> overlays) {
+  public void replaceCustomConfig(@NotNull String themeStyle, @NotNull FolderConfiguration fullConfiguration,
+                                  @NotNull List<FrameworkOverlay> overlays) {
     String overlayString = getOverlaysString(overlays);
     String qualifierString = fullConfiguration.getQualifierString();
     String newCustomResolverKey = getResolverKey(themeStyle, qualifierString, overlays);
@@ -310,7 +308,7 @@ public class ResourceResolverCache {
     }
   }
 
-  private void cacheTargetData(int apiLevel, @NonNull AndroidTargetData targetData) {
+  private void cacheTargetData(int apiLevel, @NotNull AndroidTargetData targetData) {
     synchronized (myLock) {
       myFrameworkResources.put(apiLevel, targetData);
     }
@@ -322,38 +320,38 @@ public class ResourceResolverCache {
     }
   }
 
-  private void cacheFrameworkResources(@NonNull String qualifierString, @NonNull Map<ResourceType, ResourceValueMap> frameworkResources) {
+  private void cacheFrameworkResources(@NotNull String qualifierString, @NotNull Map<ResourceType, ResourceValueMap> frameworkResources) {
     synchronized (myLock) {
       myFrameworkResourceMap.put(qualifierString, frameworkResources);
     }
   }
 
-  private @Nullable Map<ResourceType, ResourceValueMap> getCachedFrameworkResources(@NonNull String qualifierString) {
+  private @Nullable Map<ResourceType, ResourceValueMap> getCachedFrameworkResources(@NotNull String qualifierString) {
     synchronized (myLock) {
       return myFrameworkResourceMap.get(qualifierString);
     }
   }
 
   private void cacheAppResources(
-      @NonNull String qualifierString, @NonNull Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppResources) {
+      @NotNull String qualifierString, @NotNull Table<ResourceNamespace, ResourceType, ResourceValueMap> configuredAppResources) {
     synchronized (myLock) {
       myAppResourceMap.put(qualifierString, configuredAppResources);
     }
   }
 
-  private @Nullable Table<ResourceNamespace, ResourceType, ResourceValueMap> getCachedAppResources(@NonNull String qualifierString) {
+  private @Nullable Table<ResourceNamespace, ResourceType, ResourceValueMap> getCachedAppResources(@NotNull String qualifierString) {
     synchronized (myLock) {
       return myAppResourceMap.get(qualifierString);
     }
   }
 
-  private void cacheResourceResolver(@NonNull String resolverKey, @NonNull ResourceResolver resolver) {
+  private void cacheResourceResolver(@NotNull String resolverKey, @NotNull ResourceResolver resolver) {
     synchronized (myLock) {
       myResolverMap.put(resolverKey, resolver);
     }
   }
 
-  private @Nullable ResourceResolver getCachedResolver(@NonNull String resolverKey) {
+  private @Nullable ResourceResolver getCachedResolver(@NotNull String resolverKey) {
     synchronized (myLock) {
       return myResolverMap.get(resolverKey);
     }

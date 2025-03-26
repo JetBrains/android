@@ -15,24 +15,24 @@
  */
 package com.android.tools.dom;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public final class ActivityAttributesSnapshot {
-  @NonNull private final Element myElement;
+  @NotNull private final Element myElement;
   @Nullable private final ResourceValue myIcon;
   @Nullable private final ResourceValue myLabel;
-  @NonNull private final String myName;
+  @NotNull private final String myName;
   @Nullable private final String myParentActivity;
   @Nullable private final String myTheme;
   @Nullable private final String myUiOptions;
 
-  public ActivityAttributesSnapshot(@NonNull Element element,
+  public ActivityAttributesSnapshot(@NotNull Element element,
                              @Nullable ResourceValue icon,
                              @Nullable ResourceValue label,
-                             @NonNull String name,
+                             @NotNull String name,
                              @Nullable String parentActivity,
                              @Nullable String theme, @Nullable String uiOptions) {
     myElement = element;
@@ -54,7 +54,7 @@ public final class ActivityAttributesSnapshot {
     return myLabel;
   }
 
-  @NonNull
+  @NotNull
   public String getName() {
     return myName;
   }
@@ -74,7 +74,7 @@ public final class ActivityAttributesSnapshot {
     return myUiOptions;
   }
 
-  @NonNull
+  @NotNull
   public Element getElement() {
     return myElement;
   }

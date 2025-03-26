@@ -15,30 +15,30 @@
  */
 package com.android.tools.log;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.environment.Logger;
 import com.android.utils.ILogger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LogWrapper implements ILogger {
   private final Logger myLog;
 
-  public LogWrapper(@NonNull Logger log) {
+  public LogWrapper(@NotNull Logger log) {
     myLog = log;
   }
 
   @Override
-  public void warning(@NonNull String warningFormat, Object... args) {
+  public void warning(@NotNull String warningFormat, Object... args) {
     myLog.debug(String.format(warningFormat, args));
   }
 
   @Override
-  public void info(@NonNull String msgFormat, Object... args) {
+  public void info(@NotNull String msgFormat, Object... args) {
     myLog.debug(String.format(msgFormat, args));
   }
 
   @Override
-  public void verbose(@NonNull String msgFormat, Object... args) {
+  public void verbose(@NotNull String msgFormat, Object... args) {
   }
 
   @Override

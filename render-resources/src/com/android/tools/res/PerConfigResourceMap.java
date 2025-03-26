@@ -15,8 +15,6 @@
  */
 package com.android.tools.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -39,6 +37,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Custom implementation of {@link ListMultimap} that may store multiple resource items for
@@ -52,33 +52,33 @@ import java.util.function.Predicate;
 public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> {
   private final Map<String, List<ResourceItem>> myMap = new LinkedHashMap<>();
   private int mySize = 0;
-  @NonNull private final ResourceItemComparator myComparator;
+  @NotNull private final ResourceItemComparator myComparator;
   @Nullable private Values myValues;
 
-  PerConfigResourceMap(@NonNull ResourceItemComparator comparator) {
+  PerConfigResourceMap(@NotNull ResourceItemComparator comparator) {
     myComparator = comparator;
   }
 
   @Override
-  public @NonNull List<ResourceItem> get(@Nullable String key) {
+  public @NotNull List<ResourceItem> get(@Nullable String key) {
     List<ResourceItem> items = myMap.get(key);
     return items == null ? ImmutableList.of() : items;
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Set<String> keySet() {
     return myMap.keySet();
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Multiset<String> keys() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Collection<ResourceItem> values() {
     Values values = myValues;
     if (values == null) {
@@ -89,13 +89,13 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Collection<Map.Entry<String, ResourceItem>> entries() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public @NonNull List<ResourceItem> removeAll(@Nullable Object key) {
+  public @NotNull List<ResourceItem> removeAll(@Nullable Object key) {
     //noinspection SuspiciousMethodCalls
     List<ResourceItem> removed = myMap.remove(key);
     if (removed != null) {
@@ -105,7 +105,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
   }
 
   @SuppressWarnings("UnusedReturnValue")
-  boolean removeIf(@NonNull String key, @NonNull Predicate<? super ResourceItem> filter) {
+  boolean removeIf(@NotNull String key, @NotNull Predicate<? super ResourceItem> filter) {
     List<ResourceItem> list = myMap.get(key);
     if (list == null) {
       return false;
@@ -152,7 +152,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
   }
 
   @Override
-  public boolean put(@NonNull String key, @NonNull ResourceItem item) {
+  public boolean put(@NotNull String key, @NotNull ResourceItem item) {
     List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
     int oldSize = list.size();
     list.add(item);
@@ -166,7 +166,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
   }
 
   @Override
-  public boolean putAll(@NonNull String key, @NonNull Iterable<? extends ResourceItem> items) {
+  public boolean putAll(@NotNull String key, @NotNull Iterable<? extends ResourceItem> items) {
     if (items instanceof Collection) {
       if (((Collection<?>)items).isEmpty()) {
         return false;
@@ -212,12 +212,12 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
   }
 
   @Override
-  public @NonNull List<ResourceItem> replaceValues(@Nullable String key, @NonNull Iterable<? extends ResourceItem> values) {
+  public @NotNull List<ResourceItem> replaceValues(@Nullable String key, @NotNull Iterable<? extends ResourceItem> values) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public @NonNull Map<String, Collection<ResourceItem>> asMap() {
+  public @NotNull Map<String, Collection<ResourceItem>> asMap() {
     //noinspection unchecked
     return (Map<String, Collection<ResourceItem>>)(Map<String, ?>)myMap;
   }
@@ -236,7 +236,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
     private final List<List<ResourceItem>> myResourceItems = new ArrayList<>();
 
     @Override
-    @NonNull
+    @NotNull
     public ResourceItem get(int index) {
       return myResourceItems.get(index).get(0);
     }
@@ -247,13 +247,13 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
     }
 
     @Override
-    public boolean add(@NonNull ResourceItem item) {
+    public boolean add(@NotNull ResourceItem item) {
       add(item, 0);
       return true;
     }
 
     @Override
-    public boolean addAll(@NonNull Collection<? extends ResourceItem> items) {
+    public boolean addAll(@NotNull Collection<? extends ResourceItem> items) {
       if (items.isEmpty()) {
         return false;
       }
@@ -302,7 +302,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
     }
 
     @Override
-    public boolean removeAll(@NonNull Collection<?> items) {
+    public boolean removeAll(@NotNull Collection<?> items) {
       if (items.isEmpty()) {
         return false;
       }
@@ -328,7 +328,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
     }
 
     @Override
-    public boolean removeIf(@NonNull Predicate<? super ResourceItem> filter) {
+    public boolean removeIf(@NotNull Predicate<? super ResourceItem> filter) {
       boolean removed = false;
       for (int i = myResourceItems.size(); --i >= 0; ) {
         List<ResourceItem> nested = myResourceItems.get(i);
@@ -354,7 +354,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
      * @return if the item to be deleted was found, returns its index, otherwise returns
      * the binary complement of the index pointing to where the item would be inserted
      */
-    private int remove(@NonNull ResourceItem item, int end) {
+    private int remove(@NotNull ResourceItem item, int end) {
       int index = findConfigIndex(item, 0, end);
       if (index < 0) {
         return index;
@@ -372,8 +372,8 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
       return index + 1;
     }
 
-    @NonNull
-    private List<ResourceItem> sortedItems(@NonNull Collection<? extends ResourceItem> items) {
+    @NotNull
+    private List<ResourceItem> sortedItems(@NotNull Collection<? extends ResourceItem> items) {
       List<ResourceItem> sortedItems = new ArrayList<>(items);
       sortedItems.sort(myComparator);
       return sortedItems;
@@ -384,7 +384,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
      * configuration as the {@code item} parameter. If {@link #myResourceItems} doesn't contains
      * resources with the same configuration, returns binary complement of the insertion point.
      */
-    private int findConfigIndex(@NonNull ResourceItem item, int start, int end) {
+    private int findConfigIndex(@NotNull ResourceItem item, int start, int end) {
       FolderConfiguration config = item.getConfiguration();
       int low = start;
       int high = end;
@@ -409,7 +409,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
 
   private class Values extends AbstractCollection<ResourceItem> {
     @Override
-    public @NonNull Iterator<ResourceItem> iterator() {
+    public @NotNull Iterator<ResourceItem> iterator() {
       return new ValuesIterator();
     }
 
@@ -451,12 +451,12 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
   public static class ResourceItemComparator implements Comparator<ResourceItem> {
     private final Comparator<ResourceItem> myPriorityComparator;
 
-    ResourceItemComparator(@NonNull Collection<SingleNamespaceResourceRepository> repositories) {
+    ResourceItemComparator(@NotNull Collection<SingleNamespaceResourceRepository> repositories) {
       myPriorityComparator = new ResourcePriorityComparator(repositories);
     }
 
     @Override
-    public int compare(@NonNull ResourceItem item1, @NonNull ResourceItem item2) {
+    public int compare(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
       int c = item1.getConfiguration().compareTo(item2.getConfiguration());
       if (c != 0) {
         return c;
@@ -467,7 +467,7 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
     private static class ResourcePriorityComparator implements Comparator<ResourceItem> {
       private final Object2IntMap<SingleNamespaceResourceRepository> repositoryOrdering;
 
-      ResourcePriorityComparator(@NonNull Collection<SingleNamespaceResourceRepository> repositories) {
+      ResourcePriorityComparator(@NotNull Collection<SingleNamespaceResourceRepository> repositories) {
         repositoryOrdering = new Object2IntOpenHashMap<>(repositories.size());
         int i = 0;
         for (SingleNamespaceResourceRepository repository : repositories) {
@@ -476,11 +476,11 @@ public class PerConfigResourceMap implements ListMultimap<String, ResourceItem> 
       }
 
       @Override
-      public int compare(@NonNull ResourceItem item1, @NonNull ResourceItem item2) {
+      public int compare(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
         return Integer.compare(getOrdering(item1), getOrdering(item2));
       }
 
-      private int getOrdering(@NonNull ResourceItem item) {
+      private int getOrdering(@NotNull ResourceItem item) {
         int ordering = repositoryOrdering.getInt(item.getRepository());
         assert ordering >= 0;
         return ordering;

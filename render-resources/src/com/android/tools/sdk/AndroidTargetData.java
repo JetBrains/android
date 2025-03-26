@@ -15,9 +15,6 @@
  */
 package com.android.tools.sdk;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.annotations.TestOnly;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -31,6 +28,9 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.dom.attrs.AttributeDefinitions;
+import com.android.tools.dom.attrs.AttributeDefinitionsImpl;
+import com.android.tools.dom.attrs.FilteredAttributeDefinitions;
 import com.android.tools.environment.Logger;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
@@ -41,10 +41,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import java.lang.ref.SoftReference;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,9 +56,9 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import com.android.tools.dom.attrs.AttributeDefinitions;
-import com.android.tools.dom.attrs.AttributeDefinitionsImpl;
-import com.android.tools.dom.attrs.FilteredAttributeDefinitions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class AndroidTargetData {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidTargetData");
@@ -75,7 +75,7 @@ public class AndroidTargetData {
   private volatile MyStaticConstantsData myStaticConstantsData;
 
   @VisibleForTesting
-  public AndroidTargetData(@NonNull AndroidSdkData sdkData, @NonNull IAndroidTarget target) {
+  public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
     myTarget = target;
   }
@@ -83,7 +83,7 @@ public class AndroidTargetData {
   /**
    * Filters attributes through the public.xml file
    */
-  @NonNull
+  @NotNull
   public AttributeDefinitions getPublicAttrDefs() {
     AttributeDefinitions attrDefs = getAllAttrDefs();
     return new PublicAttributeDefinitions(attrDefs);
@@ -92,7 +92,7 @@ public class AndroidTargetData {
   /**
    * Returns all attributes
    */
-  @NonNull
+  @NotNull
   public AttributeDefinitions getAllAttrDefs() {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
@@ -105,7 +105,7 @@ public class AndroidTargetData {
     }
   }
 
-  public boolean isResourcePublic(@NonNull ResourceType type, @NonNull String name) {
+  public boolean isResourcePublic(@NotNull ResourceType type, @NotNull String name) {
     ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet(), Collections.emptyList());
     if (frameworkResources == null) {
       return false;
@@ -115,10 +115,10 @@ public class AndroidTargetData {
   }
 
   @Slow
-  @NonNull
+  @NotNull
   LayoutLibrary getLayoutLibrary(
-    @NonNull Consumer<LayoutLibrary> register,
-    @NonNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
+    @NotNull Consumer<LayoutLibrary> register,
+    @NotNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
@@ -143,7 +143,7 @@ public class AndroidTargetData {
    * The keys of the returned map are attr names. The values are maps defining numerical values of the corresponding enums or flags.
    */
   @Slow
-  @NonNull
+  @NotNull
   private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
     ResourceRepository resources = getFrameworkResources(ImmutableSet.of(), ImmutableList.of());
     if (resources == null) {
@@ -196,12 +196,12 @@ public class AndroidTargetData {
     }
   }
 
-  @NonNull
+  @NotNull
   public IAndroidTarget getTarget() {
     return myTarget;
   }
 
-  @NonNull
+  @NotNull
   public synchronized MyStaticConstantsData getStaticConstantsData() {
     if (myStaticConstantsData == null) {
       myStaticConstantsData = new MyStaticConstantsData();
@@ -221,8 +221,8 @@ public class AndroidTargetData {
    */
   @Slow
   @Nullable
-  public synchronized ResourceRepository getFrameworkResources(@NonNull Set<String> languages,
-                                                               @NonNull List<? extends FrameworkOverlay> overlays) {
+  public synchronized ResourceRepository getFrameworkResources(@NotNull Set<String> languages,
+                                                               @NotNull List<? extends FrameworkOverlay> overlays) {
     return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(
       myTarget.getPath(IAndroidTarget.RESOURCES),
       myTarget instanceof CompatibilityRenderTarget,
@@ -234,17 +234,17 @@ public class AndroidTargetData {
    * This method can return null when the user is changing the SDK setting in their project.
    */
   @Nullable
-  public static AndroidTargetData getTargetData(@NonNull IAndroidTarget target, @Nullable AndroidPlatform platform) {
+  public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @Nullable AndroidPlatform platform) {
     return platform != null ? AndroidTargetData.get(platform.getSdkData(), target) : null;
   }
 
   private class PublicAttributeDefinitions extends FilteredAttributeDefinitions {
-    protected PublicAttributeDefinitions(@NonNull AttributeDefinitions wrappee) {
+    protected PublicAttributeDefinitions(@NotNull AttributeDefinitions wrappee) {
       super(wrappee);
     }
 
     @Override
-    protected boolean isAttributeAcceptable(@NonNull ResourceReference attr) {
+    protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
       return attr.getNamespace().equals(ResourceNamespace.ANDROID)
              && !attr.getName().startsWith("__removed")
              && isResourcePublic(ResourceType.ATTR, attr.getName());
@@ -306,7 +306,7 @@ public class AndroidTargetData {
 
   private static final Map<AndroidSdkData, Map<String, SoftReference<AndroidTargetData>>> myTargetDataCache = new WeakHashMap<>();
 
-  public static AndroidTargetData get(@NonNull AndroidSdkData sdk, @NonNull IAndroidTarget target) {
+  public static AndroidTargetData get(@NotNull AndroidSdkData sdk, @NotNull IAndroidTarget target) {
     Map<String, SoftReference<AndroidTargetData>> targetDataByTarget = myTargetDataCache.computeIfAbsent(sdk, s -> Maps.newHashMap());
     String key = target.hashString();
     final SoftReference<AndroidTargetData> targetDataRef = targetDataByTarget.get(key);

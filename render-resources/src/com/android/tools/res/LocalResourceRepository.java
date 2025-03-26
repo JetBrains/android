@@ -15,8 +15,6 @@
  */
 package com.android.tools.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -32,6 +30,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /**
@@ -137,18 +137,18 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
   private final Object RESOURCE_DIRS_LOCK = new Object();
   @Nullable private Set<T> myResourceDirs;
 
-  protected LocalResourceRepository(@NonNull String displayName) {
+  protected LocalResourceRepository(@NotNull String displayName) {
     super();
     myDisplayName = displayName;
     setModificationCount(ourModificationCounter.incrementAndGet());
   }
 
-  @NonNull
+  @NotNull
   public String getDisplayName() {
     return myDisplayName;
   }
 
-  public void addParent(@NonNull MultiResourceRepository<T> parent) {
+  public void addParent(@NotNull MultiResourceRepository<T> parent) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents == null) {
         myParents = new ArrayList<>(2); // Don't expect many parents
@@ -157,7 +157,7 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
     }
   }
 
-  public void removeParent(@NonNull MultiResourceRepository<T> parent) {
+  public void removeParent(@NotNull MultiResourceRepository<T> parent) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {
         myParents.remove(parent);
@@ -175,7 +175,7 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
   }
 
   @GuardedBy("ITEM_MAP_LOCK")
-  protected void invalidateParentCaches(@NonNull SingleNamespaceResourceRepository repository, @NonNull ResourceType... types) {
+  protected void invalidateParentCaches(@NotNull SingleNamespaceResourceRepository repository, @NotNull ResourceType... types) {
     if (myParents != null) {
       for (MultiResourceRepository<T> parent : myParents) {
         parent.invalidateCache(repository, types);
@@ -232,11 +232,11 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
    * The repository is not guaranteed to be completely up to date with respect to PSI and VFS because additional
    * changes may be made by the user in the meantime.
    */
-  public void invokeAfterPendingUpdatesFinish(@NonNull Executor executor, @NonNull Runnable callback) {
+  public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
     executor.execute(callback);
   }
 
-  @NonNull
+  @NotNull
   public final Set<T> getResourceDirs() {
     synchronized (RESOURCE_DIRS_LOCK) {
       if (myResourceDirs != null) {
@@ -247,7 +247,7 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
     }
   }
 
-  @NonNull protected abstract Set<T> computeResourceDirs();
+  @NotNull protected abstract Set<T> computeResourceDirs();
 
   public final void invalidateResourceDirs() {
     synchronized (RESOURCE_DIRS_LOCK) {
@@ -263,8 +263,8 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
   }
 
   @Override
-  @NonNull
-  public Collection<ResourceItem> getPublicResources(@NonNull ResourceNamespace namespace, @NonNull ResourceType type) {
+  @NotNull
+  public Collection<ResourceItem> getPublicResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     // TODO(namespaces): Implement.
     throw new UnsupportedOperationException("Not implemented yet");
   }
@@ -275,7 +275,7 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
    */
   @GuardedBy("ITEM_MAP_LOCK")
   @Nullable
-  ListMultimap<String, ResourceItem> getMapPackageAccessible(@NonNull ResourceNamespace namespace, @NonNull ResourceType type) {
+  ListMultimap<String, ResourceItem> getMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     return getMap(namespace, type);
   }
 
@@ -289,15 +289,15 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
   }
 
   public static final class EmptyRepository<T> extends LocalResourceRepository<T> implements SingleNamespaceResourceRepository {
-    @NonNull private final ResourceNamespace myNamespace;
+    @NotNull private final ResourceNamespace myNamespace;
 
-    public EmptyRepository(@NonNull ResourceNamespace namespace) {
+    public EmptyRepository(@NotNull ResourceNamespace namespace) {
       super("");
       myNamespace = namespace;
     }
 
     @Override
-    @NonNull
+    @NotNull
     protected Set<T> computeResourceDirs() {
       return Collections.emptySet();
     }
@@ -305,12 +305,12 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
     @GuardedBy("ITEM_MAP_LOCK")
     @Override
     @Nullable
-    protected ListMultimap<String, ResourceItem> getMap(@NonNull ResourceNamespace namespace, @NonNull ResourceType type) {
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
       return null;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public ResourceNamespace getNamespace() {
       return myNamespace;
     }
@@ -321,9 +321,9 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
       return myNamespace.getPackageName();
     }
 
-    @NonNull
+    @NotNull
     @Override
-    public ResourceVisitor.VisitResult accept(@NonNull ResourceVisitor visitor) {
+    public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
       return ResourceVisitor.VisitResult.CONTINUE;
     }
   }

@@ -16,9 +16,6 @@
 package com.android.tools.sdk;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.annotations.TestOnly;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -31,6 +28,9 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link IAndroidTarget} to render using the layoutlib version and resources shipped with Android Studio.
@@ -51,9 +51,9 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
    * calculating it eagerly to fulfil parameter for every call.
    */
   public static CompatibilityRenderTarget getCompatibilityTarget(
-    @NonNull IAndroidTarget target,
-    @NonNull Supplier<String> layoutlibDataPathSupplier,
-    @NonNull Supplier<String> layoutlibResPathSupplier
+    @NotNull IAndroidTarget target,
+    @NotNull Supplier<String> layoutlibDataPathSupplier,
+    @NotNull Supplier<String> layoutlibResPathSupplier
   ) {
     int api = target.getVersion().getApiLevel();
 
@@ -66,13 +66,13 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
   }
 
   public static CompatibilityRenderTarget getCompatibilityTarget(
-    @NonNull IAndroidTarget target, @NonNull Supplier<String> layoutlibPathSupplier) {
+    @NotNull IAndroidTarget target, @NotNull Supplier<String> layoutlibPathSupplier) {
     return getCompatibilityTarget(target, layoutlibPathSupplier, layoutlibPathSupplier);
   }
 
   private static EmbeddedRenderTarget getInstance(
-    @NonNull Supplier<String> layoutlibDataPathSupplier,
-    @NonNull Supplier<String> layoutlibResPathSupplier
+    @NotNull Supplier<String> layoutlibDataPathSupplier,
+    @NotNull Supplier<String> layoutlibResPathSupplier
   ) {
     if (ourStudioEmbeddedTarget == null) {
       // If it is called with the same supplier instance for both parameters (e.g. from getCompatibilityTarget) we only calculate path once.
@@ -97,7 +97,7 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public String getLocation() {
     Preconditions.checkState(myBasePath != null, "Embedded layoutlib not found");
     return myBasePath;
@@ -109,7 +109,7 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getVersion() {
     // This method will never be called if this is used as a delegate of CompatibilityRenderTarget
     throw new UnsupportedOperationException("This target can only be used as a CompatibilityRenderTarget delegate");
@@ -137,7 +137,7 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Path getPath(int pathId) {
     String path;
     // The prebuilt version of layoutlib only includes the layoutlib.jar and the resources.
@@ -160,7 +160,7 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public List<String> getBootClasspath() {
     return ImmutableList.of(getPath(IAndroidTarget.ANDROID_JAR).toString());
   }
@@ -196,19 +196,19 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public List<OptionalLibrary> getOptionalLibraries() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
 
   @Override
-  @NonNull
+  @NotNull
   public List<OptionalLibrary> getAdditionalLibraries() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
 
   @Override
-  @NonNull
+  @NotNull
   public List<Path> getSkins() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }

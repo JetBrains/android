@@ -26,8 +26,6 @@ import static com.android.SdkConstants.TAG_ENUM;
 import static com.android.SdkConstants.TAG_FLAG;
 import static com.android.SdkConstants.TAG_RESOURCES;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -52,6 +50,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -63,8 +63,8 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl");
   private static final Splitter PIPE_SPLITTER = Splitter.on('|').trimResults();
 
-  @NonNull private final Map<ResourceReference, AttributeDefinition> myAttrs = new HashMap<>();
-  @NonNull private final Map<ResourceReference, StyleableDefinitionImpl> myStyleables = new HashMap<>();
+  @NotNull private final Map<ResourceReference, AttributeDefinition> myAttrs = new HashMap<>();
+  @NotNull private final Map<ResourceReference, StyleableDefinitionImpl> myStyleables = new HashMap<>();
 
   @Nullable private final AttributeDefinitions myFrameworkAttributeDefinitions;
 
@@ -78,8 +78,8 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
    * @param files the files to parse
    * @return the framework attribute definitions
    */
-  @NonNull
-  public static AttributeDefinitions parseFrameworkFiles(@NonNull File... files) {
+  @NotNull
+  public static AttributeDefinitions parseFrameworkFiles(@NotNull File... files) {
     AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(null);
     for (File file : files) {
       attributeDefinitions.addAttrsFromFile(file);
@@ -95,15 +95,15 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
    * @param resources the application resource repository
    * @return the attribute definitions for both, application and framework attributes
    */
-  @NonNull
+  @NotNull
   public static AttributeDefinitions create(@Nullable AttributeDefinitions frameworkAttributeDefinitions,
-                                            @NonNull ResourceRepository resources) {
+                                            @NotNull ResourceRepository resources) {
     AttributeDefinitionsImpl attributeDefinitions = new AttributeDefinitionsImpl(frameworkAttributeDefinitions);
     attributeDefinitions.initializeFromResourceRepository(resources);
     return attributeDefinitions;
   }
 
-  private void initializeFromResourceRepository(@NonNull ResourceRepository resources) {
+  private void initializeFromResourceRepository(@NotNull ResourceRepository resources) {
     for (ResourceNamespace namespace : resources.getNamespaces()) {
       Collection<ResourceItem> items = resources.getResources(namespace, ResourceType.ATTR).values();
       for (ResourceItem item : items) {
@@ -131,7 +131,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
   }
 
-  private void createOrUpdateAttributeDefinition(@NonNull AttrResourceValue attrValue, @Nullable StyleableDefinitionImpl parentStyleable) {
+  private void createOrUpdateAttributeDefinition(@NotNull AttrResourceValue attrValue, @Nullable StyleableDefinitionImpl parentStyleable) {
     ResourceReference attrRef = attrValue.asReference();
     AttributeDefinition attr = myAttrs.get(attrRef);
     if (attr == null) {
@@ -181,7 +181,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
   }
 
-  private void addAttrsFromFile(@NonNull File file) {
+  private void addAttrsFromFile(@NotNull File file) {
     try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {
       CommentTrackingXmlPullParser parser = new CommentTrackingXmlPullParser(); // Parser for regular text XML.
       parser.setInput(stream, null);
@@ -238,7 +238,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
   }
 
-  private void processAttrTag(@NonNull XmlPullParser parser, @NonNull File file, @Nullable String precedingComment,
+  private void processAttrTag(@NotNull XmlPullParser parser, @NotNull File file, @Nullable String precedingComment,
                               @Nullable String attrGroup, @Nullable StyleableDefinitionImpl parentStyleable)
         throws IOException, XmlPullParserException {
     String attrName = parser.getAttributeValue(null, ATTR_NAME);
@@ -334,7 +334,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   @Nullable
-  private static Integer decodeIntegerValue(@NonNull String value) {
+  private static Integer decodeIntegerValue(@NotNull String value) {
     try {
       // Integer.decode cannot handle "ffffffff", see JDK issue 6624867.
       return Long.decode(value).intValue();
@@ -344,12 +344,12 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
   }
 
-  private static boolean isEmptyOrAsciiArt(@NonNull String commentText) {
+  private static boolean isEmptyOrAsciiArt(@NotNull String commentText) {
     return commentText.isEmpty() || commentText.charAt(0) == '*' || commentText.charAt(0) == '=';
   }
 
-  @NonNull
-  private static Set<AttributeFormat> parseAttrFormat(@NonNull String formatString) {
+  @NotNull
+  private static Set<AttributeFormat> parseAttrFormat(@NotNull String formatString) {
     List<String> formats = PIPE_SPLITTER.splitToList(formatString);
     Set<AttributeFormat> result = EnumSet.noneOf(AttributeFormat.class);
     for (String format : formats) {
@@ -363,7 +363,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   @Override
   @Nullable
-  public StyleableDefinition getStyleableDefinition(@NonNull ResourceReference styleable) {
+  public StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable) {
     if (myFrameworkAttributeDefinitions != null && styleable.getNamespace().equals(ResourceNamespace.ANDROID)) {
       return myFrameworkAttributeDefinitions.getStyleableDefinition(styleable);
     }
@@ -373,7 +373,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
   @Deprecated
   @Override
   @Nullable
-  public StyleableDefinition getStyleableByName(@NonNull String name) {
+  public StyleableDefinition getStyleableByName(@NotNull String name) {
     StyleableDefinition styleable = getStyleableDefinition(ResourceReference.styleable(ResourceNamespace.TODO(), name));
     if (styleable == null) {
       styleable = getStyleableDefinition(ResourceReference.styleable(ResourceNamespace.ANDROID, name));
@@ -382,14 +382,14 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Set<ResourceReference> getAttrs() {
     return myAttrs.keySet();
   }
 
   @Nullable
   @Override
-  public AttributeDefinition getAttrDefinition(@NonNull ResourceReference attr) {
+  public AttributeDefinition getAttrDefinition(@NotNull ResourceReference attr) {
     AttributeDefinition attributeDefinition = myAttrs.get(attr);
     if (attributeDefinition == null && myFrameworkAttributeDefinitions != null && attr.getNamespace().equals(ResourceNamespace.ANDROID)) {
       return myFrameworkAttributeDefinitions.getAttrDefinition(attr);
@@ -400,7 +400,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
   @Deprecated
   @Override
   @Nullable
-  public AttributeDefinition getAttrDefByName(@NonNull String name) {
+  public AttributeDefinition getAttrDefByName(@NotNull String name) {
     ResourceReference attr;
     if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
       attr = ResourceReference.attr(ResourceNamespace.ANDROID, name.substring(ANDROID_NS_NAME_PREFIX_LEN));
@@ -418,7 +418,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   @Override
   @Nullable
-  public String getAttrGroup(@NonNull ResourceReference attr) {
+  public String getAttrGroup(@NotNull ResourceReference attr) {
     AttributeDefinition attributeDefinition = getAttrDefinition(attr);
     return attributeDefinition == null ? null : attributeDefinition.getGroupName();
   }

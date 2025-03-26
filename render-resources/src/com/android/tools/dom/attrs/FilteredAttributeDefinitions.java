@@ -1,13 +1,12 @@
 package com.android.tools.dom.attrs;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceReference;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A decorator for {@link AttributeDefinitions} that applies filtering to it.
@@ -15,15 +14,15 @@ import java.util.Set;
 public abstract class FilteredAttributeDefinitions implements AttributeDefinitions {
   private final AttributeDefinitions myWrappee;
 
-  protected FilteredAttributeDefinitions(@NonNull AttributeDefinitions wrappee) {
+  protected FilteredAttributeDefinitions(@NotNull AttributeDefinitions wrappee) {
     myWrappee = wrappee;
   }
 
-  protected abstract boolean isAttributeAcceptable(@NonNull ResourceReference attr);
+  protected abstract boolean isAttributeAcceptable(@NotNull ResourceReference attr);
 
   @Override
   @Nullable
-  public StyleableDefinition getStyleableDefinition(@NonNull ResourceReference styleable) {
+  public StyleableDefinition getStyleableDefinition(@NotNull ResourceReference styleable) {
     StyleableDefinition styleableDef = myWrappee.getStyleableDefinition(styleable);
     return styleableDef != null ? new MyStyleableDefinition(styleableDef) : null;
   }
@@ -31,13 +30,13 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
   @Deprecated
   @Override
   @Nullable
-  public StyleableDefinition getStyleableByName(@NonNull String name) {
+  public StyleableDefinition getStyleableByName(@NotNull String name) {
     StyleableDefinition styleable = myWrappee.getStyleableByName(name);
     return styleable != null ? new MyStyleableDefinition(styleable) : null;
   }
 
   @Override
-  @NonNull
+  @NotNull
   public Set<ResourceReference> getAttrs() {
     Set<ResourceReference> result = new HashSet<>();
 
@@ -51,7 +50,7 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
 
   @Nullable
   @Override
-  public AttributeDefinition getAttrDefinition(@NonNull ResourceReference attr) {
+  public AttributeDefinition getAttrDefinition(@NotNull ResourceReference attr) {
     AttributeDefinition attribute = myWrappee.getAttrDefinition(attr);
     return attribute != null && isAttributeAcceptable(attr) ? attribute : null;
   }
@@ -59,38 +58,38 @@ public abstract class FilteredAttributeDefinitions implements AttributeDefinitio
   @Deprecated
   @Override
   @Nullable
-  public AttributeDefinition getAttrDefByName(@NonNull String name) {
+  public AttributeDefinition getAttrDefByName(@NotNull String name) {
     AttributeDefinition attribute = myWrappee.getAttrDefByName(name);
     return attribute != null && isAttributeAcceptable(attribute.getResourceReference()) ? attribute : null;
   }
 
   @Nullable
   @Override
-  public String getAttrGroup(@NonNull ResourceReference attr) {
+  public String getAttrGroup(@NotNull ResourceReference attr) {
     return myWrappee.getAttrGroup(attr);
   }
 
   private class MyStyleableDefinition implements StyleableDefinition {
     private final StyleableDefinition myWrappee;
 
-    private MyStyleableDefinition(@NonNull StyleableDefinition wrappee) {
+    private MyStyleableDefinition(@NotNull StyleableDefinition wrappee) {
       myWrappee = wrappee;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public ResourceReference getResourceReference() {
       return myWrappee.getResourceReference();
     }
 
     @Override
-    @NonNull
+    @NotNull
     public String getName() {
       return myWrappee.getName();
     }
 
     @Override
-    @NonNull
+    @NotNull
     public List<AttributeDefinition> getAttributes() {
       List<AttributeDefinition> result = new ArrayList<>();
 
