@@ -139,6 +139,7 @@ iml_module(
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
     ],
     test_friends = ["//tools/adt/idea/designer:intellij.android.designer"],
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",

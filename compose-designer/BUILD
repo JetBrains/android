@@ -12,6 +12,7 @@ iml_module(
     iml_files = ["intellij.android.compose-designer.iml"],
     kotlin_use_compose = True,
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.motion-editor.iml"],
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     tags = [
         "noci:studio-win",
     ],
@@ -31,6 +32,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
     ],
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],

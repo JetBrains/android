@@ -242,6 +242,7 @@ iml_module(
     name = "intellij.android.layout-inspector.gradle",
     srcs = ["gradle/src"],
     iml_files = ["gradle/intellij.android.layout-inspector.gradle.iml"],
+    resources = ["gradle/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

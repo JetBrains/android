@@ -54,6 +54,7 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
+    test_resources = ["testResources"],
     test_srcs = ["src"],
     test_timeout = "long",
     visibility = ["//visibility:public"],

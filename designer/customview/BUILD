@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.designer.customview",
     srcs = ["src"],
     iml_files = ["intellij.android.designer.customview.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

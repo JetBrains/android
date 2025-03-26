@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.nav.safeargs.k2",
     srcs = ["src"],
     iml_files = ["intellij.android.nav.safeargs.k2.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

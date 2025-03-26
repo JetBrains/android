@@ -110,6 +110,7 @@ iml_module(
     name = "intellij.android.nav.editor.gradle",
     srcs = ["gradle/src"],
     iml_files = ["gradle/intellij.android.nav.editor.gradle.iml"],
+    resources = ["gradle/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
