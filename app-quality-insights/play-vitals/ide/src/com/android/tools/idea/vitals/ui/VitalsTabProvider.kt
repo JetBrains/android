@@ -163,12 +163,12 @@ class VitalsTabProvider : AppInsightsTabProvider {
           )
           if (GoogleLoginService.instance.isLoggedIn()) {
             appendLine("Authorize", SimpleTextAttributes.LINK_ATTRIBUTES) {
-              LoginFeature.feature<VitalsLoginFeature>().logInAsync()
+              LoginFeature.feature<VitalsLoginFeature>().logInBlocking()
             }
             appendText(" Android Studio to connect to your Play Console account.")
           } else {
             appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) {
-              LoginFeature.feature<VitalsLoginFeature>().logInAsync()
+              LoginFeature.feature<VitalsLoginFeature>().logInBlocking()
             }
             appendText(" to Android Studio to connect to your Play Console account.")
           }
