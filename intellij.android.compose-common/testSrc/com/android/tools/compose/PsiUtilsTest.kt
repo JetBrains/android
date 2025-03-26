@@ -26,6 +26,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.psi.util.parentOfType
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -48,6 +49,8 @@ class PsiUtilsTest {
 
   private val fixture by lazy { projectRule.fixture }
 
+  private val project by lazy { projectRule.project }
+
   @Before
   fun setUp() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
@@ -67,7 +70,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isTrue()
       assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNotNull()
     }
@@ -84,7 +87,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isFalse()
       assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNull()
     }
@@ -101,7 +104,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isFalse()
       assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNull()
     }
@@ -119,7 +122,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction { assertThat(fixture.elementAtCaret.isDeprecated()).isTrue() }
+    runReadActionWithIndexesReady { assertThat(fixture.elementAtCaret.isDeprecated()).isTrue() }
   }
 
   @Test
@@ -133,7 +136,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction { assertThat(fixture.elementAtCaret.isDeprecated()).isFalse() }
+    runReadActionWithIndexesReady { assertThat(fixture.elementAtCaret.isDeprecated()).isFalse() }
   }
 
   @Test
@@ -148,7 +151,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction { assertThat(fixture.elementAtCaret.isDeprecated()).isFalse() }
+    runReadActionWithIndexesReady { assertThat(fixture.elementAtCaret.isDeprecated()).isFalse() }
   }
 
   @Test
@@ -167,7 +170,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isFalse()
       assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNull()
       assertThat(fixture.elementAtCaret.isDeprecated()).isTrue()
@@ -184,7 +187,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isTrue()
       assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNotNull()
       assertThat(fixture.elementAtCaret.isDeprecated()).isFalse()
@@ -206,7 +209,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
@@ -216,7 +219,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation()
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       assertThat(element.composableScope()).isNull()
     }
@@ -242,7 +245,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val scope = fixture.getEnclosing<KtElement>("35").composableScope()
       assertThat(scope).isNotNull()
       val function: KtLambdaExpression = fixture.getEnclosing("35")
@@ -251,7 +254,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation("|@Composable| (Int)")
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
     }
   }
@@ -276,7 +279,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val scope = fixture.getEnclosing<KtElement>("35").composableScope()
       assertThat(scope).isNotNull()
       val function: KtLambdaExpression = fixture.getEnclosing("35")
@@ -285,7 +288,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation("|@Composable| (Int)")
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
     }
   }
@@ -312,7 +315,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
     }
   }
@@ -338,7 +341,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
@@ -348,7 +351,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation("|@Composable| (Int)")
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       assertThat(element.composableScope()).isNull()
     }
@@ -374,7 +377,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
@@ -384,7 +387,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation()
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       assertThat(element.composableScope()).isNull()
     }
@@ -410,7 +413,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
@@ -420,7 +423,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation("|@Composable| (Int)")
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       assertThat(element.composableScope()).isNull()
     }
@@ -441,7 +444,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
@@ -451,7 +454,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation()
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       assertThat(element.composableScope()).isNull()
     }
@@ -472,7 +475,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("field =")
       val scope = element.composableScope()
       assertThat(scope).isNull() // Setter is not a valid scope
@@ -498,7 +501,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNull() // Neither init nor MyClass is a valid scope
@@ -519,7 +522,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
@@ -529,7 +532,7 @@ class PsiUtilsTest {
 
     fixture.removeComposableAnnotation()
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       assertThat(element.composableScope()).isNull()
     }
@@ -548,7 +551,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -570,7 +573,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -592,7 +595,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -614,7 +617,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -641,7 +644,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -668,7 +671,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -697,7 +700,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -724,7 +727,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val scope = fixture.getEnclosing<KtElement>("35").expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
       val function: KtTypeReference = fixture.getEnclosing("(Int) -> Unit")
@@ -752,7 +755,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       assertThat(fixture.getEnclosing<KtElement>("35").expectedComposableAnnotationHolder()).isNull()
     }
   }
@@ -777,7 +780,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -800,7 +803,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
@@ -823,7 +826,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNull()
@@ -845,7 +848,7 @@ class PsiUtilsTest {
         .trimIndent()
     )
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNull()
@@ -870,7 +873,7 @@ class PsiUtilsTest {
       }
     """.trimIndent())
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val higherLevelComposableLambdaArgument = fixture.getEnclosing<KtElement>("println(1)")
                                                   .parentOfType<KtLambdaArgument>() ?: error("Did not find lambda argument")
       assertThat(higherLevelComposableLambdaArgument.isComposableLambdaArgument()).isEqualTo(true)
@@ -899,7 +902,7 @@ class PsiUtilsTest {
       }
     """.trimIndent())
 
-    runReadAction {
+    runReadActionWithIndexesReady {
       val lambdaArgument = fixture.getEnclosing<KtElement>("println(2411)")
                              .parentOfType<KtLambdaArgument>() ?: error("Did not find lambda argument")
       assertThat(lambdaArgument.isComposableLambdaArgument()).isEqualTo(false)
@@ -913,5 +916,10 @@ class PsiUtilsTest {
         annotation.delete()
       }
     }
+  }
+
+  private fun runReadActionWithIndexesReady(action: () -> Unit) {
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
+    runReadAction(action)
   }
 }
