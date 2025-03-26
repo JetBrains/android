@@ -182,10 +182,11 @@ public class StudioDownloader implements Downloader {
    }
 
     if (CancellableFileIo.exists(target) && checksum != null) {
-      if (checksum.getValue().equals(Downloader.hash(
-        new BufferedInputStream(CancellableFileIo.newInputStream(target)), CancellableFileIo.size(target),
-        checksum.getType(), indicator))) {
-        return;
+      try (BufferedInputStream stream = new BufferedInputStream(CancellableFileIo.newInputStream(target))) {
+        String hash = Downloader.hash(stream, CancellableFileIo.size(target), checksum.getType(), indicator.createSubProgress(0.1));
+        if (checksum.getValue().equals(hash)) {
+          return;
+        }
       }
     }
 
@@ -231,7 +232,7 @@ public class StudioDownloader implements Downloader {
       // To simplify calculations, regard content length invariant: always keep the value as the full content length.
       long startOffset = interimExists ? CancellableFileIo.size(interimDownload) : 0;
       long contentLength = startOffset + request.getConnection().getContentLengthLong();
-      DownloadProgressIndicator downloadProgressIndicator = new DownloadProgressIndicator(indicator, target.getFileName().toString(),
+      DownloadProgressIndicator downloadProgressIndicator = new DownloadProgressIndicator(indicator.createSubProgress(0.8), target.getFileName().toString(),
                                                                                           contentLength, startOffset);
       PathUtils.createDirectories(interimDownload.getParent());
 
@@ -244,11 +245,11 @@ public class StudioDownloader implements Downloader {
         PathUtils.createDirectories(target.getParent());
         Files.move(interimDownload, target, StandardCopyOption.REPLACE_EXISTING);
         if (CancellableFileIo.exists(target) && checksum != null) {
-          if (!checksum.getValue().equals(Downloader.hash(new BufferedInputStream(CancellableFileIo.newInputStream(target)),
-                                               CancellableFileIo.size(target),
-                                               checksum.getType(),
-                                               indicator))) {
-            throw new IllegalStateException("Checksum of the downloaded result didn't match the expected value.");
+          try (BufferedInputStream stream = new BufferedInputStream(CancellableFileIo.newInputStream(target))) {
+            String hash = Downloader.hash(stream, CancellableFileIo.size(target), checksum.getType(), indicator.createSubProgress(1.0));
+            if (!checksum.getValue().equals(hash)) {
+              throw new IllegalStateException("Checksum of the downloaded result didn't match the expected value.");
+            }
           }
         }
       }

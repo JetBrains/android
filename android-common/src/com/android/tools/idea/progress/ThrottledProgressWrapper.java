@@ -59,6 +59,11 @@ public class ThrottledProgressWrapper extends DelegatingProgressIndicator {
     update();
   }
 
+  @Override
+  public double getFraction() {
+    return myFraction;
+  }
+
   private void update() {
     if (myTimerTask.compareAndSet(null, new TimerTask() {
       @Override

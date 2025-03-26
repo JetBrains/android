@@ -50,6 +50,11 @@ public class SdkManagerProgressIndicatorIntegration extends ProgressIndicatorAda
   }
 
   @Override
+  public double getFraction() {
+    return myIndicator.getFraction();
+  }
+
+  @Override
   public void setFraction(double progress) {
     myIndicator.setFraction(progress);
   }

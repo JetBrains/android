@@ -136,13 +136,17 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
       isIndeterminate = false
     }
 
-    override fun setText(text: String) =
+    override fun setText(text: String) {
+      super.setText(text)
       invokeLater(ModalityState.stateForComponent(form.label)) { form.label.text = text }
+    }
 
-    override fun setText2(text: String?) =
+    override fun setText2(text: String?) {
+      super.setText2(text)
       invokeLater(ModalityState.stateForComponent(form.label)) {
         form.label2.text = if (text == null) "" else shortenTextWithEllipsis(text, 80, 10)
       }
+    }
 
     override fun stop() {
       invokeLater(ModalityState.stateForComponent(form.progressBar)) {
@@ -162,6 +166,7 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
     }
 
     override fun setFraction(fraction: Double) {
+      super.setFraction(fraction)
       invokeLater(ModalityState.stateForComponent(form.root)) { form.fraction = fraction }
     }
   }

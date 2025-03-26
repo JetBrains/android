@@ -191,7 +191,7 @@ public class SdkComponentSourceTest {
 
   @Test
   public void testAvailableStableVersions() {
-    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
+    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator());
     Set<UpdatableExternalComponent> components = Sets.newTreeSet(COMPONENT_COMPARATOR);
     components.addAll(myTestComponentSource.getAvailableVersions(progress, null));
     Iterator<UpdatableExternalComponent> componentIter = components.iterator();
@@ -204,7 +204,7 @@ public class SdkComponentSourceTest {
   @Test
   public void testAvailableBetaVersions() {
     myChannelId = 1;
-    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(true), null);
+    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(true));
     Set<UpdatableExternalComponent> components = Sets.newTreeSet(COMPONENT_COMPARATOR);
     components.addAll(myTestComponentSource.getAvailableVersions(progress, null));
     Iterator<UpdatableExternalComponent> componentIter = components.iterator();
@@ -300,7 +300,7 @@ public class SdkComponentSourceTest {
   @Test
   public void testIgnored() {
     final AtomicReference<String> id = new AtomicReference<>();
-    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
+    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator());
     for (UpdatableExternalComponent c : myTestComponentSource.getAvailableVersions(progress, null)) {
       if ("package newerRemote".equals(c.getName())) {
         id.set(SdkComponentSource.getPackageRevisionId((RepoPackage)c.getKey()));
@@ -335,7 +335,7 @@ public class SdkComponentSourceTest {
       .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
 
     Collection<ExternalUpdate> updates =
-      UpdateChecker.getExternalPluginUpdates(new UpdateSettings(), new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null))
+      UpdateChecker.getExternalPluginUpdates(new UpdateSettings(), new StudioProgressIndicatorAdapter(new FakeProgressIndicator()))
         .getExternalUpdates();
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
@@ -358,7 +358,7 @@ public class SdkComponentSourceTest {
       .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
 
     Collection<ExternalUpdate> updates =
-      UpdateChecker.getExternalPluginUpdates(new UpdateSettings(), new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null))
+      UpdateChecker.getExternalPluginUpdates(new UpdateSettings(), new StudioProgressIndicatorAdapter(new FakeProgressIndicator()))
         .getExternalUpdates();
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();

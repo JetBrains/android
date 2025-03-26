@@ -22,47 +22,28 @@ import com.intellij.openapi.progress.ProgressManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A Studio {@link ProgressIndicator} that wraps a {@link com.android.repository.api.ProgressIndicator} and another existing
- * {@link ProgressIndicator}. This allows an invocation that requires a {@link com.android.repository.api.ProgressIndicator} to provides
- * updates to an existing {@link ProgressIndicator}.
- *
- * TODOs below will be addressed as need becomes clear during adoption.
+ * An IntelliJ {@link ProgressIndicator} that wraps an Android SDK {@link com.android.repository.api.ProgressIndicator}.
+ * This allows a method that accepts an IntelliJ ProgressIndicator to provide updates to an SDK ProgressIndicator.
  */
 public class StudioProgressIndicatorAdapter implements ProgressIndicator {
   private static final double UPDATE_THRESHOLD = 0.01;
 
   private final com.android.repository.api.ProgressIndicator myWrapped;
-  private final ProgressIndicator myExistingIndicator;
 
   public StudioProgressIndicatorAdapter(com.android.repository.api.ProgressIndicator wrapped) {
-    this(wrapped, ProgressManager.getInstance().getProgressIndicator());
-  }
-
-  public StudioProgressIndicatorAdapter(com.android.repository.api.ProgressIndicator wrapped,
-                                        ProgressIndicator existing) {
     myWrapped = wrapped;
-    myExistingIndicator = existing;
   }
 
   @Override
   public void start() {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.start();
-    }
   }
 
   @Override
   public void stop() {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.stop();
-    }
   }
 
   @Override
   public boolean isRunning() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.isRunning();
-    }
     // TODO: Right now ProgressIndicator doesn't have a way to indicate that it has completed successfully. If needed, that case should also
     //       be checked here.
     return !myWrapped.isCanceled();
@@ -70,36 +51,21 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
 
   @Override
   public void cancel() {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.cancel();
-    }
     myWrapped.cancel();
   }
 
   @Override
   public boolean isCanceled() {
-    if (myExistingIndicator != null) {
-      if (myExistingIndicator.isCanceled()) {
-        myWrapped.cancel();
-      }
-      return myExistingIndicator.isCanceled();
-    }
     return myWrapped.isCanceled();
   }
 
   @Override
   public void setText(String text) {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.setText(text);
-    }
     myWrapped.setText(text);
   }
 
   @Override
   public String getText() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.getText();
-    }
     // TODO: ProgressIndicator currently has no way to retrieve its text and other state. If it's important to be able to retrieve that
     //       state once set, support needs to be added and it should be hooked up here.
     return "";
@@ -107,18 +73,12 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
 
   @Override
   public void setText2(String text) {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.setText2(text);
-    }
     myWrapped.setSecondaryText(text);
 
   }
 
   @Override
   public String getText2() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.getText2();
-    }
     // TODO: ProgressIndicator currently has no way to retrieve its text and other state. If it's important to be able to retrieve that
     //       state once set, support needs to be added and it should be hooked up here.
     return "";
@@ -126,9 +86,6 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
 
   @Override
   public double getFraction() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.getFraction();
-    }
     return myWrapped.getFraction();
   }
 
@@ -137,31 +94,19 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
     if (Math.abs(myWrapped.getFraction() - fraction) < UPDATE_THRESHOLD) {
       return;
     }
-    if (myExistingIndicator != null) {
-      myExistingIndicator.setFraction(fraction);
-    }
     myWrapped.setFraction(fraction);
   }
 
   @Override
   public void pushState() {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.pushState();
-    }
   }
 
   @Override
   public void popState() {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.popState();
-    }
   }
 
   @Override
   public boolean isModal() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.isModal();
-    }
     // TODO: ProgressIndicator currently has no way to retrieve its state. If it's important to be able to retrieve that state once set,
     //       support needs to be added and it should be hooked up here.
     return true;
@@ -170,41 +115,27 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
   @NotNull
   @Override
   public ModalityState getModalityState() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.getModalityState();
-    }
     // IJ concept; ProgressIndicator doesn't know about ModalityState.
     return ModalityState.defaultModalityState();
   }
 
   @Override
   public void setModalityProgress(ProgressIndicator modalityProgress) {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.setModalityProgress(modalityProgress);
-    }
   }
 
   @Override
   public boolean isIndeterminate() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.isIndeterminate();
-    }
     return myWrapped.isIndeterminate();
   }
 
   @Override
   public void setIndeterminate(boolean indeterminate) {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.setIndeterminate(indeterminate);
-    }
     myWrapped.setIndeterminate(indeterminate);
   }
 
   @Override
   public void checkCanceled() throws ProcessCanceledException {
-    if (myExistingIndicator != null) {
-      myExistingIndicator.checkCanceled();
-    }
+    ProgressManager.checkCanceled();
     if (myWrapped.isCanceled() && myWrapped.isCancellable()) {
       throw new ProcessCanceledException();
     }
@@ -212,17 +143,11 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
 
   @Override
   public boolean isPopupWasShown() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.isPopupWasShown();
-    }
     return false;
   }
 
   @Override
   public boolean isShowing() {
-    if (myExistingIndicator != null) {
-      return myExistingIndicator.isShowing();
-    }
     return true;
   }
 }
