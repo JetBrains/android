@@ -5,6 +5,7 @@ iml_module(
     name = "native-symbolizer.gradle",
     srcs = ["src"],
     iml_files = ["native-symbolizer.gradle.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

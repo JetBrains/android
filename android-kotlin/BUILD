@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.kotlin.output.parser",
     srcs = ["idea-android/idea-android-output-parser/src"],
     iml_files = ["idea-android/idea-android-output-parser/intellij.android.kotlin.output.parser.iml"],
+    resources = ["idea-android/idea-android-output-parser/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -21,6 +22,7 @@ iml_module(
     name = "intellij.android.kotlin.idea",
     srcs = ["idea-android/src"],
     iml_files = ["idea-android/intellij.android.kotlin.idea.iml"],
+    resources = ["idea-android/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -41,6 +43,7 @@ iml_module(
     name = "intellij.android.kotlin.idea.common",
     srcs = ["idea-android/common/src"],
     iml_files = ["idea-android/common/intellij.android.kotlin.idea.common.iml"],
+    resources = ["idea-android/common/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -67,6 +70,7 @@ iml_module(
     name = "intellij.android.kotlin.idea.k1",
     srcs = ["idea-android/k1/src"],
     iml_files = ["idea-android/k1/intellij.android.kotlin.idea.k1.iml"],
+    resources = ["idea-android/k1/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -89,6 +93,7 @@ iml_module(
     name = "intellij.android.kotlin.idea.k2",
     srcs = ["idea-android/k2/src"],
     iml_files = ["idea-android/k2/intellij.android.kotlin.idea.k2.iml"],
+    resources = ["idea-android/k2/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -107,6 +112,7 @@ iml_module(
     name = "intellij.android.kotlin.extensions",
     srcs = ["android-extensions-idea/src"],
     iml_files = ["android-extensions-idea/intellij.android.kotlin.extensions.iml"],
+    resources = ["android-extensions-idea/resources"],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
     test_data = glob([
         "android-extensions-idea/testData/**",
@@ -150,6 +156,7 @@ iml_module(
     iml_files = ["android-extensions-idea-common/intellij.android.kotlin.extensions.common.iml"],
     jvm_target = "8",
     kotlinc_opts = ["-opt-in=org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"],
+    resources = ["android-extensions-idea-common/resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

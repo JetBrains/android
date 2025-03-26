@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.avd.iml"],
     kotlin_use_compose = True,
+    resources = ["resources"],
     test_class = "com.android.tools.idea.avd.AvdTestSuite",
     # do not sort: must match IML order
     test_deps = [

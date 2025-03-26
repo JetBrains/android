@@ -8,6 +8,7 @@ iml_module(
     generate_k1_tests = True,
     iml_files = ["intellij.android.common.iml"],
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     tags = ["noci:studio-win"],
     # do not sort: must match IML order
     test_deps = [

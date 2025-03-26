@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.app-quality-insights.api",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.api.iml"],
+    resources = ["resources"],
     test_class = "com.android.tools.idea.insights.InsightsApiTestSuite",
     # do not sort: must match IML order
     test_deps = [

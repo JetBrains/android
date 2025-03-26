@@ -6,6 +6,7 @@ iml_module(
     # do not sort: must match IML order
     srcs = ["src"],
     iml_files = ["intellij.android.gradle.dsl.declarative.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide"],
     # do not sort: must match IML order

@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.app-quality-insights.ide",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.ide.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -75,6 +76,7 @@ iml_module(
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

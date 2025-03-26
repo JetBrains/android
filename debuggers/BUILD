@@ -8,6 +8,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.debuggers.iml"],
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

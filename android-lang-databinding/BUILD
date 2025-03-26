@@ -10,6 +10,7 @@ iml_module(
         "gen",
     ],
     iml_files = ["intellij.android.lang-databinding.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

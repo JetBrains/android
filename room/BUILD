@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.room",
     srcs = ["src"],
     iml_files = ["intellij.android.room.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

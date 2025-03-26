@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.core.editing.metrics",
     srcs = ["src"],
     iml_files = ["intellij.android.core.editing.metrics.iml"],
+    resources = ["resources"],
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",

@@ -58,6 +58,7 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.apkanalyzer",
     srcs = ["src"],
     iml_files = ["intellij.android.apkanalyzer.iml"],
+    resources = ["resources"],
     test_deps = ["//tools/base/testutils:studio.android.sdktools.testutils"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

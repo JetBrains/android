@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.transport",
     srcs = ["src"],
     iml_files = ["intellij.android.transport.iml"],
+    resources = ["resources"],
     test_class = "com.android.tools.idea.transport.AndroidTransportTestSuite",
     # do not sort: must match IML order
     test_deps = [

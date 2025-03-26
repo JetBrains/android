@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.settings-sync.iml"],
     kotlin_use_compose = True,
+    resources = ["resources"],
     # do not sort: must match IML order
     test_deps = [
         "@intellij//:test-framework",

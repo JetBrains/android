@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.gmd-code-completion",
     srcs = ["src"],
     iml_files = ["intellij.android.gmd-code-completion.iml"],
+    resources = ["resources"],
     test_class = "com.android.gmdcodecompletion.GmdCodeCompletionTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest-preview",

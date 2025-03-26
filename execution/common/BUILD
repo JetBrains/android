@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.execution.common",
     srcs = ["src"],
     iml_files = ["intellij.android.execution.common.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

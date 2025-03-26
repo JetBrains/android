@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.wear-dwf",
     srcs = ["src"],
     iml_files = ["intellij.android.wear-dwf.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

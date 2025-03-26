@@ -5,6 +5,7 @@ iml_module(
     name = "app-inspection.inspectors.network.ide",
     srcs = ["src"],
     iml_files = ["app-inspection.inspectors.network.ide.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

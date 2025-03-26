@@ -7,6 +7,7 @@ iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
+    resources = ["resources"],
     split_test_targets = {
         "WindowsNameDemanglerTest": {
             "test_filter": "com.android.tools.idea.profilers.perfetto.traceprocessor.WindowsNameDemanglerTest",

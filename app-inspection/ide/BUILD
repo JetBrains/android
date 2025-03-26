@@ -75,6 +75,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide/gradle:app-inspection.ide.gradle",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

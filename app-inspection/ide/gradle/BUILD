@@ -5,6 +5,7 @@ iml_module(
     name = "app-inspection.ide.gradle",
     srcs = ["src"],
     iml_files = ["app-inspection.ide.gradle.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

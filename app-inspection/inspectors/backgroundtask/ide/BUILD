@@ -5,6 +5,7 @@ iml_module(
     name = "app-inspection.inspectors.backgroundtask.ide",
     srcs = ["src"],
     iml_files = ["app-inspection.inspectors.backgroundtask.ide.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
