@@ -1241,6 +1241,14 @@ public final class StudioFlags {
     REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
     "If enabled, show the action in the refactoring menu", false);
 
+  public static final Flag<Boolean> ENABLE_GMAVEN_REPOSITORY_V2 = new BooleanFlag(
+    REFACTORINGS,
+    "gmaven.repository.v2.enabled",
+    "Switches to GMaven Repository V2",
+    "If enabled, uses GMaven Repository V2 to pull data related to packages, artifacts, versions and their dependencies",
+    false
+  );
+
   //endregion
 
   //region NDK

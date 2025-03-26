@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
+import com.android.ide.common.repository.GoogleMavenRepositoryV2
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -66,10 +67,13 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     override fun readUrlData(url: String, timeout: Int, lastModified: Long) = throw AssertionFailedError("shouldn't try to read!")
     override fun error(throwable: Throwable, message: String?) {}
   }
+  private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create()
 
   private val repoUrlManager = RepositoryUrlManager(
     googleMavenRepository = mavenRepository,
     cachedGoogleMavenRepository = mavenRepository,
+    googleMavenRepositoryV2 = googleMavenRepositoryV2,
+    cachedGoogleMavenRepositoryV2 = googleMavenRepositoryV2,
     useEmbeddedStudioRepo = false
   )
 

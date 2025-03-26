@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.repositories
 
 import com.android.ide.common.repository.GoogleMavenRepository
+import com.android.ide.common.repository.GoogleMavenRepositoryV2
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -40,7 +41,13 @@ class RepositoryUrlManagerCachingTest {
 
   private val networkRepo = TestGoogleMavenRepository()
   private val localRepo = TestGoogleMavenRepository()
-  private val repositoryUrlManager = RepositoryUrlManager(networkRepo, localRepo  /* force repository checks */)
+  private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create()
+  private val repositoryUrlManager = RepositoryUrlManager(
+    networkRepo,
+    localRepo  /* force repository checks */,
+    googleMavenRepositoryV2,
+    googleMavenRepositoryV2
+  )
   private val fileSystem = createInMemoryFileSystem()
 
   private class TestGoogleMavenRepository : GoogleMavenRepository() {
