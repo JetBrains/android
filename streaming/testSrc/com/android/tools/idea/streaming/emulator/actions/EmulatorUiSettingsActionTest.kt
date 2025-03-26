@@ -18,8 +18,9 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.adblib.DeviceSelector
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -33,6 +34,7 @@ import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.RESET_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
+import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -44,38 +46,35 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.ActionLink
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.doAnswer
 import org.mockito.kotlin.any
+import org.mockito.kotlin.atLeast
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.verify
 import java.awt.Dimension
-import java.awt.Point
 import java.awt.event.MouseEvent
-import java.awt.event.WindowFocusListener
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JSlider
-import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
 
+@RunsInEdt
 class EmulatorUiSettingsActionTest {
-  private val popupRule = JBPopupRule()
   private val uiRule = UiSettingsRule()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain(uiRule, popupRule)
-
-  private val popupFactory
-    get() = popupRule.fakePopupFactory
+  val ruleChain: RuleChain = RuleChain(uiRule, EdtRule(), HeadlessDialogRule(createDialogWindow = true))
 
   private val testRootDisposable
     get() = uiRule.testRootDisposable
@@ -106,12 +105,8 @@ class EmulatorUiSettingsActionTest {
     assertThat(event.presentation.isVisible).isTrue()
 
     action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
-    assertThat((balloon.target as RelativePoint).originalComponent).isSameAs(view)
-    assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point(0, 400))
+    val dialog = waitForDialog()
+    assertThat(dialog.contentPanel.findDescendant<UiSettingsPanel>()).isNotNull()
   }
 
   @Test
@@ -121,10 +116,8 @@ class EmulatorUiSettingsActionTest {
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
     action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component.findDescendant<ActionLink> { it.name == RESET_TITLE }).isNotNull()
+    val dialog = waitForDialog()
+    assertThat(dialog.contentPanel.findDescendant<ActionLink> { it.name == RESET_TITLE }).isNotNull()
   }
 
   @Test
@@ -135,10 +128,8 @@ class EmulatorUiSettingsActionTest {
     val event = createTestMouseEvent(action, controller, view)
     uiRule.configureUiSettings(deviceSelector = DeviceSelector.fromSerialNumber(controller.emulatorId.serialNumber))
     action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    val panel = balloon.component
+    val dialog = waitForDialog()
+    val panel = dialog.contentPanel
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
     assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
@@ -150,7 +141,7 @@ class EmulatorUiSettingsActionTest {
   }
 
   @Test
-  fun testPickerClosesWhenWindowCloses() {
+  fun testDialogClosesWhenDialogLosesFocus() {
     simulateDarkTheme(false)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller)
@@ -158,25 +149,14 @@ class EmulatorUiSettingsActionTest {
     val event = createTestMouseEvent(action, controller, view)
     action.update(event)
     assertThat(event.presentation.isVisible).isTrue()
-
-    runInEdtAndWait { FakeUi(view, createFakeWindow = true, parentDisposable = testRootDisposable) }
-    val window = SwingUtilities.windowForComponent(view)
-    val listeners = mutableListOf<WindowFocusListener>()
-    doAnswer { invocation ->
-      listeners.add(invocation.arguments[0] as WindowFocusListener)
-    }.whenever(window).addWindowFocusListener(any())
-
     action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-
-    listeners.forEach { it.windowLostFocus(mock()) }
-    assertThat(balloon.isDisposed).isTrue()
+    val dialog = waitForDialog()
+    dialog.window.windowFocusListeners.forEach { it.windowLostFocus(mock()) }
+    assertThat(dialog.isDisposed).isTrue()
   }
 
   @Test
-  fun testPickerClosesWithParentDisposable() {
+  fun testDialogClosesWithParentDisposable() {
     val parentDisposable = Disposer.newDisposable()
     Disposer.register(testRootDisposable, parentDisposable)
 
@@ -189,16 +169,14 @@ class EmulatorUiSettingsActionTest {
     assertThat(event.presentation.isVisible).isTrue()
 
     action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
+    val dialog = waitForDialog()
 
     Disposer.dispose(parentDisposable)
-    assertThat(balloon.isDisposed).isTrue()
+    assertThat(dialog.isDisposed).isTrue()
   }
 
   @Test
-  fun testPopupIsMovable() {
+  fun testDialogIsMovable() {
     simulateDarkTheme(false)
     val controller = uiRule.getControllerOf(uiRule.emulator)
     val view = createEmulatorView(controller).apply { size = Dimension(600, 800) }
@@ -207,16 +185,27 @@ class EmulatorUiSettingsActionTest {
 
     action.update(event)
     assertThat(event.presentation.isVisible).isTrue()
-
     action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component.location).isEqualTo(Point())
-    balloon.ui!!.mouse.press(10, 10)
-    balloon.ui!!.mouse.dragTo(100, 100)
-    assertThat(balloon.component.location).isEqualTo(Point(90, 90))
+    val dialog = waitForDialog()
+    val uiSettingsPanel = dialog.contentPanel.findDescendant<UiSettingsPanel>()!!
+
+    // Move the dialog (90, 90):
+    val ui = FakeUi(uiSettingsPanel)
+    ui.mouse.press(10, 10)
+    ui.mouse.dragTo(100, 100)
+    ui.mouse.release()
+
+    // The mock Window will not be able to move, it will always have a screen location of (0, 0).
+    // Verify that an attempt to move it to (90, 90) was made:
+    verify(dialog.window, atLeast(1)).reshape(eq(90), eq(90), any(), any())
   }
+
+  private fun waitForDialog(): DialogWrapper {
+    waitForCondition(2.seconds) { findDialog() != null }
+    return findDialog()!!
+  }
+
+  private fun findDialog() = findModelessDialog { it is UiSettingsDialog && it.isShowing }
 
   private fun simulateDarkTheme(on: Boolean) {
     val state = if (on) "yes" else "no"

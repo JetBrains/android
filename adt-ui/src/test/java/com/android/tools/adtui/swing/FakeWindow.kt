@@ -19,11 +19,14 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
 import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Window
+import java.awt.event.WindowFocusListener
 import javax.swing.JComponent
 import javax.swing.RootPaneContainer
 
@@ -37,6 +40,7 @@ internal inline fun <reified T : Window> createFakeWindow(root: JComponent, pare
 
 private fun wrapInFakeWindow(mockWindow: Window, root: JComponent, parentDisposable: Disposable?) {
   val components = arrayOf(root)
+  val windowFocusListeners = mutableListOf<WindowFocusListener>()
   whenever(mockWindow.treeLock).thenCallRealMethod()
   whenever(mockWindow.toolkit).thenReturn(fakeToolkit)
   whenever(mockWindow.isShowing).thenReturn(true)
@@ -55,6 +59,13 @@ private fun wrapInFakeWindow(mockWindow: Window, root: JComponent, parentDisposa
   if (mockWindow is RootPaneContainer) {
     whenever(mockWindow.contentPane).thenReturn(root)
   }
+  doAnswer { invocation ->
+    windowFocusListeners.add(invocation.arguments[0] as WindowFocusListener)
+  }.whenever(mockWindow).addWindowFocusListener(any())
+  doAnswer { invocation ->
+    windowFocusListeners.remove(invocation.arguments[0] as WindowFocusListener)
+  }.whenever(mockWindow).removeWindowFocusListener(any())
+  doAnswer { windowFocusListeners.toTypedArray() }.whenever(mockWindow).windowFocusListeners
   ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
   ComponentAccessor.setParent(root, mockWindow)
   root.addNotify()

@@ -22,7 +22,9 @@ import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.adtui.swing.HeadlessDialogRule
+import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
@@ -36,17 +38,18 @@ import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.utils.executeWithRetries
-import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.ProcessIOExecutorService
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.TestDataProvider
@@ -78,11 +81,11 @@ internal enum class TestDeviceType {
  * Rule for setting up integration tests for UI Settings Shortcuts on an emulator or a device.
  */
 internal class UiSettingsIntegrationRule : ExternalResource() {
-  private val popupRule = JBPopupRule()
   private val disposableRule = DisposableRule()
   private val gestureRule = FlagRule(StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS, true)
   private val debugLayoutRule = FlagRule(StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS, true)
   private val timeoutRule = FlagRule(StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS, 30_000)
+  private val headlessDialogRule = HeadlessDialogRule(createDialogWindow = true)
   private val projectRule = AndroidProjectRule.withAndroidModel(
     createAndroidProjectBuilderForDefaultTestProjectStructure()
       .copy(applicationIdFor = { APPLICATION_ID })
@@ -110,7 +113,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   override fun apply(base: Statement, description: Description): Statement =
-    apply(base, description, projectRule, popupRule, disposableRule, gestureRule, debugLayoutRule, timeoutRule)
+    apply(base, description, projectRule, disposableRule, gestureRule, debugLayoutRule, timeoutRule, headlessDialogRule)
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)
@@ -151,10 +154,8 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     }
     val button = fakeUi.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
     button.click()
-    waitForCondition(30.seconds) { popupRule.fakePopupFactory.balloonCount > 0 }
-    val balloon = popupRule.fakePopupFactory.getNextBalloon()
-    assertThat(balloon).isNotNull()
-    return balloon.component as UiSettingsPanel
+    val dialog = waitForDialog()
+    return dialog.contentPanel.findDescendant<UiSettingsPanel>()!!
   }
 
   private fun initAdb(): Adb {
@@ -258,6 +259,13 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
       "InnocuousThread-"
     )
   }
+
+  private fun waitForDialog(): DialogWrapper {
+    waitForCondition(2.seconds) { findDialog() != null }
+    return findDialog()!!
+  }
+
+  private fun findDialog() = findModelessDialog { it is UiSettingsDialog && it.isShowing }
 
   // Emulate a disconnect of the device
   fun cutConnectionToAgent() {

@@ -19,14 +19,15 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.device.DeviceUiSettingsController
+import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
-import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
-import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsPopup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.awt.Dimension
-import java.awt.EventQueue
 
 /**
  * Opens a picker with UI settings of a physical device.
@@ -53,9 +54,9 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     val controller = DeviceUiSettingsController(deviceController, config, project, model, deviceView)
     deviceView.createCoroutineScope().launch {
       controller.populateModel()
-      EventQueue.invokeLater {
-        val panel = UiSettingsPanel(model, deviceType)
-        showUiSettingsPopup(panel, deviceView)
+      withContext(Dispatchers.EDT) {
+        val dialog = UiSettingsDialog(project, model, deviceType, deviceView)
+        dialog.show()
       }
     }
   }

@@ -19,13 +19,14 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.emulator.EmulatorUiSettingsController
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
+import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
-import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
-import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsPopup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.awt.EventQueue
+import kotlinx.coroutines.withContext
 
 /**
  * Opens a picker with UI settings of an emulator.
@@ -49,9 +50,9 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
     val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
     emulatorView.createCoroutineScope().launch {
       controller.populateModel()
-      EventQueue.invokeLater {
-        val panel = UiSettingsPanel(model, config.deviceType)
-        showUiSettingsPopup(panel, emulatorView)
+      withContext(Dispatchers.EDT) {
+        val dialog = UiSettingsDialog(project, model, config.deviceType, emulatorView)
+        dialog.show()
       }
     }
   }
