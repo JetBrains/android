@@ -313,6 +313,7 @@ public class AndroidAnnotatorUtil {
 
   public static class ColorRenderer extends GutterIconRenderer {
     @NotNull private final PsiElement myElement;
+    @NotNull private final Project myProject;
     @Nullable private final Color myColor;
     @NotNull private final ResourceResolver myResolver;
     @Nullable private final ResourceValue myResourceValue;
@@ -329,6 +330,7 @@ public class AndroidAnnotatorUtil {
                          boolean hasCustomColor,
                          @NotNull AndroidFacet facet) {
       myElement = element;
+      myProject = element.getProject();
       myColor = color;
       myResolver = resolver;
       myResourceValue = resourceValue;
@@ -442,10 +444,9 @@ public class AndroidAnnotatorUtil {
     }
 
     private void setColorStringAttribute(@NotNull String colorString) {
-      Project project = myElement.getProject();
       ApplicationManager.getApplication().invokeLater(
-        () -> WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(colorString)),
-        project.getDisposed());
+        () -> WriteCommandAction.runWriteCommandAction(myProject, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(colorString)),
+        myProject.getDisposed());
     }
 
     @Override
