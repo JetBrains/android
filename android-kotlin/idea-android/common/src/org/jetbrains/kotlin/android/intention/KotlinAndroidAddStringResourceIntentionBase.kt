@@ -54,6 +54,9 @@ import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.name.ClassId
@@ -182,10 +185,35 @@ abstract class KotlinAndroidAddStringResourceIntentionBase : SelfTargetingIntent
                     is KtEscapeStringTemplateEntry -> append(child.unescapedValue)
                     is KtLiteralStringTemplateEntry -> append(child.text)
                     is KtStringTemplateEntryWithExpression -> {
-                        assert(child.children.size == 1)
-                        placeholderExpressions.add(child.children[0])
-                        append("%$placeholderIndex\$s")
-                        placeholderIndex++
+                        val expression = child.expression
+                        if (expression != null) {
+                            placeholderExpressions.add(expression)
+
+                            // Determine whether a type-specific placeholder conversion is appropriate, and fall back
+                            // to 's' if none can be found. 's' is being used for doubles and floats even though they
+                            // could use 'f' because the Android formatting is not always the same as what Kotlin's
+                            // toString() produces, and this intention should not change what is displayed as a final
+                            // result.
+                            @OptIn(KaAllowAnalysisOnEdt::class) // TODO(b/310045274)
+                            val placeholderConversion = allowAnalysisOnEdt {
+                                analyze(expression) {
+                                    val expressionType = expression.expressionType
+                                    when {
+                                        expressionType == null -> null
+                                        expressionType.isBooleanType -> 'b'
+                                            expressionType.isIntType ||
+                                            expressionType.isLongType ||
+                                            expressionType.isShortType ||
+                                        expressionType.isByteType -> 'd'
+                                        expressionType.isCharType -> 'c'
+                                        else -> null
+                                    }
+                                }
+                            } ?: 's'
+
+                            append("%$placeholderIndex$$placeholderConversion")
+                            placeholderIndex++
+                        }
                     }
 
                     else -> Logger.getInstance(KotlinAndroidAddStringResourceIntentionBase::class.java).error(
@@ -198,7 +226,7 @@ abstract class KotlinAndroidAddStringResourceIntentionBase : SelfTargetingIntent
     }
 
     /** Removes any placeholders of the form "%1$s" from a string. */
-    private fun String.withoutPlaceholders(): String = replace(Regex("%[0-9]+\\\$s"), "")
+    private fun String.withoutPlaceholders(): String = replace(Regex("%[0-9]+\\\$[sbdc]"), "")
 
     private fun createResourceReference(module: Module, editor: Editor, file: KtFile, element: PsiElement, aPackage: String,
                                         resName: String, resType: ResourceType, placeholderExpressions: List<PsiElement>) {

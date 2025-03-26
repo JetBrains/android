@@ -1,5 +1,7 @@
 fun foo() {
     val a = "some"
     val b = "text"
-    val bar = "hello $a <caret>+ $b"
+    val c = 47
+    val d = 'd'
+    val bar = "hello $a <caret>+ $b $c $d"
 }
