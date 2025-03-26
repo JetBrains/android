@@ -179,7 +179,7 @@ class AehdWizardControllerTest {
     aehdNode.updateState(sdkHandler)
     doNothing().whenever(sdkComponentInstaller).ensureSdkPackagesUninstalled(any(), any(), any())
 
-    controller.handleCancel(INSTALL_WITH_UPDATES, aehdNode, javaClass, mock())
+    controller.handleCancel(INSTALL_WITH_UPDATES, aehdNode, mock())
 
     verify(sdkComponentInstaller).ensureSdkPackagesUninstalled(eq(sdkHandler), eq(sdkPackages.map { it.path }), any())
   }
@@ -190,7 +190,7 @@ class AehdWizardControllerTest {
     aehdNode.updateState(sdkHandler)
     doNothing().whenever(sdkComponentInstaller).ensureSdkPackagesUninstalled(any(), any(), any())
 
-    controller.handleCancel(INSTALL_WITH_UPDATES, aehdNode, javaClass, mock())
+    controller.handleCancel(INSTALL_WITH_UPDATES, aehdNode, mock())
 
     verify(sdkComponentInstaller).ensureSdkPackagesUninstalled(eq(sdkHandler), eq(sdkPackages.map { it.path }), any())
   }
@@ -200,7 +200,7 @@ class AehdWizardControllerTest {
     val aehdNode = AehdSdkComponentTreeNode(UNINSTALL)
     aehdNode.updateState(sdkHandler)
 
-    controller.handleCancel(UNINSTALL, aehdNode, javaClass, mock())
+    controller.handleCancel(UNINSTALL, aehdNode, mock())
 
     verify(sdkComponentInstaller, times(0)).ensureSdkPackagesUninstalled(any(), any(), any())
   }
@@ -216,7 +216,7 @@ class AehdWizardControllerTest {
       Messages.OK
     }
 
-    controller.handleCancel(INSTALL_WITH_UPDATES, aehdNode, javaClass, mock())
+    controller.handleCancel(INSTALL_WITH_UPDATES, aehdNode, mock())
 
     assertThat(dialogShown).isTrue()
   }

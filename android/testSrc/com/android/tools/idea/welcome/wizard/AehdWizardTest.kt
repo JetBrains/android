@@ -168,7 +168,7 @@ class AehdWizardTest {
       finishButton.doClick()
 
       verify(mockAehdWizardController, times(1)).setupAehd(any(), any(), any())
-      verify(mockAehdWizardController, times(0)).handleCancel(any(), any(), any(), any())
+      verify(mockAehdWizardController, times(0)).handleCancel(any(), any(), any())
     }
   }
 
@@ -186,8 +186,7 @@ class AehdWizardTest {
 
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-      verify(mockAehdWizardController, timeout(2000).times(1))
-        .handleCancel(any(), any(), any(), any())
+      verify(mockAehdWizardController, timeout(2000).times(1)).handleCancel(any(), any(), any())
     }
   }
 

@@ -19,6 +19,7 @@ import com.android.repository.api.RepoManager
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
@@ -81,8 +82,9 @@ class AehdModelWizard(
       val progressIndicator = StudioLoggerProgressIndicator(javaClass)
       sdkHandler
         .getRepoManager(progressIndicator)
-        .loadSynchronously(
-          RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
+        .loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+                           StudioProgressRunner(true, false, "Finding Available SDK Components", null),
+                           StudioDownloader(), StudioSettingsController.getInstance())
       myAehdSdkComponentTreeNode.updateState(sdkHandler)
 
       val packagesToInstallSupplier = {
@@ -118,7 +120,7 @@ class AehdModelWizard(
     modelWizard.addResultListener(object : ModelWizard.WizardListener {
       override fun onWizardFinished(result: WizardResult) {
         if (!progressStep.isSuccessfullyCompleted.get()) {
-          aehdWizardController.handleCancel(installationIntention, myAehdSdkComponentTreeNode, javaClass, LOG)
+          aehdWizardController.handleCancel(installationIntention, myAehdSdkComponentTreeNode, LOG)
         }
       }
     })

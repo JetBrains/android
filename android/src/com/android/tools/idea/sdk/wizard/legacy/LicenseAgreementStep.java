@@ -23,6 +23,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
@@ -265,8 +266,9 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
     ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = mySdkHandlerSupplier.get().getRepoManager(progress);
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),
-                                                         StudioSettingsController.getInstance());
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+                                 new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
+                                 new StudioDownloader(), StudioSettingsController.getInstance());
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     List<Change> toReturn = new ArrayList<>();
     List<String> requestedPackages = myInstallRequestsProvider.get();

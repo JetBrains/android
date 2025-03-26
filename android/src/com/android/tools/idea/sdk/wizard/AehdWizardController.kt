@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.sdk.wizard
 
+import com.android.annotations.concurrency.UiThread
 import com.android.repository.api.ProgressIndicator
+import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
@@ -42,6 +43,10 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.platform.util.progress.reportRawProgress
 import com.intellij.util.PlatformUtils
 import java.io.File
 
@@ -49,7 +54,9 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
 
   fun getPackagesToInstall(sdkHandler: AndroidSdkHandler, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode): Collection<RemotePackage> {
     try {
-      return sdkComponentInstaller.getPackagesToInstall(sdkHandler, listOf(aehdSdkComponentTreeNode))
+      return runInModalWithProgressIndicator("Fetching packages to install") {
+        sdkComponentInstaller.getPackagesToInstall(sdkHandler, listOf(aehdSdkComponentTreeNode))
+      }
     }
     catch (e: SdkQuickfixUtils.PackageResolutionException) {
       logger<StudioFirstRunWelcomeScreen>().warn(e)
@@ -111,19 +118,48 @@ class AehdWizardController(val sdkComponentInstaller: SdkComponentInstaller = Sd
     return aehdSdkComponentTreeNode.isInstallerSuccessfullyCompleted
   }
 
-  fun handleCancel(installationIntention: InstallationIntention, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode, aClass: Class<*>, logger: Logger) {
+  fun handleCancel(installationIntention: InstallationIntention, aehdSdkComponentTreeNode: AehdSdkComponentTreeNode, logger: Logger) {
     // The wizard was invoked to install, but installer invocation failed or was cancelled.
     // Have to ensure the SDK package is removed
     if (installationIntention != InstallationIntention.UNINSTALL) {
       try {
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        val progress: ProgressIndicator = StudioLoggerProgressIndicator(aClass)
-        sdkHandler.getRepoManager(progress).reloadLocalIfNeeded(progress)
-        sdkComponentInstaller.ensureSdkPackagesUninstalled(sdkHandler, aehdSdkComponentTreeNode.requiredSdkPackages, progress)
+        runInModalWithProgressIndicator("Removing AEHD SDK package") { progress ->
+          sdkHandler.getRepoManager(progress).reloadLocalIfNeeded(progress)
+          sdkComponentInstaller.ensureSdkPackagesUninstalled(sdkHandler, aehdSdkComponentTreeNode.requiredSdkPackages, progress)
+        }
       }
       catch (e: Exception) {
         Messages.showErrorDialog(sdkPackageCleanupFailedMessage(), "Cleanup Error")
         logger.warn("Failed to make sure AEHD SDK package is uninstalled after AEHD wizard was cancelled", e)
+      }
+    }
+  }
+
+  @UiThread
+  @Suppress("UnstableApiUsage")
+  private fun <T> runInModalWithProgressIndicator(title: String, action: (progressIndicator: ProgressIndicator) -> T): T {
+    return runWithModalProgressBlocking(ModalTaskOwner.guess(), title, TaskCancellation.nonCancellable()) {
+      reportRawProgress { reporter ->
+        val progress = object : ProgressIndicatorAdapter() {
+          override fun setFraction(v: Double) {
+            reporter.fraction(v)
+          }
+
+          override fun setText(s: String?) {
+            reporter.text(s)
+          }
+
+          override fun setSecondaryText(s: String?) {
+            reporter.details(s)
+          }
+
+          override fun setIndeterminate(indeterminate: Boolean) {
+            reporter.fraction(null)
+          }
+        }
+
+        action(progress)
       }
     }
   }

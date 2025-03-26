@@ -74,7 +74,7 @@ public class AehdWizard extends DynamicWizard {
       return;
     }
 
-    myAehdWizardController.handleCancel(myInstallationIntention, myAehdPath.myAehdSdkComponentTreeNode, getClass(), LOG);
+    myAehdWizardController.handleCancel(myInstallationIntention, myAehdPath.myAehdSdkComponentTreeNode, LOG);
     super.doCancelAction();
 
     myTracker.trackWizardFinished(SetupWizardEvent.CompletionStatus.CANCELED);
