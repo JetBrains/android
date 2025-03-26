@@ -1030,6 +1030,14 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> MULTIPLE_DEVICE_SPECS_ENABLED = new BooleanFlag(
+    GRADLE_IDE,
+    "enable.multiple.device.specs",
+    "Multiple Device Specs",
+    "Allows Studio to pass multiple device spec files separately to AGP along with target device spec.",
+    false
+  );
+
   //endregion
   //region Gradle Phased Sync
   private static final FlagGroup PHASED_SYNC = new FlagGroup(FLAGS, "phased.sync", "Gradle Phased Sync");
