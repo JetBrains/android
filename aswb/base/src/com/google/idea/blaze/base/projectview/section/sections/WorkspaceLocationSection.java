@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 /** Allows project type override. */
 public class WorkspaceLocationSection {
   public static final SectionKey<String, ScalarSection<String>> KEY =
-    SectionKey.of("project_type");
+    SectionKey.of("workspace_location");
   public static final SectionParser PARSER = new StringParser();
 
   private static class StringParser extends ScalarSectionParser<String> {
