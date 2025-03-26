@@ -53,7 +53,7 @@ private val LOG: Logger
 /** Google AEHD installable component */
 class AehdSdkComponentTreeNode(@JvmField val installationIntention: InstallationIntention) :
   InstallableSdkComponentTreeNode(
-    "Performance (Android Emulator hypervisor visor})",
+    "Performance (Android Emulator hypervisor driver)",
     "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
       "Android app emulation on your development computer. (Recommended)",
     installationIntention == InstallationIntention.INSTALL_WITH_UPDATES,
