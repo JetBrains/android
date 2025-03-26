@@ -210,7 +210,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       }
     });
 
-    myValidatorPanel.registerTest(device.name().isEmpty().not(), "Please write a name for the new device.");
+    myValidatorPanel.registerTest(device.name().trim().isEmpty().not(), "Please write a name for the new device.");
 
     myValidatorPanel.registerTest(
       myDiagonalScreenSizeAdapter.inSync().and(device.diagonalScreenSize().isEqualTo(myDiagonalScreenSizeAdapter)),
