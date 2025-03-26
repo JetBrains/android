@@ -2625,6 +2625,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "targetSdk",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -2777,6 +2806,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "ApplicationDefaultConfig"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -2803,6 +2874,30 @@
                     "packageName": "kotlin",
                     "simpleName": "Any"
                 }
+            ],
+            "properties": [
+            ],
+            "memberFunctions": [
+            ],
+            "constructors": [
+            ]
+        },
+        {
+            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+            "packageName": "kotlin",
+            "simpleName": "Any"
+        },
+        {
+            "type": "data",
+            "name": {
+                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                "packageName": "kotlin",
+                "simpleName": "Any"
+            },
+            "javaTypeName": "java.lang.Object",
+            "javaTypeArgumentTypeNames": [
+            ],
+            "supertypes": [
             ],
             "properties": [
             ],
@@ -2991,6 +3086,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "testInstrumentationRunner",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -3087,6 +3211,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "ApplicationBaseFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -3156,6 +3322,35 @@
                         "dataType": {
                             "type": "string"
                         }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
                     },
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
@@ -3232,6 +3427,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "BaseFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -3260,6 +3497,35 @@
                 }
             ],
             "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                }
             ],
             "memberFunctions": [
                 {
@@ -3328,6 +3594,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "VariantDimension"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -3404,6 +3712,35 @@
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -3475,6 +3812,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "ApplicationVariantDimension"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -3535,6 +3914,35 @@
                         "dataType": {
                             "type": "string"
                         }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
                     },
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
@@ -3623,6 +4031,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "DefaultConfig"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -7584,6 +8034,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "versionNameSuffix",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -7664,6 +8143,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "ApplicationBuildType"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -7749,6 +8270,35 @@
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -7818,6 +8368,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "BuildType"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -7927,6 +8519,35 @@
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -7998,6 +8619,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "LibraryBuildType"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -8039,6 +8702,35 @@
                         "dataType": {
                             "type": "boolean"
                         }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
                     },
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
@@ -8113,6 +8805,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "LibraryVariantDimension"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -8208,6 +8942,35 @@
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -8279,6 +9042,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "DynamicFeatureBuildType"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -8312,6 +9117,35 @@
                 }
             ],
             "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                }
             ],
             "memberFunctions": [
                 {
@@ -8380,6 +9214,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "DynamicFeatureVariantDimension"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -8475,6 +9351,35 @@
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
                     },
                     "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
                 }
             ],
             "memberFunctions": [
@@ -8546,6 +9451,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "TestBuildType"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -8579,6 +9526,35 @@
                 }
             ],
             "properties": [
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                }
             ],
             "memberFunctions": [
                 {
@@ -8647,6 +9623,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "TestVariantDimension"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -8823,6 +9841,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "versionNameSuffix",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -8903,6 +9950,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.gradle.internal.dsl",
+                            "simpleName": "InternalBuildType"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -10597,6 +11686,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "testInstrumentationRunner",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -10679,6 +11797,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "DynamicFeatureBaseFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -10758,6 +11918,35 @@
                         "dataType": {
                             "type": "boolean"
                         }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
                     },
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
@@ -10848,6 +12037,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "LibraryBaseFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -10913,6 +12144,35 @@
                         "dataType": {
                             "type": "string"
                         }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
                     },
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
@@ -11001,6 +12261,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "TestBaseFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -11144,6 +12446,35 @@
                         "dataType": {
                             "type": "boolean"
                         }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
                     },
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
@@ -11304,6 +12635,48 @@
                             "type": "notAllowed"
                         }
                     }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "ApplicationProductFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
+                        }
+                    }
                 }
             ],
             "constructors": [
@@ -11374,6 +12747,35 @@
                         "dataType": {
                             "type": "string"
                         }
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
                     },
                     "mode": {
                         "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
@@ -11462,6 +12864,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "ProductFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -11557,6 +13001,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "testInstrumentationRunner",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -11637,6 +13110,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "DynamicFeatureProductFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -11746,6 +13261,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "testInstrumentationRunner",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -11826,6 +13370,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "LibraryProductFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -11921,6 +13507,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "testInstrumentationRunner",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -12001,6 +13616,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "TestProductFlavor"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -12717,6 +14374,35 @@
                 },
                 {
                     "type": "dataProperty",
+                    "name": "proguardFiles",
+                    "valueType": {
+                        "type": "dataTypeRefNameWithArgs",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "kotlin.collections",
+                            "simpleName": "List"
+                        },
+                        "typeArguments": [
+                            {
+                                "type": "concreteType",
+                                "dataType": {
+                                    "type": "dataTypeRefName",
+                                    "fqName": {
+                                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                        "packageName": "java.io",
+                                        "simpleName": "File"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "mode": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite"
+                    },
+                    "hasDefaultValue": true
+                },
+                {
+                    "type": "dataProperty",
                     "name": "testInstrumentationRunner",
                     "valueType": {
                         "type": "dataTypeRefType",
@@ -12797,6 +14483,48 @@
                         },
                         "configureBlockRequirement": {
                             "type": "notAllowed"
+                        }
+                    }
+                },
+                {
+                    "type": "dataMemberFunction",
+                    "receiver": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "com.android.build.api.dsl",
+                            "simpleName": "LibraryDefaultConfig"
+                        }
+                    },
+                    "simpleName": "proguardFile",
+                    "parameters": [
+                        {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultDataParameter",
+                            "name": "proguardFile",
+                            "privateType": {
+                                "type": "dataTypeRefName",
+                                "fqName": {
+                                    "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                    "packageName": "kotlin",
+                                    "simpleName": "Any"
+                                }
+                            },
+                            "isDefault": false,
+                            "semantics": {
+                                "type": "unknown"
+                            }
+                        }
+                    ],
+                    "isDirectAccessOnly": false,
+                    "semantics": {
+                        "type": "pure",
+                        "returnValueType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "kotlin",
+                                "simpleName": "Any"
+                            }
                         }
                     }
                 }
@@ -14372,6 +16100,50 @@
                                 "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
                                 "packageName": "org.gradle.api.file",
                                 "simpleName": "RegularFile"
+                            }
+                        }
+                    }
+                ]
+            },
+            [
+                {
+                    "type": "concreteType",
+                    "dataType": {
+                        "type": "dataTypeRefName",
+                        "fqName": {
+                            "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                            "packageName": "java.io",
+                            "simpleName": "File"
+                        }
+                    }
+                }
+            ],
+            {
+                "type": "parameterizedTypeInstance",
+                "typeSignature": {
+                    "type": "parameterizedOpaqueTypeSignature",
+                    "name": {
+                        "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                        "packageName": "kotlin.collections",
+                        "simpleName": "List"
+                    },
+                    "typeParameters": [
+                        {
+                            "name": "E",
+                            "isOutVariant": true
+                        }
+                    ],
+                    "javaTypeName": "java.util.List"
+                },
+                "typeArguments": [
+                    {
+                        "type": "concreteType",
+                        "dataType": {
+                            "type": "dataTypeRefName",
+                            "fqName": {
+                                "type": "org.gradle.internal.declarativedsl.analysis.DefaultFqName",
+                                "packageName": "java.io",
+                                "simpleName": "File"
                             }
                         }
                     }

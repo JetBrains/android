@@ -392,7 +392,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
         "applicationIdSuffix", "buildConfigField", "dependencies", "isMinifyEnabled",
-        "matchingFallbacks += listOf()", "matchingFallbacks = listOf()", "multiDexEnabled", "versionNameSuffix")
+        "matchingFallbacks += listOf()", "matchingFallbacks = listOf()", "multiDexEnabled",
+        "proguardFile", "proguardFiles += listOf()", "proguardFiles = listOf()", "versionNameSuffix")
     }
   }
 
