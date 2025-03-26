@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ai
 
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
@@ -32,7 +33,8 @@ open class FakeAiInsightToolkit(
     get() = DevServicesDeprecationData("", "", "", false, DevServicesDeprecationStatus.SUPPORTED)
 
   override suspend fun getSource(
+    conn: Connection,
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean,
-  ): CodeContextData = codeContextResolver.getSource(stack, overrideSourceLimit)
+  ): CodeContextData = codeContextResolver.getSource(conn, stack, overrideSourceLimit)
 }

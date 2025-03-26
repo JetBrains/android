@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ai.codecontext
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Caption
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ExceptionStack
 import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.Stacktrace
@@ -36,6 +37,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 
 // lines 14, characters 344
 private val ANDROID_LIBRARY_CLASS_CONTENT =
@@ -360,7 +364,8 @@ class CodeContextResolverTest(private val experiment: Experiment) {
   @Test
   fun `resolve code context based on assigned experiment`() = runBlocking {
     val resolver = CodeContextResolverImpl(projectRule.project)
-    val contexts = resolver.getSource(STACKTRACE)
+    val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
+    val contexts = resolver.getSource(conn, STACKTRACE)
 
     val expected =
       when (experiment) {
@@ -397,6 +402,16 @@ class CodeContextResolverTest(private val experiment: Experiment) {
 
     assertThat(contexts).isEqualTo(expected)
   }
+
+  @Test
+  fun `resolve code context returns empty list when Connection does not match project`() =
+    runBlocking {
+      val resolver = CodeContextResolverImpl(projectRule.project)
+      val contexts = resolver.getSource(mock(), STACKTRACE)
+
+      assertThat(contexts.codeContext).isEmpty()
+      assertThat(contexts.experimentType).isEqualTo(experiment)
+    }
 
   private fun createTestExperimentFetcher(experiment: Experiment) =
     object : AppInsightsExperimentFetcher {

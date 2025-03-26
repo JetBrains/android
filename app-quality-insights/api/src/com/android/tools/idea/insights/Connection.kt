@@ -32,6 +32,8 @@ interface Connection {
   val isConfigured: Boolean
 
   fun isPreferredConnection(): Boolean
+
+  fun isMatchingProject(): Boolean
 }
 
 fun List<Connection>.noneIsConfigured(): Boolean = none { it.isConfigured }

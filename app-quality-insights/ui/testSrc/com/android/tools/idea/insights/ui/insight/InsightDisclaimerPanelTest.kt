@@ -19,8 +19,14 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
+import com.android.tools.idea.insights.TEST_FILTERS
+import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
@@ -34,9 +40,12 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import java.net.URL
+import java.time.Instant
 import javax.swing.JEditorPane
+import javax.swing.JTextPane
 import javax.swing.event.HyperlinkEvent
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -49,12 +58,21 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class InsightDisclaimerPanelTest {
 
   private lateinit var scope: CoroutineScope
   private val insightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
+  private val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
+  private val state =
+    AppInsightsState(
+      Selection(conn, listOf(conn)),
+      TEST_FILTERS,
+      LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+    )
 
   @get:Rule val edtRule = EdtRule()
   @get:Rule val projectRule = ProjectRule()
@@ -87,7 +105,7 @@ class InsightDisclaimerPanelTest {
       val disclaimerPanel =
         createDisclaimerPanel(
           controller =
-            object : StubAppInsightsProjectLevelController() {
+            object : StubAppInsightsProjectLevelController(state = MutableStateFlow(state)) {
               override fun refreshInsight(regenerateWithContext: Boolean) {
                 refreshInsightCalled.complete(regenerateWithContext)
               }
@@ -108,7 +126,10 @@ class InsightDisclaimerPanelTest {
   @Test
   fun `enable context prompt disclaimer is shown when context sharing setting is off and current insight's experiment is unknown`() =
     runBlocking {
-      val disclaimerPanel = createDisclaimerPanel()
+      val disclaimerPanel =
+        createDisclaimerPanel(
+          StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
+        )
       insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.UNKNOWN)) }
 
       for (experiment in
@@ -126,8 +147,25 @@ class InsightDisclaimerPanelTest {
       }
     }
 
+  @Test
+  fun `project mismatch panel shown when context enabled and project different from connection`() =
+    runBlocking {
+      doReturn(false).whenever(conn).isMatchingProject()
+      insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.TOP_SOURCE)) }
+      createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
+
+      val textPane = fakeUi.findComponent<JTextPane> { it.isVisible } ?: fail("JTextPane not found")
+      // TextPane text contains html tags. Clean up the spacing in order to match the expected text
+      val text = textPane.text.split("\n").joinToString(" ") { it.trim() }
+      assertThat(text)
+        .contains(
+          "This insight was generated without code context because the currently open project does not appear to match the project selected in Firebase Crashlytics"
+        )
+    }
+
   private fun createDisclaimerPanel(
-    controller: AppInsightsProjectLevelController = StubAppInsightsProjectLevelController()
+    controller: AppInsightsProjectLevelController =
+      StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
   ) = InsightDisclaimerPanel(controller, scope, insightFlow).also { fakeUi = FakeUi(it) }
 
   private fun clickOnLink() =

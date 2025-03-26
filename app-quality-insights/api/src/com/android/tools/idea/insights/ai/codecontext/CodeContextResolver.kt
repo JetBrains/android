@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
@@ -73,10 +74,12 @@ interface CodeContextResolver {
   /**
    * Gets the source files for the given [stack].
    *
+   * @param conn [Connection] selected connection.
    * @param stack [StacktraceGroup] for which the files are needed.
    * @param overrideSourceLimit override source limits for [Experiment.CONTROL]
    */
   suspend fun getSource(
+    conn: Connection,
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean = false,
   ): CodeContextData
@@ -88,6 +91,7 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
     get() = AppInsightsExperimentFetcher.instance
 
   override suspend fun getSource(
+    conn: Connection,
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean,
   ): CodeContextData {
@@ -102,6 +106,9 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
       } else {
         experimentFetcher.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
       }
+    if (!conn.isMatchingProject()) {
+      return CodeContextData(emptyList(), experiment)
+    }
     val fileLimit =
       when (experiment) {
         Experiment.TOP_SOURCE -> 1

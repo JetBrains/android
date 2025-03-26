@@ -21,6 +21,7 @@ import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
@@ -42,12 +43,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class AiInsightToolkitTest {
 
   @get:Rule val projectRule = ProjectRule()
+
+  private val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
 
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
 
@@ -99,11 +103,27 @@ class AiInsightToolkitTest {
       )
 
     fakeGeminiPluginApi.contextAllowed = false
-    assertThat(toolKit.getSource(StacktraceGroup())).isEqualTo(CodeContextData.UNASSIGNED)
+    assertThat(toolKit.getSource(conn, StacktraceGroup())).isEqualTo(CodeContextData.UNASSIGNED)
 
     fakeGeminiPluginApi.contextAllowed = true
-    assertThat(toolKit.getSource(StacktraceGroup()).codeContext).isNotEmpty()
+    assertThat(toolKit.getSource(conn, StacktraceGroup()).codeContext).isNotEmpty()
   }
+
+  @Test
+  fun `code context resolver returns empty result when connection does not match project`() =
+    runBlocking {
+      doReturn(false).whenever(conn).isMatchingProject()
+      val toolKit =
+        AiInsightToolkitImpl(
+          projectRule.project,
+          StubInsightsOnboardingProvider(),
+          FakeCodeContextResolver(listOf(CodeContext("class", "a/b/c", "blah", Language.KOTLIN))),
+        )
+      fakeGeminiPluginApi.contextAllowed = true
+
+      assertThat(toolKit.getSource(conn, StacktraceGroup()))
+        .isEqualTo(CodeContextData(emptyList(), Experiment.ALL_SOURCES))
+    }
 
   @Test
   fun `insight deprecation data checks gemini first`() = runBlocking {

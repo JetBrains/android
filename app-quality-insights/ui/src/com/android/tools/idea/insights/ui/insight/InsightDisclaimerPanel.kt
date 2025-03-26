@@ -20,7 +20,6 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.mapReadyOrDefault
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -35,38 +34,32 @@ import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBFont
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
-import java.awt.BorderLayout
-import java.awt.Container
-import java.awt.Dimension
 import java.util.concurrent.atomic.AtomicReference
-import javax.swing.JEditorPane
 import javax.swing.JPanel
+import javax.swing.JTextPane
 import javax.swing.event.HyperlinkEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class InsightDisclaimerPanel(
   private val controller: AppInsightsProjectLevelController,
   scope: CoroutineScope,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
-) : JPanel() {
-  private val borderLayout =
-    object : BorderLayout() {
-      override fun preferredLayoutSize(parent: Container): Dimension? {
-        val current = findCurrentComponent(parent) ?: return super.preferredLayoutSize(parent)
-        val insets = parent.insets
-        val pref = current.preferredSize
-        pref.width += insets.left + insets.right
-        pref.height += insets.top + insets.bottom
-        return pref
-      }
+) : JPanel(VerticalLayout(0)) {
 
-      private fun findCurrentComponent(parent: Container) = parent.components.first { it.isVisible }
-    }
+  private val insightToConnectionFlow =
+    combine(
+        currentInsightFlow.map { it.valueOrNull() },
+        controller.state.map { it.connections.selected },
+      ) { insight, conn ->
+        insight to conn
+      }
+      .distinctUntilChanged()
 
   private val geminiOnboardingObserverAction =
     object : AnAction() {
@@ -77,6 +70,7 @@ class InsightDisclaimerPanel(
         e.presentation.isEnabledAndVisible = false
         if (
           this@InsightDisclaimerPanel.isVisible &&
+            withoutCode.isVisible &&
             GeminiPluginApi.getInstance().isContextAllowed(controller.project)
         ) {
           this@InsightDisclaimerPanel.isVisible = false
@@ -87,7 +81,7 @@ class InsightDisclaimerPanel(
       override fun actionPerformed(e: AnActionEvent) = Unit
     }
 
-  private val withoutCodeDisclaimer =
+  private val withoutCode =
     disclaimerPanel(
       text =
         "<html>This insight was generated without code context because your current settings do not allow Gemini to use code context. You can change it via <a href='GeminiContextSettings'>Settings > Gemini > Context Awareness</a>.</html>",
@@ -119,17 +113,14 @@ class InsightDisclaimerPanel(
       },
     )
 
-  private val withoutCodePanel =
-    JPanel(VerticalLayout(JBUI.scale(3))).apply {
-      name = "without_code_disclaimer_panel"
-      add(withoutCodeDisclaimer)
+  private val projectMismatch =
+    disclaimerPanel(
+      text =
+        "This insight was generated without code context because the currently open project does not appear to match the project selected in ${controller.provider.displayName}"
+    ) { /* no link in text */
     }
 
   init {
-    layout = borderLayout
-
-    add(withoutCodePanel, BorderLayout.CENTER)
-
     val toolbar =
       ActionManager.getInstance()
         .createActionToolbar(
@@ -138,18 +129,39 @@ class InsightDisclaimerPanel(
           true,
         )
     toolbar.targetComponent = this
-    add(toolbar.component, BorderLayout.NORTH)
 
     scope.launch {
-      currentInsightFlow
-        .mapReadyOrDefault(false) { it?.isEnhancedWithCodeContext() == true }
-        .distinctUntilChanged()
-        .collect { isEnhancedWithCodeContext -> isVisible = !isEnhancedWithCodeContext }
+      insightToConnectionFlow.collect { (insight, conn) ->
+        if (insight == null || conn == null) {
+          return@collect
+        }
+        when {
+          !insight.isEnhancedWithCodeContext() -> {
+            isVisible = true
+            withoutCode.isVisible = true
+            projectMismatch.isVisible = false
+          }
+          !conn.isMatchingProject() -> {
+            isVisible = true
+            projectMismatch.isVisible = true
+            withoutCode.isVisible = false
+          }
+          else -> {
+            isVisible = false
+            withoutCode.isVisible = false
+            projectMismatch.isVisible = false
+          }
+        }
+      }
     }
+
+    add(toolbar.component)
+    add(withoutCode)
+    add(projectMismatch)
   }
 
   private fun disclaimerPanel(text: String, hyperlinkActivated: (HyperlinkEvent) -> Unit) =
-    JEditorPane().apply {
+    JTextPane().apply {
       HtmlLabel.setUpAsHtmlLabel(this)
       this.text = text
       addHyperlinkListener(
@@ -161,5 +173,6 @@ class InsightDisclaimerPanel(
       )
       font = JBFont.label().asItalic()
       foreground = NamedColorUtil.getInactiveTextColor()
+      isVisible = false
     }
 }

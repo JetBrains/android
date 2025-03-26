@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
+import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
@@ -122,6 +123,7 @@ class InsightContentPanelTest {
     doReturn(FakeAiInsightToolkit(aiInsightOnboardingProvider = onboardingProvider))
       .whenever(mockController)
       .aiInsightToolkit
+    doReturn(FakeInsightsProvider()).whenever(mockController).provider
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.available = false
     ExtensionTestUtil.maskExtensions(

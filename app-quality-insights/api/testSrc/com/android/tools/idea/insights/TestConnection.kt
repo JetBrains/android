@@ -28,4 +28,6 @@ data class TestConnection(
   override val clientId: String = "android:${appId}"
 
   override fun isPreferredConnection() = isPreferred
+
+  override fun isMatchingProject() = isPreferred
 }

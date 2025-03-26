@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ai.codecontext
 
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
 import com.android.tools.idea.insights.experiments.Experiment
@@ -23,11 +24,14 @@ import com.android.tools.idea.insights.experiments.ExperimentGroup
 open class FakeCodeContextResolver(private var codeContext: List<CodeContext>) :
   CodeContextResolver {
   override suspend fun getSource(
+    conn: Connection,
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean,
   ): CodeContextData {
     val experiment =
       AppInsightsExperimentFetcher.instance.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
+
+    if (!conn.isMatchingProject()) return CodeContextData(emptyList(), experiment)
 
     return when (experiment) {
       Experiment.TOP_SOURCE,

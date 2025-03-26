@@ -29,4 +29,6 @@ data class VitalsConnection(
   override val clientId = "apps/${appId}"
 
   override fun isPreferredConnection() = isPreferred
+
+  override fun isMatchingProject() = isPreferred
 }

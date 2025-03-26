@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ai
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
@@ -37,10 +38,12 @@ interface AiInsightToolkit {
   /**
    * Gets the source files for the given [stack].
    *
+   * @param conn [Connection] for which the source is needed
    * @param stack [StacktraceGroup] for which the files are needed.
    * @param overrideSourceLimit override source limits for [Experiment.CONTROL]
    */
   suspend fun getSource(
+    conn: Connection,
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean = false,
   ): CodeContextData
@@ -64,11 +67,12 @@ class AiInsightToolkitImpl(
   }
 
   override suspend fun getSource(
+    conn: Connection,
     stack: StacktraceGroup,
     overrideSourceLimit: Boolean,
   ): CodeContextData {
     if (!GeminiPluginApi.getInstance().isContextAllowed(project)) return CodeContextData.UNASSIGNED
-    return codeContextResolver.getSource(stack, overrideSourceLimit)
+    return codeContextResolver.getSource(conn, stack, overrideSourceLimit)
   }
 
   private fun getDeprecationData(service: String) =
