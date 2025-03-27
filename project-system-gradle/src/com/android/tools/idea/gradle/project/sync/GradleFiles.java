@@ -226,7 +226,6 @@ public class GradleFiles implements Disposable.Default {
   }
 
   public void resetChangedFilesState() {
-    scheduleUpdateFileHashes();
     removeChangedFiles();
   }
   public void maybeProcessSyncStarted() {
@@ -234,5 +233,8 @@ public class GradleFiles implements Disposable.Default {
       return;
     }
     resetChangedFilesState();
+  }
+  public void maybeProcessSyncSucceeded() {
+    scheduleUpdateFileHashes();
   }
 }

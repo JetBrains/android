@@ -235,6 +235,8 @@ class GradleSyncStateHolder constructor(private val project: Project) {
 
     val message = "Gradle sync finished in ${formatDuration(millisTook)}"
 
+    GradleFiles.getInstance(project).maybeProcessSyncSucceeded()
+
     if (IdeInfo.getInstance().isAndroidStudio) {
       addMessageToEventLog(message, MessageType.INFO)
     }

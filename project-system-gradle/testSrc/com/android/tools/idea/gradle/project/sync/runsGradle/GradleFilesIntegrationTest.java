@@ -119,6 +119,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
   private void simulateSyncForGradleFilesUpdate() {
     myGradleFiles.maybeProcessSyncStarted();
+    myGradleFiles.maybeProcessSyncSucceeded();
     UIUtil.dispatchAllInvocationEvents();
     assertFalse(myGradleFiles.areGradleFilesModified());
   }

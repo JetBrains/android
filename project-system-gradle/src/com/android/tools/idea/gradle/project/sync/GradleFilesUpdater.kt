@@ -65,7 +65,12 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
 
   fun scheduleUpdateFileHashes(callback: (Result) -> Unit) {
     if (ApplicationManager.getApplication().isUnitTestMode) {
-      ApplicationManager.getApplication().invokeLater { updateFileHashes(callback) }
+      runBlocking {
+        val job = cs.launch(Dispatchers.Default) {
+          callback(computeFileHashes())
+        }
+        job.join()
+      }
     }
     else {
       cs.launch(Dispatchers.Default) {
@@ -81,30 +86,31 @@ class GradleFilesUpdater(private val project: Project, private val cs: Coroutine
 
   suspend fun computeFileHashes(): Result {
     suspend fun computeWrapperPropertiesHash(): Result {
+      val file = GradleWrapper.find(project)?.propertiesFile?.takeIf { it.isRegularFile } ?: return Result.EMPTY
       return readAction {
-        GradleWrapper.find(project)?.propertiesFile?.takeIf { it.isRegularFile }?.let { Result.from(it) } ?: return@readAction Result.EMPTY
+        Result.from(file)
       }
     }
     suspend fun computeModuleHashes(module: Module): Result {
-      return readAction {
-        val files = mutableSetOf<VirtualFile>()
-        val externalBuildFiles = mutableSetOf<VirtualFile>()
-        GradleProjectSystemUtil.getGradleBuildFile(module)?.let { buildFile ->
-          if (!buildFile.isRegularFile) return@let
-          files.add(buildFile)
-        }
-        ProgressManager.checkCanceled()
-        NdkModuleModel.get(module)?.let { ndkModuleModel ->
-          for (file in ndkModuleModel.buildFiles) {
-            if (file.isFile) {
-              ProgressManager.checkCanceled()
-              val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: continue
-              if (!virtualFile.isRegularFile) return@let
-              externalBuildFiles.add(virtualFile)
-              files.add(virtualFile)
-            }
+      val files = mutableSetOf<VirtualFile>()
+      val externalBuildFiles = mutableSetOf<VirtualFile>()
+      GradleProjectSystemUtil.getGradleBuildFile(module)?.let { buildFile ->
+        if (!buildFile.isRegularFile) return@let
+        files.add(buildFile)
+      }
+      ProgressManager.checkCanceled()
+      NdkModuleModel.get(module)?.let { ndkModuleModel ->
+        for (file in ndkModuleModel.buildFiles) {
+          if (file.isFile) {
+            ProgressManager.checkCanceled()
+            val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: continue
+            if (!virtualFile.isRegularFile) return@let
+            externalBuildFiles.add(virtualFile)
+            files.add(virtualFile)
           }
         }
+      }
+      return readAction {
         Result.from(files, externalBuildFiles)
       }
     }
