@@ -46,7 +46,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.SideBorder
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.time.Clock
@@ -236,7 +236,7 @@ class VitalsTab(
     val group = DefaultActionGroup()
     val actionToolbar =
       AppInsightsToolbar("AppInsights", group, true).apply { targetComponent = this@VitalsTab }
-    actionToolbar.component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
+    actionToolbar.component.border = SideBorder(JBColor.border(), SideBorder.BOTTOM)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     scope.launch(AndroidDispatchers.uiThread) {
       offlineStateFlow.collect { mode ->

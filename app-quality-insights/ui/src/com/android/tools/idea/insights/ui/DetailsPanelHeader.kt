@@ -22,6 +22,7 @@ import com.intellij.openapi.ui.getUserData
 import com.intellij.openapi.ui.putUserData
 import com.intellij.openapi.util.Key
 import com.intellij.ui.JBColor
+import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.util.preferredWidth
@@ -160,8 +161,7 @@ class DetailsPanelHeader(
     gbc.anchor = GridBagConstraints.WEST
     add(countsPanel, gbc)
     border =
-      CompoundBorder(JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.emptyLeft(8))
-
+      CompoundBorder(SideBorder(JBColor.border(), SideBorder.BOTTOM), JBUI.Borders.emptyLeft(8))
     addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {

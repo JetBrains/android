@@ -32,7 +32,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.SideBorder
 import com.intellij.util.ui.JButtonAction
 import icons.StudioIcons
 import javax.swing.BoxLayout
@@ -107,7 +107,7 @@ class InsightBottomPanel(
     add(feedbackPanel)
     add(rightToolbar.component)
 
-    border = JBUI.Borders.customLineTop(JBColor.border())
+    border = SideBorder(JBColor.border(), SideBorder.TOP)
 
     currentInsightFlow
       .distinctUntilChanged()
