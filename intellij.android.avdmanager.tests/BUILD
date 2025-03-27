@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
     ],
+    test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_srcs = ["src"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

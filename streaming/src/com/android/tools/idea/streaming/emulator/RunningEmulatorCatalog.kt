@@ -18,11 +18,13 @@ package com.android.tools.idea.streaming.emulator
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.concurrency.AndroidIoManager
+import com.android.tools.idea.avdmanager.LaunchedAvdTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -79,6 +81,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private var pendingUpdateResults: MutableList<CompletableDeferred<Set<EmulatorController>>> = mutableListOf()
   @GuardedBy("dataLock")
   private var registrationDirectory: Path? = computeRegistrationDirectory()
+  private val launchedAvdTracker = service<LaunchedAvdTracker>()
 
   /**
    * Adds a listener that will be notified when new emulators start and running emulators shut down.
@@ -367,8 +370,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
     // Shut down all embedded Emulators.
     synchronized(dataLock) {
+      val launchedAvds = launchedAvdTracker.launchedAvds
       for (emulator in emulators) {
-        if (emulator.emulatorId.isEmbedded) {
+        if (emulator.emulatorId.isEmbedded && launchedAvds.containsKey(emulator.emulatorId.avdFolder.toString())) {
           emulator.shutdown()
           registrationDirectory?.resolve(emulator.emulatorId.registrationFileName)?.deleteIfExists()
         }

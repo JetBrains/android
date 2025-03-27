@@ -24,6 +24,7 @@ import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.serviceContainer.AlreadyDisposedException
@@ -42,10 +43,10 @@ private const val LOCATION = "(?<location>[\\w-]+\\.[A-Za-z]+:\\d+)"
 class EmulatorProcessHandler(
   process: Process,
   commandLine: String,
-  private val avdInfo: AvdInfo
+  private val avd: AvdInfo
 ) : BaseOSProcessHandler(process, commandLine, null) {
 
-  private val avdName = avdInfo.displayName
+  private val avdName = avd.displayName
   private val log = Logger.getInstance("Emulator: $avdName")
 
   /**
@@ -74,10 +75,11 @@ class EmulatorProcessHandler(
   private val verboseMessagePattern = Regex("""^$TIMESTAMP $THREAD\s+$NOTIFY_USER$SEVERITY\s+$LOCATION\s+\| $MESSAGE""")
 
   private val isEmbedded = commandLine.contains(" -qt-hide-window ")
-  val messageBus = ApplicationManager.getApplication().messageBus
+  private val messageBus = ApplicationManager.getApplication().messageBus
+  private val ownedRunningEmulators = service<LaunchedAvdTracker>()
 
   init {
-    addProcessListener(ConsoleListener())
+    addProcessListener(EmulatorProcessListener())
     ProcessTerminatedListener.attach(this)
   }
 
@@ -92,7 +94,15 @@ class EmulatorProcessHandler(
   override fun readerOptions(): BaseOutputReader.Options =
       BaseOutputReader.Options.forMostlySilentProcess()
 
-  private inner class ConsoleListener : ProcessListener {
+  private inner class EmulatorProcessListener : ProcessListener {
+
+    override fun startNotified(event: ProcessEvent) {
+      ownedRunningEmulators.started(avd.id, process.toHandle())
+    }
+
+    override fun processTerminated(event: ProcessEvent) {
+      ownedRunningEmulators.terminated(avd.id, process.toHandle())
+    }
 
     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
       val text = event.text?.trim { it <= ' ' }
@@ -147,7 +157,7 @@ class EmulatorProcessHandler(
           notify("Emulator: $avdName", message, NotificationType.ERROR)
         }
       }
-      notifyListeners(avdInfo, severity, notifyUser, message)
+      notifyListeners(avd, severity, notifyUser, message)
     }
 
     private fun notify(title: String, content: String, @Suppress("SameParameterValue") notificationType: NotificationType) {

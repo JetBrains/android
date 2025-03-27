@@ -30,6 +30,7 @@ import java.nio.file.Paths
 import java.util.concurrent.CountDownLatch
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 /** Tests for [EmulatorProcessHandler]. */
 class EmulatorProcessHandlerTest {
@@ -113,6 +114,7 @@ class EmulatorProcessHandlerTest {
     private val stdin = ByteArrayOutputStream()
     private val stdout = CountDownByteArrayInputStream(output.joinToString("\n").toByteArray())
     private val stderr = ByteArray(0).inputStream()
+    private val handle = mock<ProcessHandle>()
 
     override fun destroy() {
       TODO("Not yet implemented")
@@ -123,6 +125,8 @@ class EmulatorProcessHandlerTest {
     override fun getInputStream(): InputStream = stdout
 
     override fun getErrorStream(): InputStream = stderr
+
+    override fun toHandle(): ProcessHandle = handle
 
     override fun waitFor(): Int {
       stdout.waitUntilReadCompletely()
