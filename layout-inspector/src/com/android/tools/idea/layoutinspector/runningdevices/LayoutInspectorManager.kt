@@ -16,14 +16,16 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
-import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.RootPanelRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
@@ -249,7 +251,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       )
 
     val layoutInspector = project.getLayoutInspector()
-    val rendererPanel = createRendererPanel(tabComponents, layoutInspector)
+    val rendererPanel = createRendererPanel(layoutInspector, tabComponents)
     return SelectedTabState(project, deviceId, tabComponents, layoutInspector, rendererPanel)
   }
 
@@ -345,50 +347,50 @@ private fun Project.getLayoutInspector(): LayoutInspector {
 }
 
 private fun createRendererPanel(
-  tabComponents: TabComponents,
   layoutInspector: LayoutInspector,
-): RootPanelRenderer {
-  return RootPanelRenderer(
-    disposable = tabComponents,
-    inspectorModel = layoutInspector.inspectorModel,
-    onDeviceRendererProvider = { parentDisposable ->
-      OnDeviceRendererPanel(
-        disposable = parentDisposable,
-        scope = layoutInspector.coroutineScope,
-        renderModel =
-          OnDeviceRendererModel(
-            parentDisposable = parentDisposable,
-            inspectorModel = layoutInspector.inspectorModel,
-            treeSettings = layoutInspector.treeSettings,
-            renderSettings = layoutInspector.renderSettings,
-          ),
-        enableSendRightClicksToDevice = { enable ->
-          tabComponents.displayView.rightClicksAreSentToDevice = enable
-        },
+  tabComponents: TabComponents,
+): LayoutInspectorRenderer {
+  val isXrDevice = tabComponents.displayView.deviceType == DeviceType.XR
+  val useOnDeviceRendering =
+    isXrDevice || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
+  return if (useOnDeviceRendering) {
+    val renderModel =
+      OnDeviceRendererModel(
+        parentDisposable = tabComponents,
+        inspectorModel = layoutInspector.inspectorModel,
+        treeSettings = layoutInspector.treeSettings,
+        renderSettings = layoutInspector.renderSettings,
       )
-    },
-    studioRendererProvider = { parentDisposable ->
-      StudioRendererPanel(
-        disposable = parentDisposable,
-        coroutineScope = layoutInspector.coroutineScope,
-        renderLogic = layoutInspector.renderLogic,
-        renderModel = layoutInspector.renderModel,
-        notificationModel = layoutInspector.notificationModel,
-        displayRectangleProvider = { tabComponents.displayView.displayRectangle },
-        screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
-        orientationQuadrantProvider = {
-          calculateRotationCorrection(
-            layoutInspector.inspectorModel,
-            displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
-            displayOrientationQuadrantCorrection = {
-              tabComponents.displayView.displayOrientationCorrectionQuadrants
-            },
-          )
-        },
-        currentSessionStatistics = { layoutInspector.currentClient.stats },
-      )
-    },
-  )
+
+    OnDeviceRendererPanel(
+      disposable = tabComponents,
+      scope = layoutInspector.coroutineScope,
+      renderModel = renderModel,
+      enableSendRightClicksToDevice = { enable ->
+        tabComponents.displayView.rightClicksAreSentToDevice = enable
+      },
+    )
+  } else {
+    StudioRendererPanel(
+      disposable = tabComponents,
+      coroutineScope = layoutInspector.coroutineScope,
+      renderLogic = layoutInspector.renderLogic,
+      renderModel = layoutInspector.renderModel,
+      notificationModel = layoutInspector.notificationModel,
+      displayRectangleProvider = { tabComponents.displayView.displayRectangle },
+      screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
+      orientationQuadrantProvider = {
+        calculateRotationCorrection(
+          layoutInspector.inspectorModel,
+          displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
+          displayOrientationQuadrantCorrection = {
+            tabComponents.displayView.displayOrientationCorrectionQuadrants
+          },
+        )
+      },
+      currentSessionStatistics = { layoutInspector.currentClient.stats },
+    )
+  }
 }
 
 /**

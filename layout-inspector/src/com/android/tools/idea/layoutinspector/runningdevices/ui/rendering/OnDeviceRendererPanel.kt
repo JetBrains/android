@@ -50,7 +50,7 @@ class OnDeviceRendererPanel(
   private val enableSendRightClicksToDevice: (enable: Boolean) -> Unit,
 ) : LayoutInspectorRenderer() {
   companion object {
-    private val logger = Logger.getInstance(RootPanelRenderer::class.java)
+    private val logger = Logger.getInstance(OnDeviceRendererPanel::class.java)
   }
 
   private var onDeviceRendererPanel: OnDeviceRendererPanelImpl? = null
