@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
+import javax.swing.JButton;
+import javax.swing.JRootPane;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 
 public class ChooseDeviceDefinitionStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ChooseDeviceDefinitionStepFixture, W> {
@@ -72,6 +72,18 @@ public class ChooseDeviceDefinitionStepFixture<W extends AbstractWizardFixture>
     Wait.seconds(1).expecting("device to be deleted").until(() -> !deviceNames().contains(deviceName));
 
     return this;
+  }
+
+  @NotNull
+  public HardwareProfileWizardFixture editHardwareProfile(@NotNull final String deviceName) {
+    JTableFixture deviceListFixture = getTableFixture();
+
+    deviceListFixture.cell(deviceName).click(RIGHT_BUTTON);
+
+    JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), robot().findActivePopupMenu());
+    contextMenuFixture.menuItemWithPath("Edit").click();
+
+    return HardwareProfileWizardFixture.find(robot());
   }
 
   @NotNull

@@ -135,8 +135,14 @@ public final class ConfigureDeviceModel extends WizardModel {
   @NotNull
   private Device buildDevice() {
     String deviceName = myDeviceData.name().get();
+    String deviceId = myDeviceData.deviceId().get();
+    if (deviceId.isEmpty()) {
+      // empty deviceId == new device creation, use deviceName as deviceId
+      // non-empty deviceId == edit existing device, use existing deviceId
+      deviceId = deviceName;
+    }
     myBuilder.setName(deviceName);
-    myBuilder.setId(deviceName);
+    myBuilder.setId(deviceId);
     myBuilder.addSoftware(myDeviceData.software().getValue());
     myBuilder.setManufacturer(myDeviceData.manufacturer().get());
     IdDisplay tag = myDeviceData.deviceType().getValueOrNull();

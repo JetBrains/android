@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
+import static com.google.common.truth.Truth.assertWithMessage;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseDeviceDefinitionStepFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Tests exercising the UI for hardware profile management
@@ -55,6 +57,46 @@ public class HardwareProfileTest {
 
     step.deleteHardwareProfile(deviceName);
     assertWithMessage("after deleting").that(step.deviceNames()).doesNotContain(deviceName);
+
+    avdEditWizard.clickCancel();
+    avdManagerDialog.close();
+  }
+
+  @Test
+  public void createAndEditHardwareProfile() throws Exception {
+    String deviceName = HardwareProfileTest.class.getSimpleName();
+    String deviceNameAfterEdit = deviceName + "edited";
+
+    guiTest.importSimpleApplication();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
+    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
+    ChooseDeviceDefinitionStepFixture<AvdEditWizardFixture> step = avdEditWizard.selectHardware();
+    if (step.deviceNames().contains(deviceName)) {
+      step.deleteHardwareProfile(deviceName);
+    }
+    if (step.deviceNames().contains(deviceNameAfterEdit)) {
+      step.deleteHardwareProfile(deviceNameAfterEdit);
+    }
+
+    assertWithMessage("initial state").that(step.deviceNames()).doesNotContain(deviceName);
+    assertWithMessage("initial state").that(step.deviceNames()).doesNotContain(deviceNameAfterEdit);
+
+    step.newHardwareProfile()
+      .getConfigureDeviceOptionsStep()
+      .setDeviceName(deviceName)
+      .wizard()
+      .clickFinish();
+    assertWithMessage("after creating").that(step.deviceNames()).contains(deviceName);
+
+
+    step.editHardwareProfile(deviceName)
+      .getConfigureDeviceOptionsStep()
+      .setDeviceName(deviceNameAfterEdit)
+      .wizard()
+      .clickFinish();
+
+    assertWithMessage("after editing old device").that(step.deviceNames()).doesNotContain(deviceName);
+    assertWithMessage("after editing new device").that(step.deviceNames()).contains(deviceNameAfterEdit);
 
     avdEditWizard.clickCancel();
     avdManagerDialog.close();
