@@ -2338,7 +2338,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "support.gias.enterprise",
                     "Enable support for GCA Enterprise tier",
                     "Enable support for GCA Enterprise tier",
-                    false);
+                    enabledUpTo(CANARY));
 
   // endregion STUDIO_BOT
 
