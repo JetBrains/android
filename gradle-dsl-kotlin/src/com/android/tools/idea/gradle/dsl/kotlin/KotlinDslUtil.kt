@@ -57,15 +57,18 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.idea.base.psi.isNullExpression
-import org.jetbrains.kotlin.lexer.KtTokens.*
+import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
+import org.jetbrains.kotlin.lexer.KtTokens.LPAR
+import org.jetbrains.kotlin.lexer.KtTokens.WHITESPACES
+import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
@@ -86,13 +89,12 @@ import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getContentRange
-import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
@@ -103,9 +105,9 @@ internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$
 
 internal fun KtCallExpression.isBlockElement(converter: GradleDslNameConverter, parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
-  val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
+  val argumentsList = valueArgumentList?.arguments
   val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isValidBlockName(this.name()) } ?: false
-  val zeroArguments = argumentsList == null || argumentsList.size == 0
+  val zeroArguments = argumentsList == null || argumentsList.isEmpty()
   val knownBlockForParent = zeroArguments &&
                             (listOf("allprojects", APPLY_BLOCK_NAME, EXT.name).contains(this.name()) ||
                              parent is ConfigurationDslElement || // see special-case in SharedParserUtils.getPropertiesElement
@@ -189,7 +191,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
 
   // Now we can start appending names from the resolved reference file context.
   var parentElement: GradleDslElement? = null
-  var extraArraySyntax: Boolean = currentParent != context.dslFile
+  val extraArraySyntax: Boolean = currentParent != context.dslFile
 
   for (currentElement in resolutionElements) {
     // Get the external name for the resolve reference.
@@ -314,7 +316,7 @@ internal fun isValidBlockName(blockName : String?) =
 internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
   var psiElement = psiElement
   while (psiElement != this) {
-    psiElement = psiElement?.parent ?: return false
+    psiElement = psiElement.parent ?: return false
   }
   return true
 }
@@ -373,7 +375,7 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslEl
           null
         }
       }
-      is KtScript -> anchorAfter.blockExpression.lastChild ?: null
+      is KtScript -> anchorAfter.blockExpression.lastChild
       else -> anchorAfter
     }
   }
@@ -429,13 +431,13 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
       else {
         valueText = StringUtil.escapeCharCharacters(value).addQuotes(true)
       }
-      return KtPsiFactory(applyContext.dslFile.project).createExpression(valueText)
+      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(valueText)
     }
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
     is ReferenceTo -> {
       val externalTextValue =
-        convertToExternalTextValue(value.referredElement!!, context, applyContext, false) ?: value.referredElement!!.fullName
+        convertToExternalTextValue(value.referredElement, context, applyContext, false) ?: value.referredElement.fullName
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
     }
     is InterpolatedText -> {
@@ -445,8 +447,8 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
           builder.append(interpolation.textItem)
         }
         if (interpolation.referenceItem != null) {
-          val externalText = convertToExternalTextValue(interpolation.referenceItem!!.referredElement!!, context, applyContext, true)
-          builder.append(externalText ?: interpolation.referenceItem!!.referredElement!!.fullName)
+          val externalText = convertToExternalTextValue(interpolation.referenceItem!!.referredElement, context, applyContext, true)
+          builder.append(externalText ?: interpolation.referenceItem!!.referredElement.fullName)
         }
       }
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes(true))
@@ -1039,13 +1041,8 @@ internal fun createBinaryExpression(expressionList : GradleDslExpressionList) : 
   val mapValueArgument = psiFactory.createArgument(expression)
   val lastArgument = argumentsList.arguments.last()
   added = argumentsList.addArgumentAfter(mapValueArgument, lastArgument)
-
-  if (added is KtValueArgument) {
-    expressionList.psiElement = added.getArgumentExpression()
-    return expressionList.psiElement
-  }
-
-  return null
+  expressionList.psiElement = added.getArgumentExpression()
+  return expressionList.psiElement
 }
 
 internal fun hasNewLineBetween(start : PsiElement, end : PsiElement) : Boolean {
