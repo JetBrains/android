@@ -264,6 +264,8 @@ class AndroidRunConfigurationExecutorTest {
 
     assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated).isTrue()
     deviceState.stopClient(1234)
+
+    processHandler.destroyProcess()
     if (!processHandler.waitFor(5000)) {
       fail("Process handler didn't stop when debug process terminated")
     }
