@@ -1,5 +1,6 @@
 import com.android.build.api.variant.HostTestBuilder;
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 23

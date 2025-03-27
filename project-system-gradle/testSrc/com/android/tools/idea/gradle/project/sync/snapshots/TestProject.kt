@@ -280,6 +280,12 @@ enum class TestProject(
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { projectRoot ->
       projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+        content.replace(
+          "apply plugin: 'com.android.application'",
+          "apply plugin: 'com.android.application'\napply plugin: 'kotlin-android'"
+        )
+      }
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
         content
           .replace(
             "buildTypes {",
