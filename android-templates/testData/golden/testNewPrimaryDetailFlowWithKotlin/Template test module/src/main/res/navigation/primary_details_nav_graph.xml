@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/item_list_fragment"
-        android:name="template.test.pkg.ItemListFragment"
+        android:name="template.test.in.ItemListFragment"
         android:label="ItemListFragment">
         <action
             android:id="@+id/show_item_detail"
@@ -15,7 +15,7 @@
     </fragment>
     <fragment
         android:id="@+id/item_detail_fragment"
-        android:name="template.test.pkg.ItemDetailFragment"
+        android:name="template.test.in.ItemDetailFragment"
         android:label="item_detail"
         tools:layout="@layout/fragment_item_detail">
         <argument

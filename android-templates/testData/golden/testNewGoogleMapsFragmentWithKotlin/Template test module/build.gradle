@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace 'template.test.pkg'
+    namespace 'template.test.in'
     compileSdk 35
 
     defaultConfig {
-        applicationId "template.test.pkg"
+        applicationId "template.test.in"
         minSdk 23
         targetSdk 35
         versionCode 1

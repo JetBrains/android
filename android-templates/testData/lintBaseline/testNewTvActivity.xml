@@ -8,7 +8,7 @@
         errorLine1=" * Main Activity class that loads {@link MainFragment}."
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MainActivity.java"
+            file="src/main/java/template/test/in/MainActivity.java"
             line="8"
             column="35"/>
     </issue>

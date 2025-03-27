@@ -3,11 +3,11 @@
 
 cmake_minimum_required(VERSION 3.22.1)
 
-project("pkg")
+project("in")
 
 # Creates your game shared library. The name must be the same as the
 # one used for loading in your Kotlin/Java or AndroidManifest.txt files.
-add_library(pkg SHARED
+add_library(in SHARED
     main.cpp
     AndroidOut.cpp
     Renderer.cpp
@@ -19,7 +19,7 @@ add_library(pkg SHARED
 find_package(game-activity REQUIRED CONFIG)
 
 # Configure libraries CMake uses to link your target library.
-target_link_libraries(pkg
+target_link_libraries(in
     # The game activity
     game-activity::game-activity
 

@@ -16,8 +16,10 @@
 
 package com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest
 
+import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
+
 fun exampleBenchmarkKt(className: String, packageName: String) =
-"""package $packageName
+"""package ${escapeKotlinIdentifier(packageName)}
 
 import android.util.Log
 import androidx.benchmark.junit4.BenchmarkRule

@@ -8,7 +8,7 @@
         errorLine1="        return PlaceholderItem(position.toString(), &quot;Item &quot; + position, makeDetails(position))"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            file="src/main/java/template/test/in/placeholder/PlaceholderContent.kt"
             line="39"
             column="32"/>
     </issue>
@@ -19,7 +19,7 @@
         errorLine1="        builder.append(&quot;Details about Item: &quot;).append(position)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            file="src/main/java/template/test/in/placeholder/PlaceholderContent.kt"
             line="44"
             column="9"/>
     </issue>
@@ -30,7 +30,7 @@
         errorLine1="        builder.append(&quot;Details about Item: &quot;).append(position)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            file="src/main/java/template/test/in/placeholder/PlaceholderContent.kt"
             line="44"
             column="9"/>
     </issue>
@@ -41,7 +41,7 @@
         errorLine1="            builder.append(&quot;\nMore details information here.&quot;)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            file="src/main/java/template/test/in/placeholder/PlaceholderContent.kt"
             line="46"
             column="13"/>
     </issue>
@@ -52,7 +52,7 @@
         errorLine1="        return builder.toString()"
         errorLine2="               ~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/placeholder/PlaceholderContent.kt"
+            file="src/main/java/template/test/in/placeholder/PlaceholderContent.kt"
             line="48"
             column="16"/>
     </issue>

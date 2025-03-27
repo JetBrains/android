@@ -10,12 +10,12 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/item_list"
-        android:name="template.test.pkg.ItemListFragment"
+        android:name="template.test.in.ItemListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         app:layoutManager="LinearLayoutManager"
-        tools:context="template.test.pkg.ItemDetailHostActivity"
+        tools:context="template.test.in.ItemDetailHostActivity"
         tools:listitem="@layout/item_list_content" />
 </androidx.constraintlayout.widget.ConstraintLayout>

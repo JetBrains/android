@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <template.test.pkg.MyView
+    <template.test.in.MyView
         style="@style/Widget.Theme.App.MyView"
         android:layout_width="300dp"
         android:layout_height="300dp"

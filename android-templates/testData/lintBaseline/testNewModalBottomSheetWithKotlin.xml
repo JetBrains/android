@@ -8,11 +8,11 @@
         errorLine1="        activity?.findViewById&lt;RecyclerView>(R.id.list)?.adapter ="
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ItemListDialogFragment.kt"
+            file="src/main/java/template/test/in/ItemListDialogFragment.kt"
             line="48"
             column="9"/>
         <location
-            file="src/main/java/template/test/pkg/ItemListDialogFragment.kt"
+            file="src/main/java/template/test/in/ItemListDialogFragment.kt"
             line="46"
             column="9"
             message="First usage here"/>
@@ -24,7 +24,7 @@
         errorLine1="            holder.text.text = position.toString()"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ItemListDialogFragment.kt"
+            file="src/main/java/template/test/in/ItemListDialogFragment.kt"
             line="74"
             column="32"/>
     </issue>
@@ -35,7 +35,7 @@
         errorLine1="            holder.text.text = position.toString()"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ItemListDialogFragment.kt"
+            file="src/main/java/template/test/in/ItemListDialogFragment.kt"
             line="74"
             column="32"/>
     </issue>
@@ -46,7 +46,7 @@
         errorLine1="            holder.text.text = position.toString()"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ItemListDialogFragment.kt"
+            file="src/main/java/template/test/in/ItemListDialogFragment.kt"
             line="74"
             column="32"/>
     </issue>

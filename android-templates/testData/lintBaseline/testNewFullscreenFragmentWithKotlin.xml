@@ -19,7 +19,7 @@
         errorLine1="    private val delayHideTouchListener = View.OnTouchListener { _, _ ->"
         errorLine2="                                                              ^">
         <location
-            file="src/main/java/template/test/pkg/FullscreenFragment.kt"
+            file="src/main/java/template/test/in/FullscreenFragment.kt"
             line="51"
             column="63"/>
     </issue>

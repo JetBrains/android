@@ -7,25 +7,25 @@
 
     <fragment
         android:id="@+id/nav_transform"
-        android:name="template.test.pkg.ui.transform.TransformFragment"
+        android:name="template.test.in.ui.transform.TransformFragment"
         android:label="@string/menu_transform"
         tools:layout="@layout/fragment_transform" />
 
     <fragment
         android:id="@+id/nav_reflow"
-        android:name="template.test.pkg.ui.reflow.ReflowFragment"
+        android:name="template.test.in.ui.reflow.ReflowFragment"
         android:label="@string/menu_reflow"
         tools:layout="@layout/fragment_reflow" />
 
     <fragment
         android:id="@+id/nav_slideshow"
-        android:name="template.test.pkg.ui.slideshow.SlideshowFragment"
+        android:name="template.test.in.ui.slideshow.SlideshowFragment"
         android:label="@string/menu_slideshow"
         tools:layout="@layout/fragment_slideshow" />
 
     <fragment
         android:id="@+id/nav_settings"
-        android:name="template.test.pkg.ui.settings.SettingsFragment"
+        android:name="template.test.in.ui.settings.SettingsFragment"
         android:label="@string/menu_settings"
         tools:layout="@layout/fragment_settings" />
 </navigation>

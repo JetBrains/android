@@ -54,7 +54,7 @@
         errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ItemListFragment.java"
+            file="src/main/java/template/test/in/ItemListFragment.java"
             line="144"
             column="17"/>
     </issue>

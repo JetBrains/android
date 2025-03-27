@@ -8,7 +8,7 @@
         errorLine1="                Toast.makeText("
         errorLine2="                ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/WalletActivity.kt"
+            file="src/main/java/template/test/in/WalletActivity.kt"
             line="148"
             column="17"/>
     </issue>
@@ -19,7 +19,7 @@
         errorLine1="            passId = UUID.randomUUID().toString()"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/WalletActivity.kt"
+            file="src/main/java/template/test/in/WalletActivity.kt"
             line="107"
             column="22"/>
     </issue>

@@ -8,7 +8,7 @@
         errorLine1="        mNotificationManager.notify(conversationId, builder.build());"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MyMessagingService.java"
+            file="src/main/java/template/test/in/MyMessagingService.java"
             line="100"
             column="9"/>
     </issue>
@@ -19,7 +19,7 @@
         errorLine1="        mNotificationManager.notify(conversationId, builder.build());"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MyMessagingService.java"
+            file="src/main/java/template/test/in/MyMessagingService.java"
             line="100"
             column="9"/>
     </issue>
@@ -30,7 +30,7 @@
         errorLine1="        mNotificationManager.notify(conversationId, builder.build());"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MyMessagingService.java"
+            file="src/main/java/template/test/in/MyMessagingService.java"
             line="100"
             column="9"/>
     </issue>
@@ -81,11 +81,11 @@
 
     <issue
         id="HandlerLeak"
-        message="This `Handler` class should be static or leaks might occur (template.test.pkg.MyMessagingService.IncomingHandler)"
+        message="This `Handler` class should be static or leaks might occur (template.test.in.MyMessagingService.IncomingHandler)"
         errorLine1="    class IncomingHandler extends Handler {"
         errorLine2="          ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MyMessagingService.java"
+            file="src/main/java/template/test/in/MyMessagingService.java"
             line="106"
             column="11"/>
     </issue>
@@ -96,11 +96,11 @@
         errorLine1="                .setContentIntent(readPendingIntent)"
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MyMessagingService.java"
+            file="src/main/java/template/test/in/MyMessagingService.java"
             line="96"
             column="18"/>
         <location
-            file="src/main/java/template/test/pkg/MyMessagingService.java"
+            file="src/main/java/template/test/in/MyMessagingService.java"
             line="56"
             column="43"
             message="This `BroadcastReceiver` intent is launched from a notification; this is discouraged except as notification actions"/>

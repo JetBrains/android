@@ -19,7 +19,7 @@
         errorLine1="        public boolean onTouch(View view, MotionEvent motionEvent) {"
         errorLine2="                       ~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/FullscreenFragment.java"
+            file="src/main/java/template/test/in/FullscreenFragment.java"
             line="101"
             column="24"/>
     </issue>
@@ -30,7 +30,7 @@
         errorLine1="        binding.dummyButton.setOnTouchListener(mDelayHideTouchListener);"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/FullscreenFragment.java"
+            file="src/main/java/template/test/in/FullscreenFragment.java"
             line="141"
             column="9"/>
     </issue>

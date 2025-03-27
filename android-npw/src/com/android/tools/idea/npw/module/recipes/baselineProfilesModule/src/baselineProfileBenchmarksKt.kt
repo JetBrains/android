@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src
 
+import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
+
 fun baselineProfileBenchmarksKt(
   newModuleName: String,
   className: String,
@@ -22,7 +24,7 @@ fun baselineProfileBenchmarksKt(
   targetPackageName: String,
   useInstrumentationArgumentForAppId: Boolean
 ): String {
-  return """package $packageName
+  return """package ${escapeKotlinIdentifier(packageName)}
 
 
 import androidx.benchmark.macro.BaselineProfileMode

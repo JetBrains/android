@@ -41,7 +41,7 @@
         errorLine1="        mLevelTextView.setText(&quot;Level &quot; + (++mLevel));"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MainActivity.java"
+            file="src/main/java/template/test/in/MainActivity.java"
             line="174"
             column="32"/>
     </issue>
@@ -52,7 +52,7 @@
         errorLine1="        mLevelTextView.setText(&quot;Level &quot; + (++mLevel));"
         errorLine2="                               ~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MainActivity.java"
+            file="src/main/java/template/test/in/MainActivity.java"
             line="174"
             column="32"/>
     </issue>

@@ -16,8 +16,10 @@
 
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main
 
+import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
+
 fun exampleMacrobenchmarkKt(className: String, packageName: String, targetPackageName: String) =
-"""package $packageName
+"""package ${escapeKotlinIdentifier(packageName)}
 
 import androidx.benchmark.macro.CompilationMode
 import androidx.benchmark.macro.StartupMode

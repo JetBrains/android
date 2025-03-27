@@ -6,7 +6,7 @@
     app:startDestination="@id/fragment_item_detail">
     <fragment
         android:id="@+id/fragment_item_detail"
-        android:name="template.test.pkg.ItemDetailFragment"
+        android:name="template.test.in.ItemDetailFragment"
         android:label="@string/title_item_detail"
         tools:layout="@layout/fragment_item_detail">
         <argument

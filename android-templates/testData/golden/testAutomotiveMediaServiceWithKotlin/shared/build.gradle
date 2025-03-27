@@ -3,7 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 android {
-    namespace 'template.test.pkg.shared'
+    namespace 'template.test.in.shared'
     compileSdkVersion 35
 
     defaultConfig {

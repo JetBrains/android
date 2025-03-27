@@ -19,7 +19,7 @@
         errorLine1="        binding.dummyButton.setOnTouchListener(mDelayHideTouchListener);"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/FullscreenActivity.java"
+            file="src/main/java/template/test/in/FullscreenActivity.java"
             line="130"
             column="9"/>
     </issue>

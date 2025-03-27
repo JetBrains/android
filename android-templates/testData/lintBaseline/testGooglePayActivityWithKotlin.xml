@@ -8,7 +8,7 @@
         errorLine1="        val request = PaymentDataRequest.fromJson(paymentDataRequestJson.toString())"
         errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/viewmodel/CheckoutViewModel.kt"
+            file="src/main/java/template/test/in/viewmodel/CheckoutViewModel.kt"
             line="65"
             column="51"/>
     </issue>
@@ -19,7 +19,7 @@
         errorLine1="fun Long.centsToString() = BigDecimal(this)"
         errorLine2="                           ^">
         <location
-            file="src/main/java/template/test/pkg/util/PaymentsUtil.kt"
+            file="src/main/java/template/test/in/util/PaymentsUtil.kt"
             line="208"
             column="28"/>
     </issue>

@@ -25,14 +25,14 @@
             android:name=".MessageReadReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="template.test.pkg.ACTION_MESSAGE_READ" />
+                <action android:name="template.test.in.ACTION_MESSAGE_READ" />
             </intent-filter>
         </receiver>
         <receiver
             android:name=".MessageReplyReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="template.test.pkg.ACTION_MESSAGE_REPLY" />
+                <action android:name="template.test.in.ACTION_MESSAGE_REPLY" />
             </intent-filter>
         </receiver>
     </application>

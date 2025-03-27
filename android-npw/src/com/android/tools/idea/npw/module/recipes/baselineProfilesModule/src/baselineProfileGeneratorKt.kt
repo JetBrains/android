@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src
 
+import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
+
 fun baselineProfileGeneratorKt(
   targetModuleName: String,
   pluginTaskName: String,
@@ -23,7 +25,7 @@ fun baselineProfileGeneratorKt(
   targetPackageName: String,
   useInstrumentationArgumentForAppId: Boolean
 ): String {
-  return """package $packageName
+  return """package ${escapeKotlinIdentifier(packageName)}
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.ext.junit.runners.AndroidJUnit4

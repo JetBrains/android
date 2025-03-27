@@ -23,7 +23,7 @@
 
             <meta-data
                 android:name="android.app.lib_name"
-                android:value="pkg" />
+                android:value="in" />
         </activity>
     </application>
 

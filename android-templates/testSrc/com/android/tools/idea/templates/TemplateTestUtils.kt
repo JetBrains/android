@@ -61,7 +61,8 @@ internal fun verifyLanguageFiles(projectDir: Path, language: Language) {
   )
 }
 
-private const val defaultPackage = "template.test.pkg"
+// "in" is a kotlin keyword. This is intentional, to make sure templates properly escape it
+private const val defaultPackage = "template.test.in"
 internal const val defaultModuleName = "Template test module"
 
 internal fun getDefaultModuleState(

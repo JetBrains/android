@@ -8,7 +8,7 @@
         errorLine1="            val fakeUser = LoggedInUser(java.util.UUID.randomUUID().toString(), &quot;Jane Doe&quot;)"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/data/LoginDataSource.kt"
+            file="src/main/java/template/test/in/data/LoginDataSource.kt"
             line="14"
             column="41"/>
     </issue>
@@ -19,7 +19,7 @@
         errorLine1="                    usernameEditText.text.toString(),"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ui/login/LoginFragment.kt"
+            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
             line="91"
             column="21"/>
     </issue>
@@ -30,7 +30,7 @@
         errorLine1="                    passwordEditText.text.toString()"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ui/login/LoginFragment.kt"
+            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
             line="92"
             column="21"/>
     </issue>
@@ -41,7 +41,7 @@
         errorLine1="                    usernameEditText.text.toString(),"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ui/login/LoginFragment.kt"
+            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
             line="101"
             column="21"/>
     </issue>
@@ -52,7 +52,7 @@
         errorLine1="                    passwordEditText.text.toString()"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ui/login/LoginFragment.kt"
+            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
             line="102"
             column="21"/>
     </issue>
@@ -63,7 +63,7 @@
         errorLine1="                usernameEditText.text.toString(),"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ui/login/LoginFragment.kt"
+            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
             line="111"
             column="17"/>
     </issue>
@@ -74,7 +74,7 @@
         errorLine1="                passwordEditText.text.toString()"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/ui/login/LoginFragment.kt"
+            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
             line="112"
             column="17"/>
     </issue>

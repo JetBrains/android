@@ -41,7 +41,7 @@
         errorLine1="        levelTextView.text = &quot;Level &quot; + (++currentLevel)"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MainActivity.kt"
+            file="src/main/java/template/test/in/MainActivity.kt"
             line="146"
             column="30"/>
     </issue>
@@ -52,7 +52,7 @@
         errorLine1="        levelTextView.text = &quot;Level &quot; + (++currentLevel)"
         errorLine2="                              ~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/MainActivity.kt"
+            file="src/main/java/template/test/in/MainActivity.kt"
             line="146"
             column="31"/>
     </issue>

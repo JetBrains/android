@@ -49,7 +49,7 @@
             android:paddingEnd="@dimen/container_horizontal_margin"
             android:paddingBottom="16dp"
             android:textIsSelectable="true"
-            tools:context="template.test.pkg.ItemDetailFragment" />
+            tools:context="template.test.in.ItemDetailFragment" />
 
     </androidx.core.widget.NestedScrollView>
 

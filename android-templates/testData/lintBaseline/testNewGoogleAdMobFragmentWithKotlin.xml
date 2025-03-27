@@ -8,7 +8,7 @@
         errorLine1="            interstitialAd?.show(activity!!)"
         errorLine2="                                 ~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/pkg/AdMobFragment.kt"
+            file="src/main/java/template/test/in/AdMobFragment.kt"
             line="127"
             column="34"/>
     </issue>
