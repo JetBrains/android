@@ -30,7 +30,7 @@ internal class TranslationsEditorTextField(
 
   override fun setText(text: String?) {
     super.setText(text)
-    lastSavedValue = null
+    lastSavedValue = text
   }
 
   init {

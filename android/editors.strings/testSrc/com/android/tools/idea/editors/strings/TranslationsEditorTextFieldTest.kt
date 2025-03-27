@@ -77,6 +77,7 @@ class TranslationsEditorTextFieldTest {
 
     // Simulate weird focus behaviour in JTextComponent:
     fakeUi.keyboard.setFocus(translationsEditorTextField)
+    translationsEditorTextField.text = "Original Value"
     translationsEditorTextField.focusListeners.forEach { it.focusGained(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_GAINED)) }
 
     val testData =
@@ -87,7 +88,7 @@ class TranslationsEditorTextFieldTest {
       )
 
     testData.forEach { (text, i, j) ->
-      translationsEditorTextField.text = text
+      imitateEditing(text)
       whenever(table.selectedModelRowIndex).thenReturn(i)
       selectedColumn = j
       fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
@@ -102,13 +103,31 @@ class TranslationsEditorTextFieldTest {
 
     // Simulate weird focus behaviour in JTextComponent:
     fakeUi.keyboard.setFocus(translationsEditorTextField)
-    translationsEditorTextField.focusListeners.forEach { it.focusGained(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_GAINED)) }
-
-    translationsEditorTextField.text = "Hello"
+    translationsEditorTextField.text = "Original Value"
     whenever(table.selectedModelRowIndex).thenReturn(13)
     selectedColumn = 17
 
+    translationsEditorTextField.focusListeners.forEach { it.focusGained(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_GAINED)) }
+    imitateEditing("Hello")
     translationsEditorTextField.focusListeners.forEach { it.focusLost(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_LOST)) }
     verify(model).setValueAt("Hello", 13, 17)
+  }
+
+  @Test
+  fun valueNotChangedIfNothingChangedWhenFocusLost() {
+    whenever(table.hasSelectedCell()).thenReturn(true)
+
+    // Simulate weird focus behaviour in JTextComponent:
+    fakeUi.keyboard.setFocus(translationsEditorTextField)
+    translationsEditorTextField.text = "Original Value"
+    translationsEditorTextField.focusListeners.forEach { it.focusGained(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_GAINED)) }
+    translationsEditorTextField.focusListeners.forEach { it.focusLost(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_LOST)) }
+    verifyNoInteractions(model)
+  }
+
+  private fun imitateEditing(newText: String) {
+    val document = translationsEditorTextField.document
+    document.remove(0, document.length)
+    document.insertString(0, newText, null)
   }
 }
