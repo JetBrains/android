@@ -85,7 +85,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   private val gestureRule = FlagRule(StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS, true)
   private val debugLayoutRule = FlagRule(StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS, true)
   private val timeoutRule = FlagRule(StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS, 30_000)
-  private val headlessDialogRule = HeadlessDialogRule(createDialogWindow = true)
+  private val headlessDialogRule = HeadlessDialogRule()
   private val projectRule = AndroidProjectRule.withAndroidModel(
     createAndroidProjectBuilderForDefaultTestProjectStructure()
       .copy(applicationIdFor = { APPLICATION_ID })

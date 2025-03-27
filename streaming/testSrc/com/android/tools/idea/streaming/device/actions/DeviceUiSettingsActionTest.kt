@@ -67,7 +67,7 @@ class DeviceUiSettingsActionTest {
   private val agentRule = FakeScreenSharingAgentRule()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain(agentRule, EdtRule(), HeadlessDialogRule(createDialogWindow = true))
+  val ruleChain: RuleChain = RuleChain(agentRule, EdtRule(), HeadlessDialogRule())
 
   private val project
     get() = agentRule.project

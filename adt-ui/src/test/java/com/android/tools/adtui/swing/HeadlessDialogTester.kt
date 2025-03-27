@@ -92,11 +92,11 @@ import kotlin.time.DurationUnit
  * Enables showing of dialogs in a headless test environment.
  * Don't call this function directly, prefer [HeadlessDialogRule].
  */
-fun enableHeadlessDialogs(disposable: Disposable, createDialogWindow: Boolean = false) {
+fun enableHeadlessDialogs(disposable: Disposable) {
   Disposer.register(disposable) {
     modelessDialogs.forEach { Disposer.dispose(it.disposable) }
   }
-  getApplication().replaceService(DialogWrapperPeerFactory::class.java, HeadlessDialogWrapperPeerFactory(createDialogWindow), disposable)
+  getApplication().replaceService(DialogWrapperPeerFactory::class.java, HeadlessDialogWrapperPeerFactory(), disposable)
 }
 
 /**
@@ -209,39 +209,36 @@ private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::c
 /**
  * Implementation of [DialogWrapperPeerFactory] for headless tests involving dialogs.
  */
-class HeadlessDialogWrapperPeerFactory(
-  // TODO: b/406595711 Remove this parameter:
-  private val createDialogWindow : Boolean
-) : DialogWrapperPeerFactory() {
+class HeadlessDialogWrapperPeerFactory: DialogWrapperPeerFactory() {
 
   override fun createPeer(wrapper: DialogWrapper, project: Project?, canBeParent: Boolean): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, project, createDialogWindow)
+    return HeadlessDialogWrapperPeer(wrapper, project)
   }
 
   override fun createPeer(wrapper: DialogWrapper,
                           project: Project?,
                           canBeParent: Boolean,
                           ideModalityType: IdeModalityType): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, project, createDialogWindow, ideModalityType)
+    return HeadlessDialogWrapperPeer(wrapper, project, ideModalityType)
   }
 
   override fun createPeer(wrapper: DialogWrapper, canBeParent: Boolean): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null, createDialogWindow)
+    return HeadlessDialogWrapperPeer(wrapper, null)
   }
 
   override fun createPeer(wrapper: DialogWrapper, parent: Component, canBeParent: Boolean): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null, createDialogWindow)
+    return HeadlessDialogWrapperPeer(wrapper, null)
   }
 
   override fun createPeer(wrapper: DialogWrapper, canBeParent: Boolean, ideModalityType: IdeModalityType): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null, createDialogWindow, ideModalityType)
+    return HeadlessDialogWrapperPeer(wrapper, null, ideModalityType)
   }
 
   override fun createPeer(wrapper: DialogWrapper,
                           owner: Window,
                           canBeParent: Boolean,
                           ideModalityType: IdeModalityType): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null, createDialogWindow, ideModalityType)
+    return HeadlessDialogWrapperPeer(wrapper, null, ideModalityType)
   }
 }
 
@@ -256,7 +253,6 @@ class HeadlessDialogWrapperPeerFactory(
 private class HeadlessDialogWrapperPeer(
   private val wrapper: DialogWrapper,
   private var project: Project?,
-  createDialogWindow: Boolean,
   ideModalityType: IdeModalityType = IdeModalityType.IDE
 ) : DialogWrapperPeer() {
   private val disposeActions = arrayListOf<Runnable>()
@@ -267,13 +263,13 @@ private class HeadlessDialogWrapperPeer(
   private var title: String? = null
   private var visible = false
   private var nestedEventLoopLatch: CountDownLatch? = null
-  private var dialogWindow: JDialog?
+  private var dialogWindow: JDialog
   private val dialog = MyDialog()
 
   init {
     modal = ideModalityType != IdeModalityType.MODELESS
     dialog.add(rootPane)
-    dialogWindow = if (createDialogWindow) createFakeWindow(dialog, wrapper.disposable) else null
+    dialogWindow = createFakeWindow(dialog, wrapper.disposable)
   }
 
   override fun isHeadless(): Boolean {

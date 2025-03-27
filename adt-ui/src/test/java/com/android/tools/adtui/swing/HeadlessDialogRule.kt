@@ -22,16 +22,13 @@ import org.junit.rules.ExternalResource
 /**
  * Enables showing of dialogs in a headless test environment.
  */
-class HeadlessDialogRule(
-  // TODO: b/406595711 Remove this parameter:
-  private val createDialogWindow: Boolean = false
-) : ExternalResource() {
+class HeadlessDialogRule: ExternalResource() {
 
   private lateinit var disposable: Disposable
 
   override fun before() {
     disposable = Disposer.newDisposable()
-    enableHeadlessDialogs(disposable, createDialogWindow)
+    enableHeadlessDialogs(disposable)
   }
 
   override fun after() {

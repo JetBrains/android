@@ -281,7 +281,7 @@ class AehdWizardTest {
         .apply { init() }
 
     createModalDialogAndInteractWithIt(dialogTrigger = { wizard.show() }) {
-      showCallback(FakeUi(getRoot(wizard.contentPane), createFakeWindow = true))
+      showCallback(FakeUi(getRoot(wizard.contentPane)))
     }
   }
 
@@ -298,7 +298,7 @@ class AehdWizardTest {
       )
 
     createModalDialogAndInteractWithIt(dialogTrigger = { wizard.showAndGet() }) { dialogWrapper ->
-      showCallback(FakeUi(getRoot(dialogWrapper.contentPane), createFakeWindow = true))
+      showCallback(FakeUi(getRoot(dialogWrapper.contentPane)))
     }
   }
 

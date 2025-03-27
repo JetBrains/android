@@ -74,7 +74,7 @@ class EmulatorUiSettingsActionTest {
   private val uiRule = UiSettingsRule()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain(uiRule, EdtRule(), HeadlessDialogRule(createDialogWindow = true))
+  val ruleChain: RuleChain = RuleChain(uiRule, EdtRule(), HeadlessDialogRule())
 
   private val testRootDisposable
     get() = uiRule.testRootDisposable
