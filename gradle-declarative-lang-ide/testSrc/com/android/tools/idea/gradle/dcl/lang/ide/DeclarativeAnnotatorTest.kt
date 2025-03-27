@@ -319,6 +319,14 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
     """)
   }
 
+  @Test
+  fun listOfRegularFilesProperty2() {
+    doPatchedBuildFileTest("""
+       androidApp {
+         fakeFileList += listOf(layout.projectDirectory.file("aaa"), layout.projectDirectory.file("bbb"))
+       }
+    """)
+  }
 
   @Test
   fun listOfRegularFilesPropertyNegativeTest() {
@@ -339,6 +347,26 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
            }
          }
        }
+    """)
+  }
+
+  @Test
+  fun checkWrongAppend() {
+    doPatchedBuildFileTest("""
+      androidApp {
+         defaultConfig {
+           ${"minSdk += 33".highlightedAs(HighlightSeverity.ERROR, "Cannot do `+=` for this property type") }
+         }
+      }
+    """)
+  }
+
+  @Test
+  fun checkWrongAppend2() {
+    doPatchedBuildFileTest("""
+      androidApp {
+        ${"namespace += \"aaa\"".highlightedAs(HighlightSeverity.ERROR, "Cannot do `+=` for this property type") }
+      }
     """)
   }
 

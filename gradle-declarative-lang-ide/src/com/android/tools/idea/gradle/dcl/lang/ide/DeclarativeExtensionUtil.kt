@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeAnnotator.ElementTypeWithAugmentation
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.ENUM
@@ -24,11 +25,13 @@ import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.OBJECT_VALUE
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.INTEGER
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.LONG
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.STRING
+import com.android.tools.idea.gradle.dcl.lang.psi.AssignmentType
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
+import com.android.tools.idea.gradle.dcl.lang.sync.AugmentationKind
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
@@ -127,24 +130,26 @@ fun getSimpleType(type: SimpleDataType): ElementType = when (type) {
   else -> ElementType.PROPERTY
 }
 
-fun PsiElement.getElementType(): ElementType? = when (this) {
-  is DeclarativeBlock -> if (embeddedFactory != null) FACTORY_BLOCK else BLOCK
-  is DeclarativeAbstractFactory -> FACTORY
-  is DeclarativeAssignment ->
+fun PsiElement.getElementType(): ElementTypeWithAugmentation? = when (this) {
+  is DeclarativeBlock -> if (embeddedFactory != null) ElementTypeWithAugmentation(FACTORY_BLOCK, listOf()) else ElementTypeWithAugmentation(BLOCK, listOf())
+  is DeclarativeAbstractFactory -> ElementTypeWithAugmentation(FACTORY, listOf())
+  is DeclarativeAssignment -> {
+    val augmented = if (assignmentType == AssignmentType.APPEND) listOf(AugmentationKind.PLUS) else listOf()
     when (val rvalue = value) {
-      is DeclarativeBare -> ENUM
+      is DeclarativeBare -> ElementTypeWithAugmentation(ENUM, augmented)
       is DeclarativeLiteral ->
         when (rvalue.value) {
-          is String -> STRING
-          is Int -> INTEGER
-          is Boolean -> BOOLEAN
-          is Long -> LONG
-          else -> ENUM
+          is String -> ElementTypeWithAugmentation(STRING, augmented)
+          is Int -> ElementTypeWithAugmentation(INTEGER, augmented)
+          is Boolean -> ElementTypeWithAugmentation(BOOLEAN, augmented)
+          is Long -> ElementTypeWithAugmentation(LONG, augmented)
+          else -> ElementTypeWithAugmentation(ENUM, augmented)
         }
 
-      is DeclarativeAbstractFactory -> OBJECT_VALUE
+      is DeclarativeAbstractFactory -> ElementTypeWithAugmentation(OBJECT_VALUE, augmented)
       else -> null
     }
+  }
 
   else -> null
 }

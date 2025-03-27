@@ -27,13 +27,16 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePropertyReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
+import com.android.tools.idea.gradle.dcl.lang.sync.AugmentationKind
 import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
 import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
+import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
+import com.android.tools.idea.gradle.dcl.lang.sync.Named
 import com.android.tools.idea.gradle.dcl.lang.sync.ParameterizedClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
@@ -43,6 +46,7 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.core.script.scriptingErrorLog
 
 class DeclarativeAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -85,10 +89,18 @@ class DeclarativeAnnotator : Annotator {
       val schema = getSchema() ?: return
       val result = searchForType(path, schema, element.containingFile.name)
       if (result.isEmpty()) return
-      val types = result.map { it.toElementType() }.distinct()
-      val foundType = types.any { it == element.getElementType() }
+      val types = result.map { it.toElementType() }.distinctBy { it.elementType }
+      // check types
+      val foundType = types.any { it.elementType == element.getElementType()?.elementType }
       if (!foundType) {
-        showWrongType(types.map { it.str }, holder)
+        showWrongType(types.map { it.elementType.str }, holder)
+      }
+      // check augmentation
+      val missedAugmented = element.getElementType()?.augmented?.find {
+        augmentedType -> types.none { it.augmented.contains(augmentedType) }
+      }
+      if (missedAugmented !=null ) {
+        showWrongAugmentation(missedAugmented, holder)
       }
     }
   }
@@ -112,21 +124,24 @@ class DeclarativeAnnotator : Annotator {
     return current.parent as? DeclarativeBlock
   }
 
+  class ElementTypeWithAugmentation(val elementType: ElementType, val augmented: List<AugmentationKind>)
+
   sealed class SearchResult {
-    fun toElementType(): ElementType {
+    fun toElementType(): ElementTypeWithAugmentation {
       return when (this) {
         is FoundFunction -> when (type.semantic) {
-          is PlainFunction -> ElementType.FACTORY
-          is BlockFunction -> if (type.parameters.isNotEmpty()) ElementType.FACTORY_BLOCK else ElementType.BLOCK
+          is PlainFunction -> ElementTypeWithAugmentation(ElementType.FACTORY, listOf())
+          is BlockFunction -> if (type.parameters.isNotEmpty()) ElementTypeWithAugmentation(ElementType.FACTORY_BLOCK, listOf())
+          else ElementTypeWithAugmentation(ElementType.BLOCK, listOf())
         }
 
         is FoundBlock ->
-            ElementType.BLOCK
+          ElementTypeWithAugmentation(ElementType.BLOCK, listOf())
 
-        is FoundObjectProperty -> ElementType.OBJECT_VALUE
-        is FoundSimpleProperty -> getSimpleType(type)
-        is FoundEnum -> ElementType.ENUM
-        is FoundParametrizedType -> ElementType.OBJECT_VALUE
+        is FoundObjectProperty -> ElementTypeWithAugmentation(ElementType.OBJECT_VALUE, listOf())
+        is FoundSimpleProperty -> ElementTypeWithAugmentation(getSimpleType(type), listOf())
+        is FoundEnum -> ElementTypeWithAugmentation(ElementType.ENUM, listOf())
+        is FoundParametrizedType -> ElementTypeWithAugmentation(ElementType.OBJECT_VALUE, augmented)
       }
     }
   }
@@ -134,7 +149,7 @@ class DeclarativeAnnotator : Annotator {
   data class FoundBlock(val type: ClassModel) : SearchResult()
   data class FoundEnum(val type: EnumModel) : SearchResult()
   // FoundParametrizedType its non gradle class like List or Array that does not have properties or methods
-  data class FoundParametrizedType(val type: ParameterizedClassModel) : SearchResult()
+  data class FoundParametrizedType(val type: ParameterizedClassModel, val augmented: List<AugmentationKind>) : SearchResult()
   data class FoundFunction(val type: SchemaFunction) : SearchResult()
   data class FoundSimpleProperty(val type: SimpleDataType) : SearchResult()
   data class FoundObjectProperty(val type: ClassModel) : SearchResult()
@@ -155,20 +170,29 @@ class DeclarativeAnnotator : Annotator {
     return receivers.distinct().flatMap { receiver ->
       when (val entry = receiver.entry) {
         is SchemaFunction -> listOf(FoundFunction(entry))
-        is DataProperty -> when (val type = entry.valueType) {
-          is DataClassRef -> receiver.resolveRef(type.fqName)?.let { listOf(it.wrap()) } ?: listOf()
-          is SimpleTypeRef -> listOf(FoundSimpleProperty(type.dataType))
-          is DataClassRefWithTypes -> receiver.resolveRef(type.fqName)?.let { listOf(it.wrap()) } ?: listOf()
-          else -> listOf()
+        is DataProperty -> {
+          val augmentedType = entry.getAugmentedTypes(schema, fileName)
+          when (val type = entry.valueType) {
+            is DataClassRef -> receiver.resolveRef(type.fqName)?.let { listOf(it.wrap(augmentedType)) } ?: listOf()
+            is SimpleTypeRef -> listOf(FoundSimpleProperty(type.dataType))
+            is DataClassRefWithTypes -> receiver.resolveRef(type.fqName)?.let { listOf(it.wrap(augmentedType)) } ?: listOf()
+            else -> listOf()
+          }
         }
       }
     }
   }
 
-  private fun ClassType.wrap() = when (this) {
+  private fun Entry.getAugmentedTypes(schema: BuildDeclarativeSchemas, fileName: String):List<AugmentationKind>{
+    val fullName = if(this is DataProperty && this.valueType is Named) (valueType as Named).fqName else null
+    fullName ?: return listOf()
+    return schema.getAugmentedTypes(fileName)[fullName] ?: listOf()
+  }
+
+  private fun ClassType.wrap(augmented: List<AugmentationKind>) = when (this) {
     is ClassModel -> FoundObjectProperty(this)
     is EnumModel -> FoundEnum(this)
-    is ParameterizedClassModel -> FoundParametrizedType(this)
+    is ParameterizedClassModel -> FoundParametrizedType(this, augmented)
   }
 
   private fun showUnknownName(holder: AnnotationHolder) {
@@ -182,6 +206,14 @@ class DeclarativeAnnotator : Annotator {
     else
       holder.newAnnotation(HighlightSeverity.ERROR,
                            "Element type should be of one of types: ${types.joinToString(", ")}").create()
+  }
+
+  private fun showWrongAugmentation(augmented: AugmentationKind, holder: AnnotationHolder) {
+    val operation = when (augmented) {
+      AugmentationKind.PLUS -> "`+=`"
+    }
+    holder.newAnnotation(HighlightSeverity.ERROR,
+                         "Cannot do $operation for this property type").create()
   }
 
   private fun getPath(element: DeclarativeIdentifier): List<String> {
