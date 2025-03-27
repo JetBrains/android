@@ -582,6 +582,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun removePhysicalDevicePanel(serialNumber: String) {
+    logger.info("$simpleId.removePhysicalDevicePanel($serialNumber)") // b/342105720
     deviceClients.remove(serialNumber)?.let {
       deviceClientRegistry.removeDeviceClient(serialNumber, this@StreamingToolWindowManager)
       updateMirroringHandlesFlow()
@@ -739,6 +740,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun stopMirroring(serialNumber: String) {
+    logger.info("$simpleId.stopMirroring($serialNumber)") // b/342105720
     deviceClients.remove(serialNumber)?.let {
       devicesExcludedFromMirroring[serialNumber] = DeviceDescription(it.client.deviceName, serialNumber, it.handle, it.client.deviceConfig)
       deviceClientRegistry.removeDeviceClient(serialNumber, this@StreamingToolWindowManager)
@@ -770,6 +772,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun activateMirroring(serialNumber: String, handle: DeviceHandle, config: DeviceConfiguration, activation: ActivationLevel) {
+    logger.info("$simpleId.activateMirroring($serialNumber, $handle, ..., $activation)") // b/342105720
     if (contentShown) {
       val contentManager: ContentManager? = when {
         handle.reservationAction == null -> null
@@ -815,6 +818,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun startMirroring(serialNumber: String, deviceClient: DeviceClient, deviceHandle: DeviceHandle, activation: ActivationLevel,
                              contentManager: ContentManager? = null) {
+    logger.info(
+        "$simpleId.startMirroring($serialNumber, $deviceClient, $deviceHandle, $activation, ...) contentShown=$contentShown") // b/342105720
     if (serialNumber in onlineDevices) {
       if (contentShown) {
         updateMirroringHandlesFlow()
@@ -863,6 +868,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun deviceConnected(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration) {
+    logger.info("$simpleId.deviceConnected($serialNumber, $deviceHandle, ...)") // b/342105720
     if (serialNumber in onlineDevices && serialNumber !in deviceClients) {
       val activation = maxOf(maxOf(recentAttentionRequests.remove(serialNumber), recentDisconnections.remove(serialNumber)),
                              when {
@@ -870,6 +876,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
                                deviceClientRegistry.containsClientFor(serialNumber) -> ActivationLevel.CREATE_TAB
                                else -> null
                              })
+      logger.info("$simpleId.deviceConnected($serialNumber, $deviceHandle, ...): activation=$activation") // b/342105720
       if (activation == null) {
         // The device is excluded from mirroring.
         val deviceDescription = devicesExcludedFromMirroring[serialNumber]
