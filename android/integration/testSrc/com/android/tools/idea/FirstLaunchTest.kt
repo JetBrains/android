@@ -80,6 +80,7 @@ class FirstLaunchTest {
       system.installation.addVmOption(
         String.format("-Dnpw.first.run.local.app.data=%s", system.installation.fileSystem.root)
       )
+      system.installation.addVmOption("-Dnpw.new.project.compile.sdk=35") // Keep in sync with the version in data for //android/integration:FirstLaunchTest
     }
 
     fun getFileNamesInSdkDirectory(system: AndroidSystem): Array<String?> {
