@@ -99,7 +99,7 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
 fun StringParameter.validateStringType(
   project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any> = setOf()
 ): Collection<Constraint> {
-  if (value.isNullOrEmpty()) {
+  if (value.isNullOrBlank()) {
     return if (NONEMPTY in constraints) listOf(NONEMPTY)
     else listOf()
   }
@@ -108,7 +108,7 @@ fun StringParameter.validateStringType(
   val fqName = qualifier + value
 
   fun validateConstraint(c: Constraint): Boolean = when (c) {
-    NONEMPTY -> value.isEmpty()
+    NONEMPTY -> value.isBlank()
     URI_AUTHORITY -> !value.matches("$URI_AUTHORITY_REGEX(;$URI_AUTHORITY_REGEX)*".toRegex())
     ACTIVITY, CLASS, PACKAGE, KOTLIN_FUNCTION -> !isValidFullyQualifiedJavaIdentifier(fqName)
     APP_PACKAGE -> AndroidUtils.validateAndroidPackageName(value) != null
