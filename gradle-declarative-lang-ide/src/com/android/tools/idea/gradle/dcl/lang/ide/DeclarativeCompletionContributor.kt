@@ -330,8 +330,12 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
 
         val element = parameters.position
+        val blockFunctions = getSuggestionList(element, schema)
+          .filter { it.second.type == FACTORY }
+          .map { Suggestion(it.first.simpleName, FACTORY) }.distinct()
         val suggestions = getRootFunctions(element, schema).map { Suggestion(it.name, FACTORY) } +
-                        getRootProperties(element, schema). map { Suggestion (it.name, PROPERTY)}
+                          getRootProperties(element, schema).map { Suggestion(it.name, PROPERTY) } +
+                          blockFunctions
         addSimpleSuggestions(result, suggestions)
       }
     }

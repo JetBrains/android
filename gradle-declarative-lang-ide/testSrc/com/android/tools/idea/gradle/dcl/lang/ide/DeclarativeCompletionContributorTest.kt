@@ -695,6 +695,114 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testSuggestionsFunctionArguments() {
+    doTestOnPatchedSchema("""
+    androidApp {
+      buildTypes {
+        buildType("debug") {
+          proguardFiles = listOf($caret)
+        }
+      }
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "buildConfigField", "layout", "listOf", "proguardFile")
+    }
+  }
+
+  @Test
+  fun testSuggestionsFunctionArgumentsWithAppend() {
+    doTestOnPatchedSchema("""
+    androidApp {
+      buildTypes {
+        buildType("debug") {
+          proguardFiles += listOf($caret)
+        }
+      }
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "buildConfigField", "layout", "listOf", "proguardFile")
+    }
+  }
+
+
+  @Test
+  fun testSuggestionsFunctionSecondArgument() {
+    doTestOnPatchedSchema("""
+    androidApp {
+      buildTypes {
+        buildType("debug") {
+          proguardFiles = listOf(proguardFile("a"), $caret)
+        }
+      }
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "buildConfigField", "layout", "listOf", "proguardFile")
+    }
+  }
+
+  @Test
+  fun testSuggestionsFunctionSecondArgumentWithAppend() {
+    doTestOnPatchedSchema("""
+    androidApp {
+      buildTypes {
+        buildType("debug") {
+          proguardFiles += listOf(proguardFile("a"), $caret)
+        }
+      }
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "buildConfigField", "layout", "listOf", "proguardFile")
+    }
+  }
+
+  @Test
+  fun testCompletionFunctionArguments() {
+    doCompletionTestPatchedSchema("""
+    androidApp {
+      buildTypes {
+        buildType("debug") {
+          proguardFiles = listOf(proguard$caret)
+        }
+      }
+    }
+    """, """
+    androidApp {
+      buildTypes {
+        buildType("debug") {
+          proguardFiles = listOf(proguardFile($caret))
+        }
+      }
+    }
+    """)
+  }
+
+  @Test
+  fun testCompletionFunctionSecondArguments() {
+    doCompletionTestPatchedSchema("""
+    androidApp {
+      buildTypes {
+        buildType("debug") {
+          proguardFiles = listOf(proguardFile("a"), prog$caret)
+        }
+      }
+    }
+    """, """
+    androidApp {
+      buildTypes {
+        buildType("debug") {
+          proguardFiles = listOf(proguardFile("a"), proguardFile($caret))
+        }
+      }
+    }
+    """)
+  }
+
+
+  @Test
   fun testSuggestionsPlugins() {
     doTest("""
     plugins {
