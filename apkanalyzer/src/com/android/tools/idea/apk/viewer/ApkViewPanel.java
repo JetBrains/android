@@ -42,6 +42,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
@@ -384,7 +385,9 @@ public class ApkViewPanel implements TreeSelectionListener {
   public void clearArchive() {
     myArchiveDisposed = true;
     myApkParser.cancelAll();
-    setRootNode(null);
+    // The only other place that sets the root node is another queued runnable also on the EDT thread.
+    // Therefore, there will be no interleaving of operations.
+    ApplicationManager.getApplication().invokeLater(() -> setRootNode(null));
     Logger.getInstance(ApkViewPanel.class).info("Cleared Archive on ApkViewPanel: " + this);
   }
 
