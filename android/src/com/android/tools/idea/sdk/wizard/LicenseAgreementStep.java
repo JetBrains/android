@@ -34,6 +34,8 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBInsets;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -104,7 +106,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     @NotNull LicenseAgreementModel model,
     @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier
   ) {
-    this(model, installRequestsSupplier, false);
+    this(model, installRequestsSupplier, JBUI.emptyInsets(), false);
   }
 
   /**
@@ -112,15 +114,32 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
    *
    * @param model                   Stores associated step data
    * @param installRequestsSupplier Supplies the packages to be installed
+   * @param borderInsets            The insets to be used for the root component border
+   */
+  public LicenseAgreementStep(
+    @NotNull LicenseAgreementModel model,
+    @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier,
+    @NotNull JBInsets borderInsets
+  ) {
+    this(model, installRequestsSupplier, borderInsets, false);
+  }
+
+  /**
+   * Constructs a new LicenseAgreementStep
+   *
+   * @param model                   Stores associated step data
+   * @param installRequestsSupplier Supplies the packages to be installed
+   * @param borderInsets            The insets to be used for the root component border
    * @param selectedByDefault       Should only be enabled in tests - actual users need to manually click 'accept'
    */
   public LicenseAgreementStep(
     @NotNull LicenseAgreementModel model,
     @NotNull Supplier<Collection<RemotePackage>> installRequestsSupplier,
+    @NotNull JBInsets borderInsets,
     boolean selectedByDefault
   ) {
     super(model, "License Agreement");
-    setupUI();
+    setupUI(borderInsets);
     myInstallRequestsSupplier = installRequestsSupplier;
     mySelectedByDefault = selectedByDefault;
 
@@ -344,10 +363,11 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     optionsPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
   }
 
-  private void setupUI() {
+  private void setupUI(JBInsets borderInsets) {
     createUIComponents();
     myRootPanel = new JPanel();
     myRootPanel.setLayout(new BorderLayout(0, 0));
+    myRootPanel.setBorder(JBUI.Borders.empty(borderInsets));
     myRootPanel.setMaximumSize(new Dimension(1250, 937));
     myRootPanel.setMinimumSize(new Dimension(230, 160));
     myRootPanel.setPreferredSize(new Dimension(230, 160));

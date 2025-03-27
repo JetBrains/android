@@ -37,6 +37,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
 import com.intellij.openapi.wm.WelcomeScreen
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame
+import com.intellij.util.ui.JBUI
 import java.util.function.BooleanSupplier
 import javax.swing.JComponent
 import javax.swing.JFrame
@@ -90,6 +91,7 @@ class StudioFirstRunWelcomeScreen(
                 LicenseAgreementStep(
                   licenseAgreementModel,
                   supplier,
+                  JBUI.emptyInsets(),
                   StudioFlags.NPW_ACCEPT_ALL_LICENSES.get(),
                 ) {
                 override fun onShowing() {

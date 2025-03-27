@@ -69,6 +69,7 @@ import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
+import com.android.tools.idea.wizard.ui.StudioWizardLayout;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -155,14 +156,16 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
 
-    myLicenseAgreementStep = new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), () -> myInstallLicenseRequests);
+    myLicenseAgreementStep = new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), () -> myInstallLicenseRequests,
+                                                      StudioWizardLayout.DEFAULT_BORDER_INSETS);
   }
 
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
     InstallSelectedPackagesStep installPackagesStep =
-      new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), () -> AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
+      new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), () -> AndroidSdks.getInstance().tryToChooseSdkHandler(), false,
+                                      StudioWizardLayout.DEFAULT_BORDER_INSETS);
 
     return Lists.newArrayList(myLicenseAgreementStep, installPackagesStep);
   }

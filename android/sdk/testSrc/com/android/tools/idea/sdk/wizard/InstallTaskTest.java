@@ -48,6 +48,7 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -301,7 +302,7 @@ public class InstallTaskTest extends AndroidTestCase {
 
     InstallSelectedPackagesStep installStep =
       new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
-                                      new ArrayList<>(), mySdkHandler, true, factory, false);
+                                      new ArrayList<>(), mySdkHandler, true, JBUI.emptyInsets(), factory, false);
     CompletableFuture<Boolean> listenerAdded = new CompletableFuture<>();
     when(myInstaller.prepare(any())).then(invocation -> {
       // wait until the wizard completion listener is added, or maybe we'll be done too early and not see that the wizard is finished.
@@ -332,7 +333,7 @@ public class InstallTaskTest extends AndroidTestCase {
     when(factory.createInstaller(eq(myAvailable1), any(), any())).thenReturn(myInstaller2);
     InstallSelectedPackagesStep installStep2 =
       new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
-                                      new ArrayList<>(), mySdkHandler, true, factory, false);
+                                      new ArrayList<>(), mySdkHandler, true, JBUI.emptyInsets(), factory, false);
     wizardBuilder = new ModelWizard.Builder(installStep2);
     CompletableFuture<Boolean> completed2 = new CompletableFuture<>();
     installStep2.canGoForward().addListener(() -> completed2.complete(true));
@@ -365,7 +366,7 @@ public class InstallTaskTest extends AndroidTestCase {
                                                                        new UpdatablePackage(myAvailable2),
                                                                        new UpdatablePackage(p3),
                                                                        new UpdatablePackage(p4))),
-                                      new ArrayList<>(), mySdkHandler, true, factory, false);
+                                      new ArrayList<>(), mySdkHandler, true, JBUI.emptyInsets(), factory, false);
     CompletableFuture<Boolean> listenerAdded = new CompletableFuture<>();
     ProgressIndicator[] progressIndicator = new ProgressIndicator[1];
     when(myInstaller.prepare(any())).then(invocation -> {

@@ -50,6 +50,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -247,7 +248,7 @@ public final class SdkQuickfixUtils {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), () -> installRequests));
     InstallSelectedPackagesStep installStep =
-      new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, () -> sdkHandler, backgroundable);
+      new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, () -> sdkHandler, backgroundable, JBUI.emptyInsets());
     wizardBuilder.addStep(installStep);
     ModelWizard wizard = wizardBuilder.build();
 

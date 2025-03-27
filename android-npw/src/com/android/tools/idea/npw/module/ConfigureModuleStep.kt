@@ -61,6 +61,7 @@ import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewMo
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.Groovy
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
 import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.ui.StudioWizardLayout
 import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.openapi.Disposable
@@ -167,7 +168,11 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   private val moduleValidator = ModuleValidator(model.project)
 
   private val licenseAgreementStep =
-    LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), { installLicenseRequests })
+    LicenseAgreementStep(
+      LicenseAgreementModel(sdkManagerLocalPath),
+      { installLicenseRequests },
+      StudioWizardLayout.DEFAULT_BORDER_INSETS,
+    )
 
   init {
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
@@ -217,6 +222,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
         hashSetOf(),
         { AndroidSdks.getInstance().tryToChooseSdkHandler() },
         false,
+        StudioWizardLayout.DEFAULT_BORDER_INSETS,
       )
     return listOf(licenseAgreementStep, installPackagesStep)
   }

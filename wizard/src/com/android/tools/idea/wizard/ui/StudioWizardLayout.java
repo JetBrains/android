@@ -25,6 +25,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIllustrations;
 import java.awt.BorderLayout;
@@ -50,6 +51,7 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
   public static final Dimension DEFAULT_MIN_SIZE = JBUI.size(600, 350);
   public static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 650);
+  public static final JBInsets DEFAULT_BORDER_INSETS = JBUI.insets(24);
 
   private final BindingsManager myBindings = new BindingsManager();
 
@@ -128,8 +130,15 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
     myCenterPanel.setLayout(new BorderLayout(0, 0));
     myRootPanel.add(myCenterPanel, BorderLayout.CENTER);
     myCenterPanel.setBorder(
-      BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24), null, TitledBorder.DEFAULT_JUSTIFICATION,
-                                       TitledBorder.DEFAULT_POSITION, null, null));
+      BorderFactory.createTitledBorder(
+        JBUI.Borders.empty(DEFAULT_BORDER_INSETS),
+        null,
+        TitledBorder.DEFAULT_JUSTIFICATION,
+        TitledBorder.DEFAULT_POSITION,
+        null,
+        null
+      )
+    );
   }
 
   private Font getFont(String fontName, int style, int size, Font currentFont) {

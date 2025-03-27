@@ -56,6 +56,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Font;
@@ -121,8 +122,10 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   public InstallSelectedPackagesStep(@NotNull List<UpdatablePackage> installRequests,
                                      @NotNull Collection<LocalPackage> uninstallRequests,
                                      @NotNull Supplier<AndroidSdkHandler> sdkHandlerSupplier,
-                                     boolean backgroundable) {
-    this(installRequests, uninstallRequests, sdkHandlerSupplier, backgroundable, StudioSdkInstallerUtil::createInstallerFactory, false);
+                                     boolean backgroundable,
+                                     @NotNull Insets borderInsets) {
+    this(installRequests, uninstallRequests, sdkHandlerSupplier, backgroundable, borderInsets,
+         StudioSdkInstallerUtil::createInstallerFactory, false);
   }
 
   @VisibleForTesting
@@ -130,9 +133,10 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
                                      @NotNull Collection<LocalPackage> uninstallRequests,
                                      @NotNull AndroidSdkHandler sdkHandler,
                                      boolean backgroundable,
+                                     @NotNull Insets borderInsets,
                                      @NotNull InstallerFactory factory,
                                      boolean throttleProgress) {
-    this(installRequests, uninstallRequests, () -> sdkHandler, backgroundable, (unused) -> factory, throttleProgress);
+    this(installRequests, uninstallRequests, () -> sdkHandler, backgroundable, borderInsets, (unused) -> factory, throttleProgress);
   }
 
   @VisibleForTesting
@@ -140,6 +144,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
                                      @NotNull Collection<LocalPackage> uninstallRequests,
                                      @NotNull Supplier<AndroidSdkHandler> sdkHandlerSupplier,
                                      boolean backgroundable,
+                                      @NotNull Insets borderInsets,
                                      @NotNull InstallerFactoryFactory factory,
                                      boolean throttleProgress) {
     super(message("android.sdk.manager.installer.panel.title"));
@@ -148,6 +153,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     myUninstallRequests = uninstallRequests;
     myValidatorPanel = new ValidatorPanel(this, myContentPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.sdk.manager.installer.panel.description"));
+    myStudioPanel.setBorder(JBUI.Borders.empty(borderInsets));
     myBackgroundable = backgroundable;
     mySdkHandlerSupplier = sdkHandlerSupplier;
     myFactory = factory;
