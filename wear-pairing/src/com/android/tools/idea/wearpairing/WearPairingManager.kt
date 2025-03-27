@@ -465,9 +465,7 @@ class WearPairingManager(
   }
 
   private suspend fun getConnectedDevices() =
-    withContext(defaultDispatcher) {
-      connectedDevicesProvider().filter { it.isOnline }.associateBy { it.getDeviceID() }
-    }
+    connectedDevicesProvider().filter { it.isOnline }.associateBy { it.getDeviceID() }
 
   private suspend fun updateForwardState(
     phoneWearPair: PhoneWearPair,
