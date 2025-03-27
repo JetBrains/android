@@ -28,17 +28,15 @@ import java.util.EnumMap
 
 object QrCodeGenerator {
   /**
-   * Encode the [String] [contents] into a QR code represented as a [BitMatrix].
-   * Each bit entry of the [BitMatrix] represents either a transparent or
-   * black dot in the corresponding QR Code image.
+   * Encode the [String] [contents] into a QR code represented as a [BitMatrix]. Each bit entry of
+   * the [BitMatrix] represents either a transparent or black dot in the corresponding QR Code
+   * image.
    *
-   * If the [size] is not provided (or has the default value of [0]), the
-   * size of the returned [BitMatrix] is computed so that it is big enough
-   * to represent [contents].
+   * If the [size] is not provided (or has the default value of [0]), the size of the returned
+   * [BitMatrix] is computed so that it is big enough to represent [contents].
    *
-   * If the [size] is provided, the returned [BitMatrix] will be of the provided
-   * size, with the possibility of an incomplete QR Code is the size is too
-   * small.
+   * If the [size] is provided, the returned [BitMatrix] will be of the provided size, with the
+   * possibility of an incomplete QR Code is the size is too small.
    */
   @JvmStatic
   @Throws(WriterException::class)
@@ -56,15 +54,19 @@ object QrCodeGenerator {
   }
 
   /**
-   * Encode the [String] [contents] into a QR code represented as a [BufferedImage].
-   * The returned [BufferedImage] contains 1 pixel per QR Code "bit". If the QR Code
-   * bit is set, the corresponding [BufferedImage] pixel is set to the RGB color
-   * black (0x000000), otherwise it is set to the RGB color white (0xffffff)
+   * Encode the [String] [contents] into a QR code represented as a [BufferedImage]. The returned
+   * [BufferedImage] contains 1 pixel per QR Code "bit". If the QR Code bit is set, the
+   * corresponding [BufferedImage] pixel is set to the RGB color black (0x000000), otherwise it is
+   * set to the RGB color white (0xffffff)
    */
   @JvmStatic
   @Throws(WriterException::class)
   @Slow
-  fun encodeQrCodeToImage(contents: String, backgroundColor: Color, foregroundColor: Color): BufferedImage {
+  fun encodeQrCodeToImage(
+    contents: String,
+    backgroundColor: Color,
+    foregroundColor: Color,
+  ): BufferedImage {
     val bits = encodeQrCode(contents)
 
     // Note: Since we set individual pixels, we use a non-hidpi aware image

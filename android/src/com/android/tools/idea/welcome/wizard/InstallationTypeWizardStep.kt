@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,68 +15,57 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.tools.idea.welcome.wizard.deprecated.InstallationTypeWizardStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
-import com.intellij.ui.dsl.builder.panel
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
 import javax.swing.JComponent
-import javax.swing.JRadioButton
 
-/**
- * Wizard step for selecting installation types
- */
-class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Install Type") {
-  private lateinit var standardRadioBtn: JRadioButton
-  private lateinit var customRadioBtn : JRadioButton
+/** Wizard step for selecting installation types */
+class InstallationTypeWizardStep(
+  model: FirstRunWizardModel,
+  private val tracker: FirstRunWizardTracker,
+) : ModelWizardStep<FirstRunWizardModel?>(model, "Install Type") {
+  private val myForm = InstallationTypeWizardStepForm()
 
-  private val panel = panel {
-    // TODO: supposed to migrate this to Kotlin UI DSL v2 (b/310238109), but this class is not being used (b/311256502)
-    /*
-    row {
-      label("Choose the type of setup you want for ${ApplicationNamesInfo.getInstance().fullProductName}:")
-    }
-    row {
-      Spacer()()
-    }
-    row {
-      standardRadioBtn = installationTypeRadioButton(
-        "Standard",
-        "${ApplicationNamesInfo.getInstance().fullProductName} will be installed with the most common settings and options.\nRecommended for most users.",
-        InstallationType.STANDARD
-      ).component
-    }
-    row {
-      Spacer()()
-    }
-    row {
-      customRadioBtn = installationTypeRadioButton(
-        "Custom",
-        "You can customize installation settings and components installed.",
-        InstallationType.CUSTOM
-      ).component
-    }
-
-    ButtonGroup().apply {
-      add(standardRadioBtn)
-      add(customRadioBtn)
-    }
-    */
+  override fun getComponent(): JComponent {
+    return myForm.contents
   }
 
-  private val rootPanel = wrapWithVScroll(panel)
+  override fun getPreferredFocusComponent(): JComponent? {
+    if (myForm.standardRadioButton.isSelected) {
+      return myForm.standardRadioButton
+    } else if (myForm.customRadioButton.isSelected) {
+      return myForm.customRadioButton
+    }
+    return myForm.standardRadioButton
+  }
+
+  override fun onEntering() {
+    super.onEntering()
+
+    val installationType = model.installationType ?: FirstRunWizardModel.InstallationType.STANDARD
+    myForm.standardRadioButton.isSelected =
+      installationType == FirstRunWizardModel.InstallationType.STANDARD
+    myForm.customRadioButton.isSelected =
+      installationType == FirstRunWizardModel.InstallationType.CUSTOM
+  }
 
   override fun onProceeding() {
-    panel.apply()
+    super.onProceeding()
+
+    model.installationType =
+      if (myForm.standardRadioButton.isSelected) FirstRunWizardModel.InstallationType.STANDARD
+      else FirstRunWizardModel.InstallationType.CUSTOM
+
+    tracker.trackInstallationMode(
+      if (model.installationType == FirstRunWizardModel.InstallationType.STANDARD)
+        SetupWizardEvent.InstallationMode.STANDARD
+      else SetupWizardEvent.InstallationMode.CUSTOM
+    )
   }
 
-  override fun getPreferredFocusComponent(): JComponent? = standardRadioBtn
-
-  override fun getComponent(): JComponent = rootPanel
-
-  /*
-  private fun Cell.installationTypeRadioButton(text: String, comment: String, installationType: InstallationType) =
-    radioButton(text, comment).withSelectedBinding(PropertyBinding(
-      get = { model.installationType.get() == installationType },
-      set = { if (it) model.installationType.set(installationType) }
-    ))
-  */
+  override fun onShowing() {
+    super.onShowing()
+    tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.INSTALL_TYPE)
+  }
 }

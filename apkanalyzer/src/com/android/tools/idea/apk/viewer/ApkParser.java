@@ -29,6 +29,7 @@ import com.android.tools.apk.analyzer.ArchiveEntry;
 import com.android.tools.apk.analyzer.ArchiveNode;
 import com.android.tools.apk.analyzer.ArchivePathEntry;
 import com.android.tools.apk.analyzer.ArchiveTreeStructure;
+import com.android.tools.apk.analyzer.ZipEntryInfo;
 import com.android.tools.apk.analyzer.internal.AppBundleArchive;
 import com.android.tools.idea.log.LogWrapper;
 import com.google.common.util.concurrent.Futures;
@@ -38,7 +39,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,6 +46,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
+import static com.android.tools.apk.analyzer.ZipEntryInfo.Alignment.ALIGNMENT_16K;
 
 public class ApkParser {
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
@@ -57,10 +58,17 @@ public class ApkParser {
   @Nullable private ListenableFuture<ArchiveNode> myTreeStructureWithDownloadSizes;
   @Nullable private ListenableFuture<Long> myRawFullApkSize;
   @Nullable private ListenableFuture<Long> myCompressedFullApkSize;
+  @Nullable private ListenableFuture<Align16kbCompliance> myAlign16kbCompliance;
 
   public ApkParser(@NotNull ArchiveContext archiveContext, @NotNull ApkSizeCalculator sizeCalculator) {
     myArchiveContext = archiveContext;
     myApkSizeCalculator = sizeCalculator;
+  }
+
+  public enum Align16kbCompliance {
+    NO_ELF_FILES,
+    COMPLIANT,
+    NON_COMPLIANT
   }
 
   @NotNull
@@ -69,13 +77,14 @@ public class ApkParser {
   }
 
   public synchronized void cancelAll(){
-    ListenableFuture[] futures = {
+    ListenableFuture<?>[] futures = {
       myTreeStructureWithDownloadSizes,
       myTreeStructure,
       myRawFullApkSize,
-      myCompressedFullApkSize
+      myCompressedFullApkSize,
+      myAlign16kbCompliance
     };
-    for (ListenableFuture future : futures) {
+    for (ListenableFuture<?> future : futures) {
       if (future != null) {
         future.cancel(true);
       }
@@ -125,7 +134,32 @@ public class ApkParser {
   }
 
   @NotNull
-  private ArchiveNode createTreeNode() throws IOException {
+  public synchronized ListenableFuture<Align16kbCompliance> getAlign16kbCompliance() {
+    if (myAlign16kbCompliance == null) {
+      myAlign16kbCompliance = ourExecutorService.submit(() -> {
+        boolean hasElfFiles = false;
+        boolean hasNonCompliantElfFiles = false;
+        for(ZipEntryInfo info : myApkSizeCalculator.getInfoPerFile(myArchiveContext.getArchive().getPath()).values()) {
+          if (info.isElf) {
+            hasElfFiles = true;
+            if (info.elfLoadSectionAlignment % (16 * 1024) != 0 // Check for 16 KB alignment in ELF LOAD sections
+                || (!info.isCompressed && info.zipAlignment != ALIGNMENT_16K) // Check for alignment within the Zip file
+            ) {
+              hasNonCompliantElfFiles = true;
+              break;
+            }
+          }
+        }
+        if (!hasElfFiles) return Align16kbCompliance.NO_ELF_FILES;
+        if (hasNonCompliantElfFiles) return Align16kbCompliance.NON_COMPLIANT;
+        return Align16kbCompliance.COMPLIANT;
+      });
+    }
+    return myAlign16kbCompliance;
+  }
+
+  @NotNull
+  private ArchiveNode createTreeNode() {
     ArchiveNode node = ArchiveTreeStructure.create(myArchiveContext);
     ArchiveTreeStructure.updateFileInfo(node, myApkSizeCalculator);
     return node;

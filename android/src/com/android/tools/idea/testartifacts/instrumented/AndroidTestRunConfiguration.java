@@ -48,6 +48,7 @@ import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestRunnerBundle;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationQuickFix;
 import com.intellij.openapi.options.SettingsEditor;
@@ -64,6 +65,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.refactoring.listeners.RefactoringElementAdapter;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
+import com.intellij.util.SlowOperations;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -236,7 +238,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         }
         break;
       case TEST_METHOD:
-        errors.addAll(checkTestMethod());
+        try (AccessToken ignore = SlowOperations.knownIssue("b/391098349")) {
+          errors.addAll(checkTestMethod());
+        }
         break;
     }
 

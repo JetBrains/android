@@ -32,15 +32,17 @@
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.ui" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.editor.ui" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="jetbrains.skiko.awt.runtime.all.0.8.9" type="repository">
         <properties maven-id="org.jetbrains.skiko:skiko-awt-runtime-all:0.8.12">
@@ -155,6 +157,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="jewel-ide-laf-bridge" level="project" />
+    <orderEntry type="library" exported="" name="jewel-ide-laf-bridge" level="project" />
   </component>
 </module>

@@ -109,7 +109,7 @@ interface ResourceExplorerListViewModel {
   fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>>
 
   /**
-   * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].
+   * Delegate method to handle calls to [UiDataSnapshotProvider.uiDataSnapshot].
    */
   fun uiDataSnapshot(sink: DataSink, selectedAssets: List<Asset>)
 

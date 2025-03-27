@@ -49,7 +49,7 @@ public class VisualizationTest {
   static void openAndCloseVisualizationTool(@NotNull EditorFixture editor) {
     final String file1 = "app/src/main/res/layout/frames.xml";
     final String file2 = "app/src/main/res/layout/activity_my.xml";
-    final String file3 = "app/src/main/java/google/simpleapplication/MyActivity.java";
+    final String file3 = "app/src/main/res/drawable/vector.xml";
 
     editor.open(file1);
     assertThat(editor.getVisualizationTool().waitForRenderToFinish().getCurrentFileName()).isEqualTo("frames.xml");

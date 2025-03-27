@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
-import com.android.testutils.MockitoKt
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.testing.withKotlin
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.Category
@@ -44,14 +47,18 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 class KotlinBomPlatformDependencyTest {
+  // The test SDK Manager needs to be set, and loadProject also changes the project files to the specified version
+  private val agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk("35")
 
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersion)
   private val module by lazy { projectRule.getModule("app") }
-  private val mockModuleTemplateData = MockitoKt.mock<ModuleTemplateData>()
+  private val mockModuleTemplateData = mock<ModuleTemplateData>()
   private val myModule = "mymodule"
 
   private val renderingContext by lazy {
@@ -101,12 +108,12 @@ class KotlinBomPlatformDependencyTest {
 
   @Before
   fun setUp() {
-    MockitoKt.whenever(mockModuleTemplateData.projectTemplateData).thenReturn(projectTemplateDataBuilder.build())
+    whenever(mockModuleTemplateData.projectTemplateData).thenReturn(projectTemplateDataBuilder.build())
   }
 
   @Test
   fun kgp1_7_20_hasTransitiveDepTo_kotlinStdLib1_8_0() {
-    projectRule.load(TestProjectPaths.KOTLIN_WITH_VERSION_CATALOG, AGP_CURRENT.withKotlin("1.7.20"))
+    projectRule.load(TestProjectPaths.KOTLIN_WITH_VERSION_CATALOG, agpVersion.withKotlin("1.7.20"))
 
     generateModuleFiles(projectRule.project, moduleModel)
     val moduleDir = FileUtils.join(projectRule.project.basePath, myModule)
@@ -121,7 +128,7 @@ class KotlinBomPlatformDependencyTest {
 
   @Test
   fun kgp1_8_10_hasTransitiveDepToKotlinStdLib1_8_0() {
-    projectRule.load(TestProjectPaths.KOTLIN_WITH_VERSION_CATALOG, AGP_CURRENT.withKotlin("1.8.10"))
+    projectRule.load(TestProjectPaths.KOTLIN_WITH_VERSION_CATALOG, agpVersion.withKotlin("1.8.10"))
 
     generateModuleFiles(projectRule.project, moduleModel)
     val moduleDir = FileUtils.join(projectRule.project.basePath, myModule)

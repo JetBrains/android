@@ -92,7 +92,7 @@ public class AndroidSdkType extends SdkType implements JavaSdkType {
 
   @Override
   public boolean setupSdkPaths(@NotNull Sdk sdk, @NotNull SdkModel sdkModel) {
-    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
+    AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(sdk);
     if (sdkData == null) {
       Messages.showErrorDialog(AndroidBundle.message("cannot.parse.sdk.error"), "SDK Parsing Error");
       return false;

@@ -42,6 +42,7 @@ import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
+import com.android.emulator.control.XrOptions
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinDefinitionCache
@@ -70,6 +71,7 @@ import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.protobuf.UnsafeByteOperations
 import com.android.tools.idea.protobuf.WireFormat
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -77,8 +79,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.util.Alarm
-import com.intellij.util.containers.ConcurrentList
-import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.DisposableWrapperList
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
@@ -108,13 +109,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   private val connectionStateReference = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val emulatorState = AtomicReference(EmulatorState.RUNNING)
-  private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
+  private val connectionStateListeners = DisposableWrapperList<ConnectionStateListener>()
   @GuardedBy("this")
   private var inputEventSender: StreamObserver<InputEvent>? = null
 
   var emulatorConfig: EmulatorConfiguration
     get() {
-      return emulatorConfigInternal ?: throwNotYetConnected()
+      return emulatorConfigInternal ?: throw IllegalStateException("Emulator configuration has not been loaded")
     }
     private inline set(value) {
       emulatorConfigInternal = value
@@ -140,9 +141,23 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     Disposer.register(parentDisposable, this)
   }
 
+  /** The listener is removed when [disposable] is disposed. */
+  @AnyThread
+  fun addConnectionStateListener(listener: ConnectionStateListener, disposable: Disposable) {
+    connectionStateListeners.add(listener, disposable)
+    listener.connectionStateChanged(this, connectionState)
+  }
+
+  /** If the listener is [Disposable], it is automatically removed upon disposal. */
   @AnyThread
   fun addConnectionStateListener(listener: ConnectionStateListener) {
-    connectionStateListeners.add(listener)
+    if (listener is Disposable) {
+      addConnectionStateListener(listener, listener)
+    }
+    else {
+      connectionStateListeners.add(listener)
+      listener.connectionStateChanged(this, connectionState)
+    }
   }
 
   @AnyThread
@@ -162,6 +177,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         }
       }
       for (listener in connectionStateListeners) {
+        ActivityTracker.getInstance().inc() // Trigger toolbar updates.
         listener.connectionStateChanged(this, connectionState)
       }
       return true
@@ -175,13 +191,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   @Slow
   fun connect() {
-    val config = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
-    if (config == null) {
+    if (emulatorConfigInternal == null) {
+      loadEmulatorConfiguration()
+    }
+    val config = emulatorConfig
+    if (!config.isValid) {
       // The error has already been logged.
       updateConnectionState(ConnectionState.NOT_INITIALIZED, ConnectionState.DISCONNECTED)
       return
     }
-    emulatorConfig = config
     try {
       loadSkins(config)
     }
@@ -194,6 +212,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         max(config.displayWidth * config.displayHeight, config.additionalDisplays.values.maxOfOrNull { it.width * it.height } ?: 0)
     val maxInboundMessageSize = maxDisplayPixels * 3 + 100 // Three bytes per pixel plus some overhead.
     connectGrpcOrIncreaseMaxInboundMessageSize(maxInboundMessageSize)
+  }
+
+  /** Loads emulator configuration from disk. Returns true if successful. */
+  @Slow
+  fun loadEmulatorConfiguration(): Boolean {
+    emulatorConfig = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder) ?:
+        EmulatorConfiguration.createStub(emulatorId.avdName, emulatorId.avdFolder)
+    return emulatorConfig.isValid
   }
 
   private fun loadSkins(config: EmulatorConfiguration) {
@@ -381,6 +407,27 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Sets the XR-related options.
+   */
+  fun setXrOptions(xrOptions: XrOptions, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setXrOptions(${shortDebugString(xrOptions)})")
+    }
+    emulatorControllerStub.setXrOptions(xrOptions, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetXrOptionsMethod()))
+  }
+
+  /**
+   * Retrieves the XR-related options.
+   */
+  fun getXrOptions(streamObserver: StreamObserver<XrOptions>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getXrOptions()")
+    }
+    emulatorControllerStub.getXrOptions(EMPTY_PROTO,
+                                        DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetXrOptionsMethod()))
+  }
+
+  /**
    * Streams input events to the emulator.
    *
    * @param streamObserver a client stream observer that is used only for error handling
@@ -396,7 +443,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
       override fun onNext(message: InputEvent) {
         val loggingEnabled = when {
-          message.hasKeyEvent() || message.hasAndroidEvent() -> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()
+          message.hasKeyEvent() || message.hasAndroidEvent() ||
+          message.hasXrCommand() || message.hasXrHeadAngularVelocityEvent() || message.hasXrHeadVelocityEvent() ->
+              EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()
           else -> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()
         }
         if (loggingEnabled) {

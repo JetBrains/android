@@ -36,9 +36,9 @@ internal object BackupUsageTracker {
           BackupUsageEvent.newBuilder()
             .setBackup(
               BackupEvent.newBuilder()
-                .setTypeValue(type.ordinal)
-                .setSourceValue(source.ordinal)
-                .setResultValue(result.getErrorCode())
+                .setTypeString(type.name)
+                .setSourceString(source.name)
+                .setResultString(result.getErrorCode())
             )
         )
     )
@@ -52,8 +52,8 @@ internal object BackupUsageTracker {
           BackupUsageEvent.newBuilder()
             .setRestore(
               RestoreEvent.newBuilder()
-                .setSourceValue(source.ordinal)
-                .setResultValue(result.getErrorCode())
+                .setSourceString(source.name)
+                .setResultString(result.getErrorCode())
             )
         )
     )
@@ -62,6 +62,6 @@ internal object BackupUsageTracker {
 
 private fun BackupResult.getErrorCode() =
   when (this) {
-    is BackupResult.Error -> this.errorCode.ordinal
-    BackupResult.Success -> ErrorCode.SUCCESS.ordinal
+    is BackupResult.Error -> this.errorCode.name
+    BackupResult.Success -> ErrorCode.SUCCESS.name
   }

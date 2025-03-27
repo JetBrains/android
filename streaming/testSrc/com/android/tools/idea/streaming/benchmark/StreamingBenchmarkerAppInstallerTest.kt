@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.benchmark
 
 import com.android.mockito.kotlin.whenever
+import com.android.tools.idea.downloads.UrlFileCache
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.util.StudioPathManager
@@ -24,24 +25,23 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import io.ktor.util.encodeBase64
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.anyLong
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.io.InputStream
 import java.nio.file.Paths
-import kotlin.time.Duration.Companion.hours
 
 private const val SERIAL_NUMBER = "abc123"
 private const val DISABLE_IMMERSIVE_CONFIRMATION_COMMAND = "settings put secure immersive_mode_confirmations confirmed"
@@ -75,7 +75,7 @@ class StreamingBenchmarkerAppInstallerTest {
     val studioPathManager = mockStatic<StudioPathManager>(testRootDisposable)
     studioPathManager.whenever<Any?> { StudioPathManager.isRunningFromSources() }.thenReturn(false)
     val indicator: ProgressIndicator = mock()
-    whenever(urlFileCache.get(eq(apkUrl), anyLong(), any(), any())).thenReturn(downloadPath)
+    whenever(urlFileCache.get(eq(apkUrl), any(), eq(indicator), any())).thenReturn(CompletableDeferred(downloadPath))
     whenever(adb.install(SERIAL_NUMBER, downloadPath)).thenReturn(true)
 
     assertThat(installer.installBenchmarkingApp(indicator)).isTrue()
@@ -85,7 +85,8 @@ class StreamingBenchmarkerAppInstallerTest {
       verify(indicator).isIndeterminate = true
       verify(indicator).text = "Installing benchmarking app"
       val transformCaptor = argumentCaptor<(InputStream) -> InputStream>()
-      verify(urlFileCache).get(eq(apkUrl), eq(12.hours.inWholeMilliseconds), eq(indicator), transformCaptor.capture())
+      @Suppress("DeferredResultUnused")
+      verify(urlFileCache).get(eq(apkUrl), any(), eq(indicator), transformCaptor.capture())
       val helloWorld = "Hello World"
       assertThat(String(transformCaptor.firstValue.invoke(helloWorld.encodeBase64().byteInputStream()).readBytes()))
         .isEqualTo(helloWorld)

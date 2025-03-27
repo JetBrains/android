@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.property.ui
 
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.uibuilder.property.model.ToggleButtonPropertyEditorModel
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataSink
@@ -54,25 +53,22 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
     )
     button.addFocusListener(EditorFocusListener(this, model))
 
-    model.addListener(
-      ValueChangedListener {
-        // This will update the selected state of the ActionButton:
-        val context = DataManager.getInstance().getDataContext(button)
-        val event =
-          AnActionEvent(
-            null,
-            context,
-            ActionPlaces.UNKNOWN,
-            presentation,
-            ActionManager.getInstance(),
-            0,
-          )
-        ActionUtil.performDumbAwareUpdate(action, event, false)
-        if (model.focusRequest && !isFocusOwner) {
-          button.requestFocusInWindow()
-        }
+    model.addListener {
+      // This will update the selected state of the ActionButton:
+      val context = DataManager.getInstance().getDataContext(button)
+      val event =
+        AnActionEvent.createEvent(
+          context,
+          presentation,
+          ActionPlaces.UNKNOWN,
+          ActionUiKind.NONE,
+          null,
+        )
+      ActionUtil.performDumbAwareUpdate(action, event, false)
+      if (model.focusRequest && !isFocusOwner) {
+        button.requestFocusInWindow()
       }
-    )
+    }
   }
 
   override fun uiDataSnapshot(sink: DataSink) {

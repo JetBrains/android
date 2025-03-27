@@ -31,7 +31,12 @@ class MkSpecTest(unittest.TestCase):
         "product-info.json": {
             "launch": [{
                 "bootClassPathJarNames": ["util.jar"],
-                "additionalJvmArguments": ["-Didea.platform.prefix=WhiteSpacer"],
+                "additionalJvmArguments": [
+                  "-Didea.platform.prefix=WhiteSpacer",
+                  "--add-opens=java.base/java.io=ALL-UNNAMED",
+                  "--add-opens=java.base/java.net=ALL-UNNAMED",
+                  "--add-exports=java.base/java.lang=ALL-UNNAMED",
+                ],
             }]
         },
     })
@@ -73,6 +78,13 @@ SPEC = struct(
     plugin_jars_linux = {
     },
     mac_bundle_name = "",
+    add_exports = [
+        "java.base/java.lang",
+    ],
+    add_opens = [
+        "java.base/java.io",
+        "java.base/java.net",
+    ],
 )
 """
     actual = test_utils.readstr(bzl)
@@ -114,6 +126,10 @@ SPEC = struct(
     plugin_jars_linux = {
     },
     mac_bundle_name = "",
+    add_exports = [
+    ],
+    add_opens = [
+    ],
 )
 """
     actual = test_utils.readstr(bzl)

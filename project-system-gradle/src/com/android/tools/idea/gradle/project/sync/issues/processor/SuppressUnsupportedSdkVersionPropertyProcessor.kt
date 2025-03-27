@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.issues.processor
 
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.project.Project
@@ -77,7 +77,7 @@ class SuppressUnsupportedSdkVersionPropertyProcessor(
   public override fun performRefactoring(usages: Array<UsageInfo>) {
     updateProjectBuildModel(usages)
 
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_PROJECT_MODIFIED)
+    project.getSyncManager().requestSyncProject(TRIGGER_PROJECT_MODIFIED.toReason())
   }
 
   @VisibleForTesting

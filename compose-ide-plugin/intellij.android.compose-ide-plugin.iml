@@ -113,6 +113,8 @@
     <orderEntry type="module" module-name="kotlin.highlighting.k2" />
     <orderEntry type="module" module-name="intellij.android.completion" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.compose-compiler-plugin" level="project" />
+    <orderEntry type="module" module-name="kotlin.bundled-compiler-plugins-support" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.base.util" />
+    <orderEntry type="module" module-name="kotlin.code-insight.live-templates.shared" />
   </component>
 </module>

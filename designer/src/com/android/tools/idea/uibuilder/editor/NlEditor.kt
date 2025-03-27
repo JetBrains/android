@@ -23,12 +23,10 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.componenttree.NlComponentTreeDefinition
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.palette.PaletteDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanelDefinition
-import com.android.tools.idea.uibuilder.structure.NlLegacyComponentTreeDefinition
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.surface.defaultSceneManagerProvider
@@ -84,13 +82,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 
     definitions.add(PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED))
     definitions.add(NlPropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
-    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
-      definitions.add(
-        NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED)
-      )
-    } else {
-      definitions.add(NlLegacyComponentTreeDefinition(Side.LEFT, Split.BOTTOM, AutoHide.DOCKED))
-    }
+    definitions.add(NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED))
     return definitions.build()
   }
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.whatsnew.assistant
 
 import com.android.repository.Revision
-import com.android.testutils.MockitoKt.whenever
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistSidePanel
 import com.android.tools.idea.assistant.AssistantBundleCreator
@@ -32,6 +31,7 @@ import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import org.mockito.stubbing.Answer
 import java.io.File
 import java.io.InputStream

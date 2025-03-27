@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.tools.adtui.common.AdtUiUtils.updateToolbars
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
+import com.android.tools.idea.streaming.emulator.actions.FloatingXrToolbarState
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.intellij.lang.annotations.JdkConstants.AdjustableOrientation
@@ -36,11 +41,10 @@ import java.awt.LayoutManager
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
-import javax.swing.JPanel
 import javax.swing.JScrollBar
 import javax.swing.JScrollPane
-import javax.swing.ScrollPaneConstants
 import javax.swing.border.Border
+import javax.swing.border.EmptyBorder
 import javax.swing.plaf.ScrollBarUI
 
 /**
@@ -54,7 +58,9 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
   private val scrollPane: JScrollPane
   private val centerPanel: NotificationHolderPanel
-  private var floatingToolbar: JComponent
+  private val floatingToolbarLayerPane: JComponent
+  private var zoomToolbar: JComponent? = null
+  private var xrNavigationToolbar: JComponent? = null
   protected val loadingPanel: StreamingLoadingPanel
   private var _displayView: T? = null
   var displayView: T
@@ -68,9 +74,11 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   val displayId
     get() = displayView.displayId
 
-  var zoomToolbarVisible: Boolean
-    get() = floatingToolbar.isVisible
-    set(value) { floatingToolbar.isVisible = value }
+  var zoomToolbarVisible: Boolean = zoomToolbarVisible
+    set(value) {
+      field = value
+      zoomToolbar?.isVisible = value
+    }
 
   internal var zoomScrollState: ZoomScrollState
     get() = ZoomScrollState(scrollPane.viewport.viewPosition, displayView.explicitlySetPreferredSize)
@@ -80,15 +88,25 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
         scrollPane.viewport.viewPosition = value.viewPosition
       }
     }
+  protected abstract val deviceType: DeviceType
 
   init {
     Disposer.register(disposableParent, this)
 
+    ApplicationManager.getApplication().messageBus.connect(this).subscribe(
+        FloatingXrToolbarState.Listener.TOPIC,
+        object : FloatingXrToolbarState.Listener {
+          override fun floatingXrToolbarStateChanged(enabled: Boolean) {
+            xrNavigationToolbar?.isVisible = enabled
+          }
+        })
+
     background = primaryPanelBackground
 
-    val zoomControlsLayerPane = JPanel().apply {
-      layout = BorderLayout()
-      border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
+    floatingToolbarLayerPane = BorderLayoutPanel().apply {
+      val scrollBarWidth = UIUtil.getScrollBarWidth()
+      @Suppress("UseDPIAwareBorders") // scrollBarWidth is scaled already.
+      border = EmptyBorder(scrollBarWidth, scrollBarWidth, scrollBarWidth, scrollBarWidth)
       isOpaque = false
       isFocusable = true
     }
@@ -98,16 +116,12 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
     val layeredPane = JLayeredPane().apply {
       layout = LayeredPaneLayoutManager()
       isFocusable = true
-      setLayer(zoomControlsLayerPane, JLayeredPane.PALETTE_LAYER)
+      setLayer(floatingToolbarLayerPane, JLayeredPane.PALETTE_LAYER)
       setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
 
-      add(zoomControlsLayerPane, BorderLayout.CENTER)
+      add(floatingToolbarLayerPane, BorderLayout.CENTER)
       add(scrollPane, BorderLayout.CENTER)
     }
-
-    floatingToolbar = ZoomToolbarProvider.createToolbar(this, this)
-    floatingToolbar.isVisible = zoomToolbarVisible
-    zoomControlsLayerPane.add(floatingToolbar, BorderLayout.EAST)
 
     loadingPanel = StreamingLoadingPanel(this)
     loadingPanel.add(layeredPane, BorderLayout.CENTER)
@@ -116,9 +130,33 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
     addToCenter(centerPanel)
   }
 
-  fun showLongRunningOperationIndicator(text: String) {
-    loadingPanel.setLoadingText(text)
-    loadingPanel.startLoading()
+  protected fun createFloatingToolbar() {
+    floatingToolbarLayerPane.removeAll()
+    if (deviceType == DeviceType.XR && displayView.deviceId is DeviceId.EmulatorDeviceId) {
+      val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.7).apply {
+        val actionManager = ActionManager.getInstance()
+        val inputModeGroup = actionManager.getAction("android.emulator.xr.input.mode.group") as? ActionGroup
+        if (inputModeGroup != null) {
+          addToolbar("FloatingToolbar", inputModeGroup, collapsible = true)
+        }
+
+        val recenterGroup = actionManager.getAction("android.emulator.xr.recenter.group") as? ActionGroup
+        if (recenterGroup != null) {
+          addToolbar("FloatingToolbar", recenterGroup, collapsible = false)
+        }
+      }
+
+      toolbar.setTargetComponent(this)
+      toolbar.isVisible = service<FloatingXrToolbarState>().floatingXrToolbarEnabled
+      floatingToolbarLayerPane.add(toolbar, BorderLayout.EAST)
+      xrNavigationToolbar = toolbar
+    }
+    else {
+      val toolbar = ZoomToolbarProvider.createToolbar(this, this)
+      toolbar.isVisible = zoomToolbarVisible
+      floatingToolbarLayerPane.add(toolbar, BorderLayout.EAST)
+      zoomToolbar = toolbar
+    }
   }
 
   final override fun dispose() {
@@ -128,7 +166,7 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
     val sizeChanged = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
     if (sizeChanged && zoomToolbarVisible) {
-      updateToolbars(floatingToolbar)
+      ActivityTracker.getInstance().inc() // Trigger toolbar update.
     }
   }
 
@@ -163,8 +201,8 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
     init {
       setupCorners()
-      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+      verticalScrollBarPolicy = VERTICAL_SCROLLBAR_AS_NEEDED
+      horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
       viewport.background = background
     }
 

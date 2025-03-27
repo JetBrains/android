@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.naveditor.actions
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
@@ -25,10 +23,12 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurfaceZoomController
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.concurrent.CompletableFuture
 import junit.framework.TestCase
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class AutoArrangeActionTest : NavTestCase() {
   fun testAction() {
@@ -54,17 +54,17 @@ class AutoArrangeActionTest : NavTestCase() {
         CompletableFuture.completedFuture(null)
       }
       .whenever(manager)
-      .requestRenderAsync()
+      .requestRender()
 
-    whenever(surface.getSceneManager(MockitoKt.any())).thenReturn(manager)
+    whenever(surface.getSceneManager(any())).thenReturn(manager)
     whenever(surface.zoomController).thenReturn(mock<NavDesignSurfaceZoomController>())
-    val actionEvent = mock(AnActionEvent::class.java)
+    val actionEvent = mock<AnActionEvent>()
     whenever(actionEvent.getData(DESIGN_SURFACE)).thenReturn(surface)
     AutoArrangeAction.instance.actionPerformed(actionEvent)
     root.children.forEach { component ->
       TestCase.assertNull(component.nlComponent.getClientProperty(SKIP_PERSISTED_LAYOUT))
     }
-    verify(manager).requestRenderAsync()
+    verify(manager).requestRender()
     verify(surface.zoomController).zoomToFit()
   }
 }

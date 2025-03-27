@@ -143,16 +143,54 @@ class ToolsTest(unittest.TestCase):
   def test_stamp_product_info(self):
     build_txt = create_file("build.txt", "AI-1234.3333")
     stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
-    before = create_file("product-info.json", '{"name": "Studio", "version": "dev build", "buildNumber": "AI-1234.__BUILD_NUMBER__"}')
+    before = create_file("product-info.json", json.dumps({
+      "name": "Studio",
+      "version": "dev build",
+      "buildNumber": "AI-1234.__BUILD_NUMBER__",
+      "bundledPlugins": [
+        "some.platform.plugin",
+      ],
+      "layout": [
+        {
+          "name": "some.platform.plugin",
+          "kind": "plugin",
+          "classPath": [],
+        },
+      ],
+    }))
     after = get_path("res.json")
     stamper.main([
         "--info_file", stable,
         "--build_txt", build_txt,
         "--stamp", before, after,
-        "--stamp_product_info"
+        "--stamp_product_info",
+        "--added_plugin", "org.jetbrains.android", "plugins/android/lib/android.jar", "plugins/android/lib/asm.jar",
     ])
-    self.assertEqual(json.dumps({"name": "Studio", "version": "AI-1234.3333", "buildNumber": "AI-1234.3333"}, sort_keys=True, indent=2),
-                     read_file(after))
+    expected = json.dumps({
+      "name": "Studio",
+      "version": "AI-1234.3333",
+      "buildNumber": "AI-1234.3333",
+      "bundledPlugins": [
+        "some.platform.plugin",
+        "org.jetbrains.android",
+      ],
+      "layout": [
+        {
+          "name": "some.platform.plugin",
+          "kind": "plugin",
+          "classPath": [],
+        },
+        {
+          "name": "org.jetbrains.android",
+          "kind": "plugin",
+          "classPath": [
+            "plugins/android/lib/android.jar",
+            "plugins/android/lib/asm.jar",
+          ],
+        },
+      ],
+    }, indent=2)
+    self.assertEqual(expected, read_file(after))
 
   def test_replace_build_number(self):
     stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")

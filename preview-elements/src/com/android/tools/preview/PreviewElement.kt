@@ -17,14 +17,15 @@ package com.android.tools.preview
 
 enum class DisplayPositioning {
   TOP, // Previews with this priority will be displayed at the top
-  NORMAL
+  NORMAL,
 }
 
 /**
  * Settings that modify how a [PreviewElement] is rendered
  *
  * @param name display name of this preview element
- * @param baseName For parametrized previews, all of them have a same base name. For example for Composable it will be method name.
+ * @param baseName For parametrized previews, all of them have a same base name. For example for
+ *   Composable it will be method name.
  * @param parameterName For parametrized previews, they might have a parameter name.
  * @param group name that allows multiple previews in separate groups
  * @param showDecoration when true, the system decorations (navigation and status bars) should be
@@ -34,6 +35,9 @@ enum class DisplayPositioning {
  * @param backgroundColor when [showBackground] is true, this is the background color to be used by
  *   the preview. If null, the default activity background specified in the system theme will be
  *   used.
+ * @param organizationGroup an Organization group this [PreviewElement] belongs to. If not
+ *   specified - default grouping method is used. Could be used to override default grouping method,
+ *   for example for UI Check - grouping is done by UI Check type (Screen sizes, Font scales, etc).
  */
 data class PreviewDisplaySettings(
   val name: String,
@@ -43,7 +47,8 @@ data class PreviewDisplaySettings(
   val showDecoration: Boolean,
   val showBackground: Boolean,
   val backgroundColor: String?,
-  val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL
+  val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
+  val organizationGroup: String? = null,
 )
 
 /**
@@ -56,7 +61,8 @@ data class PreviewDisplaySettings(
 interface PreviewElement<T> : PreviewNode {
 
   /**
-   * Indicates if preview element has animation that could be inspected via [AnimationInspectorAction]
+   * Indicates if preview element has animation that could be inspected via
+   * [AnimationInspectorAction]
    */
   val hasAnimations: Boolean
 

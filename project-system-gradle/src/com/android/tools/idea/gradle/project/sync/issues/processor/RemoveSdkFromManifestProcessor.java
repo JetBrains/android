@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues.processor;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
+import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.getMainModule;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST;
 

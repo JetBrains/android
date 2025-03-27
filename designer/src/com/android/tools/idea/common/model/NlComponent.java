@@ -29,7 +29,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.api.InsertType;
@@ -544,12 +544,12 @@ public class NlComponent implements NlAttributesHolder {
           return null;
         }
 
-        ResourceResolver resolver = myModel.getThemeUpdater().getCachedResourceResolver();
-        StyleResourceValue styleResValue = resolver.getStyle(styleRef);
+        ResourceItemResolver resourceItemResolver = myModel.getConfiguration().getResourceItemResolver();
+        StyleResourceValue styleResValue = resourceItemResolver.getStyle(styleRef);
         if (styleResValue == null) {
           return null;
         }
-        StyleItemResourceValue item = resolver.findItemInStyle(styleResValue, ResourceReference.attr(resNamespace, attribute));
+        StyleItemResourceValue item = resourceItemResolver.findItemInStyle(styleResValue, ResourceReference.attr(resNamespace, attribute));
         return item != null ? item.getValue() : null;
       }
     }

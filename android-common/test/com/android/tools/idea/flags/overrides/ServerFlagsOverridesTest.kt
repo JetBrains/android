@@ -20,32 +20,24 @@ import com.android.flags.FlagGroup
 import com.android.flags.Flags
 import com.android.flags.ImmutableFlagOverrides
 import com.android.flags.IntFlag
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.registerServiceInstance
-import com.intellij.testFramework.unregisterService
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 private const val TEST_GROUP = "testgroup"
 private const val STUDIO_FLAG_PREFIX = "studio_flags/$TEST_GROUP"
 
 class ServerFlagOverridesTest {
-  @get:Rule
-  val appRule = ApplicationRule()
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val appRule = ApplicationRule()
 
-  @After
-  fun tearDown() {
-    ApplicationManager.getApplication().unregisterService(ServerFlagService::class.java)
-  }
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testServerFlagOverrides() {
@@ -64,7 +56,8 @@ class ServerFlagOverridesTest {
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.a")).thenReturn(true)
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.b")).thenReturn(false)
     whenever(service.getBoolean("$STUDIO_FLAG_PREFIX.c")).thenReturn(null)
-    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service)
+    ApplicationManager.getApplication()
+      .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
 
     assertThat(overrides.get(flagA)).isEqualTo("true")
     assertThat(overrides.get(flagB)).isEqualTo("false")
@@ -88,7 +81,8 @@ class ServerFlagOverridesTest {
     whenever(service.getInt("$STUDIO_FLAG_PREFIX.d")).thenReturn(1)
     whenever(service.getInt("$STUDIO_FLAG_PREFIX.e")).thenReturn(0)
     whenever(service.getInt("$STUDIO_FLAG_PREFIX.f")).thenReturn(null)
-    ApplicationManager.getApplication().registerServiceInstance(ServerFlagService::class.java, service)
+    ApplicationManager.getApplication()
+      .registerServiceInstance(ServerFlagService::class.java, service, disposableRule.disposable)
 
     assertThat(overrides.get(flagD)).isEqualTo("1")
     assertThat(overrides.get(flagE)).isEqualTo("0")

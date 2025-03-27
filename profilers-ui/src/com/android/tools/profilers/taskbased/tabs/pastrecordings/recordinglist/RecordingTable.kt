@@ -80,9 +80,9 @@ fun RecordingListHeader() {
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
   ) {
     LeftAlignedColumnText(text = "Recording name", rowScope = this)
-    Divider(thickness = 1.dp, orientation = Orientation.Vertical)
+    Divider(thickness = 1.dp, orientation = Orientation.Vertical, modifier = Modifier.fillMaxHeight())
     RightAlignedColumnText(text = "Recording time", colWidth = RECORDING_TIME_COL_WIDTH_DP)
-    Divider(thickness = 1.dp, orientation = Orientation.Vertical)
+    Divider(thickness = 1.dp, orientation = Orientation.Vertical, modifier = Modifier.fillMaxHeight())
     RightAlignedColumnText(text = "Recorded tasks", colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }

@@ -78,7 +78,6 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
     private val myOnTheFly: Boolean,
   ) : XmlRecursiveElementVisitor() {
     val myResult: MutableList<ProblemDescriptor> = ArrayList()
-    val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
 
     override fun visitXmlTag(tag: XmlTag) {
       super.visitXmlTag(tag)
@@ -88,18 +87,19 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       }
 
       // Make sure the class exists; check only the last reference; that's the class name tag (the
-      // rest are for the
-      // package segments).
+      // rest are for the package segments).
       val reference = tag.references.lastOrNull() ?: return
 
       if (reference.resolve() == null && !builtinTags.contains(tag.name)) {
         val className: String = tag.name
         val fixes =
-          mavenClassRegistryManager.collectFixesFromMavenClassRegistry(
-            className,
-            tag.project,
-            tag.containingFile?.fileType,
-          )
+          MavenClassRegistryManager.getInstance()
+            .tryGetMavenClassRegistry()
+            ?.collectFixesFromMavenClassRegistry(
+              className,
+              tag.project,
+              tag.containingFile?.fileType,
+            ) ?: emptyList()
         getTagNameRange(tag)?.let {
           myResult.add(
             myInspectionManager.createProblemDescriptor(

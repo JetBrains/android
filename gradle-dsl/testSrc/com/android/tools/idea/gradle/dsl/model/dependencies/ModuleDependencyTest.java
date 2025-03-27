@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
@@ -497,7 +496,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED);
 
-    PsiElement psiFile = ((GradleBuildModelImpl)buildModel).getDslFile().getPsiElement();
+    PsiElement psiFile = buildModel.getPsiFile();
     if (myLanguageName.equals("Groovy")) {
       assertTrue(psiFile.getFirstChild().getNode().getElementType() == ML_COMMENT);
     }

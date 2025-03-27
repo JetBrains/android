@@ -38,6 +38,7 @@ public class MobileInstallApplicationDeployer implements ApplicationDeployer {
       @NotNull IDevice device,
       @NotNull ApkInfo apkInfo,
       @NotNull DeployOptions deployOptions,
+      boolean hasMakeBeforeRun,
       ProgressIndicator indicator) {
     App app = getAppToInstall(apkInfo);
     return new Deployer.Result(false, false, false, app);
@@ -49,6 +50,7 @@ public class MobileInstallApplicationDeployer implements ApplicationDeployer {
       @NotNull IDevice device,
       @NotNull ApkInfo app,
       @NotNull DeployOptions deployOptions,
+      boolean hasMakeBeforeRun,
       ProgressIndicator indicator) {
     throw new RuntimeException("Apply changes is not supported for mobile-install");
   }
@@ -59,6 +61,7 @@ public class MobileInstallApplicationDeployer implements ApplicationDeployer {
       @NotNull IDevice device,
       @NotNull ApkInfo app,
       @NotNull DeployOptions deployOptions,
+      boolean hasMakeBeforeRun,
       ProgressIndicator indicator)
       throws DeployerException {
     throw new RuntimeException("Apply code changes is not supported for mobile-install");

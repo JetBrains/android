@@ -58,7 +58,7 @@ public class BlazeProjectSystemSyncManager implements ProjectSystemSyncManager {
   }
 
   @Override
-  public ListenableFuture<SyncResult> syncProject(ProjectSystemSyncManager.SyncReason reason) {
+  public ListenableFuture<SyncResult> requestSyncProject(ProjectSystemSyncManager.SyncReason reason) {
     SettableFuture<ProjectSystemSyncManager.SyncResult> syncResult = SettableFuture.create();
 
     if (BlazeSyncStatus.getInstance(project).syncInProgress()) {

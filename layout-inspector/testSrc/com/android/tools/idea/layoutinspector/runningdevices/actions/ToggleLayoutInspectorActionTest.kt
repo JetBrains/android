@@ -30,11 +30,13 @@ import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.customization.CustomActionsSchema
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTENT_MANAGER
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
@@ -75,7 +77,7 @@ class ToggleLayoutInspectorActionTest {
     tab1 =
       TabInfo(
         DeviceId.ofPhysicalDevice("tab1"),
-        JPanel(),
+        BorderLayoutPanel(),
         JPanel(),
         displayViewRule.newEmulatorView(),
       )
@@ -211,20 +213,20 @@ class ToggleLayoutInspectorActionTest {
     val contentPanel = BorderLayoutPanel()
     contentPanelContainer.add(contentPanel)
 
-    val dataContext = DataContext {
-      when (it) {
-        CommonDataKeys.PROJECT.name -> displayViewRule.project
-        SERIAL_NUMBER_KEY.name -> deviceSerialNumber
-        STREAMING_CONTENT_PANEL_KEY.name -> contentPanel
-        DISPLAY_VIEW_KEY.name -> displayView
-        DEVICE_ID_KEY.name -> deviceId
-        CONTENT_MANAGER.name ->
-          toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, displayViewRule.project)
+        .add(SERIAL_NUMBER_KEY, deviceSerialNumber)
+        .add(STREAMING_CONTENT_PANEL_KEY, contentPanel)
+        .add(DISPLAY_VIEW_KEY, displayView)
+        .add(DEVICE_ID_KEY, deviceId)
+        .add(
+          CONTENT_MANAGER,
+          toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)!!.contentManager,
+        )
+        .build()
 
-    return AnActionEvent.createFromAnAction(this, null, "", dataContext)
+    return createEvent(this, dataContext, null, "", ActionUiKind.NONE, null)
   }
 
   private fun getFakeAction(): AnAction {
@@ -249,5 +251,7 @@ class ToggleLayoutInspectorActionTest {
     override fun isSupported(deviceId: DeviceId) = true
 
     override fun dispose() {}
+
+    override fun disable() {}
   }
 }

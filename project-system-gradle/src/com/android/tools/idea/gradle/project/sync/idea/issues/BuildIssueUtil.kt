@@ -33,51 +33,101 @@ import java.util.concurrent.CompletableFuture
  * Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling.
  */
 class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle Sync issues.") {
-  private val descriptionBuilder = StringBuilder(baseMessage)
-  val issueQuickFixes = mutableListOf<BuildIssueQuickFix>()
+  val descriptionComposer = BuildIssueDescriptionComposer(baseMessage)
 
-  fun addDescription(message: String): BuildIssueComposer {
-    descriptionBuilder.appendLine()
-    descriptionBuilder.appendLine(message)
+  val issueQuickFixes: List<BuildIssueQuickFix> get() = descriptionComposer.quickFixes
+
+  fun addDescriptionOnNewLine(message: String): BuildIssueComposer {
+    descriptionComposer.newLine()
+    descriptionComposer.addDescription(message)
+    return this
+  }
+
+  fun startNewParagraph(): BuildIssueComposer {
+    descriptionComposer.newLine()
     return this
   }
 
   fun addQuickFix(quickFix: DescribedBuildIssueQuickFix): BuildIssueComposer {
-    issueQuickFixes.add(quickFix)
-    descriptionBuilder.appendLine()
-    descriptionBuilder.append(quickFix.html)
+    descriptionComposer.newLine()
+    descriptionComposer.addQuickFix(quickFix)
     return this
   }
 
   fun addQuickFix(text: String, quickFix: BuildIssueQuickFix): BuildIssueComposer {
-    issueQuickFixes.add(quickFix)
-    descriptionBuilder.appendLine()
-    descriptionBuilder.append("<a href=\"${quickFix.id}\">$text</a>")
+    descriptionComposer.newLine()
+    descriptionComposer.addQuickFix(text, quickFix)
     return this
   }
 
   fun addQuickFix(prefix: String, text: String, suffix: String, quickFix: BuildIssueQuickFix): BuildIssueComposer {
-    issueQuickFixes.add(quickFix)
-    descriptionBuilder.appendLine()
-    descriptionBuilder.append("$prefix<a href=\"${quickFix.id}\">$text</a>$suffix")
+    descriptionComposer.newLine()
+    descriptionComposer.addQuickFix(prefix, text, suffix, quickFix)
+    return this
+  }
+
+  fun addDescriptionOnNewLine(additionalDescription: BuildIssueDescriptionComposer): BuildIssueComposer {
+    descriptionComposer.newLine()
+    descriptionComposer.addDescription(additionalDescription)
     return this
   }
 
   fun composeBuildIssue(): BuildIssue {
     return object : BuildIssue {
       override val title: String = issueTitle
-      override val description = descriptionBuilder.toString()
-      override val quickFixes = issueQuickFixes
+      override val description = descriptionComposer.description
+      override val quickFixes = descriptionComposer.quickFixes
       override fun getNavigatable(project: Project) = null
     }
   }
 
   fun composeErrorMessageAwareBuildIssue(buildErrorMessage: BuildErrorMessage) = object : ErrorMessageAwareBuildIssue {
     override val title: String = issueTitle
-    override val description = descriptionBuilder.toString()
-    override val quickFixes = issueQuickFixes
+    override val description = descriptionComposer.description
+    override val quickFixes = descriptionComposer.quickFixes
     override val buildErrorMessage = buildErrorMessage
     override fun getNavigatable(project: Project) = null
+  }
+}
+
+class BuildIssueDescriptionComposer(baseMessage: String = "") {
+  private val descriptionBuilder = StringBuilder(baseMessage.trimEnd())
+  private val issueQuickFixes = mutableListOf<BuildIssueQuickFix>()
+
+  val description: String
+    get() = descriptionBuilder.toString()
+  val quickFixes: List<BuildIssueQuickFix>
+    get() = issueQuickFixes
+
+
+  fun addDescription(additionalDescription: BuildIssueDescriptionComposer) {
+    descriptionBuilder.append(additionalDescription.description)
+    issueQuickFixes.addAll(additionalDescription.issueQuickFixes)
+  }
+
+  fun newLine() {
+    descriptionBuilder.appendLine()
+  }
+
+  fun addDescription(message: String) {
+    descriptionBuilder.append(message)
+  }
+
+  fun addQuickFix(quickFix: DescribedBuildIssueQuickFix) {
+    addQuickFixInternal(quickFix.html, quickFix)
+  }
+
+  fun addQuickFix(text: String, quickFix: BuildIssueQuickFix) {
+    addQuickFix(prefix = "", text = text, suffix = "", quickFix = quickFix)
+  }
+
+  fun addQuickFix(prefix: String, text: String, suffix: String, quickFix: BuildIssueQuickFix) {
+    addQuickFixInternal("$prefix<a href=\"${quickFix.id}\">$text</a>$suffix", quickFix)
+  }
+
+  private fun addQuickFixInternal(html: String, quickFix: BuildIssueQuickFix) {
+    issueQuickFixes.add(quickFix)
+    descriptionBuilder.append(html)
   }
 }
 

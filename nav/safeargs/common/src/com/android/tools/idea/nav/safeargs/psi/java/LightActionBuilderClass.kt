@@ -24,7 +24,6 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
-import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiType
@@ -44,11 +43,7 @@ class LightActionBuilderClass(
   private val directionsClass: LightDirectionsClass,
   private val action: NavActionData,
   private val backingResourceFile: XmlFile?,
-) :
-  AndroidLightClassBase(
-    PsiManager.getInstance(navInfo.facet.module.project),
-    setOf(PsiModifier.PUBLIC, PsiModifier.STATIC),
-  ) {
+) : AndroidLightClassBase(directionsClass, setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
   private val NAV_DIRECTIONS_FQCN = "androidx.navigation.NavDirections"
   private val name: String = className
   private val qualifiedName: String = "${directionsClass.qualifiedName}.$name"
@@ -71,10 +66,6 @@ class LightActionBuilderClass(
   override fun getName() = name
 
   override fun getQualifiedName() = qualifiedName
-
-  override fun getContainingFile() = directionsClass.containingFile
-
-  override fun getContainingClass() = directionsClass
 
   override fun getParent() = directionsClass
 

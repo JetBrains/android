@@ -50,5 +50,5 @@ object BuildRunConfigNotifier {
   }
 
   private val logger: Logger
-    get() = Logger.getInstance(BuildRunConfigurationAction::class.java)
+    get() = Logger.getInstance(BuildRunConfigNotifier::class.java)
 }

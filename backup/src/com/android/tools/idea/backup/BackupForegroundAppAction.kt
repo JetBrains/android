@@ -17,30 +17,55 @@
 package com.android.tools.idea.backup
 
 import com.android.adblib.DeviceSelector
+import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_FOREGROUND_APP_ACTION
+import com.android.tools.idea.backup.asyncaction.ActionEnableState
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Disabled
+import com.android.tools.idea.backup.asyncaction.ActionEnableState.Enabled
+import com.android.tools.idea.backup.asyncaction.ActionWithSuspendedUpdate
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Backups the state of the foreground app to a file */
-internal class BackupForegroundAppAction : AnAction() {
+internal class BackupForegroundAppAction(
+  private val actionHelper: ActionHelper = ActionHelperImpl()
+) : ActionWithSuspendedUpdate() {
+
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = StudioFlags.BACKUP_ENABLED.get()
+    e.presentation.isEnabledAndVisible = false
+    if (!StudioFlags.BACKUP_ENABLED.get()) {
+      return
+    }
+    e.presentation.isVisible = true
+    super.update(e)
+  }
+
+  override suspend fun suspendedUpdate(project: Project, e: AnActionEvent): ActionEnableState {
+    val serialNumber =
+      getDeviceSerialNumber(e) ?: return Disabled(message("error.device.not.ready"))
+    if (!BackupManager.getInstance(project).isDeviceSupported(serialNumber)) {
+      return Disabled(message("error.device.not.supported"))
+    }
+    return when (actionHelper.checkCompatibleApps(project, serialNumber)) {
+      true -> Enabled
+      else -> Disabled(message("error.applications.not.installed"))
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val backupManager = BackupManager.getInstance(project)
-    val serialNumber = getDeviceSerialNumber(e)
+    val serialNumber = getDeviceSerialNumber(e) ?: return
     val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
     deviceProvisioner.scope.launch {
       val handle =
@@ -54,8 +79,7 @@ internal class BackupForegroundAppAction : AnAction() {
     }
   }
 
-  private fun getDeviceSerialNumber(e: AnActionEvent): String {
+  private fun getDeviceSerialNumber(e: AnActionEvent): String? {
     return SERIAL_NUMBER_KEY.getData(e.dataContext)
-      ?: throw RuntimeException("SERIAL_NUMBER_KEY not found in ActionEvent")
   }
 }

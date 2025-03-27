@@ -24,7 +24,6 @@ import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey.DEVICE_NAME
 import com.android.sdklib.internal.avd.HardwareProperties
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidDevice
 import com.google.common.truth.Truth.assertThat
@@ -34,6 +33,7 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.util.concurrent.TimeUnit
 

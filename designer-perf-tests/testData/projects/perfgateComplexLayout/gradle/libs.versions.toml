@@ -1,0 +1,11 @@
+[versions]
+agp = "8.9.0-dev" # AGP version will be replaced by AndroidGradleTestCase
+appcompatV7 = "28.0.0"
+constraintLayout = "2.0.4"
+
+[libraries]
+appcompat-v7 = { module = "com.android.support:appcompat-v7", version.ref = "appcompatV7" }
+constraint-layout = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraintLayout" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }

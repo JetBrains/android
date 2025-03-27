@@ -16,9 +16,6 @@
 package com.android.tools.idea.editors.strings.action
 
 import com.android.ide.common.resources.Locale
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.StringResourceViewPanel
@@ -41,7 +38,13 @@ import com.intellij.openapi.wm.WindowManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
+import java.awt.event.MouseEvent
+import javax.swing.Icon
+import javax.swing.JButton
+import javax.swing.JFrame
+import javax.swing.JPanel
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -52,11 +55,9 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.withSettings
-import java.awt.event.MouseEvent
-import javax.swing.Icon
-import javax.swing.JButton
-import javax.swing.JFrame
-import javax.swing.JPanel
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests the [FilterLocalesAction] class. */
 @RunWith(JUnit4::class)
@@ -99,15 +100,7 @@ class FilterLocalesActionTest {
         .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
         .build()
 
-    event =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    event = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -125,7 +118,7 @@ class FilterLocalesActionTest {
     // A null frame causes ComboBoxAction.actionPerformed(...) to return early before it invokes
     // createActionPopup, and thus will do nothing and can't be tested.
     val windowManager: WindowManager = mock()
-    val frame: JFrame = mock(withSettings().extraInterfaces(IdeFrame::class.java))
+    val frame: JFrame = mock(extraInterfaces = arrayOf(IdeFrame::class))
     whenever((frame as IdeFrame).component).thenReturn(JButton())
     whenever(windowManager.getFrame(projectRule.project)).thenReturn(frame)
     ApplicationManager.getApplication()
@@ -152,19 +145,9 @@ class FilterLocalesActionTest {
       )
 
     val dataContext =
-      SimpleDataContext.builder()
-        .add(CommonDataKeys.PROJECT, projectRule.project)
-        .build()
+      SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
 
-    val noEditorEvent =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    val noEditorEvent = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     filterLocalesAction.update(noEditorEvent)
 

@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Language;
@@ -90,8 +89,10 @@ public class SupportNewAnnotationsTest {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editorFixture = ideFrame.getEditor();
-
-    editorFixture.open(MAIN_ACITVITY)
+    //Close the project panel to have extra space in editor panel to access Quick Fix balloon
+    ideFrame.closeProjectPanel();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editorFixture.open(MAIN_ACITVITY).waitUntilErrorAnalysisFinishes()
       .moveBetween("", "import android")
       .enterText(IMPORT_STATEMENTS)
       .moveBetween("activity_main)", "")
@@ -115,11 +116,11 @@ public class SupportNewAnnotationsTest {
         GuiTests.refreshFiles();
         return editorFixture.open(MANIFEST_FILE).getCurrentFileContents().contains("ACCESS_FINE_LOCATION");
       });
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     // Update permission checks
     selectMenuFromQuickFixAction(editorFixture, "Add permission check");
     GuiTests.refreshFiles();
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     //Verify permissions are updated in the file.
     String fileContents = editorFixture.getCurrentFileContents();
     assertThat(fileContents).contains("ActivityCompat#requestPermissions");
@@ -127,21 +128,10 @@ public class SupportNewAnnotationsTest {
   }
 
   private void selectMenuFromQuickFixAction(EditorFixture editorFixture, String label){
-    editorFixture.open(MAIN_ACITVITY);
-    editorFixture.moveBetween("getSystem", "Service");
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    // To reduce test flakiness, invoking the shortcuts and closing it in the first attempt.
-    editorFixture.invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-    editorFixture.invokeAction(EditorFixture.EditorAction.ESCAPE);
-    guiTest.waitForAllBackgroundTasksToBeCompleted();
-
-    GuiTests.refreshFiles();
-    Wait.seconds(5)
-      .expecting("Wait needed to reduce flakiness.");
-
-    editorFixture.moveBetween("getSystem", "Service");
+    editorFixture.open(MAIN_ACITVITY).waitForFileToActivate();
+    editorFixture.waitUntilErrorAnalysisFinishes();
+    editorFixture.moveBetween("", "((getSystemService");
+    editorFixture.moveBetween("", "((getSystemService"); //To reduce flakiness
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     editorFixture.invokeQuickfixAction(label);
     guiTest.waitForAllBackgroundTasksToBeCompleted();

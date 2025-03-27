@@ -82,8 +82,6 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
   public DialogPanel createPanel() {
     return BuilderKt.panel(
         p -> {
-          boolean enabledByExperimentFile =
-              QuerySync.useByDefault() ? false : QuerySync.isLegacyExperimentEnabled();
           // Enable query sync checkbox
           Row unusedEnableQuerySyncRow =
               p.row(
@@ -91,7 +89,6 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                   /* init= */ r -> {
                     enableQuerySyncCheckBoxCell =
                         r.checkBox("Enable Query Sync for new projects")
-                            .enabled(!enabledByExperimentFile)
                             .bind(
                                 /* componentGet= */ AbstractButton::isSelected,
                                 /* componentSet= */ (jbCheckBox, selected) -> {
@@ -101,29 +98,14 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                                 /* prop= */ new MutableProperty<Boolean>() {
                                   @Override
                                   public Boolean get() {
-                                    if (QuerySync.useByDefault()) {
-                                      return settings.useQuerySync();
-                                    } else {
-                                      return settings.useQuerySyncBeta() || enabledByExperimentFile;
-                                    }
+                                    return settings.useQuerySync();
                                   }
 
                                   @Override
                                   public void set(Boolean selected) {
-                                    if (QuerySync.useByDefault()) {
-                                      settings.enableUseQuerySync(selected);
-                                    } else {
-                                      settings.enableUseQuerySyncBeta(selected);
-                                    }
+                                    settings.enableUseQuerySync(selected);
                                   }
-                                })
-                            .comment(
-                                enabledByExperimentFile
-                                    ? "Query sync is forcefully enabled by the old flag from"
-                                        + " the .intellij-experiments file. "
-                                    : "You must re-create your project for changes to take effect.",
-                                UtilsKt.DEFAULT_COMMENT_WIDTH,
-                                HyperlinkEventAction.HTML_HYPERLINK_INSTANCE);
+                                });
                     return Unit.INSTANCE;
                   });
 
@@ -136,16 +118,6 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                         "Display detailed dependency text in the editor",
                         settings::showDetailedInformationInEditor,
                         settings::enableShowDetailedInformationInEditor);
-                    addCheckBox(
-                        ip,
-                        "Include working set when building dependencies",
-                        settings::buildWorkingSet,
-                        settings::enableBuildWorkingSet);
-                    addCheckBox(
-                        ip,
-                        "Automatically sync project on file changes",
-                        settings::syncOnFileChanges,
-                        settings::enableSyncOnFileChanges);
                     return Unit.INSTANCE;
                   });
           return Unit.INSTANCE;

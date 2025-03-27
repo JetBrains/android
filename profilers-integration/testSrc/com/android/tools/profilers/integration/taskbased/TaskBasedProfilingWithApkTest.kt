@@ -15,11 +15,13 @@
  */
 package com.android.tools.profilers.integration.taskbased
 
-import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.profilers.integration.TestConstants
 import org.junit.Test
 
 class TaskBasedProfilingWithApkTest : ProfilersTestBase() {
+
+  override val projectPath = TestConstants.APK_PROJECT_PATH
 
   /**
    * Validate Profile with APK.
@@ -42,7 +44,6 @@ class TaskBasedProfilingWithApkTest : ProfilersTestBase() {
   @Test
   fun test() {
     profileAppUsingApk(
-      systemImage = Emulator.SystemImage.API_33,
       enableTaskBasedProfiling = true,
       testFunction = { studio, adb ->
         // Invoking profiler tool window using ProfileAction

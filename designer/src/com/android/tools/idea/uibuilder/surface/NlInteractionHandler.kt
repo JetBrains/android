@@ -38,12 +38,13 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
     @SwingCoordinate mouseY: Int,
     modifiersEx: Int,
   ): Interaction? {
+    getViewInResizeZone(mouseX, mouseY)?.let { view ->
+      val configuration = view.sceneManager.model.configuration
+      return CanvasResizeInteraction(surface as NlDesignSurface, view as ScreenView, configuration)
+    }
+
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
-    if (isInResizeZone(view, mouseX, mouseY)) {
-      val configuration = view.sceneManager.model.configuration
-      return CanvasResizeInteraction(surface as NlDesignSurface, screenView, configuration)
-    }
 
     val selectionModel = screenView.selectionModel
     var component = Coordinates.findComponent(screenView, mouseX, mouseY)
@@ -89,30 +90,37 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
   }
 
   /**
-   * Returns whether the given [mouseX] and [mouseY] coordinates are within the resizing handle
-   * area. If resizing is disabled or the coordinates are outside of the resize handler area, this
-   * method returns false.
+   * Returns SceneView if the given [mouseX] and [mouseY] coordinates are within the resizing handle
+   * area. If resizing is disabled or the coordinates are outside the resize handler area of any
+   * SceneView, this method returns null.
    */
-  private fun isInResizeZone(
-    sceneView: SceneView,
+  private fun getViewInResizeZone(
     @SwingCoordinate mouseX: Int,
     @SwingCoordinate mouseY: Int,
-  ): Boolean {
-    if (!sceneView.isResizeable || !sceneView.scene.isResizeAvailable) {
-      // Resizing is disabled
-      return false
+  ): SceneView? {
+    // if we are hovering any scene return immediately
+    val sceneViewUnderMouse = surface.getSceneViewAt(mouseX, mouseY)
+    if (sceneViewUnderMouse != null) {
+      return null
     }
 
-    val size = sceneView.scaledContentSize
-    // Check if the mouse position is at the bottom-right corner of sceneView.
-    val resizeZone =
-      Rectangle(
-        sceneView.x + size.width,
-        sceneView.y + size.height,
-        NlConstants.RESIZING_HOVERING_SIZE,
-        NlConstants.RESIZING_HOVERING_SIZE,
-      )
-    return resizeZone.contains(mouseX, mouseY)
+    return surface.sceneViews.find { sceneView ->
+      if (!sceneView.isResizeable || !sceneView.scene.isResizeAvailable) {
+        // Resizing is disabled
+        return@find false
+      }
+
+      val size = sceneView.scaledContentSize
+      // Check if the mouse position is in the bottom-right corner of sceneView.
+      val resizeZone =
+        Rectangle(
+          sceneView.x + size.width,
+          sceneView.y + size.height,
+          NlConstants.RESIZING_HOVERING_SIZE,
+          NlConstants.RESIZING_HOVERING_SIZE,
+        )
+      resizeZone.contains(mouseX, mouseY)
+    }
   }
 
   override fun createInteractionOnDrag(
@@ -132,13 +140,10 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>) :
     @SwingCoordinate mouseY: Int,
     @JdkConstants.InputEventMask modifiersEx: Int,
   ): Cursor? {
-    val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
-    if (sceneView != null) {
-      // Check if the mouse position is at the bottom-right corner of sceneView.
-      if (isInResizeZone(sceneView, mouseX, mouseY)) {
-        return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
-      }
+    if (getViewInResizeZone(mouseX, mouseY) != null) {
+      return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
     }
+
     return super.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)
   }
 }

@@ -40,6 +40,7 @@ import com.android.tools.sdk.AndroidTargetData;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
@@ -835,10 +836,9 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   /**
    * Returns a set of ISO 639 language codes derived from locales of the project resources.
    */
+  @Override
   @NotNull
-  public ImmutableSortedSet<String> getLanguagesInProject() {
-    return getLocalesAndLanguages().languages;
-  }
+  public ImmutableSet<String> getLanguagesInProject() { return getLocalesAndLanguages().languages; }
 
   /**
    * Returns a new {@link com.intellij.psi.util.CachedValueProvider.Result} for obtaining {@link LocalesAndLanguages}.

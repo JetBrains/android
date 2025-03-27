@@ -33,6 +33,7 @@ import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
@@ -45,7 +46,6 @@ import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.scope.output.StatusOutput;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.common.experiments.BoolExperiment;
@@ -58,6 +58,7 @@ import java.util.List;
 
 /** Builds the APK using normal blaze build. */
 public class FullApkBuildStep implements ApkBuildStep {
+  private static final String ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME = "android_deploy_info";
   @VisibleForTesting public static final String DEPLOY_INFO_SUFFIX = ".deployinfo.pb";
 
   /** Controls the post-build remote APK fetching step. */
@@ -219,7 +220,10 @@ public class FullApkBuildStep implements ApkBuildStep {
 
       AndroidDeployInfo deployInfoProto =
           deployInfoHelper.readDeployInfoProtoForTarget(
-              label, buildResultHelper, fileName -> fileName.endsWith(DEPLOY_INFO_SUFFIX));
+              label,
+              ANDROID_DEPLOY_INFO_OUTPUT_GROUP_NAME,
+              buildResultHelper,
+              fileName -> fileName.endsWith(DEPLOY_INFO_SUFFIX));
       ImmutableList<File> libs =
           nativeSymbolFinderList.stream()
               .flatMap(

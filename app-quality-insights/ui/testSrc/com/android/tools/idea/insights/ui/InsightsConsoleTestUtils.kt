@@ -58,7 +58,7 @@ fun ConsoleViewImpl.printAndHighlight(text: String) {
 
   WriteAction.run<RuntimeException>(this::flushDeferredText)
   waitAllRequests()
-  editor.caretModel.moveToOffset(0)
+  editor!!.caretModel.moveToOffset(0)
 }
 
 /**

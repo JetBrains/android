@@ -403,6 +403,13 @@ JCharArray Jni::NewCharArray(int32_t length) const {
   return JCharArray(jni_env_, jni_env_->NewCharArray(length));
 }
 
+std::vector<int64_t> Jni::GetElements(jlongArray array) const {
+  jsize size = jni_env_->GetArrayLength(array);
+  std::vector<int64_t> result(size);
+  jni_env_->GetLongArrayRegion(array, 0, size, result.data());
+  return result;
+}
+
 bool Jni::CheckAndClearException() const {
   jboolean exception_thrown = jni_env_->ExceptionCheck();
   if (exception_thrown) {
@@ -424,9 +431,8 @@ string JThrowable::Describe() const {
     Log::Fatal(NULL_POINTER, "Describe is called on a null object");
   }
   Jni jni = GetJni();
-  JClass clazz = jni.GetClass("com/android/tools/screensharing/ThrowableHelper");
-  jmethodID method = clazz.GetStaticMethod("describe", "(Ljava/lang/Throwable;)Ljava/lang/String;");
-  JString str = JString(jni, jni->CallStaticObjectMethod(clazz.ref(), method, ref()));
+  jmethodID method = throwable_helper_class_.GetStaticMethod(jni, "describe", "(Ljava/lang/Throwable;)Ljava/lang/String;");
+  JString str = JString(jni, jni->CallStaticObjectMethod(throwable_helper_class_.ref(), method, ref()));
   return str.GetValue();
 }
 
@@ -466,6 +472,7 @@ jmethodID JIterable::iterator_method_ = nullptr;
 jmethodID JIterator::has_next_method_ = nullptr;
 jmethodID JIterator::next_method_ = nullptr;
 
+JClass JThrowable::throwable_helper_class_;
 
 JavaVM* Jvm::jvm_ = nullptr;
 jint Jvm::jni_version_ = 0;
@@ -474,8 +481,10 @@ jmethodID Jvm::class_get_name_method_ = nullptr;
 void Jvm::Initialize(JNIEnv* jni_env) {
   jni_env->GetJavaVM(&jvm_);
   jni_version_ = jni_env->GetVersion();
-  JClass class_class = Jni(jni_env).GetClass("java/lang/Class");
+  Jni jni(jni_env);
+  JClass class_class = jni.GetClass("java/lang/Class");
   class_get_name_method_ = class_class.GetMethod("getName", "()Ljava/lang/String;");
+  JThrowable::throwable_helper_class_ = jni.GetClass("com/android/tools/screensharing/ThrowableHelper").ToGlobal(); // Preload for safety.
 }
 
 Jni Jvm::AttachCurrentThread(const char* thread_name) {
@@ -494,6 +503,7 @@ void Jvm::DetachCurrentThread() {
 
 [[noreturn]] void Jvm::Exit(int exitCode) {
   Jni jni = GetJni();
+  jni->ExceptionClear();
   JClass system = jni.GetClass("java/lang/System");
   jmethodID exit_method = system.GetStaticMethod(jni, "exit", "(I)V");
   system.CallStaticVoidMethod(exit_method, exitCode);

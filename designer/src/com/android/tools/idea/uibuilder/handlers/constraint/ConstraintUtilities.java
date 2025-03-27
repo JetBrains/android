@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.sdklib.AndroidDpCoordinate;
@@ -133,11 +133,8 @@ public class ConstraintUtilities {
   public static int getDpValue(@NotNull NlComponent component, String value) {
     if (value != null) {
       Configuration configuration = component.getModel().getConfiguration();
-      ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
-      if (resourceResolver != null) {
-        Integer px = ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration);
-        return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
-      }
+      Integer px = ViewEditor.resolveDimensionPixelSize(value, configuration);
+      return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
     }
     return 0;
   }
@@ -145,11 +142,7 @@ public class ConstraintUtilities {
   @NotNull
   static String resolveStringResource(@NotNull NlComponent component, @NotNull String text) {
     Configuration configuration = component.getModel().getConfiguration();
-    ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
-    if (resourceResolver != null) {
-      return resolveStringValue(resourceResolver, text);
-    }
-    return "";
+    return resolveStringValue(configuration.getResourceItemResolver(), text);
   }
 
   /**

@@ -38,13 +38,12 @@ class EnableUiCheckAction :
   ) {
 
   override fun update(e: AnActionEvent) {
-    val isUiCheckModeEnabled = StudioFlags.COMPOSE_UI_CHECK_MODE.get()
     val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
     val disableForWear =
       Device.isWear(e.getData(SCENE_VIEW)?.configuration?.device) &&
         !StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.get()
-    e.presentation.isVisible = isUiCheckModeEnabled
-    e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled && !disableForWear
+    e.presentation.isVisible = true
+    e.presentation.isEnabled = !isEssentialsModeEnabled && !disableForWear
     e.presentation.text =
       if (isEssentialsModeEnabled || disableForWear) null else message("action.uicheck.title")
     e.presentation.description =

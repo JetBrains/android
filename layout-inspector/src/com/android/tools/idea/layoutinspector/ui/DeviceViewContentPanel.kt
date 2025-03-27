@@ -39,6 +39,7 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
@@ -131,12 +132,22 @@ class DeviceViewContentPanel(
         translate(size.width / 2.0, size.height / 2.0)
         scale(renderSettings.scaleFraction, renderSettings.scaleFraction)
 
-        // center the container of the app's ui
-        translate(-maxBounds.width / 2.0, -maxBounds.height / 2.0)
+        if (renderModel.model.isXr) {
+          // For XR we simply want to center the root node in the panel.
+          // The width and height of the root node matches the width and height of the grid.
+          translate(
+            -renderModel.model.root.layoutBounds.width / 2.0,
+            -renderModel.model.root.layoutBounds.height / 2.0,
+          )
+        } else {
+          // center the container of the app's ui
+          translate(-maxBounds.width / 2.0, -maxBounds.height / 2.0)
 
-        // offset the app's ui (for example if the app is in bottom half of the screen we still want
-        // to show it centered in the rendering)
-        translate(-appBounds.x.toDouble(), -appBounds.y.toDouble())
+          // offset the app's ui (for example if the app is in bottom half of the screen we still
+          // want
+          // to show it centered in the rendering)
+          translate(-appBounds.x.toDouble(), -appBounds.y.toDouble())
+        }
       }
     }
 
@@ -187,10 +198,12 @@ class DeviceViewContentPanel(
           button,
         )
         val event =
-          AnActionEvent.createFromDataContext(
-            ActionPlaces.TOOLWINDOW_CONTENT,
-            selectTargetAction.dropDownAction.templatePresentation,
+          AnActionEvent.createEvent(
             dataContext,
+            selectTargetAction.dropDownAction.templatePresentation.clone(),
+            ActionPlaces.TOOLWINDOW_CONTENT,
+            ActionUiKind.NONE,
+            null,
           )
         selectTargetAction.dropDownAction.actionPerformed(event)
       }

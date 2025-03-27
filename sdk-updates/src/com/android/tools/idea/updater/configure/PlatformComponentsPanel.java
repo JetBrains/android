@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import static java.util.Comparator.naturalOrder;
+
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -107,14 +110,13 @@ public class PlatformComponentsPanel {
     myPlatformDetailsRootNode.removeAllChildren();
     myPlatformSummaryRootNode.removeAllChildren();
     myStates.clear();
-    List<AndroidVersion> versions = Lists.newArrayList(myCurrentPackages.keySet());
-    versions = Lists.reverse(versions);
     // Sort in reverse API level, and then forward comparing extension level.
-    versions.sort(((Comparator<AndroidVersion>)(o1, o2) -> o1.compareTo(o2.getApiLevel(), o2.getCodename()) * -1)
-                    .thenComparing(AndroidVersion::compareTo));
-    for (AndroidVersion version : versions) {
+    for (AndroidVersion version :
+        ImmutableList.sortedCopyOf(
+            AndroidVersion.API_LEVEL_ORDERING.reversed().thenComparing(naturalOrder()),
+            myCurrentPackages.keySet())) {
       // When an API level is not parsed correctly, it is given API level 0, which is undefined and we should not show the package.
-      if (version.equals(AndroidVersion.VersionCodes.UNDEFINED)) {
+      if (version.getApiLevel() < 1) {
         continue;
       }
       Set<UpdaterTreeNode> versionNodes = Sets.newHashSet();

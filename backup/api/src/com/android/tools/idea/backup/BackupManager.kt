@@ -17,6 +17,7 @@
 package com.android.tools.idea.backup
 
 import com.android.annotations.concurrency.UiThread
+import com.android.backup.BackupMetadata
 import com.android.backup.BackupProgressListener
 import com.android.backup.BackupResult
 import com.android.tools.idea.run.RunConfigSection
@@ -34,6 +35,8 @@ interface BackupManager {
     BACKUP_APP_ACTION,
     /** Correlate with `BackupForegroundAppAction.place` */
     BACKUP_FOREGROUND_APP_ACTION,
+    /** Correlate with `BackupAppAction.place` */
+    RESTORE_APP_ACTION,
   }
 
   /**
@@ -89,10 +92,10 @@ interface BackupManager {
    * Gets the application id of the associated app
    *
    * @param backupFile The path of a backup file to validate
-   * @return The application id of the associated app
+   * @return The metadata from the backup file
    * @throws Exception `backupFile` is not valid
    */
-  suspend fun getApplicationId(backupFile: Path): String?
+  suspend fun getMetadata(backupFile: Path): BackupMetadata?
 
   /** Gets the application id of the foreground on the device with the serial number provided. */
   suspend fun getForegroundApplicationId(serialNumber: String): String
@@ -100,8 +103,14 @@ interface BackupManager {
   /** Returns true is the application is installed on the device . */
   suspend fun isInstalled(serialNumber: String, applicationId: String): Boolean
 
+  /** Returns true is the device supports Backup/Restore . */
+  suspend fun isDeviceSupported(serialNumber: String): Boolean
+
   /** Returns a new [RunConfigSection] object */
   fun getRestoreRunConfigSection(project: Project): RunConfigSection
+
+  // Returns true if the applicationId is supported
+  fun isAppSupported(applicationId: String): Boolean
 
   companion object {
     const val NOTIFICATION_GROUP: String = "Backup"

@@ -16,13 +16,11 @@
 package com.android.tools.idea.tests.gui.framework.fixture
 
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.intellij.ui.components.JBLabel
 import org.fest.swing.core.Robot
-import org.fest.swing.fixture.JComboBoxFixture
-import org.fest.swing.fixture.JLabelFixture
+import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JTextComponentFixture
+import org.fest.swing.timing.Wait
 import org.jetbrains.android.actions.CreateXmlResourceDialog
-import javax.swing.JComboBox
 import javax.swing.JTextArea
 import javax.swing.JTextField
 
@@ -60,5 +58,6 @@ class CreateResourceValueDialogFixture private constructor(
   fun clickOk() {
     assert(dialogWrapper.resourceName.isNotEmpty() && dialogWrapper.value.isNotEmpty())
     GuiTests.findAndClickOkButton(this)
+    Wait.seconds(5).expecting("OK button clicked && disappear").until { GuiQuery.getNonNull { !target().isShowing } }
   }
 }

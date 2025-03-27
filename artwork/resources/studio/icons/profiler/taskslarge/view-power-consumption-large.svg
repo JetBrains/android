@@ -1,1 +1,16 @@
-<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_4961_855)"><rect width="48" height="48" rx="6.75" fill="#8065AF"/><path d="M33.375 13.5c0-.621-.504-1.125-1.125-1.125h-16.5c-.621 0-1.125.504-1.125 1.125V39c0 .621.504 1.125 1.125 1.125h16.5c.621 0 1.125-.504 1.125-1.125V13.5z" stroke="#fff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M25.5 18.637l-5.04 7.613h3.75M22.71 33.862l5.04-7.612H24M19.875 12.255v-4.38h8.25v4.17" stroke="#fff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></g><defs><clipPath id="clip0_4961_855"><path fill="#fff" d="M0 0h48v48H0z"/></clipPath></defs></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_5891_1635)"><rect width="48" height="48" rx="6.75" fill="#834DF0"/><path d="M33.375 13.5c0-.621-.504-1.125-1.125-1.125h-16.5c-.621 0-1.125.504-1.125 1.125V39c0 .621.504 1.125 1.125 1.125h16.5c.621 0 1.125-.504 1.125-1.125V13.5z" stroke="#fff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/><path d="M25.5 18.637l-5.04 7.613h3.75M22.71 33.862l5.04-7.612H24M19.875 12.255v-4.38h8.25v4.17" stroke="#fff" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></g><defs><clipPath id="clip0_5891_1635"><path fill="#fff" d="M0 0h48v48H0z"/></clipPath></defs></svg>

@@ -25,14 +25,13 @@ import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBLabel
-import java.awt.Dimension
+import com.intellij.ui.components.JBPanel
+import com.intellij.ui.components.JBTextField
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.JTextField
 
 /**
  * An abstract base class for creating custom Swing components that allow user input of numeric
@@ -48,38 +47,34 @@ abstract class NumberInputComponentAction<T : Number>(
   val callback: (T) -> Unit,
 ) : AnAction(), CustomComponentAction {
 
-  private var inputField: JTextField? = null
-  private var containerPanel: JPanel? = null
+  private var inputField: JBTextField? = null
+  private var containerPanel: JBPanel<*>? = null
 
   override fun actionPerformed(e: AnActionEvent) {}
 
   override fun createCustomComponent(presentation: Presentation, actionPlace: String): JComponent {
-    inputField = JTextField(initialValue.toString(), 6).apply {
-      addFocusListener(
-        object : FocusAdapter() {
-          override fun focusLost(e: FocusEvent?) {
-            handleValueChange()
-          }
-        }
-      )
-
-      addKeyListener(
-        object : KeyAdapter() {
-          override fun keyPressed(keyEvent: KeyEvent) {
-            if (keyEvent.keyCode == KeyEvent.VK_ENTER) {
+    inputField =
+      JBTextField(initialValue.toString(), 6).apply {
+        addFocusListener(
+          object : FocusAdapter() {
+            override fun focusLost(e: FocusEvent?) {
               handleValueChange()
-              inputField!!.transferFocus()
             }
           }
-        }
-      )
-      preferredSize = Dimension(80, 25)
-    }
-    return JPanel().apply {
-      add(inputField)
-    }.also {
-      containerPanel = it
-    }
+        )
+
+        addKeyListener(
+          object : KeyAdapter() {
+            override fun keyPressed(keyEvent: KeyEvent) {
+              if (keyEvent.keyCode == KeyEvent.VK_ENTER) {
+                handleValueChange()
+                inputField!!.transferFocus()
+              }
+            }
+          }
+        )
+      }
+    return JBPanel<Nothing>().apply { add(inputField) }.also { containerPanel = it }
   }
 
   private fun handleValueChange() {
@@ -100,6 +95,10 @@ abstract class NumberInputComponentAction<T : Number>(
     } finally {
       editor?.contentComponent?.requestFocus()
     }
+  }
+
+  fun setInputFieldValue(newValue: String) {
+    inputField?.text = newValue
   }
 
   // Abstract function to be implemented by derived classes

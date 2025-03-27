@@ -16,8 +16,8 @@
 package com.android.tools.idea.imports
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.nio.charset.StandardCharsets
+import org.junit.Test
 
 class GzipUtilsKtTest {
   @Test

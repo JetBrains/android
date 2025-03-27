@@ -23,8 +23,8 @@ import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPat
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -35,7 +35,7 @@ import java.nio.file.Path
 
 class HttpArtifactResolverTest {
 
-  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ProjectRule()
 
   private val testData =
     resolveWorkspacePath("tools/adt/idea/app-inspection/ide/testData/libraries")
@@ -69,7 +69,7 @@ class HttpArtifactResolverTest {
 
   @Test
   fun downloadAndCacheArtifact() =
-    runBlocking<Unit> {
+    runBlocking {
       val fileService = TestFileService()
 
       val resolver =

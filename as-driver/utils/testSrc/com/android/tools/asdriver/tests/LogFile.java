@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -124,11 +125,12 @@ public class LogFile {
       int delayMs = MIN_DELAY_MS;
       List<String> verifyLines = new ArrayList<>();
       while (elapsed < timeoutMillis) {
-        String line = raf.readLine();
+        String raw = raf.readLine();
+        // ISO_8859_1 must be used to get back the bytes in the original format without the added zeroes.
+        String line = raw == null ? null : new String(raw.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
         if (failurePattern != null && line != null && failurePattern.matcher(line).matches()) {
           throw new IllegalStateException(String.format("Found line matching failureRegex: %s%n%n%s", line, CHECK_LOGS_INSTRUCTIONS));
         }
-
         matcher = line == null ? null : pattern.matcher(line);
         if (matcher != null && matcher.matches()) {
           break;

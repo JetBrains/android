@@ -15,45 +15,36 @@
  */
 package com.android.tools.idea.insights.events
 
+import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.Event
-import com.android.tools.idea.insights.FailureType
-import com.android.tools.idea.insights.InsightsProviderKey
-import com.android.tools.idea.insights.IssueId
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 
-fun transitionEventForKey(key: InsightsProviderKey, event: Event) =
-  if (useIssueSampleEvent(key)) {
-    LoadingState.Ready(DynamicEventGallery(listOf(event), 0, ""))
-  } else {
+fun transitionEvent(provider: InsightsProvider, event: Event) =
+  if (provider.supportsMultipleEvents) {
     LoadingState.Loading
+  } else {
+    LoadingState.Ready(DynamicEventGallery(listOf(event), 0, ""))
   }
 
-fun actionsForSelectedIssue(
-  key: InsightsProviderKey,
-  id: IssueId,
-  fatality: FailureType,
-  event: Event,
-  forceFetch: Boolean,
-) =
-  Action.FetchDetails(id) and
-    Action.FetchInsight(id, fatality, event, forceFetch = forceFetch) and
-    if (key == VITALS_KEY) {
-      Action.NONE
+fun actionsForSelectedIssue(provider: InsightsProvider, issue: AppInsightsIssue) =
+  Action.FetchDetails(issue.id) and
+    if (provider.supportsMultipleEvents) {
+      Action.FetchIssueVariants(issue.id) and
+        Action.FetchNotes(issue.id) and
+        Action.ListEvents(issue.id, null, null)
     } else {
-      Action.FetchIssueVariants(id) and Action.FetchNotes(id) and Action.ListEvents(id, null, null)
+      Action.FetchInsight(issue.id, null, issue.issueDetails.fatality, issue.sampleEvent)
     }
 
-private fun useIssueSampleEvent(key: InsightsProviderKey) = key == VITALS_KEY
-
-fun AppInsightsTracker.trackEventView(state: AppInsightsState, isFetched: Boolean) {
+fun AppInsightsTracker.trackEventView(state: AppInsightsState) {
   val issueId = state.selectedIssue?.id?.value ?: return
   val eventId = state.selectedEvent?.name ?: return
   val appId = state.connections.selected?.appId ?: return
 
-  logEventViewed(appId, state.mode, issueId, eventId, isFetched)
+  logEventViewed(appId, state.mode, issueId, eventId)
 }

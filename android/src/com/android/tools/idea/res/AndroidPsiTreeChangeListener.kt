@@ -20,14 +20,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
-import com.intellij.ui.EditorNotifications
 import com.intellij.util.Consumer
 
 /**
@@ -39,7 +38,6 @@ import com.intellij.util.Consumer
  * * [ResourceFolderRegistry] and from there to [ResourceFolderRepository] and [LayoutLibrary]
  * * [SampleDataListener] and from there to [SampleDataResourceRepository]
  * * [ResourceNotificationManager]
- * * [EditorNotifications] when a Gradle file is modified
  */
 @Service(Service.Level.PROJECT)
 class AndroidPsiTreeChangeListener(private val project: Project) :
@@ -62,7 +60,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
         }
       }
       isRelevantFile(psiFile) -> dispatchChildAdded(event, psiFile.virtualFile)
-      isGradleFile(psiFile) -> notifyGradleEdit()
     }
 
     sampleDataListener?.childAdded(event)
@@ -89,7 +86,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
         }
       }
       isRelevantFile(psiFile) -> dispatchChildRemoved(event, psiFile.virtualFile)
-      isGradleFile(psiFile) -> notifyGradleEdit()
     }
 
     sampleDataListener?.childRemoved(event)
@@ -112,7 +108,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
 
     when {
       isRelevantFile(psiFile) -> dispatchChildReplaced(event, file)
-      isGradleFile(psiFile) -> notifyGradleEdit()
     }
 
     sampleDataListener?.childReplaced(event)
@@ -120,10 +115,6 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
 
   private fun dispatchChildReplaced(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
     dispatch(virtualFile) { it?.childReplaced(event) }
-  }
-
-  private fun notifyGradleEdit() {
-    EditorNotifications.getInstance(project).updateAllNotifications()
   }
 
   override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
@@ -215,9 +206,9 @@ class AndroidPsiTreeChangeListener(private val project: Project) :
     ResourceNotificationManager.getInstance(project).psiListener?.let(invokeCallback::consume)
   }
 
-  class MyStartupActivity : StartupActivity.DumbAware {
-    override fun runActivity(project: Project) {
-      val listener = AndroidPsiTreeChangeListener.getInstance(project)
+  class MyProjectActivity : ProjectActivity {
+    override suspend fun execute(project: Project) {
+      val listener = getInstance(project)
       PsiManager.getInstance(project).addPsiTreeChangeListener(listener, listener)
     }
   }

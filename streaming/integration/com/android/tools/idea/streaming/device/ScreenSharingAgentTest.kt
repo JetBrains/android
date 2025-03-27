@@ -25,13 +25,14 @@ import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.AbstractDisplayView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
-import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
@@ -59,7 +60,10 @@ import java.awt.event.KeyEvent.VK_SHIFT
 import java.nio.file.Files
 import java.util.regex.Pattern
 import javax.swing.JScrollPane
+import kotlin.math.absoluteValue
+import kotlin.math.sign
 import kotlin.random.Random
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 
 @RunWith(Suite::class)
@@ -69,7 +73,10 @@ class ScreenSharingAgentTestSuite : IdeaTestSuiteBase()
 /**
  * Tests the functionality of the Screen Sharing Agent.
  *
- * This works by starting an emulator and then creating a [DeviceView] that starts screen sharing on the emulator.
+ * Works by starting an emulator and then creating a [DeviceView] that starts screen sharing on the emulator.
+ *
+ * To debug this test in IntelliJ, run `bazel run //tools/adt/idea/streaming:ScreenSharingAgentTest_linux`
+ * first to download the system image into `bazel-out/../../../external`.
  */
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -288,8 +295,13 @@ class ScreenSharingAgentTest {
             fakeUi.mouse.wheel(x, y, rotation)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-            // On Android, scrolling vertically is upside-down compared to Java.
-            waitForLog(Point(x, y).scrollLog(v = -rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
+            val sign = -rotation.sign // On Android, scrolling vertically is upside-down compared to AWT.
+            var remainingRotation = (rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR).absoluteValue
+            while (remainingRotation > 0) {
+              val scrollAmount = remainingRotation.coerceAtMost(1f)
+              waitForLog(Point(x, y).scrollLog(v = scrollAmount * sign), INPUT_TIMEOUT)
+              remainingRotation -= scrollAmount
+            }
           }
         }
       }
@@ -323,7 +335,13 @@ class ScreenSharingAgentTest {
             fakeUi.keyboard.release(VK_SHIFT)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-            waitForLog(Point(x, y).scrollLog(h = rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
+            val sign = rotation.sign
+            var remainingRotation = (rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR).absoluteValue
+            while (remainingRotation > 0) {
+              val scrollAmount = remainingRotation.coerceAtMost(1f)
+              waitForLog(Point(x, y).scrollLog(h = scrollAmount * sign), INPUT_TIMEOUT)
+              remainingRotation -= scrollAmount
+            }
           }
         }
       }
@@ -350,7 +368,7 @@ class ScreenSharingAgentTest {
 
   companion object {
     private const val EVENT_LOGGER_TAG = "EventLogger"
-    private const val AGENT_TAG = "ScreenSharing"
+    private const val AGENT_TAG = "studio.screen.sharing"
     private const val APP_PKG = "com.android.tools.eventlogger"
     private const val ACTIVITY = "EventLoggingActivity"
     private const val NO_ANIMATIONS = 65536 // Intent.FLAG_ACTIVITY_NO_ANIMATION
@@ -398,6 +416,8 @@ class ScreenSharingAgentTest {
     @JvmStatic
     @BeforeClass
     fun setUpClass() {
+      ActionManager.getInstance() // Instantiate ActionManager to trigger loading of keyboard shortcuts.
+
       val disposable = Disposer.newDisposable("ScreenSharingAgentTest").also { classDisposable = it }
       StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.overrideForTest("debug", disposable)
 
@@ -438,6 +458,9 @@ class ScreenSharingAgentTest {
 
       // Install the event logger app
       val eventLoggerApk = getBinPath("tools/adt/idea/streaming/integration/event-logger/event-logger.apk")
+      if (Files.notExists(eventLoggerApk)) {
+        fail("$eventLoggerApk does not exist.")
+      }
       executeWithRetries<InterruptedException>(EVENT_LOGGER_INSTALLATION_MAX_RETRIES) {
         adb.runCommand("install", eventLoggerApk.toString(), emulator = emulator) {
           waitForLog("Success", LONG_DEVICE_OPERATION_TIMEOUT)

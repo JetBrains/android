@@ -28,19 +28,27 @@ import javax.swing.JComponent
 import javax.swing.event.HyperlinkListener
 
 @UiThread
-class WiFiPairingDialog(project: Project, canBeParent: Boolean, ideModalityType: DialogWrapper.IdeModalityType, hyperlinkListener: HyperlinkListener) {
+class WiFiPairingDialog(
+  project: Project,
+  canBeParent: Boolean,
+  ideModalityType: DialogWrapper.IdeModalityType,
+  hyperlinkListener: HyperlinkListener,
+) {
   private val dialog: SimpleDialog
   private val pairingPanel: WiFiPairingPanel
 
   init {
-    val options = SimpleDialogOptions(project,
-                                      canBeParent,
-                                      ideModalityType,
-                                      title = "Pair devices over Wi-Fi",
-                                      isModal = true,
-                                      hasOkButton = false,
-                                      cancelButtonText = "Close",
-                                      centerPanelProvider = { createCenterPanel() })
+    val options =
+      SimpleDialogOptions(
+        project,
+        canBeParent,
+        ideModalityType,
+        title = "Pair devices over Wi-Fi",
+        isModal = true,
+        hasOkButton = false,
+        cancelButtonText = "Close",
+        centerPanelProvider = { createCenterPanel() },
+      )
     dialog = SimpleDialog(options)
     pairingPanel = WiFiPairingPanel(dialog.disposable, hyperlinkListener)
     dialog.init()

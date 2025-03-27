@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.navigation
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -33,8 +32,7 @@ import com.android.tools.idea.compose.preview.navigation.findComponentHits
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.util.getRootComponent
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
@@ -46,8 +44,8 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
+import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
@@ -76,10 +74,21 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     expectedInvocationsCountDownLatch = CountDownLatch(newExpectedInvocations)
   }
 
-  override suspend fun handleNavigateWithCoordinates(
+  override suspend fun findNavigatablesWithCoordinates(
     sceneView: SceneView,
     x: Int,
     y: Int,
+    requestFocus: Boolean,
+    shouldFindAllNavigatables: Boolean,
+  ): List<Navigatable> {
+    assertTrue(expectedInvocationsCountDownLatch.count > 0)
+    expectedInvocationsCountDownLatch.countDown()
+    return listOf()
+  }
+
+  override suspend fun navigateTo(
+    sceneView: SceneView,
+    navigatable: Navigatable,
     requestFocus: Boolean,
   ): Boolean {
     assertTrue(expectedInvocationsCountDownLatch.count > 0)
@@ -106,8 +115,8 @@ private fun OpenFileDescriptor.calculateLine(): Int =
 class PreviewNavigationTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
 
-  private val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule val rule = RuleChain(projectRule, FlagRule(StudioFlags.COMPOSE_PREVIEW_SELECTION, true))
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+
   private val project: Project
     get() = projectRule.project
 

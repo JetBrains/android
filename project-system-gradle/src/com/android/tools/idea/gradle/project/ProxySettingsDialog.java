@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
-import static com.android.tools.idea.gradle.util.ProxySettings.replaceCommasWithPipesAndClean;
-import static com.android.tools.idea.gradle.util.ProxySettings.replacePipesWithCommasAndClean;
+import static com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge.HTTPS_PROXY_TYPE;
+import static com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge.HTTP_PROXY_TYPE;
+import static com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge.replaceCommasWithPipesAndClean;
+import static com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge.replacePipesWithCommasAndClean;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-import com.android.tools.idea.gradle.util.ProxySettings;
+import com.android.tools.idea.gradle.util.IdeGradleProxySettingsBridge;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -68,7 +68,7 @@ public class ProxySettingsDialog extends DialogWrapper {
   private JPanel myHttpsProxyPanel;
   private JTextPane myMessageTextLabel;
 
-  public ProxySettingsDialog(@NotNull Project project, @NotNull ProxySettings httpProxySettings, boolean ideProxyUsed) {
+  public ProxySettingsDialog(@NotNull Project project, @NotNull IdeGradleProxySettingsBridge httpProxySettings, boolean ideProxyUsed) {
     super(project);
     setTitle(AndroidBundle.message("android.proxy.settings.dialog.title"));
     setOKButtonText("Yes");
@@ -149,8 +149,9 @@ public class ProxySettingsDialog extends DialogWrapper {
    * @return {@code true} if authentication is needed but no passwords are defined.
    */
   public boolean applyProxySettings(@NotNull Properties properties) {
-    ProxySettings httpProxySettings = createProxySettingsFromUI(HTTP_PROXY_TYPE, myHttpProxyHostTextField, myHttpProxyPortTextField,
-                                                               myHttpProxyExceptions, myHttpProxyAuthCheckBox, myHttpProxyLoginTextField);
+    IdeGradleProxySettingsBridge
+      httpProxySettings = createProxySettingsFromUI(HTTP_PROXY_TYPE, myHttpProxyHostTextField, myHttpProxyPortTextField,
+                                                    myHttpProxyExceptions, myHttpProxyAuthCheckBox, myHttpProxyLoginTextField);
     boolean hasHttpPassword = properties.containsKey("systemProp.http.proxyPassword");
     boolean hasHttpsPassword = properties.containsKey("systemProp.https.proxyPassword");
     // Prevent clearing password if it is already defined
@@ -159,9 +160,10 @@ public class ProxySettingsDialog extends DialogWrapper {
     boolean needsPassword = isNotEmpty(httpProxySettings.getUser()) && !hasHttpPassword;
 
     if (myEnableHttpsProxyCheckBox.isSelected()) {
-      ProxySettings httpsProxySettings = createProxySettingsFromUI(HTTPS_PROXY_TYPE, myHttpsProxyHostTextField, myHttpsProxyPortTextField,
-                                                                   myHttpsProxyExceptions, myHttpsProxyAuthCheckBox,
-                                                                   myHttpsProxyLoginTextField);
+      IdeGradleProxySettingsBridge
+        httpsProxySettings = createProxySettingsFromUI(HTTPS_PROXY_TYPE, myHttpsProxyHostTextField, myHttpsProxyPortTextField,
+                                                       myHttpsProxyExceptions, myHttpsProxyAuthCheckBox,
+                                                       myHttpsProxyLoginTextField);
       // Prevent clearing password if it is already defined
       httpsProxySettings.setPassword(properties.getProperty("systemProp.https.proxyPassword"));
       httpsProxySettings.applyProxySettings(properties);
@@ -181,13 +183,13 @@ public class ProxySettingsDialog extends DialogWrapper {
   }
 
   @NotNull
-  private static ProxySettings createProxySettingsFromUI(@NotNull String proxyType,
-                                                         @NotNull JTextField proxyHostTextField,
-                                                         @NotNull PortField proxyPortTextField,
-                                                         @NotNull RawCommandLineEditor proxyExceptions,
-                                                         @NotNull JCheckBox proxyAuthCheckBox,
-                                                         @NotNull JTextField proxyLoginTextField) {
-    ProxySettings proxySettings = new ProxySettings(proxyType);
+  private static IdeGradleProxySettingsBridge createProxySettingsFromUI(@NotNull String proxyType,
+                                                                        @NotNull JTextField proxyHostTextField,
+                                                                        @NotNull PortField proxyPortTextField,
+                                                                        @NotNull RawCommandLineEditor proxyExceptions,
+                                                                        @NotNull JCheckBox proxyAuthCheckBox,
+                                                                        @NotNull JTextField proxyLoginTextField) {
+    IdeGradleProxySettingsBridge proxySettings = new IdeGradleProxySettingsBridge(proxyType);
 
     proxySettings.setHost(proxyHostTextField.getText());
     proxySettings.setPort(proxyPortTextField.getNumber());

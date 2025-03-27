@@ -33,7 +33,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatformsCompat;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.util.AndroidBundle;
 
 /**
@@ -80,7 +80,7 @@ public final class BlazeAndroidRunConfigurationValidationUtil {
               "Android model missing from workspace module. Please resync project.",
               () -> resync(project)));
     }
-    if (AndroidPlatformsCompat.getInstance(workspaceModule) == null) {
+    if (AndroidPlatforms.getInstance(workspaceModule) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
     return errors;

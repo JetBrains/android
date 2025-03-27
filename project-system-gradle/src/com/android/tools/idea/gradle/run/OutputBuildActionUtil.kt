@@ -19,7 +19,7 @@ package com.android.tools.idea.gradle.run
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.module.Module
 

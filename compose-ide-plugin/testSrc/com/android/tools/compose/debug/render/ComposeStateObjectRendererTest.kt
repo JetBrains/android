@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.debug.render
 
-import com.android.testutils.MockitoKt
 import com.android.tools.compose.debug.utils.MockClassObjectReference
 import com.android.tools.compose.debug.utils.MockIntegerValue
 import com.android.tools.compose.debug.utils.MockStringReference
@@ -32,6 +31,7 @@ import com.sun.jdi.ClassType
 import com.sun.jdi.ReferenceType
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ComposeStateObjectRendererTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -90,7 +90,7 @@ class ComposeStateObjectRendererTest {
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
       // 2. check if the label is eventually properly rendered - it should be size = xx.
-      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, mock())
       debugProcess.managerThread.processRemaining()
       assertThat(thisValueDescriptor.valueText).isEqualTo(" size = 7")
 
@@ -150,7 +150,7 @@ class ComposeStateObjectRendererTest {
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
       // 2. check if the label is eventually properly rendered - it should be size = xx.
-      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, mock())
       debugProcess.managerThread.processRemaining()
       assertThat(thisValueDescriptor.valueText).isEqualTo(" size = 5")
 
@@ -218,7 +218,7 @@ class ComposeStateObjectRendererTest {
 
       // check if the label is eventually properly rendered - it should be the label calculated for
       // the underlying value.
-      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, mock())
       debugProcess.managerThread.processRemaining()
       assertThat(thisValueDescriptor.valueText).isEqualTo("2")
 
@@ -279,7 +279,7 @@ class ComposeStateObjectRendererTest {
 
       // check if the label is eventually properly rendered - it should be the label calculated for
       // the underlying value.
-      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, mock())
       debugProcess.managerThread.processRemaining()
       assertThat(thisValueDescriptor.valueText).isEqualTo("This is fake string value.")
 
@@ -345,7 +345,7 @@ class ComposeStateObjectRendererTest {
 
       // 2. check if the label is eventually properly rendered - no errors like
       // `Unable to evaluate the expression No such instance method: 'getDebuggerDisplayValue'`.
-      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, mock())
       debugProcess.managerThread.processRemaining()
       assertThat(thisValueDescriptor.valueText).isEqualTo("SnapshotStateList@1234")
     }

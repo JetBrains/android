@@ -30,28 +30,35 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SequentialTaskExecutor
-import com.intellij.util.concurrency.ThreadingAssertions
 import java.util.concurrent.Callable
+import java.util.concurrent.CancellationException
 import java.util.concurrent.Future
 
 /**
- * [DeviceNameProperties] retrieved by [IDevice.getSystemProperty] may be time consuming
- * In such case, this class can be used to get property without blocking thread
- * [DeviceNamePropertiesProvider] will return an empty [DeviceNameProperties] when value is not available.
- * At the same time, it check whether a retrieving task is running and start one if it's not.
- * After got value, it will be updated in propertiesMap and FutureCallback will be invoked.
- * It would work as normal propertiesMap for device if value has been retrieved successfully.
+ * [DeviceNameProperties] retrieved by [IDevice.getSystemProperty] may be time consuming In such
+ * case, this class can be used to get property without blocking thread
+ * [DeviceNamePropertiesProvider] will return an empty [DeviceNameProperties] when value is not
+ * available. At the same time, it check whether a retrieving task is running and start one if it's
+ * not. After got value, it will be updated in propertiesMap and FutureCallback will be invoked. It
+ * would work as normal propertiesMap for device if value has been retrieved successfully.
  *
- * @param uiCallback: a customized FutureCallback which is used to refresh UI component when ListenableFuture completed
+ * @param uiCallback: a customized FutureCallback which is used to refresh UI component when
+ *   ListenableFuture completed
  * @param parent: Disposable parent
  */
-class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val parent: Disposable,
-                                                                 private val uiCallback: FutureCallback<DeviceNameProperties>,
-                                                                 private val isDisposed: (Disposable) -> Boolean) : Disposable by parent, DeviceNamePropertiesProvider {
+class DeviceNamePropertiesFetcher
+@VisibleForTesting
+constructor(
+  private val parent: Disposable,
+  private val uiCallback: FutureCallback<DeviceNameProperties>,
+  private val isDisposed: (Disposable) -> Boolean,
+) : Disposable by parent, DeviceNamePropertiesProvider {
   private val edtExecutor = EdtExecutorService.getInstance()
-  private val taskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("DeviceNamePropertiesFetcher")
+  private val taskExecutor =
+    SequentialTaskExecutor.createSequentialApplicationPoolExecutor("DeviceNamePropertiesFetcher")
   private val defaultValue = DeviceNameProperties(null, null, null, null)
-  // This cache is for ListenableFuture<DeviceNameProperties> and must be accessed by taskExecutor only
+  // This cache is for ListenableFuture<DeviceNameProperties> and must be accessed by taskExecutor
+  // only
   // Tasks will be queued up and make sure run as single thread
   private val tasksMap = HashMap<IDevice, ListenableFuture<DeviceNameProperties>>()
   // This cache for DeviceNameProperties and should be accessed by UI thread only
@@ -65,38 +72,52 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
 
   internal constructor(parent: Disposable) : this(parent, DefaultCallback())
 
-  constructor(parent: Disposable, uiCallback: FutureCallback<DeviceNameProperties>) : this(parent, uiCallback, Disposer::isDisposed)
+  constructor(
+    parent: Disposable,
+    uiCallback: FutureCallback<DeviceNameProperties>,
+  ) : this(parent, uiCallback, Disposer::isDisposed)
 
   @VisibleForTesting
   class DefaultCallback : FutureCallback<DeviceNameProperties> {
     /** Does nothing. Use [DeviceNamePropertiesFetcher.get] to get the properties. */
-    override fun onSuccess(properties: DeviceNameProperties?) {
-    }
+    override fun onSuccess(properties: DeviceNameProperties?) {}
 
     override fun onFailure(throwable: Throwable) {
-      Logger.getInstance(DeviceNamePropertiesFetcher::class.java).warn(throwable)
+      if (throwable !is CancellationException) {
+        Logger.getInstance(DeviceNamePropertiesFetcher::class.java).warn(throwable)
+      }
     }
   }
 
   enum class ThreadType {
     EDT,
-    TASK
+    TASK,
   }
 
   private fun IDevice.getDeviceSystemProperties(): ListenableFuture<DeviceNameProperties> {
-    val futures = listOf<Future<String>>(
-      getSystemProperty(IDevice.PROP_DEVICE_MODEL),
-      getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER),
-      getSystemProperty(IDevice.PROP_BUILD_VERSION),
-      getSystemProperty(IDevice.PROP_BUILD_API_LEVEL))
+    val futures =
+      listOf<Future<String>>(
+        getSystemProperty(IDevice.PROP_DEVICE_MODEL),
+        getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER),
+        getSystemProperty(IDevice.PROP_BUILD_VERSION),
+        getSystemProperty(IDevice.PROP_BUILD_API_LEVEL),
+      )
 
     @Suppress("UnstableApiUsage")
     return futures
       .listenInPoolThread(taskExecutor)
       .whenAllComplete()
       .call(
-        Callable<DeviceNameProperties> { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) },
-        MoreExecutors.directExecutor())
+        Callable<DeviceNameProperties> {
+          DeviceNameProperties(
+            futures[0].get(),
+            futures[1].get(),
+            futures[2].get(),
+            futures[3].get(),
+          )
+        },
+        MoreExecutors.directExecutor(),
+      )
   }
 
   private fun isRetrieving(device: IDevice): Boolean {
@@ -120,9 +141,10 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
       },
       { t ->
         if (!isDisposed(this)) {
-          uiCallback.onFailure(t!!)
+          uiCallback.onFailure(t)
         }
-      })
+      },
+    )
     tasksMap[device] = task
   }
 
@@ -130,8 +152,11 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
     val application = ApplicationManager.getApplication()
     if (application != null && !application.isUnitTestMode) {
       when (callBy) {
-        ThreadType.EDT -> ThreadingAssertions.assertEventDispatchThread()
-        ThreadType.TASK -> assert(!application.isDispatchThread) { "This operation is time consuming and must not be called on EDT" }
+        ThreadType.EDT -> application.assertIsDispatchThread()
+        ThreadType.TASK ->
+          assert(!application.isDispatchThread) {
+            "This operation is time consuming and must not be called on EDT"
+          }
       }
     }
   }
@@ -140,7 +165,8 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
     assertThreadMatch(ThreadType.EDT)
 
     if (isDisposed(this)) {
-      Logger.getInstance(DeviceNamePropertiesFetcher::class.java).warn("DeviceNamePropertiesFetcher has been disposed")
+      Logger.getInstance(DeviceNamePropertiesFetcher::class.java)
+        .warn("DeviceNamePropertiesFetcher has been disposed")
       return defaultValue
     }
 
@@ -161,11 +187,10 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
       edtExecutor.execute {
         assertThreadMatch(ThreadType.EDT)
         deviceNamePropertiesMap.remove(device)
-        tasksMap.remove(device);
+        tasksMap.remove(device)
       }
     }
 
-    override fun deviceChanged(device: IDevice, changeMask: Int) {
-    }
+    override fun deviceChanged(device: IDevice, changeMask: Int) {}
   }
 }

@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -30,7 +31,8 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
   private fun runSyncAndCheckFailure(
     preparedProject: PreparedTestProject,
     expectedErrorNodeNameVerifier: (String) -> Unit,
-    expectedPhases: String
+    expectedPhases: String,
+    expectedFailureDetailsString: String
   ) = runSyncAndCheckGeneralFailure(
     preparedProject = preparedProject,
     verifySyncViewEvents = { _, buildEvents ->
@@ -48,6 +50,7 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
         .containsExactly(BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE)
       expect.that(it.gradleSyncStats.printPhases()).isEqualTo(expectedPhases)
+      Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo(expectedFailureDetailsString)
     },
   )
 
@@ -67,7 +70,19 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       // When settings.gradle file is broken GRADLE_CONFIGURE_ROOT_BUILD is not reported.
       expectedPhases = """
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMessageMissingMethodException
+              at: [0]org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMissingMethodExecutionFailed#<init>
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -87,7 +102,21 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMessageMissingMethodException
+              at: [0]org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMissingMethodExecutionFailed#<init>
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -106,7 +135,21 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: groovy.lang.MissingPropertyException
+              at: [0]org.gradle.internal.metaobject.AbstractDynamicObject#setMissingProperty
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -125,7 +168,21 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: groovy.lang.MissingPropertyException
+              at: [0]org.gradle.internal.metaobject.AbstractDynamicObject#getMissingProperty
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -146,7 +203,21 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMessageMissingMethodException
+              at: [0]org.gradle.internal.metaobject.AbstractDynamicObject${'$'}CustomMissingMethodExecutionFailed#<init>
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -166,7 +237,21 @@ class DslMethodNotFoundFailureTest: AbstractSyncFailureIntegrationTest() {
       expectedPhases = """
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
-        """.trimIndent()
+        """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: groovy.lang.MissingPropertyException
+              at: [0]org.gradle.internal.metaobject.AbstractDynamicObject#setMissingProperty
+          }
+        }
+      """.trimIndent()
     )
   }
 }

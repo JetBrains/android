@@ -32,6 +32,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
 import org.junit.After
 import org.junit.Before
@@ -39,30 +40,29 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-/**
- * Tests for functions defined in `MavenImportUtils.kt`.
- */
+/** Tests for functions defined in `MavenImportUtils.kt`. */
 @RunsInEdt
 class MavenImportUtilsKtTest {
-  private val projectRule = AndroidProjectRule.withAndroidModel(
-    createAndroidProjectBuilderForDefaultTestProjectStructure().let { builder ->
-      builder.copy(agpProjectFlags = {
-        builder.agpProjectFlags.invoke(this).copy(useAndroidX = true)
-      })
-    }
-  )
+  private val projectRule =
+    AndroidProjectRule.withAndroidModel(
+      createAndroidProjectBuilderForDefaultTestProjectStructure().let { builder ->
+        builder.copy(
+          agpProjectFlags = { builder.agpProjectFlags.invoke(this).copy(useAndroidX = true) }
+        )
+      }
+    )
   private lateinit var tracker: TestUsageTracker
 
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(
-      MavenClassRegistryManager::class.java,
-      fakeMavenClassRegistryManager,
-      projectRule.fixture.testRootDisposable
-    )
+    ApplicationManager.getApplication()
+      .replaceService(
+        MavenClassRegistryManager::class.java,
+        fakeMavenClassRegistryManager,
+        projectRule.fixture.testRootDisposable,
+      )
     tracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(tracker)
   }
@@ -75,29 +75,45 @@ class MavenImportUtilsKtTest {
 
   @Test
   fun verifyExpectedAnalytics_resolveCode() {
-    val psiFile = projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+    val psiFile =
+      projectRule.fixture.loadNewFile(
+        "app/src/main/java/test/pkg/imports/MainActivity2.kt",
+        """
       package test.pkg.imports
       val view = PreviewView() // Here PreviewView is an unresolvable symbol
-      """.trimIndent())
+      """
+          .trimIndent(),
+      )
 
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+
+    // Fetch the registry early to pre-load it, so that `isAvailable` below doesn't return early.
+    val registry = runBlocking { MavenClassRegistryManager.getInstance().getMavenClassRegistry() }
 
     val action = AndroidMavenImportIntentionAction()
     val element = projectRule.fixture.moveCaret("PreviewView|")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on androidx.camera:camera-view (alpha) and import")
+    assertThat(action.text)
+      .isEqualTo("Add dependency on androidx.camera:camera-view (alpha) and import")
 
-    action.perform(projectRule.project, projectRule.fixture.editor, element, false)
+    AndroidMavenImportIntentionAction.invoke(
+      projectRule.project,
+      projectRule.fixture.editor,
+      element,
+      registry,
+      sync = false,
+    )
     verify("androidx.camera:camera-view")
   }
 
   @Test
   fun verifyExpectedAnalytics_resolveXmlTag() {
     projectRule.fixture.enableInspections(AndroidUnresolvableTagInspection::class.java)
-    val psiFile = projectRule.fixture.addFileToProject(
-      "res/layout/my_layout.xml",
-      """
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "res/layout/my_layout.xml",
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <FrameLayout android:id="@+id/container">
         <${
@@ -105,17 +121,24 @@ class MavenImportUtilsKtTest {
           .highlightedAs(HighlightSeverity.ERROR, "Cannot resolve class androidx.camera.view.PreviewView")
       } android:id="@+id/previewView" />
         </FrameLayout>
-      """.trimIndent()
-    )
+      """
+          .trimIndent(),
+      )
 
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     projectRule.fixture.checkHighlighting(true, false, false)
     projectRule.fixture.moveCaret("Preview|View")
-    val action = projectRule.fixture.getIntentionAction("Add dependency on androidx.camera:camera-view (alpha)")!!
+    val action =
+      projectRule.fixture.getIntentionAction(
+        "Add dependency on androidx.camera:camera-view (alpha)"
+      )!!
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project, Runnable {
-      action.invoke(projectRule.project, projectRule.fixture.editor, projectRule.fixture.file)
-    })
+    WriteCommandAction.runWriteCommandAction(
+      projectRule.project,
+      Runnable {
+        action.invoke(projectRule.project, projectRule.fixture.editor, projectRule.fixture.file)
+      },
+    )
 
     verify("androidx.camera:camera-view")
   }
@@ -139,11 +162,12 @@ class MavenImportUtilsKtTest {
   }
 
   private fun verify(artifactId: String) {
-    val event = tracker.usages
-      .map { it.studioEvent }
-      .filter { it.kind == AndroidStudioEvent.EventKind.SUGGESTED_IMPORT_EVENT }
-      .map { it.suggestedImportEvent }
-      .single()
+    val event =
+      tracker.usages
+        .map { it.studioEvent }
+        .filter { it.kind == AndroidStudioEvent.EventKind.SUGGESTED_IMPORT_EVENT }
+        .map { it.suggestedImportEvent }
+        .single()
 
     assertThat(event.artifactId).isEqualTo(artifactId)
   }

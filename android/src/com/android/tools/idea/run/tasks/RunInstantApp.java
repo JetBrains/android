@@ -17,7 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;

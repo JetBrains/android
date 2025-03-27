@@ -16,8 +16,9 @@
 package com.android.tools.idea.preview.annotations
 
 import com.android.annotations.concurrency.Slow
-import com.intellij.openapi.application.runReadAction
-import com.intellij.util.containers.sequenceOfNotNull
+import com.intellij.openapi.application.readAction
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 
@@ -42,16 +43,16 @@ private class UAnnotationNodeInfo(
   override val parent: NodeInfo<UAnnotationSubtreeInfo>?,
   override val element: UElement,
   override val subtreeInfo: UAnnotationSubtreeInfo,
-  private val onTraversal: ((NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
+  private val onTraversal: (suspend (NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
 ) : NodeInfo<UAnnotationSubtreeInfo> {
 
-  override fun onSkippedChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {}
+  override suspend fun onSkippedChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {}
 
-  override fun onAfterChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {
+  override suspend fun onAfterChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {
     onTraversal?.invoke(child)
   }
 
-  override fun onBeforeChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {
+  override suspend fun onBeforeChildTraversal(child: NodeInfo<UAnnotationSubtreeInfo>) {
     subtreeInfo.children += child
   }
 }
@@ -62,9 +63,9 @@ private class UAnnotationNodeInfo(
  * The [onTraversal] parameter is invoked after each node's child is traversed.
  */
 private class UAnnotationNodeInfoFactory(
-  private val onTraversal: ((NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null
+  private val onTraversal: (suspend (NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null
 ) : NodeInfoFactory<UAnnotationSubtreeInfo> {
-  override fun create(
+  override suspend fun create(
     parent: NodeInfo<UAnnotationSubtreeInfo>?,
     curElement: UElement,
   ): NodeInfo<UAnnotationSubtreeInfo> {
@@ -85,17 +86,15 @@ private class UAnnotationNodeInfoFactory(
  * [ResultFactory] that creates a [NodeInfo] of type [UAnnotationSubtreeInfo] for each annotation
  * that matches a given [filter] predicate.
  */
-private class UAnnotationResultFactory(private val filter: (UAnnotation) -> Boolean) :
+private class UAnnotationResultFactory(private val filter: suspend (UAnnotation) -> Boolean) :
   ResultFactory<UAnnotationSubtreeInfo, NodeInfo<UAnnotationSubtreeInfo>> {
-  override fun create(
-    node: NodeInfo<UAnnotationSubtreeInfo>
-  ): Sequence<NodeInfo<UAnnotationSubtreeInfo>> {
-    return sequenceOfNotNull(
-      node.takeIf {
+  override fun create(node: NodeInfo<UAnnotationSubtreeInfo>) = flow {
+    node
+      .takeIf {
         val element = it.element
         element is UAnnotation && filter(element)
       }
-    )
+      ?.let { emit(it) }
   }
 }
 
@@ -114,10 +113,10 @@ private class UAnnotationResultFactory(private val filter: (UAnnotation) -> Bool
  */
 @Slow
 fun UElement.findAllAnnotationsInGraph(
-  shouldTraverse: (UAnnotation) -> Boolean = ::shouldTraverse,
-  onTraversal: ((NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
-  filter: (UAnnotation) -> Boolean,
-): Sequence<NodeInfo<UAnnotationSubtreeInfo>> {
+  shouldTraverse: suspend (UAnnotation) -> Boolean = ::shouldTraverse,
+  onTraversal: (suspend (NodeInfo<UAnnotationSubtreeInfo>) -> Unit)? = null,
+  filter: suspend (UAnnotation) -> Boolean,
+): Flow<NodeInfo<UAnnotationSubtreeInfo>> {
   val annotationsGraph =
     AnnotationsGraph(
       UAnnotationNodeInfoFactory(onTraversal),
@@ -146,8 +145,8 @@ private val NON_MULTIPREVIEW_PREFIXES = listOf("android.", "kotlin.", "kotlinx."
  *    [NON_MULTIPREVIEW_PREFIXES].
  */
 @Slow
-private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
-  return runReadAction { this.qualifiedName }
+private suspend fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
+  return readAction { this.qualifiedName }
     ?.let { fqcn ->
       if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
       else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
@@ -158,5 +157,5 @@ private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
  * Returns true when [annotation] is @Preview, or when it is a potential MultiPreview annotation.
  */
 @Slow
-private fun shouldTraverse(annotation: UAnnotation): Boolean =
-  runReadAction { annotation.isPsiValid } && annotation.couldBeMultiPreviewAnnotation()
+private suspend fun shouldTraverse(annotation: UAnnotation): Boolean =
+  readAction { annotation.isPsiValid } && annotation.couldBeMultiPreviewAnnotation()

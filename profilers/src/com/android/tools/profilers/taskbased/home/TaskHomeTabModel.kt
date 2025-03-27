@@ -82,7 +82,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
    */
   var persistentStateOnTaskEnter = PersistentSelectionStateOnTaskEnter(null)
 
-  val processListModel = ProcessListModel(profilers, this::updateProfilingProcessStartingPointDropdown)
+  val processListModel = ProcessListModel(profilers)
 
   /**
    * Updated the TaskStartingPointDropdown options availability, and performs auto-selection of options in certain scenarios as a

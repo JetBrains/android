@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.help.AndroidWebHelpProvider
@@ -36,6 +35,7 @@ import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.util.Arrays
 import java.util.concurrent.TimeUnit

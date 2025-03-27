@@ -15,11 +15,29 @@
  */
 package com.android.tools.profilers.integration.taskbased
 
-import com.android.tools.asdriver.tests.Emulator
-import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.asdriver.tests.AndroidStudio
+import com.android.tools.profilers.integration.ProfilersTaskTestBase
+
 import org.junit.Test
 
-class NativeAllocationsTaskTest : ProfilersTestBase() {
+class NativeAllocationsTaskTest : ProfilersTaskTestBase() {
+
+  override fun selectTask(studio: AndroidStudio) {
+    selectNativeAllocationsTask(studio)
+  }
+
+  override fun verifyTaskStarted(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
+    verifyIdeaLog(".*PROFILER\\:\\s+Native\\s+allocations\\s+capture\\s+start\\s+succeeded", 300)
+  }
+
+  override fun verifyTaskStopped(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Native\\s+allocations\\s+capture\\s+stop\\s+succeeded", 300)
+  }
+
+  override fun verifyUIComponents(studio: AndroidStudio) {
+    studio.waitForComponentByClass("TooltipLayeredPane", "CapturePanelUi")
+  }
 
   /**
    * Validate native allocations task workflow is working.
@@ -40,35 +58,5 @@ class NativeAllocationsTaskTest : ProfilersTestBase() {
    *  6. Verify UI components after capture is parsed.
    */
   @Test
-  fun test() {
-    taskBasedProfiling(
-      systemImage = Emulator.SystemImage.API_33,
-      deployApp = true,
-      testFunction = { studio, _ ->
-        // Selecting the device.
-        selectDevice(studio)
-
-        // Selecting the process id which consists of `minapp`
-        selectProcess(studio)
-
-        // Selecting native allocations task.
-        selectNativeAllocationsTask(studio)
-
-        // Select Process start to "Now"
-        setProfilingStartingPointToNow(studio)
-
-        // Starting task, assuming that the default is set to "Now"
-        startTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
-        verifyIdeaLog(".*PROFILER\\:\\s+Native\\s+allocations\\s+capture\\s+start\\s+succeeded", 300)
-
-        Thread.sleep(4000)
-
-        stopTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Native\\s+allocations\\s+capture\\s+stop\\s+succeeded", 300)
-
-        studio.waitForComponentByClass("TooltipLayeredPane", "CapturePanelUi")
-      }
-    )
-  }
+  fun test() = testTask()
 }

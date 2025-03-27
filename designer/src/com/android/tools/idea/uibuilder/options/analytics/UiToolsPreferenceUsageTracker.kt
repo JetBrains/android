@@ -37,7 +37,6 @@ import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode.SPLIT
 import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType
 import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType.GALLERY
 import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType.GRID
-import org.jetbrains.android.uipreview.AndroidEditorSettings.LayoutType.LIST
 
 /**
  * Usage tracker to collect all the metrics of the settings panel found in Preferences > Editor > Ui
@@ -88,8 +87,13 @@ interface UiToolsPreferenceUsageTracker {
     previewLayoutType?.let {
       builder.setPreviewLayoutMode(
         when (it) {
-          LIST -> LayoutMode.LIST
           GRID -> LayoutMode.GRID
+          // While the class name has been renamed from `Gallery` to `Focus` we can't rename neither
+          // the LayoutMode.GALLERY nor LayoutType.GALLERY keys.
+          // Changing the name of this key would invalidate previously collected analytics data
+          // associated with the `Gallery` class.
+          // Maintaining consistency with the original key ensures continuity in our data analysis
+          // and reporting.
           GALLERY -> LayoutMode.GALLERY
         }
       )

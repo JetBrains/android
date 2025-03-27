@@ -112,14 +112,13 @@ class SimpleFileLinkFilterTest {
   }
 
   @Test
-  fun applyFilter_strangeFileName() {
+  fun applyFilter_uninterestingFile() {
     val filter = SimpleFileLinkFilter(project)
-    val line = "_Strange-File:12"
+    val line = "file.cc:12"
 
-    val result = filter.applyFilter(line, line.length) ?: fail()
+    val result = filter.applyFilter(line, line.length)
 
-    assertThat(result.resultItems.map { it.describeLink() }).containsExactly("_Strange-File:11")
-    result.resultItems.forEach { assertHighlight(it, line) }
+    assertThat(result).isNull()
   }
 
   @Test

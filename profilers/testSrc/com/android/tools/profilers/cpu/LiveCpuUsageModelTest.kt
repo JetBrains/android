@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.DurationDataModel
 import com.android.tools.adtui.model.RangeSelectionModel
@@ -24,37 +23,38 @@ import com.android.tools.adtui.model.updater.UpdatableManager
 import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuProfilerStage.CpuStageLegends
 import com.android.tools.profilers.cpu.adapters.CpuDataProvider
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class LiveCpuUsageModelTest {
-  private lateinit var myProfilers:StudioProfilers
-  private lateinit var mockCpuDataProvider: CpuDataProvider
+  private val myProfilers: StudioProfilers = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+  private val mockCpuDataProvider: CpuDataProvider = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
   private lateinit var myLiveCpuUsageModel: LiveCpuUsageModel
-  private lateinit var stage: StreamingStage
+  private val stage: StreamingStage = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
 
   @Before
   fun setUp() {
-    myProfilers = Mockito.mock(StudioProfilers::class.java, Mockito.RETURNS_DEEP_STUBS)
-    mockCpuDataProvider = Mockito.mock(CpuDataProvider::class.java, Mockito.RETURNS_DEEP_STUBS)
-    stage = Mockito.mock(StreamingStage::class.java, Mockito.RETURNS_DEEP_STUBS)
-    val mockDetailedCpuUsage = Mockito.mock(DetailedCpuUsage::class.java, Mockito.RETURNS_DEEP_STUBS)
-    val mockLegendsCpu = Mockito.mock(CpuProfilerStage.CpuStageLegends::class.java, Mockito.RETURNS_DEEP_STUBS)
-    val mockRangeSelectionModel = Mockito.mock(RangeSelectionModel::class.java, Mockito.RETURNS_DEEP_STUBS)
+    val mockDetailedCpuUsage: DetailedCpuUsage = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    val mockLegendsCpu: CpuStageLegends = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    val mockRangeSelectionModel: RangeSelectionModel = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
 
-    MockitoKt.whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
-    MockitoKt.whenever(mockCpuDataProvider.legends).thenReturn(mockLegendsCpu)
-    MockitoKt.whenever(mockCpuDataProvider.rangeSelectionModel).thenReturn(mockRangeSelectionModel)
+    whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
+    whenever(mockCpuDataProvider.legends).thenReturn(mockLegendsCpu)
+    whenever(mockCpuDataProvider.rangeSelectionModel).thenReturn(mockRangeSelectionModel)
     myLiveCpuUsageModel = LiveCpuUsageModel(myProfilers, mockCpuDataProvider, stage)
   }
 
   @Test
   fun testGetAspect() {
-    val mockAspectModel = MockitoKt.mock<AspectModel<CpuProfilerAspect>>()
-    MockitoKt.whenever(mockCpuDataProvider.aspect).thenReturn(mockAspectModel)
+    val mockAspectModel = mock<AspectModel<CpuProfilerAspect>>()
+    whenever(mockCpuDataProvider.aspect).thenReturn(mockAspectModel)
     // Check if method returns expected aspect model object
     val result = myLiveCpuUsageModel.aspect
     assertThat(result).isEqualTo(mockAspectModel)
@@ -62,8 +62,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetRangeSelectionModel() {
-    val mockRangeSelectionModel = MockitoKt.mock<RangeSelectionModel>()
-    MockitoKt.whenever(mockCpuDataProvider.rangeSelectionModel).thenReturn(mockRangeSelectionModel)
+    val mockRangeSelectionModel = mock<RangeSelectionModel>()
+    whenever(mockCpuDataProvider.rangeSelectionModel).thenReturn(mockRangeSelectionModel)
     // Check if method returns expected range selection model object
     val result = myLiveCpuUsageModel.rangeSelectionModel
     assertThat(result).isEqualTo(mockRangeSelectionModel)
@@ -71,8 +71,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetUpdatableManager() {
-    val mockUpdatableManager = MockitoKt.mock<UpdatableManager>()
-    MockitoKt.whenever(mockCpuDataProvider.updatableManager).thenReturn(mockUpdatableManager)
+    val mockUpdatableManager = mock<UpdatableManager>()
+    whenever(mockCpuDataProvider.updatableManager).thenReturn(mockUpdatableManager)
     // Check if method returns expected updatable manager object
     val result = myLiveCpuUsageModel.updatableManager
     assertThat(result).isEqualTo(mockUpdatableManager)
@@ -80,8 +80,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetCpuThreadStates() {
-    val mockCpuThreadsStates = MockitoKt.mock<CpuThreadsModel>()
-    MockitoKt.whenever(mockCpuDataProvider.threadStates).thenReturn(mockCpuThreadsStates)
+    val mockCpuThreadsStates = mock<CpuThreadsModel>()
+    whenever(mockCpuDataProvider.threadStates).thenReturn(mockCpuThreadsStates)
     // Check if method returns expected thread states object
     val result = myLiveCpuUsageModel.threadStates
     assertThat(result).isEqualTo(mockCpuThreadsStates)
@@ -89,8 +89,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetCpuUsageAxis() {
-    val mockCpuUsageAxis = MockitoKt.mock<AxisComponentModel>()
-    MockitoKt.whenever(mockCpuDataProvider.cpuUsageAxis).thenReturn(mockCpuUsageAxis)
+    val mockCpuUsageAxis = mock<AxisComponentModel>()
+    whenever(mockCpuDataProvider.cpuUsageAxis).thenReturn(mockCpuUsageAxis)
     // Check if method returns expected usage axis object
     val result = myLiveCpuUsageModel.cpuUsageAxis
     assertThat(result).isEqualTo(mockCpuUsageAxis)
@@ -98,8 +98,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetThreadCountAxis() {
-    val mockThreadCountAxis = MockitoKt.mock<AxisComponentModel>()
-    MockitoKt.whenever(mockCpuDataProvider.threadCountAxis).thenReturn(mockThreadCountAxis)
+    val mockThreadCountAxis = mock<AxisComponentModel>()
+    whenever(mockCpuDataProvider.threadCountAxis).thenReturn(mockThreadCountAxis)
     // Check if method returns expected count axis object
     val result = myLiveCpuUsageModel.threadCountAxis
     assertThat(result).isEqualTo(mockThreadCountAxis)
@@ -107,8 +107,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetTimeAxisGuide() {
-    val mockTimeAxisGuide = MockitoKt.mock<AxisComponentModel>()
-    MockitoKt.whenever(mockCpuDataProvider.timeAxisGuide).thenReturn(mockTimeAxisGuide)
+    val mockTimeAxisGuide = mock<AxisComponentModel>()
+    whenever(mockCpuDataProvider.timeAxisGuide).thenReturn(mockTimeAxisGuide)
     // Check if method returns expected time axis guide object
     val result = myLiveCpuUsageModel.timeAxisGuide
     assertThat(result).isEqualTo(mockTimeAxisGuide)
@@ -116,8 +116,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetCpuUsage() {
-    val mockDetailedCpuUsage = MockitoKt.mock<DetailedCpuUsage>()
-    MockitoKt.whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
+    val mockDetailedCpuUsage = mock<DetailedCpuUsage>()
+    whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
     // Check if method returns expected cpu usage object
     val result = myLiveCpuUsageModel.cpuUsage
     assertThat(result).isEqualTo(mockDetailedCpuUsage)
@@ -125,8 +125,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetCpuStageLegends() {
-    val mockCpuStageLegends = MockitoKt.mock<CpuProfilerStage.CpuStageLegends>()
-    MockitoKt.whenever(mockCpuDataProvider.legends).thenReturn(mockCpuStageLegends)
+    val mockCpuStageLegends = mock<CpuProfilerStage.CpuStageLegends>()
+    whenever(mockCpuDataProvider.legends).thenReturn(mockCpuStageLegends)
     // Check if method returns expected cpu stage legends object
     val result = myLiveCpuUsageModel.legends
     assertThat(result).isEqualTo(mockCpuStageLegends)
@@ -134,8 +134,8 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testGetTraceDurations() {
-    val mockDurationDataModel = MockitoKt.mock<DurationDataModel<CpuTraceInfo>>()
-    MockitoKt.whenever(mockCpuDataProvider.traceDurations).thenReturn(mockDurationDataModel)
+    val mockDurationDataModel = mock<DurationDataModel<CpuTraceInfo>>()
+    whenever(mockCpuDataProvider.traceDurations).thenReturn(mockDurationDataModel)
     // Check if method returns expected duration data model object
     val result = myLiveCpuUsageModel.traceDurations
     assertThat(result).isEqualTo(mockDurationDataModel)
@@ -143,31 +143,31 @@ class LiveCpuUsageModelTest {
 
   @Test
   fun testEnter() {
-    val mockDetailedCpuUsage = MockitoKt.mock<DetailedCpuUsage>();
-    MockitoKt.whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
-    val mockLegendsCpu = Mockito.mock(CpuProfilerStage.CpuStageLegends::class.java, Mockito.RETURNS_DEEP_STUBS)
-    val mockRangeSelectionModel = Mockito.mock(RangeSelectionModel::class.java, Mockito.RETURNS_DEEP_STUBS)
-    MockitoKt.whenever(mockCpuDataProvider.legends).thenReturn(mockLegendsCpu)
-    MockitoKt.whenever(mockCpuDataProvider.rangeSelectionModel).thenReturn(mockRangeSelectionModel)
+    val mockDetailedCpuUsage = mock<DetailedCpuUsage>();
+    whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
+    val mockLegendsCpu: CpuStageLegends = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    val mockRangeSelectionModel: RangeSelectionModel = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    whenever(mockCpuDataProvider.legends).thenReturn(mockLegendsCpu)
+    whenever(mockCpuDataProvider.rangeSelectionModel).thenReturn(mockRangeSelectionModel)
     myLiveCpuUsageModel = LiveCpuUsageModel(myProfilers, mockCpuDataProvider, stage)
-    val mockUpdater = Mockito.mock(Updater::class.java, Mockito.RETURNS_DEEP_STUBS)
-    MockitoKt.whenever(myProfilers.updater).thenReturn(mockUpdater)
+    val mockUpdater: Updater = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    whenever(myProfilers.updater).thenReturn(mockUpdater)
     myLiveCpuUsageModel.enter()
-    Mockito.verify(mockUpdater, Mockito.times(1)).register(mockDetailedCpuUsage)
+    verify(mockUpdater, Mockito.times(1)).register(mockDetailedCpuUsage)
   }
 
   @Test
   fun testExit() {
-    val mockDetailedCpuUsage = MockitoKt.mock<DetailedCpuUsage>();
-    MockitoKt.whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
-    val mockLegendsCpu = Mockito.mock(CpuProfilerStage.CpuStageLegends::class.java, Mockito.RETURNS_DEEP_STUBS)
-    val mockRangeSelectionModel = Mockito.mock(RangeSelectionModel::class.java, Mockito.RETURNS_DEEP_STUBS)
-    MockitoKt.whenever(mockCpuDataProvider.legends).thenReturn(mockLegendsCpu)
-    MockitoKt.whenever(mockCpuDataProvider.rangeSelectionModel).thenReturn(mockRangeSelectionModel)
+    val mockDetailedCpuUsage = mock<DetailedCpuUsage>();
+    whenever(mockCpuDataProvider.cpuUsage).thenReturn(mockDetailedCpuUsage)
+    val mockLegendsCpu: CpuStageLegends = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    val mockRangeSelectionModel: RangeSelectionModel = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    whenever(mockCpuDataProvider.legends).thenReturn(mockLegendsCpu)
+    whenever(mockCpuDataProvider.rangeSelectionModel).thenReturn(mockRangeSelectionModel)
     myLiveCpuUsageModel = LiveCpuUsageModel(myProfilers, mockCpuDataProvider, stage)
-    val mockUpdater = Mockito.mock(Updater::class.java, Mockito.RETURNS_DEEP_STUBS)
-    MockitoKt.whenever(myProfilers.updater).thenReturn(mockUpdater)
+    val mockUpdater: Updater = mock(defaultAnswer = Mockito.RETURNS_DEEP_STUBS)
+    whenever(myProfilers.updater).thenReturn(mockUpdater)
     myLiveCpuUsageModel.exit()
-    Mockito.verify(mockUpdater, Mockito.times(1)).unregister(mockDetailedCpuUsage)
+    verify(mockUpdater, Mockito.times(1)).unregister(mockDetailedCpuUsage)
   }
 }

@@ -856,12 +856,12 @@ class PsiUtilsTest {
   fun isComposableLambdaArgument_isComposable() {
     fixture.loadNewFile("Foo.kt", """
       import androidx.compose.runtime.Composable
-      
+
       @Composable
       fun HigherLevelComposable(child: @Composable () -> Unit) {
         child()
       }
-      
+
       @Composable
       fun foo() {
          HigherLevelComposable {
@@ -881,16 +881,16 @@ class PsiUtilsTest {
   fun isComposableLambdaArgument_isNotComposable() {
     fixture.loadNewFile("Foo.kt", """
       import androidx.compose.runtime.Composable
-      
+
       @Composable
       fun HigherLevelComposable(child: () -> Unit) {
         child()
       }
-      
+
       fun HigherLevel(child: () -> Unit) {
         child()
       }
-      
+
       @Composable
       fun foo() {
          HigherLevel {

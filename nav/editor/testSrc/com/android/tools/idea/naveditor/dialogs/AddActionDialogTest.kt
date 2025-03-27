@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.dialogs
 
 import com.android.SdkConstants.AUTO_URI
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -41,10 +40,11 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.ListCellRenderer
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 
 class AddActionDialogTest : NavTestCase() {
 
@@ -572,7 +572,7 @@ class AddActionDialogTest : NavTestCase() {
         val renderer = combo.renderer
 
         @Suppress("UNCHECKED_CAST")
-        val list = mock(JList::class.java) as JList<out AddActionDialog.DestinationListEntry>
+        val list = mock<JList<out AddActionDialog.DestinationListEntry>>()
         val font = UIUtil.getListFont().deriveFont(Font.PLAIN)
         whenever(list.font).thenReturn(font)
         var rendererComponent = getRendererComponent(renderer, list, combo, 0)
@@ -661,7 +661,7 @@ class AddActionDialogTest : NavTestCase() {
         val renderer = combo.renderer
 
         @Suppress("UNCHECKED_CAST")
-        val list = mock(JList::class.java) as JList<out AddActionDialog.DestinationListEntry>
+        val list = mock<JList<out AddActionDialog.DestinationListEntry>>()
         val font = UIUtil.getListFont().deriveFont(Font.PLAIN)
         whenever(list.font).thenReturn(font)
 
@@ -808,7 +808,7 @@ class AddActionDialogTest : NavTestCase() {
     val surface = model.surface
     val f1 = model.treeReader.find("f1")!!
     surface.selectionModel.setSelection(listOf(f1))
-    val dialog = mock(AddActionDialog::class.java)
+    val dialog = mock<AddActionDialog>()
 
     whenever(dialog.showAndGet()).thenReturn(true)
     val action = model.treeReader.find("a1")!!
@@ -844,7 +844,7 @@ class AddActionDialogTest : NavTestCase() {
         }
       }
     val surface = model.surface
-    val dialog = mock(AddActionDialog::class.java)
+    val dialog = mock<AddActionDialog>()
     whenever(dialog.showAndGet()).thenReturn(true)
     val action = model.treeReader.find("a1")!!
     doReturn(action).whenever(dialog).writeUpdatedAction()
@@ -871,9 +871,9 @@ class AddActionDialogTest : NavTestCase() {
   }
 
   fun testShowAndUpdateFromDialogCancel() {
-    val model = mock(NlModel::class.java)
-    val surface = mock(NavDesignSurface::class.java)
-    val dialog = mock(AddActionDialog::class.java)
+    val model = mock<NlModel>()
+    val surface = mock<NavDesignSurface>()
+    val dialog = mock<AddActionDialog>()
     whenever(dialog.showAndGet()).thenReturn(false)
     doReturn(DESIGN_SURFACE).whenever(dialog).invocationSite
     TestNavUsageTracker.create(model).use { tracker ->

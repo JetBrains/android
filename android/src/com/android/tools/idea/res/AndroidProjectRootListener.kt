@@ -22,6 +22,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressIndicator
@@ -65,11 +66,7 @@ class AndroidProjectRootListener private constructor(private val project: Projec
     )
   }
 
-  /**
-   * Called when module roots have changed in the given project.
-   *
-   * @param project the project whose module roots changed
-   */
+  /** Called when module roots have changed in the associated [project]. */
   private fun moduleRootsOrDependenciesChanged() {
     runReadAction {
       if (!project.isDisposed) {
@@ -98,12 +95,22 @@ private class RootsChangedDumbModeTask(private val project: Project, parent: Dis
     Disposer.register(parent, this)
   }
 
+  private val log = Logger.getInstance(RootsChangedDumbModeTask::class.java)
+
   override fun performInDumbMode(indicator: ProgressIndicator) {
-    if (!project.isDisposed) {
-      indicator.text = "Updating resource repository roots"
-      for (module in ModuleManager.getInstance(project).modules) {
-        moduleRootsOrDependenciesChanged(module)
+    if (project.isDisposed) {
+      log.warn("Project is disposed, skipping resource update.")
+      return
+    }
+
+    indicator.text = "Updating resource repository roots"
+    for (module in ModuleManager.getInstance(project).modules) {
+      indicator.checkCanceled() // Check for cancellation before each module
+      if (project.isDisposed) {
+        log.warn("Project is disposed, aborting resource update.")
+        return
       }
+      moduleRootsOrDependenciesChanged(module)
     }
   }
 

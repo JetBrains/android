@@ -16,12 +16,12 @@
 package com.android.tools.idea.profilers.actions;
 
 import com.android.tools.idea.profilers.ProfileRunExecutor;
-import com.intellij.execution.ExecutorRegistryImpl;
+import com.intellij.execution.actions.ExecutorAction;
 
 /**
  * This Action will be used for non-Gradle project profiling or when there is no debuggable or
  * profileable option.
  */
-public class ProfileAction extends ExecutorRegistryImpl.ExecutorAction {
+public class ProfileAction extends ExecutorAction {
   public ProfileAction() { super(ProfileRunExecutor.Companion.getInstance()); }
 }

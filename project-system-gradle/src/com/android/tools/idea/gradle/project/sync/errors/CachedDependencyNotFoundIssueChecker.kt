@@ -40,7 +40,7 @@ class CachedDependencyNotFoundIssueChecker: GradleIssueChecker {
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, CACHED_DEPENDENCY_NOT_FOUND)
 
     return BuildIssueComposer(message).apply {
-      addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
+      addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(false))
     }.composeBuildIssue()
   }
 

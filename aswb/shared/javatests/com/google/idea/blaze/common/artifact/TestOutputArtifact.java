@@ -29,7 +29,7 @@ public abstract class TestOutputArtifact implements OutputArtifact {
           .setLength(0)
           .setDigest("digest")
           .setArtifactPath(Path.of("path/file"))
-          .setConfigurationMnemonic("mnemonic")
+          .setArtifactPathPrefixLength(0)
           .build();
 
   public static TestOutputArtifact forDigest(String digest) {
@@ -55,7 +55,7 @@ public abstract class TestOutputArtifact implements OutputArtifact {
   public abstract Path getArtifactPath();
 
   @Override
-  public abstract String getConfigurationMnemonic();
+  public abstract int getArtifactPathPrefixLength();
 
   @Nullable
   @Override
@@ -74,7 +74,7 @@ public abstract class TestOutputArtifact implements OutputArtifact {
 
     public abstract Builder setArtifactPath(Path value);
 
-    public abstract Builder setConfigurationMnemonic(String value);
+    public abstract Builder setArtifactPathPrefixLength(int value);
 
     public abstract TestOutputArtifact build();
   }

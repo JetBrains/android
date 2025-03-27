@@ -23,7 +23,6 @@ import com.android.repository.testframework.FakePackage
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.internal.androidTarget.MockAddonTarget
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
@@ -31,6 +30,7 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.kotlin.whenever
 
 class InstalledEnvironmentsTest {
 
@@ -77,9 +77,9 @@ class InstalledEnvironmentsTest {
         installedEnvironments(sdkManager, targets).androidSdks,
         equalTo(
             listOf(
-                ValueDescriptor(24, "API 24 (\"Nougat\"; Android 7.0)"),
-                ValueDescriptor(26, "API 26 (\"Oreo\"; Android 8.0)"),
-                ValueDescriptor(27, "API 27 (\"Oreo\"; Android 8.1)")
+                ValueDescriptor("24", "API 24 (\"Nougat\"; Android 7.0)"),
+                ValueDescriptor("26", "API 26 (\"Oreo\"; Android 8.0)"),
+                ValueDescriptor("27", "API 27 (\"Oreo\"; Android 8.1)")
             )))
 
   }

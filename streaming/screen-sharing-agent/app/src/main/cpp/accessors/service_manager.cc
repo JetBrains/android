@@ -61,8 +61,12 @@ JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const c
 JObject ServiceManager::WaitForService(Jni jni, const char* name, bool allow_null) {
   Log::D("WaitForService(\"%s\")", name);
   JObject binder = service_manager_class_.CallStaticObjectMethod(jni, wait_for_service_method_, JString(jni, name).ref());
-  if (binder.IsNull() && !allow_null) {
-    Log::Fatal(SERVICE_NOT_FOUND, "Unable to find the \"%s\" service", name);
+  if (binder.IsNull()) {
+    if (allow_null) {
+      jni.CheckAndClearException();
+    } else {
+      Log::Fatal(SERVICE_NOT_FOUND, "Unable to find the \"%s\" service", name);
+    }
   }
   return binder;
 }

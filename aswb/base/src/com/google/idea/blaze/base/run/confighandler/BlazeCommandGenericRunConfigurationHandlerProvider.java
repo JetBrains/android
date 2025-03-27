@@ -32,6 +32,11 @@ public class BlazeCommandGenericRunConfigurationHandlerProvider
   }
 
   @Override
+  public String getDisplayLabel() {
+    return "Generic Command";
+  }
+
+  @Override
   public boolean canHandleKind(TargetState state, @Nullable Kind kind) {
     return !state.equals(TargetState.PENDING);
   }

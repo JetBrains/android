@@ -39,6 +39,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module, test]",
@@ -58,5 +59,6 @@ iml_module(
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

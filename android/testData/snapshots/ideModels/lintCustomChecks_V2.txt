@@ -73,7 +73,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -211,7 +210,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -345,7 +343,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -534,18 +531,18 @@ MODULE                        : project
                                 file                          : <M2>/com/android/tools/sdklib/<ANDROID_TOOLS_BASE_VERSION>/sdklib-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/sdklib/<ANDROID_TOOLS_BASE_VERSION>/sdklib-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/commons-io/commons-io/2.13.0/commons-io-2.13.0.jar
+                                file                          : <M2>/commons-io/commons-io/2.16.1/commons-io-2.16.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
                                 source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/ow2/asm/asm-commons/9.7/asm-commons-9.7.jar
+                                file                          : <M2>/org/ow2/asm/asm-commons/9.7.1/asm-commons-9.7.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/ow2/asm/asm-tree/9.7/asm-tree-9.7.jar
+                                file                          : <M2>/org/ow2/asm/asm-tree/9.7.1/asm-tree-9.7.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/ow2/asm/asm/9.7/asm-9.7.jar
+                                file                          : <M2>/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
@@ -554,7 +551,7 @@ MODULE                        : project
                                 file                          : <M2>/com/android/tools/annotations/<ANDROID_TOOLS_BASE_VERSION>/annotations-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/annotations/<ANDROID_TOOLS_BASE_VERSION>/annotations-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/google/guava/guava/32.0.1-jre/guava-32.0.1-jre.jar
+                                file                          : <M2>/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>.jar
                                 source                        : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
@@ -562,17 +559,17 @@ MODULE                        : project
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar
+                                file                          : <M2>/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.jar
+                                file                          : <M2>/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar
+                                file                          : <M2>/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar
+                                file                          : <M2>/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/lint/build/classes/java/main [-]
                                 - files                       : <ROOT>/lint/build/resources/main [-]
@@ -833,6 +830,13 @@ MODULE                        : project
                             qName                         : :lintpublish-remote:test
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :lint:test
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -851,14 +855,14 @@ MODULE                        : project.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -901,6 +905,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
@@ -908,7 +913,7 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : com.example.app
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -922,8 +927,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1090,8 +1095,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1186,14 +1191,14 @@ MODULE                        : project.library
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/library/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1236,12 +1241,13 @@ MODULE                        : project.library
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1251,8 +1257,8 @@ MODULE                        : project.library
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1409,8 +1415,8 @@ MODULE                        : project.library
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -1490,14 +1496,14 @@ MODULE                        : project.library-remote
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library-remote
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/library-remote/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1540,12 +1546,13 @@ MODULE                        : project.library-remote
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1555,8 +1562,8 @@ MODULE                        : project.library-remote
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1713,8 +1720,8 @@ MODULE                        : project.library-remote
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources

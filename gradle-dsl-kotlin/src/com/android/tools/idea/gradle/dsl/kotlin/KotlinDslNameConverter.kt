@@ -50,7 +50,7 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
         null -> element.text
         else -> GradleNameElement.escape(contents)
       }
-      is KtExpression -> gradleNameFor(element) ?: element.text
+      is KtExpression -> gradleNameFor(element) ?: ""
       else -> element.text
     }
   }

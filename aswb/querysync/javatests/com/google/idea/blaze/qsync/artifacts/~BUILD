@@ -12,8 +12,8 @@ java_test(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared:artifact",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
     ],
 )

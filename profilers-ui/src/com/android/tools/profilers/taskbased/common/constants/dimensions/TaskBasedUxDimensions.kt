@@ -66,11 +66,11 @@ object TaskBasedUxDimensions {
 
   // Multiline tooltip dimensions
   val TOOLTIP_VERTICAL_SPACING_DP = 5.dp
-  val TOOLTIP_MAX_WIDTH_DP = 300.dp
 
   // Task notification dimensions
   val TASK_NOTIFICATION_CONTAINER_PADDING_DP = 5.dp
   val TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP = 5.dp
+  val TASK_NOTIFICATION_TOOLTIP_MAX_WIDTH_DP = 500.dp
 
   // LeakCanary LeakList dimensions
   val LEAKCANARY_OCCURRENCE_COL_WIDTH_DP = 100.dp
@@ -79,4 +79,7 @@ object TaskBasedUxDimensions {
   // LeakCanary LeakDetail dimensions
   val LEAKCANARY_MORE_INFO_TITLE_PADDING = 16.dp
   val LEAKCANARY_MORE_INFO_TEXT_PADDING = 8.dp
+
+  // Icon width
+  val NOTIFICATION_ICON_SIZE_DP = 16.dp
 }

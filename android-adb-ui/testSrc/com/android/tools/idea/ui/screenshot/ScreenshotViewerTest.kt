@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.dispatchInvocationEventsFor
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -27,13 +28,19 @@ import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.ui.save.PostSaveAction
+import com.android.tools.idea.ui.screenshot.ScreenshotViewer.ScreenshotConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.mock.Mock
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
@@ -43,6 +50,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.impl.EditorWindow
 import com.intellij.openapi.fileEditor.impl.FileEditorOpenOptions
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -50,7 +58,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
@@ -62,6 +69,7 @@ import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
 import org.junit.Assume.assumeFalse
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -75,62 +83,26 @@ import javax.swing.UIManager
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-private val TIMEOUT = 5.seconds
-
-private const val DISPLAY_INFO_PHONE =
-  "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:4619827259835644672\", 1080 x 2400, modeId 1, defaultModeId 1," +
-  " supportedModes [{id=1, width=1080, height=2400, fps=60.000004, alternativeRefreshRates=[]}], colorMode 0, supportedColorModes [0]," +
-  " hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
-  " allmSupported false, gameContentTypeSupported false, density 420, 420.0 x 420.0 dpi, appVsyncOff 1000000, presDeadline 16666666," +
-  " cutout DisplayCutout{insets=Rect(0, 136 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0}" +
-  " boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(0, 0 - 136, 136), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]}" +
-  " cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 stableDisplayHeight=1080 stableDisplayHeight=2400" +
-  " density={2.625} cutoutSpec={M 128,83 A 44,44 0 0 1 84,127 44,44 0 0 1 40,83 44,44 0 0 1 84,39 44,44 0 0 1 128,83 Z @left}" +
-  " rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}, touch INTERNAL, rotation 0, type INTERNAL," +
-  " address {port=0, model=0x401cec6a7a2b7b}," +
-  " deviceProductInfo DeviceProductInfo{name=EMU_display_0, manufacturerPnpId=GGL, productId=1, modelYear=null," +
-  " manufactureDate=ManufactureDate{week=27, year=2006}, connectionToSinkType=0}, state ON, frameRateOverride , brightnessMinimum 0.0," +
-  " brightnessMaximum 1.0, brightnessDefault 0.39763778," +
-  " FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, installOrientation 0}"
-
-private const val DISPLAY_INFO_WATCH =
-  "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:8141603649153536\", 454 x 454, modeId 1, defaultModeId 1," +
-  " supportedModes [{id=1, width=454, height=454, fps=60.000004}], colorMode 0, supportedColorModes [0]," +
-  " HdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
-  " allmSupported false, gameContentTypeSupported false, density 320, 320.0 x 320.0 dpi, appVsyncOff 1000000, presDeadline 16666666," +
-  " touch INTERNAL, rotation 0, type INTERNAL, address {port=0, model=0x1cecbed168ea}," +
-  " deviceProductInfo DeviceProductInfo{name=EMU_display_0, manufacturerPnpId=GGL, productId=1, modelYear=null," +
-  " manufactureDate=ManufactureDate{week=27, year=2006}, relativeAddress=null}, state ON," +
-  " FLAG_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_ROUND}"
-
-private const val DISPLAY_INFO_WATCH_SQUARE =
-  "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:8141603649153536\", 454 x 454, modeId 1, defaultModeId 1," +
-  " supportedModes [{id=1, width=454, height=454, fps=60.000004}], colorMode 0, supportedColorModes [0]," +
-  " HdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
-  " allmSupported false, gameContentTypeSupported false, density 320, 320.0 x 320.0 dpi, appVsyncOff 1000000, presDeadline 16666666," +
-  " touch INTERNAL, rotation 0, type INTERNAL, address {port=0, model=0x1cecbed168ea}," +
-  " deviceProductInfo DeviceProductInfo{name=EMU_display_0, manufacturerPnpId=GGL, productId=1, modelYear=null," +
-  " manufactureDate=ManufactureDate{week=27, year=2006}, relativeAddress=null}, state ON," +
-  " FLAG_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS}"
-
-/**
- * Tests for [ScreenshotViewer].
- */
+/** Tests for [ScreenshotViewer]. */
 @RunsInEdt
 class ScreenshotViewerTest {
   private val projectRule = ProjectRule()
   private val usageTrackerRule = UsageTrackerRule()
-  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), disposableRule, usageTrackerRule)
+  val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), usageTrackerRule)
 
-  private val testFrame = object : FramingOption {
-    override val displayName = "Test frame"
-  }
+  private val testFrame = DeviceFramingOption("Test Frame", SKIN_FOLDER.resolve("pixel_4_xl"))
 
   private val fileNamePrompts = mutableListOf<String>()
   private val openedFiles = mutableListOf<String>()
+  private val testRootDisposable
+    get() = projectRule.disposable
+
+  @Before
+  fun setUp() {
+    UIManager.setLookAndFeel(DarculaLaf())
+  }
 
   @After
   fun tearDown() {
@@ -138,6 +110,7 @@ class ScreenshotViewerTest {
     dispatchAllEventsInIdeEventQueue()
     findModelessDialog { it is ScreenshotViewer }?.close(CLOSE_EXIT_CODE)
     dispatchAllEventsInIdeEventQueue()
+    service<ScreenshotConfiguration>().loadState(ScreenshotConfiguration())
   }
 
   @Test
@@ -157,36 +130,31 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  fun testUpdateEditorImage() {
-    assumeFalse(SystemInfo.isWindows) // b/355613188
+  fun testResolutionChange() {
+    StudioFlags.SCREENSHOT_RESIZING.overrideForTest(true, testRootDisposable)
+    val config = service<ScreenshotConfiguration>()
+    assertThat(config.scale == 1.0)
+    config.scale = 0.5
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
-
-    val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
-    waitForCondition(TIMEOUT) {
-      zoomModel.zoomFactor == 1.0
-    }
-
-    viewer.updateEditorImage()
-    ui.layoutAndDispatchEvents()
-    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(1.0)
+    val imageComponent = ui.getComponent<ImageComponent>()
+    waitForCondition(2.seconds) { imageComponent.document.value != null }
+    val image = imageComponent.document.value
+    assertThat(image.width).isEqualTo(50)
+    assertThat(image.height).isEqualTo(100)
+    @Suppress("UNCHECKED_CAST") val resolutionComboBox = ui.getComponent<ComboBox<*>> { it.item is Int } as ComboBox<Int>
+    assertThat(resolutionComboBox.item).isEqualTo(50)
+    resolutionComboBox.item = 25
+    assertThat(config.scale == 0.25)
+    waitForCondition(2.seconds) { imageComponent.document.value?.width == 25 }
+    assertThat(imageComponent.document.value.height).isEqualTo(50)
   }
 
   @Test
   fun testRecapture() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
-    val screenshotSupplier = object : ScreenshotSupplier {
-      var captured = false
-
-      override fun captureScreenshot(): ScreenshotImage {
-        captured = true
-        return screenshotImage
-      }
-
-      override fun dispose() {
-      }
-    }
+    val screenshotSupplier = TestScreenshotSupplier(screenshotImage, testRootDisposable)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), screenshotSupplier)
     val ui = FakeUi(viewer.rootPane)
 
@@ -236,9 +204,6 @@ class ScreenshotViewerTest {
 
   @Test
   fun testClipRoundScreenshotWithBackgroundColorInDarkMode() {
-    runInEdt {
-      UIManager.setLookAndFeel(DarculaLaf())
-    }
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -318,9 +283,6 @@ class ScreenshotViewerTest {
 
   @Test
   fun testPlayCompatibleScreenshotInDarkMode() {
-    runInEdt {
-      UIManager.setLookAndFeel(DarculaLaf())
-    }
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -371,12 +333,13 @@ class ScreenshotViewerTest {
 
   @Test
   fun testSave_Phone() {
+    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(false, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val tempFile = FileUtil.createTempFile("saved_screenshot", SdkConstants.DOT_PNG)
     overrideSaveFileDialog(tempFile)
 
-    viewer.doOKAction()
+    viewer.clickDefaultButton()
 
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
@@ -393,7 +356,28 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  fun testStreamlinedSave_Phone() {
+    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(true, testRootDisposable)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
+    service<ScreenshotConfiguration>().postSaveAction = PostSaveAction.NONE
+
+    viewer.clickDefaultButton()
+
+    EDT.dispatchAllInvocationEvents()
+    dispatchAllEventsInIdeEventQueue()
+    assertThat(fileNamePrompts).isEmpty()
+    assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
+      DeviceScreenshotEvent.newBuilder()
+        .setDeviceType(DeviceScreenshotEvent.DeviceType.PHONE)
+        .setDecorationOption(DeviceScreenshotEvent.DecorationOption.RECTANGULAR)
+        .build()
+    )
+  }
+
+  @Test
   fun testSave_Wear() {
+    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(false, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -402,7 +386,7 @@ class ScreenshotViewerTest {
     overrideSaveFileDialog(tempFile)
 
     clipComboBox.selectFirstMatch("Play Store Compatible")
-    viewer.doOKAction()
+    viewer.clickDefaultButton()
 
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
@@ -465,7 +449,7 @@ class ScreenshotViewerTest {
   @Test
   fun testScreenshotViewerWithoutFramingOptionsDoesNotAttemptToSelectFrameOption() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    ScreenshotViewer.PersistentState.getInstance(projectRule.project).frameScreenshot = true
+    service<ScreenshotConfiguration>().frameScreenshot = true
 
     // test that no exceptions are thrown
     createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), framingOptions = listOf())
@@ -482,7 +466,7 @@ class ScreenshotViewerTest {
 
   private fun createScreenshotViewer(screenshotImage: ScreenshotImage,
                                      screenshotDecorator: ScreenshotDecorator,
-                                     screenshotSupplier: ScreenshotSupplier? = null,
+                                     screenshotSupplier: ScreenshotSupplier = TestScreenshotSupplier(screenshotImage, testRootDisposable),
                                      framingOptions: List<FramingOption> = listOf(testFrame)): ScreenshotViewer {
     val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
     val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
@@ -492,6 +476,7 @@ class ScreenshotViewerTest {
     return viewer
   }
 
+  @Suppress("UnstableApiUsage")
   private fun overrideSaveFileDialog(file: File) {
     val virtualFileWrapper = VirtualFileWrapper(file)
     val factory = object : FileChooserFactoryImpl() {
@@ -505,18 +490,77 @@ class ScreenshotViewerTest {
         }
       }
     }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
 
+    overrideFileEditorManager()
+  }
+
+  private fun overrideFileEditorManager() {
     val fileEditorManager = object : Mock.MyFileEditorManager() {
-      @Suppress("UnstableApiUsage")
       override fun openFile(file: VirtualFile, window: EditorWindow?, options: FileEditorOpenOptions): FileEditorComposite {
         openedFiles.add(file.toString())
         return super.openFile(file, window, options)
       }
     }
-    projectRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, disposableRule.disposable)
+    projectRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }
 
   private fun UsageTrackerRule.screenshotEvents(): List<DeviceScreenshotEvent> =
     usages.filter { it.studioEvent.kind == DEVICE_SCREENSHOT_EVENT }.map { it.studioEvent.deviceScreenshotEvent }
+
+  private class TestScreenshotSupplier(private val screenshotImage: ScreenshotImage, parentDisposable: Disposable) : ScreenshotSupplier {
+    var captured = false
+
+    init {
+      Disposer.register(parentDisposable, this)
+    }
+
+    override fun captureScreenshot(): ScreenshotImage {
+      captured = true
+      return screenshotImage
+    }
+
+    override fun dispose() {
+    }
+  }
 }
+
+private val TIMEOUT = 5.seconds
+
+private val SKIN_FOLDER = DeviceArtDescriptor.getBundledDescriptorsFolder()!!.toPath()
+
+private const val DISPLAY_INFO_PHONE =
+  "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:4619827259835644672\", 1080 x 2400, modeId 1, defaultModeId 1," +
+  " supportedModes [{id=1, width=1080, height=2400, fps=60.000004, alternativeRefreshRates=[]}], colorMode 0, supportedColorModes [0]," +
+  " hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
+  " allmSupported false, gameContentTypeSupported false, density 420, 420.0 x 420.0 dpi, appVsyncOff 1000000, presDeadline 16666666," +
+  " cutout DisplayCutout{insets=Rect(0, 136 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0}" +
+  " boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(0, 0 - 136, 136), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]}" +
+  " cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2400 stableDisplayHeight=1080 stableDisplayHeight=2400" +
+  " density={2.625} cutoutSpec={M 128,83 A 44,44 0 0 1 84,127 44,44 0 0 1 40,83 44,44 0 0 1 84,39 44,44 0 0 1 128,83 Z @left}" +
+  " rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}, touch INTERNAL, rotation 0, type INTERNAL," +
+  " address {port=0, model=0x401cec6a7a2b7b}," +
+  " deviceProductInfo DeviceProductInfo{name=EMU_display_0, manufacturerPnpId=GGL, productId=1, modelYear=null," +
+  " manufactureDate=ManufactureDate{week=27, year=2006}, connectionToSinkType=0}, state ON, frameRateOverride , brightnessMinimum 0.0," +
+  " brightnessMaximum 1.0, brightnessDefault 0.39763778," +
+  " FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, installOrientation 0}"
+
+private const val DISPLAY_INFO_WATCH =
+  "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:8141603649153536\", 454 x 454, modeId 1, defaultModeId 1," +
+  " supportedModes [{id=1, width=454, height=454, fps=60.000004}], colorMode 0, supportedColorModes [0]," +
+  " HdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
+  " allmSupported false, gameContentTypeSupported false, density 320, 320.0 x 320.0 dpi, appVsyncOff 1000000, presDeadline 16666666," +
+  " touch INTERNAL, rotation 0, type INTERNAL, address {port=0, model=0x1cecbed168ea}," +
+  " deviceProductInfo DeviceProductInfo{name=EMU_display_0, manufacturerPnpId=GGL, productId=1, modelYear=null," +
+  " manufactureDate=ManufactureDate{week=27, year=2006}, relativeAddress=null}, state ON," +
+  " FLAG_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_ROUND}"
+
+private const val DISPLAY_INFO_WATCH_SQUARE =
+  "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:8141603649153536\", 454 x 454, modeId 1, defaultModeId 1," +
+  " supportedModes [{id=1, width=454, height=454, fps=60.000004}], colorMode 0, supportedColorModes [0]," +
+  " HdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
+  " allmSupported false, gameContentTypeSupported false, density 320, 320.0 x 320.0 dpi, appVsyncOff 1000000, presDeadline 16666666," +
+  " touch INTERNAL, rotation 0, type INTERNAL, address {port=0, model=0x1cecbed168ea}," +
+  " deviceProductInfo DeviceProductInfo{name=EMU_display_0, manufacturerPnpId=GGL, productId=1, modelYear=null," +
+  " manufactureDate=ManufactureDate{week=27, year=2006}, relativeAddress=null}, state ON," +
+  " FLAG_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS}"

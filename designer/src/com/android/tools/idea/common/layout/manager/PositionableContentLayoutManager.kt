@@ -26,6 +26,7 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -53,7 +54,13 @@ abstract class PositionableContentLayoutManager : LayoutManager {
   private val Container.availableSize: Dimension
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
-  private val _layoutContainerFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
+  /**
+   * One extra buffer capacity is needed as [_layoutContainerFlow] is updated outside of the suspend
+   * function (using [MutableSharedFlow.tryEmit] instead of [MutableSharedFlow.emit]
+   */
+  private val _layoutContainerFlow: MutableSharedFlow<Unit> =
+    MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
   /** Notifies when [layoutContainer(parent: Container)] is called. */
   val layoutContainerFlow: SharedFlow<Unit> = _layoutContainerFlow.asSharedFlow()
 

@@ -19,12 +19,14 @@ import com.android.tools.idea.common.model.ItemTransferable.DESIGNER_FLAVOR
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
 import java.awt.datatransfer.DataFlavor
 
 /** A [DesignSurfaceActionHandler] that disables the copy/paste and delete functionality. */
-class PreviewSurfaceActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {
+class PreviewSurfaceActionHandler(surface: DesignSurface<LayoutlibSceneManager>) :
+  DesignSurfaceActionHandler<DesignSurface<LayoutlibSceneManager>>(surface) {
   override val pasteTarget: NlComponent? = null
 
   override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean = false

@@ -24,6 +24,8 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
+import com.android.tools.idea.welcome.install.SdkComponentInstaller;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.welcome.wizard.ConfirmFirstRunWizardCloseDialog;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -33,7 +35,7 @@ import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,50 +51,62 @@ public class FirstRunWizard extends DynamicWizard {
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
   @NotNull private final FirstRunWizardMode myMode;
-  /**
-   * On the first user click on finish button, we show progress step & perform setup.
-   * Second attempt will close the wizard.
-   */
-  private final AtomicInteger myFinishClicks = new AtomicInteger(0);
+
+  private final AtomicBoolean myIsShowingProgressStep = new AtomicBoolean(false);
+  private final @NotNull SdkComponentInstaller mySdkComponentInstaller;
+  private final @NotNull FirstRunWizardTracker myTracker;
   private InstallComponentsPath myComponentsPath;
 
   public FirstRunWizard(@NotNull DynamicWizardHost host,
-                        @NotNull FirstRunWizardMode mode) {
+                        @NotNull FirstRunWizardMode mode,
+                        @NotNull SdkComponentInstaller sdkComponentInstaller,
+                        @NotNull FirstRunWizardTracker tracker) {
     super(null, null, getWizardTitle(), host);
     myMode = mode;
+    mySdkComponentInstaller = sdkComponentInstaller;
+    myTracker = tracker;
     setTitle(getWizardTitle());
   }
 
   @Override
   public void init() {
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
-    ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
-    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, true);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      boolean sdkExists = false;
-      if (initialSdkLocation.isDirectory()) {
-        AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, initialSdkLocation.toPath());
-        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        sdkExists = !sdkHandler.getSdkManager(progress).getPackages().getLocalPackages().isEmpty();
-      }
-      addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
+      addPath(new SingleStepPath(new FirstRunWelcomeStep(getSdkExists(initialSdkLocation), myTracker)));
       if (initialSdkLocation.getPath().isEmpty()) {
         // We don't have a default path specified, have to do custom install.
         myState.put(KEY_CUSTOM_INSTALL, true);
       }
       else {
-        addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
+        addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL, myTracker)));
       }
     }
     if (myMode == FirstRunWizardMode.MISSING_SDK) {
-      addPath(new SingleStepPath(new MissingSdkAlertStep()));
+      addPath(new SingleStepPath(new MissingSdkAlertStep(myTracker)));
     }
 
+    ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
+    myComponentsPath = new InstallComponentsPath(myMode, initialSdkLocation, progressStep, mySdkComponentInstaller, true, myTracker);
     addPath(myComponentsPath);
     conditionallyAddEmulatorSettingsStep();
 
     addPath(new SingleStepPath(progressStep));
+
+    // If we have no steps to show then immediately show the progress step - this is required for INSTALL_HANDOFF mode
+    if (myPaths.stream().noneMatch(path -> path.getVisibleStepCount() > 0)) {
+      myIsShowingProgressStep.set(true);
+    }
+
     super.init();
+  }
+
+  private boolean getSdkExists(File initialSdkLocation) {
+    if (initialSdkLocation.isDirectory()) {
+      AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, initialSdkLocation.toPath());
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      return !sdkHandler.getSdkManager(progress).getPackages().getLocalPackages().isEmpty();
+    }
+    return false;
   }
 
   private void conditionallyAddEmulatorSettingsStep() {
@@ -108,7 +122,7 @@ public class FirstRunWizard extends DynamicWizard {
       return;
     }
 
-    addPath(new SingleStepPath(new LinuxKvmInfoStep()));
+    addPath(new SingleStepPath(new LinuxKvmInfoStep(myTracker)));
   }
 
   @Override
@@ -126,14 +140,17 @@ public class FirstRunWizard extends DynamicWizard {
     }
   }
 
-  // We need to show progress page before proceeding closing the wizard.
+  /**
+   * On the first user click on finish button, we show progress step & perform setup.
+   * Second attempt will close the wizard.
+   */
   @Override
   public void doFinishAction() {
-    if (myFinishClicks.incrementAndGet() == 1) {
+    if (!myIsShowingProgressStep.getAndSet(true)) {
       doNextAction();
     }
     else {
-      assert myFinishClicks.get() <= 2; // Should not take more then 2 clicks
+      assert myIsShowingProgressStep.get();
       super.doFinishAction();
     }
   }
@@ -151,12 +168,12 @@ public class FirstRunWizard extends DynamicWizard {
 
   @Override
   protected String getWizardActionDescription() {
-    return ApplicationNamesInfo.getInstance().getFullProductName()+" Setup Wizard";
+    return ApplicationNamesInfo.getInstance().getFullProductName() + " Setup Wizard";
   }
 
   private class FirstRunProgressStep extends ConsolidatedProgressStep {
     public FirstRunProgressStep() {
-      super(getDisposable(), myHost);
+      super(getDisposable(), myHost, FirstRunWizard.this.myTracker);
       setPaths(myPaths);
     }
 
@@ -166,7 +183,7 @@ public class FirstRunWizard extends DynamicWizard {
      */
     @Override
     public boolean isStepVisible() {
-      return myFinishClicks.get() == 1 && myComponentsPath.shouldDownloadingComponentsStepBeShown();
+      return myIsShowingProgressStep.get() && myComponentsPath.shouldDownloadingComponentsStepBeShown();
     }
   }
 }

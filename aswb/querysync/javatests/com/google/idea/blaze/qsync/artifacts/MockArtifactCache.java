@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteSource;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -61,4 +62,9 @@ public class MockArtifactCache implements BuildArtifactCache {
 
   @Override
   public void purge() {}
+
+  @Override
+  public ImmutableMap<String, ByteSource> getBugreportFiles() {
+    return ImmutableMap.of();
+  }
 }

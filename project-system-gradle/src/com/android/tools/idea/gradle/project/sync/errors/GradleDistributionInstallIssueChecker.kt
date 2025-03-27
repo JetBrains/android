@@ -42,7 +42,8 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
     val buildIssueComposer = BuildIssueComposer(message)
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     if (issueData.error != rootCause) {
-      buildIssueComposer.addDescription("Reason: $rootCause")
+      buildIssueComposer.addDescriptionOnNewLine("Reason: $rootCause")
+      buildIssueComposer.startNewParagraph()
       if (rootCause is java.net.UnknownHostException || rootCause is java.net.ConnectException) {
         buildIssueComposer.addQuickFix("Please ensure ", "gradle distribution url", " is correct.",
                                        GradleWrapperSettingsOpenQuickFix(issueData.projectPath, "distributionUrl"))
@@ -50,10 +51,11 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
                                        OpenStudioProxySettingsQuickFix())
       }
       if (rootCause is java.lang.RuntimeException && rootCause.message?.startsWith("Could not create parent directory for lock file") == true) {
-        buildIssueComposer.addDescription("""
+        buildIssueComposer.addDescriptionOnNewLine("""
           Please ensure Android Studio can write to the specified Gradle wrapper distribution directory.
           You can also change Gradle home directory in Gradle Settings.
         """.trimIndent())
+        buildIssueComposer.startNewParagraph()
         buildIssueComposer.addQuickFix("Open Gradle Settings", UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix())
         buildIssueComposer.addQuickFix("Open Gradle wrapper settings", GradleWrapperSettingsOpenQuickFix(issueData.projectPath, null))
       }

@@ -25,6 +25,8 @@ import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration.BlazeCommandRunConfigurationSettingsEditor;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandGenericRunConfigurationHandler;
+import com.google.idea.blaze.base.run.confighandler.PendingTargetRunConfigurationHandler;
+import com.google.idea.blaze.base.run.confighandler.PendingTargetRunConfigurationHandlerProvider;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -58,23 +60,23 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
   }
 
   @Test
-  public void testNewConfigurationHasGenericHandler() {
+  public void testNewConfigurationHasPendingHandler() {
     assertThat(configuration.getHandler())
-        .isInstanceOf(BlazeCommandGenericRunConfigurationHandler.class);
+        .isInstanceOf(PendingTargetRunConfigurationHandler.class);
   }
 
   @Test
-  public void testSetTargetNullMakesGenericHandler() {
+  public void testSetTargetNullMakesPendingHandler() {
     configuration.setTarget(null);
     assertThat(configuration.getHandler())
-        .isInstanceOf(BlazeCommandGenericRunConfigurationHandler.class);
+        .isInstanceOf(PendingTargetRunConfigurationHandler.class);
   }
 
   @Test
-  public void testTargetExpressionMakesGenericHandler() {
+  public void testTargetExpressionMakesPendingHandler() {
     configuration.setTarget(TargetExpression.fromStringSafe("//..."));
     assertThat(configuration.getHandler())
-        .isInstanceOf(BlazeCommandGenericRunConfigurationHandler.class);
+        .isInstanceOf(PendingTargetRunConfigurationHandler.class);
   }
 
   @Test
@@ -97,7 +99,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
 
     assertThat(readConfiguration.getTargets()).containsExactly(targetExpression);
     assertThat(readConfiguration.getHandler())
-        .isInstanceOf(BlazeCommandGenericRunConfigurationHandler.class);
+        .isInstanceOf(PendingTargetRunConfigurationHandler.class);
 
     BlazeCommandRunConfigurationCommonState readState =
         (BlazeCommandRunConfigurationCommonState) readConfiguration.getHandler().getState();
@@ -119,7 +121,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
 
     assertThat(readConfiguration.getTargets()).isEqualTo(configuration.getTargets());
     assertThat(readConfiguration.getHandler())
-        .isInstanceOf(BlazeCommandGenericRunConfigurationHandler.class);
+        .isInstanceOf(PendingTargetRunConfigurationHandler.class);
   }
 
   @Test
@@ -143,7 +145,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
 
     assertThat(readConfiguration.getTargets()).containsExactly(targetExpression);
     assertThat(readConfiguration.getHandler())
-        .isInstanceOf(BlazeCommandGenericRunConfigurationHandler.class);
+        .isInstanceOf(PendingTargetRunConfigurationHandler.class);
 
     BlazeCommandRunConfigurationCommonState readState =
         (BlazeCommandRunConfigurationCommonState) readConfiguration.getHandler().getState();
@@ -168,7 +170,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
     configuration.setTarget(null);
     assertThat(configuration.getTargets()).isEmpty();
     assertThat(configuration.getHandler())
-        .isInstanceOf(BlazeCommandGenericRunConfigurationHandler.class);
+        .isInstanceOf(PendingTargetRunConfigurationHandler.class);
     BlazeCommandRunConfigurationCommonState state =
         (BlazeCommandRunConfigurationCommonState) configuration.getHandler().getState();
 
@@ -190,7 +192,7 @@ public class BlazeCommandRunConfigurationGenericHandlerIntegrationTest
 
     assertThat(readConfiguration.getTargets()).isEmpty();
     assertThat(configuration.getHandler())
-        .isInstanceOf(BlazeCommandGenericRunConfigurationHandler.class);
+        .isInstanceOf(PendingTargetRunConfigurationHandler.class);
 
     readState = (BlazeCommandRunConfigurationCommonState) readConfiguration.getHandler().getState();
     assertThat(readState.getCommandState().getCommand())

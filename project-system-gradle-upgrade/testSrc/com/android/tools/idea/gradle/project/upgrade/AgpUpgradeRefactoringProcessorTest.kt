@@ -20,6 +20,8 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -329,5 +331,21 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isRewriteDeprecatedOperators() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("RewriteDeprecatedOperators/ResConfigsExpected"))
+  }
+
+  @Test
+  fun testAllComponentKindsAreUnique() {
+    val kindToProcessors = mutableMapOf<UpgradeAssistantComponentKind, MutableList<String>>()
+    writeToBuildFile(TestFileName("AgpUpgrade/Empty"))
+    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
+    processor.componentRefactoringProcessors.forEach {
+      val kind = it.getComponentInfo().kind
+      kindToProcessors.getOrPut(kind) { mutableListOf<String>() }.add(it.javaClass.simpleName)
+    }
+    val notDefined = kindToProcessors[UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND]
+    assertWithMessage("These classes use the default kind, please assign a unique kind per class").that(notDefined).isNull()
+    val repeated = kindToProcessors.filter { it.value.size > 1 }.toList()
+    assertWithMessage("There are classes that share the same kind, please assign a unique kind per class").that(repeated).isEmpty()
   }
 }

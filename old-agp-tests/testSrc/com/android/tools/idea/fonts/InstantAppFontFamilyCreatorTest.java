@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.google.common.truth.Truth.assertThat;
@@ -42,7 +43,7 @@ public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
     loadProject(INSTANT_APP, "instant-app", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
     AndroidFacet baseFacet = AndroidFacet.getInstance(findBaseFeature(myAndroidFacet));
     FontFamilyCreator creator = new FontFamilyCreator(myAndroidFacet);
-    FontDetail font = FontTestUtils.createFontDetail("Roboto", 400, 100, false);
+    FontDetail font = FontTestUtils.createFontDetail("Roboto", 400, 100f, NORMAL);
     String newValue = creator.createFontFamily(font, "roboto", true);
     UIUtil.dispatchAllInvocationEvents();
     assertThat(newValue).isEqualTo("@font/roboto");

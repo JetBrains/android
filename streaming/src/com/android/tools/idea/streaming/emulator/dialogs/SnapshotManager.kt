@@ -165,7 +165,7 @@ class SnapshotManager(val emulatorController: EmulatorController) {
 
     // Update the cached AVD information in the AVD manager.
     val avdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection()
-    avdManagerConnection.reloadAvd(avdId)
+    avdManagerConnection.reloadAvd(avdFolder)
   }
 
   private fun toYesNo(value: Boolean) =

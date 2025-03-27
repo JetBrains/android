@@ -35,7 +35,7 @@ class NewDestinationLayoutAlgorithmTest : NavTestCase() {
     model.treeReader.find("fragment3")!!.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
 
     val sceneManager = model.surface.getSceneManager(model)!!
-    sceneManager.requestRenderAsync()
+    sceneManager.requestRender()
     val scene = sceneManager.scene
     assertEquals(-708, scene.getSceneComponent("fragment1")!!.drawX)
     assertEquals(-708, scene.getSceneComponent("fragment1")!!.drawY)

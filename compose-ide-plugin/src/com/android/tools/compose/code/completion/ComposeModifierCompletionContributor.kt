@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.analysis.api.KaIdeApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaNamedSymbol
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -66,7 +67,6 @@ import org.jetbrains.kotlin.idea.completion.impl.k2.ImportStrategyDetector
 import org.jetbrains.kotlin.idea.completion.lookups.factories.KotlinFirLookupElementFactory
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.core.isVisible
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
@@ -92,7 +92,10 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.types.AbbreviatedType
+import org.jetbrains.kotlin.types.KotlinType
 
 /**
  * Enhances code completion for Modifier (androidx.compose.ui.Modifier)
@@ -122,36 +125,39 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       extensionFunctionSymbols.partition {
         asFqName(it.returnType)?.asString() == COMPOSE_MODIFIER_FQN
       }
-    val importStrategyDetector = ImportStrategyDetector(
-      originalKtFile = nameExpression.containingKtFile,
-      project = nameExpression.project,
-    )
+    val importStrategyDetector =
+      ImportStrategyDetector(
+        originalKtFile = nameExpression.containingKtFile,
+        project = nameExpression.project,
+      )
 
     val isNewModifier =
       !isMethodCalledOnImportedModifier &&
-        originalPosition.parentOfType<KtDotQualifiedExpression>() == null
+      originalPosition.parentOfType<KtDotQualifiedExpression>() == null
     // Prioritise functions that return Modifier over other extension function.
-    returnsModifier.asSequence()
-      .map {
+    for (symbol in returnsModifier) {
+      resultSet.addElement(
         toLookupElement(
-          symbol = it,
+          symbol = symbol,
           importStrategyDetector = importStrategyDetector,
           weight = 2.0,
           insertModifier = isNewModifier,
         )
-      }.forEach(resultSet::addElement)
+      )
+    }
 
     // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
     if (isMethodCalledOnImportedModifier) {
-      others.asSequence()
-        .map {
+      for (symbol in others) {
+        resultSet.addElement(
           toLookupElement(
-            symbol = it,
+            symbol = symbol,
             importStrategyDetector = importStrategyDetector,
             weight = 0.0,
             insertModifier = false,
           )
-        }.forEach(resultSet::addElement)
+        )
+      }
     }
 
     ProgressManager.checkCanceled()
@@ -244,6 +250,13 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
   }
 
+  private val KotlinType.fqName: FqName?
+    get() =
+      when (this) {
+        is AbbreviatedType -> abbreviation.fqName
+        else -> constructor.declarationDescriptor?.fqNameOrNull()
+      }
+
   @VisibleForTesting
   fun consumerCompletionResultFromRemainingContributor(
     completionResult: CompletionResult,
@@ -261,7 +274,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // https://youtrack.jetbrains.com/issue/KTIJ-23360 is resolved.
     val isOnInvisibleObject =
       suggestedKtFunction?.containingClassOrObject?.hasModifier(KtTokens.INTERNAL_KEYWORD) ==
-        true && !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
+      true && !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
 
     if (!alreadyAddedResult && !isOnInvisibleObject) {
       resultSet.passResult(completionResult)
@@ -280,7 +293,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
    * In the meantime, this method checks whether the containing class/object of the function is
    * visible from the completion position. If not, then it will be filtered out from results.
    */
-  @OptIn(KaExperimentalApi::class)
   private fun KtFunction.isVisibleFromCompletionPosition(completionPosition: PsiElement): Boolean {
     // This is Compose, we should always be completing in a KtFile. If not, let's just assume things
     // are visible so as not to muck with
@@ -289,8 +301,14 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
-      val visibilityChecker = createUseSiteVisibilityChecker(useSiteFile = ktFile.symbol, position = completionPosition)
-      return visibilityChecker.isVisible(elementToAnalyze.symbol)
+      val symbolWithVisibility = elementToAnalyze.symbol as? KaDeclarationSymbol ?: return true
+
+      @OptIn(KaExperimentalApi::class)
+      return isVisible(
+        symbolWithVisibility,
+        useSiteFile = ktFile.symbol,
+        position = completionPosition,
+      )
     }
   }
 
@@ -313,10 +331,11 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     weight: Double,
     insertModifier: Boolean,
   ): LookupElement {
-    val lookupElement = KotlinFirLookupElementFactory.createLookupElement(
-      symbol = symbol as KaNamedSymbol,
-      importStrategyDetector = importStrategyDetector,
-    )
+    val lookupElement =
+      KotlinFirLookupElementFactory.createLookupElement(
+        symbol = symbol as KaNamedSymbol,
+        importStrategyDetector = importStrategyDetector,
+      )
 
     return PrioritizedLookupElement.withPriority(
       ModifierLookupElement(lookupElement, insertModifier),
@@ -406,8 +425,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.symbol
 
-    @OptIn(KaExperimentalApi::class)
-    val visibilityChecker = createUseSiteVisibilityChecker(fileSymbol, receiverExpression, originalPosition)
     return KtSymbolFromIndexProvider(file)
       .getExtensionCallableSymbolsByNameFilter(
         { name -> prefixMatcher.prefixMatches(name.asString()) },
@@ -415,7 +432,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       )
       .filter {
         @OptIn(KaExperimentalApi::class)
-        visibilityChecker.isVisible(it)
+        isVisible(it as KaDeclarationSymbol, fileSymbol, receiverExpression, originalPosition)
       }
       .toList()
   }
@@ -471,7 +488,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       val callExpression = argument.parentOfType<KtCallElement>() ?: return false
       val callee =
         callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction
-          ?: return false
+        ?: return false
 
       val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
 

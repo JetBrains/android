@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.dsl.parser.ext;
 
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
@@ -96,5 +99,26 @@ public final class ExtDslElement extends GradleDslBlockElement {
     // Add my properties as well.
     parentResults.putAll(getElements());
     return parentResults;
+  }
+
+  @Override
+  public @NotNull GradleDslAnchor requestAnchor(@NotNull GradleDslElement element) {
+    if (getDslFile().getParser().getKind().equals(GradleDslNameConverter.Kind.KOTLIN)) {
+      // An empty ext has no physical presence in KotlinScript
+      List<GradleDslElement> children = getCurrentElements();
+      if (!children.isEmpty() && children.get(0) == element && myParent != null && SharedParserUtilsKt.findLastPsiElementIn(this) == null) {
+        return myParent.requestAnchor(this);
+      }
+    }
+    return super.requestAnchor(element);
+  }
+
+  @Override
+  public @Nullable PsiElement create() {
+    if (getDslFile().getParser().getKind().equals(GradleDslNameConverter.Kind.KOTLIN)) {
+      // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
+      return getDslFile().getPsiElement();
+    }
+    return super.create();
   }
 }

@@ -31,7 +31,8 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkListener
 
-const val VCS_INTEGRATION_LEARN_MORE_URL = "https://d.android.com/studio/preview/features#aqi-vcs"
+const val VCS_INTEGRATION_LEARN_MORE_URL =
+  "https://d.android.com/studio/releases/past-releases/as-iguana-release-notes#aqi-vcs"
 private const val DATA_ABSENT_CARD = "data_absent"
 private const val DATA_PRESENT_CARD = "data_present"
 
@@ -40,6 +41,7 @@ class VcsCommitLabel : JPanel() {
     HyperlinkLabel().apply {
       icon = AllIcons.Vcs.CommitNode
       isFocusable = true
+      toolTipText = "Commit ID"
     }
 
   private val infoIconForCommitLabel = JLabel(StudioIcons.Common.INFO, SwingConstants.LEFT)
@@ -64,7 +66,11 @@ class VcsCommitLabel : JPanel() {
       transparentPanel(BorderLayout()).apply {
         add(
           transparentPanel().apply {
-            add(JBLabel("No data", AllIcons.Vcs.CommitNode, SwingConstants.LEFT))
+            add(
+              JBLabel("No data", AllIcons.Vcs.CommitNode, SwingConstants.LEFT).apply {
+                toolTipText = "Commit ID"
+              }
+            )
             add(infoIconForCommitLabel)
           },
           BorderLayout.WEST,

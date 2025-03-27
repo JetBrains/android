@@ -23,10 +23,10 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
+import com.android.tools.visuallint.analyzers.TextFieldSizeAnalyzer
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -58,7 +58,7 @@ class TextFieldSizeAnalyzerComposeTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     assertEquals(1, issues.size)
     assertEquals("The text field EditText is too wide", issues[0].message)
   }
@@ -87,7 +87,7 @@ class TextFieldSizeAnalyzerComposeTest {
         AndroidBuildTargetReference.gradleOnly(facet),
         file,
       )
-    val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = TextFieldSizeAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     assertEquals(0, issues.size)
   }
 }

@@ -21,9 +21,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperProvider;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
@@ -31,9 +33,10 @@ import com.google.idea.blaze.base.run.BlazeBeforeRunCommandHelper;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
+import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
+import com.google.idea.blaze.common.Interners;
 import com.intellij.debugger.impl.HotSwapProgress;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunCanceledByUserException;
@@ -41,6 +44,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.io.File;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
@@ -130,11 +134,12 @@ public class ClassFileManifestBuilder {
         throw new ExecutionException(e);
       }
       ImmutableList<File> jars;
-      try {
+      try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
         jars =
             LocalFileArtifact.getLocalFiles(
-                    buildResultHelper.getArtifactsForOutputGroup(
-                        JavaClasspathAspectStrategy.OUTPUT_GROUP, file -> true))
+                    BlazeBuildOutputs.fromParsedBepOutput(
+                            BuildResultParser.getBuildOutput(bepStream, Interners.STRING))
+                        .getOutputGroupArtifacts(JavaClasspathAspectStrategy.OUTPUT_GROUP))
                 .stream()
                 .filter(f -> f.getName().endsWith(".jar"))
                 .collect(toImmutableList());

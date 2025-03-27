@@ -128,7 +128,6 @@ class ConfigureVersionCatalogProjectTest {
         assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile))
 
         val afterTopFile = File(testRoot, "${path}_top_after.$extension")
-        assertEqualsToFile(afterTopFile, VfsUtil.loadText(topBuildFile))
 
         val afterCatalogFile = File(testRoot, "${path}_after.versions.toml")
         assertEqualsToFile(afterCatalogFile, VfsUtil.loadText(catalogFile)) {

@@ -28,27 +28,21 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableList;
-import com.intellij.concurrency.ConcurrentCollectionFactory;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.openapi.application.AccessToken;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.UserDataHolderEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -79,9 +73,6 @@ public class Info {
       if (myProject.isDisposed()) {
         return false;
       }
-      if (isBeingInitializedAsGradleProject(myProject)) {
-        return true;
-      }
       if (Arrays.stream(ModuleManager.getInstance(myProject).getModules())
         .anyMatch(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it))) {
         return true;
@@ -99,39 +90,6 @@ public class Info {
       }
       return hasTopLevelGradleFile();
     });
-  }
-
-  private static boolean isBeingInitializedAsGradleProject(@NotNull Project project) {
-    String basePath = project.getBasePath();
-    if (basePath == null) return false;
-    Set<File> projectsBeingInitialized = ApplicationManager.getApplication().getUserData(PROJECTS_BEING_INITIALIZED);
-    if (projectsBeingInitialized == null) return false;
-    return projectsBeingInitialized.contains(new File(basePath));
-  }
-
-  private static final Key<Set<File>> PROJECTS_BEING_INITIALIZED = Key.create("PROJECTS_BEING_INITIALIZED");
-
-  /**
-   * Registers the given location as the location of a new Gradle project which is being initialized.
-   *
-   * <p>This makes {@link #isBuildWithGradle()} return true for projects at this location.
-   *
-   * @return an access token which should be finalized when the project is initialized.
-   */
-  public static AccessToken beginInitializingGradleProjectAt(@NotNull File projectFolderPath) {
-    UserDataHolderEx userData = (UserDataHolderEx)ApplicationManager.getApplication();
-    Set<File> projectsBeingInitialized = userData.putUserDataIfAbsent(PROJECTS_BEING_INITIALIZED,
-                                                                      ConcurrentCollectionFactory.createConcurrentSet());
-    if (!projectsBeingInitialized.add(projectFolderPath)) {
-      throw new IllegalStateException(
-        "Cannot initialize two projects at the same location at the same time. Project location: " + projectFolderPath);
-    }
-    return new AccessToken() {
-      @Override
-      public void finish() {
-        projectsBeingInitialized.remove(projectFolderPath);
-      }
-    };
   }
 
   /**

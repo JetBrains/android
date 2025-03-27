@@ -54,9 +54,10 @@ class MissingSdkIssueReporterTest {
       val localPropertiesPath = preparedProject.root.resolve(SdkConstants.FN_LOCAL_PROPERTIES)
       val syncIssue = setUpMockSyncIssue(localPropertiesPath.absolutePath)
 
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      val module = project.gradleModule(":app")!!
+      val messages = reporter.report(syncIssue, module, null)
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
 
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
@@ -68,12 +69,13 @@ class MissingSdkIssueReporterTest {
       )
       assertEquals(MessageType.WARNING, notification.type)
 
-      val quickFixes = messages[0].quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], SetSdkDirHyperlink::class.java)
       val quickFixPaths = (quickFixes[0] as SetSdkDirHyperlink).localPropertiesPaths
       assertSize(1, quickFixPaths)
       assertContainsElements(quickFixPaths, localPropertiesPath.absolutePath)
+      assertEquals(listOf(module), messages[0].affectedModules)
 
       assertEquals(
         listOf(
@@ -83,7 +85,7 @@ class MissingSdkIssueReporterTest {
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK)
             .build()
         ),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages)
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages.map { it.syncMessage })
       )
     }
   }
@@ -102,10 +104,13 @@ class MissingSdkIssueReporterTest {
       val syncIssueThree = setUpMockSyncIssue(localPropertiesPathThree.absolutePath)
 
 
+      val projectModule = project.gradleModule(":")!!
+      val testCompositeBuildLib1 = project.gradleModule(":TestCompositeLib1")!!
+      val testCompositeBuildLib3 = project.gradleModule(":TestCompositeLib3")!!
       val moduleMap = listOf(
-        syncIssueOne to project.gradleModule(":")!!,
-        syncIssueTwo to project.gradleModule(":TestCompositeLib1")!!,
-        syncIssueThree to project.gradleModule(":TestCompositeLib3")!!
+        syncIssueOne to projectModule,
+        syncIssueTwo to testCompositeBuildLib1,
+        syncIssueThree to testCompositeBuildLib3
       ).toMap(IdentityHashMap())
 
       val messages = reporter
@@ -114,10 +119,10 @@ class MissingSdkIssueReporterTest {
           moduleMap,
           mapOf()
         )
-        .filter { it.type == MessageType.WARNING }
+        .filter { it.syncMessage.type == MessageType.WARNING }
 
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
 
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
@@ -128,7 +133,7 @@ class MissingSdkIssueReporterTest {
         notification.message
       )
 
-      val quickFixes = messages[0]!!.quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], SetSdkDirHyperlink::class.java)
       val quickFixPaths = (quickFixes[0] as SetSdkDirHyperlink).localPropertiesPaths
@@ -137,6 +142,7 @@ class MissingSdkIssueReporterTest {
         quickFixPaths, localPropertiesPath.absolutePath, localPropertiesPathTwo.absolutePath,
         localPropertiesPathThree.absolutePath
       )
+      assertEquals(listOf(testCompositeBuildLib1, testCompositeBuildLib3, projectModule), messages[0].affectedModules)
 
       assertEquals(
         listOf(
@@ -146,7 +152,7 @@ class MissingSdkIssueReporterTest {
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SET_SDK_DIR_HYPERLINK)
             .build()
         ),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages)
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_SDK_NOT_SET, messages.map { it.syncMessage })
       )
     }
   }

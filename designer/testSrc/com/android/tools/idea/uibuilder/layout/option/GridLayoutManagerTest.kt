@@ -16,18 +16,23 @@
 package com.android.tools.idea.uibuilder.layout.option
 
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
+import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
+import com.android.tools.idea.uibuilder.layout.positionable.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.HeaderTestPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.PositionableGroup
 import com.android.tools.idea.uibuilder.layout.positionable.TestPositionableContent
 import com.android.tools.idea.uibuilder.layout.positionable.content
+import com.intellij.testFramework.UsefulTestCase.assertEmpty
+import com.intellij.ui.scale.JBUIScale
 import java.awt.Dimension
+import java.awt.Point
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Before
@@ -46,6 +51,232 @@ class GridLayoutManagerTest {
     StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
   }
 
+  private val regularPadding =
+    OrganizationPadding(25, 10, 20, 30, 40, { 5 }, { _, _ -> 5 }, { _, _ -> 5 })
+
+  @Test
+  fun measureEmpty() {
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    val positions = manager.measure(emptyList(), 100, 100)
+    assertEmpty(positions.keys)
+  }
+
+  @Test
+  fun measureSingle() {
+    //     P - measured position
+    //     ________________________________________________
+    //     |                   45 ↕                        |
+    //     |                P_____________                 |
+    //     |  35            |     ↔30     |    35          |
+    //     |  ↔             |             |    ↔           |
+    //     |                | ↕ 30        |                |
+    //     |                |_____________|                |
+    //     |                    45 ↕                       |
+    //     -------------------------------------------------
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    val content = TestPositionableContent(null, Dimension(30, 30))
+    val positions = manager.measure(listOf(content), 100, 120)
+    assertEquals(1, positions.size)
+    assertEquals(content, positions.keys.single())
+    assertEquals(Point(35, 45), positions.values.single())
+  }
+
+  @Test
+  fun measureSingleInSmallSurface() {
+    // Preview is bigger than surface
+    // That's not really should happen, but we want to test there are always top and left
+    // canvas paddings.
+    //     P - measured position
+    //      __________________________________
+    //     |                   25 ↕          |
+    //     |             P___________________|______________
+    //     |  25         |     ↔ 100         |             |
+    //     |  ↔          |                   |             |
+    //     |             | ↕ 100             |             |
+    //     |_____________|___________________|             |
+    //                   |                                 |
+    //                   -----------------------------------
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    val content = TestPositionableContent(null, Dimension(100, 100))
+    val positions = manager.measure(listOf(content), 45, 45)
+    assertEquals(1, positions.size)
+    assertEquals(content, positions.keys.single())
+    assertEquals(Point(25, 25), positions.values.single())
+  }
+
+  @Test
+  fun fitScaleDoesFitForSingleContent() {
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    (100..1000 step 50).forEach { availableSize ->
+      val singleContent = TestPositionableContent(null, Dimension(100, 100))
+      val content = listOf(singleContent)
+      val fitScale = manager.getFitIntoScale(content, availableSize, availableSize)
+      val fitSize = manager.getSize(content, { fitScale }, availableSize)
+      // Check fit scale actually fits
+      assertTrue { fitSize.width <= availableSize }
+      assertTrue(fitSize.height <= availableSize)
+    }
+  }
+
+  @Test
+  fun measureContent() {
+    //     P - measured position
+    //     _____________________________________________________________
+    //     |                             10 ↕                            |
+    //     |     P______________________                                 |
+    //     |20 ↔ | header 300x15       |                                 |
+    //     |     |_____________________|                                 |
+    //     |                              ↕ 5                            |
+    //     |          P________         P________        P________       |
+    //     | 20+40 ↔  | 30x22  |  5 ↔   | 30x22  |  5 ↔  | 30x22  |  5 ↔ |
+    //     |          |________|        |________|       |________|      |
+    //     |                               ↕ 5                           |
+    //     |          P________                                          |
+    //     |          | 30x22  |  5 ↔                                    |
+    //     |          |________|                                         |
+    //     |                                ↕ 30                         |
+    //     ---------------------------------------------------------------
+    val expected =
+      listOf(
+        Point(20, 10),
+        // Row one
+        Point(20 + 40, 10 + 15 + 5),
+        Point(20 + 40 + 30 + 5, 10 + 15 + 5),
+        Point(20 + 40 + 30 + 5 + 30 + 5, 10 + 15 + 5),
+        // Row two
+        Point(20 + 40, 10 + 15 + 5 + 22 + 5),
+      )
+
+    val group = OrganizationGroup("1", "1")
+    val content = (1..4).map { TestPositionableContent(group, Dimension(30, 22)) }.toMutableList()
+    content.add(0, HeaderTestPositionableContent(group, Dimension(300, 15)))
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    // 165 is the exact width needed to fit content as shown on diagram
+    manager.measure(content, 165, 500).let { positions ->
+      assertEquals(5, positions.size)
+      assertEquals(expected, positions.values.toList())
+    }
+    // 25 is extra spacing, but it will not let to fit more content as content size is 30
+    manager.measure(content, 165 + 20, 500).let { positions ->
+      assertEquals(5, positions.size)
+      assertEquals(expected, positions.values.toList())
+    }
+  }
+
+  private val largeGroupOfPreviews: Collection<PositionableContent>
+    get() {
+      val group1 = OrganizationGroup("1", "1")
+      val group2 = OrganizationGroup("2", "2")
+      val group3 = OrganizationGroup("3", "3")
+      return listOf(
+        // Group 1
+        HeaderTestPositionableContent(group1, Dimension(23, 15)),
+        TestPositionableContent(group1, Dimension(20, 23)),
+        TestPositionableContent(group1, Dimension(20, 22)),
+        TestPositionableContent(group1, Dimension(31, 44)),
+        // Group without header
+        TestPositionableContent(null, Dimension(11, 10)),
+        TestPositionableContent(null, Dimension(22, 10)),
+        TestPositionableContent(null, Dimension(11, 10)),
+        TestPositionableContent(null, Dimension(22, 10)),
+        // Group 2
+        HeaderTestPositionableContent(group2, Dimension(33, 15)),
+        TestPositionableContent(group2, Dimension(44, 5)),
+        TestPositionableContent(group2, Dimension(33, 5)),
+        TestPositionableContent(group2, Dimension(22, 5)),
+        TestPositionableContent(group2, Dimension(1, 5)),
+        TestPositionableContent(group2, Dimension(2, 5)),
+        // Group without header
+        TestPositionableContent(group3, Dimension(77, 10)),
+        TestPositionableContent(group3, Dimension(11, 10)),
+        TestPositionableContent(group3, Dimension(22, 10)),
+      )
+    }
+
+  @Test
+  fun checkContentFitWhileResizing() {
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    fun getSize(width: Int) = manager.getSize(largeGroupOfPreviews, scaleFunc = { 1.0 }, width)
+
+    // For this test case - we know what each preview can fit fully into width 150
+    (0..100).forEach { iteration ->
+      val availableWidth = 150 + 10 * iteration
+      val requiredSize = getSize(availableWidth)
+      assertTrue { requiredSize.width <= availableWidth }
+    }
+  }
+
+  @Test
+  fun checkHeightAlwaysIncreasesWithScaleIncrease() {
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    fun getSize(scale: Double) = manager.getSize(largeGroupOfPreviews, scaleFunc = { scale }, 150)
+
+    var prevHeight = 0
+    (1000 downTo 1 step 10).forEach { iteration ->
+      val scale = 20 / iteration.toDouble() // Iterate from 0.2% to 20%
+      val requiredHeight = getSize(scale).height
+      assertTrue { requiredHeight >= prevHeight }
+      prevHeight = requiredHeight
+    }
+  }
+
+  @Test
+  fun checkFitScaleAlwaysIncreaseWithHeightIncrease() {
+    val content = largeGroupOfPreviews
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    var prevFitScale = 0.0
+
+    (20..9000 step 30).forEach { size ->
+      val fitScale = manager.getFitIntoScale(content, size, size)
+      assertTrue(
+        "fitScale $fitScale should be bigger than prevFitScale $prevFitScale, size $size"
+      ) {
+        fitScale >= prevFitScale
+      }
+      prevFitScale = fitScale
+    }
+  }
+
+  @Test
+  fun fitScaleDoesFit() {
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    (400..1000 step 50).forEach { availableSize ->
+      val fitScale = manager.getFitIntoScale(largeGroupOfPreviews, availableSize, availableSize)
+      val fitSize = manager.getSize(largeGroupOfPreviews, { fitScale }, availableSize)
+      assertTrue { fitSize.width <= availableSize }
+      assertTrue(fitSize.height <= availableSize)
+    }
+  }
+
+  @Test
+  fun checkGroupSize() {
+    //     Part of the surface taken by GridLayoutGroup, does not include any canvas paddings.
+    //
+    //     _   _   _   _   _   _   _   _   _   _   _   _   _   _   _  _
+    //     |_______________________                                   |
+    //      | header 100x16        |
+    //     ||_____________________|                                   |
+    //                                   ↕ 5
+    //     |       _________         _________        _________       |
+    //       40 ↔  | 30x22  |  5 ↔   | 30x22  |  5 ↔  | 30x22  |  5 ↔
+    //     |       |________|        |________|       |________|      |
+    //                                     ↕ 5
+    //     |       _________                                          |
+    //             | 30x22  |  5 ↔
+    //     |       |________|                                         |
+    //                                      ↕ 5
+    //      _   _   _   _   _   _   _   _   _   _   _   _   _   _   _  _
+    val group = OrganizationGroup("1", "1")
+    val row1 = (1..3).map { TestPositionableContent(group, Dimension(30, 22)) }
+    val row2 = listOf(TestPositionableContent(group, Dimension(30, 22)))
+    val layoutGroup =
+      GridLayoutGroup(HeaderTestPositionableContent(group, Dimension(100, 16)), listOf(row1, row2))
+    val manager = GridLayoutManager(regularPadding, GROUP_BY_BASE_COMPONENT)
+    assertEquals(Dimension(145, 75), manager.getGroupSize(layoutGroup, { 1.0 }))
+    assertEquals(Dimension(100, 45), manager.getGroupSize(layoutGroup, { 0.5 }))
+    assertEquals(Dimension(235, 135), manager.getGroupSize(layoutGroup, { 2.0 }))
+  }
+
   @Test
   fun `test layout group changes on same content`() {
     val groups = createGroups()
@@ -60,7 +291,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = initialWidth,
-          sizeFunc = { scaledContentSize },
         )
 
       val layoutGroupWithDifferentContent =
@@ -68,7 +298,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = initialWidth,
-          sizeFunc = { scaledContentSize },
         )
 
       assertNotEquals(initialLayoutGroup, layoutGroupWithDifferentContent)
@@ -89,7 +318,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = initialWidth,
-          sizeFunc = { scaledContentSize },
         )
 
       // Now we are changing width in the surface should change layoutGroup when the
@@ -101,7 +329,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
 
       // We are changing the
@@ -113,7 +340,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
       assertNotEquals(layoutGroup0, layoutGroup1)
 
@@ -123,7 +349,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
       assertNotEquals(layoutGroup1, layoutGroup2)
 
@@ -133,7 +358,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
       assertNotEquals(layoutGroup2, layoutGroup3)
 
@@ -143,7 +367,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = widthChange,
-          sizeFunc = { scaledContentSize },
         )
       assertNotEquals(layoutGroup3, layoutGroup4)
     }
@@ -166,22 +389,19 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       var zoomIn = 1.0
       var layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width, { scaledContentSize })
+        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
 
       zoomIn = 5.0
-      layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width, { scaledContentSize })
+      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
 
       zoomIn = 50.0
-      layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width, { scaledContentSize })
+      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
 
       zoomIn = 2.0
@@ -190,13 +410,11 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { zoomIn },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
 
       zoomIn = 100.0
-      layoutGroupWhenScaleChanges =
-        gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width, { scaledContentSize })
+      layoutGroupWhenScaleChanges = gridLayoutManager.createLayoutGroups(groups, { zoomIn }, width)
       assertEquals(initialLayoutGroup, layoutGroupWhenScaleChanges)
     }
   }
@@ -216,7 +434,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       val newLayoutGroupWithSameContent =
@@ -224,7 +441,6 @@ class GridLayoutManagerTest {
           groups = groups,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       assertEquals(initialLayoutGroup, newLayoutGroupWithSameContent)
@@ -254,7 +470,6 @@ class GridLayoutManagerTest {
           groups = positionableGroup,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       // The resulting value is the cache
@@ -280,14 +495,13 @@ class GridLayoutManagerTest {
       val initialScale = 1.0
 
       // Whenever we call createLayoutGroups we organize the positionable group in grid.
-      // If the content is not the same (like this case) we would invalidate update the cache with
+      // If the content is not the same (as this case) we would invalidate update the cache with
       // the new items
       val newLayoutGroupWithDifferentContent: List<GridLayoutGroup> =
         gridLayoutManager.createLayoutGroups(
           groups = positionableGroup,
           scaleFunc = { initialScale },
           availableWidth = width,
-          sizeFunc = { scaledContentSize },
         )
 
       // The value is not the one stored in the cache
@@ -330,7 +544,6 @@ class GridLayoutManagerTest {
           groups = initialGroups,
           scaleFunc = { initialScale },
           availableWidth = initialWidth,
-          sizeFunc = { scaledContentSize },
         )
 
       val newPositionableContentGroup1 =
@@ -347,12 +560,7 @@ class GridLayoutManagerTest {
 
       val changedGroups = listOf(newPositionableContentGroup1, positionableGroup2)
       val layoutGroupWithDifferentContent =
-        gridLayoutManager.createLayoutGroups(
-          changedGroups,
-          { initialScale },
-          initialWidth,
-          { scaledContentSize },
-        )
+        gridLayoutManager.createLayoutGroups(changedGroups, { initialScale }, initialWidth)
 
       assertNotEquals(initialLayoutGroup, layoutGroupWithDifferentContent)
     }
@@ -375,6 +583,7 @@ class GridLayoutManagerTest {
 
   @Test
   fun testFitIntoScaleWithNoContentOrOnlyHeaders() {
+    val actualScale = 1.0 / JBUIScale.sysScale()
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("2", "2")
     val group3 = OrganizationGroup("3", "3")
@@ -395,21 +604,151 @@ class GridLayoutManagerTest {
     // We start with no content to show
     var scale = manager.getFitIntoScale(emptyList(), 300, 100)
 
-    // The fit scale should be 1.0 (100%)
-    assertEquals(1.0, scale, tolerance)
+    // The fit scale should be 1.0 (100%) / JBUIScale.sysScale()
+    assertEquals(actualScale, scale, tolerance)
 
     // We now have no content other than Headers
     scale = manager.getFitIntoScale(contents, 300, 100)
 
-    // The fit scale should be 1.0 (100%)
-    assertEquals(1.0, scale, tolerance)
+    // The fit scale should be 1.0 (100%) / JBUIScale.sysScale()
+    assertEquals(actualScale, scale, tolerance)
 
     // We now expand the last header so we have now content to show
     contents.add(TestPositionableContent(group4, Dimension(400, 500)))
     scale = manager.getFitIntoScale(contents, 300, 100)
 
-    // The fit scale should not be 1.0 (100%) anymore
-    assertNotEquals(1.0, scale, tolerance)
+    // The fit scale should not be 1.0 (100%) / JBUIScale.sysScale() anymore
+    assertNotEquals(actualScale, scale, tolerance)
+  }
+
+  @Test
+  fun testGroupedContentZoomToFitFitsAvailableSpace() {
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("2", "2")
+
+    val manager = createGridLayoutManager()
+
+    // Given a group organized in two groups.
+    val contents =
+      mutableListOf<PositionableContent>(
+        HeaderTestPositionableContent(group1),
+        TestPositionableContent(group1, Dimension(400, 400)),
+        TestPositionableContent(group1, Dimension(400, 500)),
+        TestPositionableContent(group1, Dimension(600, 1000)),
+        TestPositionableContent(group1, Dimension(400, 500)),
+        HeaderTestPositionableContent(group2),
+        TestPositionableContent(group2, Dimension(400, 400)),
+        TestPositionableContent(group2, Dimension(400, 500)),
+        TestPositionableContent(group2, Dimension(600, 1000)),
+        TestPositionableContent(group2, Dimension(400, 500)),
+      )
+
+    // Given this available size on the window
+    val availableSize = Dimension(800, 800)
+
+    // We calculate the scale which content fits the available size.
+    val fitScale = manager.getFitIntoScale(contents, availableSize.width, availableSize.height)
+
+    // Once we get the scale that fits the content in the available space, we calculate the size of
+    // the layout having the content with that scale applied.
+    val fitScaleSize = manager.getSize(contents, { fitScale }, availableSize.width)
+
+    assertTrue(fitScaleSize.height <= availableSize.height)
+    // However, we also expect that the height is not smaller than a certain tolerance.
+    // Delta value is chosen by the minimum height of the content (headers excluded), if the test
+    // fails means fitScale is not properly calculated as there were more space to fill-in.
+    val heightDelta =
+      contents.filter { it !is HeaderPositionableContent }.minOf { it.contentSize.height }
+    assertTrue(fitScaleSize.height + heightDelta >= availableSize.height)
+
+    // We expect the results to fit the available space, since it is organized in groups we have
+    // wider groups than others. It's important that width is still within the available space.
+    assertTrue(fitScaleSize.width < availableSize.width)
+  }
+
+  @Test
+  fun testUngroupedContentZoomToFitFitsAvailableSpace() {
+    val manager = createGridLayoutManager()
+
+    // Given a content that is not organised, and it should show as a grid.
+    val contents =
+      mutableListOf<PositionableContent>(
+        TestPositionableContent(null, Dimension(400, 400)),
+        TestPositionableContent(null, Dimension(1400, 500)),
+        TestPositionableContent(null, Dimension(600, 1000)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        TestPositionableContent(null, Dimension(400, 800)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        TestPositionableContent(null, Dimension(600, 1000)),
+        TestPositionableContent(null, Dimension(400, 500)),
+      )
+
+    // Given this available size on the window
+    val availableSize = Dimension(800, 800)
+
+    // We calculate the scale which content fits the available size
+    val fitScale = manager.getFitIntoScale(contents, availableSize.width, availableSize.height)
+    // Once we get the scale that fits the content in the available space, we calculate the size of
+    // the layout having the content with that scale applied.
+    val fitScaleSize = manager.getSize(contents, { fitScale }, availableSize.width)
+
+    // Because it shows a grid we expect the width is not smaller than the available space.
+    // Delta value is chosen by the minimum height of the content, if the test fails means
+    // fitScale is not properly calculated as there were more space to fill-in.
+    assertTrue(fitScaleSize.width < availableSize.width)
+    val widthDelta = contents.minOf { it.contentSize.width }
+    assertTrue(fitScaleSize.width + widthDelta >= availableSize.width)
+
+    assertTrue(fitScaleSize.height <= availableSize.height)
+    // However, we also expect that the height is not smaller than a certain tolerance.
+    // Delta value is chosen by the minimum height of the content, if the test fails means
+    // fitScale is not properly calculated as there were more space to fill-in.
+    val heightDelta = contents.minOf { it.contentSize.height }
+    assertTrue(fitScaleSize.height + heightDelta >= availableSize.height)
+  }
+
+  @Test
+  fun testMixedContentZoomToFitFitsAvailableSpace() {
+    val group1 = OrganizationGroup("1", "1")
+
+    val manager = createGridLayoutManager()
+
+    // Given a group organized in two groups.
+    val contents =
+      mutableListOf<PositionableContent>(
+        TestPositionableContent(null, Dimension(400, 400)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        TestPositionableContent(null, Dimension(600, 1000)),
+        TestPositionableContent(null, Dimension(400, 500)),
+        HeaderTestPositionableContent(group1),
+        TestPositionableContent(group1, Dimension(400, 400)),
+        TestPositionableContent(group1, Dimension(400, 500)),
+        TestPositionableContent(group1, Dimension(600, 1000)),
+        TestPositionableContent(group1, Dimension(400, 500)),
+      )
+
+    // Given this available size on the window.
+    val availableSize = Dimension(800, 800)
+
+    // We calculate the scale which content fits the available size.
+    val fitScale = manager.getFitIntoScale(contents, availableSize.width, availableSize.height)
+
+    // Once we get the scale that fits the content in the available space, we calculate the size of
+    // the layout having the content with that scale applied.
+    val fitScaleSize = manager.getSize(contents, { fitScale }, availableSize.width)
+
+    assertTrue(fitScaleSize.height <= availableSize.height)
+    // However, we also expect that the height is not smaller than a certain tolerance.
+    // Delta value is chosen by the minimum height of the content (headers excluded), if the test
+    // fails means fitScale is not properly calculated as there were more space to fill-in.
+    val heightDelta =
+      contents.filter { it !is HeaderPositionableContent }.minOf { it.contentSize.height }
+    assertTrue(fitScaleSize.height + heightDelta >= availableSize.height)
+
+    // We expect the results to fit the available space, since we have mixed grouped and ungrouped
+    // content we could have wider groups than others.
+    // It's important that width is still within the available space
+    assertTrue(fitScaleSize.width < availableSize.width)
   }
 
   private fun createGroups(): List<PositionableGroup> {
@@ -455,15 +794,16 @@ class GridLayoutManagerTest {
     val framePadding = 50
     return GridLayoutManager(
       OrganizationPadding(
+        canvasSinglePadding = 0,
         canvasTopPadding = 0,
         canvasLeftPadding = 0,
+        canvasBottomPadding = 0,
         groupLeftPadding = 0,
         previewPaddingProvider = { (it * framePadding).toInt() },
         previewRightPadding = { _, _ -> 0 },
         previewBottomPadding = { _, _ -> 0 },
-      )
-    ) {
-      listOf(PositionableGroup(it.toList()))
-    }
+      ),
+      GROUP_BY_BASE_COMPONENT,
+    )
   }
 }

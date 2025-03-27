@@ -85,9 +85,7 @@ private class InternalMultiPreviewUsageTracker(
 /**
  * Represents a [ComposeMultiPreviewEvent] to be tracked, and uses the builder pattern to create it.
  */
-class MultiPreviewEvent(nodeSequence: Sequence<MultiPreviewNode>, val fileFqName: String) {
-
-  private val nodes: List<MultiPreviewNode> = nodeSequence.toList()
+class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqName: String) {
 
   private val eventBuilder =
     ComposeMultiPreviewEvent.newBuilder()

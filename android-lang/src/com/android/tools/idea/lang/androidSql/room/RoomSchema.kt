@@ -35,6 +35,7 @@ import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 import com.intellij.util.Processor
@@ -195,7 +196,8 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
         as? UMethod)
         ?.uastParameters
         ?.mapNotNull { uParameter ->
-          when (val name = uParameter.name) {
+          val name = (uParameter.javaPsi as PsiParameter).name
+          when (name) {
             null -> null
             else -> BindParameter(name, uParameter.sourcePsi)
           }
@@ -247,7 +249,7 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
     val allTables = schema.tables
     val databases = schema.databases
     var databasesHostBelongsTo = emptyList<RoomDatabase>()
-    val hostClass = hostRoomAnnotation.getContainingUClass()?.sourceElement ?: return allTables
+    val hostClass = hostRoomAnnotation.getContainingUClass()?.sourcePsi ?: return allTables
     if (RoomAnnotations.DATABASE_VIEW.isEquals(hostRoomAnnotation.qualifiedName)) {
       databasesHostBelongsTo = databases.filter { database -> database.views.any { it.element == hostClass } }
     }
@@ -257,7 +259,11 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
     if (databasesHostBelongsTo.isEmpty()) {
       return allTables
     }
-    return allTables.filter { table -> databasesHostBelongsTo.any { it.entities.contains(table.psiClass) } }
+    return allTables.filter { table ->
+      databasesHostBelongsTo.any {
+        it.entities.contains(table.psiClass) || it.views.contains(table.psiClass)
+      }
+    }
   }
 
   /**

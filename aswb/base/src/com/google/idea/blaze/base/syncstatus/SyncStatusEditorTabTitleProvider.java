@@ -33,7 +33,7 @@ public class SyncStatusEditorTabTitleProvider implements EditorTabTitleProvider,
       return null;
     }
 
-    SyncStatus status = SyncStatusContributor.getSyncStatus(project, file);
+    SyncStatus status = LegacySyncStatusContributor.getSyncStatus(project, file);
     if (status == null) {
       return null;
     }

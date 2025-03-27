@@ -18,9 +18,8 @@ package com.android.tools.idea.ui.screenrecording
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.io.delete
@@ -31,6 +30,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.EOFException
 import java.nio.file.Path
 import java.time.Duration
@@ -65,7 +65,7 @@ internal class ShellCommandRecordingProvider(
       }
     }
 
-    val job = AndroidCoroutineScope(this).launch {
+    val job = createCoroutineScope().launch {
       try {
         val commandOutput = adbSession.deviceServices.shellAsText(deviceSelector, getScreenRecordCommand(options, remotePath))
         if (commandOutput.exitCode != 0) {
@@ -73,10 +73,10 @@ internal class ShellCommandRecordingProvider(
         }
         result.complete(Unit)
       }
-      catch (e: RecordingStoppedException) {
+      catch (_: RecordingStoppedException) {
         result.complete(Unit)
       }
-      catch (e: EOFException) {
+      catch (_: EOFException) {
         result.completeExceptionally(createLostConnectionException())
       }
       catch (e: Throwable) {

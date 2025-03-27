@@ -18,15 +18,14 @@ package com.android.tools.idea.wearpairing
 import com.android.ddmlib.AvdData
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.testutils.MockitoKt
 import com.google.common.util.concurrent.Futures
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private fun IDevice.addExecuteShellCommandReply(requestHandler: (request: String) -> String) {
-  MockitoKt.whenever(executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer {
-    invocation ->
+  whenever(executeShellCommand(any(), any())).thenAnswer { invocation ->
     val request = invocation.arguments[0] as String
     val receiver = invocation.arguments[1] as IShellOutputReceiver
     val reply = requestHandler(request)
@@ -44,17 +43,15 @@ internal fun PairingDevice.buildIDevice(
     throw IllegalStateException("Unknown ADB request $it")
   },
 ): IDevice {
-  return Mockito.mock(IDevice::class.java).apply {
-    MockitoKt.whenever(isOnline).thenReturn(true)
-    MockitoKt.whenever(isEmulator).thenReturn(this@buildIDevice.isEmulator)
-    MockitoKt.whenever(name).thenReturn(displayName)
-    MockitoKt.whenever(serialNumber).thenReturn("serialNumber")
-    MockitoKt.whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
-    MockitoKt.whenever(version).thenReturn(AndroidVersion(apiLevel, null))
-    MockitoKt.whenever(getProperty(MockitoKt.any())).thenAnswer {
-      properties[it.arguments.single() as String]
-    }
-    MockitoKt.whenever(this.avdData).thenAnswer {
+  return mock<IDevice>().apply {
+    whenever(isOnline).thenReturn(true)
+    whenever(isEmulator).thenReturn(this@buildIDevice.isEmulator)
+    whenever(name).thenReturn(displayName)
+    whenever(serialNumber).thenReturn("serialNumber")
+    whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
+    whenever(version).thenReturn(androidVersion)
+    whenever(getProperty(any())).thenAnswer { properties[it.arguments.single() as String] }
+    whenever(this.avdData).thenAnswer {
       if (avdInfo != null) {
         Futures.immediateFuture(
           AvdData(
@@ -67,9 +64,7 @@ internal fun PairingDevice.buildIDevice(
         Futures.immediateFuture(null)
       }
     }
-    MockitoKt.whenever(getSystemProperty(MockitoKt.any())).thenAnswer {
-      systemProperties[it.arguments.single()]
-    }
+    whenever(getSystemProperty(any())).thenAnswer { systemProperties[it.arguments.single()] }
 
     addExecuteShellCommandReply(shellCommandHandler)
   }

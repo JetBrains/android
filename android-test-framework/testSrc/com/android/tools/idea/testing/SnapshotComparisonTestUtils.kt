@@ -21,6 +21,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -129,8 +130,23 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
   text: String,
   doNotUpdate: Boolean = false
 ): Pair<String, String> {
-  val fullSnapshotName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true)) + snapshotTestSuffix
-  val expectedText = getExpectedTextFor(fullSnapshotName)
+  var fullSnapshotName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true)) + snapshotTestSuffix
+  val expectedText = if (KotlinPluginModeProvider.isK2Mode()) {
+    // Comparing against "$fullSnapshotName_K2" snapshot expected if exist and is K2 mode
+    val fullSnapshotNameK2 = fullSnapshotName + "_K2"
+    getExpectedTextFor(fullSnapshotNameK2).takeIf {
+      val existsK2SnapshotFile = !it.startsWith("No snapshot files found")
+      if (existsK2SnapshotFile) {
+        fullSnapshotName = fullSnapshotNameK2
+      }
+      existsK2SnapshotFile
+    } ?: run {
+      getExpectedTextFor(fullSnapshotName)
+    }
+  } else {
+    getExpectedTextFor(fullSnapshotName)
+  }
+
   if (doNotUpdate) {
     return fullSnapshotName to expectedText
   }

@@ -20,6 +20,8 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.testutils.ImageDiffUtil
 import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -57,7 +59,6 @@ import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
 import kotlinx.coroutines.runBlocking
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
@@ -67,7 +68,10 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
 
 class ResolutionElementEditorTest {
-  private val projectRule = AndroidProjectRule.withSdk()
+  // This test is SDK sensitive.
+  // Explicitly specify the SDK to avoid failures in SDK upgrades.
+  private val projectRule =
+    AndroidProjectRule.withSdk(AndroidVersion(VersionCodes.VANILLA_ICE_CREAM))
 
   @get:Rule
   val ruleChain =
@@ -98,7 +102,6 @@ class ResolutionElementEditorTest {
     checkImage(editors, "OpenWithDetails")
   }
 
-  @Ignore("Test fails at SDK 35: b/355160912")
   @Test
   fun testPaintOpenWithTwoDetails() = runBlocking {
     val editors = createEditors()

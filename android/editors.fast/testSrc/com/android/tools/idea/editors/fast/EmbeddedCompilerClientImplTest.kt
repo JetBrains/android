@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.fast
 
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.registerComposeCompilerPlugin
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
@@ -95,11 +96,12 @@ internal class EmbeddedCompilerClientImplTest {
     )
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
-      val module = readAction { file.module!! }
+      val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
       val result = compiler.compileRequest(
-        ApplicationLiveEditServices.Legacy(projectRule.project),
+        // TODO: solodkyy - get it the right way?
+        ApplicationLiveEditServices.LegacyForTests(projectRule.project),
         listOf(file),
-        module,
+        buildTargetReference,
         outputDirectory,
         EmptyProgressIndicator()
       )
@@ -139,11 +141,12 @@ internal class EmbeddedCompilerClientImplTest {
     )
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
-      val module = readAction { file.module!! }
+      val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
       val result = compiler.compileRequest(
-        ApplicationLiveEditServices.Legacy(projectRule.project),
+        // TODO: solodkyy - get it the right way?
+        ApplicationLiveEditServices.LegacyForTests(projectRule.project),
         listOf(file, fileInLib),
-        module,
+        buildTargetReference,
         outputDirectory,
         EmptyProgressIndicator()
       )
@@ -170,9 +173,10 @@ internal class EmbeddedCompilerClientImplTest {
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
       val result = compiler.compileRequest(
-        ApplicationLiveEditServices.Legacy(projectRule.project),
+        // TODO: solodkyy - get it the right way?
+        ApplicationLiveEditServices.LegacyForTests(projectRule.project),
         listOf(file),
-        projectRule.module,
+        BuildTargetReference.gradleOnly(projectRule.module),
         outputDirectory,
         EmptyProgressIndicator()
       )
@@ -196,11 +200,12 @@ internal class EmbeddedCompilerClientImplTest {
       runBlocking {
         outputDirectories.forEach { outputDirectory ->
           launch {
-            val module = readAction { file.module!! }
+            val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
             val result = compiler.compileRequest(
-              ApplicationLiveEditServices.Legacy(projectRule.project),
+              // TODO: solodkyy - get it the right way?
+              ApplicationLiveEditServices.LegacyForTests(projectRule.project),
               listOf(file),
-              module,
+              buildTargetReference,
               outputDirectory,
               EmptyProgressIndicator()
             )
@@ -245,11 +250,12 @@ internal class EmbeddedCompilerClientImplTest {
       )
       val outputDirectory = Files.createTempDirectory("out")
       runBlocking {
-        val module = readAction { file.module!! }
+        val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
         val result = compiler.compileRequest(
-          ApplicationLiveEditServices.Legacy(projectRule.project),
+          // TODO: solodkyy - get it the right way?
+          ApplicationLiveEditServices.LegacyForTests(projectRule.project),
           listOf(file),
-          module,
+          buildTargetReference,
           outputDirectory,
           EmptyProgressIndicator()
         )
@@ -285,11 +291,12 @@ internal class EmbeddedCompilerClientImplTest {
     )
     val outputDirectory = Files.createTempDirectory("out")
     runBlocking {
-      val module = readAction { file.module!! }
+      val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
       val result = compiler.compileRequest(
-        ApplicationLiveEditServices.Legacy(projectRule.project),
+        // TODO: solodkyy - get it the right way?
+        ApplicationLiveEditServices.LegacyForTests(projectRule.project),
         listOf(file),
-        module,
+        buildTargetReference,
         outputDirectory,
         EmptyProgressIndicator()
       )
@@ -322,11 +329,12 @@ internal class EmbeddedCompilerClientImplTest {
                                                 { throw IllegalStateException("Message") })
       val outputDirectory = Files.createTempDirectory("out")
       runBlocking {
-        val module = readAction { file.module!! }
+        val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
         val result = compiler.compileRequest(
-          ApplicationLiveEditServices.Legacy(projectRule.project),
+          // TODO: solodkyy - get it the right way?
+          ApplicationLiveEditServices.LegacyForTests(projectRule.project),
           listOf(file),
-          module,
+          buildTargetReference,
           outputDirectory,
           EmptyProgressIndicator()
         )
@@ -346,11 +354,12 @@ internal class EmbeddedCompilerClientImplTest {
                                                 { throw IllegalStateException("Message") })
       val outputDirectory = Files.createTempDirectory("out")
       runBlocking {
-        val module = readAction { file.module!! }
+        val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
         val result = compiler.compileRequest(
-          ApplicationLiveEditServices.Legacy(projectRule.project),
+          // TODO: solodkyy - get it the right way?
+          ApplicationLiveEditServices.LegacyForTests(projectRule.project),
           listOf(file),
-          module,
+          buildTargetReference,
           outputDirectory,
           EmptyProgressIndicator()
         )
@@ -403,11 +412,12 @@ internal class EmbeddedCompilerClientImplTest {
 
       val outputDirectory = Files.createTempDirectory("out")
 
-      val module = readAction { file.module!! }
+      val buildTargetReference = readAction { BuildTargetReference.from(file)!! }
       val result = compiler.compileRequest(
-        ApplicationLiveEditServices.Legacy(projectRule.project),
+        // TODO: solodkyy - get it the right way?
+        ApplicationLiveEditServices.LegacyForTests(projectRule.project),
         listOf(file),
-        module,
+        buildTargetReference,
         outputDirectory,
         EmptyProgressIndicator()
       )

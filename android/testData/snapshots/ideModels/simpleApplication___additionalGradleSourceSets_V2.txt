@@ -13,7 +13,7 @@ MODULE                        : project
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -646,7 +646,7 @@ MODULE                        : project
         qName                         : project
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -675,7 +675,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -792,6 +791,11 @@ MODULE                        : project
                             qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -810,14 +814,14 @@ MODULE                        : project.app
             ApiLevel                      : 19
             ApiString                     : 19
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -860,6 +864,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test
@@ -867,7 +872,7 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : google.simpleapplication
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -883,8 +888,8 @@ MODULE                        : project.app
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1053,8 +1058,8 @@ MODULE                        : project.app
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact

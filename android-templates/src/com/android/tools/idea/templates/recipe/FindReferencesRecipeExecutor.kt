@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates.recipe
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
@@ -23,9 +22,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import java.io.File
 
-/**
- * [RecipeExecutor] that collects references as a result of executing instructions in a recipe.
- */
+/** [RecipeExecutor] that collects references as a result of executing instructions in a recipe. */
 class FindReferencesRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
   private val project: Project = context.project
 
@@ -57,8 +54,9 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.plugins.add(plugin)
   }
 
-  override fun applyPlugin(plugin: String, revision: AgpVersion) {
+  override fun addPlugin(plugin: String, classpathModule: String, version: String) {
     context.plugins.add(plugin)
+    context.classpathEntries.add("$classpathModule:$version")
   }
 
   override fun addPlugin(plugin: String, classpath: String) {
@@ -66,53 +64,86 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.classpathEntries.add(classpath)
   }
 
-  override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
+  override fun applyPluginInModule(
+    plugin: String,
+    module: Module,
+    revision: String?,
+    minRev: String?,
+  ) {
     context.plugins.add(plugin)
   }
 
-  override fun applyPluginInModule(plugin: String, module: Module, revision: AgpVersion) {
-    context.plugins.add(plugin)
+  override fun applyPluginWithClasspathInModule(pluginId: String, module: Module, classpathModule: String, version: String) {
+    context.plugins.add(pluginId)
+    context.classpathEntries.add("$classpathModule:$version")
   }
 
-  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
+  override fun addClasspathDependency(
+    mavenCoordinate: String,
+    minRev: String?,
+    forceAdding: Boolean,
+  ) {
     context.classpathEntries.add(mavenCoordinate)
   }
 
-  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean, sourceSetName: String?) {
+  override fun addDependency(
+    mavenCoordinate: String,
+    configuration: String,
+    minRev: String?,
+    moduleDir: File?,
+    toBase: Boolean,
+    sourceSetName: String?,
+  ) {
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
-  override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
+  override fun addPlatformDependency(
+    mavenCoordinate: String,
+    configuration: String,
+    enforced: Boolean,
+  ) {
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {}
 
+  override fun addFileDependency(file: String, configuration: String) {}
+
+  override fun addProjectGradleProperty(propertyName: String, textToAdd: String) {}
+
   fun addTargetFile(file: File) {
     context.targetFiles.add(resolveTargetFile(file))
   }
 
-  private fun resolveTargetFile(file: File): File = if (file.isAbsolute) file else File(context.outputRoot, file.path)
+  private fun resolveTargetFile(file: File): File =
+    if (file.isAbsolute) file else File(context.outputRoot, file.path)
 
-  override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
-  }
+  override fun addSourceSet(type: SourceSetType, name: String, dir: File) {}
 
-  override fun setExtVar(name: String, value: String) {
-  }
+  override fun setExtVar(name: String, value: String) {}
 
   override fun getExtVar(name: String, valueIfNotFound: String): String = valueIfNotFound
 
-  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
-  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
+  override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) =
+    valueIfNotFound
+
+  override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) =
+    valueIfNotFound
 
   override fun addIncludeToSettings(moduleName: String) {}
 
   override fun setBuildFeature(name: String, value: Boolean) {}
+
   override fun setViewBinding(value: Boolean) {}
+
   override fun setComposeOptions(kotlinCompilerExtensionVersion: String?) {}
+
   override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {}
 
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
+
+  override fun setJavaKotlinCompileOptions(isKotlin: Boolean) {}
+
   override fun addDynamicFeature(name: String, toModule: File) {}
 
   override fun getJavaVersion(defaultVersion: String): String {

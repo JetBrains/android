@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyn
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -67,26 +68,21 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
 
   override fun moveDslElement(element: GradleDslElement): PsiElement? {
     val anchorAfter = element.anchor ?: return null
+    if (anchorAfter !is GradleDslAnchor.After) return null // TODO(xof), wait, we can't move elements to the first position!?
     val parentPsiElement = when (element.parent) {
-      is ExtDslElement -> findLastPsiElementIn(anchorAfter)?.parent ?: return null
-      else -> getParentPsi(element) ?: return null
+      is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)?.parent ?: return null
+      else -> getParentPsi(element.parent) ?: return null
     }
 
     val anchor = when (element.parent) {
-      is ExtDslElement -> findLastPsiElementIn(anchorAfter)
+      is ExtDslElement -> findLastPsiElementIn(anchorAfter.dslElement)
       else -> getPsiElementForAnchor(parentPsiElement, anchorAfter)
     }
 
     // Create a placeholder element to move the element to.
     val psiFactory = KtPsiFactory(parentPsiElement.project)
     val sampleString = psiFactory.createStringTemplate("toReplace")
-    // If the element has no anchor, add it to the beginning of the block.
-    val toReplace = if (parentPsiElement is KtBlockExpression && anchorAfter == null) {
-      parentPsiElement.addBefore(sampleString, anchor)
-    }
-    else {
-      parentPsiElement.addAfter(sampleString, anchor)
-    }
+    val toReplace = parentPsiElement.addAfter(sampleString, anchor)
 
     // Find the element we need to replace.
     var e = element.psiElement ?: return null
@@ -120,8 +116,6 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
   internal fun maybeQuoteBits(parts: List<String>) = parts.map { if (it.contains('.')) "`$it`" else it }.joinToString(".")
 
   override fun createDslElement(element: GradleDslElement): PsiElement? {
-    // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
-    if (element is ExtDslElement) return getParentPsi(element)
     if (element is GradleDslInfixExpression) return createDslInfixExpression(element)
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
@@ -131,17 +125,16 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     var isVarOrProperty = false
 
     if (element.isNewEmptyBlockElement) return null  // Avoid creation of an empty block.
+    if (anchorAfter == null) return null // we don't have a parent?  return null.
+    val dslParent = anchorAfter.parentDslElement ?: return null
 
     var addBefore = false
-    if (needToCreateParent(element)) {
+    if (needToCreateParent(dslParent)) {
       addBefore = true
-      anchorAfter = null
-    }
-    else if (anchorAfter == null) {
-      anchorAfter = (element.parent as? ExtDslElement)?.anchor
+      anchorAfter = GradleDslAnchor.Start(dslParent)
     }
 
-    var parentPsiElement = getParentPsi(element) ?: return null
+    var parentPsiElement = getParentPsi(dslParent) ?: return null
 
     val project = parentPsiElement.project
     val psiFactory = KtPsiFactory(project)
@@ -154,23 +147,22 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     element.externalSyntax = syntax
     // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
     //  of something depending on its context, try to figure out a useful generalization.
-    if (element.parent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
+    if (dslParent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
       statementText = "\"${joinedName}\""
     }
     else if (element is GradleDslNamedDomainElement) {
-      val parent = element.parent
       statementText = when {
         // use an existing methodName if we have one
         element.methodName != null -> "${element.methodName}(\"$joinedName\")"
         // use getByName() if the element is implicitly provided, otherwise create()
-        parent is GradleDslNamedDomainContainer -> when {
-          parent.implicitlyExists(joinedName) -> "getByName(\"$joinedName\")"
+        dslParent is GradleDslNamedDomainContainer -> when {
+          dslParent.implicitlyExists(joinedName) -> "getByName(\"$joinedName\")"
           else -> "create(\"$joinedName\")"
         }
         // should never happen (named domain element added to something that isn't a named domain container)
         else -> {
           val log = logger<KotlinDslWriter>()
-          log.warn("NamedDomainElement $element added to non-NamedDomainContainer $parent", Throwable())
+          log.warn("NamedDomainElement $element added to non-NamedDomainContainer $dslParent", Throwable())
           "getByName(\"$joinedName\")"
         }
       }
@@ -215,11 +207,10 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       }
     }
     else if (element is GradleDslExpressionList) {
-      val parentDsl = element.parent
-      if (parentDsl is GradleDslMethodCall && element.elementType == PropertyType.DERIVED) {
+      if (dslParent is GradleDslMethodCall && element.elementType == PropertyType.DERIVED) {
         // This is when we have not a proper list element (listOf()) but rather a methodCall arguments. In such case we need to skip
         // creating the list and use the KtValueArgumentList of the parent.
-        return (parentDsl.psiElement as? KtCallExpression)?.valueArgumentList  // TODO add more tests to verify the code consistency.
+        return (dslParent.psiElement as? KtCallExpression)?.valueArgumentList  // TODO add more tests to verify the code consistency.
       }
       else if (element.name.isEmpty()){
         // This is the case where we are handling a list element
@@ -321,11 +312,9 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       }
       is KtBlockExpression -> {
         addedElement = parentPsiElement.addAfter(statement, anchor)
-        if (anchorAfter != null) {
-          parentPsiElement.addBefore(lineTerminator, addedElement)
-        }
-        else {
-          parentPsiElement.addAfter(lineTerminator, addedElement)
+        when (anchorAfter) {
+          is GradleDslAnchor.After -> parentPsiElement.addBefore(lineTerminator, addedElement)
+          is GradleDslAnchor.Start -> parentPsiElement.addAfter(lineTerminator, addedElement)
         }
       }
       is KtValueArgumentList -> {
@@ -452,13 +441,12 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
       return psiElement
     }
 
-    val methodParent = methodCall.parent ?: return null
-
-    var anchorAfter = methodCall.anchor
+    var anchorAfter = methodCall.anchor ?: return null
+    val methodParent = anchorAfter.parentDslElement ?: return null
 
     //If the parent doesn't have a psiElement, the anchor will be used to create it. In such case, we need to empty the anchor.
-    if (needToCreateParent(methodCall)) {
-      anchorAfter = null
+    if (needToCreateParent(methodParent)) {
+      anchorAfter = GradleDslAnchor.Start(methodParent)
     }
 
     var parentPsiElement = methodParent.create() ?: return null
@@ -672,10 +660,9 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
   fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
     expression.psiElement?.also { return it }
 
-    val parentPsi = expression.parent?.create() ?: return null
+    expression.parent?.create() ?: return null
     when (val firstElement = expression.currentElements[0]) {
       is GradleDslLiteral -> {
-        expression.psiElement = parentPsi
         val literalPsi = createDslElement(firstElement)
         expression.psiElement = literalPsi
         applyDslLiteral(firstElement)
@@ -683,7 +670,6 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
         firstElement.commit()
       }
       is GradleDslMethodCall -> {
-        expression.psiElement = parentPsi
         val methodCallPsi = createDslMethodCall(firstElement)
         expression.psiElement = methodCallPsi
         applyDslMethodCall(firstElement)

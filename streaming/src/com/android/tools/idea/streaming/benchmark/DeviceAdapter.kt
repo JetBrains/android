@@ -18,18 +18,27 @@ package com.android.tools.idea.streaming.benchmark
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.benchmark.Benchmarker.Adapter
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.bottom
 import com.android.tools.idea.streaming.core.right
 import com.android.tools.idea.streaming.core.scaledUnbiased
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
@@ -49,7 +58,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-private val MAX_BECOME_READY_DURATION = 2.seconds
+private val MAX_BECOME_READY_DURATION = 10.seconds
+private val KEY_EVENT_DELAY = 100.milliseconds
 private val LOG = Logger.getInstance(DeviceAdapter::class.java)
 
 private fun Int.isEven() = this % 2 == 0
@@ -102,25 +112,6 @@ fun Color.isReddish() = red > 0xE0 && green < 0x1F && blue < 0x1F
 fun Color.isGreenish() = red < 0x1F && green > 0xE0 && blue < 0x1F
 
 fun Color.isBluish() = red < 0x1F && green < 0x1F && blue > 0xE0
-
-private fun AbstractDisplayView.press(keyCode: Int) {
-  keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_PRESSED)
-  keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_RELEASED)
-}
-
-private fun AbstractDisplayView.type(keyChar: Char) {
-  keyInput(KeyEvent.VK_UNDEFINED, keyChar, KeyEvent.KEY_TYPED)
-}
-
-private fun AbstractDisplayView.keyInput(keyCode: Int, keyChar: Char, id: Int) {
-  UIUtil.invokeLaterIfNeeded {
-    dispatchEvent(KeyEvent(this, id, System.currentTimeMillis(), 0, keyCode, keyChar))
-  }
-}
-
-private fun AbstractDisplayView.typeNumber(n: Int) {
-  n.toString().forEach { type(it) }
-}
 
 private fun AbstractDisplayView.click(
   location: Point,
@@ -186,8 +177,7 @@ private fun BufferedImage.findTouchableArea(): Rectangle? {
   val left = (0 until width).find { extract(it, center.y).isGreenish() } ?: return null
   val right = (0 until width).reversed().find { extract(it, center.y).isGreenish() } ?: return null
   val top = (0 until height).find { extract(center.x, it).isGreenish() } ?: return null
-  val bottom =
-    (0 until height).reversed().find { extract(center.x, it).isGreenish() } ?: return null
+  val bottom = (0 until height).reversed().find { extract(center.x, it).isGreenish() } ?: return null
 
   val width = right - left + 1
   val height = bottom - top + 1
@@ -236,18 +226,15 @@ internal class DeviceAdapter(
   private val spikiness: Int = 1,
   private val readyIndicator: ProgressIndicator? = null,
   private val timeSource: TimeSource = TimeSource.Monotonic,
-  private val installer: StreamingBenchmarkerAppInstaller =
-    StreamingBenchmarkerAppInstaller(project, target.serialNumber),
-  private val coroutineScope: CoroutineScope = AndroidCoroutineScope(target.view),
+  private val installer: StreamingBenchmarkerAppInstaller = StreamingBenchmarkerAppInstaller(project, target.serialNumber),
+  private val coroutineScope: CoroutineScope = target.view.createCoroutineScope(),
 ) : Adapter<Point>, AbstractDisplayView.FrameListener {
 
   private val deviceDisplaySize: Dimension by target.view::deviceDisplaySize
-  private val maxBits: Int =
-    ceil(log2(max(deviceDisplaySize.width, deviceDisplaySize.height).toDouble())).roundToInt()
-  private val numRegionsPerCoordinate =
-    if (bitsPerChannel == 0) maxBits else (maxBits - 1) / (bitsPerChannel * 3) + 1
-  private val numLatencyRegions =
-    if (bitsPerChannel == 0) latencyBits else (latencyBits - 1) / (bitsPerChannel * 3) + 1
+  private val maxBits: Int = ceil(log2(max(deviceDisplaySize.width, deviceDisplaySize.height).toDouble())).roundToInt()
+  private val numRegionsPerCoordinate = if (bitsPerChannel == 0) maxBits else (maxBits - 1) / (bitsPerChannel * 3) + 1
+  private val numLatencyRegions = if (bitsPerChannel == 0) latencyBits else (latencyBits - 1) / (bitsPerChannel * 3) + 1
+  private val keyEventDispatchChannel = Channel<() -> Unit>(Channel.UNLIMITED)
 
   @GuardedBy("this") private var appState = AppState.INITIALIZING
 
@@ -256,12 +243,10 @@ internal class DeviceAdapter(
   @Volatile private lateinit var adapterCallbacks: Adapter.Callbacks<Point>
   @Volatile private lateinit var startedGettingReady: TimeMark
 
-  private val pointsToTouch: Iterator<Point> by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  private val pointsToTouch: Iterator<Point> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
       touchableArea.scribble(maxTouches, step, spikiness).iterator()
     }
-  private val numPointsToTouch by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  private val numPointsToTouch by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
       min(touchableArea.width * touchableArea.height, maxTouches)
     }
 
@@ -271,11 +256,19 @@ internal class DeviceAdapter(
     require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
     require(step > 0) { "Must specify a positive value for step!" }
     require(spikiness >= 0) { "Must specify a non-negative value for spikiness!" }
-    require(bitsPerChannel in 0..8) {
-      "Cannot extract $bitsPerChannel bits from a channel! Must be in [0,8]"
+    require(bitsPerChannel in 0..8) { "Cannot extract $bitsPerChannel bits from a channel! Must be in [0,8]" }
+
+    coroutineScope.launch {
+      for (keyEventDispatch in keyEventDispatchChannel) {
+        withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
+          keyEventDispatch()
+        }
+        delay(KEY_EVENT_DELAY)
+      }
     }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Synchronized
   override fun frameRendered(
     frameNumber: UInt,
@@ -286,16 +279,15 @@ internal class DeviceAdapter(
     when (appState) {
       AppState.INITIALIZING -> {
         if (startedGettingReady.elapsedNow() > MAX_BECOME_READY_DURATION) {
-          adapterCallbacks.onFailedToBecomeReady(
-            "Failed to detect initialized app within $MAX_BECOME_READY_DURATION"
-          )
+          adapterCallbacks.onFailedToBecomeReady("Failed to detect initialized app within $MAX_BECOME_READY_DURATION")
           return
         }
         if (displayImage.isInitializationFrame()) {
           keyConfigIntoApp()
-          appState = AppState.DISPLAYING_TOUCHABLE_AREA
+          appState = AppState.KEYING_IN_CONFIG
         }
       }
+      AppState.KEYING_IN_CONFIG -> if (keyEventDispatchChannel.isEmpty) appState = AppState.DISPLAYING_TOUCHABLE_AREA
       AppState.DISPLAYING_TOUCHABLE_AREA -> {
         if (displayImage.isInitializationFrame()) return
         if (startedGettingReady.elapsedNow() > MAX_BECOME_READY_DURATION) {
@@ -320,7 +312,7 @@ internal class DeviceAdapter(
   }
 
   override fun setCallbacks(callbacks: Adapter.Callbacks<Point>) {
-    this.adapterCallbacks = callbacks
+    adapterCallbacks = callbacks
   }
 
   override fun inputs(): Iterator<Point> = pointsToTouch
@@ -371,6 +363,30 @@ internal class DeviceAdapter(
     }
   }
 
+  private fun AbstractDisplayView.press(keyCode: Int) {
+    keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_PRESSED)
+    keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_RELEASED)
+  }
+
+  private fun AbstractDisplayView.type(keyChar: Char) {
+    keyInput(KeyEvent.VK_UNDEFINED, keyChar, KeyEvent.KEY_TYPED)
+  }
+
+  private fun AbstractDisplayView.keyInput(keyCode: Int, keyChar: Char, id: Int) {
+    val event = KeyEvent(this, id, System.currentTimeMillis(), 0, keyCode, keyChar)
+    runBlocking {
+      val keyEventDispatch = {
+        LOG.info("Dispatching event: $event")
+        dispatchEvent(event)
+      }
+      keyEventDispatchChannel.send(keyEventDispatch)
+    }
+  }
+
+  private fun AbstractDisplayView.typeNumber(n: Int) {
+    n.toString().forEach { type(it) }
+  }
+
   @Synchronized
   private fun processFrame(displayImage: BufferedImage) {
     val frameArrived = timeSource.markNow()
@@ -392,9 +408,7 @@ internal class DeviceAdapter(
       .map { it.toDisplayViewCoordinates() ?: return null }
       // Now add each of these opposite points to the newly created Rectangle.
       .forEach(displayViewRectangle::add)
-    LOG.info(
-      "Found touchable area in image: $imageRectangle. Converted to AbstractDisplayView coordinates: $displayViewRectangle"
-    )
+    LOG.info("Found touchable area in image: $imageRectangle. Converted to AbstractDisplayView coordinates: $displayViewRectangle")
     return imageRectangle to displayViewRectangle
   }
 
@@ -466,8 +480,7 @@ internal class DeviceAdapter(
 
   private fun Point.toDisplayViewCoordinates(): Point? {
     val displayRectangle = target.view.displayRectangle ?: return null
-    val imageSize =
-      displayRectangle.size.rotatedByQuadrants(target.view.displayOrientationQuadrants)
+    val imageSize = displayRectangle.size.rotatedByQuadrants(target.view.displayOrientationQuadrants)
     val p2 = scaledUnbiased(deviceDisplaySize, imageSize)
     val inverseScreenScale = 1.0 / target.view.screenScalingFactor
     val viewCoordinates = Point()
@@ -494,13 +507,10 @@ internal class DeviceAdapter(
 
   private enum class AppState {
     INITIALIZING,
+    KEYING_IN_CONFIG,
     DISPLAYING_TOUCHABLE_AREA,
     READY,
   }
 }
 
-data class StreamingBenchmarkTarget(
-  val name: String,
-  val serialNumber: String,
-  val view: AbstractDisplayView,
-)
+data class StreamingBenchmarkTarget(val name: String, val serialNumber: String, val view: AbstractDisplayView)

@@ -140,9 +140,13 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
     if (!requireClass && !isXml) {
       ApiConstraint minSdk = LintFix.getApiConstraint(fixData, ApiDetector.KEY_MIN_API, ApiConstraint.UNKNOWN);
       for (ApiConstraint constraint : constraints) {
-        int version = constraint.min();
+        int version = constraint.fromInclusive();
+        int minor = constraint.fromInclusiveMinor();
         int sdk = constraint.getSdk();
-        list.add(new ModCommandLintQuickFix(new AddTargetVersionCheckQuickFix(project, startElement, version, sdk, minSdk)));
+        // For now, we don't support adding surrounding "if SDK_INT" checks around API constraints with minor
+        // versions. For this, the check needs to be switched to "if (SDK_INT_FULL)" instead.
+        // That itself may have API implications.
+        list.add(new ModCommandLintQuickFix(new AddTargetVersionCheckQuickFix(project, startElement, version, minor, sdk, minSdk)));
       }
     }
 
@@ -161,9 +165,10 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
         if (!isXml && requiresApiAvailable(project)) {
           list.add(new ModCommandLintQuickFix(new AddTargetApiQuickFix(constraints, true, startElement, requireClass)));
         }
-        else {
+        else if (first.fromInclusiveMinor() == 0) {
           // Discourage use of @TargetApi if @RequiresApi is available; see for example
           // https://android-review.googlesource.com/c/platform/frameworks/support/+/843915/
+          // (Does not support minor versions so don't offer when minor >0)
           list.add(new ModCommandLintQuickFix(new AddTargetApiQuickFix(constraints, false, startElement, requireClass)));
         }
       } else if (!isXml && requiresExtensionAvailable(project)) {

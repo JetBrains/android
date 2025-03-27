@@ -3,36 +3,39 @@ package com.android.tools.idea.gradle.catalog
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
+import com.android.tools.idea.gradle.dsl.model.getGradleVersionCatalogFiles
+import com.android.utils.mapValuesNotNull
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.StandardFileSystems
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.gradle.service.resolve.GradleVersionCatalogHandler
+import java.io.File
+import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.dsl.model.GradleModelSource
 
 /**
  * This is a copy of JetBrains GradleVersionCatalogHandler that provides access to Studio Version Catalog model.
  * Class must be deleted once intellij.gradle.analysis is enabled in Studio or platform navigation relies on
  * gradle.dsl.api module
  */
+@Suppress("UnstableApiUsage")
 class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
   override fun getExternallyHandledExtension(project: Project): Set<String> {
     return getVersionCatalogFiles(project).keys
   }
 
-  override fun getVersionCatalogFiles(project: Project): Map<String, VirtualFile> {
-    return runReadAction {
-      ProjectBuildModel.get(project).context.versionCatalogFiles.associate { it.catalogName to it.file }
-    }
-  }
+  override fun getVersionCatalogFiles(project: Project): Map<String, VirtualFile> =
+    getGradleVersionCatalogFiles(project).mapValuesNotNull { (_, value) -> VfsUtil.findFileByIoFile(File(value), false)}
 
-  override fun getVersionCatalogFiles(module: Module): Map<String, VirtualFile> {
-    val buildModel = getBuildModel(module) ?: return emptyMap()
-    return buildModel.context.versionCatalogFiles.associate { it.catalogName to it.file }
-  }
+  override fun getVersionCatalogFiles(module: Module): Map<String, VirtualFile> =
+    getGradleVersionCatalogFiles(module).mapValuesNotNull { (_, value) -> VfsUtil.findFileByIoFile(File(value), false)}
 
   override fun getAccessorClass(context: PsiElement, catalogName: String): PsiClass? {
     val project = context.project
@@ -50,7 +53,7 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
 
   fun getDefaultCatalogName(project: Project): String {
     return runReadAction {
-      val settingsModel = ProjectBuildModel.get(project).projectSettingsModel
+      val settingsModel = GradleModelSource.getInstance().getSettingsModel(project)
       settingsModel?.dependencyResolutionManagement()?.catalogDefaultName() ?: DEFAULT_CATALOG_NAME
     }
   }

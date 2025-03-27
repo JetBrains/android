@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.workspaceModel.ide.impl.WorkspaceEntityLifecycleSupporterUtils
 import org.junit.Rule
 import org.junit.Test
 
@@ -80,14 +81,16 @@ class BuildListenerTest {
         buildTargetReferenceFromFile(project, preparedTestProject, "app/src/main/java/google/simpleapplication/MyActivity.java")
       )
     }) {
-      assertThat(collectedEvents()).isEqualTo(
-        """
-        * firstSourceRootsAdded
-        * setupBuildListener
-        * syncSkipped
-        ->startedListening
-      """.trimIndent() // Note that `->startedListening` comes only after `* syncSkipped`.
-      )
+      WorkspaceEntityLifecycleSupporterUtils.withAllEntitiesInWorkspaceFromProvidersDefinedOnEdt(project) {
+        assertThat(collectedEvents()).isEqualTo(
+          """
+          * syncSkipped
+          * firstSourceRootsAdded
+          * setupBuildListener
+          ->startedListening
+        """.trimIndent() // Note that `->startedListening` comes only after `* syncSkipped`.
+        )
+      }
     }
   }
 

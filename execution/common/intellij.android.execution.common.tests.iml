@@ -20,7 +20,15 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.testFramework" />
-    <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.execution" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.debugger" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.debugger.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.util.io" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.execution.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.debugger" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.debugger.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
@@ -28,26 +36,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.debugger" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.debugger.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.execution.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.debugger" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.debugger.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.execution" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.execution.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.util.io" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

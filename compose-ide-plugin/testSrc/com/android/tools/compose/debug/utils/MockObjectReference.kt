@@ -15,18 +15,18 @@
  */
 package com.android.tools.compose.debug.utils
 
-import com.android.testutils.MockitoKt
 import com.sun.jdi.ClassObjectReference
 import com.sun.jdi.ObjectReference
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.StringReference
 import com.sun.jdi.Type
 import com.sun.jdi.VirtualMachine
+import org.mockito.kotlin.mock
 
 sealed class MockObjectReference(
   private val referenceType: ReferenceType,
   private val virtualMachine: VirtualMachine,
-) : ObjectReference by MockitoKt.mock() {
+) : ObjectReference by mock() {
   override fun toString(): String {
     return "instance of " + referenceType().name()
   }

@@ -29,7 +29,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdCamera;
-import com.android.sdklib.internal.avd.AvdNames;
 import com.android.sdklib.internal.avd.AvdNetworkLatency;
 import com.android.sdklib.internal.avd.AvdNetworkSpeed;
 import com.android.sdklib.internal.avd.EmulatedProperties;
@@ -43,6 +42,7 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.sdklib.internal.avd.AvdNames;
 import com.android.tools.idea.avdmanager.EmulatorFeatures;
 import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
@@ -76,7 +76,6 @@ import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -85,6 +84,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.BrowserLink;
@@ -312,9 +312,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myChosenSnapshotComboBox.addItemListener(mySnapshotComboListener);
 
     myEmulator =
-        EmulatorPackages.getEmulatorPackage(
-            AndroidSdks.getInstance().tryToChooseSdkHandler(),
-            new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class));
+      EmulatorPackages.getEmulatorPackage(
+        AndroidSdks.getInstance().tryToChooseSdkHandler(),
+        new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class));
     myEmulatorFeatures = EmulatorFeatures.getEmulatorFeatures(myEmulator);
 
     boolean supportsVirtualCamera = myEmulatorFeatures.contains(EmulatorAdvancedFeatures.VIRTUAL_SCENE);
@@ -990,10 +990,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       getModel().selectedAvdOrientation().set(orientation);
     });
 
-    FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
-      .withHideIgnored(false)
-      .withTitle("Select SD Card")
-      .withDescription("Select an existing SD card image");
+    FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(true, false, false, false, false, false) {
+      @Override
+      public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
+        return super.isFileVisible(file, true);
+      }
+    }.withHideIgnored(false).withTitle("Select SD Card").withDescription("Select an existing SD card image");
     myExternalSdCard.addBrowseFolderListener(myProject, fileChooserDescriptor);
 
     myBindings.bindTwoWay(new TextProperty(myExternalSdCard.getTextField()), getModel().externalSdCardLocation());

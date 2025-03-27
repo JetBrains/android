@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
+import java.awt.image.BufferedImage
+import java.util.function.Consumer
+
 /** All the numbers, math and explanation on how things work is documented in: go/cbm_simulator */
 const val MUTATED_FACTOR = 0.25
 const val GAMMA = 2.2
@@ -28,7 +31,18 @@ enum class ColorBlindMode(val displayName: String) {
   DEUTERANOPES("Deuteranopes"), // Missing M
   DEUTERANOMALY("Deuteranomaly"), // Mutated M
   TRITANOPES("Tritanopes"), // Missing S
-  TRITANOMALY("Tritanomaly"), // Mutated S
+  TRITANOMALY("Tritanomaly"); // Mutated S
+
+  val imageTransform: Consumer<BufferedImage>?
+    get() =
+      if (this == NONE) {
+        null
+      } else
+        object : Consumer<BufferedImage> {
+          override fun accept(image: BufferedImage) {
+            ColorConverter(this@ColorBlindMode).convert(image, image)
+          }
+        }
 }
 
 /**

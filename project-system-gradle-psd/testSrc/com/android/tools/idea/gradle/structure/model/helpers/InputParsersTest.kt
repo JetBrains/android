@@ -196,17 +196,17 @@ class InputParsersTest {
 
   @Test
   fun hashString_empty() {
-    assertEquals(ParsedValue.NotSet.annotated(), parseHashString(""))
+    assertEquals(ParsedValue.NotSet.annotated(), parseString(""))
   }
 
   @Test
   fun hashString() {
-    assertEquals("26".asParsed().annotated(), parseHashString("26"))
-    assertEquals("android-26".asParsed().annotated(), parseHashString("android-26"))
-    assertEquals("android-P".asParsed().annotated(), parseHashString("android-P"))
-    assertEquals("P".asParsed().annotated(), parseHashString("P"))
+    assertEquals("26".asParsed().annotated(), parseString("26"))
+    assertEquals("android-26".asParsed().annotated(), parseString("android-26"))
+    assertEquals("android-P".asParsed().annotated(), parseString("android-P"))
+    assertEquals("P".asParsed().annotated(), parseString("P"))
     assertEquals("Superlogic:Superlogic SDK v7.34".asParsed().annotated(),
-                 parseHashString("Superlogic:Superlogic SDK v7.34"))
+                 parseString("Superlogic:Superlogic SDK v7.34"))
   }
 
   @Test

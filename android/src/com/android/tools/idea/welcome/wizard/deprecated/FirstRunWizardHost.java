@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.welcome.install.SdkComponentInstaller;
+import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Atomics;
+import com.google.wireless.android.sdk.stats.SetupWizardEvent;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.UISettings;
@@ -42,12 +46,10 @@ import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,9 +73,11 @@ import org.jetbrains.annotations.Nullable;
  * @deprecated use {@link StudioFirstRunWelcomeScreen}
  */
 @Deprecated
-public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
+public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost, CancelableWelcomeWizard {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
+  @NotNull private final SdkComponentInstaller mySdkComponentInstaller;
+  @NotNull private final FirstRunWizardTracker myTracker;
 
   private Action myCancelAction = new CancelAction();
   private Action myPreviousAction = new PreviousAction();
@@ -94,9 +98,12 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;
 
-  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode) {
+  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode, @NotNull SdkComponentInstaller sdkComponentInstaller,
+                            @NotNull FirstRunWizardTracker tracker) {
     super(new BorderLayout());
     myMode = mode;
+    mySdkComponentInstaller = sdkComponentInstaller;
+    myTracker = tracker;
     add(createSouthPanel(), BorderLayout.SOUTH);
   }
 
@@ -110,16 +117,19 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
   @Override
   public JComponent getWelcomePanel() {
+    myTracker.trackWizardStarted();
+
     if (myWizard == null) {
       setupWizard();
     }
     assert myWizard != null;
+
     return this;
   }
 
   private void setupWizard() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      DynamicWizard wizard = new FirstRunWizard(this, myMode);
+      DynamicWizard wizard = new FirstRunWizard(this, myMode, mySdkComponentInstaller, myTracker);
       wizard.init();
       add(wizard.getContentPane(), BorderLayout.CENTER);
     }, ModalityState.any());
@@ -135,14 +145,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     }
     frame.setSize(myPreferredWindowSize);
     frame.setMinimumSize(myMinimumWindowSize);
+    frame.setLocationRelativeTo(null);
 
-    Rectangle screenBounds = frame.getGraphicsConfiguration() != null
-                             ? frame.getGraphicsConfiguration().getBounds()
-                             : GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration()
-                               .getBounds();
-    int x = (screenBounds.width - myPreferredWindowSize.width) / 2;
-    int y = (screenBounds.height - myPreferredWindowSize.height) / 2;
-    frame.setLocation(screenBounds.x + x, screenBounds.y + y);
     JButton defaultButton = myActionToButtonMap.get(myFinishAction);
     if (!defaultButton.isEnabled()) {
       defaultButton = myActionToButtonMap.get(myNextAction);
@@ -176,12 +180,26 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   @Override
   public void close(@NotNull CloseAction action) {
     myIsActive = false;
-    myFrame.setVisible(false);
-    myFrame.dispose();
+
+    if (myFrame != null) {
+      myFrame.setVisible(false);
+      myFrame.dispose();
+    }
+
+    myTracker.trackWizardFinished(
+      action == CloseAction.FINISH ?
+      SetupWizardEvent.CompletionStatus.FINISHED :
+      SetupWizardEvent.CompletionStatus.CANCELED
+    );
+
     if (action == CloseAction.FINISH || action == CloseAction.CANCEL) {
-      // If the user has not selected a Theme, we may have uninstalled ui components
-      LafManager.getInstance().updateUI();
-      WelcomeFrame.showNow();
+      if (ApplicationManager.getApplication().isHeadlessEnvironment()) {
+        // No UI should be shown when IDE is running in this mode.
+      } else {
+        // If the user has not selected a Theme, we may have uninstalled ui components
+        LafManager.getInstance().updateUI();
+        WelcomeFrame.showNow();
+      }
     }
     else if (action == CloseAction.EXIT) {
       ApplicationManager.getApplication().exit();
@@ -231,9 +249,13 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     if (!myCurrentProgressIndicator.compareAndSet(null, progressIndicator)) {
       throw new IllegalStateException("Submitting an operation while another is in progress.");
     }
-    final JRootPane rootPane = myFrame.getRootPane();
-    final JButton defaultButton = rootPane.getDefaultButton();
-    rootPane.setDefaultButton(null);
+    JButton defaultButton = null;
+    if (myFrame != null) {
+      // There will be no JFrame when testing in headless mode
+      final JRootPane rootPane = myFrame.getRootPane();
+      defaultButton = rootPane.getDefaultButton();
+      rootPane.setDefaultButton(null);
+    }
     updateButtons(false, false, true, false);
     Task.Backgroundable task = new LongRunningOperationWrapper(operation, cancellable, defaultButton);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, progressIndicator);
@@ -374,6 +396,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     }
   }
 
+  @UiThread
+  @Override
   public boolean isActive() {
     return myIsActive;
   }
@@ -381,6 +405,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   /**
    * Cancels the wizard.
    */
+  @UiThread
+  @Override
   public void cancel() {
     ProgressIndicator indicator = myCurrentProgressIndicator.get();
     if (indicator == null) {
@@ -441,9 +467,10 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
   private class LongRunningOperationWrapper extends Task.Backgroundable {
     private final Runnable myOperation;
+    @Nullable
     private final JButton myDefaultButton;
 
-    public LongRunningOperationWrapper(Runnable operation, boolean cancellable, JButton defaultButton) {
+    public LongRunningOperationWrapper(Runnable operation, boolean cancellable, @Nullable JButton defaultButton) {
       super(null, FirstRunWizardHost.this.myWizard.getWizardActionDescription(), cancellable);
       myOperation = operation;
       myDefaultButton = defaultButton;
@@ -453,7 +480,9 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     public void onSuccess() {
       myCurrentProgressIndicator.set(null);
       updateButtons(false, false, false, true);
-      myFrame.getRootPane().setDefaultButton(myDefaultButton);
+      if (myFrame != null && myDefaultButton != null) {
+        myFrame.getRootPane().setDefaultButton(myDefaultButton);
+      }
     }
 
     @Override

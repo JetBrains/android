@@ -113,6 +113,30 @@ public final class ImportRoots {
       return this;
     }
 
+    /**
+     * For Bazel projects if the root directories include the workspace root, exclude bazel-bin,
+     * bazel-out, ... directories to avoid scanning them for Build files by {@link
+     * com.google.idea.blaze.qsync.project.ProjectDefinition#deriveQuerySpec}
+     */
+    private ImmutableSet<WorkspacePath> getBuildSystemExcludes(
+        ImmutableCollection<WorkspacePath> rootDirectories) {
+      if (buildSystemName == BuildSystemName.Bazel && hasWorkspaceRoot(rootDirectories)) {
+        ImmutableSet<WorkspacePath> buildArtifactDirectories =
+            BuildSystemProvider.getBuildSystemProvider(buildSystemName)
+                .buildArtifactDirectories(workspaceRoot)
+                .stream()
+                .map(p -> new WorkspacePath(p))
+                .collect(toImmutableSet());
+        WorkspacePath projectDataSubdirectory =
+            new WorkspacePath(BlazeDataStorage.PROJECT_DATA_SUBDIRECTORY);
+        return ImmutableSet.<WorkspacePath>builder()
+            .addAll(buildArtifactDirectories)
+            .add(projectDataSubdirectory)
+            .build();
+      }
+      return ImmutableSet.of();
+    }
+
     public ImportRoots build() {
       ImmutableCollection<WorkspacePath> rootDirectories = rootDirectoriesBuilder.build();
       if (buildSystemName == BuildSystemName.Bazel) {
@@ -139,7 +163,7 @@ public final class ImportRoots {
                   projectTargets.build(), directories)
               : TargetExpressionList.create(projectTargets.build());
 
-      return new ImportRoots(directories, targets);
+      return new ImportRoots(directories, targets, getBuildSystemExcludes(rootDirectories));
     }
 
     private void excludeBuildSystemArtifacts() {
@@ -165,6 +189,7 @@ public final class ImportRoots {
 
   private final ProjectDirectoriesHelper projectDirectories;
   private final TargetExpressionList projectTargets;
+  private final ImmutableSet<WorkspacePath> buildSystemExcludes;
 
   public static Builder builder(Project project) {
     return new Builder(WorkspaceRoot.fromProject(project), Blaze.getBuildSystemName(project));
@@ -175,9 +200,12 @@ public final class ImportRoots {
   }
 
   private ImportRoots(
-      ProjectDirectoriesHelper projectDirectories, TargetExpressionList projectTargets) {
+      ProjectDirectoriesHelper projectDirectories,
+      TargetExpressionList projectTargets,
+      ImmutableSet<WorkspacePath> buildSystemExcludes) {
     this.projectDirectories = projectDirectories;
     this.projectTargets = projectTargets;
+    this.buildSystemExcludes = buildSystemExcludes;
   }
 
   public Collection<WorkspacePath> rootDirectories() {
@@ -189,6 +217,11 @@ public final class ImportRoots {
     return projectDirectories.rootDirectories.stream()
         .map(WorkspacePath::asPath)
         .collect(toImmutableSet());
+  }
+
+  /** Returns the system excluded directories. */
+  public ImmutableSet<Path> systemExcludes() {
+    return buildSystemExcludes.stream().map(WorkspacePath::asPath).collect(toImmutableSet());
   }
 
   public Set<WorkspacePath> excludeDirectories() {

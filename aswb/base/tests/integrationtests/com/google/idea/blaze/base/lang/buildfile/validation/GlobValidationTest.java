@@ -22,8 +22,8 @@ import com.google.idea.blaze.base.lang.buildfile.psi.BuildFile;
 import com.google.idea.blaze.base.lang.buildfile.psi.GlobExpression;
 import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
-import com.google.idea.sdkcompat.BaseSdkTestCompat;
 import com.intellij.lang.annotation.Annotation;
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.Test;
@@ -253,7 +253,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   }
 
   private List<Annotation> validateFile(BuildFile file) {
-    return BaseSdkTestCompat.testAnnotator(
+    return CodeInsightTestUtil.testAnnotator(
         new GlobErrorAnnotator(),
         PsiUtils.findAllChildrenOfClassRecursive(file, GlobExpression.class)
             .toArray(GlobExpression[]::new));

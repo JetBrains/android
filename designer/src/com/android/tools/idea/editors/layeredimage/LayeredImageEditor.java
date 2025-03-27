@@ -104,7 +104,6 @@ class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public void dispose() {
     Disposer.dispose(myEditor);
-    Disposer.dispose(getComponent());
   }
 
   @NotNull

@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
 import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
+import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
+import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
 import com.google.common.base.Splitter
 import com.google.common.truth.Truth
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.issue.BuildIssue
@@ -34,6 +38,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -41,10 +46,12 @@ import com.intellij.pom.Navigatable
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.registerExtension
+import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class TomlErrorParserTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -98,8 +105,8 @@ class TomlErrorParserTest {
   }
 
   @Test
-  fun testWrapper_parsesTomlErrorWithFile() {
-    setStudioBotInstanceAvailability(true)
+  fun testTomlErrorWithFileParsedByWrapperWithAdditionalQickfix() {
+    registerAdditionalQuickFixProvider()
     whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
@@ -115,7 +122,7 @@ class TomlErrorParserTest {
       Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
       Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml") + "\n<a href=\"open.plugin.studio.bot\">Ask Gemini</a>")
+      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml") + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
       Truth.assertThat(it.getNavigatable(project)).isNull()
     }
   }
@@ -391,12 +398,25 @@ class TomlErrorParserTest {
     return gradleDir to file
   }
 
-  private fun setStudioBotInstanceAvailability(isAvailable: Boolean) {
-    val studioBot = object : StudioBot.StubStudioBot() {
-      override fun isAvailable(): Boolean = isAvailable
+  private fun registerAdditionalQuickFixProvider() {
+    val gradleErrorQuickFixProvider = object : GradleErrorQuickFixProvider {
+      override fun createBuildIssueAdditionalQuickFix(buildEvent: BuildEvent, taskId: ExternalSystemTaskId): DescribedBuildIssueQuickFix? {
+        return object: DescribedBuildIssueQuickFix {
+          override val description: String
+            get() = "Additional quickfix link"
+          override val id: String
+            get() = "com.plugin.gradle.quickfix"
+        }
+      }
+
+      override fun createSyncMessageAdditionalLink(syncMessage: SyncMessage,
+                                                   affectedModules: List<Module>,
+                                                   buildFileMap: Map<Module, VirtualFile>,
+                                                   rootProjectPath: @SystemIndependent String): SyncMessageHyperlink? {
+        error("Should not be called in this test")
+      }
     }
-    ApplicationManager.getApplication()
-      .replaceService(StudioBot::class.java, studioBot, project)
+    ApplicationManager.getApplication().registerExtension(GradleErrorQuickFixProvider.EP_NAME, gradleErrorQuickFixProvider, projectRule.testRootDisposable)
   }
 
   private fun getRootFolder() = VfsUtil.findFile(Projects.getBaseDirPath(project).toPath(), true)

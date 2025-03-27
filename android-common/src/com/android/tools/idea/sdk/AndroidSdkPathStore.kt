@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,23 @@ package com.android.tools.idea.sdk
 import com.android.tools.sdk.isValid
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.components.BaseState
+import com.intellij.openapi.components.RoamingType
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
 import org.jetbrains.annotations.NonNls
 import java.nio.file.Path
-import java.nio.file.Path.of
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
-@State(name = "AndroidSdkPathStore", storages = [(Storage("android.sdk.path.xml"))])
+@Service
+@State(name = "AndroidSdkPathStore", storages = [(Storage("android.sdk.path.xml", roamingType = RoamingType.LOCAL))])
 class AndroidSdkPathStore : SimplePersistentStateComponent<AndroidSdkPathStore.State>(State()) {
 
   var androidSdkPath: Path?
-    get() = state.androidSdkAbsolutePath?.let<String, Path> { of(it) }
+    get() = state.androidSdkAbsolutePath?.let { Path.of(it) }
     set(androidSdkPath) {
       state.androidSdkAbsolutePath = androidSdkPath?.absolutePathString()
     }
@@ -57,7 +59,7 @@ class AndroidSdkPathStore : SimplePersistentStateComponent<AndroidSdkPathStore.S
     if (component.getBoolean(MIGRATE_ANDROID_SDK_PATH_TO_ROAMABLE_STORAGE_KEY, true)) {
       component.setValue(MIGRATE_ANDROID_SDK_PATH_TO_ROAMABLE_STORAGE_KEY, false, true)
 
-      this.androidSdkPath = component.getValue(ANDROID_SDK_PATH_KEY)?.let { Paths.get(it) }
+      androidSdkPath = component.getValue(ANDROID_SDK_PATH_KEY)?.let { Paths.get(it) }
 
       component.unsetValue(ANDROID_SDK_PATH_KEY)
     }

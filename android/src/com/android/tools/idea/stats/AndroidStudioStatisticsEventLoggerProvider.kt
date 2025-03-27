@@ -39,6 +39,6 @@ class AndroidStudioStatisticsEventLoggerProvider : StatisticsEventLoggerProvider
     if (!isRecordEnabled()) {
       return super.logger
     }
-    return AndroidStudioEventLogger
+    return AndroidStudioEventLogger.getInstance()
   }
 }

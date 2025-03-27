@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.benchmark
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -29,8 +30,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.setMain
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,14 +57,18 @@ import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
 import kotlin.time.TimeMark
 
 /** Tests the [DeviceAdapter] class. */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
 class DeviceAdapterTest {
   @get:Rule val projectRule = ProjectRule()
 
+  private val testDispatcher = UnconfinedTestDispatcher()
+  private val testScope = TestScope(testDispatcher)
   private val deviceDisplaySize = Dimension(WIDTH, HEIGHT)
   private val displayRectangle = Rectangle(deviceDisplaySize)
   private val mousePressedLocations = mutableListOf<Point>()
@@ -116,6 +124,7 @@ class DeviceAdapterTest {
   fun setUp() {
     view = TestDisplayView(projectRule.project, deviceDisplaySize)
     adapter = createAdapter()
+    Dispatchers.setMain(testDispatcher)
   }
 
   @Test
@@ -162,15 +171,19 @@ class DeviceAdapterTest {
   fun ready_registersFrameListener() {
     view.notifyFrame(INITIALIZED_FRAME)
     view.notifyFrame(ALL_TOUCHABLE_FRAME)
+
     view.notifyFrame(p.toBufferedImage())
 
     assertThat(returnedInputs).isEmpty()
 
     adapter.ready()
     view.notifyFrame(INITIALIZED_FRAME)
-    view.notifyFrame(ALL_TOUCHABLE_FRAME)
+    waitForCondition(30.seconds) {
+      testScope.testScheduler.advanceUntilIdle()
+      view.notifyFrame(ALL_TOUCHABLE_FRAME)
+      onReadyCalls == 1
+    }
     view.notifyFrame(p.toBufferedImage())
-
     assertThat(returnedInputs).hasSize(1)
   }
 
@@ -222,7 +235,12 @@ class DeviceAdapterTest {
     adapter.ready()
     view.notifyFrame(INITIALIZED_FRAME)
 
-    UIUtil.pump()
+    waitForCondition(30.seconds) {
+      testScope.testScheduler.advanceUntilIdle()
+      view.notifyFrame(TOUCHABLE_AREA_FRAME)
+      onReadyCalls == 1
+    }
+
     val configCharEvents =
       listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").map {
         KeyEvent.KEY_TYPED to it
@@ -234,6 +252,7 @@ class DeviceAdapterTest {
           KeyEvent.KEY_PRESSED to KeyEvent.VK_ENTER,
           KeyEvent.KEY_RELEASED to KeyEvent.VK_ENTER,
         )
+    waitForCondition(2.seconds) { keyEvents.size == expectedKeyEvents.size }
     assertThat(keyEvents).isEqualTo(expectedKeyEvents)
   }
 
@@ -283,8 +302,12 @@ class DeviceAdapterTest {
     // This should be plenty of time to hit the limit
     testTimeSource += 1.hours
 
-    // Need a frame to trigger this (one that doesn't have a touchable area)
-    adapter.frameRendered(NONE_TOUCHABLE_FRAME)
+    waitForCondition(30.seconds) {
+      testScope.testScheduler.advanceUntilIdle()
+      // Need a frame to trigger this (one that doesn't have a touchable area)
+      adapter.frameRendered(NONE_TOUCHABLE_FRAME)
+      errors.isNotEmpty()
+    }
 
     assertThat(onReadyCalls).isEqualTo(0)
     assertThat(errors).hasSize(1)
@@ -296,7 +319,11 @@ class DeviceAdapterTest {
     val allPointsAdapter = createAdapter(maxTouches = Int.MAX_VALUE)
     allPointsAdapter.ready()
     allPointsAdapter.frameRendered(INITIALIZED_FRAME)
-    allPointsAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
+    waitForCondition(30.seconds) {
+      testScope.testScheduler.advanceUntilIdle()
+      allPointsAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
+      onReadyCalls == 1
+    }
 
     assertThat(onReadyCalls).isEqualTo(1)
     assertThat(errors).isEmpty()
@@ -318,7 +345,12 @@ class DeviceAdapterTest {
     val oneStepAdapter = createAdapter(maxTouches = step * MAX_TOUCHES)
     oneStepAdapter.ready()
     oneStepAdapter.frameRendered(INITIALIZED_FRAME)
-    oneStepAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
+
+    waitForCondition(30.seconds) {
+      testScope.testScheduler.advanceUntilIdle()
+      oneStepAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
+      onReadyCalls == 1
+    }
 
     assertThat(oneStepAdapter.numInputs()).isEqualTo(step * MAX_TOUCHES)
 
@@ -326,7 +358,12 @@ class DeviceAdapterTest {
     val multiStepAdapter = createAdapter(maxTouches = MAX_TOUCHES, step = step)
     multiStepAdapter.ready()
     multiStepAdapter.frameRendered(INITIALIZED_FRAME)
-    multiStepAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
+
+    waitForCondition(30.seconds) {
+      testScope.testScheduler.advanceUntilIdle()
+      multiStepAdapter.frameRendered(TOUCHABLE_AREA_FRAME)
+      onReadyCalls == 2
+    }
 
     assertThat(multiStepAdapter.numInputs()).isEqualTo(MAX_TOUCHES)
 
@@ -342,7 +379,11 @@ class DeviceAdapterTest {
       val customAdapter = createAdapter(bitsPerChannel = bitsPerChannel)
       customAdapter.ready()
       customAdapter.frameRendered(INITIALIZED_FRAME)
-      customAdapter.frameRendered(ALL_TOUCHABLE_FRAME)
+      waitForCondition(30.seconds) {
+        testScope.testScheduler.advanceUntilIdle()
+        customAdapter.frameRendered(ALL_TOUCHABLE_FRAME)
+        onReadyCalls == bitsPerChannel + 1
+      }
       assertThat(onReadyCalls).isEqualTo(bitsPerChannel + 1)
       assertThat(errors).isEmpty()
 
@@ -356,6 +397,7 @@ class DeviceAdapterTest {
     }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   private fun createAdapter(
     maxTouches: Int = MAX_TOUCHES,
     step: Int = 1,
@@ -373,7 +415,7 @@ class DeviceAdapterTest {
       spikiness = spikiness,
       timeSource = testTimeSource,
       installer = fakeInstaller,
-      coroutineScope = TestCoroutineScope(TestCoroutineDispatcher()),
+      coroutineScope = testScope,
     )
     .apply { setCallbacks(callbacks) }
   }
@@ -424,6 +466,7 @@ class DeviceAdapterTest {
     override val displayOrientationQuadrants = 0
     override val apiLevel: Int
       get() = 0
+    override val hardwareInput = HardwareInput()
 
     override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {}
 

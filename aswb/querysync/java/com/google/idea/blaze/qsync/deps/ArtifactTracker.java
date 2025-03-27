@@ -22,13 +22,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.ByteSource;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -102,11 +101,5 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
 
   State getStateSnapshot();
 
-  /**
-   * Returns a list of local cache files that build by target provided. Returns Optional.empty() if
-   * the target has not yet been built.
-   */
-  Optional<ImmutableSet<Path>> getCachedFiles(Label target);
-
-  Iterable<Path> getBugreportFiles();
+  ImmutableMap<String, ByteSource> getBugreportFiles();
 }

@@ -21,14 +21,13 @@ import com.google.wireless.android.sdk.stats.MemorySettingsEvent.EventKind;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
-import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.NotificationsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.system.CpuArch;
 import java.util.Locale;
@@ -41,14 +40,8 @@ import org.jetbrains.android.util.AndroidBundle;
 public class MemorySettingsPostSyncChecker {
   public static final double MEMORY_THRESHOLD_PERCENTAGE = .9;
   private static final Logger LOG = Logger.getInstance(MemorySettingsPostSyncChecker.class);
-  private static final NotificationGroup NOTIFICATION_GROUP = new NotificationGroup(
-    "Memory Settings Notification",
-    NotificationDisplayType.STICKY_BALLOON,
-    true,
-    null,
-    null,
-    null,
-    PluginId.getId("org.jetbrains.android"));
+  private static final NotificationGroup NOTIFICATION_GROUP =
+    NotificationGroupManager.getInstance().getNotificationGroup("Memory Settings Notification");
 
   /**
    * Checks memory settings and shows a notification if new memory settings

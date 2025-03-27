@@ -30,6 +30,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/base/perflib:studio.android.sdktools.perflib[module]",
@@ -57,6 +58,7 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 
@@ -73,11 +75,14 @@ kotlin_test(
         ":intellij.android.profilers",
         ":intellij.android.profilers_testlib",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model_testlib",
         "//tools/adt/idea/android-transport:intellij.android.transport",
+        "//tools/adt/idea/android-transport:intellij.android.transport_testlib",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase",
+        "//tools/adt/idea/transport-database:intellij.android.transportDatabase_testlib",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
-        "//tools/base/perf-logger:studio.perf-logger",
+        "//tools/base/perf-logger:studio.perf-logger_testlib",
         "//tools/base/testutils:tools.testutils",
         "//tools/base/transport/proto:transport_java_proto",
     ],

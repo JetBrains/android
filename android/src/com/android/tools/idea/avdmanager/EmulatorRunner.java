@@ -109,6 +109,9 @@ public class EmulatorRunner {
     if (isFoldable(avdInfo)) {
       return AvdClass.FOLDABLE;
     }
+    if (SystemImageTags.isXrImage(tags)) {
+      return AvdClass.XR;
+    }
     return AvdClass.GENERIC;
   }
 }

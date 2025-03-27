@@ -31,7 +31,7 @@ import javax.swing.Icon
  * Immutable snapshot of relevant parts of a [DeviceHandle] or [DeviceTemplate] for use in
  * CategoryTable.
  */
-internal data class DeviceRowData(
+data class DeviceRowData(
   /**
    * If this row represents a template, this value is set and handle is null. Otherwise, handle must
    * be set, and this is also set to handle.sourceTemplate (which may be null).
@@ -127,7 +127,7 @@ internal data class DeviceRowData(
   }
 }
 
-internal val DEVICE_ROW_DATA_KEY = DataKey.create<DeviceRowData>("DeviceRowData")
+val DEVICE_ROW_DATA_KEY = DataKey.create<DeviceRowData>("DeviceRowData")
 
 internal fun provideRowData(sink: DataSink, row: DeviceRowData) {
   sink[DEVICE_ROW_DATA_KEY] = row

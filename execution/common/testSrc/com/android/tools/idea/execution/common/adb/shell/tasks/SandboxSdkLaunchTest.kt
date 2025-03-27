@@ -17,10 +17,6 @@ package com.android.tools.idea.execution.common.adb.shell.tasks
 
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -29,7 +25,11 @@ import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import kotlin.test.fail
 
 class SandboxSdkLaunchTest {
@@ -43,9 +43,9 @@ class SandboxSdkLaunchTest {
   fun successful() = runBlocking(AndroidDispatchers.workerThread) {
     val packageID = "testPackageID"
     launchSandboxSdk(device, packageID, LOG)
-    Mockito.verify(device).executeShellCommand(MockitoKt.eq("cmd sdk_sandbox stop $packageID"), any())
-    Mockito.verify(device).executeShellCommand(MockitoKt.eq("cmd deviceidle tempwhite" + "list $packageID"), any())
-    Mockito.verify(device).executeShellCommand(MockitoKt.eq("cmd sdk_sandbox start $packageID"), any())
+    verify(device).executeShellCommand(eq("cmd sdk_sandbox stop $packageID"), any())
+    verify(device).executeShellCommand(eq("cmd deviceidle tempwhite" + "list $packageID"), any())
+    verify(device).executeShellCommand(eq("cmd sdk_sandbox start $packageID"), any())
   }
 
   @Test
@@ -54,15 +54,15 @@ class SandboxSdkLaunchTest {
 
     val error = "Error: Sdk sandbox not running for $packageID and user 0"
     val output = error.toByteArray(Charsets.UTF_8)
-    whenever(device.executeShellCommand(MockitoKt.eq("cmd sdk_sandbox stop $packageID"), any())).thenAnswer {
+    whenever(device.executeShellCommand(eq("cmd sdk_sandbox stop $packageID"), any())).thenAnswer {
       val outputReceiver = it.arguments[1] as CollectingOutputReceiver
       outputReceiver.addOutput(output, 0, output.size)
     }
 
     launchSandboxSdk(device, packageID, LOG)
-    Mockito.verify(device).executeShellCommand(MockitoKt.eq("cmd sdk_sandbox stop $packageID"), any())
-    Mockito.verify(device).executeShellCommand(MockitoKt.eq("cmd deviceidle tempwhite" + "list $packageID"), any())
-    Mockito.verify(device).executeShellCommand(MockitoKt.eq("cmd sdk_sandbox start $packageID"), any())
+    verify(device).executeShellCommand(eq("cmd sdk_sandbox stop $packageID"), any())
+    verify(device).executeShellCommand(eq("cmd deviceidle tempwhite" + "list $packageID"), any())
+    verify(device).executeShellCommand(eq("cmd sdk_sandbox start $packageID"), any())
   }
 
   @Test
@@ -71,7 +71,7 @@ class SandboxSdkLaunchTest {
 
     val error = "Error: SDK sandbox is disabled."
     val output = error.toByteArray(Charsets.UTF_8)
-    whenever(device.executeShellCommand(MockitoKt.eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
+    whenever(device.executeShellCommand(eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
       val outputReceiver = it.arguments[1] as CollectingOutputReceiver
       outputReceiver.addOutput(output, 0, output.size)
     }
@@ -91,7 +91,7 @@ class SandboxSdkLaunchTest {
     val error = "Error: No such package $packageID for user 0"
     val output = error.toByteArray(Charsets.UTF_8)
 
-    whenever(device.executeShellCommand(MockitoKt.eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
+    whenever(device.executeShellCommand(eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
       val outputReceiver = it.arguments[1] as CollectingOutputReceiver
       outputReceiver.addOutput(output, 0, output.size)
     }
@@ -111,7 +111,7 @@ class SandboxSdkLaunchTest {
     val error = "Error: Sdk sandbox failed to start in 15 seconds"
     val output = error.toByteArray(Charsets.UTF_8)
 
-    whenever(device.executeShellCommand(MockitoKt.eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
+    whenever(device.executeShellCommand(eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
       val outputReceiver = it.arguments[1] as CollectingOutputReceiver
       outputReceiver.addOutput(output, 0, output.size)
     }
@@ -131,7 +131,7 @@ class SandboxSdkLaunchTest {
     val error = "Error: Package $packageID must be debuggable"
     val output = error.toByteArray(Charsets.UTF_8)
 
-    whenever(device.executeShellCommand(MockitoKt.eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
+    whenever(device.executeShellCommand(eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
       val outputReceiver = it.arguments[1] as CollectingOutputReceiver
       outputReceiver.addOutput(output, 0, output.size)
     }
@@ -151,14 +151,14 @@ class SandboxSdkLaunchTest {
 
     val allowListError = "Error: Setting device white" + "list for $packageID"
     val allowListOutput = allowListError.toByteArray(Charsets.UTF_8)
-    whenever(device.executeShellCommand(MockitoKt.eq("cmd deviceidle tempwhite" + "list $packageID"), any())).thenAnswer {
+    whenever(device.executeShellCommand(eq("cmd deviceidle tempwhite" + "list $packageID"), any())).thenAnswer {
       val outputReceiver = it.arguments[1] as CollectingOutputReceiver
       outputReceiver.addOutput(allowListOutput, 0, allowListOutput.size)
     }
 
     val backgroundError = "android.app.BackgroundServiceStartNotAllowedException: Not allowed to start service Intent"
     val backgroundOutput = backgroundError.toByteArray(Charsets.UTF_8)
-    whenever(device.executeShellCommand(MockitoKt.eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
+    whenever(device.executeShellCommand(eq("cmd sdk_sandbox start $packageID"), any())).thenAnswer {
       val outputReceiver = it.arguments[1] as CollectingOutputReceiver
       outputReceiver.addOutput(backgroundOutput, 0, backgroundOutput.size)
     }

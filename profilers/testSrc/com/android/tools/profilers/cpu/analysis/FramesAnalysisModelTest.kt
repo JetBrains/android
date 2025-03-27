@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.CpuCapture
@@ -24,6 +23,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 class FramesAnalysisModelTest {
   @Test

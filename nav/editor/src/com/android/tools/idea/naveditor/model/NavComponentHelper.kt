@@ -171,7 +171,7 @@ val NlComponent.includeAttribute: String?
 
 val NlComponent.includeFile: XmlFile?
   get() {
-    val resources = model.configuration.resourceResolver ?: return null
+    val resources = model.configuration.resourceItemResolver ?: return null
     val value = resources.findResValue(includeAttribute, false) ?: return null
     val vFile = VfsUtil.findFileByIoFile(File(value.value), true) ?: return null
     return runReadAction { PsiManager.getInstance(model.project).findFile(vFile) } as? XmlFile

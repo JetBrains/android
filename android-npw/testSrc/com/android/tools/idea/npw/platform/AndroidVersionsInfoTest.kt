@@ -18,19 +18,19 @@ package com.android.tools.idea.npw.platform
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.getCodeName
 import com.android.sdklib.internal.androidTarget.MockAddonTarget
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.assertEquals
-import org.junit.Test
-import org.mockito.Mockito.mock
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class AndroidVersionsInfoTest {
 
@@ -42,16 +42,14 @@ class AndroidVersionsInfoTest {
     val versionItem = AndroidVersionsInfo.VersionItem.fromStableVersion(OLDER_VERSION)
     assertEquals(OLDER_VERSION, versionItem.minApiLevel)
     assertEquals(OLDER_VERSION.toString(), versionItem.minApiLevelStr)
-    assertEquals(HIGHEST_KNOWN_STABLE_API, versionItem.buildApiLevel)
-    assertEquals(HIGHEST_KNOWN_STABLE_API.toString(), versionItem.buildApiLevelStr)
-    assertEquals(HIGHEST_KNOWN_STABLE_API, versionItem.targetApiLevel)
-    assertEquals(HIGHEST_KNOWN_STABLE_API.toString(), versionItem.targetApiLevelStr)
+    assertEquals(NPW_CURRENT_VERSION, versionItem.buildApiLevel)
+    assertEquals(NPW_CURRENT_VERSION.toString(), versionItem.buildApiLevelStr)
+    assertEquals(NPW_CURRENT_VERSION, versionItem.targetApiLevel)
+    assertEquals(NPW_CURRENT_VERSION.toString(), versionItem.targetApiLevelStr)
     assertNull(versionItem.androidTarget)
   }
 
-  /**
-   * For preview Android target versions, the Build API should be the same as the preview
-   */
+  /** For preview Android target versions, the Build API should be the same as the preview */
   @Test
   fun previewVersion() {
     val version = AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
@@ -71,27 +69,28 @@ class AndroidVersionsInfoTest {
    */
   @Test
   fun stableAndroidTarget() {
-    val androidTarget: MockPlatformTarget = object : MockPlatformTarget(OLDER_VERSION, 0) {
-      override fun getVersion(): AndroidVersion = AndroidVersion(OLDER_VERSION)
-    }
+    val androidTarget: MockPlatformTarget =
+      object : MockPlatformTarget(OLDER_VERSION, 0) {
+        override fun getVersion(): AndroidVersion = AndroidVersion(OLDER_VERSION)
+      }
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertEquals(OLDER_VERSION, versionItem.minApiLevel)
     assertEquals(OLDER_VERSION.toString(), versionItem.minApiLevelStr)
-    assertEquals(HIGHEST_KNOWN_STABLE_API, versionItem.buildApiLevel)
-    assertEquals(HIGHEST_KNOWN_STABLE_API.toString(), versionItem.buildApiLevelStr)
-    assertEquals(HIGHEST_KNOWN_STABLE_API, versionItem.targetApiLevel)
-    assertEquals(HIGHEST_KNOWN_STABLE_API.toString(), versionItem.targetApiLevelStr)
+    assertEquals(NPW_CURRENT_VERSION, versionItem.buildApiLevel)
+    assertEquals(NPW_CURRENT_VERSION.toString(), versionItem.buildApiLevelStr)
+    assertEquals(NPW_CURRENT_VERSION, versionItem.targetApiLevel)
+    assertEquals(NPW_CURRENT_VERSION.toString(), versionItem.targetApiLevelStr)
     assertNull(versionItem.androidTarget)
   }
 
-  /**
-   * For preview Android target versions, the Build API should be the same as the preview
-   */
+  /** For preview Android target versions, the Build API should be the same as the preview */
   @Test
   fun withPreviewAndroidTarget() {
-    val androidTarget: MockPlatformTarget = object : MockPlatformTarget(FUTURE_VERSION, 0) {
-      override fun getVersion(): AndroidVersion = AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
-    }
+    val androidTarget: MockPlatformTarget =
+      object : MockPlatformTarget(FUTURE_VERSION, 0) {
+        override fun getVersion(): AndroidVersion =
+          AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
+      }
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertEquals("API TEST_CODENAME Preview", versionItem.label)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
@@ -103,9 +102,7 @@ class AndroidVersionsInfoTest {
     assertSame(androidTarget, versionItem.androidTarget)
   }
 
-  /**
-   * For addon Android target versions, the Build API should be the same as the platform target
-   */
+  /** For addon Android target versions, the Build API should be the same as the platform target */
   @Test
   fun withAddonAndroidTarget() {
     val baseTarget = MockPlatformTarget(26, 0)
@@ -121,9 +118,7 @@ class AndroidVersionsInfoTest {
     assertSame(projectTarget, versionItem.androidTarget)
   }
 
-  /**
-   * For future Android target versions, the Build API should be updated too
-   */
+  /** For future Android target versions, the Build API should be updated too */
   @Test
   fun futureAndroidVersion() {
     val androidTarget = MockPlatformTarget(FUTURE_VERSION, 0)
@@ -139,8 +134,8 @@ class AndroidVersionsInfoTest {
 
   @Test
   fun previewTargetShouldReturnPreviewInLabel() {
-    val androidVersion = AndroidVersion(HIGHEST_KNOWN_API, "PREVIEW_CODE_NAME")
-    val androidTarget: IAndroidTarget = mock(IAndroidTarget::class.java)
+    val androidVersion = AndroidVersion(NPW_CURRENT_VERSION, "PREVIEW_CODE_NAME")
+    val androidTarget: IAndroidTarget = mock<IAndroidTarget>()
     whenever(androidTarget.version).thenReturn(androidVersion)
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertThat(versionItem.toString()).contains("PREVIEW_CODE_NAME")
@@ -148,22 +143,23 @@ class AndroidVersionsInfoTest {
 
   @Test
   fun platformTargetShouldReturnAndroidDesertNameInLabel() {
-    val androidVersion = AndroidVersion(HIGHEST_KNOWN_API, null)
-    val androidTarget: IAndroidTarget = mock(IAndroidTarget::class.java)
+    val androidVersion = AndroidVersion(NPW_CURRENT_VERSION, null)
+    val androidTarget: IAndroidTarget = mock<IAndroidTarget>()
     whenever(androidTarget.version).thenReturn(androidVersion)
     whenever(androidTarget.isPlatform).thenReturn(true)
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
-    assertThat(versionItem.toString()).contains(getCodeName(HIGHEST_KNOWN_API))
+    assertThat(versionItem.toString()).contains(getCodeName(NPW_CURRENT_VERSION))
   }
 
   /**
-   * If an Android Target is not an Android Platform, then its an Android SDK add-on, and it should be displayed using the
-   * add-on Vendor/Name values instead of the Android Target name (if add-on description is missing).
+   * If an Android Target is not an Android Platform, then its an Android SDK add-on, and it should
+   * be displayed using the add-on Vendor/Name values instead of the Android Target name (if add-on
+   * description is missing).
    */
   @Test
   fun nonPlatformTargetShouldReturnAddonNameInLabel() {
-    val androidVersion = AndroidVersion(HIGHEST_KNOWN_API, null /*codename*/)
-    val androidTarget = mock(IAndroidTarget::class.java)
+    val androidVersion = AndroidVersion(NPW_CURRENT_VERSION, null /*codename*/)
+    val androidTarget = mock<IAndroidTarget>()
     whenever(androidTarget.version).thenReturn(androidVersion)
     whenever(androidTarget.isPlatform).thenReturn(false)
     whenever(androidTarget.vendor).thenReturn("AddonVendor")
@@ -193,11 +189,12 @@ class AndroidVersionsInfoTest {
   }
 
   private fun mockedPlatform(api: Int): IAndroidTarget =
-    mock<IAndroidTarget?>().apply {
-      whenever(this.version).thenReturn(AndroidVersion(api))
-      whenever(this.isPlatform).thenReturn(true)
+    mock<IAndroidTarget> {
+      on { version } doReturn AndroidVersion(api)
+      on { isPlatform } doReturn true
     }
 }
 
-private const val OLDER_VERSION = HIGHEST_KNOWN_API - 1
-private const val FUTURE_VERSION = HIGHEST_KNOWN_API + 1
+private val NPW_CURRENT_VERSION: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+private val OLDER_VERSION = NPW_CURRENT_VERSION - 1
+private val FUTURE_VERSION = NPW_CURRENT_VERSION + 1

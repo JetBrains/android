@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.testFramework.runInEdtAndWait
 import icons.StudioIcons
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
@@ -53,6 +54,7 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
   fun setCodeMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorOnly, robot()).click()
   fun setSplitMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorPreview, robot()).click()
   fun setDesignMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutPreviewOnly, robot()).click()
+
 
   fun setRepresentation(name: String) {
     val representationSelector = ActionButtonFixture.findByIcon(StudioIcons.LayoutEditor.Palette.LIST_VIEW, robot, target())
@@ -90,7 +92,7 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
   private val workbenchPanel: WorkBenchFixture
     get() = WorkBenchFixture.findShowing(target(), robot)
 
-  fun waitForRenderToFinish(wait: Wait = Wait.seconds(20)): SplitEditorFixture {
+  fun waitForRenderToFinish(wait: Wait = Wait.seconds(40)): SplitEditorFixture {
     wait.expecting("WorkBench to show content").until {
       try {
         workbenchPanel.isShowingContent()

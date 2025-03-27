@@ -16,9 +16,9 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.projectsystem.GradleToken
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
+import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.intellij.openapi.module.Module
 
 private class BindingLayoutGradleToken : BindingLayoutToken<GradleProjectSystem>, GradleToken {

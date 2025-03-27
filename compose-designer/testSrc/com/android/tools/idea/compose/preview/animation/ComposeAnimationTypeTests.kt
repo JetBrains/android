@@ -35,7 +35,6 @@ import javax.swing.JPanel
 import javax.swing.JSlider
 import junit.framework.TestCase.assertTrue
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -204,7 +203,7 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
 
     var ui: FakeUi
     runBlocking {
-      surface.sceneManagers.forEach { it.requestRenderAsync().await() }
+      surface.sceneManagers.forEach { it.requestRenderAndWait() }
       animationPreview.addAnimation(animation).join()
       withContext(uiThread) {
         ui = FakeUi(animationPreview.component.apply { size = Dimension(500, 400) })
@@ -265,7 +264,7 @@ class ComposeAnimationTypeTests(private val animationType: ComposeAnimationType)
       }
 
     runBlocking {
-      surface.sceneManagers.forEach { it.requestRenderAsync().await() }
+      surface.sceneManagers.forEach { it.requestRenderAndWait() }
       animationPreview.addAnimation(animation).join()
       assertTrue("No animation is added", 1 == animationPreview.animations.size)
       withContext(uiThread) {

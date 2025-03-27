@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.tools.idea.common.model.DataContextHolder
+import com.android.tools.idea.common.model.NlDataProvider
+import com.android.tools.idea.common.model.NlDataProviderHolder
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
-import com.intellij.openapi.actionSystem.DataContext
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
@@ -42,7 +43,7 @@ private fun wearTilePreviewElement(
     configuration = PreviewConfiguration.cleanAndGet(device = "id:wearos_small_round"),
   )
 
-private class TestModel(override var dataContext: DataContext) : DataContextHolder {
+private class TestModel(override var dataProvider: NlDataProvider?) : NlDataProviderHolder {
   override fun dispose() {}
 }
 
@@ -74,7 +75,7 @@ class WearTilePreviewElementModelAdapterTest {
 
     val element = wearTilePreviewElement(methodFqn = "foo")
 
-    val model = TestModel(adapter.createDataContext(element))
+    val model = TestModel(adapter.createDataProvider(element))
     Disposer.register(rootDisposable, model)
 
     Assert.assertEquals(element, adapter.modelToElement(model))
@@ -93,6 +94,8 @@ class WearTilePreviewElementModelAdapterTest {
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#ff000000"
+    android:minWidth="1px"
+    android:minHeight="1px"
     tools:tilePreviewMethodFqn="foo" />
 
 """

@@ -23,6 +23,7 @@ iml_module(
     name = "intellij.android.android-material.tests",
     iml_files = ["intellij.android.android-material.tests.iml"],
     test_class = "com.android.tools.idea.MaterialTestSuite",
+    test_friends = ["//tools/adt/idea/android-material:intellij.android.android-material"],
     test_srcs = [
         "testResources",
         "testSrc",
@@ -32,6 +33,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -42,5 +44,7 @@ iml_module(
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
 )

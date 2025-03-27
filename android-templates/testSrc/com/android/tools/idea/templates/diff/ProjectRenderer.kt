@@ -17,21 +17,22 @@ package com.android.tools.idea.templates.diff
 
 import com.android.SdkConstants
 import com.android.test.testutils.TestUtils
-import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
 import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
+import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getTestDataRoot
 import com.android.tools.idea.templates.getDefaultModuleState
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.prepareGradleProject
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -52,13 +53,14 @@ import java.nio.file.Path
 // We ignore these directories because they just contain metadata uninteresting to templates, and it
 // saves space for golden files
 val FILES_TO_IGNORE = emptyArray<String>()
+
 // val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
 
 abstract class ProjectRenderer(protected val template: Template, val goldenDirName: String) {
   protected lateinit var moduleState: ModuleTemplateDataBuilder
 
-  fun renderProject(project: Project, vararg customizers: ProjectStateCustomizer) {
-    moduleState = getDefaultModuleState(project, template)
+  fun renderProject(project: Project, agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment, vararg customizers: ProjectStateCustomizer) {
+    moduleState = getDefaultModuleState(project, template, agpVersionSoftwareEnvironment)
     customizers.forEach { it(moduleState, moduleState.projectTemplateDataBuilder) }
 
     try {
@@ -90,13 +92,9 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
     val moduleRecipe: Recipe =
       when (template.formFactor) {
         // TODO(qumeric): support C++
+        FormFactor.XR,
         FormFactor.Mobile -> { data: TemplateData ->
-            this.generateAndroidModule(
-              data as ModuleTemplateData,
-              appTitle,
-              false,
-              BytecodeLevel.default
-            )
+            this.generateAndroidModule(data as ModuleTemplateData, appTitle, false)
           }
         FormFactor.Wear -> { data: TemplateData ->
             this.generateWearModule(data as ModuleTemplateData, appTitle, false)
@@ -120,7 +118,7 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
         templateData = moduleState.build(),
         moduleRoot = moduleRoot,
         dryRun = false,
-        showErrors = true
+        showErrors = true,
       )
 
     println("Using template ${template.name}")
@@ -162,7 +160,7 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
     moduleRecipe: Recipe,
     context: RenderingContext,
     moduleRecipeExecutor: DefaultRecipeExecutor,
-    templateRecipeExecutor: DefaultRecipeExecutor
+    templateRecipeExecutor: DefaultRecipeExecutor,
   ) {
     runWriteActionAndWait {
       writeDefaultTomlFile(project, moduleRecipeExecutor)
@@ -190,7 +188,7 @@ internal fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecu
   WriteCommandAction.writeCommandAction(project).run<IOException> {
     executor.copy(
       File(FileUtils.join("fileTemplates", "internal", "Version_Catalog_File.versions.toml.ft")),
-      File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG))
+      File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)),
     )
     executor.applyChanges()
   }

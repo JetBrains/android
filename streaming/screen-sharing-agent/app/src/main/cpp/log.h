@@ -102,6 +102,9 @@ private:
   static Level level_;
 };
 
+// Returns contents of a buffer as a hexadecimal string.
+std::string HexString(const void* buf, size_t size);
+
 #define TRACE Log::D("%s:%d", __FILE__, __LINE__)
 
 }  // namespace screensharing

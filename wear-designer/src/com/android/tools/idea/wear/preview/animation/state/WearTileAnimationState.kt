@@ -18,6 +18,8 @@ package com.android.tools.idea.wear.preview.animation.state
 import com.android.tools.idea.preview.animation.AnimationTracker
 import com.android.tools.idea.preview.animation.state.ColorAnimationState
 import com.android.tools.idea.preview.animation.state.FromToState
+import com.android.tools.idea.preview.animation.state.SwapAction
+import com.android.tools.idea.preview.animation.state.ToolbarLabel
 import com.android.tools.idea.wear.preview.animation.ColorUnit
 import com.android.tools.idea.wear.preview.animation.ProtoAnimation
 import com.android.tools.idea.wear.preview.animation.state.managers.actions.FloatInputComponentAction
@@ -41,7 +43,8 @@ interface WearTileAnimationState<T> : FromToState<T> {
   fun updateAnimation(animation: ProtoAnimation)
 }
 
-class WearTileFloatState(initial: Float?, target: Float?) : WearTileAnimationState<Float> {
+class WearTileFloatState(tracker: AnimationTracker, initial: Float?, target: Float?) :
+  WearTileAnimationState<Float> {
 
   override val state = MutableStateFlow((initial ?: 0f) to (target ?: 0f))
 
@@ -50,16 +53,25 @@ class WearTileFloatState(initial: Float?, target: Float?) : WearTileAnimationSta
     animation.setFloatValues(initial, target)
   }
 
+  private val fromInput =
+    FloatInputComponentAction(state.value.first) { state.value = it to state.value.second }
+  private val toInput =
+    FloatInputComponentAction(state.value.second) { state.value = state.value.first to it }
   override val changeStateActions: List<AnAction> =
     listOf(
-      FloatInputComponentAction(state.value.first) { state.value = it to state.value.second },
-      // TODO AS Ladybug Beta 2 Merge
-      //ToolbarLabel("to"),
-      FloatInputComponentAction(state.value.second) { state.value = state.value.first to it },
+      SwapAction(tracker) {
+        state.value = state.value.second to state.value.first
+        fromInput.setInputFieldValue(state.value.first.toString())
+        toInput.setInputFieldValue(state.value.second.toString())
+      },
+      fromInput,
+      ToolbarLabel("to"),
+      toInput,
     )
 }
 
-class WearTileIntState(initial: Int?, target: Int?) : WearTileAnimationState<Int> {
+class WearTileIntState(tracker: AnimationTracker, initial: Int?, target: Int?) :
+  WearTileAnimationState<Int> {
   override val state = MutableStateFlow((initial ?: 0) to (target ?: 0))
 
   override fun updateAnimation(animation: ProtoAnimation) {
@@ -67,12 +79,20 @@ class WearTileIntState(initial: Int?, target: Int?) : WearTileAnimationState<Int
     animation.setIntValues(initial, target)
   }
 
+  private val fromInput =
+    IntInputComponentAction(state.value.first) { state.value = it to state.value.second }
+  private val toInput =
+    IntInputComponentAction(state.value.second) { state.value = state.value.first to it }
   override val changeStateActions: List<AnAction> =
     listOf(
-      IntInputComponentAction(state.value.first) { state.value = it to state.value.second },
-      // TODO AS Ladybug Beta 2 Merge
-      //ToolbarLabel("to"),
-      IntInputComponentAction(state.value.second) { state.value = state.value.first to it },
+      SwapAction(tracker) {
+        state.value = state.value.second to state.value.first
+        fromInput.setInputFieldValue(state.value.first.toString())
+        toInput.setInputFieldValue(state.value.second.toString())
+      },
+      fromInput,
+      ToolbarLabel("to"),
+      toInput,
     )
 }
 

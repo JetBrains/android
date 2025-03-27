@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
@@ -31,6 +30,7 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtens
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 @RunsInEdt
 class DirectionsClassKtDescriptorsTest {
@@ -81,7 +81,7 @@ class DirectionsClassKtDescriptorsTest {
         it is SafeArgsKtPackageProviderExtension
       }
 
-    val traceMock: BindingTrace = MockitoKt.mock()
+    val traceMock: BindingTrace = mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
@@ -176,7 +176,7 @@ class DirectionsClassKtDescriptorsTest {
         it is SafeArgsKtPackageProviderExtension
       }
 
-    val traceMock: BindingTrace = MockitoKt.mock()
+    val traceMock: BindingTrace = mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
@@ -255,7 +255,7 @@ class DirectionsClassKtDescriptorsTest {
         it is SafeArgsKtPackageProviderExtension
       }
 
-    val traceMock: BindingTrace = MockitoKt.mock()
+    val traceMock: BindingTrace = mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
@@ -339,7 +339,7 @@ class DirectionsClassKtDescriptorsTest {
         it is SafeArgsKtPackageProviderExtension
       }
 
-    val traceMock: BindingTrace = MockitoKt.mock()
+    val traceMock: BindingTrace = mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
@@ -436,7 +436,7 @@ class DirectionsClassKtDescriptorsTest {
         it is SafeArgsKtPackageProviderExtension
       }
 
-    val traceMock: BindingTrace = MockitoKt.mock()
+    val traceMock: BindingTrace = mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 

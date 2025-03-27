@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.report
 
-import com.android.tools.idea.actions.SendFeedbackAction
+import com.android.tools.idea.actions.SubmitBugReportAction
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import java.nio.file.Paths
@@ -31,7 +31,7 @@ object SystemInfoFileProvider : DiagnosticsSummaryFileProvider {
   override fun getFiles(project: Project?): List<FileInfo> {
     val dir = DiagnosticsSummaryFileProvider.getDiagnosticsDirectoryPath(PathManager.getLogPath())
     val path = dir.resolve(FILE_NAME)
-    path.toFile().writeText(SendFeedbackAction.getDescription(project))
+    path.toFile().writeText(SubmitBugReportAction.getDescription(project))
 
     return listOf(FileInfo(path, Paths.get(FILE_NAME)))
   }

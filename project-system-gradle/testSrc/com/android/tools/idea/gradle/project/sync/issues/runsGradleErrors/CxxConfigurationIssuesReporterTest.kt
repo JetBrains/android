@@ -52,9 +52,10 @@ class CxxConfigurationIssuesReporterTest {
       val syncIssue = setUpMockSyncIssue("19.1.2")
 
 
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      val module = project.gradleModule(":app")!!
+      val messages = reporter.report(syncIssue, module, null)
       assertSize(1, messages)
-      val notification = messages[0]
+      val notification = messages[0].syncMessage
 
       assertEquals("Gradle Sync Issues", notification.group)
       assertEquals(
@@ -65,9 +66,10 @@ class CxxConfigurationIssuesReporterTest {
       )
       assertEquals(MessageType.WARNING, notification.type)
 
-      val quickFixes = messages[0]!!.quickFixes
+      val quickFixes = notification.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
+      assertEquals(listOf(module), messages[0].affectedModules)
 
       assertEquals(
         listOf(
@@ -77,7 +79,7 @@ class CxxConfigurationIssuesReporterTest {
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK)
             .build()
         ),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION, messages)
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION, messages.map { it.syncMessage })
       )
     }
   }
@@ -91,18 +93,21 @@ class CxxConfigurationIssuesReporterTest {
       val syncIssueTwo = setUpMockSyncIssue("19.1.1")
       val syncIssueThree = setUpMockSyncIssue("19.1.2") // Intentional duplicate of syncIssueOne
 
+      val projectModule = project.gradleModule(":")!!
+      val testCompositeBuildLib1 = project.gradleModule(":TestCompositeLib1")!!
+      val testCompositeBuildLib3 = project.gradleModule(":TestCompositeLib3")!!
       val moduleMap = listOf(
-        syncIssueOne to project.gradleModule(":")!!,
-        syncIssueTwo to project.gradleModule(":TestCompositeLib1")!!,
-        syncIssueThree to project.gradleModule(":TestCompositeLib3")!!
+        syncIssueOne to projectModule,
+        syncIssueTwo to testCompositeBuildLib1,
+        syncIssueThree to testCompositeBuildLib3
       ).toMap(IdentityHashMap())
 
       val messages =
         reporter
           .reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf())
-          .filter { it.type == MessageType.WARNING }
+          .filter { it.syncMessage.type == MessageType.WARNING }
       assertSize(1, messages)
-      val notificationOne = messages[0]
+      val notificationOne = messages[0].syncMessage
 
       assertEquals("Gradle Sync Issues", notificationOne.group)
       assertEquals(
@@ -112,9 +117,10 @@ class CxxConfigurationIssuesReporterTest {
         notificationOne.message
       )
 
-      val quickFixes = messages[0].quickFixes
+      val quickFixes = notificationOne.quickFixes
       assertSize(1 + 1 /* affected modules */, quickFixes)
       assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
+      assertEquals(listOf(testCompositeBuildLib1, testCompositeBuildLib3, projectModule), messages[0].affectedModules)
 
       val resultSyncIssue = GradleSyncIssue
         .newBuilder()
@@ -123,7 +129,7 @@ class CxxConfigurationIssuesReporterTest {
         .build()
       assertEquals(
         listOf(resultSyncIssue),
-        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION, messages)
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION, messages.map { it.syncMessage })
       )
     }
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
@@ -30,6 +29,7 @@ import org.mockito.Mockito.reset
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.mock
 
 class NavigationResourcesModificationListenerTest {
   @get:Rule val safeArgsRule = SafeArgsRule()

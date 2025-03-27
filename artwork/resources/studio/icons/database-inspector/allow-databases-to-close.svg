@@ -1,10 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M4 12H5V13H4V12Z" fill="#6E6E6E"/>
-<path d="M4 10H5V11H4V10Z" fill="#6E6E6E"/>
-<path d="M4 8H5V9H4V8Z" fill="#6E6E6E"/>
-<path d="M6 13H7V12H6V13Z" fill="#6E6E6E"/>
-<path d="M7 4H2V7C2 7.55228 2.44772 8 3 8H6C6.55228 8 7 7.55228 7 7V4Z" fill="#6E6E6E"/>
-<rect x="5" y="2" width="1" height="4" fill="#6E6E6E"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M10 9V7H13C13 6.50368 12.4627 6 12 6H10C9.53726 6 9 6.50368 9 7V9C8.44772 9 8 9.44772 8 10V13C8 13.5523 8.44772 14 9 14H13C13.5523 14 14 13.5523 14 13V10C14 9.44772 13.5523 9 13 9H10Z" fill="#389FD6"/>
-<rect x="3" y="2" width="1" height="4" fill="#6E6E6E"/>
-</svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 9.5h-3a1 1 0 00-1 1v3h5v-3a1 1 0 00-1-1z" fill="#EDF3FF" stroke="#3574F0" stroke-linecap="round"/><path d="M6.5 4.5h-4v2a1 1 0 001 1h2a1 1 0 001-1v-2zM3.5 2.5v2M5.5 2.5v2" stroke="#6C707E" stroke-linecap="round"/><path fill-rule="evenodd" clip-rule="evenodd" d="M10 8a1 1 0 112 0h1a2 2 0 10-4 0v1.5a.5.5 0 001 0V8z" fill="#3574F0"/><circle cx="6.5" cy="12.5" r=".5" fill="#6C707E"/><circle cx="4.5" cy="12.5" r=".5" fill="#6C707E"/><circle cx="4.5" cy="10.5" r=".5" fill="#EBECF0"/><circle cx="4.5" cy="10.5" r=".5" fill="#6C707E"/><path d="M4.5 7.5v1" stroke="#6C707E" stroke-linecap="round"/></svg>

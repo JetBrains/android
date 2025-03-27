@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
@@ -26,6 +25,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 /** Tests for [ClearLogcatAction] */
 class ClearLogcatActionTest {

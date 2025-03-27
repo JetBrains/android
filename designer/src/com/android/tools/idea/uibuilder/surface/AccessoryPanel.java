@@ -170,8 +170,8 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
   }
 
   @Override
-  public void componentSelectionChanged(@NotNull DesignSurface<?> surface, @NotNull List<NlComponent> newSelection) {
-    NlComponent parent = findSharedParent(newSelection);
+  public void componentSelectionChanged(@NotNull DesignSurface<?> surface, @NotNull List<? extends @NotNull NlComponent> newSelection) {
+    NlComponent parent = findSharedParent((List<NlComponent>)newSelection);
     if (parent == null && newSelection.isEmpty()) {
       parent = getSingleRootComponent(surface);
       if (parent != null) {
@@ -204,7 +204,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
           notifyListeners();
         }
 
-        panel.updateAccessoryPanelWithSelection(myType, newSelection);
+        panel.updateAccessoryPanelWithSelection(myType, (List<NlComponent>)newSelection);
         if (myHandlesVisibility) {
           setVisible(true);
         }

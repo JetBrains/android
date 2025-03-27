@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
-import com.android.flags.ifEnabled
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
@@ -32,7 +31,6 @@ import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -42,15 +40,15 @@ import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
-import com.android.tools.idea.preview.gallery.GalleryModeProperty
+import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
-import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.preview.ComposePreviewElement
@@ -58,11 +56,14 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
@@ -73,19 +74,18 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
-import com.intellij.util.SlowOperations
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -158,9 +158,9 @@ interface ComposePreviewView : PreviewRepresentationView {
   ): List<PsiComposePreviewElementInstance> {
 
     return mainSurface.updatePreviewsAndRefresh(
-      // Don't reuse models when in gallery mode to avoid briefly showing an unexpected/mixed
+      // Don't reuse models when in focus mode to avoid briefly showing an unexpected/mixed
       // state of the old and new preview.
-      tryReusingModels = galleryMode == null,
+      tryReusingModels = focusMode == null,
       reinflate,
       previewElements,
       Logger.getInstance(ComposePreviewView::class.java),
@@ -337,6 +337,15 @@ internal class ComposePreviewViewImpl(
 
   private val actionsToolbar: ActionsToolbar
 
+  /**
+   * This [kotlinx.coroutines.flow.Flow] stores requests to update the visibility and notifications
+   * of the Preview view. These requests are created when calling
+   * [updateVisibilityAndNotificationsRequestFlow] and handled by
+   * [handleUpdateVisibilityAndNotificationsRequest]. A request mechanism is used to ensure that the
+   * requests are handled sequentially.
+   */
+  private val updateVisibilityAndNotificationsRequestFlow = MutableSharedFlow<Unit>(replay = 1)
+
   val content = JPanel(BorderLayout())
 
   init {
@@ -365,7 +374,7 @@ internal class ComposePreviewViewImpl(
 
     workbench.init(mainPanelSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
-    val projectStatus = renderingBuildStatusManager.statusFlow.value
+    val projectStatus = renderingBuildStatusManager.status
     log.debug("ProjectStatus: $projectStatus")
     when (projectStatus) {
       RenderingBuildStatus.NeedsBuild -> {
@@ -387,11 +396,17 @@ internal class ComposePreviewViewImpl(
     workbench.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     workbench.isFocusCycleRoot = true
 
+    scope.launch {
+      updateVisibilityAndNotificationsRequestFlow.collect {
+        handleUpdateVisibilityAndNotificationsRequest()
+      }
+    }
+
     DataManager.registerDataProvider(workbench) { getData(it) }
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
-  override var galleryMode by GalleryModeProperty(content, mainSurface)
+  override var focusMode by FocusModeProperty(content, mainSurface)
 
   override fun updateProgress(message: String) =
     UIUtil.invokeLaterIfNeeded {
@@ -452,8 +467,12 @@ internal class ComposePreviewViewImpl(
    * build state. This method is called after certain updates like a build or a preview refresh has
    * happened. Calling this method will also update the FileEditor notifications.
    */
-  override fun updateVisibilityAndNotifications() =
-    UIUtil.invokeLaterIfNeeded {
+  override fun updateVisibilityAndNotifications() {
+    scope.launch { updateVisibilityAndNotificationsRequestFlow.emit(Unit) }
+  }
+
+  private suspend fun handleUpdateVisibilityAndNotificationsRequest() =
+    withContext(uiThread) {
       if (
         workbench.isMessageVisible &&
           renderingBuildStatusManager.status == RenderingBuildStatus.NeedsBuild
@@ -467,20 +486,23 @@ internal class ComposePreviewViewImpl(
       } else {
         if (hasRendered) {
           log.debug("Show content")
-          workbench.hideLoading()
           if (hasContent) {
+            workbench.hideLoading()
             workbench.showContent()
           } else {
+            val generatePreviewsActionData =
+              withContext(workerThread) {
+                if (StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.get())
+                  createGeneratePreviewsActionData()
+                else null
+              }
+            workbench.hideLoading()
             workbench.hideContent()
             workbench.loadingStopped(
               message("panel.no.previews.defined"),
               null,
               UrlData(message("panel.no.previews.action"), COMPOSE_PREVIEW_DOC_URL),
-              StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.ifEnabled {
-                SlowOperations.allowSlowOperations(
-                  ThrowableComputable { createGeneratePreviewsActionData() }
-                )
-              },
+              generatePreviewsActionData,
             )
           }
         }
@@ -493,18 +515,26 @@ internal class ComposePreviewViewImpl(
    * Creates an [ActionData] to invoke [GenerateComposePreviewsForFileAction]. The action should
    * only be visible if the containing file has Composables.
    */
-  private fun createGeneratePreviewsActionData(): ActionData? {
-    if (!StudioBot.getInstance().isContextAllowed(project)) {
+  private suspend fun createGeneratePreviewsActionData(): ActionData? {
+    if (
+      !GeminiPluginApi.getInstance().isAvailable() ||
+        !GeminiPluginApi.getInstance().isContextAllowed(project)
+    ) {
       return null
     }
+
+    val previewGeneratorFactory =
+      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull() ?: return null
+
     try {
       ProgressManager.checkCanceled()
-      if (
+      val hasComposables = readAction {
         psiFilePointer.element
           ?.collectDescendantsOfType<KtNamedFunction>()
           ?.flatMap { it.annotationEntries }
-          ?.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } == true
-      ) {
+          ?.any { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) } == true
+      }
+      if (!hasComposables) {
         // Don't show the action if there are no Composables in the file
         return null
       }
@@ -522,14 +552,18 @@ internal class ComposePreviewViewImpl(
         SimpleDataContext.builder()
           .add(CommonDataKeys.PSI_FILE, psiFile)
           .add(CommonDataKeys.EDITOR, selectedEditor)
+          .add(CommonDataKeys.PROJECT, psiFile.project)
           .build()
-      ActionUtil.invokeAction(
-        GenerateComposePreviewsForFileAction(),
-        simpleContext,
-        ActionPlaces.UNKNOWN,
-        null,
-        null,
-      )
+      val event =
+        AnActionEvent.createEvent(
+          previewGeneratorFactory.createPreviewGenerator(),
+          simpleContext,
+          null,
+          ActionPlaces.UNKNOWN,
+          ActionUiKind.NONE,
+          null,
+        )
+      ActionUtil.invokeAction(previewGeneratorFactory.createPreviewGenerator(), event, null)
     }
   }
 

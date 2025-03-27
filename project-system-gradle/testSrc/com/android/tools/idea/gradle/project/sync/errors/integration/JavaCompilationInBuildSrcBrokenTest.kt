@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.integration
 
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleError
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleException
+import com.android.tools.idea.gradle.project.sync.issues.GradleExceptionAnalyticsSupport.GradleFailureDetails
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
@@ -57,6 +61,20 @@ class JavaCompilationInBuildSrcBrokenTest: AbstractSyncFailureIntegrationTest() 
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
           FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
           FAILURE : SYNC_TOTAL
+        """.trimIndent())
+        Truth.assertThat(it.gradleFailureDetails.toTestString()).isEqualTo("""
+          failure {
+            error {
+              exception: org.gradle.tooling.BuildActionFailureException
+                at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+              exception: org.gradle.internal.exceptions.LocationAwareException
+                at: [0]org.gradle.initialization.exception.DefaultExceptionAnalyser#transform
+              exception: org.gradle.api.tasks.TaskExecutionException
+                at: [0]org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter#lambda${'$'}executeIfValid${'$'}1
+              exception: org.gradle.api.internal.tasks.compile.CompilationFailedException
+                at: [0]org.gradle.api.internal.tasks.compile.JdkJavaCompiler#execute
+            }
+          }
         """.trimIndent())
       },
     )

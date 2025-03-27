@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.components.JBList;
-import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JListItemFixture;
@@ -34,13 +33,10 @@ public class LiveTemplatesTestUtil {
 
   protected static JListFixture clickOnCodeInsertLiveTemplate(@NotNull GuiTestRule guiTest, @NotNull IdeFrameFixture ideFrame,
                                                               @NotNull EditorFixture editorFixture) {
-    editorFixture.waitForFileToActivate();
+    editorFixture.waitUntilErrorAnalysisFinishes();
     ideFrame.requestFocusIfLost();
-    editorFixture.moveBetween("", "setContentView(R.layout.activity_my);")
-      .enterText("\n");
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-
-    ideFrame.waitAndInvokeMenuPath("Code", "Insert Live Template...");
+    editorFixture.moveBetween("", "setContentView(R.layout.activity_my);");
+    ideFrame.waitAndInvokeMenuPath("Code", "Insert Live Template\u2026");
 
     Ref<JBList> out = new Ref<>();
     Wait.seconds(10).expecting("Live Templates list to show.").until(() -> {

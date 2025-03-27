@@ -224,6 +224,10 @@ public final class AvdOptionsModel extends WizardModel {
         myVmHeapStorage.set(EmulatedProperties.defaultVmHeapSize(myDevice.getValue()));
         myInternalStorage.set(EmulatedProperties.defaultInternalStorage(myDevice.getValue()));
 
+        boolean isXr = Device.isXr(myDevice.getValue());
+        myColdBoot.set(isXr);
+        myFastBoot.set(!isXr);
+
         if (myAvdDeviceData.getHasSdCard().get()) {
           // has sdcard in device, go with default setting
           myUseBuiltInSdCard.set(true);

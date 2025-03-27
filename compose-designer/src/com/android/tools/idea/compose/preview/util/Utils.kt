@@ -18,20 +18,29 @@ package com.android.tools.idea.compose.preview.util
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.compose.isValidPreviewLocation
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.compose.preview.findDeepestHits
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
+import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.isTestFile
+import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.util.isAndroidModule
 import com.android.tools.idea.util.isCommonWithAndroidModule
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Segment
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -51,6 +60,19 @@ fun SceneView.getRootComponent(): NlComponent? {
   return root
 }
 
+fun SceneView.getDeepestViewInfos(x: Int, y: Int, logger: Logger): Collection<ComposeViewInfo>? {
+  val androidX = Coordinates.getAndroidX(this, x)
+  val androidY = Coordinates.getAndroidY(this, y)
+  val deepestViewInfos =
+    this.scene.root
+      ?.nlComponent
+      ?.viewInfo
+      ?.let { viewInfo -> parseViewInfo(viewInfo, logger) }
+      ?.findDeepestHits(androidX, androidY)
+
+  return deepestViewInfos
+}
+
 /** Returns true if the ComposeViewAdapter component of this SceneView is currently selected. */
 fun SceneView.isRootComponentSelected() =
   getRootComponent()?.let { surface.selectionModel.isSelected(it) } == true
@@ -67,12 +89,16 @@ fun isFastPreviewAvailable(project: Project) =
 fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
   getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
+fun NlDataProvider.previewElement(): PsiComposePreviewElementInstance? =
+  getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+
 /**
  * Whether this function is not in a test file and is properly annotated with
  * [COMPOSE_PREVIEW_ANNOTATION_FQN], and validating the location of Previews.
  *
  * @see [isValidPreviewLocation]
  */
+@RequiresReadLock
 internal fun KtNamedFunction.isValidComposePreviewForRunConfiguration() =
   !isInTestFile() &&
     isInAndroidOrCommonModule() &&

@@ -22,8 +22,4 @@
             <category>Kotlin Android</category>
         </intentionAction>
     </extensions>
-    <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <idea.androidSdkProvider implementation="org.jetbrains.kotlin.android.wizard.AndroidSdkProviderImpl"/>
-    </extensions>
-
 </idea-plugin>

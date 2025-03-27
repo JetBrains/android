@@ -18,6 +18,8 @@ package com.android.tools.idea.avd
 import androidx.compose.runtime.Immutable
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
+import com.android.sdklib.devices.Camera
+import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
 import com.android.sdklib.internal.avd.AvdBuilder
@@ -35,11 +37,11 @@ import com.android.sdklib.internal.avd.OnDiskSkin
 import com.android.sdklib.internal.avd.QuickBoot
 import com.android.sdklib.internal.avd.SdCard
 import com.android.sdklib.internal.avd.Skin as AvdSkin
+import com.android.sdklib.internal.avd.UserSettingsKey
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 
 @Immutable
 internal data class VirtualDevice
@@ -47,27 +49,63 @@ internal constructor(
   val name: String,
   val device: Device,
   internal val skin: Skin,
+  /**
+   * The value of the [skin] property after it is initialized by [ConfigurationPage] via
+   * [ConfigureDevicePanelState]. [ConfigureDevicePanelState] uses this to reset [skin] to the
+   * default when a user selects a Play system image. It also uses this to generate the restricted
+   * list of skins for the skin drop down for Play.
+   *
+   * It's its own property for ease of testing, like [VirtualDevice.hasPlaystore], [isFoldable], etc
+   */
+  internal val defaultSkin: Skin,
   internal val frontCamera: AvdCamera,
   internal val rearCamera: AvdCamera,
   internal val speed: AvdNetworkSpeed,
   internal val latency: AvdNetworkLatency,
   internal val orientation: ScreenOrientation,
   internal val defaultBoot: Boot,
-  internal val internalStorage: StorageCapacity,
-  internal val expandedStorage: ExpandedStorage,
-  internal val cpuCoreCount: Int?,
+  internal val internalStorage: StorageCapacity?,
+  internal val expandedStorage: ExpandedStorage?,
+  internal val existingCustomExpandedStorage: Custom? = null,
+  internal val cpuCoreCount: Int,
   internal val graphicsMode: GraphicsMode,
-  internal val ram: StorageCapacity,
-  internal val vmHeapSize: StorageCapacity,
+  internal val ram: StorageCapacity?,
+  internal val defaultRam: StorageCapacity =
+    EmulatedProperties.defaultRamSize(device).toStorageCapacity(),
+  internal val vmHeapSize: StorageCapacity?,
+  internal val defaultVmHeapSize: StorageCapacity =
+    EmulatedProperties.defaultVmHeapSize(device).toStorageCapacity(),
+  internal val preferredAbi: String?,
+  private val hasPlaystore: Boolean = device.hasPlayStore(),
+  internal val isFoldable: Boolean = device.defaultHardware.screen.isFoldable,
+  internal val cameraLocations: Collection<CameraLocation> =
+    device.defaultHardware.cameras.map(Camera::getLocation),
+  internal val formFactor: String = device.formFactor,
 ) {
+  internal val isValid =
+    internalStorage != null && expandedStorage != null && ram != null && vmHeapSize != null
+
+  internal fun hasPlayStore(image: ISystemImage) =
+    hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
+
   companion object {
+    internal val MIN_INTERNAL_STORAGE = StorageCapacity(2, StorageCapacity.Unit.GB)
+
+    internal val MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE =
+      StorageCapacity(100, StorageCapacity.Unit.MB)
+
+    internal val MIN_CUSTOM_EXPANDED_STORAGE = StorageCapacity(10, StorageCapacity.Unit.MB)
+    internal val MIN_RAM = StorageCapacity(128, StorageCapacity.Unit.MB)
+    internal val MIN_VM_HEAP_SIZE = StorageCapacity(16, StorageCapacity.Unit.MB)
+
     fun withDefaults(device: Device): VirtualDevice =
       VirtualDevice(
         name = device.displayName,
         device = device,
         skin = NoSkin.INSTANCE,
-        frontCamera = AvdCamera.EMULATED,
-        rearCamera = AvdCamera.VIRTUAL_SCENE,
+        defaultSkin = NoSkin.INSTANCE,
+        frontCamera = if (device.hasFrontCamera()) AvdCamera.EMULATED else AvdCamera.NONE,
+        rearCamera = if (device.hasRearCamera()) AvdCamera.VIRTUAL_SCENE else AvdCamera.NONE,
         speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
         latency = EmulatedProperties.DEFAULT_NETWORK_LATENCY,
         orientation = device.defaultState.orientation,
@@ -78,29 +116,36 @@ internal constructor(
         graphicsMode = GraphicsMode.AUTO,
         ram = EmulatedProperties.defaultRamSize(device).toStorageCapacity(),
         vmHeapSize = EmulatedProperties.defaultVmHeapSize(device).toStorageCapacity(),
+        preferredAbi = null,
       )
   }
 }
 
-internal fun VirtualDevice.copyFrom(avdInfo: AvdBuilder): VirtualDevice {
+private fun Device.hasFrontCamera() =
+  defaultHardware.cameras.any { it.location == CameraLocation.FRONT }
+
+private fun Device.hasRearCamera() =
+  defaultHardware.cameras.any { it.location == CameraLocation.BACK }
+
+internal fun VirtualDevice.copyFrom(avdBuilder: AvdBuilder): VirtualDevice {
   // TODO: System image
-  // TODO: Preferred ABI
 
   return copy(
-    name = avdInfo.displayName,
-    skin = avdInfo.skin.toSkin(),
-    frontCamera = avdInfo.frontCamera,
-    rearCamera = avdInfo.backCamera,
-    speed = avdInfo.networkSpeed,
-    latency = avdInfo.networkLatency,
-    orientation = avdInfo.screenOrientation,
-    defaultBoot = avdInfo.bootMode.toBoot(),
-    internalStorage = avdInfo.internalStorage.toStorageCapacity(),
-    expandedStorage = avdInfo.sdCard.toExpandedStorage(),
-    cpuCoreCount = avdInfo.cpuCoreCount,
-    graphicsMode = avdInfo.gpuMode.toGraphicsMode(),
-    ram = avdInfo.ram.toStorageCapacity(),
-    vmHeapSize = avdInfo.vmHeap.toStorageCapacity(),
+    name = avdBuilder.displayName,
+    skin = avdBuilder.skin.toSkin(),
+    frontCamera = avdBuilder.frontCamera,
+    rearCamera = avdBuilder.backCamera,
+    speed = avdBuilder.networkSpeed,
+    latency = avdBuilder.networkLatency,
+    orientation = avdBuilder.screenOrientation,
+    defaultBoot = avdBuilder.bootMode.toBoot(),
+    internalStorage = avdBuilder.internalStorage.toStorageCapacity(),
+    expandedStorage = avdBuilder.sdCard.toExpandedStorage(),
+    cpuCoreCount = avdBuilder.cpuCoreCount,
+    graphicsMode = avdBuilder.gpuMode.toGraphicsMode(),
+    ram = avdBuilder.ram.toStorageCapacity(),
+    vmHeapSize = avdBuilder.vmHeap.toStorageCapacity(),
+    preferredAbi = avdBuilder.userSettings[UserSettingsKey.PREFERRED_ABI],
   )
 }
 
@@ -110,14 +155,14 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
 
   systemImage = image
 
-  sdCard = device.expandedStorage.toSdCard()
+  sdCard = requireNotNull(device.expandedStorage).toSdCard()
   skin = device.skin.toAvdSkin()
 
   screenOrientation = device.orientation
-  cpuCoreCount = device.cpuCoreCount ?: 1
-  ram = device.ram.toStorage()
-  vmHeap = device.vmHeapSize.toStorage()
-  internalStorage = device.internalStorage.toStorage()
+  cpuCoreCount = device.cpuCoreCount
+  ram = requireNotNull(device.ram).toStorage()
+  vmHeap = requireNotNull(device.vmHeapSize).toStorage()
+  internalStorage = requireNotNull(device.internalStorage).toStorage()
 
   frontCamera = device.frontCamera
   backCamera = device.rearCamera
@@ -128,37 +173,39 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice, image: ISystemImage) {
   networkLatency = device.latency
 
   bootMode = device.defaultBoot.toBootMode()
+
+  when (device.preferredAbi) {
+    null -> userSettings.remove(UserSettingsKey.PREFERRED_ABI)
+    else -> userSettings[UserSettingsKey.PREFERRED_ABI] = device.preferredAbi
+  }
 }
 
 private fun StorageCapacity.toStorage(): Storage {
   return Storage(value * unit.byteCount)
 }
 
-private fun Storage.toStorageCapacity(): StorageCapacity {
+internal fun Storage.toStorageCapacity(): StorageCapacity {
   val unit = getAppropriateUnits()
   return StorageCapacity(getSizeAsUnit(unit), StorageCapacity.Unit.valueOf(unit.displayValue))
 }
 
 internal data class Custom internal constructor(internal val value: StorageCapacity) :
   ExpandedStorage() {
+  internal fun withMaxUnit() = Custom(value.withMaxUnit())
 
   override fun toString() = value.toString()
 }
 
-internal data class ExistingImage internal constructor(private val path: String) :
+internal data class ExistingImage internal constructor(private val value: Path) :
   ExpandedStorage() {
-  override fun isValid() = Files.isRegularFile(Paths.get(path))
-
-  override fun toString() = path
+  override fun toString() = value.toString()
 }
 
 internal object None : ExpandedStorage() {
   override fun toString() = ""
 }
 
-internal sealed class ExpandedStorage {
-  internal open fun isValid() = true
-}
+internal sealed class ExpandedStorage
 
 internal fun ExpandedStorage.toSdCard(): SdCard? =
   when (this) {
@@ -170,7 +217,7 @@ internal fun ExpandedStorage.toSdCard(): SdCard? =
 internal fun SdCard?.toExpandedStorage() =
   when (this) {
     null -> None
-    is ExternalSdCard -> ExistingImage(path)
+    is ExternalSdCard -> ExistingImage(Path.of(path))
     is InternalSdCard -> Custom(StorageCapacity(size, StorageCapacity.Unit.B).withMaxUnit())
   }
 
@@ -180,7 +227,7 @@ internal fun AvdSkin?.toSkin(): Skin =
   when (this) {
     null -> NoSkin.INSTANCE
     is OnDiskSkin -> DefaultSkin(path)
-    is GenericSkin -> DefaultSkin(Paths.get(name))
+    is GenericSkin -> NoSkin.INSTANCE
   }
 
 internal fun Boot.toBootMode() =

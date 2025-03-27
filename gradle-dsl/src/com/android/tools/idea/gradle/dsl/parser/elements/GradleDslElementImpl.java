@@ -53,6 +53,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @NotNull protected List<GradlePropertiesDslElement> myHolders = new ArrayList<>();
 
-  @NotNull private final GradleDslFile myDslFile;
+  @NotNull private GradleDslFile myDslFile;
 
   @Nullable private PsiElement myPsiElement;
 
@@ -232,6 +233,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   public void setParent(@NotNull GradleDslElement parent) {
     myParent = parent;
+    myDslFile = parent.getDslFile();
   }
 
   @Override
@@ -254,6 +256,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   public void setPsiElement(@Nullable PsiElement psiElement) {
     myPsiElement = psiElement;
+    if(myParent!=null) myParent.childPsiUpdated(this);
+  }
+
+  // We only update child Psi because we don't have a proper representation of the full tree;
+  // We approximate by updating to the "latest" (textually last) Psi element we've seen while parsing.
+  // As alternative - may aggregate all duplicate elements one DSL element to have full tree data. b/158066552
+  @Override
+  public void childPsiUpdated(@NotNull GradleDslElement childElement) {
   }
 
   @Override
@@ -295,14 +305,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   }
 
   @Override
-  @Nullable
-  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
-    return null;
+  @NotNull
+  public GradleDslAnchor requestAnchor(@NotNull GradleDslElement element) {
+    return new GradleDslAnchor.Start(this);
   }
 
   @Override
   @Nullable
-  public GradleDslElement getAnchor() {
+  public GradleDslAnchor getAnchor() {
     return myParent == null ? null : myParent.requestAnchor(this);
   }
 
@@ -359,8 +369,11 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   public final void applyChanges() {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    apply();
-    commit();
+    PostprocessReformattingAspect.getInstance(myDslFile.getProject())
+        .postponeFormattingInside(() -> {
+          apply();
+          commit();
+        });
   }
 
   protected abstract void apply();

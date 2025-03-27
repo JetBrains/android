@@ -31,22 +31,21 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="ASM" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
-    <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
+    <orderEntry type="library" scope="TEST" name="jsoup" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
-    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-collections-immutable" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-fe10" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.assistant" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
@@ -68,7 +67,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
@@ -85,7 +84,7 @@
     <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
@@ -95,8 +94,8 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.uast" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.classLoader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
@@ -112,9 +111,8 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
-    <orderEntry type="library" scope="TEST" name="jsoup" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-collections-immutable" level="project" />
-    <orderEntry type="library" scope="TEST" name="jewel-ide-laf-bridge" level="project" />
+    <orderEntry type="module" module-name="intellij.android.visual-lint" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.designer" />
 </module>

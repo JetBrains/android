@@ -39,6 +39,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs[module, test]",
         "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -58,5 +59,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

@@ -30,7 +30,6 @@ fun RecipeExecutor.generatePureLibrary(
   moduleData: ModuleTemplateData,
   className: String,
   useGradleKts: Boolean,
-  useVersionCatalog: Boolean = true,
 ) {
   val (projectData, srcOut) = moduleData
   val moduleOut = moduleData.rootDir
@@ -40,21 +39,24 @@ fun RecipeExecutor.generatePureLibrary(
   addIncludeToSettings(moduleData.name)
 
   val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
-  save(buildGradle(getJavaVersion(), isKts = useGradleKts, useVersionCatalog = useVersionCatalog), moduleOut.resolve(buildFile))
+  save(buildGradle(), moduleOut.resolve(buildFile))
   applyPlugin("java-library", null)
   save(
-    if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),
-    srcOut.resolve("$className.${language.extension}")
+    if (language == Language.Kotlin) placeholderKt(packageName, className)
+    else placeholderJava(packageName, className),
+    srcOut.resolve("$className.${language.extension}"),
   )
 
-  save(
-    gitignore(),
-    moduleOut.resolve(".gitignore")
-  )
+  save(gitignore(), moduleOut.resolve(".gitignore"))
 
   if (language == Language.Kotlin) {
     setKotlinVersion(projectData.kotlinVersion)
     addKotlinDependencies(androidX = false, targetApi = moduleData.apis.targetApi.api)
-    applyPlugin("org.jetbrains.kotlin.jvm", projectData.kotlinVersion)
+    addPlugin(
+      "org.jetbrains.kotlin.jvm",
+      "org.jetbrains.kotlin:kotlin-gradle-plugin",
+      projectData.kotlinVersion,
+    )
   }
+  setJavaKotlinCompileOptions(language == Language.Kotlin)
 }

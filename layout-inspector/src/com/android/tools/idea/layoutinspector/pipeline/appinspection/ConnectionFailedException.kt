@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAgentUnattachableException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
@@ -23,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefullyDisposedException
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
@@ -55,6 +57,8 @@ data class AttachErrorInfo(val code: AttachErrorCode, val args: Map<String, Stri
 fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
   return when (this) {
     is ConnectionFailedException -> code.toInfo()
+    is AppInspectorForcefullyDisposedException ->
+      AttachErrorCode.APP_INSPECTION_FORCEFULLY_DISPOSED.toInfo()
     is AppInspectionCannotFindAdbDeviceException ->
       AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE.toInfo()
     is AppInspectionProcessNoLongerExistsException ->
@@ -66,6 +70,8 @@ fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
     is AppInspectionLibraryMissingException ->
       AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY.toInfo()
     is AppInspectionAppProguardedException -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP.toInfo()
+    is AppInspectionAgentUnattachableException ->
+      AttachErrorCode.APP_INSPECTION_UNATTACHABLE_AGENT.toInfo()
     is TransportNonExistingFileException ->
       AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.toInfo("path" to path)
     is AppInspectionArtifactNotFoundException -> this.toAttachErrorInfo()

@@ -33,6 +33,7 @@ internal data class AndroidLogcatSettings(
   var mostRecentlyUsedFilterIsDefault: Boolean = false,
   var filterHistoryAutocomplete: Boolean = false,
   var ignoredTags: Set<String> = emptySet(),
+  var ignoredApps: Set<String> = emptySet(),
 ) : PersistentStateComponent<AndroidLogcatSettings> {
 
   companion object {

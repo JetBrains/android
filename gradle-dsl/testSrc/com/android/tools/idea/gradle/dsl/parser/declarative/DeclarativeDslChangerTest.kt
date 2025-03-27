@@ -16,15 +16,22 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
 import org.junit.Ignore
@@ -130,6 +137,55 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
   }
 
   @Test
+  fun testUpdatePluginVersion() {
+    val file = """
+      plugins {
+          id("org.example").version("1.0")
+      }
+    """.trimIndent()
+    val expected = """
+      plugins {
+          id("com.android").version("2.0")
+      }
+    """.trimIndent()
+    doSettingsTest(file, expected) {
+      val plugins = (elements.values.first() as PluginsDslElement)
+      val pluginDeclaration = (plugins.elements.values.first() as GradleDslInfixExpression)
+      val elements = pluginDeclaration.elements.values
+      assertThat(elements).hasSize(2)
+      val version = (elements.toList()[1] as? GradleDslLiteral)
+      val id = (elements.toList()[0] as? GradleDslLiteral)
+      assertThat(version).isNotNull()
+      assertThat(id).isNotNull()
+      version!!.setValue("2.0")
+      id!!.setValue("com.android")
+    }
+  }
+
+  @Test
+  fun testRemoveLastFunctionArgument() {
+    val file = """
+     androidApp {
+       dependenciesDcl {
+         compile("org.example:1.0")
+       }
+     }
+    """.trimIndent()
+    val expected = """
+      androidApp {
+      }
+    """.trimIndent()
+    doTest(file, expected) {
+      val android = (elements.values.first() as AndroidDslElement)
+      val dependencies = (android.elements.values.first() as DependenciesDslElement)
+      val compile =  (dependencies.elements.values.first() as GradleDslMethodCall)
+      assertThat(compile.arguments).hasSize(1)
+      compile.arguments[0].delete()
+    }
+  }
+
+
+  @Test
   @Ignore("Dependencies fo android element will be added in future")
   fun testAppendDependencyToBlock(){
     val file = """
@@ -150,6 +206,32 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  private fun doSettingsTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
+    val declarativeFile = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "settings.gradle.dcl",
+      text
+    )
+    val dslFile = object : GradleSettingsFile(declarativeFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    handleChangeAndVerification(dslFile, changer, declarativeFile, expected)
+  }
+
+  private fun handleChangeAndVerification(
+    dslFile: GradleScriptFile,
+    changer: GradleDslFile.() -> Unit,
+    declarativeFile: VirtualFile,
+    expected: String
+  ) {
+    dslFile.parse()
+    WriteCommandAction.runWriteCommandAction(project) {
+      changer(dslFile)
+      dslFile.applyChanges()
+      dslFile.saveAllChanges()
+    }
+    val newText = VfsUtil.loadText(declarativeFile).replace("\r", "")
+    assertEquals(expected, newText)
+  }
+
   private fun doTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val declarativeFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
@@ -157,13 +239,6 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       text
     )
     val dslFile = object : GradleBuildFile(declarativeFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
-    dslFile.parse()
-    changer(dslFile)
-    WriteCommandAction.runWriteCommandAction(project) {
-      dslFile.applyChanges()
-      dslFile.saveAllChanges()
-    }
-    val newText = VfsUtil.loadText(declarativeFile).replace("\r", "")
-    assertEquals(expected, newText)
+    handleChangeAndVerification(dslFile, changer, declarativeFile, expected)
   }
 }

@@ -29,34 +29,20 @@
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.android.logcat.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
     <orderEntry type="module" module-name="intellij.java.debugger" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
-    <orderEntry type="module" module-name="intellij.json" />
+    <orderEntry type="module" module-name="intellij.json.split" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
-    <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="module" module-name="intellij.platform.diff" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.platform.editor.ex" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
     <orderEntry type="module" module-name="intellij.platform.execution.impl" />
-    <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
-    <orderEntry type="module" module-name="intellij.platform.lang.core" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="intellij.platform.util.base" />
-    <orderEntry type="module" module-name="intellij.platform.util.ex" />
-    <orderEntry type="module" module-name="intellij.platform.util.rt" />
-    <orderEntry type="module" module-name="intellij.platform.util.ui" />
-    <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.xml.parser" />
-    <orderEntry type="module" module-name="intellij.android.ml-api" />
   </component>
 </module>

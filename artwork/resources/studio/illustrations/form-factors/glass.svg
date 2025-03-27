@@ -1,1 +1,16 @@
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
 <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" fill="none"/><g fill="none" fill-rule="evenodd"><path d="M0 0h64v64H0z"/><path d="M24.57 25.246c1.951.1 4.166.312 6.729.677.42.06 2.757.16 2.817.163.06-.003 2.398-.103 2.818-.163 10.27-1.461 14.939-.487 19.603.487 0 0 .507.439.46 1.316C56.717 39.613 55.102 42 46.523 42S36.41 39.515 35.055 30.551l-.373-.292c-.154-.115-.512-.173-.566-.182-.053.009-.411.067-.565.182l-.373.292C31.824 39.515 30.288 42 21.71 42c-7.783 0-9.834-1.965-10.357-11.205h2.341c.154 3.2.373 5.484 1.41 6.913.939 1.294 1.896 1.636 3.006 1.915 1.901.479 3.752.292 5.187.153 1.586-.154 3.918-.504 5.085-1.673 1.354-1.365 1.887-3.995 2.447-8.282-.56-.975-.992-1.234-1.867-1.462-1.17-.305-2.707-.566-4.393-.719v-2.394zm12.867 4.575c.56 4.287 1.093 6.917 2.447 8.282 1.167 1.169 3.5 1.519 5.085 1.673 1.435.139 3.286.326 5.187-.153 1.11-.279 2.067-.62 3.006-1.915 1.236-1.703 1.31-4.623 1.497-8.862-4.163-1.98-11.62-1.461-15.355-.487-.875.228-1.306.487-1.867 1.462zM7 23.974L7.986 23h10.128l.926.947 4.63.027v4.706h-4.63l-.926.947H7.986L7 28.68v-4.706zm3.192 3.759c.767.026 1.41-.587 1.438-1.371.027-.784-.572-1.441-1.339-1.468-.767-.027-1.41.587-1.438 1.37-.027.785.572 1.442 1.339 1.469z" fill="#AFB1B3"/></g></svg>

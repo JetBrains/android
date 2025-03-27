@@ -304,6 +304,11 @@ public:
   using JRef::JRef;
 
   [[nodiscard]] std::string Describe() const;
+
+private:
+  friend class Jvm;
+
+  static JClass throwable_helper_class_;
 };
 
 class JNumber : public JObject {
@@ -372,12 +377,7 @@ public:
 
   [[nodiscard]] JCharArray NewCharArray(int32_t length) const;
 
-  std::vector<int64_t> GetElements(jlongArray array) {
-    jsize size = jni_env_->GetArrayLength(array);
-    std::vector<int64_t> result(size);
-    jni_env_->GetLongArrayRegion(array, 0, size, result.data());
-    return result;
-  }
+  std::vector<int64_t> GetElements(jlongArray array) const;
 
   bool CheckAndClearException() const;
   [[nodiscard]] JThrowable GetAndClearException() const;

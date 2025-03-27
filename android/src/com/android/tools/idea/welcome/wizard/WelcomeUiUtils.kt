@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * Functions to style controls for a consistent user UI
- */
+/** Functions to style controls for a consistent user UI */
 @file:JvmName("WelcomeUiUtils")
 
 package com.android.tools.idea.welcome.wizard
@@ -27,9 +25,7 @@ import com.intellij.openapi.application.ModalityState
 import java.math.RoundingMode
 import java.text.NumberFormat
 
-/**
- * Returns string describing the [size].
- */
+/** Returns string describing the [size]. */
 fun getSizeLabel(size: Long): String {
   val unit = Storage.Unit.values().last { it.numberOfBytes <= size.coerceAtLeast(1) }
 
@@ -39,7 +35,8 @@ fun getSizeLabel(size: Long): String {
 }
 
 /**
- * Returns a string that rounds the number so number of integer places + decimal places is less or equal to [maxDigits].
+ * Returns a string that rounds the number so number of integer places + decimal places is less or
+ * equal to [maxDigits].
  *
  * Number will not be truncated if it has more integer digits then [maxDigits].
  */
@@ -50,24 +47,25 @@ private fun roundToNumberOfDigits(number: Double, maxDigits: Int): String {
     multiplier *= 10
     digits--
   }
-  return NumberFormat.getNumberInstance().apply {
-    isGroupingUsed = false
-    roundingMode = RoundingMode.HALF_UP
-    maximumFractionDigits = digits
-  }.format(number)
+  return NumberFormat.getNumberInstance()
+    .apply {
+      isGroupingUsed = false
+      roundingMode = RoundingMode.HALF_UP
+      maximumFractionDigits = digits
+    }
+    .format(number)
 }
 
-/**
- * Appends [details] to the [message] if they are not empty.
- */
+/** Appends [details] to the [message] if they are not empty. */
 fun getMessageWithDetails(message: String, details: String?): String =
   if (details.isNullOrBlank()) {
     "$message."
-  }
-  else {
+  } else {
     val dotIfNeeded = if (details.trim().endsWith(".")) "" else "."
     "$message: $details$dotIfNeeded"
   }
 
-internal fun invokeLater(modalityState: ModalityState = ModalityState.defaultModalityState(), block: () -> Unit): Unit =
-  ApplicationManager.getApplication().invokeLater(block, modalityState)
+internal fun invokeLater(
+  modalityState: ModalityState = ModalityState.defaultModalityState(),
+  block: () -> Unit,
+): Unit = ApplicationManager.getApplication().invokeLater(block, modalityState)

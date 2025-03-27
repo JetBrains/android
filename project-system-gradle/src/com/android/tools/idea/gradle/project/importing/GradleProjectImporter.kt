@@ -20,10 +20,9 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags.GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS
 import com.android.tools.idea.gradle.config.GradleConfigManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.gradle.project.Info
-import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.io.FilePaths
@@ -32,7 +31,6 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.ToolWindows
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.impl.OpenProjectTask
-import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
@@ -121,9 +119,9 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   private fun setUpLocalProperties(projectFolderPath: File) {
     try {
       val localProperties = LocalProperties(projectFolderPath)
-      mySdkSync.syncIdeAndProjectAndroidSdks(localProperties, ProjectUtil.findProject(projectFolderPath.toPath()))
+      mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
     }
-    catch (e: IOException) {
+    catch (e: Exception) {
       logger.info("Failed to sync SDKs", e)
       Messages.showErrorDialog(e.message, "Project Import")
       throw e
@@ -165,17 +163,15 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
    */
   @JvmOverloads
   fun createProject(projectName: String, projectFolderPath: File, useDefaultProjectAsTemplate: Boolean = false): Project {
-    Info.beginInitializingGradleProjectAt(projectFolderPath).use { ignored ->
-      val newProject = ProjectManagerEx.getInstanceEx().newProject(
-        Path.of(projectFolderPath.path),
-        OpenProjectTask {
-          this.projectName = projectName
-          this.useDefaultProjectAsTemplate = useDefaultProjectAsTemplate
-        }
-      ) ?: throw NullPointerException("Failed to create a new project")
-      configureNewProject(newProject)
-      return newProject
-    }
+    val newProject = ProjectManagerEx.getInstanceEx().newProject(
+      Path.of(projectFolderPath.path),
+      OpenProjectTask {
+        this.projectName = projectName
+        this.useDefaultProjectAsTemplate = useDefaultProjectAsTemplate
+      }
+    ) ?: throw NullPointerException("Failed to create a new project")
+    configureNewProject(newProject)
+    return newProject
   }
 
   class Request(@JvmField val project: Project) {
@@ -210,10 +206,8 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
         ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
         GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
-        if (IdeInfo.getInstance().isAndroidStudio) {
-          val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
-          projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
-        }
+        val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
+        projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
       } else {
         projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
         ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)

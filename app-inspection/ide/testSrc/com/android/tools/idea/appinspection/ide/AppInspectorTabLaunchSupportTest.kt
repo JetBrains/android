@@ -32,12 +32,12 @@ import com.android.tools.idea.appinspection.test.INSPECTOR_ID_3
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -53,7 +53,7 @@ class AppInspectorTabLaunchSupportTest {
     FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
   private val appInspectionServiceRule =
     AppInspectionServiceRule(timer, transportService, grpcServerRule)
-  private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
+  private val projectRule = ProjectRule()
 
   @get:Rule
   val ruleChain =
@@ -99,7 +99,7 @@ class AppInspectorTabLaunchSupportTest {
    */
   @Test
   fun getApplicableTabProviders() =
-    runBlocking<Unit> {
+    runBlocking {
       val support =
         AppInspectorTabLaunchSupport(
           {

@@ -12,9 +12,11 @@
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="commons-lang3" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="library" name="jsoup" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.core" />
@@ -25,8 +27,7 @@
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle.impl" />
-    <orderEntry type="library" name="commons-lang3" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
   </component>
 </module>

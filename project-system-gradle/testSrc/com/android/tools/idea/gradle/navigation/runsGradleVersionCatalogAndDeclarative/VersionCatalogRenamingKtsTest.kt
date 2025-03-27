@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.navigation.runsGradleVersionCatalogAndDecl
 
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS
+import com.android.tools.idea.testing.disableKtsIndexing
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
@@ -29,10 +30,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore.loadText
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findFile
-import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -49,10 +47,7 @@ class VersionCatalogRenamingKtsTest  {
 
   @Before
   fun removeKtsIndexing() {
-    val disposable = fixture.testRootDisposable
-    val ep = WorkspaceFileIndexImpl.EP_NAME
-    val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
-    ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
+    disableKtsIndexing(project, fixture.testRootDisposable)
   }
 
   @Test

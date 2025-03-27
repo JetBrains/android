@@ -25,7 +25,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 /** Shows the edit project view screen. */
-class BlazeEditProjectViewImportWizardStep extends ProjectImportWizardStep {
+public class BlazeEditProjectViewImportWizardStep extends ProjectImportWizardStep {
 
   private final JPanel component = new JPanel(new BorderLayout());
   private BlazeEditProjectViewControl control;

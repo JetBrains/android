@@ -577,9 +577,9 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
-    - library                     : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar (IdeJavaLibraryImpl)
-        artifact                      : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar
-        artifactAddress               : __local_jars__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar:unspecified
+    - library                     : <ANDROID_SDK>/platforms/android-34/optional/android.car.jar (IdeJavaLibraryImpl)
+        artifact                      : <ANDROID_SDK>/platforms/android-34/optional/android.car.jar
+        artifactAddress               : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/android.car.jar:unspecified
     - library                     : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.core:common:1.1.1@jar
@@ -773,6 +773,11 @@ MODULE                        : project
                             qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.2.0
@@ -791,16 +796,16 @@ MODULE                        : project.app
             ApiLevel                      : 19
             ApiString                     : 19
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : google.simpleapplication
@@ -841,6 +846,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test
@@ -848,8 +854,8 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : google.simpleapplication
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/optional/android.car.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -865,8 +871,8 @@ MODULE                        : project.app
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1035,8 +1041,8 @@ MODULE                        : project.app
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact
@@ -1169,7 +1175,7 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar:unspecified
+                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/android.car.jar:unspecified
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -1290,7 +1296,7 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar:unspecified
+                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/android.car.jar:unspecified
                 ApplicationId                 : google.simpleapplication
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1461,7 +1467,7 @@ MODULE                        : project.app
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                         javaLibrary                   : com.google.guava:guava:19.0@jar
                         javaLibrary                   : com.android.support.constraint:constraint-layout-solver:1.0.2@jar
-                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar:unspecified
+                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/android.car.jar:unspecified
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
@@ -1495,7 +1501,7 @@ MODULE                        : project.app
                         javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
                             javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
-                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar:unspecified
+                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/android.car.jar:unspecified
                 ProvidedDependencies
                     - provided                    : android.arch.core:common:1.1.1
                     - provided                    : android.arch.core:runtime:1.1.1@aar
@@ -1675,7 +1681,7 @@ MODULE                        : project.app
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
-                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar:unspecified
+                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/android.car.jar:unspecified
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar
@@ -1803,7 +1809,7 @@ MODULE                        : project.app
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
-                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/android.car.jar:unspecified
+                        javaLibrary                   : __local_jars__:<ANDROID_SDK>/platforms/android-34/optional/android.car.jar:unspecified
                         module                        : <ROOT>-:app-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.google.guava:guava:19.0@jar

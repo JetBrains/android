@@ -16,6 +16,7 @@
 package com.google.idea.common.experiments;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.common.util.MorePlatformUtils;
@@ -32,6 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import kotlinx.coroutines.CoroutineScope;
+
 
 /**
  * An experiment service that delegates to {@link ExperimentLoader ExperimentLoaders}, in a specific
@@ -41,14 +44,15 @@ import javax.annotation.Nullable;
  * then finally all files specified by the system property blaze.experiments.file.
  */
 public class ExperimentServiceImpl implements ApplicationComponent, ExperimentService {
+
   private static final Logger logger = Logger.getInstance(ExperimentServiceImpl.class);
 
   private static final Duration REFRESH_FREQUENCY = Duration.ofMinutes(5);
 
-  private final Alarm alarm =
-      new Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication());
+  private final Alarm alarm;
   private final List<ExperimentLoader> services;
-  private final Supplier<String> channelSupplier;
+  private final Supplier<String> buildSupplier;
+  private final Supplier<String> versionSupplier;
   private final AtomicInteger experimentScopeCounter = new AtomicInteger(0);
 
   private volatile Map<String, String> experiments = ImmutableMap.of();
@@ -56,18 +60,28 @@ public class ExperimentServiceImpl implements ApplicationComponent, ExperimentSe
   private final Map<String, Experiment> queriedExperiments = new ConcurrentHashMap<>();
 
   ExperimentServiceImpl() {
-    this(MorePlatformUtils::getIdeChannel, ExperimentLoader.EP_NAME.getExtensions());
+    this(MorePlatformUtils::getIdeAbBuildNumber, MorePlatformUtils::getIdeVersion, ExperimentLoader.EP_NAME.getExtensions());
   }
 
   @VisibleForTesting
-  ExperimentServiceImpl(ExperimentLoader... loaders) {
-    this(MorePlatformUtils::getIdeChannel, loaders);
+  ExperimentServiceImpl(CoroutineScope scope, ExperimentLoader... loaders) {
+    this(scope, MorePlatformUtils::getIdeAbBuildNumber, MorePlatformUtils::getIdeVersion, loaders);
   }
 
   @VisibleForTesting
-  ExperimentServiceImpl(Supplier<String> channelSupplier, ExperimentLoader... loaders) {
+  ExperimentServiceImpl(Supplier<String> buildSupplier, Supplier<String> versionSupplier, ExperimentLoader... loaders) {
+    this(null, buildSupplier, versionSupplier, loaders);
+  }
+
+  @VisibleForTesting
+  ExperimentServiceImpl(@Nullable CoroutineScope scope, Supplier<String> buildSupplier, Supplier<String> versionSupplier,
+      ExperimentLoader... loaders) {
     services = ImmutableList.copyOf(loaders);
-    this.channelSupplier = channelSupplier;
+    this.buildSupplier = Suppliers.memoize(buildSupplier::get);
+    this.versionSupplier = Suppliers.memoize(versionSupplier::get);
+    // Bypass unregistered application service AlarmSharedCoroutineScopeHolder. It's a private service which hard to mock
+    this.alarm = new Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication(), null,
+        scope);
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       refreshExperiments();
     }
@@ -88,12 +102,16 @@ public class ExperimentServiceImpl implements ApplicationComponent, ExperimentSe
   @Nullable
   private String getExperiment(Experiment experiment) {
     queriedExperiments.putIfAbsent(experiment.getKey(), experiment);
+    String buildKey = buildSupplier.get() + "." + experiment.getKey();
+    if (experiments.containsKey(buildKey)) {
+      return experiments.get(buildKey);
+    }
+    String versionKey = versionSupplier.get() + "." + experiment.getKey();
+    if (experiments.containsKey(versionKey)) {
+      return experiments.get(versionKey);
+    }
     if (experiments.containsKey(experiment.getKey())) {
       return experiments.get(experiment.getKey());
-    }
-    String channelKey = channelSupplier.get() + "." + experiment.getKey();
-    if (experiments.containsKey(channelKey)) {
-      return experiments.get(channelKey);
     }
     return null;
   }

@@ -20,7 +20,9 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
-import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
+import com.google.idea.blaze.base.command.buildresult.bepparser.OutputArtifactParser;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResult;
@@ -30,7 +32,6 @@ import com.google.idea.blaze.common.artifact.BlazeArtifact;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.intellij.util.io.URLUtil;
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -43,11 +44,6 @@ import javax.annotation.Nullable;
 public final class BuildEventProtocolOutputReader {
 
   private BuildEventProtocolOutputReader() {}
-  /** Returns all test results from a BEP-formatted {@link InputStream}. */
-  public static BlazeTestResults parseTestResults(InputStream inputStream)
-      throws BuildEventStreamException {
-    return parseTestResults(BuildEventStreamProvider.fromInputStream(inputStream));
-  }
   /**
    * Returns all test results from {@link BuildEventStreamProvider}.
    *
@@ -147,7 +143,7 @@ public final class BuildEventProtocolOutputReader {
     if (mnemonic == null) {
       return parseLocalFile(file, fileFilter);
     }
-    OutputArtifact output = OutputArtifactParser.parseArtifact(file, mnemonic, startTimeMillis);
+    OutputArtifact output = OutputArtifactParser.parseArtifact(file, startTimeMillis);
     return output == null || !fileFilter.test(output.getBazelOutRelativePath()) ? null : output;
   }
 

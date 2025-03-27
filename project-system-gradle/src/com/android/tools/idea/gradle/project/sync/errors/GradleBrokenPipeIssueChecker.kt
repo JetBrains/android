@@ -37,7 +37,8 @@ class GradleBrokenPipeIssueChecker : GradleIssueChecker {
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.BROKEN_PIPE)
     return BuildIssueComposer("Broken pipe.").apply {
-      addDescription("The Gradle daemon may be trying to use ipv4 instead of ipv6.")
+      addDescriptionOnNewLine("The Gradle daemon may be trying to use ipv4 instead of ipv6.")
+      startNewParagraph()
       addQuickFix(
         "More info (including workarounds)", OpenLinkQuickFix("https://developer.android.com/r/studio-ui/known-issues.html"))
     }.composeBuildIssue()

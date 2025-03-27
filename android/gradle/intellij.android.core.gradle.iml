@@ -5,24 +5,10 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="libandroid-core-proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:libandroid-core-proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/232.1.23.0/libandroid-core-proto-232.1.23.0.jar">
-              <sha256sum>3f1c9633ab5088526450c72bd456d6a6704a70744b8118638233fd63b1001ed0</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/232.1.23.0/libandroid-core-proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
@@ -31,12 +17,11 @@
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.analysis-api-impl-base" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" scope="TEST" />
@@ -64,7 +49,7 @@
     <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.debugger" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.execution" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
@@ -88,5 +73,8 @@
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.junit" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="classgraph" level="project" />
+    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gmaven" scope="TEST" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

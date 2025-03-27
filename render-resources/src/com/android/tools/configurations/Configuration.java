@@ -36,6 +36,8 @@ import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.Locale;
+import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
@@ -60,6 +62,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.layoutlib.LayoutlibContext;
 import com.android.tools.res.FrameworkOverlay;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.android.tools.res.ResourceUtils;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -67,6 +70,7 @@ import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.Enums;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -211,6 +215,34 @@ public class Configuration {
   private boolean myEdgeToEdge = true;
   private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.CUTOUT_NONE;
   private FrameworkOverlay myDeviceOverlay = null;
+
+  private final ResourceItemResolver.ResourceProvider myResourceProvider = new ResourceItemResolver.ResourceProvider() {
+    @Override
+    public @Nullable ResourceResolver getResolver(boolean createIfNecessary) {
+      if (createIfNecessary) {
+        return getResourceResolver();
+      }
+
+      // Return the cached one if already there
+      return mySettings.getResolverCache().getCachedResourceResolver(
+        getTarget(), getTheme(), getFullConfig(), getOverlays()
+      );
+    }
+
+    @Override
+    public @Nullable ResourceRepository getFrameworkResources() {
+      ResourceRepositoryManager resourceRepositoryManager = getConfigModule().getResourceRepositoryManager();
+      return resourceRepositoryManager != null ? resourceRepositoryManager.getFrameworkResources(
+        resourceRepositoryManager.getLanguagesInProject(), getOverlays()
+      ) : null;
+    }
+
+    @Override
+    public @Nullable ResourceRepository getAppResources() {
+      ResourceRepositoryManager resourceRepositoryManager = getConfigModule().getResourceRepositoryManager();
+      return resourceRepositoryManager != null ? resourceRepositoryManager.getAppResources() : null;
+    }
+  };
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -1244,6 +1276,10 @@ public class Configuration {
       resolverCache.replaceCustomConfig(theme, getFullConfig(), overlays);
     }
     return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig(), overlays);
+  }
+
+  public @NonNull ResourceItemResolver getResourceItemResolver() {
+    return new ResourceItemResolver(getFullConfig(), myResourceProvider, null);
   }
 
   @NonNull

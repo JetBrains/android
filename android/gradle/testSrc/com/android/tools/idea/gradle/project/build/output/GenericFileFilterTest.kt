@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.util.oneOf
 import com.android.tools.idea.util.plus
 import com.android.tools.idea.util.repeated
@@ -33,6 +31,8 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 import kotlin.random.Random
 
 class GenericFileFilterTest {

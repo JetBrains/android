@@ -733,6 +733,166 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     )
   }
 
+  fun testMissingPermissionKotlinAddAnnotationSingle() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinAddAnnotationAllOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinAddAnnotationAnyOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationSingle() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationSingleNamed() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationAllOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationAnyOfFirst() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test (add ACCESS_FINE_LOCATION)",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionKotlinUpdateAnnotationAnyOfSecond() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test (add ACCESS_COARSE_LOCATION)",
+      "/src/p1/p2/LocationTest.kt",
+      "kt",
+    )
+  }
+
+  fun testMissingPermissionJavaAddAnnotationSingle() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaAddAnnotationAllOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaAddAnnotationAnyOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Add @RequiresPermission to test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationSingle() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationSingleNamed() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationAllOf() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationAnyOfFirst() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test (add ACCESS_FINE_LOCATION)",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
+  fun testMissingPermissionJavaUpdateAnnotationAnyOfSecond() {
+    addRequiresPermission()
+    doTestWithFix(
+      AndroidLintMissingPermissionInspection(),
+      "Update @RequiresPermission on test (add ACCESS_COARSE_LOCATION)",
+      "/src/p1/p2/LocationTest.java",
+      "java",
+    )
+  }
+
   fun testNotificationPermission() {
     val manifest =
       myFixture.addFileToProject(
@@ -901,7 +1061,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     IdeComponents(null, disposable)
       .replaceApplicationService(
         RepositoryUrlManager::class.java,
-        RepositoryUrlManager(repository, repository, true, false),
+        RepositoryUrlManager(repository, repository, false),
       )
     doTestWithFix(
       AndroidLintGradleDynamicVersionInspection(),
@@ -1493,7 +1653,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // to
     // `<error descr="Call requires API level 35 (current min is 1): java.util.List#removeFirst
     // (Prior to API level 35, this call would resolve to a Kotlin stdlib extension function. You
-    // can use remove(index) instead.)">`
+    // can use removeAt(0) instead.)">`
     // (and the corresponding </warning> markers to </error>)
     doTestWithFix(
       AndroidLintNewApiInspection(),
@@ -1524,11 +1684,91 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   }
 
   fun testExtensionSuppressKotlinOnR() {
+    // (We're not setting the minSdkVersion to R here, instead we just added
+    // an extra "if SDK_INT > R" surrounding the call site.)
     createManifest()
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
       "/src/androidx/annotation/RequiresExtension.kt",
+      "kt",
+    )
+  }
+
+  fun testAddFullVersionCheckMin1Req99Java() {
+    // minSdk=1, requiredSdk=99.9 -- here we need to
+    //  (a) have both VERSION_CODES and VERSION_CODES_FULL checks
+    //  (b) we don't use a constant for the API level since one can't be found
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
+    )
+  }
+
+  fun testAddFullVersionCheckMin35Req352Java() {
+    // minSdk=35, requiredSdk=35.2 -- here we need to
+    //  (a) have both VERSION_CODES and VERSION_CODES_FULL checks
+    //  (b) we DO use a constant for the API level since we have one for this API level
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) { ... }",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
+    )
+  }
+
+  fun testAddFullVersionCheckMin36Req99Java() {
+    // minSdk=36, requiredSdk=99.9 -- here we need to
+    //  (a) only have a VERSION_CODES_FULL check, no VERSION_CODES check
+    //  (b) we don't use a constant for the API level since one can't be found
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
+    )
+  }
+
+  fun testAddFullVersionCheckMin36Req99Kotlin() {
+    // minSdk=36, requiredSdk=99.9 -- here we need to
+    //  (a) only have a VERSION_CODES_FULL check, no VERSION_CODES check
+    //  (b) we don't use a constant for the API level since one can't be found
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "/src/androidx/annotation/RequiresApi.kt",
+      "kt",
+    )
+  }
+
+  fun testAddFullVersionCheckMin1Req99Kotlin() {
+    // minSdk=1, requiredSdk=99.9 -- here we need to
+    //  (a) have both VERSION_CODES and VERSION_CODES_FULL checks
+    //  (b) we don't use a constant for the API level since one can't be found
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.99_000_09) { ... }",
+      "/src/androidx/annotation/RequiresApi.kt",
+      "kt",
+    )
+  }
+
+  fun testAddFullVersionCheckMin35Req352Kotlin() {
+    // minSdk=35, requiredSdk=35.2 -- here we need to
+    //  (a) have both VERSION_CODES and VERSION_CODES_FULL checks
+    //  (b) we DO use a constant for the API level since we have one for this API level
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Surround with if (VERSION.SDK_INT >= VERSION_CODES_FULL.VANILLA_ICE_CREAM_2) { ... }",
+      "/src/androidx/annotation/RequiresApi.kt",
       "kt",
     )
   }
@@ -1550,6 +1790,46 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       "Add @RequiresExtension(extension=R, version=4) Annotation",
       "/src/androidx/annotation/RequiresExtension.kt",
       "kt",
+    )
+  }
+
+  fun testRequiresApiKotlinSingleMajor() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresApi(VANILLA_ICE_CREAM) Annotation",
+      "/src/test/pkg/RequiresApiTest.kt",
+      "kt",
+    )
+  }
+
+  fun testRequiresApiKotlinSingleMinor() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresApi(VANILLA_ICE_CREAM_2) Annotation",
+      "/src/test/pkg/RequiresApiTest.kt",
+      "kt",
+    )
+  }
+
+  fun testRequiresApiJavaSingleMajor() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresApi(VANILLA_ICE_CREAM) Annotation",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
+    )
+  }
+
+  fun testRequiresApiJavaSingleMinor() {
+    createManifest()
+    doTestWithFix(
+      AndroidLintNewApiInspection(),
+      "Add @RequiresApi(VANILLA_ICE_CREAM_2) Annotation",
+      "/src/androidx/annotation/RequiresApi.java",
+      "java",
     )
   }
 
@@ -2454,6 +2734,41 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                 int lambda() default -1;
             }
             """
+        .trimIndent(),
+    )
+  }
+
+  private fun addRequiresPermission(targetDir: String = "/src/") {
+    myFixture.addFileToProject(
+      "$targetDir/androidx/annotation/RequiresPermission.java",
+      """
+      package androidx.annotation;
+      import java.lang.annotation.Retention;
+      import java.lang.annotation.Target;
+      import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+      import static java.lang.annotation.ElementType.CONSTRUCTOR;
+      import static java.lang.annotation.ElementType.FIELD;
+      import static java.lang.annotation.ElementType.METHOD;
+      import static java.lang.annotation.ElementType.PARAMETER;
+      import static java.lang.annotation.RetentionPolicy.CLASS;
+      @Retention(CLASS)
+      @Target({ANNOTATION_TYPE, METHOD, CONSTRUCTOR, FIELD, PARAMETER})
+      public @interface RequiresPermission {
+        String value() default "";
+        String[] allOf() default {};
+        String[] anyOf() default {};
+        boolean conditional() default false;
+        String apis() default "";
+        @Target({FIELD, METHOD, PARAMETER})
+        @interface Read {
+          RequiresPermission value() default @RequiresPermission;
+        }
+        @Target({FIELD, METHOD, PARAMETER})
+        @interface Write {
+          RequiresPermission value() default @RequiresPermission;
+        }
+      }
+      """
         .trimIndent(),
     )
   }

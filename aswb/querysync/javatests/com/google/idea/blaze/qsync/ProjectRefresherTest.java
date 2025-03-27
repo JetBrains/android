@@ -28,6 +28,7 @@ import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.blaze.qsync.query.Query;
+import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import com.google.idea.blaze.qsync.query.QuerySummaryTestUtil;
 import java.nio.file.Path;
@@ -52,8 +53,8 @@ public class ProjectRefresherTest {
   }
 
   private ProjectRefresher createRefresher(
-      VcsStateDiffer vcsDiffer, Optional<QuerySyncProjectSnapshot> existingSnapshot) {
-    return new ProjectRefresher(vcsDiffer, Path.of("/"), Suppliers.ofInstance(existingSnapshot));
+    VcsStateDiffer vcsDiffer, Optional<QuerySyncProjectSnapshot> existingSnapshot) {
+    return new ProjectRefresher(vcsDiffer, Path.of("/"), QuerySpec.QueryStrategy.PLAIN, Suppliers.ofInstance(existingSnapshot), () -> true);
   }
 
   @Test
@@ -183,11 +184,10 @@ public class ProjectRefresherTest {
                                 Operation.MODIFY, Path.of("package/path/BUILD"))),
                         Optional.empty())))
             .setProjectDefinition(
-                ProjectDefinition.create(
-                    ImmutableSet.of(Path.of("package")),
-                    ImmutableSet.of(),
-                    ImmutableSet.of(QuerySyncLanguage.JAVA),
-                    ImmutableSet.of()))
+                ProjectDefinition.builder()
+                    .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .build())
             .setBazelVersion(Optional.of("1.0.0"))
             .build();
 
@@ -217,11 +217,10 @@ public class ProjectRefresherTest {
                             new WorkspaceFileChange(Operation.ADD, Path.of("package/path/BUILD"))),
                         Optional.empty())))
             .setProjectDefinition(
-                ProjectDefinition.create(
-                    ImmutableSet.of(Path.of("package")),
-                    ImmutableSet.of(),
-                    ImmutableSet.of(QuerySyncLanguage.JAVA),
-                    ImmutableSet.of()))
+                ProjectDefinition.builder()
+                    .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .build())
             .build();
 
     RefreshOperation update =
@@ -253,11 +252,10 @@ public class ProjectRefresherTest {
                                 Operation.DELETE, Path.of("package/path/BUILD"))),
                         Optional.empty())))
             .setProjectDefinition(
-                ProjectDefinition.create(
-                    ImmutableSet.of(Path.of("package")),
-                    ImmutableSet.of(),
-                    ImmutableSet.of(QuerySyncLanguage.JAVA),
-                    ImmutableSet.of()))
+                ProjectDefinition.builder()
+                    .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .build())
             .build();
 
     RefreshOperation update =
@@ -285,11 +283,10 @@ public class ProjectRefresherTest {
             .setVcsState(
                 Optional.of(new VcsState("workspaceId", "1", workingSet, Optional.empty())))
             .setProjectDefinition(
-                ProjectDefinition.create(
-                    ImmutableSet.of(Path.of("package")),
-                    ImmutableSet.of(),
-                    ImmutableSet.of(QuerySyncLanguage.JAVA),
-                    ImmutableSet.of()))
+                ProjectDefinition.builder()
+                    .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .build())
             .build();
 
     RefreshOperation update =
@@ -319,11 +316,10 @@ public class ProjectRefresherTest {
             .setVcsState(
                 Optional.of(new VcsState("workspaceId", "1", workingSet, Optional.empty())))
             .setProjectDefinition(
-                ProjectDefinition.create(
-                    ImmutableSet.of(Path.of("package")),
-                    ImmutableSet.of(),
-                    ImmutableSet.of(QuerySyncLanguage.JAVA),
-                    ImmutableSet.of()))
+                ProjectDefinition.builder()
+                    .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .build())
             .build();
 
     RefreshOperation update =
@@ -353,11 +349,10 @@ public class ProjectRefresherTest {
                                 Operation.MODIFY, Path.of("package/path/BUILD"))),
                         Optional.empty())))
             .setProjectDefinition(
-                ProjectDefinition.create(
-                    ImmutableSet.of(Path.of("package")),
-                    ImmutableSet.of(),
-                    ImmutableSet.of(QuerySyncLanguage.JAVA),
-                    ImmutableSet.of()))
+                ProjectDefinition.builder()
+                    .setProjectIncludes(ImmutableSet.of(Path.of("package")))
+                    .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                    .build())
             .build();
 
     RefreshOperation update =

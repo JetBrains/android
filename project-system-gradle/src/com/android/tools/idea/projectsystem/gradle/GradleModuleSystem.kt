@@ -34,7 +34,7 @@ import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
-import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
@@ -54,16 +54,10 @@ import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.buildNamedModuleTemplatesFor
-import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
-import com.android.tools.idea.projectsystem.getHolderModule
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
-import com.android.tools.idea.projectsystem.isAndroidTestFile
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isScreenshotTestFile
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.AndroidDependenciesCache
@@ -124,7 +118,7 @@ class GradleModuleSystem(
   private val projectBuildModelHandler: ProjectBuildModelHandler,
   private val moduleHierarchyProvider: ModuleHierarchyProvider,
 ) : AndroidModuleSystem,
-    SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
+    SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module.getHolderModule()) {
 
   override val type: Type
     get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {
@@ -140,24 +134,10 @@ class GradleModuleSystem(
     }
 
   override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder.createWithoutTests(module)
-  private val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.createIncludingAndroidTest(module)
-  private val screenshotTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.createIncludingScreenshotTest(module)
+  internal val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.createIncludingAndroidTest(module)
+  internal val screenshotTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.createIncludingScreenshotTest(module)
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
-
-  /**
-   * Return the corresponding [ClassFileFinder], depending on whether the [sourceFile] is an android
-   * test file, a screenshot test file or a file from the main sourceset. In case the [sourceFile]
-   * is not specified (is null), the [androidTestsClassFileFinder] will be returned, as it has a wider
-   * search scope than [moduleClassFileFinder].
-   */
-  override fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) =
-    when {
-      sourceFile == null -> androidTestsClassFileFinder
-      isAndroidTestFile(module.project, sourceFile) ->  androidTestsClassFileFinder
-      isScreenshotTestFile(module.project, sourceFile) -> screenshotTestsClassFileFinder
-      else -> moduleClassFileFinder
-    }
 
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getCompileDependenciesFor(module, scope)
@@ -327,10 +307,6 @@ class GradleModuleSystem(
     return CapabilitySupported()
   }
 
-  override fun registerDependency(coordinate: GradleCoordinate) {
-    registerDependency(coordinate, DependencyType.IMPLEMENTATION)
-  }
-
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
     val dependencies = Collections.singletonList(coordinate.toDependency())
@@ -338,7 +314,7 @@ class GradleModuleSystem(
     when (type) {
       DependencyType.ANNOTATION_PROCESSOR -> {
         // addDependenciesWithoutSync doesn't support this: more direct implementation
-        manager.addDependenciesWithoutSync(module, dependencies) { _, name, _ ->
+        manager.addDependencies(module, dependencies) { _, name, _ ->
           when {
             name.startsWith("androidTest") -> "androidTestAnnotationProcessor"
             name.startsWith("test") -> "testAnnotationProcessor"
@@ -347,19 +323,14 @@ class GradleModuleSystem(
         }
       }
       DependencyType.DEBUG_IMPLEMENTATION -> {
-        manager.addDependenciesWithoutSync(module, dependencies) { _, _, _ ->
+        manager.addDependencies(module, dependencies) { _, _, _ ->
           "debugImplementation"
         }
       }
       else -> {
-        manager.addDependenciesWithoutSync(module, dependencies)
+        manager.addDependencies(module, dependencies)
       }
     }
-  }
-
-  override fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) {
-    val manager = GradleDependencyManager.getInstance(module.project)
-    manager.updateLibrariesToVersion(module, toVersions.map { it.toDependency() })
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
@@ -369,10 +340,6 @@ class GradleModuleSystem(
       ?: (sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders +
           sourceProviders.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST].orEmpty())
     return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
-  }
-
-  override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
-    return supportsPngGeneration(module)
   }
 
   /**
@@ -496,6 +463,7 @@ class GradleModuleSystem(
 
   private data class AgpBuildGlobalFlags(
     val useAndroidX: Boolean,
+    val generateManifestClass: Boolean
   )
 
   /**
@@ -535,6 +503,7 @@ class GradleModuleSystem(
         ?: return CachedValueProvider.Result(null, tracker)
       val agpBuildGlobalFlags = AgpBuildGlobalFlags(
         useAndroidX = gradleAndroidModel.androidProject.agpFlags.useAndroidX,
+        generateManifestClass = gradleAndroidModel.androidProject.agpFlags.generateManifestClass,
       )
       return CachedValueProvider.Result(agpBuildGlobalFlags, tracker)
     }
@@ -600,6 +569,10 @@ class GradleModuleSystem(
    */
   override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
 
+  /** Whether to generate manifest classes. */
+  val generateManifestClass: Boolean
+    get() = agpBuildGlobalFlags.generateManifestClass && module.isMainModule()
+
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
 
@@ -650,6 +623,13 @@ class GradleModuleSystem(
 
   override fun isProductionAndroidModule() = super.isProductionAndroidModule() && module.isMainModule()
 
+  override fun getProductionAndroidModule() = when (val linkedModuleData = module.getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)) {
+    null -> super.getProductionAndroidModule()
+    else -> linkedModuleData.main?.module
+  }
+
+  override fun getHolderModule(): Module = module.getHolderModule()
+
   override fun isValidForAndroidRunConfiguration() = when(type) {
     Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> module.isHolderModule()
     else -> super.isValidForAndroidRunConfiguration()
@@ -663,7 +643,8 @@ class GradleModuleSystem(
 
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
-      useAndroidX = true
+      useAndroidX = true,
+      generateManifestClass = false,
     )
     private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
   }

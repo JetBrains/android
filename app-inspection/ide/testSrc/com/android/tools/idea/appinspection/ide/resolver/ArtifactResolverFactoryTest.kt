@@ -21,9 +21,9 @@ import com.android.tools.idea.appinspection.inspector.api.service.TestFileServic
 import com.android.tools.idea.flags.StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.IdeBrand
+import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,9 +38,10 @@ class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
     val variations = listOf(IdeBrand.ANDROID_STUDIO, IdeBrand.ANDROID_STUDIO_WITH_BLAZE)
   }
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule
+  val projectRule = ProjectRule()
 
-  @get:Rule val FlagRule = FlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
+  @get:Rule val flagRule = FlagRule(APP_INSPECTION_USE_SNAPSHOT_JAR)
 
   @Test
   fun createResolver() {

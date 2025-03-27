@@ -52,8 +52,11 @@ public class ThemeSelectionDialog extends DialogWrapper {
     myPanel.installDoubleClickListener(new DoubleClickListener() {
       @Override
       protected boolean onDoubleClick(MouseEvent event) {
-        close(OK_EXIT_CODE);
-        return true;
+        if (getOKAction().isEnabled()) {
+          close(OK_EXIT_CODE);
+          return true;
+        }
+        return false;
       }
     });
     return contentPanel;

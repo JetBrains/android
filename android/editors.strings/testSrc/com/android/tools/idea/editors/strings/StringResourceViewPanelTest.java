@@ -207,7 +207,31 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertTrue("Number of rows should not be empty", beforeDelete > 0);
     myPanel.deleteSelectedKeys();
     assertTrue(deleted.get());
-    assertTrue("Number of rows should not have changed", myTable.getModel().getRowCount() < beforeDelete);
+    assertThat(myTable.getModel().getRowCount()).named("Number of rows should have changed").isEqualTo(beforeDelete - 1);
+    assertThat(myTable.getModel().getKeys().stream().map(key -> key.getName()).toList()).containsNoneIn(new Object[]{"key1"});
+  }
+
+  public void testDeleteKeysInSortedTable() {
+    AtomicBoolean deleted = new AtomicBoolean(true);
+    myStringResourceWriter = new StringResourceWriterDelegate(StringResourceWriter.INSTANCE) {
+      @Override
+      public void safeDelete(@NotNull Project project,
+                             @NotNull Collection<? extends ResourceItem> items,
+                             @NotNull Runnable successCallback) {
+        deleted.set(true);
+        delete(project, items);
+        successCallback.run();
+      }
+    };
+
+    myTable.getScrollableTable().getRowSorter().toggleSortOrder(0);
+    myTable.selectCellAt(0, 0);
+    int beforeDelete = myTable.getModel().getRowCount();
+    assertTrue("Number of rows should not be empty", beforeDelete > 0);
+    myPanel.deleteSelectedKeys();
+    assertTrue(deleted.get());
+    assertThat(myTable.getModel().getRowCount()).named("Number of rows should have changed").isEqualTo(beforeDelete - 1);
+    assertThat(myTable.getModel().getKeys().stream().map(key -> key.getName()).toList()).containsNoneIn(new Object[]{"key5"});
   }
 
   private void editCellAt(@NotNull Object value, int viewRowIndex, int viewColumnIndex) throws TimeoutException {
@@ -353,6 +377,34 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     // Tab jumps back to the scrollable table:
     ui.keyboard.pressAndRelease(KeyEvent.VK_TAB);
     assertThat(notNull(focusManager.getFocusOwner()).getName()).isEqualTo("scrollableTable");
+  }
+
+  public void testTranslationTextField() {
+    // Initial state:
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+
+    // The translation field is enabled in all columns of the scrollable table:
+    myTable.getScrollableTable().changeSelection(0, 0, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+    myTable.getScrollableTable().changeSelection(0, 1, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+    myTable.getScrollableTable().changeSelection(0, 2, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+    myTable.getScrollableTable().changeSelection(0, 3, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+    myTable.getScrollableTable().changeSelection(0, 4, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isTrue();
+
+    // But disabled in all columns of the frozen table:
+    myTable.getFrozenTable().changeSelection(0, 0, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+    myTable.getFrozenTable().changeSelection(0, 1, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+    myTable.getFrozenTable().changeSelection(0, 2, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+    myTable.getFrozenTable().changeSelection(0, 3, false, false);
+    assertThat(myPanel.myTranslationTextField.isEnabled()).isFalse();
+
   }
 
   @Nullable

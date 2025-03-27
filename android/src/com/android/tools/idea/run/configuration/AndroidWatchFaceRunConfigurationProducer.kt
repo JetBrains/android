@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.intellij.psi.PsiClass
-import com.intellij.psi.util.InheritanceUtil
+import com.intellij.psi.PsiElement
 
 /**
  * Producer of [AndroidWatchFaceConfiguration] for classes that extend `android.support.wearable.watchface.WatchFaceService` or
@@ -25,9 +24,9 @@ import com.intellij.psi.util.InheritanceUtil
 class AndroidWatchFaceRunConfigurationProducer :
   AndroidWearRunConfigurationProducer<AndroidWatchFaceConfiguration>(AndroidWatchFaceConfigurationType::class.java) {
 
-  override fun isValidService(psiClass: PsiClass): Boolean = psiClass.isValidWatchFaceService()
+  override fun isValidService(psiElement: PsiElement): Boolean = psiElement.isValidWatchFaceService()
 }
 
-internal fun PsiClass.isValidWatchFaceService(): Boolean {
-  return WearBaseClasses.WATCH_FACES.any { wearBase -> InheritanceUtil.isInheritor(this, wearBase) }
+internal fun PsiElement.isValidWatchFaceService(): Boolean {
+  return WearBaseClasses.WATCH_FACES.any { wearBase -> isSubtypeOf(wearBase) }
 }

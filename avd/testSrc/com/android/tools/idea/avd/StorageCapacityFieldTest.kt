@@ -17,52 +17,64 @@ package com.android.tools.idea.avd
 
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTextReplacement
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
-import org.junit.AfterClass
-import org.junit.BeforeClass
+import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
+import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito
 
 @RunWith(JUnit4::class)
 class StorageCapacityFieldTest {
-  // TODO: http://b/87654321
-  private companion object {
-    private val oldHome: String = System.getProperty("user.home")
+  @get:Rule val rule = createStudioComposeTestRule()
+  private val state = StorageCapacityFieldState(CAPACITY)
 
-    @BeforeClass
-    @JvmStatic
-    fun overrideUserHome() {
-      System.setProperty("user.home", System.getProperty("java.io.tmpdir"))
-    }
-
-    @AfterClass
-    @JvmStatic
-    fun restoreUserHome() {
-      System.setProperty("user.home", oldHome)
-    }
+  @Before
+  fun setContent() {
+    rule.setContent { StorageCapacityField(state, null) }
   }
 
-  @get:Rule val rule = createStudioComposeTestRule()
+  @Test
+  fun regexDoesntMatchText() {
+    // Act
+    rule.onNodeWithTag("StorageCapacityFieldTextField").performTextReplacement("a")
+
+    // Assert
+    assertEquals(CAPACITY, state.valid().storageCapacity)
+  }
+
+  @Test
+  fun textIsEmpty() {
+    // Act
+    rule.onNodeWithTag("StorageCapacityFieldTextField").performTextReplacement("")
+
+    // Assert
+    assertEquals(StorageCapacityFieldState.Empty, state.result())
+  }
 
   @Test
   fun replaceValueWithMaxValuePlus1() {
-    // Arrange
-    val onValueChange = MockitoKt.mock<(StorageCapacity) -> Unit>()
-
-    rule.setContent {
-      StorageCapacityField(StorageCapacity(2_048, StorageCapacity.Unit.MB), onValueChange)
-    }
-
     // Act
     rule
       .onNodeWithTag("StorageCapacityFieldTextField")
       .performTextReplacement("9223372036854775808")
 
     // Assert
-    Mockito.verifyNoInteractions(onValueChange)
+    assertEquals(Overflow, state.result())
+  }
+
+  @Test
+  fun capacityCantBeExpressedInBytes() {
+    // Act
+    rule.onNodeWithTag("StorageCapacityFieldTextField").performTextReplacement("8796093022208")
+
+    // Assert
+    assertEquals(Overflow, state.result())
+  }
+
+  private companion object {
+    private val CAPACITY = StorageCapacity(2_048, StorageCapacity.Unit.MB)
   }
 }

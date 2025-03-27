@@ -39,6 +39,15 @@ iml_module(
     name = "intellij.android.preview-designer.tests",
     generate_k2_tests = True,
     iml_files = ["intellij.android.preview-designer.tests.iml"],
+    split_test_targets = {
+        # this target does some performance tests and takes a long time to run
+        "AnnotationsGraphTest": {
+            "test_filter": "com.android.tools.idea.preview.annotations.AnnotationsGraphTest",
+        },
+        "other": {
+            "shard_count": 2,
+        },
+    },
     tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.preview.PreviewDesignerTestSuite",
     test_data = [
@@ -52,6 +61,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -76,5 +86,6 @@ iml_module(
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer.tests[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.base.build;
 
-import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 
@@ -28,5 +28,5 @@ public interface BlazeBuildListener {
   default void buildStarting(Project project) {}
 
   /** Called after blaze build command finishes, and file cache is refreshed */
-  default void buildCompleted(Project project, BlazeBuildOutputs buildOutputs) {}
+  default void buildCompleted(Project project, BuildResult buildResult) {}
 }

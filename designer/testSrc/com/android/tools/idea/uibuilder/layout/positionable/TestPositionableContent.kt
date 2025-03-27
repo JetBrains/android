@@ -19,22 +19,28 @@ import com.android.tools.idea.common.layout.positionable.PositionableContent
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import java.awt.Dimension
 import java.awt.Insets
+import kotlin.math.ceil
 
 open class TestPositionableContent(
   override val organizationGroup: OrganizationGroup?,
   private val size: Dimension = Dimension(0, 0),
 ) : PositionableContent {
-  override val scale = 0.0
+  override val scale = 1.0
   override val x = 0
   override val y = 0
   override val isFocusedContent = false
 
   override fun getContentSize(dimension: Dimension?) = size
 
+  override fun sizeForScale(scale: Double): Dimension =
+    Dimension(ceil(size.width * scale).toInt(), ceil(size.height * scale).toInt())
+
   override fun setLocation(x: Int, y: Int) {}
 
   override fun getMargin(scale: Double): Insets = Insets(0, 0, 0, 0)
 }
 
-class HeaderTestPositionableContent(override val organizationGroup: OrganizationGroup?) :
-  TestPositionableContent(organizationGroup), HeaderPositionableContent
+class HeaderTestPositionableContent(
+  organizationGroup: OrganizationGroup?,
+  size: Dimension = Dimension(0, 0),
+) : TestPositionableContent(organizationGroup, size), HeaderPositionableContent

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableCollection
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 
@@ -28,10 +31,12 @@ internal fun <I> Dropdown(
   onSelectedItemChange: (I) -> Unit,
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
+  outline: Outline = Outline.None,
 ) {
   Dropdown(
     modifier,
     enabled,
+    menuModifier = Modifier.heightIn(max = 300.dp),
     menuContent = {
       items.forEach {
         selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) {
@@ -39,6 +44,7 @@ internal fun <I> Dropdown(
         }
       }
     },
+    outline = outline,
   ) {
     Text(selectedItem.toString())
   }

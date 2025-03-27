@@ -40,7 +40,9 @@ public enum JavaInfoTxt {
   /** A simple java project with a single internal dependency */
   INTERNAL_DEP("internaldep", "java_info", "internaldep"),
   /** A simple java project with a single external dependency, which in turn exports another external target. */
-  EXTERNAL_EXPORTS("externalexports", "java_info", "externalexports");
+  EXTERNAL_EXPORTS("externalexports", "java_info", "externalexports"),
+  /** A simple java project that loads the workspace root. */
+  WORKSPACE_ROOT_INCLUDED("workspacerootincluded", "java_info", "workspacerootincluded");
 
   public final ImmutableList<String> paths;
 
@@ -57,7 +59,7 @@ public enum JavaInfoTxt {
             .collect(ImmutableList.toImmutableList());
   }
 
-  private static final String WORKSPACE_NAME = "__main__";
+  private static final String WORKSPACE_NAME = "_main";
 
   public static final Path ROOT =
       Path.of(

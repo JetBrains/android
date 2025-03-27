@@ -26,6 +26,7 @@ import com.android.tools.idea.run.configuration.execution.createApp
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
@@ -42,7 +43,7 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
     // apkWithDefaultActivity.apk contains simple project with basic activity `com.example.myapplication.MainActivity`.
     apk = "${myFixture.testDataPath}/configurations/activity/apkWithDefaultActivity.apk"
     state = DefaultActivityLaunch.State()
-    device = Mockito.mock(IDevice::class.java)
+    device = mock<IDevice>()
     app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
     stats = RunStats(myFixture.project);
   }

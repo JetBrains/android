@@ -866,7 +866,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -982,7 +981,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/common
-                buildDir                      : <ROOT>/common/build [-]
+                buildDir                      : <ROOT>/common/build
                 buildFile                     : <ROOT>/common/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1015,6 +1014,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         commonTestRuntimeOnly         : <empty>
                         default                       : <empty>
                         - jvmApiElements              : <ROOT>/common/build/libs/common-jvm.jar [-]
+                        - jvmApiElements-published    : <ROOT>/common/build/libs/common-jvm.jar [-]
                         jvmCompilationApi             : <empty>
                         jvmCompilationCompileOnly     : <empty>
                         jvmCompilationImplementation  : <empty>
@@ -1031,7 +1031,9 @@ MODULE                        : NonStandardSourceSetDependencies
                         jvmMainRuntimeOnly            : <empty>
                         jvmRuntimeClasspath           : <empty>
                         - jvmRuntimeElements          : <ROOT>/common/build/libs/common-jvm.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/common/build/libs/common-jvm.jar [-]
                         - jvmSourcesElements          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
+                        - jvmSourcesElements-published          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
                         jvmTestApi                    : <empty>
                         jvmTestApiDependenciesMetadata          : <empty>
                         jvmTestCompilationApi         : <empty>
@@ -1054,7 +1056,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathJvmTest    : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1064,7 +1065,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         metadataCompilationImplementation       : <empty>
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/common/build/libs/common-kotlin-sources.jar [-]
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
                     - additionalArtifacts         : <ROOT>/common/build/libs/common-metadata.jar [-]
@@ -1109,7 +1110,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathMain       : <empty>
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1317,7 +1317,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1601,13 +1600,16 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugAnnotationProcessorClasspath       : <empty>
                         debugApi                      : <empty>
                         debugApiElements              : <empty>
+                        - debugApiElements-published  : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
+                        - debugRuntimeElements-published        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                         debugRuntimeOnly              : <empty>
                         - debugSourcesElements        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
@@ -1624,7 +1626,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                         kotlinCompilerPluginClasspathMetadataMain         : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1634,18 +1635,21 @@ MODULE                        : NonStandardSourceSetDependencies
                         metadataCompilationImplementation       : <empty>
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
-                        metadataSourcesElements       : <empty>
+                        - metadataSourcesElements     : <ROOT>/feature-b/build/libs/feature-b-kotlin-sources.jar [-]
                         releaseAnnotationProcessor    : <empty>
                         releaseAnnotationProcessorClasspath     : <empty>
                         releaseApi                    : <empty>
                         releaseApiElements            : <empty>
+                        - releaseApiElements-published          : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
+                        - releaseRuntimeElements-published      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
@@ -1743,7 +1747,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinCompilerPluginClasspathTestEnv    : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1933,6 +1936,7 @@ MODULE                        : NonStandardSourceSetDependencies
                                 default                       : <empty>
                                 implementation                : <empty>
                                 - jvmApiElements              : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                                - jvmApiElements-published    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 jvmCompilationApi             : <empty>
                                 jvmCompilationCompileOnly     : <empty>
                                 jvmCompilationImplementation  : <empty>
@@ -1949,7 +1953,9 @@ MODULE                        : NonStandardSourceSetDependencies
                                 jvmMainRuntimeOnly            : <empty>
                                 jvmRuntimeClasspath           : <empty>
                                 - jvmRuntimeElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                                - jvmRuntimeElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - jvmSourcesElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
+                                - jvmSourcesElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
                                 jvmTestApi                    : <empty>
                                 jvmTestApiDependenciesMetadata          : <empty>
                                 jvmTestCompilationApi         : <empty>
@@ -1972,7 +1978,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 kotlinCompilerPluginClasspathJvmTest    : <empty>
                                 kotlinCompilerPluginClasspathMetadataMain         : <empty>
                                 kotlinKlibCommonizerClasspath : <empty>
-                                kotlinNativeBundleConfiguration         : <empty>
                                 kotlinNativeCompilerPluginClasspath     : <empty>
                                 kotlinScriptDef               : <empty>
                                 kotlinScriptDefExtensions     : <empty>
@@ -1982,7 +1987,7 @@ MODULE                        : NonStandardSourceSetDependencies
                                 metadataCompilationImplementation       : <empty>
                                 metadataCompilationRuntimeOnly          : <empty>
                                 metadataCompileClasspath      : <empty>
-                                metadataSourcesElements       : <empty>
+                                - metadataSourcesElements     : <ROOT>/kmp-java/sample/build/libs/sample-kotlin-sources.jar [-]
                                 runtimeClasspath              : <empty>
                                 runtimeOnly                   : <empty>
                                 testAnnotationProcessor       : <empty>
@@ -2163,6 +2168,13 @@ MODULE                        : NonStandardSourceSetDependencies
                                     qName                         : :kmp-java:sample-test:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                 taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        jvmTest                       : jvmTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample:jvmTest
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample-test:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample-test:testReleaseUnitTest
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -2288,7 +2300,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -2403,6 +2414,15 @@ MODULE                        : NonStandardSourceSetDependencies
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                jvmTest                       : jvmTest (DefaultExternalTask)
+                    qName                         : :common:jvmTest
+                test                          : test (DefaultExternalTask)
+                    qName                         : :desktop:test
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
     GradleModuleModel
         gradlePath                    : :aarWrapperLib
@@ -2431,16 +2451,16 @@ MODULE                        : NonStandardSourceSetDependencies.app
             ApiLevel                      : 21
             ApiString                     : 21
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : me.monori.studioclasspathissue
@@ -2481,6 +2501,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : me.monori.gradleprojectpathissue
         testApplicationId             : me.monori.gradleprojectpathissue.test
@@ -2488,7 +2509,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     - basicVariant:               : release
         applicationId                 : me.monori.gradleprojectpathissue
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -2505,8 +2526,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2675,8 +2696,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -3211,6 +3232,11 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3293,6 +3319,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     - resourceDirs                : <ROOT>/common/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/jvmMain/kotlin
                     platform                      : JVM
+                archiveFile                   : <ROOT>/common/build/libs/common-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -3493,6 +3520,11 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -3531,9 +3563,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     ProjectPath                   : :feature-a
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/feature-a/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : me.monori.feature.a
@@ -3574,12 +3606,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.a.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4557,6 +4590,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -4597,9 +4635,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     ProjectPath                   : :feature-b
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/feature-b/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : me.monori.feature.b
@@ -4640,12 +4678,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.b.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5326,6 +5365,11 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -5421,6 +5465,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/kotlin
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
                     platform                      : JVM
+                archiveFile                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
@@ -5583,9 +5628,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     ProjectPath                   : :kmp-java:sample-test
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/kmp-java/sample-test/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies.kmp-java
     Namespace                     : test
@@ -5626,12 +5671,13 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : test.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5880,16 +5926,16 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/lib/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
     Namespace                     : com.example.lib
@@ -5930,12 +5976,13 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -5949,8 +5996,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -6109,8 +6156,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             ConsumerProguardFiles         : <ROOT>/lib/consumer-rules.pro
@@ -6368,6 +6415,11 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

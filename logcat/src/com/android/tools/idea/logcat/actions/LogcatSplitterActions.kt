@@ -17,12 +17,12 @@ package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 /** An action that opens a popup menu with Logcat format-related actions */
-internal class LogcatSplitterActions(splitterActions: ActionGroup) :
+internal class LogcatSplitterActions(splitterActions: DefaultActionGroup) :
   PopupActionGroupAction(
     LogcatBundle.message("logcat.splitter.actions.text"),
     null,
@@ -30,7 +30,7 @@ internal class LogcatSplitterActions(splitterActions: ActionGroup) :
   ) {
 
   private val splitterActions =
-    splitterActions.getChildren(null, ActionManager.getInstance()).asList()
+    splitterActions.getChildren(ActionManager.getInstance()).asList()
 
   override fun getPopupActions(): List<AnAction> = splitterActions
 }

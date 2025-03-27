@@ -17,7 +17,7 @@ package com.google.idea.blaze.java.libraries;
 
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.common.experiments.BoolExperiment;
-import com.google.idea.sdkcompat.general.BaseSdkCompat;
+import com.intellij.openapi.extensions.ProjectExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.ui.EditorNotificationProvider;
@@ -41,8 +41,9 @@ final class DisableLibraryBytecodeNotification implements StartupActivity {
     try {
       Class clazz =
           Class.forName("com.intellij.codeInsight.daemon.impl.LibrarySourceNotificationProvider");
-      BaseSdkCompat.unregisterEditorNotificationProvider(
-          project, (Class<? extends EditorNotificationProvider>) clazz);
+      new ProjectExtensionPointName<>("com.intellij.editorNotificationProvider")
+        .getPoint(project)
+        .unregisterExtension((Class<? extends EditorNotificationProvider>) clazz);
     } catch (ClassNotFoundException e) {
       // Ignore
     }

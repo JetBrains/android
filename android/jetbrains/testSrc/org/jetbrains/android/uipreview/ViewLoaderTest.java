@@ -17,6 +17,7 @@ package org.jetbrains.android.uipreview;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.jetbrains.android.uipreview.ModuleClassLoaderOverlaysTestKt.loadClassBytes;
 import static org.junit.Assert.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -33,9 +34,12 @@ import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.rendering.ViewLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader;
+import com.android.tools.rendering.classloading.loaders.StaticLoader;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import kotlin.Pair;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import com.android.tools.sdk.AndroidPlatform;
@@ -113,8 +117,17 @@ public class ViewLoaderTest extends AndroidTestCase {
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
+    // We use a class loader that allows to get the byte version of the classes. This way we can use both
+    // the reflection and the R bytecode parsing path.
+    DelegatingClassLoader classLoader = new DelegatingClassLoader(this.getClass().getClassLoader(), new StaticLoader(
+      new Pair<>("org.jetbrains.android.uipreview.ViewLoaderTest", loadClassBytes(ViewLoaderTest.class)),
+      new Pair<>("org.jetbrains.android.uipreview.ViewLoaderTest$R", loadClassBytes(R.class)),
+      new Pair<>("org.jetbrains.android.uipreview.ViewLoaderTest$R$string", loadClassBytes(R.string.class)),
+      new Pair<>("org.jetbrains.android.uipreview.ViewLoaderTest$R$not_a_type", loadClassBytes(R.not_a_type.class))
+    ));
+
     RenderLogger logger = new RenderLogger();
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, myClassLoaderReference.getClassLoader());
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myBuildTarget), logger, null, classLoader);
     ResourceIdManager idManager = StudioResourceIdManager.get(myModule);
     assertNotNull(idManager);
 

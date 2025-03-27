@@ -21,11 +21,14 @@ import com.android.tools.idea.common.layout.manager.PositionableContentLayoutMan
 import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
 import com.android.tools.idea.common.layout.option.layout
 import com.android.tools.idea.common.layout.positionable.PositionableContent
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
+import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * [PositionableContentLayoutManager] for the [NlDesignSurface]. It uses a delegated
@@ -33,11 +36,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * can be switched at runtime.
  */
 class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayoutOption) :
-  PositionableContentLayoutManager(), LayoutManagerSwitcher {
+  PositionableContentLayoutManager(), LayoutManagerSwitcher, Disposable.Default {
 
   lateinit var surface: NlDesignSurface
 
-  override val currentLayout = MutableStateFlow(layoutOption)
+  override val currentLayoutOption = MutableStateFlow(layoutOption)
+
+  private val scope = AndroidCoroutineScope(this)
+
+  private var currentLayout = layoutOption.createLayoutManager()
+
+  init {
+    scope.launch { currentLayoutOption.collect { currentLayout = it.createLayoutManager() } }
+  }
 
   /**
    * The current [GridLayoutGroup] applied in the layout manager. This state is only used to store
@@ -47,8 +58,8 @@ class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayou
 
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     availableSize.size = surface.extentSize
-    currentLayout.value.layoutManager.useCachedLayoutGroups(cachedLayoutGroups)
-    currentLayout.value.layoutManager.layout(
+    currentLayout.useCachedLayoutGroups(cachedLayoutGroups)
+    currentLayout.layout(
       content,
       availableSize.width,
       availableSize.height,
@@ -61,16 +72,7 @@ class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayou
    * [availableSize].
    */
   fun getFitIntoScale(content: Collection<PositionableContent>, availableSize: Dimension): Double {
-    return currentLayout.value.layoutManager.getFitIntoScale(
-      content,
-      availableSize.width,
-      availableSize.height,
-    )
-  }
-
-  /** Performs a refresh of the layout manager by emptying its cached values. */
-  fun clearCachedGroups() {
-    cachedLayoutGroups.value = emptyList()
+    return currentLayout.getFitIntoScale(content, availableSize.width, availableSize.height)
   }
 
   override fun preferredLayoutSize(
@@ -78,14 +80,9 @@ class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayou
     availableSize: Dimension,
   ): Dimension {
     availableSize.size = surface.extentSize
-    currentLayout.value.layoutManager.useCachedLayoutGroups(cachedLayoutGroups)
+    currentLayout.useCachedLayoutGroups(cachedLayoutGroups)
     val dimension =
-      currentLayout.value.layoutManager.getRequiredSize(
-        content,
-        availableSize.width,
-        availableSize.height,
-        null,
-      )
+      currentLayout.getRequiredSize(content, availableSize.width, availableSize.height, null)
     dimension.setSize(
       max(surface.scrollableViewMinSize.width, dimension.width),
       max(surface.scrollableViewMinSize.height, dimension.height),
@@ -99,11 +96,6 @@ class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayou
     availableWidth: Int,
     availableHeight: Int,
   ): Map<PositionableContent, Point> {
-    return currentLayout.value.layoutManager.measure(
-      content,
-      availableWidth,
-      availableHeight,
-      surface.isCanvasResizing,
-    )
+    return currentLayout.measure(content, availableWidth, availableHeight, surface.isCanvasResizing)
   }
 }

@@ -31,11 +31,11 @@ val Option.icon: Icon?
     return IconLoader.getIcon(path, StudioIcons::class.java.classLoader)
   }
 
-fun createDialog(survey: Survey, choiceLogger: ChoiceLogger = ChoiceLoggerImpl, hasFollowup: Boolean = false): DialogWrapper {
+fun createDialog(survey: Survey, choiceLogger: ChoiceLogger = ChoiceLoggerImpl, followupSurvey: Survey? = null): DialogWrapper {
   return if (survey.answerCount > 1) {
-    MultipleChoiceDialog(survey, choiceLogger, hasFollowup)
+    MultipleChoiceDialog(survey, choiceLogger, followupSurvey)
   }
   else {
-    SingleChoiceDialog(survey, choiceLogger, hasFollowup)
+    SingleChoiceDialog(survey, choiceLogger, followupSurvey)
   }
 }

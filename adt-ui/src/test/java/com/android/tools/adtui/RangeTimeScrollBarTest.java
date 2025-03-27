@@ -15,16 +15,23 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.Range;
+import com.intellij.testFramework.ApplicationRule;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.adtui.model.Range;
 import com.intellij.testFramework.junit5.TestApplication;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Test;
 
 @TestApplication
 public class RangeTimeScrollBarTest {
   private static final double EPSILON = 1e-4;
+
+  @ClassRule
+  public static final ApplicationRule appRule = new ApplicationRule();
 
   @Test
   public void testInitialization() {

@@ -23,6 +23,7 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
@@ -76,12 +77,11 @@ class AppInsightsDisplayRefreshTimestampAction(
         } else {
           null
         }
+      putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) = Unit
-
-  override fun displayTextInToolbar() = true
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 

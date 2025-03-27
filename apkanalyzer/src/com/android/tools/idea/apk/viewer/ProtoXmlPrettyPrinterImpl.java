@@ -34,7 +34,7 @@ public class ProtoXmlPrettyPrinterImpl implements ProtoXmlPrettyPrinter {
 
   @NotNull
   @Override
-  public String prettyPrint(@NotNull byte[] content) throws IOException {
+  public String prettyPrint(byte @NotNull [] content) throws IOException {
     try (InputStream stream = new ByteArrayInputStream(content)) {
       // Convert the protobuf into the aapt DOM representation
       Resources.XmlNode rootNode = Resources.XmlNode.parseFrom(stream);

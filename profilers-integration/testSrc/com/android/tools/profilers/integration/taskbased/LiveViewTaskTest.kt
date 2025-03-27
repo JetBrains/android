@@ -15,11 +15,29 @@
  */
 package com.android.tools.profilers.integration.taskbased
 
-import com.android.tools.asdriver.tests.Emulator
-import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.asdriver.tests.AndroidStudio
+import com.android.tools.profilers.integration.ProfilersTaskTestBase
+
 import org.junit.Test
 
-class LiveViewTaskTest : ProfilersTestBase() {
+class LiveViewTaskTest : ProfilersTaskTestBase() {
+
+  override fun selectTask(studio: AndroidStudio) {
+    selectLiveViewTask(studio)
+  }
+
+  override fun verifyTaskStarted(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
+    verifyIdeaLog(".*PROFILER\\:\\s+Enter\\s+LiveStage", 120)
+  }
+
+  override fun verifyTaskStopped(studio: AndroidStudio) {
+    studio.waitForComponentByClass("TooltipLayeredPane", "CpuUsageView")
+  }
+
+  override fun verifyUIComponents(studio: AndroidStudio) {
+    studio.waitForComponentByClass("TooltipLayeredPane", "CpuUsageView")
+  }
 
   /**
    * Validate live view task workflow is working.
@@ -40,36 +58,5 @@ class LiveViewTaskTest : ProfilersTestBase() {
    *  6. Verify if the profiler session is still viewable after stopping.
    */
   @Test
-  fun test() {
-    taskBasedProfiling(
-      systemImage = Emulator.SystemImage.API_33,
-      deployApp = true,
-      testFunction = { studio, _ ->
-        // Selecting the device.
-        selectDevice(studio)
-
-        // Selecting the process id which consists of `minapp`
-        selectProcess(studio)
-
-        // Profiler starting point for Live View task is limited to "Now". "Profiler from starting" is not available.
-        // Selecting live view task.
-        selectLiveViewTask(studio)
-
-        // Live View Task is alsways
-        // Starting task
-        startTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
-        verifyIdeaLog(".*PROFILER\\:\\s+Enter\\s+LiveStage", 120)
-
-        Thread.sleep(4000)
-
-        studio.waitForComponentByClass("TooltipLayeredPane", "CpuUsageView")
-
-        stopProfilingSession(studio)
-
-        // Verify if the UI still shows the profiling session.
-        studio.waitForComponentByClass("TooltipLayeredPane", "CpuUsageView")
-      }
-    )
-  }
+  fun test() = testTask()
 }

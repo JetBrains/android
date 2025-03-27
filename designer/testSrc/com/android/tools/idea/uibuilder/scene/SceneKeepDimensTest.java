@@ -23,6 +23,8 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
+import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
@@ -33,6 +35,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 
 /**
@@ -102,12 +105,30 @@ public class SceneKeepDimensTest extends SceneTest {
   private void setFakeResource(String dimension, String value) {
     ResourceValue resourceValue = new ResourceValueImpl(ResourceUrl.parse(dimension).resolve(RES_AUTO, EMPTY_RESOLVER), value);
     ResourceResolver resolver = ResourceResolver.withValues(resourceValue);
+    ResourceItemResolver resourceItemResolver = new ResourceItemResolver(
+      FolderConfiguration.createDefault(),
+      new ResourceItemResolver.ResourceProvider() {
+        @Override
+        public @Nullable ResourceResolver getResolver(boolean createIfNecessary) {
+          return resolver;
+        }
 
+        @Override
+        public @Nullable ResourceRepository getFrameworkResources() {
+          return null;
+        }
+
+        @Override
+        public @Nullable ResourceRepository getAppResources() {
+          return null;
+        }
+      }, null);
     Configuration configuration = Mockito.mock(Configuration.class);
-    when(configuration.getResourceResolver()).thenReturn(resolver);
+    when(configuration.getResourceItemResolver()).thenReturn(resourceItemResolver);
     when(configuration.getDensity()).thenReturn(Density.XHIGH);
     when(configuration.getSettings()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
     when(configuration.getFullConfig()).thenReturn(FolderConfiguration.createDefault());
+    when(configuration.getTheme()).thenReturn("@android:style/Theme");
     myModel.setConfiguration(configuration);
   }
 

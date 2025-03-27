@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.editors.strings.table.filter
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.UNTRANSLATABLE_COLUMN
 import com.google.common.truth.Truth.assertThat
+import javax.swing.RowFilter.Entry
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import javax.swing.RowFilter.Entry
+import org.mockito.kotlin.mock
 
 /** Tests the [TextRowFilter] class. */
 @RunWith(JUnit4::class)
@@ -31,18 +31,21 @@ class TextRowFilterTest {
   private val model: StringResourceTableModel = mock()
   private val items = Array<Any>(DEFAULT_VALUE_COLUMN + 5) { "" }
   private val entry =
-      object : Entry<StringResourceTableModel, Int>() {
-        override fun getModel(): StringResourceTableModel = this@TextRowFilterTest.model
-        override fun getValueCount(): Int = items.size
-        override fun getValue(index: Int): Any = items[index]
-        override fun getIdentifier(): Int = 42
-      }
+    object : Entry<StringResourceTableModel, Int>() {
+      override fun getModel(): StringResourceTableModel = this@TextRowFilterTest.model
+
+      override fun getValueCount(): Int = items.size
+
+      override fun getValue(index: Int): Any = items[index]
+
+      override fun getIdentifier(): Int = 42
+    }
   private val textRowFilter = TextRowFilter(TEXT)
 
   @Test
   fun getDescription() {
     assertThat(textRowFilter.getDescription())
-        .isEqualTo("""Show Keys with Values Containing "$TEXT"""")
+      .isEqualTo("""Show Keys with Values Containing "$TEXT"""")
   }
 
   @Test

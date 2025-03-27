@@ -22,6 +22,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationsManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -407,7 +408,7 @@ public class StudioInteractionService {
     }
 
     DataContext context = DataManager.getInstance().getDataContext(c);
-    AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, context);
+    AnActionEvent event = AnActionEvent.createEvent(action, context, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null);
     action.actionPerformed(event);
   }
 
@@ -567,7 +568,7 @@ public class StudioInteractionService {
       NotificationAction action = (NotificationAction)actions.get(0);
       try {
         DataContext context = DataManager.getInstance().getDataContext();
-        AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, context);
+        AnActionEvent event = AnActionEvent.createEvent(action, context, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null);
         action.actionPerformed(event, notification);
         System.out.println("Successfully ran the notification's action");
       }

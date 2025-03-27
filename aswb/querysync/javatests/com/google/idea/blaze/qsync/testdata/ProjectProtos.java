@@ -46,11 +46,10 @@ public class ProjectProtos {
             EMPTY_PACKAGE_READER,
             Predicates.alwaysTrue(),
             NOOP_CONTEXT,
-            ProjectDefinition.create(
-                ImmutableSet.of(workspaceImportDirectory),
-                ImmutableSet.of(),
-                ImmutableSet.of(QuerySyncLanguage.JAVA),
-                ImmutableSet.of()),
+            ProjectDefinition.builder()
+                .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))
+                .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                .build(),
             newDirectExecutorService());
     return converter.createProject(BuildGraphs.forTestProject(project));
   }

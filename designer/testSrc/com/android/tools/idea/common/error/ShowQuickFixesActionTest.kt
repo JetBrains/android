@@ -18,11 +18,13 @@ package com.android.tools.idea.common.error
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.idea.ActionsBundle
-import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.SELECTED_ITEM
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import java.awt.Dimension
 import java.awt.event.MouseEvent
@@ -78,17 +80,19 @@ class ShowQuickFixesActionTest {
 
     val sourceButton = ActionButton(action, Presentation(), "", Dimension(1, 1))
     val inputEvent = MouseEvent(sourceButton, 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
-    val dataContext = DataContext { IssueNode(null, TestIssue(fixList = listOf(mock())), null) }
-    val eventWithFix =
-      AnActionEvent(
-        inputEvent,
-        dataContext,
-        "",
-        action.templatePresentation.clone(),
-        ActionManager.getInstance(),
-        0,
+    val dataContext =
+      SimpleDataContext.getSimpleContext(
+        SELECTED_ITEM,
+        IssueNode(null, TestIssue(fixList = listOf(mock())), null),
       )
-
+    val eventWithFix =
+      AnActionEvent.createEvent(
+        dataContext,
+        action.templatePresentation.clone(),
+        "",
+        ActionUiKind.NONE,
+        inputEvent,
+      )
     assertEquals(0, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)
     action.actionPerformed(eventWithFix)
     assertEquals(1, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)

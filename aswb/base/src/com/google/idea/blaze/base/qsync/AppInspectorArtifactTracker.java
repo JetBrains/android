@@ -16,7 +16,7 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import java.nio.file.Path;
@@ -27,6 +27,6 @@ public interface AppInspectorArtifactTracker {
 
   /** Fetches, caches and sets up new app inspector artifacts. */
   ImmutableSet<Path> update(
-      Set<Label> targets, AppInspectorInfo appInspectorInfo, BlazeContext context)
+      Label appInspectorTarget, AppInspectorInfo appInspectorInfo, Context<?> context)
       throws BuildException;
 }

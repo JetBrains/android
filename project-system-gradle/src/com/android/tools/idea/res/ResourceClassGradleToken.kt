@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.intellij.openapi.module.Module
 

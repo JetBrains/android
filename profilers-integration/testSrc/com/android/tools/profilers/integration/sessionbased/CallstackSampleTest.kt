@@ -47,7 +47,6 @@ class CallstackSampleTest : ProfilersTestBase() {
   @Test
   fun testRecordCallstackSample() {
     sessionBasedProfiling(
-      systemImage = Emulator.SystemImage.API_31, // Provides more stability than API 29
       testFunction = { studio, adb ->
         // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.
         println("Waiting for 20 seconds before running the app so that the emulator is ready")

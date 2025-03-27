@@ -159,7 +159,7 @@ public class GradleVersionCatalogTest2 {
     // Expand the last row.
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     String val = (Objects.requireNonNull(tree.valueAt(tree.getRowCount() - 1)));
-    boolean condition = val.equalsIgnoreCase("2|alias(|libs.plugins.android.application|)");
+    boolean condition = val.equalsIgnoreCase("2|alias(libs.plugins.android.|application|)");
     if (condition) {
       tree.doubleClickRow(tree.getRowCount() - 1);
     }

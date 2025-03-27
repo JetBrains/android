@@ -67,7 +67,7 @@ public interface BlazeAndroidDeviceSelector {
       }
       DeviceFutures deviceFutures = null;
       if (!deployTarget.hasCustomRunProfileState(executor)) {
-        deviceFutures = deployTarget.getDevices(project);
+        deviceFutures = deployTarget.launchDevices(project);
       }
       return new DeviceSession(deployTarget, deviceFutures);
     }

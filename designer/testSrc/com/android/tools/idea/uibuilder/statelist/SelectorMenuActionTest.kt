@@ -23,9 +23,11 @@ import com.android.tools.idea.uibuilder.editor.AnimatedSelectorToolbar
 import com.android.tools.idea.uibuilder.editor.AnimationToolbar
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -56,7 +58,7 @@ class SelectorMenuActionTest {
 
     val context = createContext(surface, toolbar)
     val presentation = PresentationFactory().getPresentation(action)
-    val event = AnActionEvent.createFromDataContext("", presentation, context)
+    val event = createEvent(context, presentation, "", ActionUiKind.NONE, null)
     action.update(event)
 
     assertTrue(presentation.isEnabledAndVisible)
@@ -77,7 +79,7 @@ class SelectorMenuActionTest {
 
     val context = createContext(surface, toolbar)
     val presentation = PresentationFactory().getPresentation(action)
-    val event = AnActionEvent.createFromDataContext("", presentation, context)
+    val event = createEvent(context, presentation, "", ActionUiKind.NONE, null)
     action.update(event)
 
     assertFalse(presentation.isEnabled)
@@ -97,7 +99,7 @@ class SelectorMenuActionTest {
 
     val context = createContext(surface, toolbar)
     val presentation = PresentationFactory().getPresentation(action)
-    val event = AnActionEvent.createFromDataContext("", presentation, context)
+    val event = createEvent(context, presentation, "", ActionUiKind.NONE, null)
     action.update(event)
 
     assertFalse(presentation.isEnabledAndVisible)
@@ -112,7 +114,7 @@ class SelectorMenuActionTest {
 
     val context = createContext(surface, null)
     val presentation = PresentationFactory().getPresentation(action)
-    val event = AnActionEvent.createFromDataContext("", presentation, context)
+    val event = createEvent(context, presentation, "", ActionUiKind.NONE, null)
     action.update(event)
 
     assertTrue(presentation.isEnabledAndVisible)
@@ -124,22 +126,18 @@ class SelectorMenuActionTest {
     // The menu never shows outside a design surface.
     val action = SelectorMenuAction()
 
-    val context = DataContext { dataId -> if (DESIGN_SURFACE.`is`(dataId)) null else null }
+    val context = DataContext.EMPTY_CONTEXT
     val presentation = PresentationFactory().getPresentation(action)
-    val event = AnActionEvent.createFromDataContext("", presentation, context)
+    val event = createEvent(context, presentation, "", ActionUiKind.NONE, null)
     action.update(event)
 
     assertFalse(presentation.isEnabledAndVisible)
     assertNull(presentation.description)
   }
 
-  private fun createContext(surface: DesignSurface<*>, toolbar: JPanel?): DataContext {
-    return DataContext { dataId ->
-      when {
-        DESIGN_SURFACE.`is`(dataId) -> surface
-        ANIMATION_TOOLBAR.`is`(dataId) -> toolbar
-        else -> null
-      }
-    }
-  }
+  private fun createContext(surface: DesignSurface<*>, toolbar: JPanel?): DataContext =
+    SimpleDataContext.builder()
+      .add(DESIGN_SURFACE, surface)
+      .apply { (toolbar as? AnimationToolbar)?.let { add(ANIMATION_TOOLBAR, it) } }
+      .build()
 }

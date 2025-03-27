@@ -149,11 +149,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Override
-  public ClassFileFinder getClassFileFinderForSourceFile(VirtualFile sourceFile) {
-    return classFileFinder;
-  }
-
-  @Override
   @Nullable
   public PathString getOrCreateSampleDataDirectory() throws IOException {
     return sampleDataDirectoryProvider.getOrCreateSampleDataDirectory();
@@ -166,11 +161,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Override
-  public CapabilityStatus canGeneratePngFromVectorGraphics() {
-    return new CapabilitySupported();
-  }
-
-  @Override
   public List<NamedModuleTemplate> getModuleTemplates(@Nullable VirtualFile targetDirectory) {
     return BlazeAndroidModuleTemplate.getTemplates(module, targetDirectory);
   }
@@ -178,11 +168,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   @Override
   public CapabilityStatus canRegisterDependency(DependencyType type) {
     return new CapabilityNotSupported();
-  }
-
-  @Override
-  public void registerDependency(GradleCoordinate coordinate) {
-    registerDependency(coordinate, DependencyType.IMPLEMENTATION);
   }
 
   @Override

@@ -17,9 +17,7 @@ package com.android.gmdcodecompletion.ftl
 
 import com.android.gmdcodecompletion.fullAndroidDeviceCatalog
 import com.android.gmdcodecompletion.matchFtlDeviceCatalog
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.mockStatic
 import com.google.api.services.testing.model.AndroidDeviceCatalog
 import com.google.api.services.testing.model.AndroidModel
 import com.google.api.services.testing.model.AndroidRuntimeConfiguration
@@ -36,6 +34,8 @@ import junit.framework.Assert.assertTrue
 import junit.framework.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class FtlDeviceCatalogTest {
 

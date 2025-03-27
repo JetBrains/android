@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
@@ -186,12 +187,7 @@ public class NlDesignSurfaceActionHandlerTest {
 
   @Test
   public void testPasteGenerateNewIdsWithContext() {
-    DataContext newContext = new DataContext() {
-      @Override
-      public @Nullable Object getData(@NotNull String dataId) {
-        return (PasteWithIdOptionAction.getPASTE_WITH_NEW_IDS_KEY().is(dataId)) ? true : null;
-      }
-    };
+    DataContext newContext = SimpleDataContext.getSimpleContext(PasteWithIdOptionAction.getPASTE_WITH_NEW_IDS_KEY(), true);
     copyTextViewAndPaste(newContext);
     List<NlComponent> textComponents = findAll(TEXT_VIEW);
     assertThat(textComponents).hasSize(2);
@@ -200,12 +196,7 @@ public class NlDesignSurfaceActionHandlerTest {
 
   @Test
   public void testPasteUsingOldIdsWithContext() {
-    DataContext newContext = new DataContext() {
-      @Override
-      public @Nullable Object getData(@NotNull String dataId) {
-        return (PasteWithIdOptionAction.getPASTE_WITH_NEW_IDS_KEY().is(dataId)) ? false : null;
-      }
-    };
+    DataContext newContext = SimpleDataContext.getSimpleContext(PasteWithIdOptionAction.getPASTE_WITH_NEW_IDS_KEY(), false);
     copyTextViewAndPaste(newContext);
     List<NlComponent> textComponents = findAll(TEXT_VIEW);
     assertThat(textComponents).hasSize(2);

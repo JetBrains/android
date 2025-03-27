@@ -33,13 +33,11 @@ import kotlin.io.path.pathString
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Restores an Android Application from a backup file
- *
- * TODO(b/348406593): Add tests
- */
-internal class RestoreFileAction(private val actionHelper: ActionHelper = ActionHelperImpl()) :
-  AnAction() {
+/** Restores an Android Application from a backup file */
+internal class RestoreFileAction(
+  private val actionHelper: ActionHelper = ActionHelperImpl(),
+  private val dialogFactory: DialogFactory = DialogFactoryImpl(),
+) : AnAction() {
   override fun getActionUpdateThread() = BGT
 
   override fun update(e: AnActionEvent) {
@@ -60,7 +58,7 @@ internal class RestoreFileAction(private val actionHelper: ActionHelper = Action
     project.coroutineScope.launch {
       when (val restoreInfo = e.getRestoreInfo()) {
         is Invalid ->
-          actionHelper.showWarning(
+          dialogFactory.showDialog(
             project,
             message("restore.file.action.error.title"),
             restoreInfo.reason,
@@ -80,7 +78,7 @@ internal class RestoreFileAction(private val actionHelper: ActionHelper = Action
     val backupManager = BackupManager.getInstance(project)
 
     // Check application id
-    val fileApplicationId = backupManager.getApplicationId(backupFile)
+    val fileApplicationId = backupManager.getMetadata(backupFile)?.applicationId
     when {
       fileApplicationId == null ->
         return Invalid(message("error.invalid.file", backupFile.pathString))

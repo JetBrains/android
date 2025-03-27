@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.LinkedBlockingDeque
@@ -56,7 +57,7 @@ class RunningEmulatorCatalogTest {
 
     // Start the first Emulator and check that it is reflected in the catalog after an explicit update.
     emulator1.start(standalone = false)
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow().await() }
     val event1: CatalogEvent = eventQueue.poll(50, MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event1.type).isEqualTo(EventType.ADDED)
     assertThat(event1.emulator.emulatorId.grpcPort).isEqualTo(emulator1.grpcPort)
@@ -97,7 +98,7 @@ class RunningEmulatorCatalogTest {
     val event6 = eventQueue.poll(1500, MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event6.type).isEqualTo(EventType.REMOVED)
     assertThat(event6.emulator).isEqualTo(event5.emulator)
-    assertThat(catalog.updateNow().get()).isEmpty()
+    assertThat(runBlocking { catalog.updateNow().await() }).isEmpty()
   }
 
   private enum class EventType { ADDED, REMOVED }

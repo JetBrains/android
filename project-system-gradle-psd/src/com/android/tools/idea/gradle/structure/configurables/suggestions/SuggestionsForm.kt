@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByType
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
@@ -27,6 +28,8 @@ class SuggestionsForm(
     private val context: PsContext,
     suggestionsViewIssueRenderer: SuggestionsViewIssueRenderer
 ) : SuggestionsFormUi(), Disposable {
+  private val maxNumberOfIssuesToShow = 300
+  private val logger = Logger.getInstance(this::class.java)
 
   val panel = myMainPanel!!
 
@@ -46,7 +49,10 @@ class SuggestionsForm(
 
   internal fun renderIssues(issues: List<PsIssue>, scope: PsPath?) {
     if (Disposer.isDisposed(this)) return
-    issuesViewer.display(issues.sortedWith(IssuesByTypeAndTextComparator.INSTANCE), scope)
+    if (issues.size > maxNumberOfIssuesToShow) {
+      logger.warn("There are ${issues.size} issues but only $maxNumberOfIssuesToShow will be shown in PSD")
+    }
+    issuesViewer.display(issues.sortedWith(IssuesByTypeAndTextComparator.INSTANCE).take(maxNumberOfIssuesToShow), scope)
     updateLoading()
   }
 

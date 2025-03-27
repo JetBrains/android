@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
@@ -41,6 +40,7 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {

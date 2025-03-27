@@ -16,66 +16,32 @@
 package com.android.tools.idea.gradle.project.build.output.integration.runsGradleBuild
 
 import com.android.SdkConstants
-import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaToolchainQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.JdkUtils.getEmbeddedJdkPathWithVersion
-import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.google.wireless.android.sdk.stats.BuildErrorMessage.ErrorType.JAVA_NOT_SUPPORTED_LANGUAGE_LEVEL
 import com.intellij.build.events.BuildEvent
-import com.intellij.build.events.BuildIssueEvent
-import com.intellij.build.events.FailureResult
-import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
-import com.intellij.build.events.impl.FinishBuildEventImpl
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.containers.ContainerUtil
-import org.junit.After
-import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.fail
 
 @RunsInEdt
-class JavaLanguageLevelDeprecationOutputParserTest {
+class JavaLanguageLevelDeprecationOutputParserTest : BuildOutputIntegrationTestBase() {
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
-
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
-
-  @Before
-  fun setUp() {
-    UsageTracker.setWriterForTest(usageTracker)
-  }
-
-  @After
-  fun cleanUp() {
-    usageTracker.close()
-    UsageTracker.cleanAfterTesting()
-  }
 
   /**
    * Verify that using Java 6 language level causes a build issue (error) that has the following quick fixes:
@@ -99,6 +65,7 @@ root > 'failed'
     ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
       assertThat(event.description).isEqualTo("""
         Java compiler has removed support for compiling with source/target compatibility version 6.
+
         <a href="set.java.toolchain.8">Set Java Toolchain to 8</a>
         <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
         <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
@@ -145,6 +112,7 @@ root > 'finished'
     ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
       assertThat(event.description).isEqualTo("""
         Java compiler has deprecated support for compiling with source/target compatibility version 7.
+
         <a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
         <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
         <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
@@ -255,6 +223,7 @@ root > 'failed'
     ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
       assertThat(event.description).isEqualTo("""
         Java compiler has removed support for compiling with source/target compatibility version 7.
+
         <a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
         <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
         <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
@@ -293,6 +262,7 @@ root > 'finished'
     ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
       assertThat(event.description).isEqualTo("""
         Java compiler has deprecated support for compiling with source/target compatibility version 8.
+
         <a href="set.java.toolchain.17">Set Java Toolchain to 17</a>
         <a href="set.java.level.JDK_11.all">Change Java language level and jvmTarget to 11 in all modules if using a lower level.</a>
         <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
@@ -312,43 +282,6 @@ root > 'finished'
 
     assertThat(buildEvents.finishEventFailures()).isEmpty()
     verifyNoStats()
-  }
-
-  private fun verifyNoStats() {
-    val reportedFailureDetails = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
-    assertThat(reportedFailureDetails).hasSize(0)
-  }
-  private fun verifyStats(vararg expectedMessages: BuildErrorMessage.ErrorType) {
-    usageTracker.usages.map { it.studioEvent }.firstOrNull {
-      it.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS
-    }?.also {
-      assertThat(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(*expectedMessages)
-    } ?: fail("No BUILD_OUTPUT_WINDOW_STATS event reported.")
-  }
-
-  private fun BuildEvent.verifyQuickfix(quickFixId: String, verify: (BuildIssueQuickFix) -> Unit) {
-    findQuickfix(quickFixId)?.let {verify(it) } ?: expect.fail("Quickfix with id '$quickFixId' not found")
-  }
-  private fun List<BuildEvent>.printEvents(): String {
-    return joinToString(separator = "\n") { it.toFullPathWithMessage() }
-  }
-  private fun BuildEvent.toFullPathWithMessage(): String {
-    val parentPath = when (val parentId = parentId) {
-      null -> "root"
-      else -> "root > ${parentId.toString().substringAfter(" > ")}"
-    }
-    val kind = if (this is MessageEvent) "$kind:" else ""
-    return "$parentPath > $kind'${message}'"
-  }
-
-  private fun List<BuildEvent>.findBuildEvent(eventPath: String): BuildEvent {
-    return single { it.toFullPathWithMessage() == eventPath }
-  }
-
-  private fun BuildEvent.findQuickfix(quickfixId: String): BuildIssueQuickFix? {
-    return (this as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull { it.id == quickfixId }
   }
 
   private fun PreparedTestProject.getBuildIssues(javaSdkVersion: JavaSdkVersion,
@@ -379,27 +312,4 @@ root > 'finished'
       project.buildCollectingEvents(expectSuccess)
     }
   }
-
-  private fun Project.buildCollectingEvents(expectSuccess: Boolean): List<BuildEvent> {
-    val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
-    val allBuildEventsProcessedLatch = CountDownLatch(1)
-    // Build
-    val result = buildAndWait(eventHandler = { event ->
-      if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
-      buildEvents.add(event)
-      // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
-      // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
-      if (event is FinishBuildEventImpl) {
-        allBuildEventsProcessedLatch.countDown()
-      }
-    }) { buildInvoker ->
-      buildInvoker.rebuild()
-    }
-    assertThat(result.isBuildSuccessful).isEqualTo(expectSuccess)
-    allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
-    return buildEvents
-  }
-
-  private fun List<BuildEvent>.finishEventFailures() = (filterIsInstance<FinishBuildEvent>().single().result as? FailureResult)?.failures
-                                                       ?: emptyList()
 }

@@ -144,6 +144,13 @@ class InformationPopupImpl(
 
   override fun showPopup(disposableParent: Disposable, owner: JComponent) {
     val size: Dimension = getPopupPreferredSize()
+
+    // Set the popupComponent's non-UI parent to be [owner] so that
+    // [owner] can contribute to the popup's DataContext.
+    // This allows for actions within the popup to query for things like the Editor even
+    // when the Editor is not directly related to the popup.
+    UIUtil.setFosterParent(popupComponent, owner)
+
     val newPopup = JBPopupFactory.getInstance().createComponentPopupBuilder(popupComponent, null)
       .setCancelOnClickOutside(true)
       .setCancelOnWindowDeactivation(true)

@@ -16,9 +16,6 @@
 package com.android.tools.idea.editors.strings.action
 
 import com.android.ide.common.resources.Locale
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.getDescendant
@@ -35,11 +32,9 @@ import com.android.tools.idea.editors.strings.table.filter.TranslatableRowFilter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.DialogWrapper
@@ -49,7 +44,13 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
+import java.awt.event.MouseEvent
+import javax.swing.Icon
+import javax.swing.JButton
+import javax.swing.JPanel
+import javax.swing.JTextField
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -60,11 +61,9 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import java.awt.event.MouseEvent
-import javax.swing.Icon
-import javax.swing.JButton
-import javax.swing.JPanel
-import javax.swing.JTextField
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Tests the [FilterKeysAction] class. */
 @RunWith(JUnit4::class)
@@ -107,15 +106,7 @@ class FilterKeysActionTest {
         .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
         .build()
 
-    event =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    event = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)
@@ -162,15 +153,7 @@ class FilterKeysActionTest {
     val dataContext =
       SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()
 
-    val noEditorEvent =
-      AnActionEvent(
-        mouseEvent,
-        dataContext,
-        "place",
-        Presentation(),
-        ActionManager.getInstance(),
-        0,
-      )
+    val noEditorEvent = TestActionEvent.createTestEvent(null, dataContext, mouseEvent)
 
     filterKeysAction.update(noEditorEvent)
 

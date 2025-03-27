@@ -21,12 +21,14 @@ import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.async.FutureUtil;
 import com.google.idea.blaze.base.async.FutureUtil.FutureResult;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
+import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelperBep;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
@@ -35,7 +37,9 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.TimingScope.EventType;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
+import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
+import java.io.InputStream;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -105,6 +109,27 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
   @Override
   public BuildSystem getBuildSystem() {
     return buildSystem;
+  }
+
+  @Override
+  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder)
+    throws BuildException {
+    throw new UnsupportedOperationException(
+      String.format("The %s does not support invoke method", this.getClass().getSimpleName()));
+  }
+
+  @Override
+  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) {
+    throw new UnsupportedOperationException(
+      String.format(
+        "The %s does not support invokeQuery method", this.getClass().getSimpleName()));
+  }
+
+  @Override
+  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) {
+    throw new UnsupportedOperationException(
+      String.format(
+        "The %s does not support invokeInfo method", this.getClass().getSimpleName()));
   }
 
   @Override

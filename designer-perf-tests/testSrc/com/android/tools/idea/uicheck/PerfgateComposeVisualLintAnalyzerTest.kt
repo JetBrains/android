@@ -26,23 +26,23 @@ import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.BottomAppBarAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.BottomNavAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.BoundsAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.ButtonSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.LongTextAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.OverlapAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.TextFieldSizeAnalyzerInspection
+import com.android.tools.idea.uibuilder.visual.visuallint.WearMarginAnalyzerInspection
 import com.android.tools.perflogger.Metric
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderResult
+import com.android.tools.visuallint.VisualLintAnalyzer
+import com.android.tools.visuallint.analyzers.BoundsAnalyzer
+import com.android.tools.visuallint.analyzers.ButtonSizeAnalyzer
+import com.android.tools.visuallint.analyzers.LongTextAnalyzer
+import com.android.tools.visuallint.analyzers.OverlapAnalyzer
+import com.android.tools.visuallint.analyzers.TextFieldSizeAnalyzer
 import org.junit.Before
 import org.junit.Test
 
@@ -82,7 +82,7 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
   }
 
   private fun visualLintAnalyzerRun(analyzer: VisualLintAnalyzer) {
-    val facet = projectRule.androidFacet(":app")
+    val facet = projectRule.mainAndroidFacet(":app")
     val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     val resultToModelMap = mutableMapOf<RenderResult, NlModel>()
     UiCheckConfigurations.forEach { config ->
@@ -106,13 +106,14 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
           AndroidBuildTargetReference.gradleOnly(facet),
           file
         )
+      assert(renderResult.result != null)
       resultToModelMap[renderResult.result!!] = nlModel
     }
     uiCheckBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("${analyzer.type}_run_time")),
                         HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use"))),
       samplesCount = NUMBER_OF_SAMPLES) {
-      resultToModelMap.forEach { (renderResult, nlModel) -> analyzer.findIssues(renderResult, nlModel) }
+      resultToModelMap.forEach { (renderResult, nlModel) -> analyzer.findIssues(renderResult, nlModel.configuration) }
     }
   }
 }

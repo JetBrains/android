@@ -3,7 +3,7 @@ ext {
 }
 
 buildscript {
- dependencies {
-        classpath "com.android.tools.build:gradle:$VERSION"
- }
+  dependencies {
+    classpath "com.android.tools.build:gradle:$VERSION"
+  }
 }

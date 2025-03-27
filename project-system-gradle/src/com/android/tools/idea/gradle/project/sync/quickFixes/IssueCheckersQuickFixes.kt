@@ -16,33 +16,27 @@
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.AgpVersion
 import com.android.repository.Revision
 import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.Projects.getBaseDirPath
-import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.build.events.studiobot.GradleErrorContext
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.StudioBotBundle
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
@@ -60,7 +54,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.net.HttpProxyConfigurable
-import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
@@ -81,37 +74,13 @@ class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
           settings.distributionType = DistributionType.DEFAULT_WRAPPED
         }
 
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_CREATED)
+        project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_CREATED.toReason())
         future.complete(null)
       }
       catch (e: IOException) {
         Messages.showErrorDialog(project, "Failed to create Gradle wrapper: " + e.message, "Quick Fix")
         future.completeExceptionally(e)
       }
-    }
-    return future
-  }
-}
-
-/**
- * This QuickFix upgrades Gradle and the Android Gradle Plugin in the build configuration to the specified versions, or
- * latest versions if not given.
- */
-class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: AgpVersion?, givenGradleVersion: GradleVersion?) : BuildIssueQuickFix {
-  override val id = "fix.gradle.elements"
-  val pluginVersion = givenPluginVersion ?: AgpVersions.latestKnown
-  val gradleVersion = givenGradleVersion ?: GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
-
-  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    val future = CompletableFuture<Any>()
-
-    invokeLater {
-      val updater = AndroidPluginVersionUpdater.getInstance(project)
-      if (updater.updatePluginVersion(pluginVersion, gradleVersion)) {
-        val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED)
-        GradleSyncInvoker.getInstance().requestProjectSync(project, request)
-      }
-      future.complete(null)
     }
     return future
   }
@@ -134,7 +103,7 @@ class InstallBuildToolsQuickFix(private val version: String,
           processor.run()
         }
         else {
-          GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_BUILD_TOOLS_INSTALLED)
+          project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_BUILD_TOOLS_INSTALLED.toReason())
         }
       }
       future.complete(null)
@@ -185,7 +154,7 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
           // Found: Trigger installation of the package.
           val dialog = SdkQuickfixUtils.createDialogForPaths(project, ImmutableList.of(cmakePackage.path), true)
           if (dialog != null && dialog.showAndGet()) {
-            GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED)
+            project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED.toReason())
           }
           future.complete(null)
           return@invokeLater
@@ -302,7 +271,7 @@ class SetCmakeDirQuickFix(private val myPath: File) : BuildIssueQuickFix {
       val localProperties = LocalProperties(getBaseDirPath(project))
       localProperties.androidCmakePath = myPath
       localProperties.save()
-      GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED)
+      project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED.toReason())
       future.complete(null)
     }
     return future
@@ -316,21 +285,20 @@ class SyncProjectRefreshingDependenciesQuickFix : BuildIssueQuickFix {
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, arrayOf("--refresh-dependencies"))
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES)
+    project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES.toReason())
     return CompletableFuture.completedFuture<Any>(null)
   }
 }
 
-class ToggleOfflineModeQuickFix(private val myEnableOfflineMode: Boolean) : BuildIssueQuickFix {
+class ToggleOfflineModeQuickFix(val enableOfflineMode: Boolean) : BuildIssueQuickFix {
   override val id = "enable.disable.offline.mode"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
 
     invokeLater {
-      GradleSettings.getInstance(project).isOfflineWork = myEnableOfflineMode
-      val trigger = GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED
-      GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
+      GradleSettings.getInstance(project).isOfflineWork = enableOfflineMode
+      project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED.toReason())
       future.complete(null)
     }
     return future
@@ -360,29 +328,5 @@ class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
       service.chooseJdkLocation(project.basePath)
     }
     return CompletableFuture.completedFuture(null)
-  }
-}
-
-class OpenStudioBotBuildIssueQuickFix(private val gradleErrorContext: GradleErrorContext) : DescribedBuildIssueQuickFix {
-  override val id: String = "open.plugin.studio.bot"
-  override val description: String = StudioBotBundle.message("studiobot.ask.text")
-
-  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    val studioBot = StudioBot.getInstance()
-    studioBot.sendChatQueryIfContextAllowed(project, gradleErrorContext, StudioBot.RequestSource.BUILD)
-    return CompletableFuture.completedFuture(null)
-  }
-}
-
-/** Sends chat query if context is allowed, otherwise stages it. */
-fun StudioBot.sendChatQueryIfContextAllowed(
-  project: Project,
-  gradleErrorContext: GradleErrorContext,
-  requestSource: StudioBot.RequestSource,
-) {
-  if (isContextAllowed(project)) {
-    chat(project).sendChatQuery(gradleErrorContext.toPrompt(project), requestSource)
-  } else {
-    chat(project).stageChatQuery(gradleErrorContext.toQuery(), requestSource)
   }
 }

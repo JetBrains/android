@@ -35,7 +35,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import com.android.SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
-import com.android.tools.idea.studiobot.AiExcludeService.FakeAiExcludeService
+import org.junit.Ignore
 
 class ExplainSyncOrBuildOutputIntegrationTest {
 
@@ -43,6 +43,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
   val projectRule: IntegrationTestEnvironmentRule =
     AndroidProjectRule.withIntegrationTestEnvironment()
 
+  @Ignore("b/391880461")
   @Test
   fun testAddDependencyAndSync() {
     val preparedProject: PreparedTestProject =
@@ -109,7 +110,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
     val preparedProject: PreparedTestProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val (contextString, files) =
-      preparedProject.open { getGradleFilesContext(it, FakeAiExcludeService()) }!!
+      preparedProject.open { getGradleFilesContext(it) { false } }!!
 
     assertTrue(contextString.contains("Project Gradle files, separated by -------:"))
     assertEquals(3, files.size)

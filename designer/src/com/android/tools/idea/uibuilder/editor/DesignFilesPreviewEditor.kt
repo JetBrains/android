@@ -143,7 +143,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
       componentRegistrar: Consumer<NlComponent>,
       file: VirtualFile,
     ): NlModel {
-      val config = ConfigurationManager.getOrCreateInstance(buildTarget.module).getPreviewConfig()
+      val config =
+        ConfigurationManager.getOrCreateInstance(buildTarget.module).getPreviewConfig(file)
       animatedSelectorModel =
         WriteCommandAction.runWriteCommandAction(
           project,
@@ -272,7 +273,7 @@ private class AnimatedDrawableListener(val surface: DesignSurface<*>) : Animatio
         it.sceneRenderConfiguration.needsInflation.set(true)
         if (framePositionMs > 0L) controller.forceElapsedReset = false
       }
-      it.requestRenderAsync()
+      it.requestRender()
     }
   }
 }
@@ -295,7 +296,7 @@ private class AnimationListListener(val surface: DesignSurface<*>) : AnimationLi
 
       val targetImageIndex = findTargetDuration(animationDrawable, framePositionMs)
       animationDrawable.currentIndex = targetImageIndex
-      sceneManager.requestRenderAsync()
+      sceneManager.requestRender()
     }
   }
 
@@ -365,7 +366,7 @@ private class AnimatedSelectorListener(val surface: DesignSurface<*>) : Animatio
           animationListDelegate.animateTo(controller, framePositionMs)
         else -> {
           it.sceneRenderConfiguration.elapsedFrameTimeMs = framePositionMs
-          it.requestRenderAsync()
+          it.requestRender()
         }
       }
     }

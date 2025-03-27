@@ -16,17 +16,19 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     if (variant == state.selectedVariant) {
       return StateTransition(state, Action.NONE)
@@ -40,6 +42,7 @@ data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : Cha
         currentIssueDetails =
           if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
         currentEvents = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
+        currentInsight = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
       ),
       if (shouldFetchDetails)
         (Action.FetchDetails(selectedIssueId!!, variant?.id) and

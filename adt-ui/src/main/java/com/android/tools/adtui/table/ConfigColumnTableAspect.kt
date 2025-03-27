@@ -19,9 +19,10 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces.TOOLWINDOW_POPUP
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid.MNEMONICS
 import com.intellij.util.xmlb.annotations.Attribute
@@ -52,7 +53,7 @@ import javax.swing.table.TableColumn
  * ```
  */
 class ConfigColumnTableAspect
-private constructor(private val table: JTable, private val config: MutableList<ColumnInfo>) {
+private constructor(private val project: Project, private val table: JTable, private val config: MutableList<ColumnInfo>) {
 
   /** A persistable representation of a table column configuration */
   @Tag("column-info")
@@ -77,8 +78,8 @@ private constructor(private val table: JTable, private val config: MutableList<C
   private var initialUpdateDone = false
 
   companion object {
-    fun apply(table: JTable, config: MutableList<ColumnInfo>) {
-      ConfigColumnTableAspect(table, config)
+    fun apply(project: Project, table: JTable, config: MutableList<ColumnInfo>) {
+      ConfigColumnTableAspect(project, table, config)
     }
   }
 
@@ -155,7 +156,7 @@ private constructor(private val table: JTable, private val config: MutableList<C
     createActionGroupPopup(
       null,
       actionGroup,
-      EMPTY_CONTEXT,
+      SimpleDataContext.getProjectContext(project),
       MNEMONICS,
       false,
       null,

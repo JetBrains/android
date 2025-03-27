@@ -21,7 +21,7 @@ import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.addComposeRuntimeDep
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
 import org.junit.Rule
@@ -39,7 +39,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
   @Before
   fun setUp() {
     myFixture = projectRule.fixture
-    myFixture.stubComposableAnnotation()
+    myFixture.addComposeRuntimeDep()
   }
 
   @Test

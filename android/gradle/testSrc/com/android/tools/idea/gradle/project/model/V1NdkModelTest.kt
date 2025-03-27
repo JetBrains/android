@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model
 
 import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
@@ -36,6 +35,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 @RunWith(JUnit4::class)

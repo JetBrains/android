@@ -446,7 +446,6 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     actionToolbar.setTargetComponent(myPanel);
     actionToolbar.setLayoutStrategy(ToolbarLayoutStrategy.NOWRAP_STRATEGY);
     actionToolbar.setReservePlaceAutoPopupIcon(false);
-    actionToolbar.updateActionsImmediately();
     return actionToolbar;
   }
 
@@ -461,7 +460,7 @@ public class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   @Override
   public void updateActions() {
     if (myActionToolbar != null) {
-      myActionToolbar.updateActionsImmediately();
+      myActionToolbar.updateActionsAsync();
     }
   }
 

@@ -142,7 +142,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
       if (packageName == null) {
         thisLogger().debug("Backup Application invoked without application id")
         withContext(uiThreadDispatcher) {
-          reportError("backup application", "Couldn't find application id.")
+          reportError("backup app data", "Couldn't find application id.")
         }
         return
       }

@@ -16,10 +16,11 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants
+import com.android.tools.idea.manifest.ManifestClassToken
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.computeUserDataIfAbsent
-import com.intellij.openapi.module.Module
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiClass
@@ -40,6 +41,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * The reason for that is that it's up to the project system to decide whether to use this logic
  * (see [ProjectSystemPsiElementFinder]).
  */
+@Service(Service.Level.PROJECT)
 class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFinder() {
 
   companion object {
@@ -50,8 +52,7 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
       )
 
     @JvmStatic
-    fun getInstance(project: Project) =
-      project.getService(AndroidManifestClassPsiElementFinder::class.java)!!
+    fun getInstance(project: Project): AndroidManifestClassPsiElementFinder = project.service()
   }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope) =
@@ -74,22 +75,24 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
 
     return project
       .getProjectSystem()
-      .getAndroidFacetsWithPackageName(project, packageName)
+      .getAndroidFacetsWithPackageName(packageName)
       .mapNotNull { facet ->
         getManifestClassForFacet(facet)?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
       }
       .toTypedArray()
   }
 
-  fun getManifestClassForFacet(facet: AndroidFacet): PsiClass? {
-    return if (facet.hasManifestClass()) {
+  fun getManifestClassForFacet(facet: AndroidFacet) =
+    if (
+      facet.hasManifestClass() &&
+        ManifestClassToken.shouldGenerateManifestLightClasses(facet.module)
+    ) {
       facet.computeUserDataIfAbsent(MODULE_MANIFEST_CLASS) {
         ManifestClass(facet, PsiManager.getInstance(project))
       }
     } else {
       null
     }
-  }
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
     val isNamespaceOrParentPackage =
@@ -99,18 +102,6 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
     } else {
       null
     }
-  }
-
-  fun getManifestClassesAccessibleFromModule(module: Module): Collection<PsiClass> {
-    val androidFacet = module.androidFacet ?: return emptySet()
-
-    val result = mutableListOf<PsiClass>()
-    getManifestClassForFacet(androidFacet)?.let(result::add)
-    for (dependency in AndroidDependenciesCache.getAllAndroidDependencies(module, false)) {
-      getManifestClassForFacet(dependency)?.let(result::add)
-    }
-
-    return result
   }
 
   private fun AndroidFacet.hasManifestClass(): Boolean {

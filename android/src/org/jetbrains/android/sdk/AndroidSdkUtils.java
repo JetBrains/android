@@ -42,6 +42,7 @@ import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
@@ -92,6 +93,10 @@ public final class AndroidSdkUtils {
   // Default install location from users home dir.
   @NonNls
   private static String getAndroidSdkDefaultInstallDir() {
+    // Workaround until b/383645908 is resolved
+    if (!StudioFlags.NPW_CUSTOM_LOCAL_APP_DATA.get().isEmpty() && SystemInfo.isWindows) {
+      return FileUtil.join(StudioFlags.NPW_CUSTOM_LOCAL_APP_DATA.get(), "Android", "Sdk");
+    }
     return SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
                                 : SystemInfo.isMac ? FileUtil.join(SystemProperties.getUserHome(), "Library", "Android", "sdk")
                                                    : FileUtil.join(SystemProperties.getUserHome(), "Android", "Sdk");
@@ -290,13 +295,15 @@ public final class AndroidSdkUtils {
     do {
       AdbSearchResult searchResult = findAdb(project);
       if (searchResult.adbPath == null) {
-        NotificationGroup
-          .balloonGroup("Android Debug Bridge (adb)")
-          .createNotification(
-            "Unable to locate adb in project/module settings. Locations searched:<br>" + String.join("<br>", searchResult.searchedPaths),
-            NotificationType.ERROR)
-          .setImportant(true)
-          .notify(project);
+        NotificationGroup notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("Android Debug Bridge (adb)");
+        if (notificationGroup != null) {
+          notificationGroup
+            .createNotification(
+              "Unable to locate adb in project/module settings. Locations searched:<br>" + String.join("<br>", searchResult.searchedPaths),
+              NotificationType.ERROR)
+            .setImportant(true)
+            .notify(project);
+        }
         LOG.warn("Unable to locate adb.");
         return null;
       }

@@ -42,7 +42,8 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
   public static final PropertiesElementDescription<SourceSetDslElement> SOURCE_SET =
     new PropertiesElementDescription<>(null,
                                        SourceSetDslElement.class,
-                                       SourceSetDslElement::new);
+                                       SourceSetDslElement::new,
+                                       "sourceSet");
 
   public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aidl", SourceDirectoryDslElement.AIDL},
@@ -102,4 +103,8 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
   public void setMethodName(@Nullable String value) {
     methodName = value;
   }
+
+  @Override
+  @Nullable
+  public String getAccessMethodName() { return SOURCE_SET.namedObjectAssociatedName; }
 }

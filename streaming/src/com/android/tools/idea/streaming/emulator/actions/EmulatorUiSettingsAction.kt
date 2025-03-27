@@ -16,8 +16,7 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.emulator.EmulatorUiSettingsController
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
@@ -28,18 +27,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlinx.coroutines.launch
 import java.awt.EventQueue
 
-private val isSettingsPickerEnabled: Boolean
-  get() = StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.get()
-
 /**
  * Opens a picker with UI settings of an emulator.
  */
 internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
-  configFilter = {
-    it.api >= 33 &&
-    isSettingsPickerEnabled &&
-    it.deviceType != DeviceType.AUTOMOTIVE
-  }
+  configFilter = { it.api >= 33 && it.deviceType != DeviceType.AUTOMOTIVE },
 ) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -55,7 +47,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
     val config = getEmulatorConfig(event) ?: return
     val model = UiSettingsModel(config.displaySize, config.density, config.api, config.deviceType)
     val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
-    AndroidCoroutineScope(emulatorView).launch {
+    emulatorView.createCoroutineScope().launch {
       controller.populateModel()
       EventQueue.invokeLater {
         val panel = UiSettingsPanel(model, config.deviceType)

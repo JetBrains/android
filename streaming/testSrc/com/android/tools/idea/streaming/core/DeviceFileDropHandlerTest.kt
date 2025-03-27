@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -38,6 +38,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -161,7 +162,7 @@ class DeviceFileDropHandlerTest {
     emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val catalog = RunningEmulatorCatalog.getInstance()
-    val emulators = catalog.updateNow().get()
+    val emulators = runBlocking { catalog.updateNow ().await() }
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
     val panel = EmulatorToolWindowPanel(testRootDisposable, projectRule.project, emulatorController)

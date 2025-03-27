@@ -1,4 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M2 1L1 2L14 15L15 14L2 1Z" fill="#6E6E6E"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M4.3261 3.3261C4.11627 3.81974 4 4.36404 4 4.93594C4 6.64148 5.03408 8.10164 6.5 8.70452V13.5C6.5 14.3284 7.17158 15 8.00002 15C8.82844 15 9.5 14.3284 9.5 13.5V8.70452C9.54799 8.68478 9.59552 8.66413 9.64257 8.64257L4.3261 3.3261ZM10.8191 7.81908C11.5484 7.08291 12 6.063 12 4.93594C12 3.04228 10.7252 1.45116 9 1.00003V4.99998L7.99998 4.99999L10.8191 7.81908ZM7 4L5.11788 2.11789C5.62363 1.5841 6.27167 1.19048 7 1.00003V4Z" fill="#6E6E6E"/>
-</svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 9v4.5a1 1 0 001 1h1a1 1 0 001-1v-4" stroke="#6C707E"/><path d="M2 2l12 12" stroke="#6C707E" stroke-linecap="round"/><path fill-rule="evenodd" clip-rule="evenodd" d="M3.917 3.232c-.254.54-.417 1.196-.417 1.987 0 1.66.7 2.804 1.633 3.521A4.863 4.863 0 008 9.72c.58 0 1.285-.13 1.965-.44l-.77-.77A3.782 3.782 0 018 8.72a3.865 3.865 0 01-2.258-.772C5.05 7.414 4.5 6.56 4.5 5.22c0-.465.07-.868.187-1.217l-.77-.77zM6 3.618V2.322a3.43 3.43 0 00-.695.6l-.707-.707a4.686 4.686 0 011.49-1.081c.45-.208.912.141.912.588v2.896l-1-1zm.13 1.827a1 1 0 00.315.338l.07.047-.384-.385zm4.168 2.47c.674-.534 1.202-1.382 1.202-2.696 0-1.576-.803-2.49-1.5-2.937v2.67a1 1 0 01-.445.831l-.834.556-.72-.721L9 4.95V1.7c0-.415.414-.776.868-.602C10.88 1.486 12.5 2.73 12.5 5.219c0 1.574-.63 2.685-1.491 3.407l-.71-.71z" fill="#6C707E"/></svg>

@@ -73,7 +73,7 @@ class StackTraceConsoleTest {
               consoleView.addMessageFilter(it)
             }
 
-            (consoleView.editor.foldingModel as FoldingModelImpl).isFoldingEnabled = false
+            (consoleView.editor!!.foldingModel as FoldingModelImpl).isFoldingEnabled = false
           }
       }
     Disposer.register(controllerRule.disposable, stackTraceConsole)
@@ -89,8 +89,8 @@ class StackTraceConsoleTest {
       WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
       stackTraceConsole.consoleView.waitAllRequests()
 
-      delayUntilCondition(200) { stackTraceConsole.consoleView.editor.document.text.isNotBlank() }
-      assertThat(stackTraceConsole.consoleView.editor.document.text.trim())
+      delayUntilCondition(200) { stackTraceConsole.consoleView.editor!!.document.text.isNotBlank() }
+      assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
         .isEqualTo(
           """
             javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
@@ -198,8 +198,8 @@ class StackTraceConsoleTest {
       WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
       stackTraceConsole.consoleView.waitAllRequests()
 
-      delayUntilCondition(200) { stackTraceConsole.consoleView.editor.document.text.isNotBlank() }
-      assertThat(stackTraceConsole.consoleView.editor.document.text.trim())
+      delayUntilCondition(200) { stackTraceConsole.consoleView.editor!!.document.text.isNotBlank() }
+      assertThat(stackTraceConsole.consoleView.editor!!.document.text.trim())
         .isEqualTo(
           """
             main
@@ -244,7 +244,7 @@ class StackTraceConsoleTest {
         stackTraceConsole.consoleView.waitAllRequests()
 
         // Ensure initial state: there's hyperlinks
-        val hyperlinks = stackTraceConsole.consoleView.hyperlinks
+        val hyperlinks = stackTraceConsole.consoleView.getHyperlinks()!!
         stackTraceConsole.consoleView.rehighlightHyperlinksAndFoldings()
         delayUntilCondition(200) {
           // Below is what's printed out in the console:
@@ -253,7 +253,7 @@ class StackTraceConsoleTest {
           // dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
           // dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
           // ```
-          stackTraceConsole.consoleView.editor.document.lineCount > 0 &&
+          stackTraceConsole.consoleView.editor!!.document.lineCount > 0 &&
             hyperlinks.findAllHyperlinksOnLine(1).isNotEmpty() &&
             hyperlinks.findAllHyperlinksOnLine(2).isNotEmpty()
         }
@@ -283,7 +283,23 @@ class StackTraceConsoleTest {
       stackTraceConsole.consoleView.waitAllRequests()
 
       assertThat(stackTraceConsole.consoleView.component.isVisible).isFalse()
+      assertThat(stackTraceConsole.noStackTracePane.isVisible).isFalse()
       assertThat(stackTraceConsole.emptyStatePane.isVisible).isTrue()
+    }
+  }
+
+  @Test
+  fun `when stacktrace is empty, no stack trace panel shown`() = executeWithErrorProcessor {
+    runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+      controllerRule.consumeInitialState(
+        fetchState,
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "")),
+      )
+      stackTraceConsole.consoleView.waitAllRequests()
+
+      assertThat(stackTraceConsole.consoleView.component.isVisible).isFalse()
+      assertThat(stackTraceConsole.emptyStatePane.isVisible).isFalse()
+      assertThat(stackTraceConsole.noStackTracePane.isVisible).isTrue()
     }
   }
 

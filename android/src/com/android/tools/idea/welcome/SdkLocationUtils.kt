@@ -22,17 +22,20 @@ import com.android.io.CancellableFileIo
 import java.nio.file.Path
 
 /**
- * Returns true if the SDK wizards will write into the SDK location. If the location exists and is a directory, returns true if the
- * directory is writable. If the location doesn't exist, returns true if one of the parent directories is writable.
+ * Returns true if the SDK wizards will write into the SDK location. If the location exists and is a
+ * directory, returns true if the directory is writable. If the location doesn't exist, returns true
+ * if one of the parent directories is writable.
  */
-fun isWritable(sdkLocation: Path?): Boolean = when {
-  sdkLocation == null -> false
-  CancellableFileIo.exists(sdkLocation) -> CancellableFileIo.isDirectory(sdkLocation) && CancellableFileIo.isWritable(sdkLocation)
-  else -> {
-    val parent = getFirstExistentParent(sdkLocation)
-    parent != null && CancellableFileIo.isWritable(parent)
+fun isWritable(sdkLocation: Path?): Boolean =
+  when {
+    sdkLocation == null -> false
+    CancellableFileIo.exists(sdkLocation) ->
+      CancellableFileIo.isDirectory(sdkLocation) && CancellableFileIo.isWritable(sdkLocation)
+    else -> {
+      val parent = getFirstExistentParent(sdkLocation)
+      parent != null && CancellableFileIo.isWritable(parent)
+    }
   }
-}
 
 private fun getFirstExistentParent(file: Path): Path? =
-  generateSequence(file.parent) { it.parent }.firstOrNull { CancellableFileIo.exists(it)}
+  generateSequence(file.parent) { it.parent }.firstOrNull { CancellableFileIo.exists(it) }

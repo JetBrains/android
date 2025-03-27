@@ -22,7 +22,6 @@ import com.android.tools.idea.common.layout.positionable.PositionablePanel
 import com.android.tools.idea.common.layout.positionable.getScaledContentSize
 import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
-import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -31,20 +30,20 @@ import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.vertical
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.util.ui.JBInsets
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.math.round
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Distance between bottom bound of SceneView and bottom of [SceneViewPeerPanel]. */
 @SwingCoordinate private const val BOTTOM_BORDER_HEIGHT = 3
@@ -60,7 +59,7 @@ import kotlinx.coroutines.flow.StateFlow
 class SceneViewPeerPanel(
   val scope: CoroutineScope,
   val sceneView: SceneView,
-  private val labelPanel: JComponent,
+  labelPanel: JComponent,
   statusIconAction: AnAction?,
   toolbarActions: List<AnAction>,
   leftPanel: JComponent?,
@@ -70,8 +69,10 @@ class SceneViewPeerPanel(
 ) : JPanel(), PositionablePanel, UiDataProvider {
 
   init {
-    scope.launch(uiThread) {
-      sceneView.sceneManager.model.organizationGroup?.isOpened?.collect { invalidate() }
+    scope.launch {
+      sceneView.sceneManager.model.organizationGroup?.isOpened?.collect {
+        withContext(uiThread) { invalidate() }
+      }
     }
   }
 
@@ -102,9 +103,6 @@ class SceneViewPeerPanel(
       override val isFocusedContent: Boolean
         get() = sceneView.isFocusedScene
 
-      override val topPanelHeight: Int
-        get() = sceneViewTopPanel.minimumSize.height + BOTTOM_BORDER_HEIGHT
-
       override fun getMargin(scale: Double): Insets {
         val margin =
           JBInsets(
@@ -118,12 +116,13 @@ class SceneViewPeerPanel(
           margin.bottom += sceneViewCenterPanel.preferredSize.height
         }
 
-        val contentSize = getContentSize(null).scaleBy(scale)
-        if (contentSize.width < minimumSize.width) {
+        val scaledContentWidth = getContentSize(null).width * scale
+
+        if (scaledContentWidth < minimumSize.width) {
           // If there is no content, or the content is smaller than the minimum size,
           // pad the margins horizontally to occupy the empty space.
           // The content is aligned on the left
-          margin.right += (minimumSize.width - contentSize.width).coerceAtLeast(0)
+          margin.right += (minimumSize.width - scaledContentWidth.toInt()).coerceAtLeast(0)
         }
         return margin
       }
@@ -148,6 +147,26 @@ class SceneViewPeerPanel(
           cachedScaledContentSize.height + margin.top + margin.bottom,
         )
         sceneView.scene.needsRebuildList()
+      }
+
+      /**
+       * Calculates total size for [SceneViewPeerPanel] including margins and content for target
+       * [scale]
+       *
+       * Total size for [SceneViewPeerPanel] is contentSize * scale + margin(scale)
+       * * contentSize is the size of the content without any scaling. contentSize is a "raw" size
+       *   of the preview and is not changing unless preview is updated. It should be scaled
+       *   proportionally to get size to be used in surface.
+       * * margin is mostly fixed size, they are not scaled proportionally with scale. margin covers
+       *   the size of labels, toolbars or extra panels surrounding the preview.
+       */
+      override fun sizeForScale(scale: Double): Dimension {
+        val size = getContentSize(null)
+        val margin = getMargin(scale)
+        // To be more precise - round to nearest Int
+        size.width = round(size.width * scale + margin.horizontal).toInt()
+        size.height = round(size.height * scale + margin.vertical).toInt()
+        return size
       }
 
       override fun setLocation(x: Int, y: Int) {
@@ -222,8 +241,7 @@ class SceneViewPeerPanel(
     //       ←-------→                         ←--------→
     //       preferredWidth                    preferredWidth
 
-    sceneViewTopPanel.isVisible = labelPanel.isVisible
-    if (labelPanel.isVisible) {
+    if (sceneViewTopPanel.isVisible) {
       sceneViewTopPanel.setBounds(
         0,
         0,
@@ -281,9 +299,9 @@ class SceneViewPeerPanel(
     return Dimension(
       maxOf(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH, centerPanelWidth),
       BOTTOM_BORDER_HEIGHT +
-        centerPanelHeight +
-        sceneViewTopPanel.minimumSize.height +
-        JBUI.scale(20),
+      centerPanelHeight +
+      sceneViewTopPanel.minimumSize.height +
+      JBUI.scale(20),
     )
   }
 
@@ -293,25 +311,10 @@ class SceneViewPeerPanel(
 
   private fun isHiddenInOrganizationGroup() =
     isOrganizationEnabled.value &&
-      sceneView.sceneManager.model.organizationGroup?.isOpened?.value == false
+    sceneView.sceneManager.model.organizationGroup?.isOpened?.value == false
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[SCENE_VIEW] = sceneView
-    DataSink.uiDataSnapshot(sink, DataProvider {
-      // TODO must not be a DataContext, convert to UiDataProvider or avoid altogether.
-      //   A data-context must not be queried during another data-context creation.
-      dataId -> sceneView.sceneManager.model.dataContext.getData(dataId)
-    })
-  }
-
-  companion object {
-    /** Default initial visibility for the SceneView toolbars */
-    internal var defaultToolbarVisibility = false
-  }
-}
-
-private class ShowSceneViewToolbarAction : AnAction("Show SceneView Toolbars") {
-  override fun actionPerformed(e: AnActionEvent) {
-    SceneViewPeerPanel.defaultToolbarVisibility = true
+    sceneView.sceneManager.model.dataProvider?.uiDataSnapshot(sink)
   }
 }

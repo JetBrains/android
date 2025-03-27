@@ -64,6 +64,9 @@ class WiFiPairingServiceImpl(
             LOG.warn("`adb mdns check` returned an empty output (why?)")
             MdnsSupportState.AdbInvocationError
           }
+          result.stdout.any { it.contains("mdns discovery disabled") } -> {
+            return MdnsSupportState.AdbDisabled
+          }
           // See
           // https://android-review.googlesource.com/c/platform/system/core/+/1274009/5/adb/client/transport_mdns.cpp#553
           result.stdout.any { it.contains("mdns daemon version") } -> {

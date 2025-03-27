@@ -106,7 +106,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     } else {
       provider.getDeployTarget(project)
     } ?: throw ExecutionException(AndroidBundle.message("deployment.target.not.found"))
-    val deviceFutures = deployTarget.getDevices(project)
+    val deviceFutures = deployTarget.launchDevices(project)
 
     fillStatsForEnvironment(environment, deviceFutures)
 

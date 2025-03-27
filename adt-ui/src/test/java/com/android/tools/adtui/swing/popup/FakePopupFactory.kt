@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.swing.popup
 
-import com.android.testutils.MockitoKt.mock
+import org.mockito.kotlin.mock
 import java.awt.Component
 import javax.swing.Popup
 import javax.swing.PopupFactory

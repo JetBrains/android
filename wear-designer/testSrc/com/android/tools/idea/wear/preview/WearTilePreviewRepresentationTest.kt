@@ -34,9 +34,11 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
+import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
@@ -93,6 +95,9 @@ class WearTilePreviewRepresentationTest {
       TestToolWindowManager(project),
       fixture.testRootDisposable,
     )
+
+    // Create VisualLintService early to avoid it being created at the time of project disposal
+    VisualLintService.getInstance(project)
   }
 
   @After
@@ -125,7 +130,9 @@ class WearTilePreviewRepresentationTest {
   fun testGroupFilteringIsSupported() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
-      val dataContext = preview.mainSurfaceDataContext
+      val dataContext =
+        DataManager.getInstance()
+          .customizeDataContext(DataContext.EMPTY_CONTEXT, preview.previewView.mainSurface)
       val previewGroupManager = PreviewGroupManager.KEY.getData(dataContext)!!
 
       assertThat(previewGroupManager.availableGroupsFlow.value.map { it.displayName })
@@ -153,7 +160,7 @@ class WearTilePreviewRepresentationTest {
 
         val previewElements =
           preview.previewView.mainSurface.models.mapNotNull {
-            it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement
+            it.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement
           }
         assertThat(previewElements).hasSize(1)
         assertThat(previewElements.map { it.methodFqn })
@@ -164,20 +171,20 @@ class WearTilePreviewRepresentationTest {
     }
 
   @Test
-  fun testGalleryMode() =
+  fun testFocusMode() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
-      assertThat(preview.previewView.galleryMode).isNull()
+      assertThat(preview.previewView.focusMode).isNull()
 
-      // go into gallery mode
+      // go into focus mode
       run {
         val previewElement =
           preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
-        preview.previewModeManager.setMode(PreviewMode.Gallery(previewElement))
+        preview.previewModeManager.setMode(PreviewMode.Focus(previewElement))
 
-        expectGalleryModeIsSet(preview, previewElement)
+        expectFocusModeIsSet(preview, previewElement)
       }
 
       preview.onDeactivate()
@@ -189,9 +196,9 @@ class WearTilePreviewRepresentationTest {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
-      assertThat(preview.previewView.galleryMode).isNull()
+      assertThat(preview.previewView.focusMode).isNull()
 
-      // go into gallery mode
+      // go into focus mode
       run {
         val previewElement =
           preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
@@ -206,12 +213,12 @@ class WearTilePreviewRepresentationTest {
     }
 
   @Test
-  fun testGalleryModeIsEnabledWhenEnablingWearTilePreviewEssentialsMode() =
+  fun testFocusModeIsEnabledWhenEnablingWearTilePreviewEssentialsMode() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
 
       assertThat(preview.previewView.mainSurface.models).hasSize(4)
-      assertThat(preview.previewView.galleryMode).isNull()
+      assertThat(preview.previewView.focusMode).isNull()
 
       // enable tile preview essentials mode
       run {
@@ -220,7 +227,7 @@ class WearTilePreviewRepresentationTest {
         val previewElement =
           preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().first()
 
-        expectGalleryModeIsSet(preview, previewElement)
+        expectFocusModeIsSet(preview, previewElement)
       }
 
       preview.onDeactivate()
@@ -275,18 +282,24 @@ class WearTilePreviewRepresentationTest {
         val sceneViewWithNormalPreviewAnnotation =
           preview.previewView.mainSurface.sceneManagers
             .first {
-              it.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
+              it.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
                 "tilePreview3 - preview3"
             }
             .sceneViews
             .first()
         withContext(uiThread) {
-          preview.navigationHandler.handleNavigateWithCoordinates(
-            sceneViewWithNormalPreviewAnnotation,
-            sceneViewWithNormalPreviewAnnotation.x,
-            sceneViewWithNormalPreviewAnnotation.y,
-            false,
-          )
+          preview.navigationHandler
+            .findNavigatablesWithCoordinates(
+              sceneViewWithNormalPreviewAnnotation,
+              sceneViewWithNormalPreviewAnnotation.x,
+              sceneViewWithNormalPreviewAnnotation.y,
+              false,
+              false,
+            )
+            .firstOrNull()
+            ?.let {
+              preview.navigationHandler.navigateTo(sceneViewWithNormalPreviewAnnotation, it, false)
+            }
         }
 
         runReadAction {
@@ -303,18 +316,24 @@ class WearTilePreviewRepresentationTest {
         val sceneViewWithMultiPreviewAnnotation =
           preview.previewView.mainSurface.sceneManagers
             .first {
-              it.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
+              it.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)?.displaySettings?.name ==
                 "tilePreview3 - multipreview preview"
             }
             .sceneViews
             .first()
         withContext(uiThread) {
-          preview.navigationHandler.handleNavigateWithCoordinates(
-            sceneViewWithMultiPreviewAnnotation,
-            sceneViewWithMultiPreviewAnnotation.x,
-            sceneViewWithMultiPreviewAnnotation.y,
-            false,
-          )
+          preview.navigationHandler
+            .findNavigatablesWithCoordinates(
+              sceneViewWithMultiPreviewAnnotation,
+              sceneViewWithMultiPreviewAnnotation.x,
+              sceneViewWithMultiPreviewAnnotation.y,
+              false,
+              false,
+            )
+            .firstOrNull()
+            ?.let {
+              preview.navigationHandler.navigateTo(sceneViewWithMultiPreviewAnnotation, it, false)
+            }
         }
 
         runReadAction {
@@ -366,25 +385,25 @@ class WearTilePreviewRepresentationTest {
       assertEquals(
         """
           TestKt.preview
-          PreviewDisplaySettings(name=preview, baseName=preview, parameterName=null, group=null, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=preview, baseName=preview, parameterName=null, group=null, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 1, baseName=multiPreview, parameterName=1, group=2, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 1, baseName=multiPreview, parameterName=1, group=2, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 2, baseName=multiPreview, parameterName=2, group=2, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 2, baseName=multiPreview, parameterName=2, group=2, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 3, baseName=multiPreview, parameterName=3, group=3, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 3, baseName=multiPreview, parameterName=3, group=3, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 4, baseName=multiPreview, parameterName=4, group=3, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 4, baseName=multiPreview, parameterName=4, group=3, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 5, baseName=multiPreview, parameterName=5, group=1, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 5, baseName=multiPreview, parameterName=5, group=1, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 6, baseName=multiPreview, parameterName=6, group=1, showDecoration=false, showBackground=true, backgroundColor=#ff000000, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=multiPreview - 6, baseName=multiPreview, parameterName=6, group=1, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
         """
           .trimIndent(),
@@ -395,20 +414,20 @@ class WearTilePreviewRepresentationTest {
     }
   }
 
-  private suspend fun expectGalleryModeIsSet(
+  private suspend fun expectFocusModeIsSet(
     preview: WearTilePreviewRepresentation,
     previewElement: PreviewElement<*>,
   ) {
     delayUntilCondition(250) {
-      preview.previewView.mainSurface.models.size == 1 && preview.previewView.galleryMode != null
+      preview.previewView.mainSurface.models.size == 1 && preview.previewView.focusMode != null
     }
 
     val previewElements =
       preview.previewView.mainSurface.models.mapNotNull {
-        it.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? PsiWearTilePreviewElement
+        it.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? PsiWearTilePreviewElement
       }
     assertThat(previewElements).containsExactly(previewElement)
-    assertThat(preview.previewView.galleryMode).isNotNull()
+    assertThat(preview.previewView.focusMode).isNotNull()
   }
 
   private val WearTilePreviewRepresentation.mainSurfaceDataContext
@@ -417,10 +436,18 @@ class WearTilePreviewRepresentationTest {
         .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
 
   private val WearTilePreviewRepresentation.previewModeManager
-    get() = PreviewModeManager.KEY.getData(mainSurfaceDataContext)!!
+    get() =
+      PreviewModeManager.KEY.getData(
+        DataManager.getInstance()
+          .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
+      )!!
 
   private val WearTilePreviewRepresentation.previewFlowManager
-    get() = PreviewFlowManager.KEY.getData(mainSurfaceDataContext)!!
+    get() =
+      PreviewFlowManager.KEY.getData(
+        DataManager.getInstance()
+          .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
+      )!!
 
   private var wearTilePreviewEssentialsModeEnabled: Boolean = false
     set(value) {
@@ -445,10 +472,10 @@ class WearTilePreviewRepresentationTest {
 
     previewRepresentation.previewView.mainSurface.addListener(
       object : DesignSurfaceListener {
-        override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+        override fun modelsChanged(surface: DesignSurface<*>, models: List<NlModel?>) {
           val id = UUID.randomUUID().toString().substring(0, 5)
           logger.info("modelChanged ($id)")
-          newModelAddedLatch.countDown()
+          repeat(models.size) { newModelAddedLatch.countDown() }
         }
       }
     )

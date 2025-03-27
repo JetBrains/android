@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.upgrade.ui
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
@@ -44,6 +42,7 @@ import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowMo
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.CaughtException
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.InvalidVersionError
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.Loading
+import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.NoAGP
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.NoStepsSelected
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.ProjectFilesNotCleanWarning
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.ReadyToRun
@@ -85,7 +84,9 @@ import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.io.File
 
 @RunsInEdt
@@ -194,6 +195,12 @@ class ContentManagerImplTest {
   fun testToolWindowModelStartsBlockedWithNoFiles() {
     val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion })
     assertThat(toolWindowModel.uiState.get()).isEqualTo(Blocked)
+  }
+
+  @Test
+  fun testToolWindowModelStartsNoAGPWithNoAGP() {
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { null })
+    assertThat(toolWindowModel.uiState.get()).isEqualTo(NoAGP)
   }
 
   @Test
@@ -613,7 +620,7 @@ class ContentManagerImplTest {
         }
       """.trimIndent()
     )
-    mock(GradleInstallationManager::class.java).let {
+    mock<GradleInstallationManager>().let {
       whenever(it.getGradleJvmPath(any(), any())).thenReturn(JDK_11_PATH)
       projectRule.projectRule.replaceService(GradleInstallationManager::class.java, it)
     }
@@ -1016,7 +1023,7 @@ class ContentManagerImplTest {
 
   @Test
   fun testSuggestedVersionsLatestExplicitlyKnown() {
-    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion })
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }, newProjectVersion = currentAgpVersion)
     val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))
@@ -1178,7 +1185,7 @@ class ContentManagerImplTest {
   fun testUIStateEquality() {
     fun UIState.hash(): Int = when (this) {
       // This is written out so that it fails to compile if a new UIState is added without updating this test.
-      AllDone, Blocked,
+      AllDone, Blocked, NoAGP,
       is CaughtException,
       is InvalidVersionError,
       VersionSelectionInProgress,
@@ -1190,7 +1197,7 @@ class ContentManagerImplTest {
     }
 
     val stateList = listOf(
-      AllDone, Blocked,
+      AllDone, Blocked, NoAGP,
       CaughtException("one"), CaughtException("two"),
       InvalidVersionError(StatusMessage(Severity.ERROR, "one")), InvalidVersionError(StatusMessage(Severity.ERROR, "two")),
       Loading, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync, RunningBuild,

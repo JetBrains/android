@@ -295,6 +295,7 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD("compositeBuild/compositeProjectRootBuild"),
   COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS("compositeBuild/compositeProjectSettings"),
   COMPOSITE_BUILD_COMPOSITE_PROJECT_SUB_MODULE_BUILD("compositeBuild/compositeProjectSubModuleBuild"),
+  COMPOSITE_BUILD_COMPOSITE_SINGLE("compositeBuild/compositeProjectSingleBuild"),
   COMPOSITE_BUILD_MAIN_PROJECT_APPLIED("compositeBuild/mainProjectApplied"),
   COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD("compositeBuild/mainProjectRootBuild"),
   COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS("compositeBuild/mainProjectSettings"),

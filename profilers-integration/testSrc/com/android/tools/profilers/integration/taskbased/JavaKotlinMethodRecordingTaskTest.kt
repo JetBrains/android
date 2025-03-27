@@ -15,11 +15,30 @@
  */
 package com.android.tools.profilers.integration.taskbased
 
-import com.android.tools.asdriver.tests.Emulator
-import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.asdriver.tests.AndroidStudio
+import com.android.tools.profilers.integration.ProfilersTaskTestBase
 import org.junit.Test
 
-class JavaKotlinMethodRecordingTaskTest : ProfilersTestBase() {
+class JavaKotlinMethodRecordingTaskTest : ProfilersTaskTestBase() {
+
+  override fun selectTask(studio: AndroidStudio) {
+    selectJavaKotlinMethodRecordingTask(studio)
+    setRecordingTypeToSampling(studio)
+  }
+
+  override fun verifyTaskStarted(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
+    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+start\\s+succeeded\$", 120)
+  }
+
+  override fun verifyTaskStopped(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+stop\\s+succeeded\$", 300)
+    verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+parse\\s+succeeded\$", 300)
+  }
+
+  override fun verifyUIComponents(studio: AndroidStudio) {
+    studio.waitForComponentByClass("CpuAnalysisSummaryTab", "FullTraceSummaryDetailsView")
+  }
 
   /**
    * Validate live Java/Kotlin method recording workflow is working.
@@ -40,38 +59,5 @@ class JavaKotlinMethodRecordingTaskTest : ProfilersTestBase() {
    *  6. Verify if the profiler session is still viewable after stopping.
    */
   @Test
-  fun test() {
-    taskBasedProfiling(
-      systemImage = Emulator.SystemImage.API_33,
-      deployApp = true,
-      testFunction = { studio, _ ->
-        // Selecting the device.
-        selectDevice(studio)
-
-        // Selecting the process id which consists of `minapp`
-        selectProcess(studio)
-
-        setProfilingStartingPointToNow(studio)
-
-        // Selecting Java/Kotlin Method recording task.
-        selectJavaKotlinMethodRecordingTask(studio)
-
-        // Set recording type to sampling
-        setRecordingTypeToSampling(studio)
-
-        // Starting task
-        startTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
-        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+start\\s+succeeded\$", 120)
-        Thread.sleep(4000)
-
-        stopTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+stop\\s+succeeded\$", 300)
-
-        // Verify if the cpu capture is parsed.
-        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+parse\\s+succeeded\$", 300)
-        studio.waitForComponentByClass("CpuAnalysisSummaryTab", "FullTraceSummaryDetailsView")
-      }
-    )
-  }
+  fun test() = testTask()
 }

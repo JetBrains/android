@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.ui.AndroidAdbUiBundle
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.ui.AndroidAdbUiBundle.message
+import com.android.tools.idea.ui.save.PostSaveAction
+import com.android.tools.idea.ui.save.SaveConfiguration
 import com.intellij.CommonBundle
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
@@ -34,10 +38,14 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CancellationException
@@ -54,14 +62,17 @@ private const val ADVANCE_NOTICE_MILLIS = 100
 internal class ScreenRecorder(
   private val project: Project,
   private val recordingProvider: RecordingProvider,
+  private val options: ScreenRecorderPersistentOptions,
   deviceName: String,
 ) {
 
-  private val dialogTitle = AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName)
+  private val dialogTitle = message("screenrecord.dialog.title", deviceName)
+  private lateinit var recordingTimestamp: Instant
 
   suspend fun recordScreen(timeLimitSec: Int) {
     require(timeLimitSec > 0)
 
+    recordingTimestamp = Instant.now()
     val recordingHandle = recordingProvider.startRecording()
     val dialog: ScreenRecorderDialog
 
@@ -85,7 +96,7 @@ internal class ScreenRecorder(
         recordingProvider.cancelRecording()
       }
       catch (e: Throwable) {
-        thisLogger().warn(AndroidAdbUiBundle.message("screenrecord.error.cancelling"), e)
+        thisLogger().warn(message("screenrecord.error.cancelling"), e)
       }
       throw e
     }
@@ -93,8 +104,8 @@ internal class ScreenRecorder(
       closeDialog(dialog)
       thisLogger().warn("Screen recording failed", e)
       val message = when (val cause = e.message) {
-        null -> AndroidAdbUiBundle.message("screenrecord.error")
-        else -> AndroidAdbUiBundle.message("screenrecord.error.with.cause", cause)
+        null -> message("screenrecord.error")
+        else -> message("screenrecord.error.with.cause", cause)
       }
       showErrorDialog(message)
       return
@@ -106,30 +117,37 @@ internal class ScreenRecorder(
   private suspend fun pullRecording() {
     if (!recordingProvider.doesRecordingExist()) {
       // TODO(aalbert): See if we can get the error for the non-emulator impl.
-      showErrorDialog(AndroidAdbUiBundle.message("screenrecord.error"))
+      showErrorDialog(message("screenrecord.error"))
       return
     }
 
-    val fileWrapper = withContext(uiThread) {
-      getTargetFile(recordingProvider.fileExtension)
-    } ?: return
+    val recordingFile = if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
+      delay(200) // Wait for the video file to be finalized.
+      val saveConfig = project.service<SaveConfiguration>()
+      val expandedFilename =
+          saveConfig.expandFilenamePattern(options.saveLocation, options.filenameTemplate, recordingProvider.fileExtension,
+                                           recordingTimestamp, options.recordingCount + 1)
+      Paths.get(expandedFilename)
+    }
+    else {
+      getTargetFile(recordingProvider.fileExtension) ?: return
+    }
 
     try {
-      recordingProvider.pullRecording(fileWrapper.file.toPath())
+      recordingProvider.pullRecording(recordingFile)
+      options.recordingCount++
     }
     catch (e: CancellationException) {
       throw e
     }
     catch (e: Throwable) {
-      val message = AndroidAdbUiBundle.message("screenrecord.error.save", fileWrapper.file)
+      val message = message("screenrecord.error.save", recordingFile)
       thisLogger().warn(message, e)
       showErrorDialog(message)
       return
     }
 
-    withContext(uiThread) {
-      handleSavedRecording(fileWrapper)
-    }
+    handleSavedRecording(recordingFile)
   }
 
   private fun closeDialog(dialog: DialogWrapper) {
@@ -142,21 +160,21 @@ internal class ScreenRecorder(
 
   private fun showErrorDialog(errorMessage: String) {
     UIUtil.invokeLaterIfNeeded {
-      Messages.showErrorDialog(errorMessage, AndroidAdbUiBundle.message("screenrecord.error.popup.title"))
+      Messages.showErrorDialog(errorMessage, message("screenrecord.error.popup.title"))
     }
   }
 
-  private fun getTargetFile(extension: String): VirtualFileWrapper? {
+  private suspend fun getTargetFile(extension: String): Path? {
     val properties = PropertiesComponent.getInstance(project)
-    val descriptor = FileSaverDescriptor(AndroidAdbUiBundle.message("screenrecord.action.save.as"), "", extension)
-    val saveFileDialog: FileSaverDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
-    val lastPath = properties.getValue(SAVE_PATH_KEY)
-    val baseDir = if (lastPath != null) LocalFileSystem.getInstance().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
-    val saveFileWrapper = saveFileDialog.save(baseDir, getDefaultFileName(extension))
-    if (saveFileWrapper != null) {
-      properties.setValue(SAVE_PATH_KEY, saveFileWrapper.file.toPath().parent.toString())
+    val descriptor = FileSaverDescriptor(message("screenrecord.action.save.as"), "", extension)
+    return withContext(uiThread) {
+      val saveFileDialog: FileSaverDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
+      val lastPath = properties.getValue(SAVE_PATH_KEY)
+      val baseDir = if (lastPath != null) LocalFileSystem.getInstance().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
+      saveFileDialog.save(baseDir, getDefaultFileName(extension))?.file?.toPath()?.also {
+        properties.setValue(SAVE_PATH_KEY, it.parent.toString())
+      }
     }
-    return saveFileWrapper
   }
 
   private fun getDefaultFileName(extension: String): String {
@@ -167,43 +185,58 @@ internal class ScreenRecorder(
     return if (SystemInfo.isMac) "$filename.$extension" else filename
   }
 
-  @UiThread
-  private fun handleSavedRecording(fileWrapper: VirtualFileWrapper) {
-    val message = AndroidAdbUiBundle.message("screenrecord.action.view.recording", fileWrapper.file)
-    val cancel = CommonBundle.getOkButtonText()
-    val icon = Messages.getInformationIcon()
-    if (RevealFileAction.isSupported()) {
-      val no = AndroidAdbUiBundle.message("screenrecord.action.show.in", RevealFileAction.getFileManagerName())
-      val exitCode: Int = Messages.showYesNoCancelDialog(
-          project,
-          message,
-          dialogTitle,
-          AndroidAdbUiBundle.message("screenrecord.action.open"),
-          no,
-          cancel,
-          icon)
-      when (exitCode) {
-        Messages.YES -> openSavedFile(fileWrapper)
-        Messages.NO -> RevealFileAction.openFile(fileWrapper.file.toPath())
-        else -> {}
+  private suspend fun handleSavedRecording(file: Path) {
+    if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
+      when (options.postSaveAction) {
+        PostSaveAction.NONE -> {}
+        PostSaveAction.SHOW_IN_FOLDER -> RevealFileAction.openFile(file)
+        PostSaveAction.OPEN -> openSavedFile(file)
       }
     }
-    else if (Messages.showOkCancelDialog(
-        project,
-        message,
-        dialogTitle,
-        AndroidAdbUiBundle.message("screenrecord.action.open.file"),
-        cancel,
-        icon) == Messages.OK) {
-      openSavedFile(fileWrapper)
+    else {
+      val message = message("screenrecord.action.view.recording", file)
+      val cancel = CommonBundle.getOkButtonText()
+      val icon = Messages.getInformationIcon()
+      if (RevealFileAction.isSupported()) {
+        val no = message("post.save.action.show.in", RevealFileAction.getFileManagerName())
+        val result = withContext(Dispatchers.EDT) {
+          Messages.showYesNoCancelDialog(
+            project,
+            message,
+            dialogTitle,
+            message("screenrecord.action.open"),
+            no,
+            cancel,
+            icon)
+        }
+        when (result) {
+          Messages.YES -> openSavedFile(file)
+          Messages.NO -> RevealFileAction.openFile(file)
+        }
+      }
+      else {
+        val result = withContext(Dispatchers.EDT) {
+          Messages.showOkCancelDialog(
+            project,
+            message,
+            dialogTitle,
+            message("screenrecord.action.open.file"),
+            cancel,
+            icon)
+        }
+        if (result == Messages.OK) {
+          openSavedFile(file)
+        }
+      }
     }
   }
 
-  // Tries to open the file at myLocalPath
-  private fun openSavedFile(fileWrapper: VirtualFileWrapper) {
-    val file = fileWrapper.virtualFile
-    if (file != null) {
-      NativeFileType.openAssociatedApplication(file)
+  /** Tries to open the given file in the associated application. */
+  private suspend fun openSavedFile(file: Path) {
+    withContext(Dispatchers.IO) {
+      val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: return@withContext
+      NativeFileType.openAssociatedApplication(virtualFile)
     }
   }
 }
+

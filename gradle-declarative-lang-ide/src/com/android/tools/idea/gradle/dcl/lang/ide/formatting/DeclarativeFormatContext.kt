@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.dcl.lang.ide.formatting
 
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNABLE_QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_GROUP
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_RECEIVER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_COMMA
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_DOT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_EQ
@@ -28,6 +30,11 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RBRACE
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RPAREN
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED_RECEIVER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.FACTORY_PROPERTY_RECEIVER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY_RECEIVER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SEMI
 import com.intellij.formatting.SpacingBuilder
 import com.intellij.psi.codeStyle.CodeStyleSettings
@@ -41,12 +48,17 @@ data class DeclarativeFormatContext(
   companion object {
     fun create(settings: CodeStyleSettings): DeclarativeFormatContext {
       val commonSettings = settings.getCommonSettings(DeclarativeLanguage.INSTANCE)
-      val elements = TokenSet.create(ASSIGNMENT, FACTORY, BLOCK)
+      val elements = TokenSet.create(ASSIGNMENT,
+                                     RECEIVER_PREFIXED_FACTORY,
+                                     FACTORY_RECEIVER,
+                                     SIMPLE_FACTORY,
+                                     BLOCK)
       val builder = SpacingBuilder(commonSettings)
         // factory
         .after(OP_COMMA).spacing(1, 1, 0, false, 0)
         .before(OP_COMMA).spacing(0, 0, 0, false, 0)
         .after(OP_LPAREN).spacing(0, 0, 0, false, 0)
+        .before(OP_LPAREN).spacing(0, 0, 0, false, 0)
         .before(OP_RPAREN).spacing(0, 0, 0, false, 0)
         // ;
         .before(SEMI).spacing(0, 0, 0, false, 0)
@@ -59,7 +71,14 @@ data class DeclarativeFormatContext(
         .beforeInside(elements, BLOCK_GROUP).lineBreakInCode()
         .before(OP_RBRACE).lineBreakInCode()
         // .
-        .aroundInside(OP_DOT, TokenSet.create(PROPERTY)).spaceIf(false)
+        .aroundInside(OP_DOT, TokenSet.create(PROPERTY,
+                                              ASSIGNABLE_QUALIFIED,
+                                              QUALIFIED,
+                                              QUALIFIED_RECEIVER,
+                                              PROPERTY_RECEIVER,
+                                              FACTORY_PROPERTY_RECEIVER,
+                                              RECEIVER_PREFIXED_FACTORY))
+        .spacing(0, 0, 0, false, 0)
 
       return DeclarativeFormatContext(commonSettings, builder)
     }

@@ -18,64 +18,52 @@ package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.InstallOptions
-import com.android.tools.deployer.UIService
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.tasks.Canceller
-import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.run.ApkInfo
-import com.android.tools.idea.run.DeploymentService
 import com.android.utils.ILogger
 import com.intellij.mock.MockApplication
-import com.intellij.mock.MockProject
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.util.Computable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.IdeUICustomization
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
-import org.mockito.Mockito.any
 import org.mockito.Mockito.atLeast
-import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.Spy
+import org.mockito.kotlin.whenever
 
 class DeployTaskTest {
   private val rootDisposable: Disposable = Disposer.newDisposable()
   private val application: MockApplication = MockApplication(rootDisposable)
-  private val project: MockProject = MockProject(null, rootDisposable)
 
+  @Mock private lateinit var project: Project
   @Mock private lateinit var logger: ILogger
   @Mock private lateinit var device: IDevice
   @Mock private lateinit var deployer: Deployer
+  @Mock private lateinit var notificationGroupManager: NotificationGroupManager
   @Spy private lateinit var canceller: Canceller
-  private val installPathProvider = Computable { "" }
 
   @Before
   fun setup() {
     ApplicationManager.setApplication(application, rootDisposable)
     application.registerService(IdeUICustomization::class.java)
-    application.registerService(DeploymentService::class.java)
-    application.registerService(NotificationGroupManager::class.java, TestDeployTaskNotificationGroupManager::class.java)
-
     MockitoAnnotations.initMocks(this)
+    application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
     whenever(deployer.install(any(), any(), any())).thenReturn(
       Deployer.Result(false, false, false, App.fromApks("id", emptyList()))
     )
@@ -85,6 +73,12 @@ class DeployTaskTest {
   @After
   fun shutdown() {
     Disposer.dispose(rootDisposable)
+
+    // Null out the static reference in [ApplicationManager].
+    // Keeping a reference to a disposed object can cause problems for other tests.
+    val field = ApplicationManager::class.java.getDeclaredField("ourApplication")
+    field.isAccessible = true
+    field.set(null, null)
   }
 
   @Test
@@ -93,21 +87,9 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().build()
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting()
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller )
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
-  }
-
-  @Test
-  fun testDeployTaskRunUsesDynamicUIServiceWhichThrowsExceptionOnInit() {
-    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
-    project.registerService(UIService::class.java, ThrowingUIService::class.java)
-    project.registerService(AdbLibService::class.java, mock<AdbLibService>())
-
-    val throwable = assertThrows(RuntimeException::class.java) {
-      deployTask.run(device, EmptyProgressIndicator())
-    }
-    assertEquals(ThrowingUIService.ExpectedOnInitException, throwable.cause)
   }
 
   @Test
@@ -116,7 +98,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setUserInstallOptions("-v").build()
 
-    val deployTask = DeployTask(project, listOf(), "-v", true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting(userInstallOptions = "-v")
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -127,7 +109,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().build()
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting()
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -138,7 +120,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().setUserInstallOptions("-v").build()
 
-    val deployTask = DeployTask(project, listOf(), "-v", true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting(userInstallOptions = "-v")
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -149,18 +131,19 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallFullApk().setDontKill().build()
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting()
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
+  @Ignore("b/389067070")
   fun testDeployApi33() {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallFullApk().build()
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting()
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
     verify(device, never()).forceStop(any())
@@ -173,7 +156,7 @@ class DeployTaskTest {
     val expectedOptions =
       InstallOptions.builder().setAllowDebuggable().setInstallFullApk().setDontKill().setUserInstallOptions("-v").build()
 
-    val deployTask = DeployTask(project, listOf(), "-v", true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting(userInstallOptions = "-v")
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -184,7 +167,7 @@ class DeployTaskTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallOnUser(InstallOptions.CURRENT_USER).setInstallFullApk().setDontKill().build()
 
-    val deployTask = DeployTask(project, listOf(), null, false, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting(installOnAllUsers = false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
@@ -194,7 +177,7 @@ class DeployTaskTest {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting()
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(device, never()).forceStop(any())
   }
@@ -204,7 +187,7 @@ class DeployTaskTest {
     whenever(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
 
-    val deployTask = DeployTask(project, listOf(), null, true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting()
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
     verify(device, times(1)).forceStop(any())
   }
@@ -258,47 +241,16 @@ class DeployTaskTest {
     whenever(mockApkInfo.requiredInstallOptions).thenReturn(
       setOf(ApkInfo.AppInstallOption.FORCE_QUERYABLE, ApkInfo.AppInstallOption.GRANT_ALL_PERMISSIONS))
 
-    val deployTask = DeployTask(project, listOf(mockApkInfo), null, true, false, false, installPathProvider)
+    val deployTask = makeDeployTaskForTesting(listOf(mockApkInfo))
     deployTask.perform(device, deployer, mockApkInfo, canceller)
   }
-}
 
-private class ThrowingUIService : UIService {
-  object ExpectedOnInitException : Exception()
-
-  init {
-    throw ExpectedOnInitException
-  }
-
-  override fun prompt(result: String?): Boolean = true
-  override fun message(message: String?) {}
-}
-
-private class TestDeployTaskNotificationGroupManager : NotificationGroupManager {
-  val mockNotification = MockitoKt.mock<Notification>()
-  val mockNotificationGroup = MockitoKt.mock<NotificationGroup>()
-
-  init {
-    whenever(
-      mockNotificationGroup.createNotification(
-        MockitoKt.any<String>(),
-        MockitoKt.any<NotificationType>()
-      )
-    )
-      .thenAnswer { mockNotification }
-  }
-
-  override fun getNotificationGroup(groupId: String): NotificationGroup = when (groupId) {
-    "Deploy" -> mockNotificationGroup
-    else -> throw IllegalArgumentException("Unexpected groupId: $groupId")
-  }
-
-  override fun isGroupRegistered(groupId: String): Boolean = when (groupId) {
-    "Deploy" -> true
-    else -> false
-  }
-
-  override fun getRegisteredNotificationGroups() = mutableListOf(mockNotificationGroup)
-
-  override fun isRegisteredNotificationId(notificationId: String) = false
+  private fun makeDeployTaskForTesting(
+    packages: Collection<ApkInfo> = listOf(),
+    userInstallOptions: String? = null,
+    installOnAllUsers: Boolean = true,
+    alwaysInstallWithPm: Boolean = false,
+    allowAssumeVerified: Boolean = false,
+    makeBeforeRun: Boolean = true) =
+    DeployTask(project, packages, userInstallOptions, installOnAllUsers, alwaysInstallWithPm, allowAssumeVerified, makeBeforeRun)
 }

@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
-import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.rendering.RenderTask
+import com.android.tools.visuallint.analyzers.WearMarginAnalyzer
 import com.intellij.openapi.application.ApplicationManager
-import junit.framework.Assert
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -99,20 +97,12 @@ class WearMarginAnalyzerTest {
     val configuration =
       RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_small_round")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-        configuration,
-      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = WearMarginAnalyzer.findIssues(result, nlModel)
+        val issues = WearMarginAnalyzer.findIssues(result, configuration)
         Assert.assertEquals(3, issues.size)
         Assert.assertEquals(
           "The view image_view <ImageView> is too close to the side of the device",
@@ -138,20 +128,12 @@ class WearMarginAnalyzerTest {
     val configuration =
       RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_large_round")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-        configuration,
-      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = WearMarginAnalyzer.findIssues(result, nlModel)
+        val issues = WearMarginAnalyzer.findIssues(result, configuration)
         Assert.assertEquals(4, issues.size)
         Assert.assertEquals(
           "The view image_view <ImageView> is too close to the side of the device",
@@ -180,20 +162,12 @@ class WearMarginAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_rect")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-        configuration,
-      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = WearMarginAnalyzer.findIssues(result, nlModel)
+        val issues = WearMarginAnalyzer.findIssues(result, configuration)
         Assert.assertEquals(3, issues.size)
         Assert.assertEquals(
           "The view image_view <ImageView> is too close to the side of the device",
@@ -218,20 +192,12 @@ class WearMarginAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_square")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-        configuration,
-      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = WearMarginAnalyzer.findIssues(result, nlModel)
+        val issues = WearMarginAnalyzer.findIssues(result, configuration)
         Assert.assertEquals(2, issues.size)
         Assert.assertEquals(
           "The view textview2 <TextView> is too close to the side of the device",

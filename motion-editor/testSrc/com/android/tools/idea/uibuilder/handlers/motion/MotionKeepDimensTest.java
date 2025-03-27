@@ -23,6 +23,8 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
+import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
@@ -34,6 +36,7 @@ import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 
 /**
@@ -105,10 +108,29 @@ public class MotionKeepDimensTest extends SceneTest {
     ResourceResolver resolver = ResourceResolver.withValues(resourceValue);
 
     Configuration configuration = Mockito.mock(Configuration.class);
-    when(configuration.getResourceResolver()).thenReturn(resolver);
+    ResourceItemResolver resourceItemResolver = new ResourceItemResolver(
+      FolderConfiguration.createDefault(),
+      new ResourceItemResolver.ResourceProvider() {
+        @Override
+        public @Nullable ResourceResolver getResolver(boolean createIfNecessary) {
+          return resolver;
+        }
+
+        @Override
+        public @Nullable ResourceRepository getFrameworkResources() {
+          return null;
+        }
+
+        @Override
+        public @Nullable ResourceRepository getAppResources() {
+          return null;
+        }
+      }, null);
+    when(configuration.getResourceItemResolver()).thenReturn(resourceItemResolver);
     when(configuration.getDensity()).thenReturn(Density.XHIGH);
     when(configuration.getSettings()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
     when(configuration.getFullConfig()).thenReturn(FolderConfiguration.createDefault());
+    when(configuration.getTheme()).thenReturn("@android:style/Theme");
     myModel.setConfiguration(configuration);
   }
 

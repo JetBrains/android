@@ -23,9 +23,9 @@ import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.java.projectview.JavaLanguageLevelSection;
-import com.google.idea.sdkcompat.kotlin.KotlinCompat;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.kotlin.cli.common.arguments.FreezableKt;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder;
 
@@ -41,14 +41,14 @@ public class BlazeKotlinQuerySyncPlugin implements BlazeQuerySyncPlugin {
 
     // Set jvm-target from java language level
     LanguageLevel javaLanguageLevel =
-        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_11);
+        JavaLanguageLevelSection.getLanguageLevel(projectViewSet, LanguageLevel.JDK_21);
     setProjectJvmTarget(project, javaLanguageLevel);
   }
 
   private static void setProjectJvmTarget(Project project, LanguageLevel javaLanguageLevel) {
     K2JVMCompilerArguments k2JVMCompilerArguments =
         (K2JVMCompilerArguments)
-            KotlinCompat.unfreezeSettings(
+          FreezableKt.unfrozen(
                 Kotlin2JvmCompilerArgumentsHolder.Companion.getInstance(project).getSettings());
 
     String javaVersion = javaLanguageLevel.toJavaVersion().toString();

@@ -61,6 +61,7 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
@@ -116,6 +117,7 @@ class NlPropertyItemTest {
   val chain =
     RuleChain(
       projectRule,
+      RenderTestRule(),
       MinApiRule(projectRule),
       fileOpenRule,
       EdtRule(),

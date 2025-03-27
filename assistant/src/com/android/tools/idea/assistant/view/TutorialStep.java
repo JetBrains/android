@@ -200,7 +200,7 @@ public class TutorialStep extends JPanel {
             continue;
           }
 
-          try (InputStream imageStream = getClass().getResourceAsStream(imageSource)) {
+          try (InputStream imageStream = myResourceClass.getResourceAsStream(imageSource)) {
             if (imageStream == null) {
               getLog().error("Cannot load image: " + imageSource);
               continue;

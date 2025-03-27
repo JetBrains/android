@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.wearpairing.ConnectionState
 import com.android.tools.idea.wearpairing.ObservablePairedDevicesList
 import com.android.tools.idea.wearpairing.PairingDevice
@@ -59,7 +60,7 @@ class PairedDevicesFlowTest {
       PairingDevice(
         deviceID = "id1",
         displayName = "Pixel 6",
-        apiLevel = 33,
+        androidVersion = AndroidVersion(33),
         isEmulator = true,
         isWearDevice = false,
         hasPlayStore = true,
@@ -69,7 +70,7 @@ class PairedDevicesFlowTest {
       PairingDevice(
         deviceID = "id2",
         displayName = "Pixel Watch",
-        apiLevel = 33,
+        androidVersion = AndroidVersion(33),
         isEmulator = true,
         isWearDevice = true,
         hasPlayStore = true,

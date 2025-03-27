@@ -30,7 +30,10 @@ fun <T : Any> previewAnnotationToPreviewElement(
   attributesProvider: AnnotationAttributesProvider,
   annotatedMethod: AnnotatedMethod<T>,
   previewElementDefinition: T?,
-  parameterizedElementConstructor: (SingleComposePreviewElementInstance<T>, Collection<PreviewParameter>) -> ComposePreviewElement<T>,
+  parameterizedElementConstructor:
+    (SingleComposePreviewElementInstance<T>, Collection<PreviewParameter>) -> ComposePreviewElement<
+        T
+      >,
   overrideGroupName: String? = null,
   buildPreviewName: (nameParameter: String?) -> String,
   buildParameterName: (nameParameter: String?) -> String? = { it },
@@ -43,7 +46,8 @@ fun <T : Any> previewAnnotationToPreviewElement(
   val groupName = overrideGroupName ?: attributesProvider.getDeclaredAttributeValue(PARAMETER_GROUP)
   val showDecorations =
     attributesProvider.getBooleanAttribute(PARAMETER_SHOW_DECORATION)
-    ?: (attributesProvider.getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI)) ?: false
+      ?: (attributesProvider.getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI))
+      ?: false
   val showBackground = attributesProvider.getBooleanAttribute(PARAMETER_SHOW_BACKGROUND) ?: false
   // We don't use the library's default value for BackgroundColor and instead use a value defined
   // here, see PreviewElement#toPreviewXml.
@@ -68,7 +72,7 @@ fun <T : Any> previewAnnotationToPreviewElement(
       groupName,
       showDecorations,
       showBackground,
-      backgroundColorString
+      backgroundColorString,
     )
 
   val parameters = getPreviewParameters(annotatedMethod.parameterAnnotations)
@@ -78,7 +82,7 @@ fun <T : Any> previewAnnotationToPreviewElement(
       displaySettings,
       previewElementDefinition,
       annotatedMethod.methodBody,
-      attributesToConfiguration(attributesProvider)
+      attributesToConfiguration(attributesProvider),
     )
   return if (!parameters.isEmpty()) {
     parameterizedElementConstructor(basePreviewElement, parameters)

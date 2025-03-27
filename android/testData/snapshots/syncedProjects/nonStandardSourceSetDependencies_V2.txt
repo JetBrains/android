@@ -141,7 +141,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -249,7 +249,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -436,14 +436,11 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/common
             EXCLUDE_FOLDER                : file://<PROJECT>/common/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/common/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/common/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble
-                REBUILD                       : :common:assemble, :common:clean
-                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.common.commonMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -492,7 +489,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/common/src/commonMain
-            JavaSource                    : file://<PROJECT>/common/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/common/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/common/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -502,9 +499,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         Classes
             -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.common.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble
-                REBUILD                       : :common:assemble, :common:clean
-                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.common.commonTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -555,7 +549,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/common/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/common/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/common/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -569,9 +562,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble
-                REBUILD                       : :common:assemble, :common:clean
-                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.common.jvmMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -632,9 +622,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             -                             : file://<PROJECT>/common/build/classes/kotlin/jvm/main
             -                             : file://<PROJECT>/common/build/processedResources/jvm/main
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble
-                REBUILD                       : :common:assemble, :common:clean
-                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.common.jvmTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleType            : sourceSet
@@ -701,9 +688,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :common:assemble
-                REBUILD                       : :common:assemble, :common:clean
-                COMPILE_JAVA                  : :common:compileJava
     MODULE                        : NonStandardSourceSetDependencies.desktop
         ExternalModuleGroup           : NonStandardSourceSetDependencies
         ExternalModuleVersion         : unspecified
@@ -952,7 +936,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1857,10 +1841,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: JarWrappedLib.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: JarWrappedLib.jar
                 *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -1930,10 +1914,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: JarWrappedLib.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: JarWrappedLib.jar
                 *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -2058,9 +2042,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.kmp-java.sample-test
@@ -2374,7 +2355,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonMain
-            JavaSource                    : file://<PROJECT>/kmp-java/sample/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/kmp-java/sample/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmp-java/sample/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -2384,9 +2365,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         Classes
             -                             : file://<PROJECT>/build/classes/production/NonStandardSourceSetDependencies.kmp-java.sample.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.commonTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet
@@ -2437,7 +2415,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmp-java/sample/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmp-java/sample/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -2451,9 +2428,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet
@@ -2516,9 +2490,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             -                             : file://<PROJECT>/kmp-java/sample/build/classes/java/main
             -                             : file://<PROJECT>/kmp-java/sample/build/processedResources/jvm/main
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.jvmTest
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet
@@ -2586,9 +2557,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.main
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet
@@ -2607,9 +2575,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.test
         ExternalModuleGroup           : NonStandardSourceSetDependencies.kmp-java
         ExternalModuleType            : sourceSet
@@ -2630,9 +2595,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : :kmp-java:sample:assemble
-                REBUILD                       : :kmp-java:sample:assemble, :kmp-java:sample:clean
-                COMPILE_JAVA                  : :kmp-java:sample:compileJava
     MODULE                        : NonStandardSourceSetDependencies.lib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : NonStandardSourceSetDependencies.lib
@@ -2728,7 +2690,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
             CompilerSettings
-                additionalArguments           :
+                additionalArguments           : -Xuse-inline-scopes-numbers
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -3155,9 +3117,9 @@ PROJECT                       : NonStandardSourceSetDependencies
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::common:assemble, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::common:assemble, <PROJECT>::common:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample-test:clean, <PROJECT>::kmp-java:sample:assemble, <PROJECT>::kmp-java:sample:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::common:compileJava, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:compileDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:compileDebugSources, <PROJECT>::kmp-java:sample-test:compileDebugUnitTestSources, <PROJECT>::kmp-java:sample:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::desktop:assemble, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::desktop:assemble, <PROJECT>::desktop:clean, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:assembleDebug, <PROJECT>::feature-a:assembleDebugAndroidTest, <PROJECT>::feature-a:assembleDebugUnitTest, <PROJECT>::feature-a:clean, <PROJECT>::feature-b:assembleDebug, <PROJECT>::feature-b:assembleDebugAndroidTest, <PROJECT>::feature-b:assembleDebugUnitTest, <PROJECT>::feature-b:clean, <PROJECT>::javaLibrary:assemble, <PROJECT>::javaLibrary:clean, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:assembleDebug, <PROJECT>::kmp-java:sample-test:assembleDebugAndroidTest, <PROJECT>::kmp-java:sample-test:assembleDebugUnitTest, <PROJECT>::kmp-java:sample-test:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::desktop:compileJava, <PROJECT>::desktop:testClasses, <PROJECT>::feature-a:compileDebugAndroidTestSources, <PROJECT>::feature-a:compileDebugSources, <PROJECT>::feature-a:compileDebugUnitTestSources, <PROJECT>::feature-b:compileDebugAndroidTestSources, <PROJECT>::feature-b:compileDebugSources, <PROJECT>::feature-b:compileDebugUnitTestSources, <PROJECT>::javaLibrary:compileJava, <PROJECT>::javaLibrary:testClasses, <PROJECT>::kmp-java:sample-test:compileDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:compileDebugSources, <PROJECT>::kmp-java:sample-test:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::feature-a:createMockableJar, <PROJECT>::feature-a:generateDebugAndroidTestSources, <PROJECT>::feature-a:generateDebugSources, <PROJECT>::feature-b:createMockableJar, <PROJECT>::feature-b:generateDebugAndroidTestSources, <PROJECT>::feature-b:generateDebugSources, <PROJECT>::kmp-java:sample-test:createMockableJar, <PROJECT>::kmp-java:sample-test:generateDebugAndroidTestSources, <PROJECT>::kmp-java:sample-test:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

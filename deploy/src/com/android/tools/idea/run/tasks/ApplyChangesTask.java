@@ -38,8 +38,8 @@ public class ApplyChangesTask extends AbstractDeployTask {
                           boolean rerunOnSwapFailure,
                           boolean alwaysInstallWithPm,
                           boolean allowAssumeVerified,
-                          Computable<String> installPathProvider) {
-    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified, installPathProvider);
+                          boolean hasMakeBeforeRun) {
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified, hasMakeBeforeRun);
   }
 
   @NotNull

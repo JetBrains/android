@@ -24,6 +24,7 @@
 #include "controller.h"
 #include "display_streamer.h"
 #include "session_environment.h"
+#include "socket_writer.h"
 
 namespace screensharing {
 
@@ -59,11 +60,10 @@ public:
   // Calls DisplayStreamer::GetDisplayInfo.
   [[nodiscard]] static DisplayInfo GetDisplayInfo(int32_t display_id);
 
-  // Modifies system settings for the screen sharing session. May be called on any thread.
-  static void InitializeSessionEnvironment();
-  // Restores the original environment that existed before calling InitializeSessionEnvironment.
+  // Returns an object that stores original values of changed system settings that are restored to
+  // the original values when the agent terminates. Creates SessionEnvironment if necessary.
   // May be called on any thread. Safe to be called multiple times.
-  static void RestoreEnvironment();
+  [[nodiscard]] static SessionEnvironment& GetSessionEnvironment();
 
   // Returns the timestamp of the end of last simulated touch event in milliseconds according to the monotonic clock.
   [[nodiscard]] static int64_t GetLastTouchEventTime();
@@ -80,12 +80,13 @@ public:
 
   [[nodiscard]] inline static int32_t feature_level() { return feature_level_; }
 
-  [[nodiscard]] static SessionEnvironment& session_environment() { return *session_environment_; }
-
   Agent() = delete;
 
 private:
   static void Initialize(const std::vector<std::string>& args);
+  // Restores the original environment that existed before GetSessionEnvironment was first called.
+  // May be called on any thread. Safe to be called multiple times.
+  static void RestoreEnvironment();
 
   static int32_t feature_level_;
   static bool is_watch_;
@@ -97,8 +98,8 @@ private:
   static std::string codec_name_;
   static CodecInfo* codec_info_;
   static int32_t flags_;
-  static int video_socket_fd_;
-  static int audio_socket_fd_;
+  static SocketWriter* video_socket_writer_;
+  static SocketWriter* audio_socket_writer_;
   static int control_socket_fd_;
   static std::map<int32_t, DisplayStreamer> display_streamers_;
   static DisplayStreamer* primary_display_streamer_;

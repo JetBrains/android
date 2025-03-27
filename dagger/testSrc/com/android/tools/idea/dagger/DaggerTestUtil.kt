@@ -15,195 +15,33 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.test.testutils.TestUtils
+import com.intellij.openapi.module.Module
+import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
+private const val DAGGER_VERSION = "2.52"
+private const val HILT_VERSION = "2.44.2"
+private const val JAVAX_INJECT_VERSION = "1"
+
+private val DAGGER_AND_HILT_LIBRARIES =
+  listOf(
+    "com/google/dagger/dagger/$DAGGER_VERSION/dagger-$DAGGER_VERSION.jar",
+    "com/google/dagger/hilt-core/$HILT_VERSION/hilt-core-$HILT_VERSION.jar",
+    "javax/inject/javax.inject/$JAVAX_INJECT_VERSION/javax.inject-$JAVAX_INJECT_VERSION.jar",
+  )
+
+@Deprecated(
+  "Use addDaggerAndHiltClasses(module: Module) instead",
+  ReplaceWith("addDaggerAndHiltClasses(fixture.module)"),
+)
 fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
-  fixture.addFileToProject(
-    "dagger/Module.java",
-    // language=JAVA
-    """
-      package dagger;
+  addDaggerAndHiltClasses(fixture.module)
+}
 
-      public @interface Module {
-        Class<?>[] includes() default {};
-        Class<?>[] subcomponents() default {};
-      }
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/Provides.java",
-    // language=JAVA
-    """
-      package dagger;
-
-      public @interface Provides {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/Binds.java",
-    // language=JAVA
-    """
-      package dagger;
-
-      public @interface Binds {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/BindsInstance.java",
-    // language=JAVA
-    """
-      package dagger;
-
-      public @interface BindsInstance {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/BindsOptionalOf.java",
-    // language=JAVA
-    """
-      package dagger;
-
-      public @interface BindsOptionalOf {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "javax/inject/Inject.java",
-    // language=JAVA
-    """
-      package javax.inject;
-
-      public @interface Inject {}
-      """
-      .trimIndent(),
-  )
-
-  fixture.addFileToProject(
-    "javax/inject/Qualifier.java",
-    // language=JAVA
-    """
-      package javax.inject;
-
-      public @interface Qualifier {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/Component.java",
-    // language=JAVA
-    """
-      package dagger;
-
-      public @interface Component {
-         Class<?>[] modules() default {};
-         Class<?>[] dependencies() default {};
-
-         public @interface Builder {}
-         public @interface Factory {}
-      }
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/Subcomponent.java",
-    // language=JAVA
-    """
-      package dagger;
-
-      public @interface Subcomponent {
-         @interface Builder {}
-         @interface Factory {}
-         Class<?>[] modules() default {};
-      }
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/hilt/EntryPoint.java",
-    // language=JAVA
-    """
-      package dagger.hilt;
-
-      public @interface EntryPoint {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "androidx/hilt/work/WorkerInject.java",
-    // language=JAVA
-    """
-      package androidx.hilt.work;
-
-      public @interface WorkerInject {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "androidx/hilt/lifecycle/ViewModelInject.java",
-    // language=JAVA
-    """
-      package androidx.hilt.lifecycle;
-
-      public @interface ViewModelInject {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/Lazy.java",
-    // language=JAVA
-    """
-      package dagger;
-
-      public interface Lazy<T> {
-        T get();
-      }
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "javax/inject/Provider.java",
-    // language=JAVA
-    """
-      package javax.inject;
-
-      public interface Provider<T> {
-        T get();
-      }
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/assisted/Assisted.java",
-    // language=JAVA
-    """
-      package dagger.assisted;
-
-      public @interface Assisted {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/assisted/AssistedInject.java",
-    // language=JAVA
-    """
-      package dagger.assisted;
-
-      public @interface AssistedInject {}
-      """
-      .trimIndent(),
-  )
-  fixture.addFileToProject(
-    "dagger/assisted/AssistedFactory.java",
-    // language=JAVA
-    """
-      package dagger.assisted;
-
-      public @interface AssistedFactory {}
-      """
-      .trimIndent(),
-  )
+fun addDaggerAndHiltClasses(module: Module) {
+  for (path in DAGGER_AND_HILT_LIBRARIES) {
+    val pathString = TestUtils.getLocalMavenRepoFile(path).toString()
+    PsiTestUtil.addLibrary(module, pathString)
+  }
 }

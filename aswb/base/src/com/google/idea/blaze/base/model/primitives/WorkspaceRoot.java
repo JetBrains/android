@@ -95,6 +95,14 @@ public class WorkspaceRoot implements ProtoWrapper<String> {
     return workspacePathFor(file).asPath();
   }
 
+  public @Nullable Path tryRelativize(VirtualFile file) {
+    if (!isInWorkspace(file)) {
+      return null;
+    }
+
+    return relativize(file);
+  }
+
   private WorkspacePath workspacePathFor(String path) {
     if (!isInWorkspace(path)) {
       throw new IllegalArgumentException(

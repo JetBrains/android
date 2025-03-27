@@ -17,8 +17,8 @@
 
 package com.android.tools.idea.naveditor
 
+import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.test.testutils.TestUtils
-import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 
 private const val NAVIGATION_ID = "android.arch.navigation"
 private const val SUPPORT_ID = "com.android.support"
@@ -27,11 +27,19 @@ private val REPO = TestUtils.getPrebuiltOfflineMavenRepo()
 private val NAVIGATION_PATH = "$REPO/android/arch/navigation"
 private val SUPPORT_PATH = "$REPO/com/android/support"
 
-private val RUNTIME_VERSION = IdeGoogleMavenRepository.findVersion(NAVIGATION_ID, "navigation-runtime", allowPreview = true)
+private val GMAVEN = object : GoogleMavenRepository(useNetwork = false) {
+  override fun readUrlData(url: String, timeout: Int, lastModified: Long): ReadUrlDataResult =
+    throw UnsupportedOperationException("Should not attempt to read from network")
+
+  override fun error(throwable: Throwable, message: String?) =
+    throw UnsupportedOperationException("Should not have i/o errors")
+}
+
+private val RUNTIME_VERSION = GMAVEN.findVersion(NAVIGATION_ID, "navigation-runtime", allowPreview = true)
 
 val navEditorRuntimePaths: Map<String, String>
   get() {
-    val commonVersion = IdeGoogleMavenRepository.findVersion(NAVIGATION_ID, "navigation-common", allowPreview = true)
+    val commonVersion = GMAVEN.findVersion(NAVIGATION_ID, "navigation-common", allowPreview = true)
 
     return mapOf("$NAVIGATION_PATH/navigation-runtime/$RUNTIME_VERSION/navigation-runtime-$RUNTIME_VERSION.aar" to
                    "$NAVIGATION_ID:navigation-runtime:$RUNTIME_VERSION",
@@ -41,8 +49,8 @@ val navEditorRuntimePaths: Map<String, String>
 
 val navEditorFragmentPaths: Map<String, String>
   get() {
-    val navigationFragmentVersion = IdeGoogleMavenRepository.findVersion(NAVIGATION_ID, "navigation-fragment", allowPreview = true)
-    val supportFragmentVersion = IdeGoogleMavenRepository.findVersion(SUPPORT_ID, "support-fragment")
+    val navigationFragmentVersion = GMAVEN.findVersion(NAVIGATION_ID, "navigation-fragment", allowPreview = true)
+    val supportFragmentVersion = GMAVEN.findVersion(SUPPORT_ID, "support-fragment")
 
     return mapOf("$NAVIGATION_PATH/navigation-fragment/$navigationFragmentVersion/navigation-fragment-$navigationFragmentVersion.aar" to
                    "$NAVIGATION_ID:navigation-fragment:$RUNTIME_VERSION",

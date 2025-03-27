@@ -21,8 +21,8 @@ import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
@@ -32,15 +32,12 @@ import org.junit.Test
 import javax.swing.JCheckBox
 import javax.swing.JTextField
 
-/**
- * Tests for [DeviceMirroringSettingsPage] and [DeviceMirroringSettings].
- */
+/** Tests for [DeviceMirroringSettingsPage] and [DeviceMirroringSettings]. */
 @RunsInEdt
 class DeviceMirroringSettingsPageTest {
 
-  private val projectRule = ProjectRule()
   @get:Rule
-  val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
+  val ruleChain = RuleChain(ApplicationRule(), EdtRule(), HeadlessDialogRule())
 
   private val settings by lazy { DeviceMirroringSettings.getInstance() }
   private val settingsPage by lazy {
@@ -124,13 +121,18 @@ class DeviceMirroringSettingsPageTest {
     redirectAudioCheckBox.isSelected = false
     assertThat(settingsPage.isModified).isTrue()
 
-    maxSyncedClipboardLengthTextField.text = " 3000 "
+    maxSyncedClipboardLengthTextField.text = "3000"
     assertThat(settingsPage.isModified).isTrue()
     settingsPage.apply()
     assertThat(settings.maxSyncedClipboardLength).isEqualTo(3000)
     assertThat(settingsPage.isModified).isFalse()
-    maxSyncedClipboardLengthTextField.text = "   3000   "
-    assertThat(settingsPage.isModified).isFalse()
+    maxSyncedClipboardLengthTextField.text = ""
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
+    assertThat(settings.maxSyncedClipboardLength).isEqualTo(3000)
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.reset()
+    assertThat(maxSyncedClipboardLengthTextField.text).isEqualTo("3000")
 
     synchronizeClipboardCheckBox.isSelected = false
     assertThat(maxSyncedClipboardLengthTextField.isEnabled).isFalse()

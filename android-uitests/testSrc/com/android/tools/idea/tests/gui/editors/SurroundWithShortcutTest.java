@@ -105,7 +105,7 @@ public class SurroundWithShortcutTest {
   }
 
   private void clickCodeSurroundWith(@NotNull IdeFrameFixture ideFrame, int key) {
-    ideFrame.invokeMenuPath("Code", "Surround With...");
+    ideFrame.invokeMenuPath("Code", "Surround With\u2026");
     GuiTests.waitUntilShowing(guiTest.robot(), Matchers.byType(JBList.class));
     guiTest.robot().pressAndReleaseKey(key);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -116,7 +116,7 @@ public class SurroundWithShortcutTest {
   private void removeTryCatchAndVerify(@NotNull IdeFrameFixture ideFrame,
                                        @NotNull EditorFixture editorFixture) {
     editorFixture.select("(" + HELLO_STR + ")");
-    ideFrame.invokeMenuPath("Code", "Unwrap/Remove...");
+    ideFrame.invokeMenuPath("Code", "Unwrap/Remove\u2026");
 
     Ref<JPanel> unwrapRemoveJPanel = new Ref<>();
     Wait.seconds(7).expecting("Unwrap/Remove popup list to show.").until(() -> {

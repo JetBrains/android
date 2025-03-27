@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -28,16 +26,19 @@ import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.RootProvider
 import com.intellij.testFramework.replaceService
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.io.File
 
 class SdkSyncUtilTest : AndroidGradleTestCase() {
-  private val androidSdks = mock(AndroidSdks::class.java)
-  private val sdk = mock(Sdk::class.java)
-  private val ideSdks = mock(IdeSdks::class.java)
+  private val androidSdks = mock<AndroidSdks>()
+  private val sdk = mock<Sdk>()
+  private val ideSdks = mock<IdeSdks>()
 
   override fun setUp() {
     super.setUp()
@@ -47,15 +48,11 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
     whenever(ideSdks.androidSdkPath).thenReturn(File("some/sdk/path/for/test"))
   }
 
-  private fun <T> any(): T {
-    return Mockito.any()
-  }
-
   @Test
   fun testComputeSdkRepoReloads() {
-    val repoManager = mock(RepoManager::class.java)
+    val repoManager = mock<RepoManager>()
     val sdkHandler = AndroidSdkHandler(null, null, repoManager)
-    whenever(androidSdks.findSuitableAndroidSdk(eq("WantedCompileTarget"))).thenReturn(null)
+    whenever(androidSdks.findSuitableAndroidSdk("WantedCompileTarget")).thenReturn(null)
     whenever(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
     whenever(androidSdks.tryToCreate(any(), any())).thenAnswer {
       ApplicationManager.getApplication().assertWriteAccessAllowed()
@@ -76,10 +73,10 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
   @Test
   fun testComputeSdkRepoReloadsNoRoots() {
     val compileTarget = "WantedCompileTarget"
-    val repoManager = mock(RepoManager::class.java)
+    val repoManager = mock<RepoManager>()
     val sdkHandler = AndroidSdkHandler(null, null, repoManager)
     whenever(androidSdks.findSuitableAndroidSdk(eq(compileTarget))).thenReturn(sdk)
-    val rootProvider = mock(RootProvider::class.java)
+    val rootProvider = mock<RootProvider>()
     whenever(rootProvider.getFiles(any())).thenReturn(arrayOf())
     whenever(sdk.rootProvider).thenReturn(rootProvider)
     whenever(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
@@ -89,7 +86,7 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
     }
 
     val mockTable = spy(ProjectJdkTable.getInstance())
-    Mockito.doNothing().whenever(mockTable).removeJdk(any())
+    doNothing().whenever(mockTable).removeJdk(any())
     ApplicationManager.getApplication().replaceService(ProjectJdkTable::class.java, mockTable, project)
 
     assertEquals(sdk, androidSdks.computeSdkReloadingAsNeeded(
@@ -106,7 +103,7 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
 
   @Test
   fun testInvalidSdkSetup() {
-    val repoManager = mock(RepoManager::class.java)
+    val repoManager = mock<RepoManager>()
     val sdkHandler = AndroidSdkHandler(null, null, repoManager)
     whenever(androidSdks.findSuitableAndroidSdk(eq("WantedCompileTarget"))).thenReturn(null)
     whenever(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)

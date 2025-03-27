@@ -42,6 +42,7 @@
     <orderEntry type="module" module-name="intellij.android.profilers.ui" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="module" module-name="intellij.android.transportDatabase" />
     <orderEntry type="module" module-name="intellij.java.execution" />
@@ -72,5 +73,6 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
   </component>
 </module>

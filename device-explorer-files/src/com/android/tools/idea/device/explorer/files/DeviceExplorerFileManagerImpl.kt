@@ -35,7 +35,9 @@ import com.intellij.openapi.application.TransactionGuardImpl
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
-import com.intellij.openapi.fileTypes.ex.FileTypeChooser
+import com.intellij.openapi.fileTypes.FileTypeManager
+import com.intellij.openapi.fileTypes.FileTypes
+import com.intellij.openapi.fileTypes.ex.FileTypeChooser.associateFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -190,7 +192,10 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
   override suspend fun openFile(localPath: Path) {
     val file = findFile(localPath, true)
     withContext(uiThread) {
-      FileTypeChooser.getKnownFileTypeOrAssociate(file, project) ?: cancelAndThrow()
+      file.name.let { fileName ->
+        file.fileType.takeIf { it != FileTypes.UNKNOWN } ?: FileTypeManager.getInstance().getFileTypeByFileName(
+          fileName).takeIf { it != FileTypes.UNKNOWN } ?: associateFileType(fileName) ?: cancelAndThrow()
+      }
       OpenFileAction.openFile(file, project)
       temporaryEditorFiles.add(file)
     }

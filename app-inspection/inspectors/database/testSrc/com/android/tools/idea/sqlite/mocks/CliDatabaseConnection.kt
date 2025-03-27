@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.sqlite.cli.SqliteCliArgs
 import com.android.tools.idea.sqlite.cli.SqliteCliClient
 import com.android.tools.idea.sqlite.cli.SqliteCliResponse
@@ -42,6 +41,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.asListenableFuture
+import org.mockito.kotlin.mock
 
 /**
  * From:

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
+import com.android.tools.visuallint.VisualLintErrorType
 import java.util.concurrent.ConcurrentHashMap
 
 /** List of visual lint issues. */

@@ -39,7 +39,7 @@ private const val NEXT_BUTTON_TEXT = "Next"
 /**
  * Dialog presenting a survey for users with a list of options and requesting multiple answers
  */
-class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, hasFollowup: Boolean)
+class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, private val followupSurvey: Survey?)
   : DialogWrapper(null), ActionListener, ItemListener {
   val checkBoxes = mutableListOf<JCheckBox>()
 
@@ -56,12 +56,7 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
   init {
     isAutoAdjustable = true
     setOKButtonText(
-      if (hasFollowup) {
-        NEXT_BUTTON_TEXT
-      }
-      else {
-        SUBMIT_BUTTON_TEXT
-      }
+      followupSurvey?.let { NEXT_BUTTON_TEXT } ?: SUBMIT_BUTTON_TEXT
     )
     setResizable(false)
     title = survey.title
@@ -74,6 +69,10 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
 
   override fun doOKAction() {
     choiceLogger.log(survey.name, IntRange(0, checkBoxes.count() - 1).filter { checkBoxes[it].isSelected })
+    followupSurvey?.let {
+      val dialog = createDialog(followupSurvey)
+      dialog.show()
+    }
     super.doOKAction()
   }
 

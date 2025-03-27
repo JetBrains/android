@@ -22,11 +22,13 @@ import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.Consumer;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
+import org.apache.xerces.util.XMLChar;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +115,12 @@ public class MorphPanel extends JPanel {
   private void setupTextTagField(@NotNull String oldTag) {
     myNewTagText.addDocumentListener(createDocumentListener());
     myNewTagText.setText(oldTag);
-    myNewTagText.registerKeyboardAction(e -> doOkAction(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+    myNewTagText.registerKeyboardAction(e -> {
+      // Only accept enter if the ok button is enabled
+      if (myOkButton.isEnabled()) {
+        doOkAction();
+      }
+    }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
     myNewTagText.setRequestFocusEnabled(true);
     myNewTagText.requestFocusInWindow();
     myNewTagText.addFocusListener(new FocusAdapter() {
@@ -135,8 +142,18 @@ public class MorphPanel extends JPanel {
     return new DocumentListener() {
       @Override
       public void documentChanged(@NotNull DocumentEvent e) {
-        if (myNameChangeConsumer != null) {
-          myNameChangeConsumer.consume(e.getDocument().getText());
+        String tagName = e.getDocument().getText();
+        if (XMLChar.isValidName(tagName)) {
+          myOkButton.setEnabled(true);
+          myOkButton.setToolTipText(null);
+
+          if (myNameChangeConsumer != null) {
+            myNameChangeConsumer.consume(tagName);
+          }
+        }
+        else {
+          myOkButton.setEnabled(false);
+          myOkButton.setToolTipText("The tag name must be valid");
         }
       }
     };

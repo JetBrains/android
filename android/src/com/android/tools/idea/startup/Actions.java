@@ -20,6 +20,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.openapi.actionSystem.EmptyActionGroup;
 import org.jetbrains.annotations.NotNull;
 
 public final class Actions {
@@ -27,20 +28,15 @@ public final class Actions {
   }
 
   public static void hideAction(@NotNull ActionManager actionManager, @NotNull String actionId) {
-    AnAction oldAction = actionManager.getAction(actionId);
-    if (oldAction != null) {
-      if (actionManager.isGroup(actionId)) {
-        actionManager.unregisterAction(actionId);
-      } else {
-        replaceAction(actionManager, actionId, new EmptyAction());
-      }
+    if (actionManager.getActionOrStub(actionId) == null) {
+      return; // Action not found.
     }
+    var emptyReplacement = actionManager.isGroup(actionId) ? new EmptyActionGroup() : new EmptyAction();
+    actionManager.replaceAction(actionId, emptyReplacement);
   }
 
   public static void replaceAction(@NotNull ActionManager actionManager, @NotNull String actionId, @NotNull AnAction newAction) {
-    AnAction oldAction = actionManager.getAction(actionId);
-    if (oldAction != null) {
-      newAction.getTemplatePresentation().setIcon(oldAction.getTemplatePresentation().getIcon());
+    if (actionManager.getActionOrStub(actionId) != null) {
       actionManager.replaceAction(actionId, newAction);
     }
     else {

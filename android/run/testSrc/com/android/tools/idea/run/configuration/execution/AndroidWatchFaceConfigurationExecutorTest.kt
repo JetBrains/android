@@ -17,8 +17,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.Activator
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
@@ -43,6 +41,9 @@ import com.intellij.testFramework.registerServiceInstance
 import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
@@ -237,11 +238,11 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     }
 
     // Executor we test.
-    val app = Mockito.mock(App::class.java)
+    val app = mock<App>()
     val appInstaller = TestApplicationInstaller(appId, app)
-    val activator = Mockito.mock(Activator::class.java)
+    val activator = mock<Activator>()
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(activator).activate(any(), any(), any(AppComponent.Mode::class.java), any(), any())
+      .whenever(activator).activate(any(), any(), any<AppComponent.Mode>(), any(), any())
 
     val executor = AndroidWatchFaceConfigurationExecutor(
       env,
@@ -264,7 +265,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Use DefaultDebugExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
 
-    val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
+    val debuggerManagerExMock = mock<DebuggerManagerEx>()
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
     whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(ExecutionException("Exception on debug start"))
 

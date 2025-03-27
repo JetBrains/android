@@ -24,6 +24,8 @@ import com.android.tools.idea.vitals.client.grpc.MOST_AFFECTED_OS
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcServerRule
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.common.truth.Truth.assertThat
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
@@ -40,7 +42,6 @@ class VitalsIntegrationTest {
 
   @Test
   fun basic() {
-    println("Test gRPC server started at localhost:${grpcServerRule.server.port}")
     grpcServerRule.database.addIssue(TEST_ISSUE1)
     grpcServerRule.database.addIssue(TEST_ISSUE2)
 
@@ -57,6 +58,46 @@ class VitalsIntegrationTest {
       )
     )
 
+    val optionsDir = system.installation.configDir.resolve("options")
+    Files.writeString(
+      optionsDir.resolve("studiobot.xml"),
+      """
+        <application>
+          <component name="StudioBotSettings">
+            <option name="onboardedVersion" value="3" />
+          </component>
+        </application>
+      """
+        .trimIndent(),
+      StandardCharsets.UTF_8,
+    )
+    Files.writeString(
+      optionsDir.resolve("googleLoginApplicationSettings.xml"),
+      """
+        <application>
+          <component name="GoogleLoginApplicationSettings">
+            <option name="activeUser" value="test_user@google.com" />
+            <option name="userEmail2FeaturesStore">
+              <map>
+                <entry key="test_user@google.com">
+                  <value>
+                    <set>
+                      <option value="Firebase" />
+                      <option value="Gemini" />
+                      <option value="User Info" />
+                      <option value="Android Vitals" />
+                    </set>
+                  </value>
+                </entry>
+              </map>
+            </option>
+          </component>
+        </application>
+      """
+        .trimIndent(),
+      StandardCharsets.UTF_8,
+    )
+
     val install = system.installation
 
     install.addVmOption("-Dappinsights.enable.play.vitals=true")
@@ -64,6 +105,8 @@ class VitalsIntegrationTest {
       "-Dappinsights.play.vitals.grpc.server=localhost:${grpcServerRule.server.port}"
     )
     install.addVmOption("-Dappinsights.play.vitals.grpc.use.transport.security=false")
+    install.addVmOption("-Dappinsights.gemini.fetch.real.insight=false")
+    install.addVmOption("-Dappinsights.play.vitals.show.insight.tool.window=true")
     system.setEnv("GOOGLE_LOGIN_USER", "test_user@google.com")
     system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSync()
@@ -100,6 +143,13 @@ class VitalsIntegrationTest {
       studio.waitForComponentWithExactText("Android 3.1 (API 12)")
 
       studio.waitForComponentWithExactText("Most affected Android version: $MOST_AFFECTED_OS")
+
+      // Verify insights text pane is displayed.
+      studio.waitForComponent(
+        ComponentMatchersBuilder().apply {
+          addSwingClassRegexMatch(".*insights\\.ui\\.insight\\.InsightTextPane$")
+        }
+      )
     }
   }
 }

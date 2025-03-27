@@ -19,15 +19,17 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.engine.DebugProcess
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class AndroidRemoteDebugProcessHandlerTest {
 
@@ -40,7 +42,7 @@ class AndroidRemoteDebugProcessHandlerTest {
 
   @Before
   fun setUpDebugSession() {
-    client = Mockito.mock(Client::class.java)
+    client = mock<Client>()
     device = createDevice()
     whenever(client.device).thenReturn(device)
     val clientData = object : ClientData(client, 111) {
@@ -48,13 +50,13 @@ class AndroidRemoteDebugProcessHandlerTest {
       override fun getProcessName() = "MyApp"
     }
     whenever(client.clientData).thenReturn(clientData)
-    debugProcess = Mockito.mock(DebugProcess::class.java)
+    debugProcess = mock<DebugProcess>()
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
-    whenever(debugManager.getDebugProcess(MockitoKt.any(AndroidRemoteDebugProcessHandler::class.java))).thenReturn(debugProcess)
+    whenever(debugManager.getDebugProcess(any<AndroidRemoteDebugProcessHandler>())).thenReturn(debugProcess)
   }
 
   private fun createDevice(): IDevice {
-    val mockDevice = Mockito.mock(IDevice::class.java)
+    val mockDevice = mock<IDevice>()
     whenever(mockDevice.version).thenReturn(AndroidVersion(26))
     whenever(mockDevice.isOnline).thenReturn(true)
     return mockDevice
@@ -65,7 +67,7 @@ class AndroidRemoteDebugProcessHandlerTest {
     val processHandler = AndroidRemoteDebugProcessHandler(projectRule.project, client, false)
     processHandler.startNotify()
     processHandler.detachProcess()
-    Mockito.verify(client).notifyVmMirrorExited()
+    verify(client).notifyVmMirrorExited()
   }
 
   @Test
@@ -73,7 +75,7 @@ class AndroidRemoteDebugProcessHandlerTest {
     val processHandler = AndroidRemoteDebugProcessHandler(projectRule.project, client, false)
     processHandler.startNotify()
     processHandler.destroyProcess()
-    Mockito.verify(client, Mockito.never()).notifyVmMirrorExited()
+    verify(client, never()).notifyVmMirrorExited()
   }
 
   @Test
@@ -82,6 +84,6 @@ class AndroidRemoteDebugProcessHandlerTest {
     processHandler.startNotify()
     processHandler.destroyProcess()
     processHandler.waitFor()
-    Mockito.verify(debugProcess).stop(false)
+    verify(debugProcess).stop(false)
   }
 }

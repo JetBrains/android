@@ -64,6 +64,16 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
+      """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
+            exception: java.lang.RuntimeException
+              at: [0]org.gradle.internal.file.locking.ExclusiveFileAccessManager#access
+          }
+        }
       """.trimIndent()
     )
   }
@@ -99,6 +109,16 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
+      """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
+            exception: java.net.ConnectException
+              at: [0]sun.nio.ch.Net#pollConnect
+          }
+        }
       """.trimIndent()
     )
   }
@@ -135,6 +155,16 @@ class GradleDistributionInstallIssueCheckerTest : AbstractIssueCheckerIntegratio
       AndroidStudioEvent.GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR,
       expectedPhasesReported = """
         FAILURE : SYNC_TOTAL
+      """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.GradleConnectionException
+              at: [0]org.gradle.tooling.internal.consumer.DistributionFactory${'$'}ZippedDistribution#getToolingImplementationClasspath
+            exception: java.net.UnknownHostException
+              at: [0]sun.nio.ch.NioSocketImpl#connect
+          }
+        }
       """.trimIndent()
     )
   }

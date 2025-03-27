@@ -149,7 +149,6 @@ class AppInsightsTrackerImpl(
     mode: ConnectionMode,
     issueId: String,
     eventId: String,
-    isFetched: Boolean,
   ) {
     log(unanonymizedAppId) {
       type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.EVENT_VIEWED
@@ -158,10 +157,28 @@ class AppInsightsTrackerImpl(
           .apply {
             this.issueId = AnonymizerUtil.anonymizeUtf8(issueId)
             this.eventId = AnonymizerUtil.anonymizeUtf8(eventId)
-            this.isFetched = isFetched
           }
           .build()
       isOffline = mode.isOfflineMode()
+    }
+  }
+
+  override fun logEventsFetched(
+    unanonymizedAppId: String,
+    issueId: String,
+    crashType: FailureType,
+    isFirstFetch: Boolean,
+  ) {
+    log(unanonymizedAppId) {
+      type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.EVENTS_FETCHED
+      eventsFetched =
+        AppQualityInsightsUsageEvent.EventsFetched.newBuilder()
+          .apply {
+            this.issueId = issueId
+            this.crashType = crashType.toCrashType()
+            this.isFirstFetch = isFirstFetch
+          }
+          .build()
     }
   }
 
@@ -188,6 +205,7 @@ class AppInsightsTrackerImpl(
     unanonymizedAppId: String,
     crashType: FailureType,
     insight: AiInsight,
+    contextLimit: Int,
   ) {
     log(unanonymizedAppId) {
       type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.INSIGHT_FETCH
@@ -198,6 +216,11 @@ class AppInsightsTrackerImpl(
             this.experiment = insight.experiment.toProto()
             this.isCached = insight.isCached
             this.source = insight.insightSource.toProto()
+            this.codeContextDetails =
+              insight.codeContextTrackingDetails
+                .toCodeContextDetailsProto()
+                .apply { this.contextLimit = contextLimit.toLong() }
+                .build()
           }
           .build()
     }

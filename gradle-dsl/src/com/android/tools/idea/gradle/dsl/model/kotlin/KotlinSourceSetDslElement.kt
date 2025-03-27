@@ -70,4 +70,8 @@ class KotlinSourceSetDslElement(
 
     private val declarativeToModelNameMap: ExternalToModelMap = ExternalToModelMap.empty
   }
+
+  override fun getAccessMethodName(): String? {
+    return KOTLIN_SOURCE_SET.namedObjectAssociatedName
+  }
 }

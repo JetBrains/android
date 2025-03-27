@@ -32,6 +32,7 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.compiler.options.CompileStepBeforeRun.MakeBeforeRunTask
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -80,7 +81,9 @@ abstract class AndroidConfigurationExecutorBase(
       val result = try {
         // ApkProvider provides multiple ApkInfo only for instrumented tests.
         val app = apkProvider.getApks(device).single()
-        applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
+        val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+
+        applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
       }
       catch (e: DeployerException) {
         throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
@@ -109,7 +112,9 @@ abstract class AndroidConfigurationExecutorBase(
 
     // ApkProvider provides multiple ApkInfo only for instrumented tests.
     val app = apkProvider.getApks(device).single()
-    val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
+    val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
+
+    val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
 
     val runContentDescriptorDeferred = async {
       startDebugSession(device, applicationContext, console, indicator).runContentDescriptor

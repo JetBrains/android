@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.error.IssueModel
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -45,7 +44,6 @@ class NlLayoutScannerTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Mock lateinit var mockSurface: NlDesignSurface
-  @Mock lateinit var mockModel: NlModel
 
   @Before
   fun setUp() {
@@ -55,7 +53,7 @@ class NlLayoutScannerTest {
   private fun createScanner(): NlLayoutScanner {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     whenever(mockSurface.issueModel).thenReturn(issueModel)
-    return NlLayoutScanner(mockSurface, projectRule.fixture.testRootDisposable!!)
+    return NlLayoutScanner(mockSurface, projectRule.fixture.testRootDisposable)
   }
 
   @Test
@@ -213,7 +211,7 @@ class NlLayoutScannerTest {
       }
     scanner.addListener(listener)
 
-    scanner.updateLint(renderResult, renderResult.validatorResult as ValidatorResult, model)
+    scanner.updateLint(renderResult.validatorResult as ValidatorResult, model)
 
     assertNotNull(validatorResult)
     assertEquals(componentSize, validatorResult!!.issues.size)
@@ -250,7 +248,6 @@ class NlLayoutScannerTest {
 
     // Run the scanner core code.
     val validatorResult = resultToInject.build()
-    val renderResult = helper.mockRenderResult(model, validatorResult)
 
     var validatorResultReceived: ValidatorResult? = null
     val listener =
@@ -260,7 +257,7 @@ class NlLayoutScannerTest {
         }
       }
     scanner.addListener(listener)
-    scanner.updateLint(renderResult, validatorResult, model)
+    scanner.updateLint(validatorResult, model)
 
     // Expect the results to be filtered.
     assertNotNull(validatorResult)

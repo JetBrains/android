@@ -24,10 +24,15 @@ import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.intellij.util.ui.EmptyIcon
 import junit.framework.TestCase
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class ToggleSizeViewActionTest : SceneTest() {
 
   /** Regression test for b/143964703 */
+  @Test
   fun testNoExceptionWhenPerform() {
     val action = ToggleSizeViewAction("Toggle", ATTR_WIDTH, EmptyIcon.ICON_0, EmptyIcon.ICON_0)
 

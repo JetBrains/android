@@ -15,27 +15,32 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.Disposer
+import java.io.InputStream
+import java.nio.charset.StandardCharsets.UTF_8
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.name.FqName
 import org.junit.Assert.assertThrows
 import org.junit.Test
-import java.nio.charset.StandardCharsets.UTF_8
-import java.time.Duration
 
-/**
- * Tests for [MavenClassRegistry].
- */
+/** Tests for [MavenClassRegistry]. */
 class MavenClassRegistryTest {
+  private var repositoryIndexContents = ""
+
+  private fun getIndexByteStream(): InputStream = repositoryIndexContents.byteInputStream(UTF_8)
+
+  private val testScheduler = TestCoroutineScheduler()
+  private val testDispatcher = StandardTestDispatcher(testScheduler)
+  private val testScope = TestScope(testDispatcher)
+
   @Test
   fun parseJsonFile() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -90,109 +95,116 @@ class MavenClassRegistryTest {
             }
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
-    assertThat(mavenClassRegistry.lookup.classNameMap).containsExactlyEntriesIn(
-      mapOf(
-        "ComponentActivity" to listOf(
-          LibraryImportData(
-            artifact = "androidx.activity:activity",
-            importedItemFqName = "androidx.activity.ComponentActivity",
-            importedItemPackageName = "androidx.activity",
-            version = "1.1.0"
-          )
-        ),
-        "Fake" to listOf(
-          LibraryImportData(
-            artifact = "androidx.activity:activity",
-            importedItemFqName = "androidx.activity.Fake",
-            importedItemPackageName = "androidx.activity",
-            version = "1.1.0"
-          ),
-          LibraryImportData(
-            artifact = "androidx.annotation:annotation",
-            importedItemFqName = "androidx.annotation.Fake",
-            importedItemPackageName = "androidx.annotation",
-            version = "1.1.0"
-          )
-        ),
-        "AnimRes" to listOf(
-          LibraryImportData(
-            artifact = "androidx.annotation:annotation",
-            importedItemFqName = "androidx.annotation.AnimRes",
-            importedItemPackageName = "androidx.annotation",
-            version = "1.1.0"
-          )
+    assertThat(mavenClassRegistry.lookup.classNameMap)
+      .containsExactlyEntriesIn(
+        mapOf(
+          "ComponentActivity" to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.activity:activity",
+                importedItemFqName = "androidx.activity.ComponentActivity",
+                importedItemPackageName = "androidx.activity",
+                version = "1.1.0",
+              )
+            ),
+          "Fake" to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.activity:activity",
+                importedItemFqName = "androidx.activity.Fake",
+                importedItemPackageName = "androidx.activity",
+                version = "1.1.0",
+              ),
+              LibraryImportData(
+                artifact = "androidx.annotation:annotation",
+                importedItemFqName = "androidx.annotation.Fake",
+                importedItemPackageName = "androidx.annotation",
+                version = "1.1.0",
+              ),
+            ),
+          "AnimRes" to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.annotation:annotation",
+                importedItemFqName = "androidx.annotation.AnimRes",
+                importedItemPackageName = "androidx.annotation",
+                version = "1.1.0",
+              )
+            ),
         )
       )
-    )
 
-    assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap).containsExactlyEntriesIn(
-      mapOf(
-        FunctionSpecifier("PickVisualMediaRequest", null) to listOf(
-          LibraryImportData(
-            artifact = "androidx.activity:activity",
-            importedItemFqName = "androidx.activity.result.PickVisualMediaRequest",
-            importedItemPackageName = "androidx.activity.result",
-            version = "1.1.0"
-          )
-        ),
-        FunctionSpecifier("FakeFunction", null) to listOf(
-          LibraryImportData(
-            artifact = "androidx.activity:activity",
-            importedItemFqName = "androidx.activity.FakeFunction",
-            importedItemPackageName = "androidx.activity",
-            version = "1.1.0"
-          ),
-          LibraryImportData(
-            artifact = "androidx.annotation:annotation",
-            importedItemFqName = "androidx.annotation.FakeFunction",
-            importedItemPackageName = "androidx.annotation",
-            version = "1.1.0"
-          )
-        ),
-        FunctionSpecifier("FakeFunction", FqName("with.a.Receiver")) to listOf(
-          LibraryImportData(
-            artifact = "androidx.activity:activity",
-            importedItemFqName = "androidx.activity.FakeFunction",
-            importedItemPackageName = "androidx.activity",
-            version = "1.1.0"
-          ),
-        ),
-        FunctionSpecifier("AnnotationFunction", null) to listOf(
-          LibraryImportData(
-            artifact = "androidx.annotation:annotation",
-            importedItemFqName = "androidx.annotation.AnnotationFunction",
-            importedItemPackageName = "androidx.annotation",
-            version = "1.1.0"
-          )
-        ),
+    assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap)
+      .containsExactlyEntriesIn(
+        mapOf(
+          FunctionSpecifier("PickVisualMediaRequest", null) to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.activity:activity",
+                importedItemFqName = "androidx.activity.result.PickVisualMediaRequest",
+                importedItemPackageName = "androidx.activity.result",
+                version = "1.1.0",
+              )
+            ),
+          FunctionSpecifier("FakeFunction", null) to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.activity:activity",
+                importedItemFqName = "androidx.activity.FakeFunction",
+                importedItemPackageName = "androidx.activity",
+                version = "1.1.0",
+              ),
+              LibraryImportData(
+                artifact = "androidx.annotation:annotation",
+                importedItemFqName = "androidx.annotation.FakeFunction",
+                importedItemPackageName = "androidx.annotation",
+                version = "1.1.0",
+              ),
+            ),
+          FunctionSpecifier("FakeFunction", FqName("with.a.Receiver")) to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.activity:activity",
+                importedItemFqName = "androidx.activity.FakeFunction",
+                importedItemPackageName = "androidx.activity",
+                version = "1.1.0",
+              )
+            ),
+          FunctionSpecifier("AnnotationFunction", null) to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.annotation:annotation",
+                importedItemFqName = "androidx.annotation.AnnotationFunction",
+                importedItemPackageName = "androidx.annotation",
+                version = "1.1.0",
+              )
+            ),
+        )
       )
-    )
 
-    assertThat(mavenClassRegistry.lookup.ktxMap).containsExactlyEntriesIn(
-      mapOf(
-        "androidx.activity:activity" to "androidx.activity:activity-ktx"
+    assertThat(mavenClassRegistry.lookup.ktxMap)
+      .containsExactlyEntriesIn(
+        mapOf("androidx.activity:activity" to "androidx.activity:activity-ktx")
       )
-    )
   }
 
   @Test
   fun parseMalformedJsonFile_noIndexKeyDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Indices": [
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -200,8 +212,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noGroupIdDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -216,10 +227,10 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -227,8 +238,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noArtifactIdDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -243,10 +253,10 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -254,8 +264,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noVersionDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -272,10 +281,10 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -283,8 +292,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noFqcnsDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -298,10 +306,10 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -309,8 +317,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseMalformedJsonFile_noKtxTargetsDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -325,10 +332,10 @@ class MavenClassRegistryTest {
             },
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
@@ -336,8 +343,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseJsonFile_topLevelFunctionsPropertyIsOptional() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "Index": [
@@ -384,33 +390,39 @@ class MavenClassRegistryTest {
             }
           ]
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
-    assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap).containsExactlyEntriesIn(
-      mapOf(
-        FunctionSpecifier("someFqn", null) to listOf(LibraryImportData(
-          artifact = "group3:artifact3",
-          importedItemFqName = "someFqn",
-          importedItemPackageName = "",
-          version = "1"
-        )),
-        FunctionSpecifier("someExtensionFunction", FqName("amazingReceiver")) to listOf(LibraryImportData(
-        artifact = "group3:artifact3",
-        importedItemFqName = "foo.bar.baz.someExtensionFunction",
-        importedItemPackageName = "foo.bar.baz",
-        version = "1"
-      ))
+    assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap)
+      .containsExactlyEntriesIn(
+        mapOf(
+          FunctionSpecifier("someFqn", null) to
+            listOf(
+              LibraryImportData(
+                artifact = "group3:artifact3",
+                importedItemFqName = "someFqn",
+                importedItemPackageName = "",
+                version = "1",
+              )
+            ),
+          FunctionSpecifier("someExtensionFunction", FqName("amazingReceiver")) to
+            listOf(
+              LibraryImportData(
+                artifact = "group3:artifact3",
+                importedItemFqName = "foo.bar.baz.someExtensionFunction",
+                importedItemPackageName = "foo.bar.baz",
+                version = "1",
+              )
+            ),
+        )
       )
-    )
   }
 
   @Test
   fun parseJsonFile_skipUnknownKey() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+    repositoryIndexContents =
       """
         {
           "UnKnown1": [],
@@ -459,107 +471,115 @@ class MavenClassRegistryTest {
           ],
           "UnKnown6": "unknown content"
         }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
+      """
+        .trimIndent()
 
-    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
-    assertThat(mavenClassRegistry.lookup.classNameMap).containsExactlyEntriesIn(
-      mapOf(
-        "ComponentActivity" to listOf(
-          LibraryImportData(
-            artifact = "androidx.activity:activity",
-            importedItemFqName = "androidx.activity.ComponentActivity",
-            importedItemPackageName = "androidx.activity",
-            version = "1.1.0"
-          )
-        ),
-        "Fake" to listOf(
-          LibraryImportData(
-            artifact = "androidx.activity:activity",
-            importedItemFqName = "androidx.activity.Fake",
-            importedItemPackageName = "androidx.activity",
-            version = "1.1.0"
-          ),
-          LibraryImportData(
-            artifact = "androidx.annotation:annotation",
-            importedItemFqName = "androidx.annotation.Fake",
-            importedItemPackageName = "androidx.annotation",
-            version = "1.1.0"
-          )
-        ),
-        "AnimRes" to listOf(
-          LibraryImportData(
-            artifact = "androidx.annotation:annotation",
-            importedItemFqName = "androidx.annotation.AnimRes",
-            importedItemPackageName = "androidx.annotation",
-            version = "1.1.0"
-          )
+    assertThat(mavenClassRegistry.lookup.classNameMap)
+      .containsExactlyEntriesIn(
+        mapOf(
+          "ComponentActivity" to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.activity:activity",
+                importedItemFqName = "androidx.activity.ComponentActivity",
+                importedItemPackageName = "androidx.activity",
+                version = "1.1.0",
+              )
+            ),
+          "Fake" to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.activity:activity",
+                importedItemFqName = "androidx.activity.Fake",
+                importedItemPackageName = "androidx.activity",
+                version = "1.1.0",
+              ),
+              LibraryImportData(
+                artifact = "androidx.annotation:annotation",
+                importedItemFqName = "androidx.annotation.Fake",
+                importedItemPackageName = "androidx.annotation",
+                version = "1.1.0",
+              ),
+            ),
+          "AnimRes" to
+            listOf(
+              LibraryImportData(
+                artifact = "androidx.annotation:annotation",
+                importedItemFqName = "androidx.annotation.AnimRes",
+                importedItemPackageName = "androidx.annotation",
+                version = "1.1.0",
+              )
+            ),
         )
       )
-    )
-    assertThat(mavenClassRegistry.lookup.ktxMap).containsExactlyEntriesIn(
-      mapOf(
-        "androidx.activity:activity" to "androidx.activity:activity-ktx"
+    assertThat(mavenClassRegistry.lookup.ktxMap)
+      .containsExactlyEntriesIn(
+        mapOf("androidx.activity:activity" to "androidx.activity:activity-ktx")
       )
-    )
   }
 
   @Test
   fun readOfflineIndexFile() {
     val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
-    val repository = GMavenIndexRepository("https://example.com", tempDir, Duration.ofDays(1))
+    val repository =
+      GMavenIndexRepository("https://example.com", tempDir, testScope, testDispatcher)
 
-    try {
-      val mavenClassRegistry = MavenClassRegistry(repository)
-      val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use {
-        it.readText()
-      }
+    val mavenClassRegistry = MavenClassRegistry.createFrom(repository::loadIndexFromDisk)
+    val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use { it.readText() }
 
-      // Check if we have a valid built-in index file.
-      Json.parseToJsonElement(data)
+    // Check if we have a valid built-in index file.
+    Json.parseToJsonElement(data)
 
-      // Check if this offline index file has some of the expected data.
-      mavenClassRegistry.lookup.classNameMap.let {
-        assertThat(it.size).isAtLeast(6000)
-        assertThat(it).containsEntry(
-          "ComponentActivity",
+    // Check if this offline index file has some of the expected data.
+    mavenClassRegistry.lookup.classNameMap.let {
+      assertThat(it.size).isAtLeast(6000)
+      assertThat(it)
+        .containsEntry(
+          "HintConstants",
           listOf(
             LibraryImportData(
-              artifact = "androidx.activity:activity",
-              importedItemFqName = "androidx.activity.ComponentActivity",
-              importedItemPackageName = "androidx.activity",
-              version = "1.9.0"
+              artifact = "androidx.autofill:autofill",
+              importedItemFqName = "androidx.autofill.HintConstants",
+              importedItemPackageName = "androidx.autofill",
+              version = "1.1.0",
             )
-          )
+          ),
         )
-        assertThat(it).containsEntry(
-          "OnBackPressedDispatcher",
+      assertThat(it)
+        .containsEntry(
+          "ImageViewStyle",
           listOf(
             LibraryImportData(
-              artifact = "androidx.activity:activity",
-              importedItemFqName = "androidx.activity.OnBackPressedDispatcher",
-              importedItemPackageName = "androidx.activity",
-              version = "1.9.0"
+              artifact = "androidx.autofill:autofill",
+              importedItemFqName = "androidx.autofill.inline.common.ImageViewStyle",
+              importedItemPackageName = "androidx.autofill.inline.common",
+              version = "1.1.0",
             )
-          )
+          ),
         )
-      }
-
-      mavenClassRegistry.lookup.ktxMap.let {
-        assertThat(it.size).isAtLeast(40)
-        assertThat(it).containsEntry("androidx.navigation:navigation-fragment", "androidx.navigation:navigation-fragment-ktx")
-        assertThat(it).containsEntry("androidx.activity:activity", "androidx.activity:activity-ktx")
-      }
     }
-    finally {
-      Disposer.dispose(repository)
+
+    mavenClassRegistry.lookup.ktxMap.let {
+      assertThat(it.size).isAtLeast(40)
+      assertThat(it)
+        .containsEntry(
+          "androidx.navigation:navigation-fragment",
+          "androidx.navigation:navigation-fragment-ktx",
+        )
+      assertThat(it).containsEntry("androidx.activity:activity", "androidx.activity:activity-ktx")
     }
   }
 
   @Test
   fun kotlinTopLevelFunction_fromJvmQualifiedName() {
-    with(KotlinTopLevelFunction.fromJvmQualifiedName("com.example.FileFacadeKt.foo", "com.example.Receiver")) {
+    with(
+      KotlinTopLevelFunction.fromJvmQualifiedName(
+        "com.example.FileFacadeKt.foo",
+        "com.example.Receiver",
+      )
+    ) {
       assertThat(simpleName).isEqualTo("foo")
       assertThat(packageName).isEqualTo("com.example")
       assertThat(kotlinFqName.asString()).isEqualTo("com.example.foo")

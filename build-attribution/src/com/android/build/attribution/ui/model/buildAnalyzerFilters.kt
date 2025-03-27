@@ -30,18 +30,16 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.AutoPopupSupportingListener
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.ui.ClickListener
-import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RoundedLineBorder
-import com.intellij.ui.popup.util.PopupState
-import com.intellij.util.ui.EmptyIcon
+import com.intellij.ui.popup.PopupState
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.LafIconLookup
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.event.FocusAdapter
@@ -104,42 +102,20 @@ abstract class WarningsFilterToggleAction(
   uiName: String,
   val warningsModel: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers
-) : AnAction(uiName), DumbAware {
-
-  private val toggleableIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getIcon("checkmark"))
-  private val toggleableSelectedIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getSelectedIcon("checkmark"))
+) : ToggleAction(uiName), DumbAware {
 
   init {
-    templatePresentation.icon = toggleableIcon
-    templatePresentation.selectedIcon = toggleableSelectedIcon
-    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.IfPreferred
+    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Always
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    // Popup list used in action menu does not refresh action presentation (e.g. icon) while popup stays open.
-    // Use LayeredIcon instead in order to show checked items, switch checkmark layer on and off
-    // depending on the actual action state.
-    // Note that setSelected()/isSelected() methods of this class and *Selected icon is an unfortunate name clashing,
-    // they correspond to different notions:
-    // - setSelected()/isSelected() correspond to the action state, if is should be marked as being 'on'.
-    // - 'selected' icon is used when list row is under selection and rendered in selection color (e.g. dark blue).
-    val selected = isSelected(warningsModel.filter)
-    toggleableIcon.setLayerEnabled(1, selected)
-    toggleableSelectedIcon.setLayerEnabled(1, selected)
-  }
-
-  private fun setSelected(state: Boolean) {
-    toggleableIcon.setLayerEnabled(1, state)
-    toggleableSelectedIcon.setLayerEnabled(1, state)
-    val updatedFilter = if (state) onAdd(warningsModel.filter)
-    else onRemove(warningsModel.filter)
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    val updatedFilter = if (state) onAdd(warningsModel.filter) else onRemove(warningsModel.filter)
     actionHandlers.applyWarningsFilter(updatedFilter)
   }
 
-  override fun actionPerformed(e: AnActionEvent) = setSelected(!isSelected(warningsModel.filter))
+  override fun isSelected(e: AnActionEvent): Boolean = isSelected(warningsModel.filter)
 
   abstract fun onAdd(filter: WarningsFilter): WarningsFilter
   abstract fun onRemove(filter: WarningsFilter): WarningsFilter
@@ -280,41 +256,20 @@ abstract class TasksFilterToggleAction(
   uiName: String,
   val tasksModel: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers
-) : AnAction(uiName), DumbAware {
-
-  private val toggleableIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getIcon("checkmark"))
-  private val toggleableSelectedIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getSelectedIcon("checkmark"))
+) : ToggleAction(uiName), DumbAware {
 
   init {
-    templatePresentation.icon = toggleableIcon
-    templatePresentation.selectedIcon = toggleableSelectedIcon
-    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.IfPreferred
+    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Always
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    // Popup list used in action menu does not refresh action presentation (e.g. icon) while popup stays open.
-    // Use LayeredIcon instead in order to show checked items, switch checkmark layer on and off
-    // depending on the actual action state.
-    // Note that setSelected()/isSelected() methods of this class and *Selected icon is an unfortunate name clashing,
-    // they correspond to different notions:
-    // - setSelected()/isSelected() correspond to the action state, if is should be marked as being 'on'.
-    // - 'selected' icon is used when list row is under selection and rendered in selection color (e.g. dark blue).
-    val selected = isSelected(tasksModel.filter)
-    toggleableIcon.setLayerEnabled(1, selected)
-    toggleableSelectedIcon.setLayerEnabled(1, selected)
-  }
-
-  private fun setSelected(state: Boolean) {
-    toggleableIcon.setLayerEnabled(1, state)
-    toggleableSelectedIcon.setLayerEnabled(1, state)
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
     val updatedFilter = if (state) onAdd(tasksModel.filter) else onRemove(tasksModel.filter)
     actionHandlers.applyTasksFilter(updatedFilter)
   }
 
-  override fun actionPerformed(e: AnActionEvent) = setSelected(!isSelected(tasksModel.filter))
+  override fun isSelected(e: AnActionEvent): Boolean = isSelected(tasksModel.filter)
 
   abstract fun onAdd(filter: TasksFilter): TasksFilter
   abstract fun onRemove(filter: TasksFilter): TasksFilter
@@ -366,14 +321,15 @@ fun tasksFilterActions(model: TasksDataPageModel, actionHandlers: ViewActionHand
     add(TasksWithoutWarningsFilterToggleAction("Show tasks without warnings", model, actionHandlers))
   }
 
-fun tasksFilterComponent(model: TasksDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): Component =
-  JPanel().apply {
+fun tasksFilterComponent(model: TasksDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): Component {
+  return JPanel().apply {
     add(FilterCustomComponent(
       tasksFilterActions(model, actionHandlers),
       subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
       getModelUIText = { model.filter.toUiText() }
     ))
   }
+}
 
 class FilterComponentAction(
   val subscribeToModelUpdates: (Runnable) -> Unit,
@@ -388,7 +344,7 @@ private class FilterCustomComponent(
   val subscribeToModelUpdates: (Runnable) -> Unit,
   val getModelUIText: () -> String
 ) : JPanel() {
-  private val popupState = PopupState()
+  private val popupState = PopupState.forPopup()
   private val nameLabel = JLabel("Filters: ")
   private val valueLabel = JLabel(getModelUIText())
 
@@ -454,7 +410,7 @@ private class FilterCustomComponent(
       JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
       true
     )
-    popup.addListener(popupState)
+    popupState.prepareToShow(popup)
 
     AutoPopupSupportingListener.installOn(popup)
     popup.showUnderneathOf(this)

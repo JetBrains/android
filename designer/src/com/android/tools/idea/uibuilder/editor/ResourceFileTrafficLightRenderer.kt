@@ -20,10 +20,10 @@ import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.res.isInResourceSubdirectory
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.codeInsight.daemon.impl.ErrorStripeUpdateManager
-import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer
 import com.intellij.codeInsight.daemon.impl.TrafficLightRendererContributor
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorMarkupModel
@@ -46,18 +46,20 @@ private val SEVERITY_TO_ICON =
  * Custom [TrafficLightRenderer] to be used by resource files. It shows the number of errors,
  * warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
  */
-internal class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
-  TrafficLightRenderer(file.project, editor) {
-  private val severities = SeverityRegistrar.getSeverityRegistrar(project).allSeverities
-  private val errorCountArray = IntArray(severities.size)
+class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
+  TrafficLightRenderer(file.project, editor.document) {
+  private val severities = severityRegistrar.allSeverities
+  override val errorCounts = IntArray(severities.size)
 
   init {
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(
       IssueProviderListener.TOPIC,
       IssueProviderListener { _, _ ->
-        if (!project.isDisposed) {
-          ErrorStripeUpdateManager.getInstance(project).launchRepaintErrorStripePanel(editor, file)
+        ApplicationManager.getApplication().invokeLater {
+          if (!project.isDisposed) {
+            ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor, file)
+          }
         }
       },
     )
@@ -65,26 +67,24 @@ internal class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
 
   override fun refresh(editorMarkupModel: EditorMarkupModel) {
     super.refresh(editorMarkupModel)
-    errorCountArray.fill(0)
+    errorCounts.fill(0)
     val issues = IssuePanelService.getInstance(project).getSharedPanelIssues()
     issues.forEach {
       val index = severities.indexOf(it.severity)
       if (index > -1) {
-        errorCountArray[index]++
+        errorCounts[index]++
       }
     }
   }
 
-  override val errorCounts: IntArray
-    get() = errorCountArray
 
   override fun getStatus(): AnalyzerStatus {
     val status = super.getStatus()
     val nonZeroSeverities =
-      errorCountArray.indices
+      errorCounts.indices
         .reversed()
-        .filterNot { errorCountArray[it] == 0 }
-        .map { SeverityRegistrar.getSeverityRegistrar(project).getSeverityByIndex(it) }
+        .filterNot { errorCounts[it] == 0 }
+        .map { severityRegistrar.getSeverityByIndex(it) }
     val items = mutableListOf<StatusItem>()
     val currentItems = status.expandedStatus
     if (currentItems.size != nonZeroSeverities.size) {

@@ -19,6 +19,5 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 /** Interface to be used by components that can switch [SurfaceLayoutOption]s. */
 interface LayoutManagerSwitcher {
-
-  val currentLayout: MutableStateFlow<SurfaceLayoutOption>
+  val currentLayoutOption: MutableStateFlow<SurfaceLayoutOption>
 }

@@ -707,7 +707,7 @@ public class  TestUtils {
         return jdkPath;
       }
       else {
-        Logger.getInstance(com.android.testutils.TestUtils.class).warn("Ignore env.JDK_11_0 because it is not a directory: " + jdkPath);
+        Logger.getInstance(com.android.test.testutils.TestUtils.class).warn("Ignore env.JDK_11_0 because it is not a directory: " + jdkPath);
       }
     }
 

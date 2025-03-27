@@ -19,7 +19,7 @@ import com.intellij.psi.PsiTypes
 class ResourceRepositoryInnerRClass(
   resourceType: ResourceType,
   private val resourcesSource: ResourcesSource,
-  parentClass: PsiClass,
+  parentClass: AndroidLightClassBase,
 ) : InnerRClassBase(parentClass, resourceType) {
   override fun doGetFields(): Array<PsiField> {
     val fields = buildLocalResourceFields(resourceType, resourcesSource, this)

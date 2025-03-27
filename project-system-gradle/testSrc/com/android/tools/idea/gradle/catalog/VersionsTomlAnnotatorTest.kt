@@ -642,6 +642,19 @@ class VersionsTomlAnnotatorTest {
     fixture.checkHighlighting()
   }
 
+  // Regression test for b/391902703
+  @Test
+  fun checkNonVersionsToml() {
+    // it's toml - not the .versions.toml
+    val file = fixture.addFileToProject("gradle/nonversions.toml","""
+      [libraries]
+      RANDOM_ALIAS = "some_alias"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
   @Test
   fun checkBundleRefDuplication() {
     // for some reason checkHighlighting interpret warning as error so need to use another verification approach

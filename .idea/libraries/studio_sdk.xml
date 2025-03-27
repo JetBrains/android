@@ -11,7 +11,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/idea_rt.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/intellij-test-discovery.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/jps-model.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/junit4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/kotlinx-coroutines-slf4j-1.8.0-intellij.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/lib.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/nio-fs.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/opentelemetry.jar!/" />

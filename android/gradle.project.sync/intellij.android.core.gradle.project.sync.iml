@@ -12,6 +12,7 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="inheritedJdk" />
@@ -32,6 +33,7 @@
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />

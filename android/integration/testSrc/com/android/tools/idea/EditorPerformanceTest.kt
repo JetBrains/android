@@ -83,7 +83,7 @@ class EditorPerformanceTest {
           checkCompletionTestCase(studio, completionPosition, false)
         }
       }
-      val metricCollector = MetricCollector(watcher.dashboardName!!, system.installation.telemetryJsonFile)
+      val metricCollector = MetricCollector(watcher.dashboardName!!, system.installation.telemetryJsonFile, system.installation.studioEventsDir)
       metricCollector.collect("completion", "firstCodeAnalysis", "semanticHighlighting")
       metricCollector.collectChildMetrics("findUsagesParent", "findUsages")
       metricCollector.collectChildMetrics("findUsagesParent", "findUsages_firstUsage")

@@ -22,7 +22,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.preview.gallery.GalleryModeProperty
+import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -49,7 +49,7 @@ class CommonNlDesignSurfacePreviewView(
 
   private val actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
 
-  private val galleryModeProperty: GalleryModeProperty
+  private val focusModeProperty: FocusModeProperty
 
   private val editorPanel =
     JPanel(BorderLayout()).apply {
@@ -70,7 +70,7 @@ class CommonNlDesignSurfacePreviewView(
 
       add(overlayPanel, BorderLayout.CENTER)
 
-      galleryModeProperty = GalleryModeProperty(overlayPanel, mainSurface)
+      focusModeProperty = FocusModeProperty(overlayPanel, mainSurface)
     }
 
   /**
@@ -84,7 +84,9 @@ class CommonNlDesignSurfacePreviewView(
       .apply { firstComponent = editorPanel }
 
   private val workbench: WorkBench<DesignSurface<*>> =
-    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), UiDataProvider {
+    object :
+      WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable),
+      UiDataProvider {
       override fun uiDataSnapshot(sink: DataSink) {
         sink[DESIGN_SURFACE] = mainSurface
       }
@@ -120,7 +122,7 @@ class CommonNlDesignSurfacePreviewView(
   override val component: JComponent
     get() = workbench
 
-  override var galleryMode by galleryModeProperty
+  override var focusMode by focusModeProperty
 
   override var bottomPanel: JComponent?
     set(value) {

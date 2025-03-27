@@ -27,9 +27,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiType;
@@ -56,7 +54,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class LightModelGroupClass extends AndroidLightClassBase {
   @NotNull
-  private final PsiClass containingClass;
+  private final LightModelClass containingClass;
   @NotNull
   private final String qualifiedName;
   @NotNull
@@ -67,13 +65,11 @@ public class LightModelGroupClass extends AndroidLightClassBase {
   public LightModelGroupClass(@NotNull Module module,
                               @NotNull List<TensorInfo> tensorInfos,
                               @NotNull TensorGroupInfo tensorGroupInfo,
-                              @NotNull PsiClass containingClass) {
-    super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
+                              @NotNull LightModelClass containingClass) {
+    super(containingClass, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.myClassName = StringHelper.usLocaleCapitalize(tensorGroupInfo.getIdentifierName());
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), myClassName);
     this.containingClass = containingClass;
-
-    setModuleInfo(module, false);
 
     // Caches getter methods for output class.
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
@@ -119,12 +115,6 @@ public class LightModelGroupClass extends AndroidLightClassBase {
       .setContainingClass(this)
       .setNavigationElement(this);
     return method;
-  }
-
-  @NotNull
-  @Override
-  public PsiClass getContainingClass() {
-    return containingClass;
   }
 
   @NotNull

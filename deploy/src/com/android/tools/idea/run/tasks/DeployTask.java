@@ -56,8 +56,8 @@ public class DeployTask extends AbstractDeployTask {
                     boolean installOnAllUsers,
                     boolean alwaysInstallWithPm,
                     boolean allowAssumeVerified,
-                    Computable<String> installPathProvider) {
-    super(project, packages, false, alwaysInstallWithPm, allowAssumeVerified, installPathProvider);
+                    boolean hasMakeBeforeRun) {
+    super(project, packages, false, alwaysInstallWithPm, allowAssumeVerified, hasMakeBeforeRun);
     if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
       userInstallOptions = userInstallOptions.trim();
       this.userInstallOptions = userInstallOptions.split("\\s");
@@ -85,7 +85,7 @@ public class DeployTask extends AbstractDeployTask {
     // We default to install only on the current user because we run only apps installed on the
     // current user. Installing on "all" users causes the device to only update on users that the app
     // is already installed, failing to run if it's not installed on the current user.
-    if (!installOnAllUsers && device.getVersion().isGreaterOrEqualThan(24)) {
+    if (!installOnAllUsers && device.getVersion().isAtLeast(24)) {
       options.setInstallOnUser(InstallOptions.CURRENT_USER);
     }
 
@@ -99,13 +99,13 @@ public class DeployTask extends AbstractDeployTask {
     // To avoid permission pop-up during instrumented test, an app can request to have all permisssion granted by default.
     Set<ApkInfo.AppInstallOption> requiredInstallOptions = apkInfo.getRequiredInstallOptions();
     if (requiredInstallOptions.contains(GRANT_ALL_PERMISSIONS)
-        && device.getVersion().isGreaterOrEqualThan(GRANT_ALL_PERMISSIONS.minSupportedApiLevel)) {
+        && device.getVersion().isAtLeast(GRANT_ALL_PERMISSIONS.minSupportedApiLevel)) {
       options.setGrantAllPermissions();
     }
 
     // Some test services APKs running during intrumented tests require to be visible to allow Binder communication.
     if (requiredInstallOptions.contains(FORCE_QUERYABLE)
-        && device.getVersion().isGreaterOrEqualThan(FORCE_QUERYABLE.minSupportedApiLevel)) {
+        && device.getVersion().isAtLeast(FORCE_QUERYABLE.minSupportedApiLevel)) {
       options.setForceQueryable();
     }
 
@@ -114,7 +114,7 @@ public class DeployTask extends AbstractDeployTask {
     // where an app's instant flag is reset on install, and avoid errors installing
     // a non-instant app over its instant version with the device still treating
     // the app as instant.
-    if (device.getVersion().isGreaterOrEqualThan(28)) {
+    if (device.getVersion().isAtLeast(28)) {
       options.setInstallFullApk();
     }
 
@@ -125,18 +125,18 @@ public class DeployTask extends AbstractDeployTask {
     // Since the app has already been stopped from Studio, requesting "--dont-kill" prevent the package manager from
     // issuing a "force-stop", but still yield the expecting behavior that app is restarted after install. Note that
     // this functionality is only valid for Android Nougat or above.
-    boolean isDontKillSupported = device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N);
+    boolean isDontKillSupported = device.getVersion().isAtLeast(AndroidVersion.VersionCodes.N);
 
     // The above statement is no longer true for API33. That is to say, we no longer need to perform our own
     // process termination in Studio and will rely solely on the Package Manager to perform process termination.
     boolean isDontKillNeed = !StudioFlags.INSTALL_USE_PM_TERMINATE.get() ||
-                             !device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU);
+                             !device.getVersion().isAtLeast(AndroidVersion.VersionCodes.TIRAMISU);
     if (isDontKillSupported && isDontKillNeed) {
       options.setDontKill();
     }
 
-    boolean useAssumeVerified = myAllowAssumeVerified && device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM);
-    options.setAssumeVerified(useAssumeVerified);
+    boolean useAssumeVerified = myAllowAssumeVerified && device.getVersion().isAtLeast(AndroidVersion.VersionCodes.VANILLA_ICE_CREAM);
+    options.setShouldUseAssumeVerified(useAssumeVerified);
 
     // We can just append this, since all these options get string-joined in the end anyways.
     if (userInstallOptions != null) {
@@ -169,7 +169,6 @@ public class DeployTask extends AbstractDeployTask {
   public String getDescription() {
     return "Install";
   }
-
 
   @NotNull
   @Override

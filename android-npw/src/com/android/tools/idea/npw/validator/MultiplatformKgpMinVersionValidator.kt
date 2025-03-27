@@ -15,24 +15,40 @@
  */
 package com.android.tools.idea.npw.validator
 
-import com.android.ide.common.gradle.Version
 import com.android.tools.adtui.validation.Validator
+import java.util.Optional
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradlePluginVersion
+import org.jetbrains.kotlin.idea.gradleTooling.compareTo
 
-/**
- * Validates that kgp version is high enough for kotlin multiplatform module creation
- */
-class MultiplatformKgpMinVersionValidator: Validator<String> {
-  override fun validate(value: String): Validator.Result {
-    val currentKgpVersion = Version.parse(value)
+/** Validates that kgp version is high enough for kotlin multiplatform module creation */
+class MultiplatformKgpMinVersionValidator : Validator<Optional<KotlinGradlePluginVersion>> {
+  override fun validate(value: Optional<KotlinGradlePluginVersion>): Validator.Result {
+    if (value.isEmpty)
+      return Validator.Result(
+        Validator.Severity.ERROR,
+        message(
+          "android.wizard.validate.kgp.version.for.kmp.module",
+          MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION,
+        ),
+      )
+
+    val currentKgpVersion = value.get()
     if (currentKgpVersion < MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION) {
-      return Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.kgp.version.for.kmp.module"))
+      return Validator.Result(
+        Validator.Severity.ERROR,
+        message(
+          "android.wizard.validate.kgp.version.for.kmp.module",
+          MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION,
+        ),
+      )
     }
 
     return Validator.Result.OK
   }
 
   companion object {
-    private val MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION = Version.parse("1.9.20-Beta")
+    private val MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION =
+      KotlinGradlePluginVersion.parse("1.9.20")!!
   }
 }

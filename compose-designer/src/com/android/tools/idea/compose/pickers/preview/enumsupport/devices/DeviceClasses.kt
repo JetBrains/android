@@ -44,13 +44,11 @@ internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
   ReferenceDevice("Reference Devices", StudioIcons.Wizards.Modules.PHONE_TABLET),
   Phone("Phone", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
   Tablet("Tablet", StudioIcons.LayoutEditor.Toolbar.DEVICE_TABLET),
-  Desktop(
-    "Desktop",
-    StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN,
-  ), // TODO(b/237375632): Update once there's a proper icon for desktop
+  Desktop("Desktop", StudioIcons.LayoutEditor.Toolbar.DEVICE_DESKTOP),
   Wear("Wear", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR),
   Tv("Tv", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV),
   Auto("Auto", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE),
+  Xr("XR", StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_HEADSET),
   Generic("Generic Devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
 }
 
@@ -73,6 +71,7 @@ internal class DeviceEnumValueBuilder {
       Pair(DeviceClass.Wear, mutableListOf()),
       Pair(DeviceClass.Tv, mutableListOf()),
       Pair(DeviceClass.Auto, mutableListOf()),
+      Pair(DeviceClass.Xr, mutableListOf()),
       Pair(DeviceClass.Generic, mutableListOf()),
     )
 
@@ -177,6 +176,9 @@ internal class DeviceEnumValueBuilder {
 
   fun addGeneric(device: Device): DeviceEnumValueBuilder =
     addGenericById(displayName = device.displayName, id = device.id)
+
+  fun addXr(device: Device): DeviceEnumValueBuilder =
+    addById(displayName = device.displayName, id = device.id, DeviceClass.Xr)
 
   fun addDesktop(device: Device): DeviceEnumValueBuilder =
     addById(displayName = device.displayName, id = device.id, type = DeviceClass.Desktop)

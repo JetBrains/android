@@ -21,6 +21,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorNoCompilerOutput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedMethod
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationRemovedMethod
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -97,6 +98,34 @@ class ErrorReporterTest {
                                                                    "Unexpected error during compilation command.\n" +
                                                                    "${fakeException.stackTraceToString()}")
 
+  }
+
+  @Test
+  fun `super long lines`() {
+    // Limit to 20 lines only.
+    val detail = buildString { for (i in 1..400) {appendLine("$i")} }
+    eq(unsupportedBuildSrcChange(detail), "buildSrc/ sources not supported.\n" +
+                                          "1\n" +
+                                          "2\n" +
+                                          "3\n" +
+                                          "4\n" +
+                                          "5\n" +
+                                          "6\n" +
+                                          "7\n" +
+                                          "8\n" +
+                                          "9\n" +
+                                          "10\n" +
+                                          "11\n" +
+                                          "12\n" +
+                                          "13\n" +
+                                          "14\n" +
+                                          "15\n" +
+                                          "16\n" +
+                                          "17\n" +
+                                          "18\n" +
+                                          "19\n" +
+                                          "20\n" +
+                                          "....")
   }
 
   private fun eq(exception: LiveEditUpdateException, expected: String) {

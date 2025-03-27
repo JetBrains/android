@@ -35,7 +35,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 @Throws(ExecutionException::class)
 fun shouldDebugSandboxSdk(apkProvider: ApkProvider, device: IDevice, state: AndroidDebuggerState): Boolean {
   return hasDebugSandboxSdkEnabled(state) &&
-    device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU) &&
+    device.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU) &&
     hasPrivacySandboxSdk(apkProvider, device)
 }
 

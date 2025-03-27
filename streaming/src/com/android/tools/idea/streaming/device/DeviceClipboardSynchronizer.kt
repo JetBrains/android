@@ -34,7 +34,7 @@ internal class DeviceClipboardSynchronizer(
   init {
     deviceController?.addDeviceClipboardListener(this)
     // Pass the new value of maxSyncedClipboardLength to the device.
-    setDeviceClipboard(forceSend = true)
+    synchronizeDeviceClipboard(forceSend = true)
   }
 
   override fun dispose() {

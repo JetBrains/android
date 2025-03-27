@@ -53,7 +53,7 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.aspects.BlazeIdeInterface;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
@@ -327,7 +327,7 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
     }
 
     @Override
-    public BlazeBuildOutputs build(
+    public BlazeBuildOutputs.Legacy build(
         Project project,
         BlazeContext context,
         WorkspaceRoot workspaceRoot,
@@ -339,7 +339,7 @@ public abstract class BlazeSyncIntegrationTestCase extends BlazeIntegrationTestC
         ImmutableSet<OutputGroup> outputGroups,
         BlazeInvocationContext blazeInvocationContext,
         boolean invokeParallel) {
-      return BlazeBuildOutputs.noOutputs(BuildResult.SUCCESS);
+      return BlazeBuildOutputs.noOutputsForLegacy(BuildResult.SUCCESS);
     }
   }
 }

@@ -21,8 +21,8 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -122,8 +122,9 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
     projectBuildModel.applyChanges();
 
     if (myRequestSync) {
-      GradleSyncStats.Trigger trigger = myRemoveBuildTools ? TRIGGER_QF_BUILD_TOOLS_VERISON_REMOVED : TRIGGER_QF_BUILD_TOOLS_VERSION_CHANGED;
-      GradleSyncInvoker.getInstance().requestProjectSync(myProject, new GradleSyncInvoker.Request(trigger), null);
+      ProjectSystemService.getInstance(myProject).getProjectSystem().getSyncManager()
+        .requestSyncProject(new ProjectSystemSyncManager.SyncReason(
+          myRemoveBuildTools ? TRIGGER_QF_BUILD_TOOLS_VERISON_REMOVED : TRIGGER_QF_BUILD_TOOLS_VERSION_CHANGED));
     }
   }
 

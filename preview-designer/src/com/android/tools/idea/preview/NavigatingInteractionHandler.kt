@@ -18,70 +18,114 @@ package com.android.tools.idea.preview
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.editor.showPopup
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionInformation
 import com.android.tools.idea.common.surface.InteractionNonInputEvent
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.SceneViewPanel
+import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
-import kotlinx.coroutines.launch
-import org.intellij.lang.annotations.JdkConstants
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.pom.Navigatable
 import java.awt.MouseInfo
 import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.SwingUtilities
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.intellij.lang.annotations.JdkConstants
 
 /**
  * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation
- * capabilities. When [isSelectionEnabled] returns true, Preview selection capabilities are also
- * added, affecting the navigation logic.
+ * capabilities. When [isSelectionEnabled] is true, Preview selection capabilities are also added,
+ * affecting the navigation logic. When [isPopUpEnabled] returns true, option clicking will open a
+ * pop up with all componenets under click.
  */
 class NavigatingInteractionHandler(
   private val surface: DesignSurface<*>,
   private val navigationHandler: NavigationHandler,
-  private val isSelectionEnabled: () -> Boolean = { false },
+  private val isSelectionEnabled: Boolean = false,
+  private val isPopUpEnabled: () -> Boolean = { false },
 ) : NlInteractionHandler(surface) {
 
   private val scope = AndroidCoroutineScope(surface)
 
-  override fun singleClick(x: Int, y: Int, modifiersEx: Int) {
+  override fun singleClick(mouseEvent: MouseEvent, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
-    // then
-    // no navigation will happen. Only selection may be affected (see mouseReleaseWhenNoInteraction)
-    val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
+    // then no navigation will happen. Only selection may be affected (see
+    // mouseReleaseWhenNoInteraction)
+    val isToggle = isSelectionEnabled && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Highlight the clicked widget but keep focus in DesignSurface.
-      clickPreview(x, y, false)
+      clickPreview(mouseEvent, false, modifiersEx)
     }
   }
 
-  override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
+    val componentToSceneView: MutableMap<NlComponent, SceneView> = mutableMapOf()
+    for (sceneView in surface.sceneViews) {
+      sceneView.firstComponent?.let { componentToSceneView[it] = sceneView }
+    }
+    val selectedComponent =
+      componentToSceneView.keys.firstOrNull {
+        componentToSceneView[it]!!.selectionModel.isSelected(it)
+      } ?: return super.keyPressedWithoutInteraction(keyEvent)
+
+    val otherComponentsInView =
+      componentToSceneView.entries
+        .filter { it.key != selectedComponent }
+        // Filter components that are in closed sections of the grid view
+        .filter { it.value.x >= 0 && it.value.y >= 0 }
+        .map { it.key }
+
+    when (keyEvent.keyCode) {
+      KeyEvent.VK_LEFT ->
+        selectComponentToTheLeft(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_UP ->
+        selectComponentToTheTop(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_RIGHT ->
+        selectComponentToTheRight(selectedComponent, otherComponentsInView, componentToSceneView)
+      KeyEvent.VK_DOWN ->
+        selectComponentToTheBottom(selectedComponent, otherComponentsInView, componentToSceneView)
+    }
+    surface.repaint()
+    return super.keyPressedWithoutInteraction(keyEvent)
+  }
+
+  override fun doubleClick(mouseEvent: MouseEvent, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
-    // then
-    // no navigation will happen. Only selection may be affected (see mouseReleaseWhenNoInteraction)
-    val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
+    // then no navigation will happen. Only selection may be affected (see
+    // mouseReleaseWhenNoInteraction)
+    val isToggle = isSelectionEnabled && isShiftDown(modifiersEx)
     if (!isToggle) {
       // Navigate the caret to the clicked widget and focus on text editor.
-      clickPreview(x, y, true)
+      clickPreview(mouseEvent, true, modifiersEx)
     }
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {
     // The logic here is very similar to the one in InteractionHandlerBase, but some small
-    // adjustments are
-    // needed for the Preview selection logic to work properly.
+    // adjustments are needed for the Preview selection logic to work properly.
     val x = mouseEvent.x
     val y = mouseEvent.y
     val sceneView = surface.getSceneViewAt(x, y)
     if (sceneView != null) {
       val component = sceneView.sceneManager.model.treeReader.components.firstOrNull()
-      if (isSelectionEnabled() && component != null) {
+      if (isSelectionEnabled && component != null) {
         val wasSelected = sceneView.selectionModel.isSelected(component)
         sceneView.selectComponent(component, allowToggle = false, ignoreIfAlreadySelected = true)
         // If the selection state changed, then force a hover state update
@@ -89,8 +133,16 @@ class NavigatingInteractionHandler(
           forceHoverUpdate(sceneView, x, y)
         }
       }
+      var targetComponent: JComponent? = null
+      // Set the SceneViewPeerPanel as targetComponent, so the DataContext is specific to
+      // a sceneView, not generic as the DesignSurface.
+      (surface.interactionPane as? SceneViewPanel)
+        ?.components
+        ?.filterIsInstance<SceneViewPeerPanel>()
+        ?.firstOrNull { it.sceneView == sceneView }
+        ?.let { targetComponent = it }
       val actions = surface.actionManager.getPopupMenuActions(component)
-      surface.showPopup(mouseEvent, actions, "Preview")
+      surface.showPopup(mouseEvent, actions, "Preview", targetComponent)
     } else {
       surface.selectionModel.clear()
     }
@@ -101,7 +153,7 @@ class NavigatingInteractionHandler(
     @SwingCoordinate y: Int,
     @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
-    if (isSelectionEnabled()) {
+    if (isSelectionEnabled) {
       val sceneView = surface.getSceneViewAt(x, y)
       if (sceneView != null) {
         val component = sceneView.sceneManager.model.treeReader.components.firstOrNull()
@@ -130,7 +182,7 @@ class NavigatingInteractionHandler(
     val interaction = super.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
     // SceneInteractions must be ignored as they impact the selection model following
     // a different logic that the one used by this interaction handler.
-    if (isSelectionEnabled() && interaction is SceneInteraction) {
+    if (isSelectionEnabled && interaction is SceneInteraction) {
       interaction.cancel(
         InteractionNonInputEvent(InteractionInformation(mouseX, mouseY, modifiersEx))
       )
@@ -150,6 +202,104 @@ class NavigatingInteractionHandler(
     }
   }
 
+  private fun selectComponentToTheLeft(
+    selectedComponent: NlComponent,
+    otherComponents: List<NlComponent>,
+    componentToSceneView: MutableMap<NlComponent, SceneView>,
+  ) {
+    otherComponents
+      // First, try to select the right-most component located on the left of the selected
+      // component, in the same row.
+      .filter { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
+      .lastOrNull { componentToSceneView[it]!!.x < componentToSceneView[selectedComponent]!!.x }
+      ?.let {
+        return@selectComponentToTheLeft componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
+
+    // Then, try to select the last component of the previous row.
+    otherComponents
+      .lastOrNull { componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y }
+      ?.let {
+        componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
+  }
+
+  private fun selectComponentToTheRight(
+    selectedComponent: NlComponent,
+    otherComponents: List<NlComponent>,
+    componentToSceneView: MutableMap<NlComponent, SceneView>,
+  ) {
+    // First, try to select the left-most component located on the right of the selected
+    // component, in the same row.
+    otherComponents
+      .filter { componentToSceneView[it]!!.x > componentToSceneView[selectedComponent]!!.x }
+      .firstOrNull { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
+      ?.let {
+        return@selectComponentToTheRight componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
+
+    // Then, try to select the first component of the next row.
+    otherComponents
+      .firstOrNull { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
+      .let {
+        componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
+  }
+
+  private fun selectComponentToTheBottom(
+    selectedComponent: NlComponent,
+    otherComponents: List<NlComponent>,
+    componentToSceneView: MutableMap<NlComponent, SceneView>,
+  ) {
+    // Select the component located immediately on the bottom of the selected component, if there
+    // is one.
+    otherComponents
+      .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
+      .firstOrNull { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
+      ?.let {
+        componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
+  }
+
+  private fun selectComponentToTheTop(
+    selectedComponent: NlComponent,
+    otherComponents: List<NlComponent>,
+    componentToSceneView: MutableMap<NlComponent, SceneView>,
+  ) {
+    // Select the component located immediately on the bottom of the selected component, if there
+    // is one.
+    otherComponents
+      .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
+      .lastOrNull { componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y }
+      ?.let {
+        componentToSceneView[it]!!.selectComponent(
+          component = it,
+          allowToggle = false,
+          ignoreIfAlreadySelected = true,
+        )
+      }
+  }
+
   /**
    * Force a hover state update by performing the following steps:
    * 1. Update the sceneManager to make sure that the scene's root and structure is up-to-date.
@@ -166,23 +316,80 @@ class NavigatingInteractionHandler(
    * Handles a click in a preview. The click is handled asynchronously since finding the component
    * to navigate might be a slow operation.
    */
-  private fun clickPreview(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    needsFocusEditor: Boolean,
-  ) {
+  private fun clickPreview(mouseEvent: MouseEvent, needsFocusEditor: Boolean, modifiersEx: Int) {
+    val x = mouseEvent.x
+    val y = mouseEvent.y
     val sceneView = surface.getSceneViewAt(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
+    val isOptionDown = isOptionDown(modifiersEx)
     val scene = sceneView.scene
     scope.launch(AndroidDispatchers.workerThread) {
-      if (!navigationHandler.handleNavigateWithCoordinates(sceneView, x, y, needsFocusEditor)) {
+      val navigatables =
+        navigationHandler.findNavigatablesWithCoordinates(
+          sceneView,
+          x,
+          y,
+          needsFocusEditor,
+          isOptionDown,
+        )
+      if (isOptionDown && isPopUpEnabled()) {
+        // Open a pop up menu with all componenets under coordinates
+        var actions = createActionGroup(sceneView, navigatables)
+        withContext(uiThread) { surface.showPopup(mouseEvent, actions, "Navigatables") }
+        return@launch
+      }
+
+      val navigated =
+        navigatables.firstOrNull()?.let {
+          navigationHandler.navigateTo(sceneView, it!!, needsFocusEditor)
+        }
+        ?: run {
+          if (needsFocusEditor) {
+            // Only allow default navigation when double clicking since it might take us to a
+            // different file
+            navigationHandler.handleNavigate(sceneView, true)
+          }
+          return@run false
+        }
+      if (!navigated) {
         val sceneComponent =
           scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
-        navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
+        withContext(uiThread) { navigateToComponent(sceneComponent.nlComponent, needsFocusEditor) }
+
       }
     }
   }
+
+  // Create an action group with actions to navigate to componenets. This will be called when Option
+  // + clicking on component.
+  private fun createActionGroup(
+    sceneView: SceneView,
+    navigatables: List<Navigatable?>,
+  ): DefaultActionGroup {
+    val defaultGroup = DefaultActionGroup()
+    navigatables.forEach {
+      it?.let {
+        defaultGroup.addAction(
+          object : AnAction(it.toString()) {
+            override fun actionPerformed(e: AnActionEvent) {
+              scope.launch(AndroidDispatchers.workerThread) {
+                navigationHandler.navigateTo(sceneView, it, false)
+              }
+            }
+
+            override fun getActionUpdateThread(): ActionUpdateThread {
+              return ActionUpdateThread.BGT
+            }
+          }
+        )
+      }
+    }
+    return defaultGroup
+  }
+
+  // TODO(b/257534922): Make sure that this modifier works for linux as well.
+  private fun isOptionDown(modifiersEx: Int) = (modifiersEx and (InputEvent.ALT_DOWN_MASK)) != 0
 
   private fun isShiftDown(modifiersEx: Int) = (modifiersEx and (InputEvent.SHIFT_DOWN_MASK)) != 0
 }

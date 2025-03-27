@@ -7,12 +7,8 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
@@ -29,22 +25,16 @@
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.psi.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.properties.psi.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.regexp" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.vcs.impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

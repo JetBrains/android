@@ -17,11 +17,15 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.util.containingFile
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.preview.ParametrizedComposePreviewElementTemplate
 import com.android.tools.preview.PreviewParameter
+import com.android.tools.rendering.api.RenderModelModule
+import com.android.tools.rendering.classloading.ClassTransform
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 
 /**
  * [ParametrizedComposePreviewElementTemplate] based on studio-specific [ModuleRenderContext] from
@@ -35,5 +39,21 @@ class StudioParametrizedComposePreviewElementTemplate(
     basePreviewElement,
     parameterProviders,
     StudioParametrizedComposePreviewElementTemplate::class.java.classLoader,
-    { element -> element.containingFile?.let { StudioModuleRenderContext.forFile(it) } },
+    factory@{ element ->
+      val psiFile = element.containingFile ?: return@factory null
+      var buildTargetRefence = BuildTargetReference.from(psiFile) ?: return@factory null
+      StudioModuleRenderContext.forBuildTargetReference(buildTargetRefence).let {
+        RenderModelModule.ClassLoaderProvider {
+          parent: ClassLoader?,
+          additionalProjectTransform: ClassTransform,
+          additionalNonProjectTransform: ClassTransform,
+          onNewModuleClassLoader: Runnable ->
+          StudioModuleClassLoaderManager.get()
+            .getPrivate(parent, it, additionalProjectTransform, additionalNonProjectTransform)
+            .also {
+              onNewModuleClassLoader.run()
+            } // TEMP: Adding this for consistency even though we pass `Runnable {}`.
+        }
+      }
+    },
   )

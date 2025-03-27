@@ -25,64 +25,70 @@ import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.generateMultiplatformModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.project.determineKotlinVersion
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.projectsystem.KotlinMultiplatformModulePathsImpl
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.project.Project
-import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.npw.project.determineKotlinVersion
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradlePluginVersion
 
 class NewKotlinMultiplatformLibraryModuleModel(
   project: Project,
   moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker,
   name: String = "shared",
-) : ModuleModel(
-  name = name,
-  commandName = "New Kotlin Multiplatform Library Module",
-  isLibrary = true,
-  _template = GradleAndroidModuleTemplate.createMultiplatformModuleTemplate(project, name),
-  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-  moduleParent = moduleParent,
-  wizardContext = NEW_MODULE,
-) {
+) :
+  ModuleModel(
+    name = name,
+    commandName = "New Kotlin Multiplatform Library Module",
+    isLibrary = true,
+    _template = GradleAndroidModuleTemplate.createMultiplatformModuleTemplate(project, name),
+    projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+    moduleParent = moduleParent,
+    wizardContext = NEW_MODULE,
+  ) {
 
-  val kgpVersion = StringValueProperty(determineKotlinVersion(project, isNewProject))
+  val kgpVersion: OptionalValueProperty<KotlinGradlePluginVersion> =
+    OptionalValueProperty.fromNullable(determineKotlinVersion(project))
 
-  override val androidSdkInfo = OptionalValueProperty(
-    AndroidVersionsInfo().apply { loadLocalVersions() }
-      .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
-      .first()
-  )
+  override val androidSdkInfo =
+    OptionalValueProperty(
+      AndroidVersionsInfo()
+        .apply { loadLocalVersions() }
+        .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
+        .first()
+    )
 
-  override val renderer: MultiTemplateRenderer.TemplateRenderer = object : ModuleTemplateRenderer() {
+  override val renderer: MultiTemplateRenderer.TemplateRenderer =
+    object : ModuleTemplateRenderer() {
 
-    @WorkerThread
-    override fun init() {
-      super.init()
+      @WorkerThread
+      override fun init() {
+        super.init()
 
-      moduleTemplateDataBuilder.apply {
-        commonSrcDir = (template.get().paths as KotlinMultiplatformModulePathsImpl)
-          .getCommonSrcDirectory(this@NewKotlinMultiplatformLibraryModuleModel.packageName.get())
-        iosSrcDir = (template.get().paths as KotlinMultiplatformModulePathsImpl)
-          .getIosSrcDirectory(this@NewKotlinMultiplatformLibraryModuleModel.packageName.get())
+        moduleTemplateDataBuilder.apply {
+          commonSrcDir =
+            (template.get().paths as KotlinMultiplatformModulePathsImpl).getCommonSrcDirectory(
+              this@NewKotlinMultiplatformLibraryModuleModel.packageName.get()
+            )
+          iosSrcDir =
+            (template.get().paths as KotlinMultiplatformModulePathsImpl).getIosSrcDirectory(
+              this@NewKotlinMultiplatformLibraryModuleModel.packageName.get()
+            )
+        }
       }
+
+      override val recipe: Recipe
+        get() = { td: TemplateData ->
+          generateMultiplatformModule(data = td as ModuleTemplateData, useKts = true)
+        }
     }
-    override val recipe: Recipe
-      get() = { td: TemplateData ->
-        generateMultiplatformModule(
-          data = td as ModuleTemplateData,
-          useKts = true
-        )
-      }
-  }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = RenderLoggingEvent.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE
-
 }

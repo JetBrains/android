@@ -22,14 +22,6 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
 
-// Kotlin compiler diagnostics to suppress
-// When testing Compose compiler plugin checkers, let's test diagnostics from plugin checkers,
-// not those from built-in compiler checkers.
-private val SUPPRESSION = listOf("UNUSED_PARAMETER", "UNUSED_VARIABLE")
-
-internal val suppressAnnotation: String
-  get() = SUPPRESSION.joinToString(prefix = "@file:Suppress(", postfix = ")") { "\"$it\"" }
-
 private val composeCompilerPluginPath by lazy {
   PathManager.getJarForClass(ComposePluginRegistrar::class.java)
 }
@@ -49,13 +41,3 @@ internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
     }
   }
 }
-
-internal fun wrongAnnotationTargetError(target: String) =
-  "[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target '$target'${
-  if (KotlinPluginModeProvider.isK2Mode()) "." else ""
-}"
-
-internal val nothingToInline =
-  "[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of ${
-    if (!KotlinPluginModeProvider.isK2Mode()) "functional types" else "function types."
-  }"

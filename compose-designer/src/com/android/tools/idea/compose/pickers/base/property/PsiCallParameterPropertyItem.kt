@@ -25,7 +25,6 @@ import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
@@ -84,17 +83,15 @@ internal open class PsiCallParameterPropertyItem(
   @OptIn(KaAllowAnalysisOnEdt::class)
   override var value: String?
     get() =
-      SlowOperations.allowSlowOperations(
-        ThrowableComputable {
-          if (KotlinPluginModeProvider.isK2Mode()) {
-            allowAnalysisOnEdt {
-              argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
-            }
-          } else {
-            argumentExpression?.tryEvaluateConstantAsText()
+      SlowOperations.knownIssue("b/382724628").use {
+        if (KotlinPluginModeProvider.isK2Mode()) {
+          allowAnalysisOnEdt {
+            argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
           }
+        } else {
+          argumentExpression?.tryEvaluateConstantAsText()
         }
-      )
+      }
     set(value) {
       val newValue = value?.trim()?.nullize()
       val trackable =

@@ -23,9 +23,6 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.buildanalyzer.common.CheckJetifierResult
 import com.android.buildanalyzer.common.DependencyPath
 import com.android.buildanalyzer.common.FullDependencyPath
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth
@@ -40,6 +37,9 @@ import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import javax.swing.JButton
 import javax.swing.JEditorPane

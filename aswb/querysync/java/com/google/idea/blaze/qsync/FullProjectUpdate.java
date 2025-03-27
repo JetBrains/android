@@ -38,33 +38,39 @@ public class FullProjectUpdate implements RefreshOperation {
   private final ProjectDefinition projectDefinition;
   private final Optional<VcsState> vcsState;
   private final Optional<String> bazelVersion;
+  private final QuerySpec.QueryStrategy queryStrategy;
 
   public FullProjectUpdate(
-      Context<?> context,
-      Path effectiveWorkspaceRoot,
-      ProjectDefinition definition,
-      Optional<VcsState> vcsState,
-      Optional<String> bazelVersion) {
+    Context<?> context,
+    Path effectiveWorkspaceRoot,
+    ProjectDefinition definition,
+    Optional<VcsState> vcsState,
+    Optional<String> bazelVersion,
+    QuerySpec.QueryStrategy queryStrategy) {
     this.context = context;
     this.effectiveWorkspaceRoot = effectiveWorkspaceRoot;
     this.projectDefinition = definition;
     this.vcsState = vcsState;
     this.bazelVersion = bazelVersion;
+    this.queryStrategy = queryStrategy;
   }
 
   @Override
   public Optional<QuerySpec> getQuerySpec() throws IOException {
-    QuerySpec querySpec = projectDefinition.deriveQuerySpec(context, effectiveWorkspaceRoot);
-    return Optional.of(querySpec);
+    return Optional.of(
+      projectDefinition
+        .deriveQuerySpec(context, queryStrategy, effectiveWorkspaceRoot)
+        .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
+        .build());
   }
 
   @Override
   public PostQuerySyncData createPostQuerySyncData(QuerySummary output) {
     return PostQuerySyncData.builder()
-        .setProjectDefinition(projectDefinition)
-        .setVcsState(vcsState)
-        .setBazelVersion(bazelVersion)
-        .setQuerySummary(output)
-        .build();
+      .setProjectDefinition(projectDefinition)
+      .setVcsState(vcsState)
+      .setBazelVersion(bazelVersion)
+      .setQuerySummary(output)
+      .build();
   }
 }

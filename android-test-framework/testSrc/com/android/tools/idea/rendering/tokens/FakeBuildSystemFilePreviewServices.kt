@@ -16,12 +16,17 @@
 package com.android.tools.idea.rendering.tokens
 
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ClassContent
+import com.android.tools.idea.projectsystem.ClassContentForTests
+import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.ApplicationLiveEditServicesForTests
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
@@ -32,6 +37,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.EverythingGlobalScope
+import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.testFramework.ExtensionTestUtil
 import org.jetbrains.annotations.TestOnly
 
@@ -42,12 +48,27 @@ import org.jetbrains.annotations.TestOnly
 class FakeBuildSystemFilePreviewServices(
   buildTargets: FakeBuildSystemFilePreviewServices.() -> BuildTargets = { FakeBuildTargets() },
   buildServices: FakeBuildSystemFilePreviewServices.() -> BuildServices<BuildTargetReference> = { FakeBuildServices() },
+  private val classFiles: Map<String, ByteArray> = mapOf(),
 ) : BuildSystemFilePreviewServices<AndroidProjectSystem, BuildTargetReference> {
   private val listeners: MutableList<BuildListener> = mutableListOf()
   private var lastStatus: BuildStatus = BuildStatus.UNKNOWN
 
   override val buildTargets: BuildTargets = buildTargets()
   override val buildServices: BuildServices<BuildTargetReference> = buildServices()
+
+  override fun getRenderingServices(buildTargetReference: BuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {
+    return object: BuildSystemFilePreviewServices.RenderingServices {
+      override val classFileFinder: ClassFileFinder? = object : ClassFileFinder {
+        override fun findClassFile(fqcn: String): ClassContent? {
+          return classFiles[fqcn]?.let { ClassContentForTests(it)}
+        }
+      }
+    }
+  }
+
+  override fun getApplicationLiveEditServices(buildTargetReference: BuildTargetReference): ApplicationLiveEditServices {
+    return ApplicationLiveEditServicesForTests(classFiles)
+  }
 
   override fun subscribeBuildListener(project: Project, parentDisposable: Disposable, listener: BuildListener) {
     listeners.add(listener)
@@ -102,4 +123,9 @@ class FakeBuildSystemFilePreviewServices(
   }
 }
 
-private data class FakeBuildTargetReference(override val module: Module) : BuildTargetReference
+private data class FakeBuildTargetReference(private val moduleRef: Module) : BuildTargetReference {
+  override val moduleIfNotDisposed: Module?
+    get() = moduleRef.takeUnless { it.isDisposed }
+  override val module: Module
+    get() = moduleIfNotDisposed ?: throw AlreadyDisposedException("Already disposed: $moduleRef")
+}

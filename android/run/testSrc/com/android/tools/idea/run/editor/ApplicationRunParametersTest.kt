@@ -15,29 +15,38 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.backup.BackupManager
+import com.android.tools.idea.backup.testing.FakeBackupManager
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.execution.ui.ConfigurationModuleSelector
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.ui.components.JBCheckBox
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.event.ActionEvent
 
 class ApplicationRunParametersTest {
   private lateinit var myApplicationRunParameters: ApplicationRunParameters<AndroidRunConfiguration>
   private lateinit var myModuleSelector: ConfigurationModuleSelector
 
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.BASIC)
+  private val disposableRule = DisposableRule()
+
   @get:Rule
-  val projectRule: AndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.BASIC)
+  val rule = RuleChain(projectRule, disposableRule)
 
   @Before
   fun setUp() {
-    myModuleSelector = mock(ConfigurationModuleSelector::class.java)
+    projectRule.project.registerOrReplaceServiceInstance(BackupManager::class.java, FakeBackupManager(), disposableRule.disposable)
+    myModuleSelector = mock<ConfigurationModuleSelector>()
     myApplicationRunParameters = ApplicationRunParameters(projectRule.project, myModuleSelector)
   }
 
@@ -46,7 +55,7 @@ class ApplicationRunParametersTest {
     whenever(myModuleSelector.module).thenReturn(null)
     val myInstantAppDeployCheckbox = ApplicationRunParameters::class.java.getDeclaredField("myInstantAppDeployCheckBox")
     myInstantAppDeployCheckbox.isAccessible = true
-    val event = mock(ActionEvent::class.java)
+    val event = mock<ActionEvent>()
     whenever(event.source).thenReturn(myInstantAppDeployCheckbox.get(myApplicationRunParameters))
     myApplicationRunParameters.actionPerformed(event)
   }

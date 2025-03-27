@@ -110,7 +110,7 @@ public class UnusedResourceEvaluationTest2 {
     removeUnusedRes.waitForDialogToDisappear();
 
     RefactorToolWindowFixture refactoringWindow = new RefactorToolWindowFixture(ideFrame);
-    refactoringWindow.clickDoRefactorButton();
+    refactoringWindow.clickRefactorButton();
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }

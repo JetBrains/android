@@ -82,7 +82,7 @@ public final class ArtifactLocation
         .build();
   }
 
-  private String getRootExecutionPathFragment() {
+  public String getRootExecutionPathFragment() {
     return rootExecutionPathFragment;
   }
 

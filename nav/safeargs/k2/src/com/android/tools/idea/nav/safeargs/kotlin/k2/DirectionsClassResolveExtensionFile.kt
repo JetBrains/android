@@ -72,10 +72,10 @@ internal class DirectionsClassResolveExtensionFile(
       for (argument in action.arguments) {
         appendLine(
           "        " +
-            "// argument ${argument.name}: " +
-            "${argument.type ?: "<undefined type>"} " +
-            "(nullable: ${argument.nullable ?: "<null>"})" +
-            " = ${argument.defaultValue ?: "<no default>"}"
+          "// argument ${argument.name}: " +
+          "${argument.type ?: "<undefined type>"} " +
+          "(nullable: ${argument.nullable ?: "<null>"})" +
+          " = ${argument.defaultValue ?: "<no default>"}"
         )
         val argumentType = argument.resolveKotlinType(navInfo.packageName)
         append("        ${argument.name.toCamelCase()}: ${argumentType}")
@@ -108,9 +108,7 @@ internal class DirectionsClassResolveExtensionFile(
       else -> null
     }
 
-  private fun KaSession.getTagForValueParameterSymbol(
-    symbol: KaValueParameterSymbol
-  ): XmlTag? {
+  private fun KaSession.getTagForValueParameterSymbol(symbol: KaValueParameterSymbol): XmlTag? {
     val declaringFunctionSymbol = symbol.containingDeclaration as? KaNamedFunctionSymbol ?: return null
     val matchingAction = findMatchingAction(declaringFunctionSymbol) ?: return null
     val actionTag = matchingAction.actionTag

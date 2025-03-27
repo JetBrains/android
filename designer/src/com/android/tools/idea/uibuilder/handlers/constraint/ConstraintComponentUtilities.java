@@ -126,6 +126,7 @@ import com.android.tools.idea.uibuilder.scout.Direction;
 import com.android.tools.module.AndroidModuleInfo;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.util.SlowOperations;
 import java.util.ArrayList;
@@ -634,11 +635,8 @@ public final class ConstraintComponentUtilities {
   public static int getDpValue(@NotNull NlComponent component, String value) {
     if (value != null) {
       Configuration configuration = component.getModel().getConfiguration();
-      ResourceResolver resourceResolver = configuration.getResourceResolver();
-      if (resourceResolver != null) {
-        Integer px = ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration);
-        return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
-      }
+      Integer px = ViewEditor.resolveDimensionPixelSize(value, configuration);
+      return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
     }
     return 0;
   }
@@ -1026,7 +1024,7 @@ public final class ConstraintComponentUtilities {
     // cleanup needs to be sdk range specific
     //
     AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(component.getModel().getFacet());
-    boolean remove_left_right = moduleInfo.getMinSdkVersion().isGreaterOrEqualThan(17);
+    boolean remove_left_right = moduleInfo.getMinSdkVersion().isAtLeast(17);
 
     margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
     if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
@@ -1219,15 +1217,15 @@ public final class ConstraintComponentUtilities {
   }
 
   public static NlComponent getComponent(List<NlComponent> list, String id) {
-    return SlowOperations.allowSlowOperations(
-      () -> {
+    NlComponent component = null;
+    try (AccessToken ignore = SlowOperations.knownIssue("b/365923673")) {
         for (NlComponent nlComponent : list) {
           if (id.equals(nlComponent.getId())) {
-            return nlComponent;
+            component = nlComponent;
           }
         }
-        return null;
-    });
+    };
+    return component;
   }
 
   /**

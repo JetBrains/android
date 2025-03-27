@@ -35,4 +35,6 @@ struct ShellCommand : public std::string {
   ShellCommand& operator+=(const ShellCommand& other);
 };
 
+ShellCommand operator+(std::string&& lhs, const ShellCommand& rhs);
+
 }  // namespace screensharing

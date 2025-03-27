@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.plugin.AgpVersions
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
-import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_BUILD_TOOLS
 import com.intellij.build.FilePosition
@@ -53,22 +49,14 @@ class MissingBuildToolsIssueChecker: GradleIssueChecker {
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, MISSING_BUILD_TOOLS)
     val version = matcher.group(3)
-    val buildIssueComposer = getBuildIssueDescription(message, issueData.projectPath, version)
+    val buildIssueComposer = getBuildIssueDescription(message, version)
     return buildIssueComposer.composeBuildIssue()
   }
 
-  private fun getBuildIssueDescription(message: String, projectPath: String, version: String): BuildIssueComposer {
+  private fun getBuildIssueDescription(message: String, version: String): BuildIssueComposer {
     val buildIssueComposer = BuildIssueComposer(message)
-    val ideaProject = fetchIdeaProjectForGradleProject(projectPath) ?: return buildIssueComposer
-    val currentAGPVersion = findFromBuildFiles(ideaProject)?.pluginVersion
-    val recommendedAGPVersion = AgpVersions.latestKnown
     buildIssueComposer.addQuickFix("Install Build Tools $version and sync project",
-                            InstallBuildToolsQuickFix(version, emptyList(), false))
-    if (currentAGPVersion == null || currentAGPVersion < recommendedAGPVersion) {
-      buildIssueComposer.addQuickFix(
-        "Upgrade plugin to version $recommendedAGPVersion and sync project",
-        FixAndroidGradlePluginVersionQuickFix(null, null))
-    }
+                                   InstallBuildToolsQuickFix(version, emptyList(), false))
     return buildIssueComposer
   }
 

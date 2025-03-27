@@ -59,7 +59,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     resourceFixture.setUp();
-    idManager = new ResourceIdManagerBase(ResourceIdManagerModelModule.NO_NAMESPACING_APP, false);
+    idManager = new ResourceIdManagerBase(ResourceIdManagerModelModule.noNamespacingApp(), false);
   }
 
   @Override

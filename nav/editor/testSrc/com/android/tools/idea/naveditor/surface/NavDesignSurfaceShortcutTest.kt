@@ -18,7 +18,8 @@ package com.android.tools.idea.naveditor.surface
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.ide.DataManager
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 
@@ -28,9 +29,14 @@ class NavDesignSurfaceShortcutTest : NavTestCase() {
     // Simply test NavDesignSurface provide data for ZOOMABLE_KEY
     val surface =
       NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
-    val dataContext =
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
-    val event = AnActionEvent.createFromDataContext("", null, dataContext)
+    val event =
+      createEvent(
+        DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface),
+        null,
+        "",
+        ActionUiKind.NONE,
+        null,
+      )
     assertNotNull(event.getData(ZOOMABLE_KEY))
   }
 }

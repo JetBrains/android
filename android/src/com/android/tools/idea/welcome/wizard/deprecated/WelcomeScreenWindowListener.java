@@ -29,17 +29,16 @@ import java.lang.ref.WeakReference;
 
 /**
  * Substitutes Idea listener that terminates the app when window closes.
- * @deprecated See {@link com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen.DelegatingListener}
  */
 @Deprecated
 public final class WelcomeScreenWindowListener {
-  public static WindowListener install(@NotNull JFrame frame, @NotNull FirstRunWizardHost host) {
+  public static WindowListener install(@NotNull JFrame frame, @NotNull CancelableWelcomeWizard cancelableWelcomeWizard) {
     WindowListener ideaListener = removeCloseListener(frame);
     // This code is a hack to replace IntelliJ window listener with ours.
     // That listener is an instance of anonymous class and our hack will stop working if
     // that class is removed or renamed. "DirectListener" is a fallback in case we don't
     // find an original listener.
-    WindowListener ourListener = ideaListener != null ? new DelegatingListener(host, ideaListener) : new DirectListener(host);
+    WindowListener ourListener = ideaListener != null ? new DelegatingListener(cancelableWelcomeWizard, ideaListener) : new DirectListener(cancelableWelcomeWizard);
     frame.addWindowListener(ourListener);
     return ourListener;
   }
@@ -63,9 +62,9 @@ public final class WelcomeScreenWindowListener {
   }
 
   @Contract("null->false")
-  private static boolean handleClose(@Nullable FirstRunWizardHost host) {
-    if (host != null && host.isActive()) {
-      host.cancel();
+  private static boolean handleClose(@Nullable CancelableWelcomeWizard cancelableWelcomeWizard) {
+    if (cancelableWelcomeWizard != null && cancelableWelcomeWizard.isActive()) {
+      cancelableWelcomeWizard.cancel();
       return true;
     } else {
       return false;
@@ -78,8 +77,8 @@ public final class WelcomeScreenWindowListener {
   private static class DelegatingListener extends DirectListener {
     @NotNull private final WindowListener myIdeaListener;
 
-    public DelegatingListener(@NotNull FirstRunWizardHost host, @NotNull WindowListener ideaListener) {
-      super(host);
+    public DelegatingListener(@NotNull CancelableWelcomeWizard cancelableWelcomeWizard, @NotNull WindowListener ideaListener) {
+      super(cancelableWelcomeWizard);
       myIdeaListener = ideaListener;
     }
 
@@ -100,7 +99,7 @@ public final class WelcomeScreenWindowListener {
 
     @Override
     public void windowClosing(WindowEvent e) {
-      if (!handleClose(getHost())) {
+      if (!handleClose(getCancelableWelcomeWizard())) {
         Window window = e.getWindow();
         window.removeWindowListener(this);
         window.addWindowListener(myIdeaListener);
@@ -125,21 +124,21 @@ public final class WelcomeScreenWindowListener {
   }
 
   private static class DirectListener extends WindowAdapter {
-    private final WeakReference<FirstRunWizardHost> myHostReference;
+    private final WeakReference<CancelableWelcomeWizard> myCancelableWelcomeWizardReference;
 
-    public DirectListener(@NotNull FirstRunWizardHost host) {
+    public DirectListener(@NotNull CancelableWelcomeWizard wizard) {
       // Let the instance leave
-      myHostReference = new WeakReference<FirstRunWizardHost>(host);
+      myCancelableWelcomeWizardReference = new WeakReference<>(wizard);
     }
 
     @Nullable
-    protected final FirstRunWizardHost getHost() {
-      return myHostReference.get();
+    protected final CancelableWelcomeWizard getCancelableWelcomeWizard() {
+      return myCancelableWelcomeWizardReference.get();
     }
 
     @Override
     public void windowClosing(WindowEvent e) {
-      if (!handleClose(getHost())) {
+      if (!handleClose(getCancelableWelcomeWizard())) {
         e.getWindow().removeWindowListener(this);
       }
     }

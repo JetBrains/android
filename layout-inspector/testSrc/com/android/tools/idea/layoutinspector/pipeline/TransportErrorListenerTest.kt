@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -24,6 +26,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -58,9 +61,11 @@ class TransportErrorListenerTest {
         notificationModel,
         mockMetrics,
         disposableRule.disposable,
+        projectRule.project.coroutineScope,
       )
 
     transportErrorListener.onStartTransportDaemonServerFail(device1, mock())
+    waitForCondition(10.seconds) { notificationModel.notifications.isNotEmpty() }
 
     val notification1 = notificationModel.notifications.single()
     assertThat(notification1.message)
@@ -73,6 +78,7 @@ class TransportErrorListenerTest {
       )
 
     transportErrorListener.onPreTransportDaemonStart(mock())
+    waitForCondition(10.seconds) { notificationModel.notifications.isEmpty() }
 
     assertThat(notificationModel.notifications).isEmpty()
   }

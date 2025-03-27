@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.openPreparedProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 
@@ -52,9 +53,8 @@ class ProjectIsolationTest {
       )
     ) {
       stdout.toString().let {
-        Truth.assertThat(it).contains("""
-          problems were found storing the configuration cache, 2 of which seem unique.
-          """.trimIndent())
+        assertThat(it).contains("""1 problem was found storing the configuration cache""")
+        assertThat(it).contains("""Project ':' cannot access 'Project.repositories' functionality on subprojects via 'allprojects'""")
         Truth.assertThat(it).doesNotContain("""
           Project ':' cannot access 'Project.apply' functionality on subprojects via 'allprojects'
           """.trimIndent())

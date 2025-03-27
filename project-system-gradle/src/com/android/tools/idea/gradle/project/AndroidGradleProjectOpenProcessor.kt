@@ -19,12 +19,14 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
+import com.android.tools.idea.projectsystem.ProjectSystemService.Companion.projectSystemOpenProjectTask
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.featureStatistics.fusCollectors.LifecycleUsageTriggerCollector
 import com.intellij.ide.GeneralSettings
 import com.intellij.ide.IdeBundle
-import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectNewWindowDoNotAskOption
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -36,6 +38,7 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
 import com.intellij.ui.IdeUICustomization
+import org.jetbrains.android.util.AndroidBundle
 
 /**
  * A project open processor to open Gradle projects in Android Studio.
@@ -56,6 +59,12 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
         if (importTarget.isDirectory) importTarget
         else importTarget.parent
 
+    if (!adjustedOpenTarget.toIoFile().canWrite()) {
+      Messages.showErrorDialog(AndroidBundle.message("android.project.open.permission.readonly.message"),
+                               AndroidBundle.message("android.project.open.permission.readonly.title"))
+      return null
+    }
+
     val gradleImporter = GradleProjectImporter.getInstance()
     if (!canOpenAsExistingProject(adjustedOpenTarget)) {
       if (!forceOpenInNewFrame) {
@@ -67,10 +76,8 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, adjustedOpenTarget)
     }
     return ProjectManagerEx.getInstanceEx().openProject(
-      adjustedOpenTarget.toNioPath(), OpenProjectTask(
-        forceOpenInNewFrame = forceOpenInNewFrame,
-        projectToClose = projectToClose,
-      )
+      adjustedOpenTarget.toNioPath(),
+      projectSystemOpenProjectTask(GradleProjectSystemProvider.ID, forceOpenInNewFrame, projectToClose)
     )
   }
 

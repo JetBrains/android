@@ -333,9 +333,9 @@ public class AndroidValueResourcesTest {
       assertThat(target).isInstanceOf(XmlAttributeValue.class);
     }
     List<String> getTextList = ContainerUtil.map(targets, PsiElement::getText);
-    assertThat(getTextList).containsExactlyElementsIn(Array.of("\"LabelView\"", "\"LabelView\"", "\"LabelView\""));
+    assertThat(getTextList).containsExactlyElementsIn(Arrays.asList("\"LabelView\"", "\"LabelView\"", "\"LabelView\""));
     List<String> containingFileList = ContainerUtil.map(targets, it -> it.getContainingFile().getName());
-    assertThat(containingFileList).containsExactlyElementsIn(Array.of("attrs5.xml", "attrs.xml", "attrs.xml"));
+    assertThat(containingFileList).containsExactlyElementsIn(Arrays.asList("attrs5.xml", "attrs.xml", "attrs.xml"));
   }
 
   @Test
@@ -1010,7 +1010,7 @@ public class AndroidValueResourcesTest {
       assertThat(highlightInfos).hasSize(2);
       highlightInfos.forEach(it -> assertThat(it.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY));
       List<String> getTextList = ContainerUtil.map(highlightInfos, HighlightInfo::getText);
-      assertThat(getTextList).containsExactlyElementsIn(Array.of("foo", "@string/foo"));
+      assertThat(getTextList).containsExactlyElementsIn(Arrays.asList("foo", "@string/foo"));
 
       // b/139262116: manually commit the Document and clear some caches in an attempt to reduce flakiness of this test.
       myFixture.type('X');

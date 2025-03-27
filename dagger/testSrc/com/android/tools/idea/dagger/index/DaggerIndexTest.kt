@@ -42,7 +42,7 @@ class DaggerIndexTest {
 
   @Test
   fun emptyIndex() {
-    assertThat(DaggerIndex.getValues("", myProject.projectScope())).isEmpty()
+    assertThat(getValuesFromIndex("", myProject.projectScope())).isEmpty()
   }
 
   @Test
@@ -62,7 +62,7 @@ class DaggerIndexTest {
         .trimIndent(),
     )
 
-    assertThat(DaggerIndex.getValues("com.example.Foo", myProject.projectScope()))
+    assertThat(getValuesFromIndex("com.example.Foo", myProject.projectScope()))
       .containsExactly(InjectedConstructorIndexValue(ClassId.fromString("com/example/Foo")))
   }
 
@@ -80,7 +80,7 @@ class DaggerIndexTest {
         .trimIndent(),
     )
 
-    assertThat(DaggerIndex.getValues("com.example.Foo", myProject.projectScope()))
+    assertThat(getValuesFromIndex("com.example.Foo", myProject.projectScope()))
       .containsExactly(InjectedConstructorIndexValue(ClassId.fromString("com/example/Foo")))
   }
 
@@ -134,7 +134,7 @@ class DaggerIndexTest {
         .trimIndent(),
     )
 
-    assertThat(DaggerIndex.getValues("Bar", projectRule.project.projectScope()))
+    assertThat(getValuesFromIndex("Bar", projectRule.project.projectScope()))
       .containsExactly(
         ProvidesMethodIndexValue(ClassId.fromString("com/example/BarModule"), "provideBar"),
         InjectedConstructorParameterIndexValue(ClassId.fromString("com/example/Foo"), "bar"),

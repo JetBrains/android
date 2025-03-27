@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -54,7 +55,13 @@ class LayerSpacingSliderAction(private val renderModelProvider: () -> RenderMode
     slider.addChangeListener {
       val dataContext = DataManager.getInstance().getDataContext(slider)
       actionPerformed(
-        AnActionEvent.createFromDataContext(ActionPlaces.TOOLBAR, presentation, dataContext)
+        AnActionEvent.createEvent(
+          dataContext,
+          presentation,
+          ActionPlaces.TOOLBAR,
+          ActionUiKind.TOOLBAR,
+          null,
+        )
       )
     }
     panel.add(slider)

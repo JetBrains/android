@@ -28,6 +28,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",

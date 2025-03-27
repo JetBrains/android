@@ -20,10 +20,12 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.MAP_VIEW
 import com.android.SdkConstants.TOOLS_URI
-import com.android.flags.junit.FlagRule
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.ImageDiffUtil
 import com.android.test.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
@@ -52,7 +54,10 @@ import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentReference
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
@@ -64,7 +69,10 @@ import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
@@ -75,6 +83,15 @@ import com.intellij.ui.UiInterceptors.UiInterceptor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 import java.awt.Rectangle
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -85,21 +102,12 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.SwingUtilities
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.whenever
+import kotlin.time.Duration.Companion.seconds
 
 private const val TEST_DATA_PATH = "tools/adt/idea/designer/testData/componenttree"
 private const val DIFF_THRESHOLD = 0.01
 
 class NlComponentTreeDefinitionTest {
-  private val treeRule = FlagRule(StudioFlags.NELE_NEW_COMPONENT_TREE, true)
   private val projectRule = AndroidProjectRule.withSdk()
   private val popupRule = JBPopupRule()
   private val fileOpenRule = FileOpenCaptureRule(projectRule)
@@ -109,7 +117,6 @@ class NlComponentTreeDefinitionTest {
   val ruleChain =
     RuleChain.outerRule(IconLoaderRule()) // Must be before AndroidProjectRule
       .around(projectRule)
-      .around(treeRule)
       .around(popupRule)
       .around(fileOpenRule)
       .around(EdtRule())!!
@@ -510,6 +517,76 @@ class NlComponentTreeDefinitionTest {
 
   @RunsInEdt
   @Test
+  fun testMoveFromPaletteWithNewDependency() {
+    val content = createToolContent()
+    val model = createFlowModel()
+    val table = attach(content, model)
+    val tableModel = table.tableModel
+    val linear = model.treeReader.find("linear")!!
+    val mapViewXml =
+      """
+        <com.google.android.gms.maps.MapView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+      """
+        .trimIndent()
+    val data =
+      ItemTransferable(DnDTransferItem(DnDTransferComponent(MAP_VIEW, mapViewXml, 300, 300)))
+    assertThat(data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)).isTrue()
+    acceptAnyNewDependency()
+
+    // Check dialog appearances:
+    var dialogCount = 0
+    var dialogMessage = ""
+    TestDialogManager.setTestDialog {
+      if (dialogCount > 0) error("Multiple dialogs shown")
+      dialogCount++
+      dialogMessage = it
+      Messages.OK
+    }
+
+    // No dialog should appear here:
+    assertThat(tableModel.canInsert(linear, data)).isTrue()
+    assertThat(dialogCount).isEqualTo(0)
+
+    // A dialog should be shown on the actual insert:
+    tableModel.insert(linear, data, before = null, isMove = true, listOf())
+    waitForCondition(10.seconds) { linear.childCount == 2 }
+    assertThat(dialogCount).isEqualTo(1)
+    assertThat(dialogMessage)
+      .isEqualTo(
+        """
+        This operation requires the library com.google.android.gms:play-services-maps:+.
+
+        Would you like to add this now?"""
+          .trimIndent()
+      )
+
+    TreeUtil.expandAll(table.tree)
+    assertThat(dumpTree(table.tree))
+      .isEqualTo(
+        """
+        <android.support.constraint.ConstraintLayout>
+          <TextView>
+          <Button>
+          <Switch>
+          <android.support.constraint.helper.Flow>
+            @id/a
+            @id/b
+            @id/c
+            @id/include
+            @id/linear
+          <include>
+          <LinearLayout>
+            <CheckBox>
+            <com.google.android.gms.maps.MapView>
+      """
+          .trimIndent()
+      )
+  }
+
+  @RunsInEdt
+  @Test
   fun testIssueBadge() {
     val issueService = projectRule.mockProjectService(IssuePanelService::class.java)
     val content = createToolContent()
@@ -634,6 +711,27 @@ class NlComponentTreeDefinitionTest {
       }
     }
     return builder.toString().trim()
+  }
+
+  private fun acceptAnyNewDependency() {
+    val project = projectRule.project
+    val projectSystem = project.getProjectSystem()
+    val moduleSystem = projectSystem.getModuleSystem(projectRule.module)
+
+    ProjectSystemService.getInstance(project)
+      .replaceProjectSystemForTests(
+        object : AndroidProjectSystem by projectSystem {
+          override fun getModuleSystem(module: Module): AndroidModuleSystem {
+            return object : AndroidModuleSystem by moduleSystem {
+              override fun analyzeDependencyCompatibility(
+                dependenciesToAdd: List<GradleCoordinate>
+              ): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
+                return Triple(dependenciesToAdd, emptyList(), "")
+              }
+            }
+          }
+        }
+      )
   }
 
   private fun createFlowModel(): SyncNlModel {

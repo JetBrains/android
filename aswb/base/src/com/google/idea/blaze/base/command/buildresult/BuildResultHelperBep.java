@@ -15,16 +15,13 @@
  */
 package com.google.idea.blaze.base.command.buildresult;
 
-import com.google.idea.blaze.base.command.buildresult.BuildEventStreamProvider.BuildEventStreamException;
-import com.google.idea.blaze.base.io.InputStreamProvider;
-import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -55,24 +52,13 @@ public class BuildResultHelperBep implements BuildResultHelper {
   }
 
   @Override
-  public ParsedBepOutput getBuildOutput(Optional<String> completedBuildId)
-      throws GetArtifactsException {
-    try (InputStream inputStream = new BufferedInputStream(new FileInputStream(outputFile))) {
-      return ParsedBepOutput.parseBepArtifacts(inputStream);
-    } catch (IOException | BuildEventStreamException e) {
+  public BuildEventStreamProvider getBepStream(Optional<String> completionBuildId) throws GetArtifactsException {
+    try {
+      return BuildEventStreamProvider.fromInputStream(new BufferedInputStream(new FileInputStream(outputFile)));
+    }
+    catch (FileNotFoundException e) {
       logger.error(e);
       throw new GetArtifactsException(e.getMessage());
-    }
-  }
-
-  @Override
-  public BlazeTestResults getTestResults(Optional<String> completedBuildId) {
-    try (InputStream inputStream =
-        new BufferedInputStream(InputStreamProvider.getInstance().forFile(outputFile))) {
-      return BuildEventProtocolOutputReader.parseTestResults(inputStream);
-    } catch (IOException | BuildEventStreamException e) {
-      logger.warn(e);
-      return BlazeTestResults.NO_RESULTS;
     }
   }
 
@@ -80,15 +66,6 @@ public class BuildResultHelperBep implements BuildResultHelper {
   public void deleteTemporaryOutputFiles() {
     if (!outputFile.delete()) {
       logger.warn("Could not delete BEP output file: " + outputFile);
-    }
-  }
-
-  @Override
-  public BuildFlags getBlazeFlags(Optional<String> completedBuildId) throws GetFlagsException {
-    try (InputStream inputStream = new BufferedInputStream(new FileInputStream(outputFile))) {
-      return BuildFlags.parseBep(inputStream);
-    } catch (IOException | BuildEventStreamException e) {
-      throw new GetFlagsException(e);
     }
   }
 

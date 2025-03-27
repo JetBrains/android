@@ -1,5 +1,5 @@
 FILE
-  PsiElement(FACTORY)
+  PsiElement(SIMPLE_FACTORY)
     PsiElement(IDENTIFIER)
       PsiElement(DeclarativeTokenType.token)('foo')
     PsiElement(DeclarativeTokenType.()('(')
@@ -28,7 +28,7 @@ FILE
       PsiElement(DeclarativeTokenType.,)(',')
       PsiWhiteSpace(' ')
       PsiElement(ARGUMENT)
-        PsiElement(FACTORY)
+        PsiElement(SIMPLE_FACTORY)
           PsiElement(IDENTIFIER)
             PsiElement(DeclarativeTokenType.token)('bar')
           PsiElement(DeclarativeTokenType.()('(')

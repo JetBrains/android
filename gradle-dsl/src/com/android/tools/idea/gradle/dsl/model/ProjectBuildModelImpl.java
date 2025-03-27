@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createGradleBuildModel;
+import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
+import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
+
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -27,6 +34,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,7 +71,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   @Nullable
   public GradleBuildModel getProjectBuildModel() {
-    return myProjectBuildFile == null ? null : new GradleBuildModelImpl(myProjectBuildFile);
+    return myProjectBuildFile == null ? null : createGradleBuildModel(myProjectBuildFile);
   }
 
   @Override
@@ -80,6 +88,30 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     return file == null ? null : getModuleBuildModel(file);
   }
 
+  @Override
+  @Nullable
+  public GradleDeclarativeBuildModel getDeclarativeModuleBuildModel(@NotNull Module module) {
+    if(!DeclarativeStudioSupport.isEnabled()) return null;
+    VirtualFile file = myBuildModelContext.getGradleBuildFile(module);
+    return file == null ? null : getDeclarativeModuleBuildModel(file);
+  }
+  @Override
+  @Nullable
+  public GradleDeclarativeBuildModel getDeclarativeModuleBuildModel(@NotNull  File modulePath) {
+    if(!DeclarativeStudioSupport.isEnabled()) return null;
+    VirtualFile file = myBuildModelContext.getGradleBuildFile(modulePath);
+    return file == null ? null : getDeclarativeModuleBuildModel(file);
+  }
+  @Override
+  @Nullable
+  public GradleDeclarativeBuildModel getDeclarativeModuleBuildModel(@NotNull VirtualFile file) {
+    if(!DeclarativeStudioSupport.isEnabled()) return null;
+    if(!file.getName().equals(FN_BUILD_GRADLE_DECLARATIVE)) return null;
+
+    GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file, false);
+    return new GradleDeclarativeBuildModelImpl(dslFile);
+  }
+
   /**
    * Gets the {@link GradleBuildModel} for the given {@link VirtualFile}. Please prefer using {@link #getModuleBuildModel(Module)} if
    * possible.
@@ -92,7 +124,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @NotNull
   public GradleBuildModel getModuleBuildModel(@NotNull VirtualFile file) {
     GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file, false);
-    return new GradleBuildModelImpl(dslFile);
+    return createGradleBuildModel(dslFile);
   }
 
   @Override
@@ -103,6 +135,18 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
     GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(virtualFile);
     return new GradleSettingsModelImpl(settingsFile);
+  }
+
+  @Override
+  @Nullable
+  public GradleDeclarativeSettingsModel getDeclarativeSettingsModel() {
+    if(!DeclarativeStudioSupport.isEnabled()) return null;
+    VirtualFile virtualFile = getProjectSettingsFile();
+    if (virtualFile == null) return null;
+    if(!virtualFile.getName().equals(FN_SETTINGS_GRADLE_DECLARATIVE)) return null;
+
+    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(virtualFile);
+    return new GradleDeclarativeSettingsModelImpl(settingsFile);
   }
 
   @Nullable
@@ -123,11 +167,12 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @Override
   public void applyChanges() {
-    runOverProjectTree(file -> {
-      file.applyChanges();
-      file.saveAllChanges();
-    });
-
+    PostprocessReformattingAspect.getInstance(myBuildModelContext.getProject())
+      .postponeFormattingInside(() ->
+                                  runOverProjectTree(file -> {
+                                    file.applyChanges();
+                                    file.saveAllChanges();
+                                  }));
   }
 
   @Override
@@ -153,7 +198,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     final Integer[] nModelsSeen = {0};
     List<GradleBuildModel> allModels = new ArrayList<>();
     if (myProjectBuildFile != null) {
-      allModels.add(new GradleBuildModelImpl(myProjectBuildFile));
+      allModels.add(createGradleBuildModel(myProjectBuildFile));
       func.accept(++nModelsSeen[0], null);
     }
 

@@ -1,3 +1,4 @@
+load("@rules_java//java:defs.bzl", "java_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
@@ -11,6 +12,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",

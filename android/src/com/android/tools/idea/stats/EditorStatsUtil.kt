@@ -70,53 +70,79 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import java.util.Locale
 import kotlinx.coroutines.withContext
+
+/**
+ * Computes the file type based on the [languageId] for analytics purposes. Use this method when you
+ * have only a [String] and no ability to access the PSI or the [VirtualFile]. This could be because
+ * you have no reference to it, or because you cannot suspend/block.
+ */
+fun getEditorFileTypeForAnalytics(languageId: String) =
+  when (languageId.lowercase(Locale.getDefault())) {
+    "java" -> JAVA
+    "kotlin" -> KOTLIN
+    "groovy" -> GROOVY
+    "properties" -> PROPERTIES
+    "json" -> JSON
+    "objectivec" -> NATIVE
+    "xml" -> XML
+    "protobuf" -> PROTO
+    "toml" -> TOML
+    "dart" -> DART
+    else -> UNKNOWN
+  }
 
 /** Computes the file type of [file] for analytics purposes. */
 suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?): EditorFileType =
   when (file.fileType.name) {
-    // We use string literals here (rather than, e.g., JsonFileType.INSTANCE.name) to avoid unnecessary
+    // We use string literals here (rather than, e.g., JsonFileType.INSTANCE.name) to avoid
+    // unnecessary
     // dependencies on other plugins. Fortunately, these values are extremely unlikely to change.
     "JAVA" -> JAVA
-    "Kotlin" -> when {
-      file.extension == "kts" -> KOTLIN_SCRIPT
-      withContext(workerThread) { isComposeEnabled(file, project) } -> KOTLIN_COMPOSE
-      else -> KOTLIN
-    }
-
+    "Kotlin" ->
+      when {
+        file.extension == "kts" -> KOTLIN_SCRIPT
+        withContext(workerThread) { isComposeEnabled(file, project) } -> KOTLIN_COMPOSE
+        else -> KOTLIN
+      }
     "Groovy" -> GROOVY
     "Properties" -> PROPERTIES
     "JSON" -> JSON
     "ObjectiveC" -> NATIVE // Derived from OCLanguage constructor.
-    "XML" -> when (getFolderType(file)) { // We split XML files by resource kind.
-      ANIM -> XML_RES_ANIM
-      ANIMATOR -> XML_RES_ANIMATOR
-      COLOR -> XML_RES_COLOR
-      DRAWABLE -> XML_RES_DRAWABLE
-      FONT -> XML_RES_FONT
-      INTERPOLATOR -> XML_RES_INTERPOLATOR
-      LAYOUT -> XML_RES_LAYOUT
-      MENU -> XML_RES_MENU
-      MIPMAP -> XML_RES_MIPMAP
-      NAVIGATION -> XML_RES_NAVIGATION
-      RAW -> XML_RES_RAW
-      TRANSITION -> XML_RES_TRANSITION
-      VALUES -> XML_RES_VALUES
-      ResourceFolderType.XML -> XML_RES_XML
-      null -> if (file.name == ANDROID_MANIFEST_XML) XML_MANIFEST else XML
-    }
+    "XML" ->
+      when (getFolderType(file)) { // We split XML files by resource kind.
+        ANIM -> XML_RES_ANIM
+        ANIMATOR -> XML_RES_ANIMATOR
+        COLOR -> XML_RES_COLOR
+        DRAWABLE -> XML_RES_DRAWABLE
+        FONT -> XML_RES_FONT
+        INTERPOLATOR -> XML_RES_INTERPOLATOR
+        LAYOUT -> XML_RES_LAYOUT
+        MENU -> XML_RES_MENU
+        MIPMAP -> XML_RES_MIPMAP
+        NAVIGATION -> XML_RES_NAVIGATION
+        RAW -> XML_RES_RAW
+        TRANSITION -> XML_RES_TRANSITION
+        VALUES -> XML_RES_VALUES
+        ResourceFolderType.XML -> XML_RES_XML
+        null -> if (file.name == ANDROID_MANIFEST_XML) XML_MANIFEST else XML
+      }
     "protobuf" -> PROTO
     "TOML" -> TOML
-    "Dart" -> DART // https://github.com/JetBrains/intellij-plugins/blob/master/Dart/src/com/jetbrains/lang/dart/DartFileType.java
-    else -> when(file.extension) {
-      "proto" -> PROTO_WITHOUT_PLUGIN
-      else -> UNKNOWN
-    }
+    "Dart" ->
+      DART // https://github.com/JetBrains/intellij-plugins/blob/master/Dart/src/com/jetbrains/lang/dart/DartFileType.java
+    else ->
+      when (file.extension) {
+        "proto" -> PROTO_WITHOUT_PLUGIN
+        else -> UNKNOWN
+      }
   }
 
 /**
- * This method is not expected to be slow, but it's possible the call to find the file's module could take longer in some circumstances. As
- * such, it's marked with [WorkerThread] to make sure there are no long calls on the UI thread.
+ * This method is not expected to be slow, but it's possible the call to find the file's module
+ * could take longer in some circumstances. As such, it's marked with [WorkerThread] to make sure
+ * there are no long calls on the UI thread.
  */
 @WorkerThread
 private fun isComposeEnabled(file: VirtualFile, project: Project?): Boolean {

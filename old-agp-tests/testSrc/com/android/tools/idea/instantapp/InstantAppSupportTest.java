@@ -29,7 +29,9 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import com.android.testutils.junit4.OldAgpTest;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.backup.BackupManager;
+import com.android.tools.idea.backup.testing.FakeBackupManager;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
@@ -42,12 +44,15 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.ComponentManagerImpl;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -56,9 +61,18 @@ import org.junit.rules.RuleChain;
 public class InstantAppSupportTest {
 
   private final AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
-
+  private final DisposableRule disposableRule = new DisposableRule();
   @Rule
-  public final RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
+  public final RuleChain ruleChain = RuleChain.outerRule(projectRule).around(disposableRule).around(new EdtRule());
+
+  @Before
+  public void setUp() {
+    //noinspection UnstableApiUsage
+    ((ComponentManagerImpl)projectRule.getProject()).replaceServiceInstance(
+      BackupManager.class,
+      new FakeBackupManager(),
+      disposableRule.getDisposable());
+  }
 
   @Test
   @RunsInEdt
@@ -80,9 +94,10 @@ public class InstantAppSupportTest {
   @RunsInEdt
   public void testCorrectAndroidTestRunConfigurationsCreated() throws Exception {
     projectRule.loadProject(INSTANT_APP, "feature", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
-    AndroidFacet mainTestFacet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(projectRule.getModule("feature")));
+    AndroidFacet mainTestFacet = AndroidFacet.getInstance(LinkedAndroidModuleGroupUtilsKt.getMainModule(projectRule.getModule("feature")));
     assertNotNull(mainTestFacet);
-    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(projectRule.getProject(), "com.example.instantapp.ExampleInstrumentedTest");
+    AndroidTestRunConfiguration runConfig =
+      createAndroidTestConfigurationFromClass(projectRule.getProject(), "com.example.instantapp.ExampleInstrumentedTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(mainTestFacet));
     assertEquals(runConfig.CLASS_NAME, "com.example.instantapp.ExampleInstrumentedTest");
@@ -97,7 +112,8 @@ public class InstantAppSupportTest {
 
     // Create one run configuration
     List<RunConfiguration> configurations =
-      RunManager.getInstance(projectRule.getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
+      RunManager.getInstance(projectRule.getProject())
+        .getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
     assertEquals(1, configurations.size());
     RunConfiguration configuration = configurations.get(0);
     assertInstanceOf(configuration, AndroidRunConfiguration.class);
@@ -117,7 +133,8 @@ public class InstantAppSupportTest {
     // Use a plugin with instant app support
     projectRule.loadProject(INSTANT_APP, "feature", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
     AndroidTestRunConfiguration
-      runConfiguration = createAndroidTestConfigurationFromClass(projectRule.getProject(), "com.example.instantapp.ExampleInstrumentedTest");
+      runConfiguration =
+      createAndroidTestConfigurationFromClass(projectRule.getProject(), "com.example.instantapp.ExampleInstrumentedTest");
     runConfiguration.checkConfiguration();
   }
 
@@ -129,7 +146,8 @@ public class InstantAppSupportTest {
 
     // Create one run configuration
     List<RunConfiguration> configurations =
-      RunManager.getInstance(projectRule.getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
+      RunManager.getInstance(projectRule.getProject())
+        .getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
     assertEquals(1, configurations.size());
     RunConfiguration configuration = configurations.get(0);
     assertInstanceOf(configuration, AndroidRunConfiguration.class);

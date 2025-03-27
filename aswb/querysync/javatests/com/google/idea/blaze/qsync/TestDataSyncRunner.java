@@ -50,11 +50,9 @@ public class TestDataSyncRunner {
 
   public QuerySyncProjectSnapshot sync(TestData testProject) throws IOException, BuildException {
     ProjectDefinition projectDefinition =
-        ProjectDefinition.create(
-            /* includes= */ ImmutableSet.copyOf(testProject.getRelativeSourcePaths()),
-            /* excludes= */ ImmutableSet.of(),
-            /* languageClasses= */ ImmutableSet.of(),
-            /* testSources= */ ImmutableSet.of());
+        ProjectDefinition.builder()
+        .setProjectIncludes(ImmutableSet.copyOf(testProject.getRelativeSourcePaths()))
+        .build();
     QuerySummary querySummary = getQuerySummary(testProject);
     PostQuerySyncData pqsd =
         PostQuerySyncData.builder()

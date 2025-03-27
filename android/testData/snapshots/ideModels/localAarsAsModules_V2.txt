@@ -83,7 +83,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -221,7 +220,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -347,6 +345,11 @@ MODULE                        : project
                 taskModel                     : DefaultGradleTaskModel
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -365,14 +368,14 @@ MODULE                        : project.app
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -415,6 +418,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.android.test.localaarsasmodules
         testApplicationId             : com.android.test.localaarsasmodules.test
@@ -422,7 +426,7 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : com.android.test.localaarsasmodules
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -438,8 +442,8 @@ MODULE                        : project.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -608,8 +612,8 @@ MODULE                        : project.app
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact
@@ -710,14 +714,14 @@ MODULE                        : project.library
             ApiLevel                      : 22
             ApiString                     : 22
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :library
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/library/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -760,12 +764,13 @@ MODULE                        : project.library
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.android.test.library.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -777,8 +782,8 @@ MODULE                        : project.library
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -937,8 +942,8 @@ MODULE                        : project.library
                 ApiLevel                      : 22
                 ApiString                     : 22
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact

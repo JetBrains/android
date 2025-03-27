@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avd
 
+import kotlin.test.assertFailsWith
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,6 +23,13 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class StorageCapacityTest {
+  @Test
+  fun storageCapacity() {
+    assertFailsWith(ArithmeticException::class) {
+      StorageCapacity(222_222_222_222, StorageCapacity.Unit.GB)
+    }
+  }
+
   @Test
   fun withMaxUnit2048Kilobytes() {
     // Arrange

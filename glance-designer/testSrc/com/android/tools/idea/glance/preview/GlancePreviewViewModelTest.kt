@@ -16,8 +16,6 @@
 package com.android.tools.idea.glance.preview
 
 import com.android.ide.common.rendering.api.Bridge
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -41,6 +39,8 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private class TestPreviewView : PreviewView {
   val errorMessages = mutableListOf<String>()

@@ -18,8 +18,8 @@ package com.android.tools.idea.vitals.client.grpc
 import com.android.tools.idea.insights.FakeTimeProvider
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
 import com.google.common.truth.Truth.assertThat
-import com.google.play.developer.reporting.DateTime
-import com.google.play.developer.reporting.TimeZone
+import com.google.type.DateTime
+import com.google.type.TimeZone
 import java.time.ZoneId
 import org.junit.Test
 

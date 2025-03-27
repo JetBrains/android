@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -373,7 +374,7 @@ public class AddAllLayoutItemsFromPaletteTest {
     int widthOffset = screenViewSize.width / 2;
     int heightOffset = screenViewSize.height / 2;
     nlEditor.dragComponentToSurface(groupName, itemName, widthOffset, heightOffset)
-      .waitForRenderToFinish();
+      .waitForRenderToFinish(Wait.seconds(30));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 

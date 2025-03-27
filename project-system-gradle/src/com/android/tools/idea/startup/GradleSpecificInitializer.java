@@ -24,6 +24,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.notification.NotificationsConfiguration;
@@ -31,7 +32,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.extensions.PluginId;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.execution.GradleTaskExecutionMeasuringExtension;
@@ -89,14 +89,10 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
   }
 
   private static NotificationGroup getNotificationGroup() {
-    // Use the system health settings by default
-    NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");
-    if (group == null) {
-      // This shouldn't happen
-      group = new NotificationGroup(
-        "Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"));
-    }
-    return group;
+    // Use the system health group by default, but have a fallback in case JetBrains removes it.
+    var notificationGroupManager = NotificationGroupManager.getInstance();
+    var group = notificationGroupManager.getNotificationGroup("System Health");
+    return group != null ? group : notificationGroupManager.getNotificationGroup("Gradle Initializer");
   }
 
   private static void cleanProjectJdkTableForNewIdeVersion() {

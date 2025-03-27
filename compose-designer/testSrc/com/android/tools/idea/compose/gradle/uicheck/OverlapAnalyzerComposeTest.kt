@@ -21,8 +21,8 @@ import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForRes
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.visuallint.analyzers.OverlapAnalyzer
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -47,7 +47,7 @@ class OverlapAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
-    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("TextView is covered by Composable", issues[0].message)
   }
@@ -69,7 +69,7 @@ class OverlapAnalyzerComposeTest {
         .get()
     val file = renderResult.lightVirtualFile
     val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
-    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel)
+    val issues = OverlapAnalyzer.findIssues(renderResult.result!!, nlModel.configuration)
     Assert.assertEquals(0, issues.size)
   }
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights.inspection
 
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
@@ -25,10 +27,11 @@ import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.intellij.openapi.project.Project
 import com.intellij.util.PlatformIcons
 import javax.swing.Icon
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-sealed class TestTabProvider(override val displayName: String) : AppInsightsTabProvider {
+open class TestTabProvider(override val displayName: String) : AppInsightsTabProvider {
   override val icon: Icon = PlatformIcons.ADD_ICON
 
   private val fakeInsights = mutableListOf<AppInsight>()
@@ -49,9 +52,15 @@ sealed class TestTabProvider(override val displayName: String) : AppInsightsTabP
         get() = modelFlow
 
       override val offlineStatusManager = OfflineStatusManagerImpl()
+      override val deprecationData =
+        DevServicesDeprecationData("", "", "", false, DevServicesDeprecationStatus.UNSUPPORTED)
     }
 
-  override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) = Unit
+  override fun populateTab(
+    project: Project,
+    tabPanel: AppInsightsTabPanel,
+    activeTabFlow: Flow<Boolean>,
+  ) = Unit
 
   override fun getConfigurationManager(project: Project) = configManager
 

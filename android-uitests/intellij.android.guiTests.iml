@@ -6,7 +6,13 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+<<<<<<< HEAD
     <orderEntry type="library" name="studio-sdk" level="project" />
+=======
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
+>>>>>>> studio-2024.3.2-alpha05
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />

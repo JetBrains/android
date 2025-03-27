@@ -20,11 +20,13 @@
         serviceInterface="com.android.tools.idea.appinspection.ide.InspectorArtifactService"
         serviceImplementation="com.android.tools.idea.appinspection.ide.InspectorArtifactServiceImpl"/>
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
-    <android.toolWindow id="App Inspection"
-                        anchor="bottom"
-                        icon="StudioIcons.Shell.ToolWindows.INSPECTION"
-                        factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
-                        doNotActivateOnStart="true"/>
+    <library.toolWindow id="App Inspection"
+                      anchor="bottom"
+                      icon="StudioIcons.Shell.ToolWindows.INSPECTION"
+                      librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
+                      factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
+                      doNotActivateOnStart="true"/>
+    <notificationGroup id="App Inspection Notifications" displayType="TOOL_WINDOW" toolWindowId="App Inspection"/>
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.appinspection.ide.resolver.artifactResolverFactoryToken"

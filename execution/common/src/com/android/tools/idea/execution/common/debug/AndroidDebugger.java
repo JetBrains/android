@@ -83,6 +83,8 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
 
   boolean supportsProject(@NotNull Project project);
 
+  boolean isNative(@NotNull Project project);
+
   /**
    * Indicates whether this debugger should be the default.
    *

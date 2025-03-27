@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -36,7 +38,6 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.SwingConstants
 
 private const val IS_TOOLBAR_HORIZONTAL = true
 
@@ -54,7 +55,7 @@ abstract class StreamingDevicePanel(
   /** An HTML string containing detailed information about the device. */
   internal abstract val description: String
   internal abstract val icon: Icon
-  internal abstract val isClosable: Boolean
+  internal abstract val deviceType: DeviceType
   internal abstract val preferredFocusableComponent: JComponent
 
   internal abstract var zoomToolbarVisible: Boolean
@@ -68,25 +69,22 @@ abstract class StreamingDevicePanel(
 
   init {
     background = primaryPanelBackground
-
-    mainToolbar = createToolbar(mainToolbarId, IS_TOOLBAR_HORIZONTAL)
-    secondaryToolbar = createToolbar(secondaryToolbarId, IS_TOOLBAR_HORIZONTAL)
+    val layoutStrategy =
+      if (StudioFlags.RUNNING_DEVICES_WRAP_TOOLBAR.get()) ToolbarLayoutStrategy.WRAP_STRATEGY else ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+    mainToolbar = createToolbar(mainToolbarId, layoutStrategy, IS_TOOLBAR_HORIZONTAL)
+    secondaryToolbar = createToolbar(secondaryToolbarId, ToolbarLayoutStrategy.NOWRAP_STRATEGY, IS_TOOLBAR_HORIZONTAL)
     secondaryToolbar.isReservePlaceAutoPopupIcon = false
 
     addToCenter(centerPanel)
 
     val toolbarPanel = BorderLayoutPanel()
     if (IS_TOOLBAR_HORIZONTAL) {
-      mainToolbar.orientation = SwingConstants.HORIZONTAL
-      secondaryToolbar.orientation = SwingConstants.HORIZONTAL
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
       toolbarPanel.add(secondaryToolbar.component, BorderLayout.EAST)
       toolbarPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.BOTTOM)
       addToTop(toolbarPanel)
     }
     else {
-      mainToolbar.orientation = SwingConstants.VERTICAL
-      secondaryToolbar.orientation = SwingConstants.VERTICAL
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
       toolbarPanel.add(secondaryToolbar.component, BorderLayout.SOUTH)
       toolbarPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.RIGHT)
@@ -124,18 +122,14 @@ abstract class StreamingDevicePanel(
   }
 
   @Suppress("SameParameterValue")
-  private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
+  private fun createToolbar(toolbarId: String, strategy: ToolbarLayoutStrategy, horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
-    toolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+    toolbar.layoutStrategy = strategy
     toolbar.setLayoutSecondaryActions(true)
     toolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
     return toolbar
-  }
-
-  fun updateMainToolbar() {
-    mainToolbar.updateActionsAsync()
   }
 
   private fun findNotificationHolderPanel() =

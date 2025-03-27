@@ -1,5 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M15 6.53513V2H1V14H6.48688C6.57598 13.6782 6.74702 13.3743 7 13.1213L7.12132 13H6V11H9.12132L9.12506 10.9963C9.04341 10.6778 9 10.344 9 10H6V8H9.53513C9.88641 7.39274 10.3927 6.88641 11 6.53513V5H14V6.12602C14.3548 6.21733 14.6905 6.35609 15 6.53513ZM6 5H10V7H6V5ZM5 5V7H2V5H5ZM2 10V8H5V10H2ZM2 11H5V13H2V11Z" fill="#AFB1B3"/>
-<path d="M10.5355 11L11.9497 12.4142L9.12132 15.2426C8.7308 15.6332 8.09763 15.6332 7.70711 15.2426C7.31658 14.8521 7.31658 14.219 7.70711 13.8284L10.5355 11Z" fill="#3592C4"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M13 12C14.1046 12 15 11.1046 15 10C15 8.89543 14.1046 8 13 8C11.8954 8 11 8.89543 11 10C11 11.1046 11.8954 12 13 12ZM13 13C14.6569 13 16 11.6569 16 10C16 8.34315 14.6569 7 13 7C11.3431 7 10 8.34315 10 10C10 11.6569 11.3431 13 13 13Z" fill="#3592C4"/>
-</svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M1 4a2 2 0 012-2h10a2 2 0 012 2v7c0-1.014-.378-1.94-1-2.646V6h-3v1c-.345 0-.68.044-1 .126V6H6v7h1.535c.218.376.495.714.82 1H3a2 2 0 01-2-2V4zm5-1h4v2H6V3zM5 3H3a1 1 0 00-1 1v1h3V3zM2 6v6a1 1 0 001 1h2V6H2zm12-1V4a1 1 0 00-1-1h-2v2h3z" fill="#CED0D6"/><circle cx="11" cy="11" r="2" fill="#25324D"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12.738 13.445a3 3 0 11.707-.707l1.409 1.408a.5.5 0 01-.708.708l-1.408-1.409zM13 11a2 2 0 11-4 0 2 2 0 014 0z" fill="#548AF7"/></svg>

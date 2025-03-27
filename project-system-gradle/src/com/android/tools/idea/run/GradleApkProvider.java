@@ -56,14 +56,14 @@ import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.BuildOutputUtil;
-import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -174,7 +174,7 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   private static boolean deviceSupportsPrivacySandbox(@NotNull IDevice device) {
-    return device.getVersion().isGreaterOrEqualThan(34) && device.services().containsKey("sdk_sandbox");
+    return device.getVersion().isAtLeast(34) && device.services().containsKey("sdk_sandbox");
   }
 
   @NotNull
@@ -277,10 +277,10 @@ public final class GradleApkProvider implements ApkProvider {
               }
 
               ApkInfo apkInfo = collectAppBundleOutput(
-                  baseAndroidModel,
-                  baseAppModule,
-                  myOutputModelProvider,
-                  pkgName);
+                baseAndroidModel,
+                baseAppModule,
+                myOutputModelProvider,
+                pkgName);
               if (apkInfo != null) {
                 apkList.add(apkInfo);
               }
@@ -320,6 +320,12 @@ public final class GradleApkProvider implements ApkProvider {
       for (ApkFileUnit file : info.getFiles()) {
         logger.info(String.format("    apk from %s : %s", file.getModuleName(), file.getApkFile()));
       }
+      for (BaselineProfileDetails bps: info.getBaselineProfiles()) {
+        logger.info("    baseline prof: api ["+ bps.getMinApi()+","+bps.getMaxApi()+"]");
+        for (File f: bps.getBaselineProfileFiles()) {
+          logger.info("        md : '" + f.getName() + "'");
+        }
+      }
     }
 
     return apkList;
@@ -328,7 +334,7 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   private List<BaselineProfileDetails> getBaselineProfiles(GenericBuiltArtifacts builtArtifacts) {
     if (builtArtifacts == null) {
-        return emptyList();
+      return emptyList();
     }
 
     List<BaselineProfileDetails> bp = builtArtifacts.getBaselineProfiles();
@@ -585,9 +591,8 @@ public final class GradleApkProvider implements ApkProvider {
             // Get the output from the test artifact
             for (TestVariantBuildOutput testVariantBuildOutput : variantBuildOutput.getTestingVariants()) {
               if (testVariantBuildOutput.getType().equals(TestVariantBuildOutput.ANDROID_TEST)) {
-                int apiWithSplitApk = AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION.getApiLevel();
                 if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE &&
-                    !deviceVersion.isGreaterOrEqualThan(apiWithSplitApk)) {
+                    deviceVersion.compareTo(AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION) < 0) {
                   // b/119663247
                   throw new ApkProvisionException(
                     "Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
@@ -625,7 +630,7 @@ public final class GradleApkProvider implements ApkProvider {
       Module targetModule = ApplicationManager.getApplication().runReadAction(
         (Computable<Module>)() -> {
           Project project = myFacet.getModule().getProject();
-          GradleProjectPath projectPath = getGradleProjectPath(ModuleSystemUtil.getHolderModule(myFacet.getModule()));
+          GradleProjectPath projectPath = getGradleProjectPath(LinkedAndroidModuleGroupUtilsKt.getHolderModule(myFacet.getModule()));
           if (projectPath == null) return null;
           GradleProjectPath targetProjectPath = new GradleHolderProjectPath(projectPath.getBuildRoot(), targetGradlePath);
           return resolveIn(targetProjectPath, project);
@@ -676,7 +681,7 @@ public final class GradleApkProvider implements ApkProvider {
     if (gradleAndroidModel == null) {
       ConfigurationQuickFix requestProjectSync =
         (dataContext) -> ProjectSystemUtil.getSyncManager(androidFacet.getModule().getProject())
-          .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
+          .requestSyncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
       result.add(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
       return result.build();
     }

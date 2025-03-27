@@ -16,10 +16,12 @@ ADD_OPENS = [
         "java.base/java.lang",
         "java.base/java.util",
         "java.base/java.util.concurrent",
+        "java.base/sun.nio.fs",
         "java.desktop/java.awt",
         "java.desktop/java.awt.event",
         "java.desktop/javax.swing",
         "java.desktop/javax.swing.plaf.basic",
+        "java.desktop/javax.swing.text.html",
         "java.desktop/sun.awt",
         "java.desktop/sun.awt.image",
         "java.desktop/sun.font",
@@ -142,8 +144,8 @@ def intellij_unit_test_suite(
 
 def _plugin_deps_impl(ctx):
     java_infos = [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p]
-    modules = depset([], transitive = [p[PluginInfo].module_deps for p in ctx.attr.plugins])
-    libs = depset(transitive = [p[PluginInfo].lib_deps for p in ctx.attr.plugins])
+    modules = depset([], transitive = [p[PluginInfo].modules for p in ctx.attr.plugins])
+    libs = depset(transitive = [p[PluginInfo].libs for p in ctx.attr.plugins])
 
     data = {}
     for p in ctx.attr.plugins:
@@ -184,12 +186,12 @@ def intellij_integration_test_suite(
         srcs,
         test_package_root,
         deps,
-        additional_class_rules = [],
         size = "medium",
         jvm_flags = [],
         runtime_deps = [],
         plugins = DEFAULT_INTEGRATION_TEST_PLUGINS,
         required_plugins = None,
+        friends = [],
         **kwargs):
     """Creates a java_test rule composed of all valid test classes in the specified srcs and specifically tailored for intellij-ide integration tests.
 
@@ -218,6 +220,7 @@ def intellij_integration_test_suite(
       runtime_deps: the required runtime dependencies, (e.g., intellij_plugin targets).
       required_plugins: optional comma-separated list of plugin IDs. Integration tests will fail if
           these plugins aren't loaded at runtime.
+      friends: Kotlin test friends
       **kwargs: Any other args to be passed to the java_test.
     """
     suite_class_name = name + "TestSuite"
@@ -234,7 +237,6 @@ def intellij_integration_test_suite(
         name = suite_class_name,
         srcs = srcs,
         test_package_root = test_package_root,
-        class_rules = additional_class_rules,
         run_with = "com.google.idea.testing.IntellijIntegrationSuite",
     )
 
@@ -285,11 +287,13 @@ def intellij_integration_test_suite(
     target_compatible_with = kwargs.get("target_compatible_with", None)
     kotlin_library(
         name = name + ".testlib",
+        jvm_target = "17",
         srcs = srcs + [suite_class_name],
         deps = deps,
         lint_enabled = False,
         target_compatible_with = target_compatible_with,
         testonly = 1,
+        friends = friends,
         #        stdlib = "//tools/adt/idea/aswb/testing:lib",
     )
 

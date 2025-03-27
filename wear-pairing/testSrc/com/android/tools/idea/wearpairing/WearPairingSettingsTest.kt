@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.sdklib.AndroidVersion
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
@@ -28,7 +29,7 @@ class WearPairingSettingsTest {
     PairingDevice(
       deviceID = "id1",
       displayName = "My Phone",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(36, 1),
       isWearDevice = false,
       isEmulator = true,
       hasPlayStore = true,
@@ -38,7 +39,7 @@ class WearPairingSettingsTest {
     PairingDevice(
       deviceID = "id2",
       displayName = "Round Watch",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isEmulator = true,
       isWearDevice = true,
       hasPlayStore = true,
@@ -49,6 +50,14 @@ class WearPairingSettingsTest {
   fun setUp() {
     WearPairingManager.getInstance()
       .loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
+  }
+
+  @Test
+  fun roundTrip() {
+    assertThat(phoneDevice.toPairingDeviceState().toPairingDevice(ConnectionState.ONLINE))
+      .isEqualTo(phoneDevice)
+    assertThat(wearDevice.toPairingDeviceState().toPairingDevice(ConnectionState.ONLINE))
+      .isEqualTo(wearDevice)
   }
 
   @Test

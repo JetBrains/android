@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
@@ -51,6 +52,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.EventDispatcher
 import com.intellij.util.concurrency.ThreadingAssertions
+import com.intellij.util.containers.addIfNotNull
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.VisibleForTesting
@@ -225,7 +227,7 @@ class PsAnalyzerDaemon(
     var numOther = 0
     addAll(project.modules.flatMap { module ->
       module.dependencies.libraries.map {
-        getSdkIndexIssueFor(it.spec, it.path, it.parent.rootDir)
+        getSdkIndexIssueFor(it, availableUpdates = AvailableLibraryUpdateStorage.getInstance(project.ideProject))
       }.flatten()
         .onEach { issue ->
           when (issue.severity) {
@@ -246,78 +248,199 @@ class PsAnalyzerDaemon(
 /**
  * Returns the list of issues from the Google Play SDK Index that the given library has.
  *
- * @param dependencySpec: dependency being checked
- * @param libraryPath: path of the library dependency, used for generating the issues
- * @param parentModuleRootDir: root dir of the parent module of this dependency
+ * @param dependency: dependency being checked
  *
  * @return The list of issues from the SDK index for the given library, empty if no issues are present
  */
+fun getSdkIndexIssueFor(dependency: PsDeclaredLibraryDependency,
+                        availableUpdates: AvailableLibraryUpdateStorage? = null): List<PsGeneralIssue> {
+  val updateFixes = generateUpdateFixesForSdkIndex(dependency, availableUpdates)
+  return getSdkIndexIssueFor(dependency.spec, dependency.path, dependency.parent.rootDir, updateFixes)
+}
+
+private fun generateUpdateFixesForSdkIndex(dependency: PsDeclaredLibraryDependency,
+                                   availableUpdates: AvailableLibraryUpdateStorage?): List<PsQuickFix> {
+  val sdkIndex = IdeGooglePlaySdkIndex
+  val dependencySpec = dependency.spec
+  val groupId = dependencySpec.group?: return listOf()
+  val artifactId = dependencySpec.name
+  val versionFromStorage = availableUpdates?.findUpdatedVersionFor(dependencySpec)
+  val versionFromIndex = sdkIndex.getLatestVersion(groupId, artifactId)?.let {
+    if (sdkIndex.hasLibraryErrorOrWarning(groupId, artifactId, it)) {
+      null
+    }
+    else {
+      val parsedVersion = Version.parse(it)
+      if (parsedVersion.isPreview) {
+        null
+      }
+      else {
+        parsedVersion
+      }
+    }
+  }
+
+  val versionToUpdateTo = if (versionFromIndex == null) {
+    versionFromStorage
+  }
+  else {
+    if (versionFromStorage == null) {
+      versionFromIndex
+    }
+    else {
+      if (versionFromIndex < versionFromStorage) {
+        versionFromStorage
+      }
+      else {
+        versionFromIndex
+      }
+    }
+  }
+
+  return if (versionToUpdateTo != null) {
+    val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
+    val valueIsReference = versionValue is ParsedValue.Set.Parsed && versionValue.dslText is DslText.Reference
+    val onUpdateCallback: (() -> Unit)? = if (dependencySpec.version != null) ({
+      sdkIndex.logUpdateLibraryVersionFixApplied(groupId, artifactId, dependency.version.toString(), versionToUpdateTo.toString(), null)
+    })
+    else {
+      null
+    }
+    if (valueIsReference) {
+      listOf(
+        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = true, addVersionInText = true, onUpdate = onUpdateCallback),
+        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), updateVariable = false, addVersionInText = true, onUpdate = onUpdateCallback),
+      )
+    }
+    else {
+      listOf(
+        PsLibraryDependencyVersionQuickFixPath(dependency, versionToUpdateTo.toString(), addVersionInText = true, onUpdate = onUpdateCallback),
+      )
+    }
+  }
+  else {
+    listOf()
+  }
+}
+
+@VisibleForTesting
 fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
                         libraryPath: PsPath,
                         parentModuleRootDir: File?,
-                        sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex): List<PsGeneralIssue> {
+                        updateFixes: List<PsQuickFix> = listOf(),
+                        sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex,
+): List<PsGeneralIssue> {
   val groupId = dependencySpec.group ?: return emptyList()
   val versionString = dependencySpec.version ?: return emptyList()
   val artifactId = dependencySpec.name
 
   // Report all SDK Index issues without grouping them(b/316038712):
-  val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
-  val isNonCompliant = sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)
-  val isCritical = sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)
-  val isOutdated = sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)
-  val isVulnerability = sdkIndex.hasLibraryVulnerabilityIssues(groupId, artifactId, versionString, parentModuleRootDir)
-
   val foundIssues: MutableList<PsGeneralIssue> = mutableListOf()
+  val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
+  foundIssues.addIfNotNull(generateDeprecatedLibraryIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, sdkIndex))
+  foundIssues.addAll(generatePolicyIssues(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
+  var criticalIssue = generateCriticalIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
   if (isBlocking) {
-    if (isNonCompliant) {
-      sdkIndex.generateBlockingPolicyMessages(groupId, artifactId, versionString).forEach { message->
-        foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
-      }
-    }
-    if (isCritical) {
-      val message = sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
-    }
-    if (isVulnerability) {
-      sdkIndex.generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { message->
-        foundIssues.add(createIndexIssue(message.description, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex, createVulnerabilityQuickFix(message)))
-      }
-    }
-    if (isOutdated) {
-      val message = sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
-    }
+    // Critical issues are added before vulnerability issues if they are blocking
+    foundIssues.addIfNotNull(criticalIssue)
+    // Set to null so it is not added multiple times
+    criticalIssue = null
   }
-  else {
-    if (isNonCompliant) {
-      sdkIndex.generatePolicyMessages(groupId, artifactId, versionString).forEach { message->
-        foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex))
-      }
-    }
-    if (isVulnerability) {
-      sdkIndex.generateVulnerabilityMessages(groupId, artifactId, versionString).forEach { message->
-        foundIssues.add(createIndexIssue(message.description, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex, createVulnerabilityQuickFix(message)))
-      }
-    }
-    if (isOutdated) {
-      val message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex))
-    }
-    if (isCritical) {
-      val message = sdkIndex.generateCriticalMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, INFO, sdkIndex))
-    }
-  }
+  foundIssues.addAll(generateVulnerabilityIssues(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
+  foundIssues.addIfNotNull(generateOutdatedIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
+  foundIssues.addIfNotNull(criticalIssue)
   return foundIssues
 }
 
-fun createVulnerabilityQuickFix(vulnerability: GooglePlaySdkIndex.Companion.VulnerabilityDescription): PsQuickFix? {
-  return if (vulnerability.link.isNullOrBlank()) {
-    null
+private fun generateDeprecatedLibraryIssue(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  if (!index.isLibraryDeprecated(groupId, artifactId, versionString, file)) {
+    return null
   }
-  else {
-    SdkIndexLinkQuickFixNoLog("Learn more", vulnerability.link!!)
+  val severity = if (isBlocking) ERROR else WARNING
+  val message = index.generateDeprecatedMessage(groupId, artifactId)
+  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, listOf())
+}
+
+private fun generatePolicyIssues(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  updateFixes: List<PsQuickFix>,
+  index: GooglePlaySdkIndex): List<PsGeneralIssue> {
+  if (!index.isLibraryNonCompliant(groupId, artifactId, versionString, file)) {
+    return listOf()
   }
+  val severity = if (isBlocking) ERROR else WARNING
+  val messages = if (isBlocking) index.generateBlockingPolicyMessages(groupId, artifactId, versionString) else index.generatePolicyMessages(groupId, artifactId, versionString)
+  return messages.map { message->
+    createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
+  }
+}
+
+private fun generateCriticalIssue(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  updateFixes: List<PsQuickFix>,
+  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  if (!index.hasLibraryCriticalIssues(groupId, artifactId, versionString, file)) {
+    return null
+  }
+  val severity = if (isBlocking) ERROR else INFO
+  val message = if (isBlocking) index.generateBlockingCriticalMessage(groupId, artifactId, versionString) else index.generateCriticalMessage(groupId, artifactId, versionString)
+  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
+}
+
+fun generateVulnerabilityIssues(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  updateFixes: List<PsQuickFix>,
+  index: GooglePlaySdkIndex): List<PsGeneralIssue> {
+  if (!index.hasLibraryVulnerabilityIssues(groupId, artifactId, versionString, file)) {
+    return listOf()
+  }
+  val severity = if (isBlocking) ERROR else WARNING
+  val messages = index.generateVulnerabilityMessages(groupId, artifactId, versionString)
+  return messages.map { message->
+    val fixes = mutableListOf<PsQuickFix>()
+    fixes.addAll(updateFixes)
+    createVulnerabilityQuickFix(message)?.let { fixes.add(it) }
+    createIndexIssue(message.description, groupId, artifactId, versionString, path, severity, index, fixes)
+  }
+}
+
+private fun generateOutdatedIssue(
+  groupId: String,
+  artifactId: String,
+  versionString: String,
+  isBlocking: Boolean,
+  file: File?,
+  path: PsPath,
+  updateFixes: List<PsQuickFix>,
+  index: GooglePlaySdkIndex): PsGeneralIssue? {
+  if (!index.isLibraryOutdated(groupId, artifactId, versionString, file)) {
+    return null
+  }
+  val severity = if (isBlocking) ERROR else WARNING
+  val message = if (isBlocking) index.generateBlockingOutdatedMessage(groupId, artifactId, versionString) else index.generateOutdatedMessage(groupId, artifactId, versionString)
+  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
 }
 
 private fun createIndexIssue(
@@ -328,15 +451,13 @@ private fun createIndexIssue(
   mainPath: PsPath,
   severity: PsIssue.Severity,
   sdkIndex: GooglePlaySdkIndex,
-  additionalFix: PsQuickFix? = null
+  additionalFixes: List<PsQuickFix> = listOf()
 ): PsGeneralIssue {
   val url = sdkIndex.getSdkUrl(groupId, artifactId)
   val fixes = mutableListOf<PsQuickFix>()
+  fixes.addAll(additionalFixes)
   if (url != null) {
     fixes.add(SdkIndexLinkQuickFix("View details", url, groupId, artifactId, versionString))
-  }
-  if (additionalFix != null) {
-    fixes.add(additionalFix)
   }
   val formattedMessage = formatToPSD(message)
   return PsGeneralIssue(
@@ -349,15 +470,25 @@ private fun createIndexIssue(
   )
 }
 
+private fun createVulnerabilityQuickFix(vulnerability: GooglePlaySdkIndex.Companion.VulnerabilityDescription): PsQuickFix? {
+  return if (vulnerability.link.isNullOrBlank()) {
+    null
+  }
+  else {
+    SdkIndexLinkQuickFixNoLog("Learn more", vulnerability.link!!)
+  }
+}
+
+/**
+ * The messages generated by GooglePlaySdkIndex use [TextFormat.RAW], but PSD only supports html tags.
+ *
+ * This function converts the text so PSD can display it by applying the following transformations (in order):
+ * 1. Replace line break to double break to match look shown for lint issues (b/369997141)
+ * 2. Wrap text to [maxWidth] characters per line
+ * 3. Remove starting and ending blank characters
+ * 4. Convert to HTML
+ */
 @VisibleForTesting
-  /**
-   * The messages generated by GooglePlaySdkIndex use TextFormat.RAW, but PSD only supports html tags.
-   *
-   * This function converts the text so PSD can display it by applying the following transformations (in order):
-   * 1. Wrap text to [maxWidth] characters per line
-   * 2. Remove starting and ending blank characters
-   * 3. Convert to HTML
-   */
 fun formatToPSD(message: String, maxWidth: Int = 55): String {
-  return TextFormat.RAW.toHtml(SdkUtils.wrap(message, maxWidth, maxWidth, /* no hanging*/null, /*no breaks*/false).trim())
+  return TextFormat.RAW.toHtml(SdkUtils.wrap(message.replace("\n", "\n\n"), maxWidth, maxWidth, /* no hanging*/null, /*no breaks*/false).trim())
 }

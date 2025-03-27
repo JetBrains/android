@@ -1,1 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect width="16" height="16" fill="none"/><g fill="none" fill-rule="evenodd"><path d="M10 11H1V5h9z"/><path d="M9.347 7.264c-.46 0-.83.323-.85.721L8.5 8c0 .825-.674 1.5-1.5 1.5H4c-.825 0-1.5-.675-1.5-1.5S3.175 6.5 4 6.5h1.034A4.013 4.013 0 0 1 6.12 5H4C2.35 5 1 6.35 1 8s1.35 3 3 3h3c1.65 0 3-1.35 3-3 0-.256-.041-.5-.103-.736h-.55z" fill="#AFB1B3"/><path d="M11.922 5h-3c-1.65 0-3 1.35-3 3 0 .191.024.376.059.557h.61c.456 0 .822-.317.847-.71A1.5 1.5 0 0 1 8.922 6.5h3c.825 0 1.5.675 1.5 1.5s-.675 1.5-1.5 1.5h-1.153A4.024 4.024 0 0 1 9.68 11h2.24c1.65 0 3-1.35 3-3s-1.35-3-3-3" fill="#AFB1B3"/></g></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.079 4.872a3.128 3.128 0 100 6.256h2.655a3.101 3.101 0 003.06-2.603c.045-.272-.183-.498-.46-.498-.276 0-.493.227-.558.496a2.101 2.101 0 01-2.042 1.605H4.079a2.128 2.128 0 010-4.256h1.533a.5.5 0 100-1H4.079zm6.98 6.256h.862a3.128 3.128 0 000-6.256H9.314a3.15 3.15 0 00-3.11 2.65c-.043.273.185.499.462.499.276 0 .494-.227.557-.496a2.15 2.15 0 012.09-1.653h2.608a2.128 2.128 0 110 4.256h-.862a.5.5 0 100 1z" fill="#CED0D6"/></svg>

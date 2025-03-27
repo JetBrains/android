@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.flow
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.createChildScope
@@ -39,6 +38,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 
 class PreviewElementFlowTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

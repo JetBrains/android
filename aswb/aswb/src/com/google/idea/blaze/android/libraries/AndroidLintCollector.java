@@ -31,9 +31,6 @@ import java.util.Objects;
 
 /** {@inheritDoc} Collecting lint rule jars from {@code AarLibrary} */
 public class AndroidLintCollector implements LintCollector {
-  public static final FeatureRolloutExperiment lintEnabled =
-      new FeatureRolloutExperiment("blaze.android.libraries.lint.enabled");
-
   @Override
   public ImmutableList<File> collectLintJars(Project project, BlazeProjectData blazeProjectData) {
     ArtifactLocationDecoder artifactLocationDecoder = blazeProjectData.getArtifactLocationDecoder();
@@ -48,6 +45,6 @@ public class AndroidLintCollector implements LintCollector {
 
   @Override
   public boolean isEnabled() {
-    return lintEnabled.isEnabled();
+    return true;
   }
 }

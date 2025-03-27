@@ -41,7 +41,7 @@ class RepositoryUrlManagerCachingTest {
 
   private val networkRepo = TestGoogleMavenRepository()
   private val localRepo = TestGoogleMavenRepository()
-  private val repositoryUrlManager = RepositoryUrlManager(networkRepo, localRepo, true /* force repository checks */)
+  private val repositoryUrlManager = RepositoryUrlManager(networkRepo, localRepo  /* force repository checks */)
   private val fileSystem = createInMemoryFileSystem()
 
   private class TestGoogleMavenRepository : GoogleMavenRepository() {

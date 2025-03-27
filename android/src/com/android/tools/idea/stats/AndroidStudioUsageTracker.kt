@@ -49,7 +49,7 @@ import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
 import com.google.wireless.android.sdk.stats.SafeModeStatsEvent
 import com.intellij.ide.AppLifecycleListener
-import com.intellij.ide.IdeEventQueue
+import com.intellij.ide.IdleTracker
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.ide.ui.LafManager
 import com.intellij.notification.NotificationGroupManager
@@ -57,17 +57,21 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.ui.NewUiValue
+import com.intellij.ui.NewUI
 import com.intellij.ui.scale.JBUIScale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidPluginDisposable
 import java.io.File
@@ -81,6 +85,7 @@ import java.util.TimeZone
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Tracks Android Studio specific metrics
@@ -113,10 +118,18 @@ object AndroidStudioUsageTracker {
         channel = lifecycleChannelFromUpdateSettings()
         theme = currentIdeTheme()
         serverFlagsChangelist = ServerFlagService.instance.configurationVersion
-        addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.names))
+        addAllExperimentId(buildActiveExperimentList().union(ServerFlagService.instance.flagAssignments.keys))
         runningInsideIdx = (System.getenv(IDX_ENVIRONMENT_VARIABLE) == "true")
+        addAllActiveExperiments(buildActiveExperimentsFromServerFlags(ServerFlagService.instance.flagAssignments))
       }.build()
     }
+
+  private fun buildActiveExperimentsFromServerFlags(map: Map<String, Int>) = map.map {
+    ProductDetails.ActiveExperiment.newBuilder().apply {
+      experimentId = it.key
+      valueIndex = it.value
+    }.build()
+  }
 
   /** Gets list of active experiments. */
   @JvmStatic
@@ -125,7 +138,8 @@ object AndroidStudioUsageTracker {
 
     val experimentOverrides = if (experimentOverridesProperty.isNullOrEmpty()) {
       emptyList()
-    } else {
+    }
+    else {
       experimentOverridesProperty.split(',')
     }
     val activeMendelExperimentIds = MendelFlagsProvider.getActiveExperimentIds().map { it.toString() }
@@ -278,7 +292,7 @@ object AndroidStudioUsageTracker {
   private fun logNewUI() {
     val enabled =
       try {
-        NewUiValue.isEnabled()
+        NewUI.isEnabled()
       }
       catch (_: Throwable) {
         // Don't send the message if the new UI check fails
@@ -298,7 +312,7 @@ object AndroidStudioUsageTracker {
   private fun updateNewUISettings() {
     val enabled =
       try {
-        NewUiValue.isEnabled()
+        NewUI.isEnabled()
       }
       catch (_: Throwable) {
         return
@@ -377,49 +391,28 @@ object AndroidStudioUsageTracker {
   /**
    * returning UNKNOWN_SATISFACTION_LEVEL means that the user hit the Cancel button in the dialog.
    */
+  @OptIn(FlowPreview::class)
   fun requestUserSentiment() {
-    val eventQueue = IdeEventQueue.getInstance()
+    val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
+    scope.launch(Dispatchers.EDT) {
+      IdleTracker.getInstance().events
+        .debounce(timeout = IDLE_TIME_BEFORE_SHOWING_DIALOG.milliseconds)
+        .first {
+          val now = AnalyticsSettings.dateProvider.now()
+          val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+          val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
 
-    lateinit var runner: Runnable
-    runner = Runnable {
-      // Ensure we're invoked only once.
-      eventQueue.removeIdleListener(runner)
+          val dialog = survey?.let { createDialog(it, followupSurvey = followupSurvey) }
+                       ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, followupSurvey)
 
-      val now = AnalyticsSettings.dateProvider.now()
-      val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
-      val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
-      val hasFollowup = followupSurvey != null
+          dialog.show()
 
-      val dialog = survey?.let { createDialog(it, hasFollowup = hasFollowup) }
-                   ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, hasFollowup)
-
-      followupSurvey?.let {
-        scheduleFollowup(dialog, it)
-      }
-
-      dialog.show()
-
-      AnalyticsSettings.lastSentimentQuestionDate = now
-      AnalyticsSettings.lastSentimentAnswerDate = now
-      AnalyticsSettings.saveSettings()
-    }
-    eventQueue.addIdleListener(runner, IDLE_TIME_BEFORE_SHOWING_DIALOG)
-  }
-
-  private fun scheduleFollowup(dialog: DialogWrapper, survey: Survey) {
-    Disposer.register(dialog.disposable, {
-      val eventQueue = IdeEventQueue.getInstance()
-      lateinit var runner: Runnable
-      runner = Runnable {
-        eventQueue.removeIdleListener(runner)
-
-        if (dialog.isOK) {
-          createDialog(survey, hasFollowup = false).show()
+          AnalyticsSettings.lastSentimentQuestionDate = now
+          AnalyticsSettings.lastSentimentAnswerDate = now
+          AnalyticsSettings.saveSettings()
+          true
         }
-      }
-
-      eventQueue.addIdleListener(runner, 500)
-    })
+    }
   }
 
   private fun runHourlyReports() {
@@ -450,6 +443,7 @@ object AndroidStudioUsageTracker {
           theme == "high contrast" -> ProductDetails.IdeTheme.HIGH_CONTRAST
           else -> ProductDetails.IdeTheme.UNKNOWN_THEME
         }
+
       else -> ProductDetails.IdeTheme.CUSTOM
     }
   }

@@ -34,10 +34,14 @@ open class GroupPadding(
 
 /** Paddings for layouts with organization. */
 class OrganizationPadding(
+  @SwingCoordinate val canvasSinglePadding: Int,
   @SwingCoordinate canvasTopPadding: Int,
   @SwingCoordinate canvasLeftPadding: Int,
+  @SwingCoordinate val canvasBottomPadding: Int,
   @SwingCoordinate val groupLeftPadding: Int,
   @SwingCoordinate previewPaddingProvider: (scale: Double) -> Int,
   @SwingCoordinate val previewRightPadding: (scale: Double, content: PositionableContent) -> Int,
   @SwingCoordinate val previewBottomPadding: (scale: Double, content: PositionableContent) -> Int,
-) : GroupPadding(canvasTopPadding, canvasLeftPadding, previewPaddingProvider)
+) : GroupPadding(canvasTopPadding, canvasLeftPadding, previewPaddingProvider) {
+  val canvasVerticalPadding = canvasBottomPadding + canvasTopPadding
+}

@@ -28,4 +28,8 @@ public interface GradleDslNamedDomainElement {
   //  one to be create().
   @Nullable String getMethodName();
   void setMethodName(@Nullable String value);
+
+  // Declarative has default method name that gets/creates domain element by name
+  @Nullable
+  default String getAccessMethodName() { return null; }
 }

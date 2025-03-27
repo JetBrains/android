@@ -156,6 +156,12 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   }
 
   /**
+   * Called when the step becomes visible, both when first entered and when returning to it.
+   */
+  protected void onShowing() {
+  }
+
+  /**
    * Called just before a step is about to move to the next step (or, if this is the last step, to
    * the finished state). This is a good time to copy any relevant data out of the UI into a model.
    */

@@ -25,8 +25,6 @@ import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
 import com.android.tools.idea.execution.common.stats.getDeviceInfo
@@ -42,7 +40,9 @@ import kotlinx.coroutines.flow.update
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.doReturn
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class RunStatsUtilsTest {
 

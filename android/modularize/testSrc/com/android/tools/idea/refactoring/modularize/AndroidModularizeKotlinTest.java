@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -62,12 +63,7 @@ public class AndroidModularizeKotlinTest extends AndroidTestCase {
 
   public void testModularize() {
     PsiElement activity = ((KtLightClass) myFixture.getJavaFacade().findClass("google.MainActivity")).getKotlinOrigin();
-    DataContext context = dataId -> {
-      if (LangDataKeys.TARGET_MODULE.is(dataId)) {
-        return TestModuleUtil.findModule(getProject(), "library");
-      }
-      return null;
-    };
+    DataContext context = SimpleDataContext.getSimpleContext(LangDataKeys.TARGET_MODULE, TestModuleUtil.findModule(getProject(), "library"));
 
     new AndroidModularizeHandler().invoke(myFixture.getProject(), new PsiElement[]{activity}, context);
 

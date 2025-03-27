@@ -15,18 +15,32 @@
  */
 package com.android.tools.idea.run
 
+import com.android.tools.idea.backup.BackupManager
+import com.android.tools.idea.backup.testing.FakeBackupManager
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RuntimeConfigurationException
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class AndroidRunConfigurationForDynamicAppTest {
 
+  private val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.DYNAMIC_APP)
+  private val disposableRule = DisposableRule()
+
   @get:Rule
-  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.DYNAMIC_APP)
+  val rule = RuleChain(projectRule, disposableRule)
+
+  @Before
+  fun setUp() {
+    projectRule.project.registerOrReplaceServiceInstance(BackupManager::class.java, FakeBackupManager(), disposableRule.disposable)
+  }
 
   @Test
   @Throws(Exception::class)

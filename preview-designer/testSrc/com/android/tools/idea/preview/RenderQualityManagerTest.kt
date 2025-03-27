@@ -16,10 +16,6 @@
 package com.android.tools.idea.preview
 
 import com.android.ide.common.rendering.api.Result
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.disposable
@@ -30,10 +26,13 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -82,13 +81,12 @@ class RenderQualityManagerTest {
   private lateinit var sceneManagerMock: LayoutlibSceneManager
 
   private lateinit var surfaceMock: NlDesignSurface
-  private lateinit var panZoomListener: PanZoomListener
-  private lateinit var listenerInitialization: CountDownLatch
+  private val panningChanged = MutableSharedFlow<Unit>()
+  private val zoomChanged = MutableSharedFlow<Unit>()
   private var scrollRectangle: Rectangle? = null
 
   @Before
   fun setUp() {
-    listenerInitialization = CountDownLatch(1)
     tool = TestPreviewTool()
 
     sceneViewMock = mock<SceneView>()
@@ -101,11 +99,10 @@ class RenderQualityManagerTest {
     }
 
     surfaceMock = mock<NlDesignSurface>()
-    whenever(surfaceMock.addPanZoomListener(any(PanZoomListener::class.java))).then {
-      panZoomListener = it.getArgument(0)
-      listenerInitialization.countDown()
-      return@then Unit
-    }
+    whenever(surfaceMock.panningChanged).thenReturn(panningChanged)
+    whenever(surfaceMock.modelChanged).thenReturn(MutableSharedFlow())
+    whenever(surfaceMock.zoomChanged).thenReturn(zoomChanged)
+
     whenever(surfaceMock.findSceneViewRectangles()).then {
       return@then mapOf(Pair(sceneViewMock, sceneViewRectangle))
     }
@@ -121,7 +118,6 @@ class RenderQualityManagerTest {
       DefaultRenderQualityManager(surfaceMock, TestRenderQualityPolicy(tool)) {
         tool.qualityChangeMightBeNeeded()
       }
-    listenerInitialization.await()
   }
 
   @Test
@@ -131,7 +127,7 @@ class RenderQualityManagerTest {
     tool.qualityChangeNeededLatch = CountDownLatch(1)
     repeat(20) {
       // Alternate between both notifications as they should have the same effect
-      if (it % 2 == 0) panZoomListener.zoomChanged(1.0, 1.0) else panZoomListener.panningChanged()
+      if (it % 2 == 0) zoomChanged.emit(Unit) else panningChanged.emit(Unit)
       delay(tool.debounceTime / 5)
     }
     tool.qualityChangeNeededLatch.await()
@@ -141,7 +137,7 @@ class RenderQualityManagerTest {
     tool.qualityChangeNeededLatch = CountDownLatch(2)
     repeat(2) {
       // Alternate between both notifications as they should have the same effect
-      if (it % 2 == 0) panZoomListener.zoomChanged(1.0, 1.0) else panZoomListener.panningChanged()
+      if (it % 2 == 0) zoomChanged.emit(Unit) else panningChanged.emit(Unit)
       delay(tool.debounceTime * 5)
     }
 

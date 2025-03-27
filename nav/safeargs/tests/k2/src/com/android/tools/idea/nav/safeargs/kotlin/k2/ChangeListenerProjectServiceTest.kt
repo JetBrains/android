@@ -78,7 +78,7 @@ class ChangeListenerProjectServiceTest {
   @Test
   fun `fires global source change for completed project sync`() =
     withAnalysisBusListener(GLOBAL_SOURCE_OUT_OF_BLOCK_MODIFICATION) { listener ->
-      val future = safeArgsRule.project.getSyncManager().syncProject(SyncReason.USER_REQUEST)
+      val future = safeArgsRule.project.getSyncManager().requestSyncProject(SyncReason.USER_REQUEST)
       val result = future.get()
       assertThat(result).isNoneOf(SyncResult.FAILURE, SyncResult.CANCELLED, SyncResult.UNKNOWN)
       runInEdtAndWait { EDT.dispatchAllInvocationEvents() }

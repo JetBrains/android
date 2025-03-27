@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
+import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
@@ -34,13 +37,18 @@ internal class DeviceDisplayPanel(
   initialDisplayOrientation: Int,
   project: Project,
   zoomToolbarVisible: Boolean,
-) : AbstractDisplayPanel<DeviceView>(disposableParent, zoomToolbarVisible), UiDataProvider {
+) : AbstractDisplayPanel<DeviceView>(disposableParent, zoomToolbarVisible), UiDataProvider, ConnectionStateListener {
+
+  override val deviceType: DeviceType
+    get() = displayView.deviceClient.deviceConfig.deviceType
 
   init {
     displayView = DeviceView(this, deviceClient, project, displayId, initialDisplayOrientation)
 
     loadingPanel.setLoadingText("Connecting to the device")
     loadingPanel.startLoading() // The stopLoading method is called by DeviceView after a connection to the device is established.
+
+    displayView.addConnectionStateListener(this)
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
@@ -49,6 +57,12 @@ internal class DeviceDisplayPanel(
       sink[DEVICE_VIEW_KEY] = displayView
       sink[DISPLAY_VIEW_KEY] = displayView
       sink[ZOOMABLE_KEY] = displayView
-      sink[SERIAL_NUMBER_KEY] = displayView.deviceClient.deviceSerialNumber
+  }
+
+  @UiThread
+  override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
+    if (connectionState == ConnectionState.CONNECTED) {
+      createFloatingToolbar()
+    }
   }
 }

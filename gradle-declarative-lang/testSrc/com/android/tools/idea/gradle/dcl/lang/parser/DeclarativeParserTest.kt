@@ -18,8 +18,14 @@ package com.android.tools.idea.gradle.dcl.lang.parser
 import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
+import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.LanguageASTFactory
 import com.intellij.testFramework.ParsingTestCase
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 
 class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativeParserDefinition()) {
 
@@ -140,5 +146,76 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true,true)
   }
 
+  fun testAssignWithEnum(){
+    doTest(true, true)
+  }
+
+  fun testNulls(){
+    doTest(true, true)
+  }
+
+  fun testMultifunctionExpression(){
+    doTest(true, true)
+  }
+
+  fun testPropertyReceiverFactory(){
+    doTest(true, true)
+  }
+
+  fun testPropertyDotNewlineFunction() {
+    doTest(true, false)
+    val psiFile = parseFile(name, loadFile("$testName.$myFileExt"))
+    assertThat(psiFile).isInstanceOf(DeclarativeFile::class.java)
+    val entries = (psiFile as DeclarativeFile).getEntries()
+    assertThat(entries).hasSize(1)
+
+    assertThat(entries[0]).isInstanceOf(DeclarativeAbstractFactory::class.java)
+    assertThat((entries[0] as DeclarativeAbstractFactory).identifier.name).isEqualTo("include")
+
+    val argumentsList = (entries[0] as DeclarativeAbstractFactory).argumentsList?.argumentList
+    assertThat(argumentsList).isNotNull()
+    assertThat(argumentsList).hasSize(1)
+    assertThat(argumentsList!![0].value).isInstanceOf(DeclarativeLiteral::class.java)
+    // getValue removes quotation marks
+    assertThat((argumentsList[0].value as DeclarativeLiteral).value).isEqualTo(":app")
+  }
+
+  fun testEscapedAndSingleQuote() {
+    doTest(true, true)
+
+    val psiFile = parseFile(name, loadFile("$testName.$myFileExt"))
+    assertThat(psiFile).isInstanceOf(DeclarativeFile::class.java)
+    val entries = (psiFile as DeclarativeFile).getEntries()
+
+    assertThat(entries).hasSize(1)
+    assertThat(entries[0]).isInstanceOf(DeclarativeBlock::class.java)
+    // checking that getName removes wrapping ``
+    assertThat((entries[0] as DeclarativeBlock).identifier!!.name).isEqualTo("block")
+
+    val blockEntries = (entries[0] as DeclarativeBlock).entries
+    assertThat(blockEntries).hasSize(3)
+
+    assertThat(blockEntries[0]).isInstanceOf(DeclarativeAbstractFactory::class.java)
+    // checking that getName removes wrapping ``
+    assertThat((blockEntries[0] as DeclarativeAbstractFactory).identifier.name).isEqualTo("function")
+
+    assertThat(blockEntries[1]).isInstanceOf(DeclarativeBlock::class.java)
+    // checking that getName removes wrapping `` and unescapes
+    assertThat((blockEntries[1] as DeclarativeBlock).identifier!!.name).isEqualTo("AnotherFunction")
+    assertThat((blockEntries[1] as DeclarativeBlock).embeddedFactory).isNotNull()
+
+    val factoryBlock = (blockEntries[1] as DeclarativeBlock).embeddedFactory!!
+    assertThat(factoryBlock.argumentsList).isNotNull()
+    assertThat(factoryBlock.argumentsList!!.argumentList).hasSize(1)
+    val argument = factoryBlock.argumentsList!!.argumentList[0]
+
+    assertThat(argument.value).isInstanceOf(DeclarativeLiteral::class.java)
+    // getValue removes quotation marks
+    assertThat((argument.value as DeclarativeLiteral).value).isEqualTo("string")
+
+    val assignment = (blockEntries[2] as DeclarativeAssignment)
+    assertThat(assignment.identifier.name).isEqualTo("assignment.my")
+    assertThat((assignment.value as DeclarativeLiteral).value).isEqualTo(1)
+  }
   override fun getTestDataPath(): String = resolveWorkspacePath("tools/adt/idea/gradle-declarative-lang/testData").toString()
 }

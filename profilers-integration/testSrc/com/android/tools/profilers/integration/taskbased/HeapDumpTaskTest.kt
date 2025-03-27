@@ -15,12 +15,32 @@
  */
 package com.android.tools.profilers.integration.taskbased
 
-import com.android.tools.asdriver.tests.Emulator
-import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.asdriver.tests.AndroidStudio
+import com.android.tools.profilers.integration.ProfilersTaskTestBase
 import org.junit.Test
 
-class HeapDumpTaskTest : ProfilersTestBase() {
+class HeapDumpTaskTest : ProfilersTaskTestBase() {
 
+  override fun selectTask(studio: AndroidStudio) {
+    selectHeapDumpTask(studio)
+  }
+
+  override fun verifyTaskStarted(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
+    verifyIdeaLog(".*PROFILER\\:\\s+Heap\\s+dump\\s+capture\\s+start\\s+succeeded", 120)
+  }
+
+  override fun verifyTaskStopped(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Heap\\s+dump\\s+capture\\s+has\\s+finished", 450)
+  }
+
+  override fun verifyUIComponents(studio: AndroidStudio) {
+    studio.waitForComponentByClass("CapturePanelUi")
+  }
+
+  override fun stopCurrentTask(studio: AndroidStudio) {
+    studio.waitForComponentByClass("CapturePanelUi")
+  }
   /**
    * Validate heap dump task workflow is working.
    *
@@ -38,33 +58,5 @@ class HeapDumpTaskTest : ProfilersTestBase() {
    *  5. Verify UI components after capture is parsed.
    */
   @Test
-  fun test() {
-    taskBasedProfiling(
-      systemImage = Emulator.SystemImage.API_33,
-      deployApp = true,
-      testFunction = { studio, _ ->
-        // Selecting the device.
-        selectDevice(studio)
-
-        // Selecting the process id which consists of `minapp`
-        selectProcess(studio)
-
-        // Selecting heap dump task.
-        selectHeapDumpTask(studio)
-
-        // Select Process start to "Now"
-        setProfilingStartingPointToNow(studio)
-
-        // Starting task, assuming that the default is set to "Now"
-        startTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
-        verifyIdeaLog(".*PROFILER\\:\\s+Heap\\s+dump\\s+capture\\s+start\\s+succeeded", 120)
-
-        // Heap dump capture might take a few seconds to minutes, additional timeout is required
-        verifyIdeaLog(".*PROFILER\\:\\s+Heap\\s+dump\\s+capture\\s+has\\s+finished", 450)
-
-        studio.waitForComponentByClass("CapturePanelUi")
-      }
-    )
-  }
+  fun test() = testTask()
 }

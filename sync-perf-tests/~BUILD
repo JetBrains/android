@@ -63,6 +63,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",

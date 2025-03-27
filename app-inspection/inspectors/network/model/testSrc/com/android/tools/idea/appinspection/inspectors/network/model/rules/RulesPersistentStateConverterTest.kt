@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.rules
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.recordExistingFile
 import com.google.common.truth.Truth.assertThat
@@ -28,6 +27,8 @@ import kotlin.io.path.readText
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class RulesPersistentStateConverterTest {
 

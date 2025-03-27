@@ -864,7 +864,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -977,7 +976,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1117,7 +1115,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -1227,7 +1224,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1364,7 +1360,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -1474,7 +1469,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1611,7 +1605,6 @@ MODULE                        : project
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -1720,7 +1713,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1833,6 +1825,11 @@ MODULE                        : project
                             qName                         : :feature:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :ads-sdk-implementation:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :ads-sdk-implementation:testReleaseUnitTest
 MODULE                        : project.ads-sdk
     GradleModuleModel
         gradlePath                    : :ads-sdk
@@ -1861,14 +1858,14 @@ MODULE                        : project.ads-sdk-implementation
             ApiLevel                      : 33
             ApiString                     : 33
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :ads-sdk-implementation
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/ads-sdk-implementation/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -1911,12 +1908,13 @@ MODULE                        : project.ads-sdk-implementation
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.ads_sdk_implementation.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1927,8 +1925,8 @@ MODULE                        : project.ads-sdk-implementation
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2085,8 +2083,8 @@ MODULE                        : project.ads-sdk-implementation
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN
@@ -2306,6 +2304,7 @@ MODULE                        : project.ads-sdk-implementation
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2331,6 +2330,11 @@ MODULE                        : project.ads-sdk-implementation
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -2364,14 +2368,14 @@ MODULE                        : project.app
             ApiLevel                      : 33
             ApiString                     : 33
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -2414,6 +2418,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.rubidumconsumer
         testApplicationId             : com.example.rubidumconsumer.test
@@ -2421,7 +2426,7 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : com.example.rubidumconsumer
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -2438,8 +2443,8 @@ MODULE                        : project.app
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2606,8 +2611,8 @@ MODULE                        : project.app
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -3477,6 +3482,7 @@ MODULE                        : project.app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3495,6 +3501,7 @@ MODULE                        : project.app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3520,6 +3527,11 @@ MODULE                        : project.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3550,14 +3562,14 @@ MODULE                        : project.app-with-dynamic-feature
             ApiLevel                      : 33
             ApiString                     : 33
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app-with-dynamic-feature
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app-with-dynamic-feature/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -3600,6 +3612,7 @@ MODULE                        : project.app-with-dynamic-feature
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.rubidumconsumer
         testApplicationId             : com.example.rubidumconsumer.test
@@ -3607,7 +3620,7 @@ MODULE                        : project.app-with-dynamic-feature
     - basicVariant:               : release
         applicationId                 : com.example.rubidumconsumer
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     DynamicFeatures               : :feature
     ViewBindingOptions
         Enabled                       : false
@@ -3625,8 +3638,8 @@ MODULE                        : project.app-with-dynamic-feature
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3793,8 +3806,8 @@ MODULE                        : project.app-with-dynamic-feature
                 ApiLevel                      : 33
                 ApiString                     : 33
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -4676,6 +4689,7 @@ MODULE                        : project.app-with-dynamic-feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4694,6 +4708,7 @@ MODULE                        : project.app-with-dynamic-feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -4719,6 +4734,11 @@ MODULE                        : project.app-with-dynamic-feature
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -4762,7 +4782,7 @@ MODULE                        : project.feature
     ProjectPath                   : :feature
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/feature/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -4805,12 +4825,13 @@ MODULE                        : project.feature
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.feature.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     BaseFeature                   : :app-with-dynamic-feature
     ViewBindingOptions
         Enabled                       : false
@@ -5492,6 +5513,7 @@ MODULE                        : project.feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -5510,6 +5532,7 @@ MODULE                        : project.feature
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -5535,6 +5558,11 @@ MODULE                        : project.feature
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

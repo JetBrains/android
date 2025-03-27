@@ -245,9 +245,10 @@ class PreprocessNodeComparatorTest {
 
   @Test
   fun testSortingATFIssues() {
-
-    val atfNodeA = TestIssueNode(TestAtfIssue("AAA"))
-    val atfNodeB = TestIssueNode(TestAtfIssue("BBB"))
+    val atfNodeA =
+      TestIssueNode(NlAtfIssue(createIssueValidatorData("EditableContentDescCheck"), mock(), null))
+    val atfNodeB =
+      TestIssueNode(NlAtfIssue(createIssueValidatorData("ImageContrastCheck"), mock(), null))
     val otherNode = TestNode("other")
 
     // Basic cases
@@ -264,15 +265,12 @@ class PreprocessNodeComparatorTest {
   }
 }
 
-private class TestAtfIssue(override val summary: String) :
-  NlAtfIssue(createIssueValidatorData(), mock(), null)
-
-fun createIssueValidatorData(): ValidatorData.Issue {
+fun createIssueValidatorData(sourceClass: String): ValidatorData.Issue {
   return ValidatorData.Issue.IssueBuilder()
     .setCategory("")
     .setType(ValidatorData.Type.ACCESSIBILITY)
     .setMsg("")
     .setLevel(ValidatorData.Level.ERROR)
-    .setSourceClass("")
+    .setSourceClass(sourceClass)
     .build()
 }

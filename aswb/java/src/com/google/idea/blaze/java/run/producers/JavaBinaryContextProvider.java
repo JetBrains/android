@@ -130,7 +130,7 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
     }
 
     WorkspacePath path = querySyncProject.getWorkspaceRoot().workspacePathFor(mainClassFile);
-    ImmutableSet<Label> targetOwners = buildGraphData.getTargetOwners(Path.of(path.relativePath()));
+    ImmutableSet<Label> targetOwners = buildGraphData.getSourceFileOwners(Path.of(path.relativePath()));
 
     if (targetOwners == null) {
       return null;

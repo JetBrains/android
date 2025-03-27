@@ -106,8 +106,7 @@ class DownloadEventsProcessorTest {
           downloadFailureStub(0, 100, 10000, listOf(
             failureStub(
               "Failed request 1",
-              listOf(failureStub("Caused by 1", emptyList(), emptyList())),
-              emptyList()
+              listOf(failureStub("Caused by 1", emptyList()))
             )))
         )
       ),
@@ -145,8 +144,8 @@ class DownloadEventsProcessorTest {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       val modelUpdates = mutableListOf<DownloadRequestItem>()
       val fakeUiModel = object : DownloadInfoDataModel.Listener {
-        override fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
-          modelUpdates.add(downloadRequest)
+        override fun updateDownloadRequests(downloadRequests: List<DownloadRequestItem>) {
+          modelUpdates.addAll(downloadRequests)
         }
       }
       dataModel.subscribeUiModel(fakeUiModel)

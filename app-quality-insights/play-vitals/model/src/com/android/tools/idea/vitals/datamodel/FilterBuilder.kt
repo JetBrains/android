@@ -72,6 +72,12 @@ private const val IS_USER_PERCEIVED = "isUserPerceived"
  */
 private const val ERROR_ISSUE_ID = "errorIssueId"
 
+/**
+ * `errorReportId`: Matches error reports with the requested error report id. Example:
+ * `errorReportId = 1234 OR errorReportId = 4567`.
+ */
+private const val ERROR_REPORT_ID = "errorReportId"
+
 private data class Filter(val qualifier: String, val value: String) {
   override fun toString(): String {
     return if (value.isEmpty()) qualifier else "$qualifier = $value"
@@ -166,6 +172,10 @@ class FilterBuilder {
    */
   fun addIssue(issueId: IssueId) {
     rawFilters.add(Filter(DimensionType.ISSUE_ID.value, issueId.value))
+  }
+
+  fun addReportIds(reportIds: List<String>) {
+    rawFilters.addAll(reportIds.map { Filter(ERROR_REPORT_ID, it) })
   }
 
   fun build(): String {

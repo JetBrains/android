@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.ui.HideablePanel
@@ -28,8 +27,9 @@ import com.android.tools.profilers.cpu.systemtrace.RenderSequence
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito
-import org.mockito.Mockito.anyInt
+import org.mockito.kotlin.whenever
 import perfetto.protos.PerfettoTrace
 import java.awt.Component
 import javax.swing.JLabel

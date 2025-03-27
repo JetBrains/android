@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.preview.animation.InspectorPainter
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.awt.Graphics2D
 import javax.swing.JSlider
 

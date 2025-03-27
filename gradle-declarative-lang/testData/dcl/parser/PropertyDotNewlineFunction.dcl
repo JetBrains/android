@@ -1,0 +1,2 @@
+rootProject.
+include(":app")

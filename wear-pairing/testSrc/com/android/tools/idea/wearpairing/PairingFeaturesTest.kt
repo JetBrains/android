@@ -17,7 +17,6 @@ package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.testFramework.LightPlatform4TestCase
@@ -25,10 +24,11 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.Mockito
-import org.mockito.Mockito.anyString
-import org.mockito.Mockito.doAnswer
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val OEM_COMPANION_APP_ID = "com.example"
 
@@ -43,7 +43,7 @@ class PairingFeaturesTest : LightPlatform4TestCase() {
   @Test
   fun onGettingCompanionAppId_nothingIsNotSet_systemPropertyIsRead() {
     val device = createDeviceWithShellCommandResult("null")
-    whenever(device.getSystemProperty(anyString()))
+    whenever(device.getSystemProperty(any()))
       .thenReturn(Futures.immediateFuture(OEM_COMPANION_APP_ID))
 
     runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_APP_ID) }
@@ -52,7 +52,7 @@ class PairingFeaturesTest : LightPlatform4TestCase() {
   @Test
   fun onGettingCompanionAppId_settingIsNotSet_returnsWear2CompanionAppId() {
     val device = createDeviceWithShellCommandResult("null")
-    whenever(device.getSystemProperty(anyString())).thenReturn(Futures.immediateFuture(""))
+    whenever(device.getSystemProperty(any())).thenReturn(Futures.immediateFuture(""))
 
     runBlocking {
       assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID)
@@ -93,7 +93,7 @@ class HasPairingFeatureTest(private val pairingFeature: PairingFeature) : LightP
 }
 
 private fun createDeviceWithShellCommandResult(result: String): IDevice {
-  val device = Mockito.mock(IDevice::class.java)
+  val device = mock<IDevice>()
   doAnswer { invocation: InvocationOnMock ->
       val outputReceiver = invocation.getArgument<IShellOutputReceiver>(1)
       val data = result.toByteArray()
@@ -101,6 +101,6 @@ private fun createDeviceWithShellCommandResult(result: String): IDevice {
       null
     }
     .whenever(device)
-    .executeShellCommand(anyString(), Mockito.any())
+    .executeShellCommand(any(), any())
   return device
 }

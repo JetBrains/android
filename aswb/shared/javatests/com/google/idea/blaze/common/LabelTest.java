@@ -85,6 +85,11 @@ public class LabelTest {
   }
 
   @Test
+  public void testNew_empty() {
+    assertThrows(IllegalArgumentException.class, () -> Label.of(""));
+  }
+
+  @Test
   public void testNew_badPackage() {
     assertThrows(IllegalArgumentException.class, () -> Label.of("package/path:rule"));
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -24,8 +23,9 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import java.util.Collections
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class NavActionsToolbarTest : NavTestCase() {
 
@@ -39,11 +39,11 @@ class NavActionsToolbarTest : NavTestCase() {
         }
       }
 
-    val actionManager = mock(NavActionManager::class.java)
+    val actionManager = mock<NavActionManager>()
     val surface = model.surface
 
     surface.selectionModel.clear()
-    val issueModel = mock(IssueModel::class.java)
+    val issueModel = mock<IssueModel>()
     whenever(surface.issueModel).thenReturn(issueModel)
     whenever(surface.actionManager).thenReturn(actionManager)
     whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())

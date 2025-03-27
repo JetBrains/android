@@ -136,8 +136,8 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
 
 
   @VisibleForTesting
-  public static class MyPublicResourceIdMapBuilder implements NanoXmlBuilder {
-    private final Int2ObjectMap<String> myIdMap = new Int2ObjectOpenHashMap<>(3000);
+  static class MyPublicResourceIdMapBuilder implements NanoXmlBuilder {
+    private final Int2ObjectMap<String> myIdMap = new Int2ObjectOpenHashMap<>(2250);
 
     private String myName;
     private String myType;

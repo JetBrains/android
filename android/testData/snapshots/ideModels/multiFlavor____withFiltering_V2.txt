@@ -69,7 +69,6 @@ MODULE                        : MultiFlavor
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -326,6 +325,11 @@ MODULE                        : MultiFlavor
                             qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testFirstAbcSecondAbcDebugUnitTest      : testFirstAbcSecondAbcDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondAbcDebugUnitTest
+                testFirstAbcSecondAbcReleaseUnitTest    : testFirstAbcSecondAbcReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testFirstAbcSecondAbcReleaseUnitTest
 MODULE                        : MultiFlavor.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -344,14 +348,14 @@ MODULE                        : MultiFlavor.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -394,6 +398,7 @@ MODULE                        : MultiFlavor.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
@@ -403,7 +408,7 @@ MODULE                        : MultiFlavor.app
         buildType                     : release
     FlavorDimensions              : Dim1
     FlavorDimensions              : Dim2
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -425,8 +430,8 @@ MODULE                        : MultiFlavor.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -740,8 +745,8 @@ MODULE                        : MultiFlavor.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 20
             VersionNameSuffix             : -firstAbc-secondAbc-debug
             VersionNameWithSuffix         : 1.secondAbc-firstAbc-secondAbc-debug

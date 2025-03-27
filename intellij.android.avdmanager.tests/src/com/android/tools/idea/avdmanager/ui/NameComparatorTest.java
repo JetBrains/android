@@ -188,6 +188,25 @@ public final class NameComparatorTest {
     assertEquals(expectedDevices, actualDevices);
   }
 
+  @Test
+  public void compareDeprecated() {
+    var expectedDevices = List.of(
+      mockDevice("Wear OS Rectangular"),
+      mockDevice("Pixel 3 XL"),
+      mockDeprecatedDevice("Nexus 10"),
+      mockDeprecatedDevice("Galaxy Nexus"),
+      mockDeprecatedDevice("8\" Fold-out"),
+      mockDeprecatedDevice("7\" WSVGA (Tablet)")
+    );
+    var actualDevices = shuffle(expectedDevices);
+
+    // Act
+    actualDevices.sort(new NameComparator());
+
+    // Assert
+    assertEquals(expectedDevices, actualDevices);
+  }
+
   @NotNull
   private static List<Device> shuffle(@NotNull Collection<Device> expectedDevices) {
     var actualDevices = new ArrayList<>(expectedDevices);
@@ -221,6 +240,12 @@ public final class NameComparatorTest {
 
   private static @NotNull Device mockDevice(@NotNull String name) {
     return mockDevice(name, "");
+  }
+
+  private static @NotNull Device mockDeprecatedDevice(@NotNull String name) {
+    Device device = mockDevice(name, "");
+    Mockito.when(device.getIsDeprecated()).thenReturn(true);
+    return device;
   }
 
   private static @NotNull Device mockDevice(@NotNull String name, @NotNull String id) {

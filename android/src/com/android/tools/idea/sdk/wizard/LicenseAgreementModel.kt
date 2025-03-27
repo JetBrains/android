@@ -16,10 +16,12 @@
 package com.android.tools.idea.sdk.wizard
 
 import com.android.repository.api.License
+import com.android.tools.idea.observable.ObservableValue
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.diagnostic.logger
 import java.nio.file.Path
+import java.util.Optional
 
 private val log get() = logger<LicenseAgreementModel>()
 
@@ -27,11 +29,12 @@ private val log get() = logger<LicenseAgreementModel>()
  * [WizardModel] that stores all the licenses related to the packages the user is about to install
  * and marks them as accepted after the packages are installed so that the user only accepts each license once.
  */
-class LicenseAgreementModel(sdkLocation: Path?) : WizardModel() {
+class LicenseAgreementModel: WizardModel {
   val licenses =  hashSetOf<License>()
-  val sdkRoot = OptionalValueProperty<Path>()
+  val sdkRoot: ObservableValue<Optional<Path>>
 
-  init {
+  constructor(sdkLocation: Path?) {
+    sdkRoot = OptionalValueProperty()
     if (sdkLocation != null) {
       sdkRoot.setValue(sdkLocation)
     }
@@ -40,14 +43,21 @@ class LicenseAgreementModel(sdkLocation: Path?) : WizardModel() {
     }
   }
 
-  override fun handleFinished() {
-    if (!sdkRoot.get().isPresent) {
+  constructor(sdkLocation: ObservableValue<Optional<Path>>) {
+    sdkRoot = sdkLocation
+  }
+
+  override fun handleFinished() = acceptLicenses()
+
+  fun acceptLicenses() {
+    val root = sdkRoot.get()
+    if (root.isEmpty) {
       log.error("The wizard could not find the SDK repository folder and will not complete. Please report this error.")
       return
     }
 
     licenses.forEach {
-      it.setAccepted(sdkRoot.value)
+      it.setAccepted(root.get())
     }
   }
 }

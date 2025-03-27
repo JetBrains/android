@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.chart.statechart.StateChart
@@ -45,6 +44,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import javax.swing.JComponent
 
 class CpuThreadTrackRendererTest {

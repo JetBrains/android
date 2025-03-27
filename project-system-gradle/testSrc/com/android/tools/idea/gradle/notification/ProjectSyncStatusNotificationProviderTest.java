@@ -106,9 +106,8 @@ public class ProjectSyncStatusNotificationProviderTest extends HeavyPlatformTest
   }
 
   @Test
-  public void testNotificationPanelTypeWithSyncNeededWithNoExternalFileChanged() {
+  public void testNotificationPanelTypeWithSyncNeededWithBuildFilesChanged() {
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
-    when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(false);
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
@@ -116,20 +115,6 @@ public class ProjectSyncStatusNotificationProviderTest extends HeavyPlatformTest
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
     Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
     assertNull(refreshExternalNativeModels);
-  }
-
-  @Test
-  public void testNotificationPanelTypeWithSyncNeededWithExternalFileChanged() {
-    when(mySyncState.isSyncNeeded()).thenReturn(YES);
-    when(myGradleFiles.areGradleFilesModified()).thenReturn(false);
-    when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(true);
-
-    Type type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.SYNC_NEEDED, type);
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type, GradleSyncNeededReason.EXTERNAL_BUILD_FILES_CHANGED);
-    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
-    Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
-    assertTrue(refreshExternalNativeModels);
   }
 
   @Test

@@ -53,7 +53,7 @@ internal const val TALKBACK_TITLE = "TalkBack:"
 internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
 internal const val FONT_SCALE_TITLE = "Font Size:"
 internal const val DENSITY_TITLE = "Display Size:"
-internal const val DEBUG_LAYOUT_TITLE = "Debug Layout:"
+internal const val DEBUG_LAYOUT_TITLE = "Show Layout Bounds:"
 internal const val RESET_TITLE = "Reset"
 internal const val PERMISSION_HINT_LINE1 = "More options may be available if \"Disable permission monitoring\" is turned on in"
 internal const val PERMISSION_HINT_LINE2 = "\"Developer Options\" and the device is restarted."
@@ -62,7 +62,7 @@ internal const val PERMISSION_HINT_LINE2 = "\"Developer Options\" and the device
  * Custom horizontal spacing between labels and controls.
  */
 private val SPACING = object : IntelliJSpacingConfiguration() {
-  override val horizontalSmallGap = 50
+  override val horizontalSmallGap = 40
 }
 
 /**

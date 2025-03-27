@@ -17,7 +17,6 @@ package com.google.idea.testing;
 
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
-import com.google.idea.sdkcompat.BaseSdkTestCompat;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -40,7 +39,7 @@ public abstract class AbstractIntegrationTestCase {
   public void setUp() throws Exception {
     IdeaTestFixtureFactory testFixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
     TestFixtureBuilder<IdeaProjectTestFixture> testFixtureBuilder =
-        BaseSdkTestCompat.createLightFixtureBuilder(testFixtureFactory, getClass().getName());
+        testFixtureFactory.createLightFixtureBuilder(getClass().getName());
     testFixture =
         testFixtureFactory.createCodeInsightFixture(
             testFixtureBuilder.getFixture(), new LightTempDirTestFixtureImpl(true));

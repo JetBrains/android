@@ -230,7 +230,7 @@ public abstract class BaseAction extends AnAction {
                                 "the selected device is not authorized");
     }
 
-    if (devices.stream().anyMatch(d -> !d.getVersion().isGreaterOrEqualThan(MIN_API_VERSION))) {
+    if (devices.stream().anyMatch(d -> !d.getVersion().isAtLeast(MIN_API_VERSION))) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
                                 "its API level is lower than 26");
     }
@@ -278,16 +278,14 @@ public abstract class BaseAction extends AnAction {
   /**
    * Check if there are any executors of the current {@link RunConfiguration} that is starting up. We should not swap when this is true.
    */
-  private static boolean isExecutorStarting(@NotNull Project project,
-                                            @NotNull RunnerAndConfigurationSettings settings) {
+  private static boolean isExecutorStarting(@NotNull Project project, @NotNull RunnerAndConfigurationSettings settings) {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
     for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensionList()) {
       ProgramRunner<?> programRunner = ProgramRunner.getRunner(executor.getId(), settings.getConfiguration());
       if (programRunner == null) {
         continue;
       }
-      if (ExecutionManager.getInstance(project).isStarting(
-        settings.getUniqueID(), executor.getId(), programRunner.getRunnerId())) {
+      if (ExecutionManager.getInstance(project).isStarting(settings.getUniqueID(), executor.getId(), programRunner.getRunnerId())) {
         return true;
       }
     }

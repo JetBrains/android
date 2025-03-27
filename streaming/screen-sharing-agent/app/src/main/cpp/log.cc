@@ -123,4 +123,18 @@ void Log::Fatal(ExitCode exit_code, JThrowable throwable, const char* message, .
 
 Log::Level Log::level_ = Log::Level::INFO;
 
+string HexString(const void* buf, size_t size) {
+  string result;
+  if (size > 0) {
+    result.reserve(size * 3 - 1);
+    for (size_t i = 0; i < size; ++i) {
+      if (i > 0) {
+        result += ' ';
+      }
+      result += StringPrintf("%02X", static_cast<const uint8_t*>(buf)[i]);
+    }
+  }
+  return result;
+}
+
 }  // namespace screensharing

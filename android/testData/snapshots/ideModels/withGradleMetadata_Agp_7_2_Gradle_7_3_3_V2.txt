@@ -195,6 +195,11 @@ MODULE                        : withGradleMetadata
                             qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : withGradleMetadata.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -263,6 +268,7 @@ MODULE                        : withGradleMetadata.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : come.example.with.gradle.metadata
         testApplicationId             : come.example.with.gradle.metadata.test

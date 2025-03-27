@@ -165,7 +165,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     "Show skipped tests", getIconFor(AndroidTestCaseResult.SKIPPED, false),
     SKIPPED_TOGGLE_BUTTON_STATE_KEY, true)
 
-  private val myExportTestResultsAction = ExportAndroidTestResultsAction().apply {
+  @VisibleForTesting val myExportTestResultsAction = ExportAndroidTestResultsAction().apply {
     toolWindowId = this@AndroidTestSuiteView.toolWindowId
     runConfiguration = this@AndroidTestSuiteView.runConfiguration
   }
@@ -466,13 +466,16 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         showSystemNotification()
         showNotificationBalloonIfToolWindowIsNotActive()
 
-        // Don't allow re-exporting the imported result.
-        if (!myIsImportedResult) {
+        // Don't allow re-exporting the imported result or exporting a cancelled result.
+        if (!myIsImportedResult && testSuite.result != AndroidTestSuiteResult.CANCELLED) {
           myExportTestResultsAction.apply {
             devices = myScheduledDevices.toList()
             rootResultsNode = myResultsTableView.rootResultsNode
             executionDuration = Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis)
           }
+        }
+        // Do not save imported results to history.
+        if (!myIsImportedResult) {
           saveHistory()
         }
       }
@@ -737,7 +740,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     myLogger.reportImpressions()
   }
 
-  private class MyItemSeparator : JComponent() {
+  class MyItemSeparator : JComponent() {
     init {
       val mySize = JBDimension(JBUIScale.scale(20), JBUIScale.scale(24), /*preScaled=*/true)
       minimumSize = mySize

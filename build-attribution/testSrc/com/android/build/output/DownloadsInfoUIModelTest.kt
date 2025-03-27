@@ -268,6 +268,25 @@ class DownloadsInfoUIModelTest {
     runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 
+  @Test
+  fun testManyUpdatesAtOnce() {
+
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
+    val repeats = 10000
+    (1..repeats).forEach { i ->
+      dataModel.onNewItemUpdate(DownloadRequestItem(DownloadRequestKey(1000, url1 + i), GOOGLE, true, 20, 10))
+      dataModel.onNewItemUpdate(DownloadRequestItem(DownloadRequestKey(1050, url2 + i), GOOGLE, true, 20, 10, "Failure message"))
+      dataModel.onNewItemUpdate(DownloadRequestItem(DownloadRequestKey(1100, url2 + i), GOOGLE, false, 20, 10))
+      dataModel.onNewItemUpdate(DownloadRequestItem(DownloadRequestKey(1150, url3 + i), MAVEN_CENTRAL, true, 20, 10))
+    }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+
+    model.repositoriesTableModel.summaryItem.assertRepositoryItemState(repeats, 3 * repeats, repeats, (4 * 10 * repeats).toLong(), (4 * 20 * repeats).toLong())
+    assertThat(model.repositoriesTableModel.items).hasSize(3)
+  }
+
 
   private fun RepositoryTableItem.assertRepositoryItemState(running: Int, completed: Int, failed: Int, durationMs: Long, bytesDownloaded: Long) {
     assertThat(runningNumberOfRequests).isEqualTo(running)
@@ -305,12 +324,12 @@ class DownloadsInfoUITableModelsTest {
   @Test
   fun testRepositoriesTableContentAndFormatting() {
     val model = RepositoriesTableModel()
-    listOf(
+    model.bulkUpdate(listOf(
       DownloadRequestItem(DownloadRequestKey(1000, url1), GOOGLE, true, 1234, 1234),
       DownloadRequestItem(DownloadRequestKey(1050, url2), GOOGLE, true, 0, 5678, "Failure message"),
       DownloadRequestItem(DownloadRequestKey(1100, url2), GOOGLE, false, 12, 123),
       DownloadRequestItem(DownloadRequestKey(1150, url3), MAVEN_CENTRAL, true, 1234, 1234)
-    ).forEach { model.update(it) }
+    ))
 
     val table = TableView(model)
     assertThat(table.rowCount).isEqualTo(3)

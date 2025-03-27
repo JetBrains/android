@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.visual.analytics
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.common.analytics.setApplicationId
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintErrorType
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.VisualLintEvent

@@ -21,12 +21,11 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.avd.EditVirtualDeviceDialog.Mode
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.INDIRECT
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.avdmanager.ui.AvdOptionsModel
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
@@ -36,13 +35,12 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
+import java.awt.Component
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 
@@ -70,6 +68,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
           wear = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR,
           tv = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
           automotive = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR,
+          headset = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET,
         ),
       defaultPresentation = StudioDefaultDeviceActionPresentation,
       diskIoThread,
@@ -80,51 +79,36 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
 }
 
 private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPlugin.AvdManager {
-  private val avdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection()
+  // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
+  private val avdManagerConnection
+    get() = AvdManagerConnection.getDefaultAvdManagerConnection()
 
   override suspend fun rescanAvds() =
     withContext(diskIoThread) { avdManagerConnection.getAvds(true) }
 
-  override suspend fun createAvd(): Boolean {
-    if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
-      val source = withContext(workerThread) { LocalVirtualDeviceSource.create() }
-      return withContext(uiThread) {
-        val wizard =
-          AddDeviceWizard(
-            source,
-            project,
-            accelerationCheck = { checkAcceleration(source.sdkHandler) },
-          )
-        val created = wizard.createDialog().showAndGet()
-        if (created) {
-          UsageTracker.log(
-            AndroidStudioEvent.newBuilder()
-              .setKind(AndroidStudioEvent.EventKind.DEVICE_MANAGER)
-              .setDeviceManagerEvent(
-                DeviceManagerEvent.newBuilder()
-                  .setKind(DeviceManagerEvent.EventKind.VIRTUAL_CREATE_ACTION)
-              )
-          )
-        }
-        created
-      }
-    } else {
-      val avdOptionsModel = AvdOptionsModel(null)
-      withContext(uiThread) {
-        AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
-      }
-      return avdOptionsModel.createdAvd.isPresent
-    }
+  override suspend fun createAvd(parent: Component?): Boolean {
+    return showAddDeviceDialog(project, parent) != null
   }
 
-  override suspend fun editAvd(avdInfo: AvdInfo): Boolean {
+  override suspend fun editAvd(parent: Component?, avdInfo: AvdInfo): Boolean {
     if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
-      return EditVirtualDeviceDialog(project).show(avdInfo)
+      return EditVirtualDeviceDialog.show(project, parent, avdInfo, Mode.EDIT)
     } else {
       return withContext(uiThread) {
         val avdOptionsModel = AvdOptionsModel(avdInfo)
         AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
         avdOptionsModel.createdAvd.isPresent
+      }
+    }
+  }
+
+  override suspend fun duplicateAvd(parent: Component?, avdInfo: AvdInfo) {
+    if (StudioFlags.DEVICE_CATALOG_ENABLED.get()) {
+      EditVirtualDeviceDialog.show(project, parent, avdInfo, mode = Mode.DUPLICATE)
+    } else {
+      withContext(uiThread) {
+        AvdWizardUtils.createAvdWizardForDuplication(null, project, AvdOptionsModel(avdInfo))
+          .showAndGet()
       }
     }
   }
@@ -156,13 +140,6 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
 
   override suspend fun showOnDisk(avdInfo: AvdInfo) {
     RevealFileAction.openDirectory(avdInfo.dataFolderPath)
-  }
-
-  override suspend fun duplicateAvd(avdInfo: AvdInfo) {
-    withContext(uiThread) {
-      AvdWizardUtils.createAvdWizardForDuplication(null, project, AvdOptionsModel(avdInfo))
-        .showAndGet()
-    }
   }
 
   override suspend fun wipeData(avdInfo: AvdInfo) {

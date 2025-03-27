@@ -17,7 +17,6 @@ package com.android.tools.idea
 
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
@@ -34,6 +33,7 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.whenever
 import java.net.URL
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
@@ -78,14 +78,12 @@ class MaterialVdIconsProviderTest {
       uiCallback, disposable, MaterialIconsMetadataTestUrlProvider(), MaterialIconsTestUrlProvider()
     )
     assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
-    Truth.assertThat(materialIcons.styles).hasLength(2)
-    assertEquals("Style 1", materialIcons.styles[0])
-    assertEquals("Style 2", materialIcons.styles[1])
-    Truth.assertThat(materialIcons.getCategories("Style 1")).asList().containsAllIn(materialIcons.getCategories("Style 2"))
+    Truth.assertThat(materialIcons.styles)
+      .containsExactly("Style 1", "Style 2")
+    Truth.assertThat(materialIcons.getCategories("Style 1")).containsAllIn(materialIcons.getCategories("Style 2"))
     val icons = materialIcons.getAllIcons("Style 1")
-    Truth.assertThat(icons).hasLength(2)
-    assertEquals("style1_my_icon_1_24.xml", icons[0].name)
-    assertEquals("style1_my_icon_2_24.xml", icons[1].name)
+    Truth.assertThat(icons.map { it.name })
+      .containsExactly("style1_my_icon_1_24.xml", "style1_my_icon_2_24.xml")
   }
 
   @Test
@@ -122,9 +120,8 @@ class MaterialVdIconsProviderTest {
       })
     assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
     val materialIcons = icons!!
-    Truth.assertThat(materialIcons.styles).hasLength(2)
-    assertEquals("Style 1", materialIcons.styles[0])
-    assertEquals("Style 2", materialIcons.styles[1])
+    Truth.assertThat(materialIcons.styles)
+      .containsExactly("Style 1", "Style 2")
 
     Truth.assertThat(materialIcons.getAllIcons("Style 1")).isEmpty()
     Truth.assertThat(materialIcons.getAllIcons("Style 2")).isEmpty()
@@ -218,10 +215,9 @@ class MaterialVdIconsProviderTestWithSdk {
       null
     )
     assertTrue(latch.await(WAIT_TIMEOUT_SECONDS, TIMEOUT_UNIT))
-    Truth.assertThat(materialIcons.styles).hasLength(1)
-    assertEquals("Style 1", materialIcons.styles[0])
+    Truth.assertThat(materialIcons.styles).containsExactly("Style 1")
     val icons = materialIcons.getAllIcons("Style 1")
-    Truth.assertThat(icons).hasLength(1)
-    assertEquals("style1_my_sdk_icon_24.xml", icons[0].name)
+    Truth.assertThat(icons.map { it.name })
+      .containsExactly("style1_my_sdk_icon_24.xml")
   }
 }

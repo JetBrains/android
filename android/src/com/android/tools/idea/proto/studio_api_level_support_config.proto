@@ -8,6 +8,7 @@ option java_multiple_files = true;
 message AndroidSdkSupportConfiguration {
   map<int32, RecommendedVersions> android_api_studio_version_mapping = 1
       [deprecated = true];
+
   map<string, RecommendedVersions> android_api_studio_mapping = 2;
 }
 
@@ -23,8 +24,10 @@ message RecommendedVersions {
 message StudioVersionRecommendation {
   // Whether this channel has a released version and can be recommended
   optional bool version_released = 1;
+
   // The build string of the version
   optional string build_number = 2;
+
   // The human readable string of the version
   optional string build_display_name = 3;
 }

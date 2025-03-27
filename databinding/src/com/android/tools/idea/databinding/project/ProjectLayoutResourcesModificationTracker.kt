@@ -21,6 +21,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.util.SlowOperations
 
 /**
  * Modification tracker which changes if any layout resource file across the whole project changes.
@@ -44,8 +45,9 @@ class ProjectLayoutResourcesModificationTracker(private val project: Project) :
         facet ->
         StudioResourceRepositoryManager.getModuleResources(facet).modificationCount
       }
-    val bindingIndexModificationCount =
+    val bindingIndexModificationCount = SlowOperations.knownIssue("b/391099536").use {
       BindingXmlIndexModificationTracker.getInstance(project).modificationCount
+    }
     return resourceModificationCount + bindingIndexModificationCount
   }
 }

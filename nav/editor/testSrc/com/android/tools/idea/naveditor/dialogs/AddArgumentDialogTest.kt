@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.dialogs
 
 import com.android.SdkConstants.CLASS_PARCELABLE
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -32,8 +31,9 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 class AddArgumentDialogTest : NavTestCase() {
   private val testClassChooser =
@@ -192,7 +192,7 @@ class AddArgumentDialogTest : NavTestCase() {
         }
       }
 
-    val customEnum = mock(PsiClass::class.java)
+    val customEnum = mock<PsiClass>()
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
     testClassChooser.select(customEnum)
 
@@ -227,7 +227,7 @@ class AddArgumentDialogTest : NavTestCase() {
   fun testArray() {
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
 
-    val customEnum = mock(PsiClass::class.java)
+    val customEnum = mock<PsiClass>()
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
     testClassChooser.select(customEnum)
 
@@ -298,7 +298,7 @@ class AddArgumentDialogTest : NavTestCase() {
   fun testEnum() {
     val model = model("nav.xml") { NavModelBuilderUtil.navigation { fragment("fragment1") } }
 
-    val customEnum = mock(PsiClass::class.java)
+    val customEnum = mock<PsiClass>()
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
     testClassChooser.select(customEnum)
 
@@ -313,10 +313,10 @@ class AddArgumentDialogTest : NavTestCase() {
 
   fun testInnerClass() {
     val model = model("nav.xml") { NavModelBuilderUtil.navigation { fragment("fragment1") } }
-    val classChooser = mock(TreeClassChooser::class.java)
-    val containingClass = mock(PsiClass::class.java)
+    val classChooser = mock<TreeClassChooser>()
+    val containingClass = mock<PsiClass>()
     whenever(containingClass.qualifiedName).thenReturn("android.graphics.Paint")
-    val innerClass = mock(PsiClass::class.java)
+    val innerClass = mock<PsiClass>()
     whenever(innerClass.qualifiedName).thenReturn("android.graphics.Paint.Align")
     whenever(innerClass.containingClass).thenReturn(containingClass)
     whenever(innerClass.name).thenReturn("Align")

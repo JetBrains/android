@@ -138,8 +138,8 @@ class DeviceMonitorViewImpl(
       addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup, RunManager.getInstance(project)))
       if (StudioFlags.BACKUP_ENABLED.get()) {
-        addItem(BackupMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
-        addItem(RestoreMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+        addItem(BackupMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup, project))
+        addItem(RestoreMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup, project))
       }
       install()
     }

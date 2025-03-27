@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -68,6 +67,7 @@ import javax.swing.JButton
 import javax.swing.JRadioButton
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.mock
 
 private val EXPORT_FORMATS_ALL = listOf(DB, SQL, CSV(mock()))
 

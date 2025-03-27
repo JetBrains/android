@@ -17,7 +17,7 @@ package com.google.idea.blaze.kotlin.syncstatus;
 
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
-import com.google.idea.blaze.base.syncstatus.SyncStatusContributor;
+import com.google.idea.blaze.base.syncstatus.LegacySyncStatusContributor;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.openapi.vfs.VirtualFile;
 import javax.annotation.Nullable;
@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.idea.projectView.KtFileTreeNode;
 import org.jetbrains.kotlin.psi.KtClassOrObject;
 import org.jetbrains.kotlin.psi.KtFile;
 
-class KotlinSyncStatusContributor implements SyncStatusContributor {
+class KotlinSyncStatusContributor implements LegacySyncStatusContributor {
 
   @Nullable
   @Override

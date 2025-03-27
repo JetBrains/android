@@ -34,17 +34,18 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getValueComponent
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.getValueOf
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskViewTestUtils.namedChild
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.EDT
+import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.components.ActionLink
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -68,20 +69,20 @@ class EntryDetailsViewTest {
     }
   }
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var scope: CoroutineScope
   private lateinit var client: BackgroundTaskInspectorClient
   private lateinit var ideServices: TestIdeServices
   private lateinit var tab: BackgroundTaskInspectorTab
-  private lateinit var uiDispatcher: ExecutorCoroutineDispatcher
+  private lateinit var uiDispatcher: CoroutineDispatcher
   private lateinit var detailsView: EntryDetailsView
   private lateinit var selectionModel: EntrySelectionModel
 
   @Before
   fun setUp() = runBlocking {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
-    uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    uiDispatcher = Dispatchers.EDT as CoroutineDispatcher
     withContext(uiDispatcher) {
       client = BackgroundTaskInspectorTestUtils.getFakeClient(scope)
       ideServices = TestIdeServices()

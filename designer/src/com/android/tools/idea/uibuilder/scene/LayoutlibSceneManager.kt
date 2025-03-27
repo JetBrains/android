@@ -44,14 +44,13 @@ import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
-import com.android.tools.rendering.ExecuteCallbacksResult
-import com.android.tools.rendering.InteractionEventResult
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent
 import java.util.concurrent.CompletableFuture
@@ -124,7 +123,7 @@ open class LayoutlibSceneManager(
     get() = layoutlibSceneRenderer.isRendering()
 
   /** The [RenderResult] of the latest render. */
-  val renderResult: RenderResult?
+  open val renderResult: RenderResult?
     get() = layoutlibSceneRenderer.renderResult
 
   /** The quality used in the latest render. */
@@ -179,14 +178,8 @@ open class LayoutlibSceneManager(
         ?.let {
           ScreenView.newBuilder(designSurface, this)
             .withLayersProvider { sv: ScreenView? ->
-              val colorBlindMode = designSurface.screenViewProvider.colorBlindFilter
               ImmutableList.of(
-                ScreenViewLayer(
-                  sv!!,
-                  colorBlindMode,
-                  designSurface,
-                  designSurface::rotateSurfaceDegree,
-                )
+                ScreenViewLayer(sv!!, designSurface, designSurface::rotateSurfaceDegree)
               )
             }
             .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
@@ -244,7 +237,6 @@ open class LayoutlibSceneManager(
       }
 
       override fun modelChanged(model: NlModel) {
-        val surface: NlDesignSurface = this@LayoutlibSceneManager.designSurface
         // The structure might have changed, force a re-inflate
         sceneRenderConfiguration.needsInflation.set(true)
         // If the update is reversed (namely, we update the View hierarchy from the component
@@ -253,16 +245,7 @@ open class LayoutlibSceneManager(
         // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and
         // render the updated result.
         layoutlibSceneRenderer.sceneRenderConfiguration.doubleRenderIfNeeded.set(true)
-        requestRenderAsync()
-          .thenRunAsync(
-            {
-              selectionChangeListener.selectionChanged(
-                surface.selectionModel,
-                surface.selectionModel.selection,
-              )
-            },
-            EdtExecutorService.getInstance(),
-          )
+        requestRender()
       }
 
       override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
@@ -277,7 +260,7 @@ open class LayoutlibSceneManager(
       }
 
       override fun modelLiveUpdate(model: NlModel) {
-        requestRenderAsync()
+        requestRender()
       }
     }
 
@@ -304,23 +287,28 @@ open class LayoutlibSceneManager(
     scene.selectionChanged(designSurface.selectionModel, designSurface.selectionModel.selection)
   }
 
-  /**
-   * Adds a new render request to the queue.
-   *
-   * @return [CompletableFuture] that will be completed once the render has been done.
-   */
-  override fun requestRenderAsync(): CompletableFuture<Void> {
+  private fun getRenderTrigger() =
+    getTriggerFromChangeType(model.lastChangeType).also { model.resetLastChange() }
+
+  private fun onBeforeRender(): Boolean {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("requestRender after LayoutlibSceneManager has been disposed")
-      return CompletableFuture.completedFuture(null)
+        .warn("tried to render after LayoutlibSceneManager has been disposed")
+      return false
     }
-    val trigger = getTriggerFromChangeType(model.lastChangeType)
     logConfigurationChange(designSurface)
-    model.resetLastChange()
-    return layoutlibSceneRenderer.renderAsync(trigger).thenCompose {
-      CompletableFuture.completedFuture(null)
-    }
+    return true
+  }
+
+  /** Adds a new render request to the queue. */
+  override fun requestRender() {
+    layoutlibSceneRenderer.takeIf { onBeforeRender() }?.requestRender(getRenderTrigger())
+  }
+
+  /** Adds a new render request to the queue and wait for it to finish. */
+  @RequiresBackgroundThread
+  override suspend fun requestRenderAndWait() {
+    layoutlibSceneRenderer.takeIf { onBeforeRender() }?.requestRenderAndWait(getRenderTrigger())
   }
 
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> {
@@ -398,7 +386,7 @@ open class LayoutlibSceneManager(
       if (version != layoutlibSceneRenderer.renderedVersion) {
         sceneRenderConfiguration.needsInflation.set(true)
       }
-      requestRenderAsync()
+      requestRender()
     }
     return active
   }
@@ -427,22 +415,6 @@ open class LayoutlibSceneManager(
   private fun currentTimeNanos(): Long = layoutlibSceneRenderer.sessionClock.timeNanos
 
   /**
-   * Triggers execution of the Handler and frame callbacks in the layoutlib.
-   *
-   * @return a future that is completed when callbacks are executed.
-   */
-  private fun executeCallbacksAsync(): CompletableFuture<ExecuteCallbacksResult> {
-    if (isDisposed.get()) {
-      Logger.getInstance(LayoutlibSceneManager::class.java)
-        .warn("executeCallbacks after LayoutlibSceneManager has been disposed")
-    }
-    val currentTask =
-      layoutlibSceneRenderer.renderTask
-        ?: return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY)
-    return currentTask.executeCallbacks(currentTimeNanos())
-  }
-
-  /**
    * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a
    * particular point
    *
@@ -455,16 +427,16 @@ open class LayoutlibSceneManager(
     type: TouchEventType,
     @AndroidCoordinate x: Int,
     @AndroidCoordinate y: Int,
-  ): CompletableFuture<InteractionEventResult?> {
+  ) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("triggerTouchEventAsync after LayoutlibSceneManager has been disposed")
+      return
     }
-
-    val currentTask =
-      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
-    interactiveEventsCount++
-    return currentTask.triggerTouchEvent(type, x, y, currentTimeNanos())
+    layoutlibSceneRenderer.renderTask?.let {
+      interactiveEventsCount++
+      it.triggerTouchEvent(type, x, y, currentTimeNanos())
+    }
   }
 
   /**
@@ -472,21 +444,24 @@ open class LayoutlibSceneManager(
    *
    * @return a future that is completed when layoutlib handled the key event
    */
-  fun triggerKeyEventAsync(event: KeyEvent): CompletableFuture<InteractionEventResult?> {
+  fun triggerKeyEventAsync(event: KeyEvent) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager::class.java)
         .warn("triggerKeyEventAsync after LayoutlibSceneManager has been disposed")
+      return
     }
-
-    val currentTask =
-      layoutlibSceneRenderer.renderTask ?: return CompletableFuture.completedFuture(null)
-    interactiveEventsCount++
-    return currentTask.triggerKeyEvent(event, currentTimeNanos())
+    layoutlibSceneRenderer.renderTask?.let {
+      interactiveEventsCount++
+      it.triggerKeyEvent(event, currentTimeNanos())
+    }
   }
 
   /** Executes the given [Runnable] callback synchronously with a 30ms timeout. */
-  override fun executeCallbacksAndRequestRender(): CompletableFuture<Void> {
-    return executeCallbacksAsync().thenCompose { requestRenderAsync() }
+  override fun executeCallbacksAndRequestRender() {
+    sceneRenderConfiguration.layoutlibCallbacksConfig.set(
+      LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
+    )
+    requestRender()
   }
 
   /** Pauses session clock, so that session time stops advancing. */

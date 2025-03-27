@@ -22,9 +22,11 @@ import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
+import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage
 import com.android.tools.idea.gradle.structure.daemon.getSdkIndexIssueFor
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.ERROR
@@ -33,12 +35,10 @@ import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.xml.util.XmlStringUtil.escapeString
-import java.io.File
 import java.util.regex.Pattern
 
 class PsAndroidModuleAnalyzer(
@@ -120,6 +120,7 @@ class PsAndroidModuleAnalyzer(
   }
 
   private fun analyzeSdkIndexLibraries(model: PsAndroidModule): Sequence<PsIssue> {
+    val updateStorage = model.resolvedModel?.project?.let { AvailableLibraryUpdateStorage.getInstance(it)}
     return model
       .resolvedVariants
       .asSequence()
@@ -129,16 +130,12 @@ class PsAndroidModuleAnalyzer(
         library
           .getReverseDependencies()
           .filterIsInstance<ReverseDependency.Transitive>()
-          .map { PathSpecAndRoot(library) }
+          .map { library }
       }
-      .filter { it.path != null && it.spec.group != null }
+      .filter { it is PsDeclaredLibraryDependency }
       .distinct()
-      .map { getSdkIndexIssueFor(it.spec, it.path!!, it.rootDir) }
+      .map { getSdkIndexIssueFor(it as PsDeclaredLibraryDependency, availableUpdates = updateStorage)}
       .flatten()
-  }
-
-  private data class PathSpecAndRoot(val path: PsPath?, val spec: PsArtifactDependencySpec, val rootDir: File?) {
-    constructor(library: PsResolvedLibraryAndroidDependency) : this(library.path, library.spec, library.parent.rootDir)
   }
 
   private data class PathSpaceAndPromotedTo(val path: PsPath, val spec: PsArtifactDependencySpec, val promotedTo: PsArtifactDependencySpec) {

@@ -24,13 +24,13 @@ import com.intellij.util.io.createParentDirectories
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
-import junit.framework.TestCase
 import java.io.File
 import java.net.InetSocketAddress
 import java.net.MalformedURLException
 import java.net.URL
 import java.nio.file.Path
 import java.util.concurrent.Executors
+import junit.framework.TestCase
 import kotlin.io.path.createFile
 
 private const val VERSION = "4.2.0.0"
@@ -65,9 +65,7 @@ class ServerFlagDownloaderTest : TestCase() {
     val expected = serverFlagTestData
     saveServerFlagList(expected, downloadPath, VERSION)
 
-    val local = ServerFlagList.newBuilder().apply {
-      configurationVersion = 2
-    }.build()
+    val local = ServerFlagList.newBuilder().apply { configurationVersion = 2 }.build()
     saveServerFlagList(local, localPath, VERSION)
 
     testServerFlagDownloader(expected)
@@ -108,7 +106,9 @@ class ServerFlagDownloaderTest : TestCase() {
     val expected = serverFlagTestData
     saveServerFlagList(expected, localPath, VERSION)
 
-    ServerFlagDownloader.downloadServerFlagList(baseUrl.toString(), localPath, VERSION) { createTempFile() }
+    ServerFlagDownloader.downloadServerFlagList(baseUrl.toString(), localPath, VERSION) {
+      createTempFile()
+    }
 
     val actual = loadServerFlagList(localPath, VERSION)
     assertThat(actual).isEqualTo(expected)

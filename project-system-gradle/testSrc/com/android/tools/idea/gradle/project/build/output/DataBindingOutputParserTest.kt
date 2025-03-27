@@ -16,67 +16,98 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.build.events.MessageEvent
 
-import com.intellij.build.events.impl.FileMessageEventImpl
 import org.junit.Test
 
-class DataBindingOutputParserTest {
-
-  @Test
-  fun rejectUnrelatedInput() {
-    val input = "This is not data binding input"
-    val reader = TestBuildOutputInstantReader(input)
-    val consumer = TestMessageEventConsumer()
-
-    val parser = DataBindingOutputParser()
-
-    assertThat(parser.parse(input, reader, consumer)).isFalse()
-  }
+class DataBindingOutputParserTest : BuildOutputParserTest() {
 
   @Test
   fun handleMultipleJsonFormattedDataBindingParseErrors() {
-    val input = "Found data binding error(s):\n" +
-                "\n" +
-                "[databinding] {\"msg\":\"Could not find identifier \\u0027var1\\u0027\\n\\nCheck that the identifier is spelled correctly, and that no \\u003cimport\\u003e or \\u003cvariable\\u003e tags are missing.\",\"file\":\"/src/main/res/layout/activity_main1.xml\",\"pos\":[{\"line0\":36,\"col0\":28,\"line1\":36,\"col1\":32}]}\n" +
-                "[databinding] {\"msg\":\"Could not find identifier \\u0027var2\\u0027\\n\\nCheck that the identifier is spelled correctly, and that no \\u003cimport\\u003e or \\u003cvariable\\u003e tags are missing.\",\"file\":\"/src/main/res/layout/activity_main2.xml\",\"pos\":[{\"line0\":58,\"col0\":23,\"line1\":58,\"col1\":27}]}\n"
+    parseOutput(
+      parentEventId = "testId",
+      gradleOutput = """
+        Found data binding error(s):
 
-    val reader = TestBuildOutputInstantReader(input)
-    val consumer = TestMessageEventConsumer()
+        [databinding] {"msg":"Could not find identifier \u0027var1\u0027\n\nCheck that the identifier is spelled correctly, and that no \u003cimport\u003e or \u003cvariable\u003e tags are missing.","file":"/src/main/res/layout/activity_main1.xml","pos":[{"line0":36,"col0":28,"line1":36,"col1":32}]}
+        [databinding] {"msg":"Could not find identifier \u0027var2\u0027\n\nCheck that the identifier is spelled correctly, and that no \u003cimport\u003e or \u003cvariable\u003e tags are missing.","file":"/src/main/res/layout/activity_main2.xml","pos":[{"line0":58,"col0":23,"line1":58,"col1":27}]}
+      """.trimIndent(),
+      expectedEvents = listOf(
+        ExpectedEvent(
+          message = "Could not find identifier 'var1'",
+          isFileMessageEvent = true,
+          isBuildIssueEvent = false,
+          isDuplicateMessageAware = false,
+          group = "Data Binding compiler",
+          kind = MessageEvent.Kind.ERROR,
+          parentId = "testId",
+          filePosition = "/src/main/res/layout/activity_main1.xml:37:29-37:33",
+          description = """
+          Could not find identifier 'var1'
 
-    val parser = DataBindingOutputParser()
+          Check that the identifier is spelled correctly, and that no <import> or <variable> tags are missing.
+          """.trimIndent()),
+        ExpectedEvent(
+          message = "Could not find identifier 'var2'",
+          isFileMessageEvent = true,
+          isBuildIssueEvent = false,
+          isDuplicateMessageAware = false,
+          group = "Data Binding compiler",
+          kind = MessageEvent.Kind.ERROR,
+          parentId = "testId",
+          filePosition = "/src/main/res/layout/activity_main2.xml:59:24-59:28",
+          description = """
+          Could not find identifier 'var2'
 
-    while (true) {
-      val line = reader.readLine() ?: break
-      assertThat(parser.parse(line, reader, consumer)).isTrue()
-    }
-
-    assertThat(consumer.messageEvents).hasSize(2)
-
-    run {
-      val firstError = consumer.messageEvents[0] as FileMessageEventImpl
-      assertThat(firstError.result.details).startsWith("Could not find identifier 'var1'\n\nCheck that the identifier")
-
-      val filePos = firstError.filePosition
-      assertThat(filePos.startLine).isEqualTo(36)
-      assertThat(filePos.startColumn).isEqualTo(28)
-      assertThat(filePos.endLine).isEqualTo(36)
-      assertThat(filePos.endColumn).isEqualTo(32)
-      assertThat(filePos.file.path).contains("activity_main1.xml")
-    }
-
-    run {
-      val secondError = consumer.messageEvents[1] as FileMessageEventImpl
-      assertThat(secondError.result.details).startsWith("Could not find identifier 'var2'\n\nCheck that the identifier")
-
-      val filePos = secondError.filePosition
-      assertThat(filePos.startLine).isEqualTo(58)
-      assertThat(filePos.startColumn).isEqualTo(23)
-      assertThat(filePos.endLine).isEqualTo(58)
-      assertThat(filePos.endColumn).isEqualTo(27)
-      assertThat(filePos.file.path).contains("activity_main2.xml")
-    }
+          Check that the identifier is spelled correctly, and that no <import> or <variable> tags are missing.
+          """.trimIndent()))
+    )
   }
 
+  @Test
+  fun handleMultipleLegacyFormattedDataBindingParseErrors() {
+    parseOutput(
+      parentEventId = "testId",
+      gradleOutput = """
+        Found data binding errors.
+          ****/ data binding error ****msg:Identifiers must have user defined types from the XML file. var1 is missing it file:/src/main/res/layout/activity_main1.xml loc:36:28 - 36:32 ****\ data binding error ****
+          ****/ data binding error ****msg:Identifiers must have user defined types from the XML file. var2 is missing it file://src/main/res/layout/activity_main2.xml loc:58:23 - 58:27 ****\ data binding error ****
+      """.trimIndent(),
+      expectedEvents = listOf(
+        ExpectedEvent(
+          message = "Identifiers must have user defined types from the XML file. var1 is missing it",
+          isFileMessageEvent = true,
+          isBuildIssueEvent = false,
+          isDuplicateMessageAware = false,
+          group = "Data Binding compiler",
+          kind = MessageEvent.Kind.ERROR,
+          parentId = "testId",
+          filePosition = "/src/main/res/layout/activity_main1.xml:37:29-37:33",
+          description = """
+          /src/main/res/layout/activity_main1.xml:37:29
+          Identifiers must have user defined types from the XML file. var1 is missing it
+          """.trimIndent()
+        ),
+        ExpectedEvent(
+          message = "Identifiers must have user defined types from the XML file. var2 is missing it",
+          isFileMessageEvent = true,
+          isBuildIssueEvent = false,
+          isDuplicateMessageAware = false,
+          group = "Data Binding compiler",
+          kind = MessageEvent.Kind.ERROR,
+          parentId = "testId",
+          filePosition = "/src/main/res/layout/activity_main2.xml:59:24-59:28",
+          description = """
+          /src/main/res/layout/activity_main2.xml:59:24
+          Identifiers must have user defined types from the XML file. var2 is missing it
+          """.trimIndent()
+        )
+      )
+    )
+  }
+}
+
+class DataBindingOutputParserInvalidInputHandlingTest {
   @Test
   fun recoverFromInvalidJson() {
     val badJson = "[databinding] {\"msg"
@@ -86,49 +117,7 @@ class DataBindingOutputParserTest {
     val parser = DataBindingOutputParser()
 
     assertThat(parser.parse(badJson, reader, consumer)).isFalse()
-  }
-
-  @Test
-  fun handleMultipleLegacyFormattedDataBindingParseErrors() {
-    val input = "Found data binding errors.\n" +
-                "  ****/ data binding error ****msg:Identifiers must have user defined types from the XML file. var1 is missing it file:/src/main/res/layout/activity_main1.xml loc:36:28 - 36:32 ****\\ data binding error ****\n" +
-                "  ****/ data binding error ****msg:Identifiers must have user defined types from the XML file. var2 is missing it file://src/main/res/layout/activity_main2.xml loc:58:23 - 58:27 ****\\ data binding error ****\n"
-
-    val reader = TestBuildOutputInstantReader(input)
-    val consumer = TestMessageEventConsumer()
-
-    val parser = DataBindingOutputParser()
-
-    while (true) {
-      val line = reader.readLine() ?: break
-      assertThat(parser.parse(line, reader, consumer)).isTrue()
-    }
-
-    assertThat(consumer.messageEvents).hasSize(2)
-
-    run {
-      val firstError = consumer.messageEvents[0] as FileMessageEventImpl
-      assertThat(firstError.message).isEqualTo("Identifiers must have user defined types from the XML file. var1 is missing it")
-
-      val filePos = firstError.filePosition
-      assertThat(filePos.startLine).isEqualTo(36)
-      assertThat(filePos.startColumn).isEqualTo(28)
-      assertThat(filePos.endLine).isEqualTo(36)
-      assertThat(filePos.endColumn).isEqualTo(32)
-      assertThat(filePos.file.path).contains("activity_main1.xml")
-    }
-
-    run {
-      val secondError = consumer.messageEvents[1] as FileMessageEventImpl
-      assertThat(secondError.message).isEqualTo("Identifiers must have user defined types from the XML file. var2 is missing it")
-
-      val filePos = secondError.filePosition
-      assertThat(filePos.startLine).isEqualTo(58)
-      assertThat(filePos.startColumn).isEqualTo(23)
-      assertThat(filePos.endLine).isEqualTo(58)
-      assertThat(filePos.endColumn).isEqualTo(27)
-      assertThat(filePos.file.path).contains("activity_main2.xml")
-    }
+    assertThat(consumer.messageEvents).isEmpty()
   }
 
   @Test
@@ -141,6 +130,7 @@ class DataBindingOutputParserTest {
       val parser = DataBindingOutputParser()
 
       assertThat(parser.parse(badLegacyContents, reader, consumer)).isFalse()
+      assertThat(consumer.messageEvents).isEmpty()
     }
 
     run {
@@ -151,6 +141,7 @@ class DataBindingOutputParserTest {
       val parser = DataBindingOutputParser()
 
       assertThat(parser.parse(badLegacyLocation, reader, consumer)).isFalse()
+      assertThat(consumer.messageEvents).isEmpty()
     }
   }
 }

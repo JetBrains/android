@@ -22,6 +22,7 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.SocketAddress
 import java.net.SocketOption
+import java.nio.channels.ClosedChannelException
 import java.nio.channels.NetworkChannel
 import kotlin.coroutines.CoroutineContext
 
@@ -32,7 +33,11 @@ abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: 
 
   override suspend fun close() {
     withContextWithoutLoggingExceptions(Dispatchers.IO) {
-      networkChannel.close()
+      try {
+        networkChannel.close()
+      }
+      catch (_: ClosedChannelException) {
+      }
     }
   }
 

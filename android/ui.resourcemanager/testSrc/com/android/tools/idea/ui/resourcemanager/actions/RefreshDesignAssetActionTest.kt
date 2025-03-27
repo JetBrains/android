@@ -20,26 +20,17 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_DESIGN_ASSETS_KEY
 import com.google.common.truth.Truth
 import com.intellij.mock.MockVirtualFile
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import org.junit.Before
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.TestActionEvent
+import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class RefreshDesignAssetActionTest {
-
-  private lateinit var actionManager: ActionManager
-
-  @Before
-  fun setUp() {
-    actionManager = Mockito.mock(ActionManagerEx::class.java)
-  }
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun testEnabled() {
@@ -47,9 +38,7 @@ class RefreshDesignAssetActionTest {
     val refreshAction = RefreshDesignAssetAction { latch.countDown() }
     val assets = getDesignAssets(arrayOf(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.MENU, ResourceType.LAYOUT))
     val dataContext = SimpleDataContext.builder().add(RESOURCE_DESIGN_ASSETS_KEY, assets).build()
-    val presentation = Presentation()
-    presentation.copyFrom(refreshAction.templatePresentation)
-    val actionEvent = AnActionEvent(null, dataContext, "ActionTest", presentation, actionManager, 0)
+    val actionEvent = TestActionEvent.createTestEvent(dataContext)
     refreshAction.update(actionEvent)
     assertTrue(actionEvent.presentation.isEnabledAndVisible)
     refreshAction.actionPerformed(actionEvent)
@@ -70,9 +59,7 @@ class RefreshDesignAssetActionTest {
     val latch = CountDownLatch(1)
     val refreshAction = RefreshDesignAssetAction { latch.countDown() }
     val dataContext = SimpleDataContext.builder().add(RESOURCE_DESIGN_ASSETS_KEY, assets).build()
-    val presentation = Presentation()
-    presentation.copyFrom(refreshAction.templatePresentation)
-    val actionEvent = AnActionEvent(null, dataContext, "ActionTest", presentation, actionManager, 0)
+    val actionEvent = TestActionEvent.createTestEvent(dataContext)
     refreshAction.update(actionEvent)
     assertFalse(actionEvent.presentation.isEnabledAndVisible)
     refreshAction.actionPerformed(actionEvent)

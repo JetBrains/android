@@ -20,7 +20,6 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_MODULE_NAME
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_INCLUDE
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.DesignSurfaceTestUtil
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -74,8 +73,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 // TODO: testing with custom navigators
 @RunsInEdt
@@ -571,9 +572,9 @@ class SettingsFragment : PreferenceFragmentCompat()
 
   @Test
   fun testAddDestination() {
-    val destination = MockitoKt.mock<Destination.IncludeDestination>()
+    val destination = mock<Destination.IncludeDestination>()
     val component = model.treeReader.find("fragment")!!
-    MockitoKt.whenever(destination.component).thenReturn(component)
+    whenever(destination.component).thenReturn(component)
     TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()
@@ -589,10 +590,10 @@ class SettingsFragment : PreferenceFragmentCompat()
 
   @Test
   fun testAddInclude() {
-    val destination = MockitoKt.mock<Destination.IncludeDestination>()
+    val destination = mock<Destination.IncludeDestination>()
     val component = spy(model.treeReader.find("fragment")!!)
-    MockitoKt.whenever(component.tagName).thenReturn(TAG_INCLUDE)
-    MockitoKt.whenever(destination.component).thenReturn(component)
+    whenever(component.tagName).thenReturn(TAG_INCLUDE)
+    whenever(destination.component).thenReturn(component)
     TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
       verify(destination).addToGraph()

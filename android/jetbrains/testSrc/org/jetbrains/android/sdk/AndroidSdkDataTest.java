@@ -92,6 +92,6 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     Sdk sdk = mock(Sdk.class);
     when(sdk.getHomePath()).thenReturn(TestUtils.getSdk().toString());
 
-    assertEquals(sdkData, AndroidSdks.getSdkData(sdk));
+    assertEquals(sdkData, StudioAndroidSdkData.getSdkData(sdk));
   }
 }

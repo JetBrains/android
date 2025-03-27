@@ -15,17 +15,19 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.analyzers.DownloadsAnalyzer.Companion.detectRepository
 import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
-import com.android.testutils.MockitoKt
 import com.google.common.truth.Truth
 import org.gradle.util.GradleVersion
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import java.net.URI
 
 class DownloadsAnalyzerUnitTest {
 
@@ -132,8 +134,7 @@ class DownloadsAnalyzerUnitTest {
       ),
       downloadFailureStub(200, 220, 0, listOf(failureStub(
         "Failed request 1",
-        listOf(failureStub("Caused by 1", emptyList(), emptyList())),
-        emptyList()
+        listOf(failureStub("Caused by 1", emptyList()))
       ))) // time: 20, totalRepoTime: 20, totalRepoBytes: 0
     ))
     // 2.2) Request another badly configured repo, download fails.
@@ -143,7 +144,7 @@ class DownloadsAnalyzerUnitTest {
         parent = sampleTaskDescriptor
       ),
       downloadFailureStub(230, 240, 0, listOf(
-        failureStub("Failed request 2", emptyList(), emptyList())))
+        failureStub("Failed request 2", emptyList())))
     )) // time: 10, totalRepoTime: 10, totalRepoBytes: 0
     // 2.3) Request maven central, but it could not be found there.
     wrapper.receiveEvent(downloadFinishEventStub(
@@ -182,11 +183,21 @@ class DownloadsAnalyzerUnitTest {
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
         useAndroidXPropertyState = false,
-        buildRequestHolder = MockitoKt.mock()
+        buildRequestHolder = mock()
       )
     )
 
     return analyzer.result
+  }
+
+  @Test
+  fun testEmptyURIAuthorityInEvents() {
+    // b/366172000
+    val uri = URI("file:///foo/bar")
+    Truth.assertThat(uri.authority).isNull()
+
+    val repository = detectRepository(uri)
+    Truth.assertThat(repository).isEqualTo(DownloadsAnalyzer.OtherRepository(host = ""))
   }
 
   @Test
@@ -252,7 +263,7 @@ class DownloadsAnalyzerUnitTest {
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
         useAndroidXPropertyState = false,
-        buildRequestHolder = MockitoKt.mock()
+        buildRequestHolder = mock()
       )
     )
 

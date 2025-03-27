@@ -59,7 +59,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     return syncResult
   }
 
-  override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
+  override fun requestSyncProject(reason: SyncReason): ListenableFuture<SyncResult> {
     val syncResult = SettableFuture.create<SyncResult>()
 
     when {

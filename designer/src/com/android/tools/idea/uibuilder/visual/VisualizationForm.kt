@@ -24,7 +24,6 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
@@ -36,13 +35,13 @@ import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
-import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.layout.option.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -62,6 +61,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -69,12 +69,10 @@ import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
-import com.intellij.util.SlowOperations
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import icons.StudioIcons
@@ -102,7 +100,7 @@ class VisualizationForm(
   private val project: Project,
   parentDisposable: Disposable,
   private val initializer: ContentInitializer,
-) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener, PanZoomListener {
+) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener {
   private val scope = AndroidCoroutineScope(this)
   private val surface: NlDesignSurface
   private val myWorkBench: WorkBench<DesignSurface<*>>
@@ -130,15 +128,10 @@ class VisualizationForm(
   private val myLayoutOption =
     SurfaceLayoutOption(
       "Layout",
-      GridSurfaceLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        GRID_HORIZONTAL_SCREEN_DELTA,
-        VERTICAL_SCREEN_DELTA,
-        false,
-      ),
+      { GridLayoutManager() },
       false,
       SceneViewAlignment.LEFT,
+      SurfaceLayoutOption.LayoutType.OrganizationGrid,
     )
   private val myUpdateQueue: MergingUpdateQueue
 
@@ -202,9 +195,8 @@ class VisualizationForm(
         }
         .build()
     surface.setSceneViewAlignment(SceneViewAlignment.LEFT)
-    surface.addPanZoomListener(this)
     issueListener = DesignSurfaceIssueListenerImpl(surface).apply { surface.addIssueListener(this) }
-    updateScreenMode()
+    surface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false)
     surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
     surface.zoomController.storeId = VISUALIZATION_DESIGN_SURFACE_NAME
     myWorkBench = WorkBench(project, "Visualization", null, this)
@@ -226,6 +218,13 @@ class VisualizationForm(
         Alarm.ThreadToUse.POOLED_THREAD,
       )
     myUpdateQueue.setRestartTimerOnAdd(true)
+
+    scope.launch {
+      surface.zoomChanged.collect {
+        VisualizationToolProjectSettings.getInstance(project).projectState.scale =
+          surface.zoomController.scale
+      }
+    }
 
     visualLintHandler = VisualizationFormVisualLintHandler(this, project, surface.issueModel)
   }
@@ -269,17 +268,8 @@ class VisualizationForm(
     val lintToolbar =
       ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true)
     lintToolbar.setTargetComponent(surface)
-    lintToolbar.updateActionsImmediately()
     ActionToolbarUtil.makeToolbarNavigable(lintToolbar)
     toolbarPanel.add(lintToolbar.component, BorderLayout.EAST)
-  }
-
-  private fun updateScreenMode() {
-    if (myCurrentConfigurationSet === ConfigurationSet.ColorBlindMode) {
-      surface.setScreenViewProvider(NlScreenViewProvider.COLOR_BLIND, false)
-    } else {
-      surface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false)
-    }
   }
 
   override fun dispose() {
@@ -293,7 +283,7 @@ class VisualizationForm(
       myResourceNotifyingFilesLock.unlock()
     }
     for (file in registeredFiles) {
-      unregisterResourceNotification(file)
+      scope.launch(workerThread) { unregisterResourceNotification(file) }
     }
     removeAndDisposeModels(surface.models)
     surface.removeIssueListener(issueListener)
@@ -391,7 +381,7 @@ class VisualizationForm(
         } ?: emptyList()
       if (models.isEmpty()) myWorkBench.showLoading("No Device Found")
       if (models.isEmpty() || isRequestCancelled.get()) {
-        unregisterResourceNotification(myFile)
+        withContext(workerThread) { unregisterResourceNotification(myFile) }
       } else {
         myWorkBench.showContent()
         interruptRendering()
@@ -462,7 +452,7 @@ class VisualizationForm(
     removeAndDisposeModels(surface.models)
   }
 
-  private fun activateEditor(hasModel: Boolean) {
+  private suspend fun activateEditor(hasModel: Boolean) {
     myCancelPendingModelLoad.set(true)
     if (!hasModel) {
       editor = null
@@ -470,7 +460,7 @@ class VisualizationForm(
     } else {
       editor = myPendingEditor
       myPendingEditor = null
-      registerResourceNotification(myFile)
+      withContext(workerThread) { registerResourceNotification(myFile) }
       myWorkBench.setFileEditor(myEditor)
     }
   }
@@ -479,10 +469,7 @@ class VisualizationForm(
     if (file == null) {
       return
     }
-    val facet =
-      SlowOperations.allowSlowOperations(
-        ThrowableComputable { AndroidFacet.getInstance(file, project) }
-      )
+    val facet = AndroidFacet.getInstance(file, project)
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -502,10 +489,7 @@ class VisualizationForm(
     if (file == null) {
       return
     }
-    val facet =
-      SlowOperations.allowSlowOperations(
-        ThrowableComputable { AndroidFacet.getInstance(file, project) }
-      )
+    val facet = AndroidFacet.getInstance(file, project)
     if (facet != null) {
       myResourceNotifyingFilesLock.lock()
       try {
@@ -579,8 +563,7 @@ class VisualizationForm(
     for (manager in surface.sceneManagers) {
       if (!isRenderingCanceled.get()) {
         manager.sceneRenderConfiguration.needsInflation.set(true)
-        // TODO(b/335424569): replace by requestRenderAndWait when available
-        manager.requestRenderAsync().await()
+        manager.requestRenderAndWait()
         scope.launch {
           visualLintHandler.afterRenderCompleted(manager) { !isActive || isRenderingCanceled.get() }
         }
@@ -605,18 +588,26 @@ class VisualizationForm(
     if (isActive) {
       return
     }
-    registerResourceNotification(myFile)
-    isActive = true
-    if (myContentPanel == null) {
-      initializer.initContent(project, this) { initModel() }
-    } else {
-      initModel()
+    scope.launch { onActivate() }
+  }
+
+  private suspend fun onActivate() {
+    withContext(workerThread) {
+      registerResourceNotification(myFile)
+      isActive = true
     }
-    surface.activate()
-    analyticsManager.trackVisualizationToolWindow(true)
-    visualLintHandler.onActivate()
-    IssuePanelService.getDesignerCommonIssuePanel(project)
-      ?.addIssueSelectionListener(surface.issueListener, surface)
+    withContext(uiThread) {
+      if (myContentPanel == null) {
+        initializer.initContent(project, this@VisualizationForm) { initModel() }
+      } else {
+        initModel()
+      }
+      surface.activate()
+      analyticsManager.trackVisualizationToolWindow(true)
+      visualLintHandler.onActivate()
+      IssuePanelService.getDesignerCommonIssuePanel(project)
+        ?.addIssueSelectionListener(surface.issueListener, surface)
+    }
   }
 
   /**
@@ -631,7 +622,7 @@ class VisualizationForm(
     myCancelPendingModelLoad.set(true)
     surface.deactivate()
     isActive = false
-    unregisterResourceNotification(myFile)
+    scope.launch(workerThread) { unregisterResourceNotification(myFile) }
     if (myContentPanel != null) {
       setNoActiveModel()
     }
@@ -649,7 +640,7 @@ class VisualizationForm(
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet =
         newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
-      surface.layoutManagerSwitcher?.currentLayout?.value = myLayoutOption
+      surface.layoutManagerSwitcher?.currentLayoutOption?.value = myLayoutOption
       refresh()
     }
   }
@@ -660,18 +651,10 @@ class VisualizationForm(
 
   /** Refresh the previews. This recreates the [NlModel]s from the current [ConfigurationSet]. */
   private fun refresh() {
-    updateScreenMode()
     updateActionToolbar(myActionToolbarPanel)
     // Dispose old models and create new models with new configuration set.
     initModel()
   }
-
-  override fun zoomChanged(previousScale: Double, newScale: Double) {
-    VisualizationToolProjectSettings.getInstance(project).projectState.scale =
-      surface.zoomController.scale
-  }
-
-  override fun panningChanged() = Unit
 
   /** A disabled action for displaying text in action toolbar. It does nothing. */
   private class TextLabelAction(private val text: String) : AnAction(null as String?) {
@@ -683,9 +666,8 @@ class VisualizationForm(
     override fun update(e: AnActionEvent) {
       e.presentation.setText(text, false)
       e.presentation.isEnabled = false
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
-
-    override fun displayTextInToolbar() = true
   }
 
   private inner class ToggleShowDecorationAction : ToggleAction("Show System UI") {
@@ -700,8 +682,7 @@ class VisualizationForm(
         .mapNotNull { model: NlModel -> surface.getSceneManager(model) }
         .forEach { manager -> manager.sceneRenderConfiguration.showDecorations = state }
       scope.launch {
-        // TODO(b/335424569): replace by requestRenderAndWait when available
-        surface.sceneManagers.forEach { it.requestRenderAsync().await() }
+        surface.sceneManagers.forEach { it.requestRenderAndWait() }
         if (!Disposer.isDisposed(visualizationForm.myWorkBench)) {
           visualizationForm.myWorkBench.showContent()
         }

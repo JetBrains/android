@@ -2,7 +2,7 @@
 package com.android.tools.idea.gradle.navigation
 
 import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
+import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement

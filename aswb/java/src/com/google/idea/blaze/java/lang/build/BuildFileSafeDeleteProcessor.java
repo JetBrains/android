@@ -18,10 +18,10 @@ package com.google.idea.blaze.java.lang.build;
 import com.google.idea.blaze.base.lang.buildfile.references.GlobReference;
 import com.google.idea.blaze.base.lang.buildfile.search.BlazePackage;
 import com.google.idea.blaze.base.lang.buildfile.search.ResolveUtil;
-import com.google.idea.sdkcompat.refactoring.safedelete.JavaSafeDeleteProcessorCompat;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileSystemItem;
+import com.intellij.refactoring.safeDelete.JavaSafeDeleteProcessor;
 import com.intellij.refactoring.safeDelete.NonCodeUsageSearchInfo;
 import com.intellij.refactoring.safeDelete.usageInfo.SafeDeleteUsageInfo;
 import com.intellij.usageView.UsageInfo;
@@ -40,19 +40,12 @@ import org.jetbrains.annotations.NotNull;
  * effectively replaces JavaSafeDeleteProcessor (*in the situations where all processors are used,
  * this class has no effect).
  */
-public class BuildFileSafeDeleteProcessor extends JavaSafeDeleteProcessorCompat {
+public class BuildFileSafeDeleteProcessor extends JavaSafeDeleteProcessor {
 
-  /**
-   * Delegates to JavaSafeDeleteProcessor, then removes indirect glob references which we don't want
-   * to block safe delete.
-   */
-  @Nullable
   @Override
-  public NonCodeUsageSearchInfo doFindUsages(
-      PsiElement element,
-      PsiElement[] allElementsToDelete,
-      List<? super UsageInfo> result,
-      NonCodeUsageSearchInfo superResult) {
+  public NonCodeUsageSearchInfo findUsages(
+    PsiElement element, PsiElement[] allElementsToDelete, List<? super UsageInfo> result) {
+    NonCodeUsageSearchInfo superResult = super.findUsages(element, allElementsToDelete, result);
     result.removeIf(BuildFileSafeDeleteProcessor::ignoreUsage);
     return superResult;
   }

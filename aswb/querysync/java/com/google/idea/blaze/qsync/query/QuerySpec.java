@@ -15,22 +15,121 @@
  */
 package com.google.idea.blaze.qsync.query;
 
+import static com.google.common.collect.Iterables.concat;
 import static java.util.stream.Collectors.joining;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Formattable;
-import java.util.Formatter;
 import java.util.Optional;
 
 /** Represents arguments to a {@code query} invocation. */
 @AutoValue
-public abstract class QuerySpec implements Formattable {
+public abstract class QuerySpec implements TruncatingFormattable {
+
+  /**
+   * A way to transform the query specification to a bazel query and flags.
+   *
+   * <p>Querying all targets in the project view may generate too large output,
+   * while querying just targets the IDE needs may result in a too slow query.
+   *
+   * <p>{@link QueryStrategy} instances allow experiment with queries and bazel flags.
+   */
+  public enum QueryStrategy {
+    PLAIN {
+      @Override
+      public ImmutableList<String> getQueryFlags() {
+        return ImmutableList.of(
+          "--output=streamed_proto",
+          "--relative_locations=true",
+          "--consistent_labels=true"
+        );
+      }
+
+      @Override
+      public Optional<String> getQueryExpression(QuerySpec querySpec) {
+        String baseExpression = baseExpression(querySpec);
+        if (baseExpression.isEmpty()) {
+          return Optional.empty();
+        }
+        return Optional.of("(" + baseExpression + ")");
+      }
+    },
+
+    PLAIN_WITH_SAFE_FILTERS {
+      @Override
+      public ImmutableList<String> getQueryFlags() {
+        return ImmutableList.of(
+          "--output=streamed_proto",
+          "--noproto:rule_inputs_and_outputs",
+          "--relative_locations=true",
+          "--consistent_labels=true"
+        );
+      }
+
+      @Override
+      public Optional<String> getQueryExpression(QuerySpec querySpec) {
+        String baseExpression = baseExpression(querySpec);
+        if (baseExpression.isEmpty()) {
+          return Optional.empty();
+        }
+        final var baseQuery = baseExpression(querySpec);
+        return Optional.of(
+          "let base = " +
+        baseQuery +
+        "\n" +
+        """
+    in $base - attr("tags", "[\\[,]no-ide[\\],]", $base)""");
+      }
+    },
+
+    FILTERING_TO_KNOWN_AND_USED_TARGETS {
+      @Override
+      public ImmutableList<String> getQueryFlags() {
+        return ImmutableList.of(
+          "--output=streamed_proto",
+          "--noproto:rule_inputs_and_outputs",
+          "--relative_locations=true",
+          "--consistent_labels=true"
+        );
+      }
+
+      @Override
+      public Optional<String> getQueryExpression(QuerySpec querySpec) {
+        final var baseQuery = baseExpression(querySpec);
+        if (baseQuery.isEmpty()) {
+          return Optional.empty();
+        }
+        String ruleClassPattern = String.join("|", concat(SOURCE_FILE_AS_LIST, querySpec.supportedRuleClasses()));
+        return Optional.of(
+
+          "let base = " +
+          baseQuery +
+          "\n" +
+          " in let known = kind(\"" + ruleClassPattern + "\", $base) \n" +
+          " in let unknown = $base except $known \n" +
+          " in $known union ($base intersect allpaths($known, $unknown)) \n");
+      }
+    };
+
+    public abstract ImmutableList<String> getQueryFlags();
+    public abstract Optional<String> getQueryExpression(QuerySpec querySpec);
+
+    protected final String baseExpression(QuerySpec querySpec) {
+      return querySpec.includes().stream().map(s -> String.format("%s:*", s)).collect(joining(" + ")) +
+             querySpec.excludes().stream().map(s -> String.format(" - %s:*", s)).collect(joining());
+    }
+  }
+
+  private static final ImmutableList<String> SOURCE_FILE_AS_LIST = ImmutableList.of("source file");
+
+  public abstract QueryStrategy queryStrategy();
 
   public abstract Path workspaceRoot();
 
@@ -40,27 +139,18 @@ public abstract class QuerySpec implements Formattable {
   /** The set of package patterns to include. */
   abstract ImmutableList<String> excludes();
 
-  // LINT.IfChange
+  /** The set of rule classes that query sync supports directly. */
+  abstract ImmutableSet<String> supportedRuleClasses();
+
   @Memoized
   public ImmutableList<String> getQueryFlags() {
-    return ImmutableList.of("--output=streamed_proto", "--relative_locations=true");
+    return queryStrategy().getQueryFlags();
   }
 
   @Memoized
   public Optional<String> getQueryExpression() {
-    // This is the main query, note the use of :* that means that the query output has
-    // all the files in that directory too. So we can identify all that is reachable.
-    if (includes().isEmpty()) {
-      return Optional.empty();
-    }
-    return Optional.of(
-        "("
-            + includes().stream().map(s -> String.format("%s:*", s)).collect(joining(" + "))
-            + excludes().stream().map(s -> String.format(" - %s:*", s)).collect(joining())
-            + ")");
+    return queryStrategy().getQueryExpression(this);
   }
-
-  // LINT.ThenChange(/tools/adt/idea/aswb/aswb/testdata/projects/test_projects.bzl)
 
   @Override
   public final String toString() {
@@ -73,26 +163,8 @@ public abstract class QuerySpec implements Formattable {
                 .build());
   }
 
-  @Override
-  public void formatTo(Formatter formatter, int flags, int width, int precision) {
-    // We implement Formattable for custom "precision" (max length) handling to allow a truncated
-    // query expression to be shown as such in the log, using normal string formatting.
-    String s = toString();
-    if (precision == -1 || s.length() < precision) {
-      formatter.format(s);
-      return;
-    }
-    final String truncated = "<truncated>";
-    if (precision < truncated.length()) {
-      formatter.format(s.substring(0, precision));
-      return;
-    }
-    formatter.format(s.substring(0, precision - truncated.length()));
-    formatter.format(truncated);
-  }
-
-  public static Builder builder() {
-    return new AutoValue_QuerySpec.Builder();
+  public static Builder builder(QuerySpec.QueryStrategy queryStrategy) {
+    return new AutoValue_QuerySpec.Builder().queryStrategy(queryStrategy);
   }
 
   /**
@@ -107,12 +179,15 @@ public abstract class QuerySpec implements Formattable {
    */
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder queryStrategy(QueryStrategy queryStrategy);
 
     public abstract Builder workspaceRoot(Path workspaceRoot);
 
     abstract ImmutableList.Builder<String> includesBuilder();
 
     abstract ImmutableList.Builder<String> excludesBuilder();
+
+    public abstract Builder supportedRuleClasses(ImmutableSet<String> supportedRuleClasses);
 
     @CanIgnoreReturnValue
     public Builder includePath(Path include) {

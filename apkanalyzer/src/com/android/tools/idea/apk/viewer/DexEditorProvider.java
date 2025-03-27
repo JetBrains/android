@@ -41,7 +41,7 @@ final class DexEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public @NotNull FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new DexFileViewer(project, new Path[]{VfsUtilCore.virtualToIoFile(file).toPath()}, null);
+    return new DexFileViewer(project, new Path[]{VfsUtilCore.virtualToIoFile(file).toPath()}, null, null);
   }
 
   @Override

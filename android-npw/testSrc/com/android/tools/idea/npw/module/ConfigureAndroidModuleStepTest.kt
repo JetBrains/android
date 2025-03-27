@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.buildAndroidProjectStub
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
@@ -42,13 +43,33 @@ class ConfigureAndroidModuleStepTest {
   private val myInvokeStrategy = TestInvokeStrategy()
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels(
-    JavaModuleModelBuilder.rootModuleBuilder,
-    AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()),
-    JavaModuleModelBuilder(":libs", buildable = false),
-    AndroidModuleModelBuilder(":libs:lib", "debug", AndroidProjectBuilder()),
-    AndroidModuleModelBuilder(":libs:lib2", "debug", AndroidProjectBuilder())
-  ).onEdt()
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(
+        JavaModuleModelBuilder.rootModuleBuilder,
+        AndroidModuleModelBuilder(
+          ":app",
+          "debug",
+          AndroidProjectBuilder().withAndroidProject {
+            buildAndroidProjectStub().copy(compileTarget = APP_COMPILE_SDK.toCompileTarget())
+          },
+        ),
+        JavaModuleModelBuilder(":libs", buildable = false),
+        AndroidModuleModelBuilder(
+          ":libs:lib",
+          "debug",
+          AndroidProjectBuilder().withAndroidProject {
+            buildAndroidProjectStub().copy(compileTarget = LIB1_COMPILE_SDK.toCompileTarget())
+          },
+        ),
+        AndroidModuleModelBuilder(
+          ":libs:lib2",
+          "debug",
+          AndroidProjectBuilder().withAndroidProject {
+            buildAndroidProjectStub().copy(compileTarget = LIB2_COMPILE_SDK.toCompileTarget())
+          },
+        ),
+      )
+      .onEdt()
 
   @Before
   fun setUp() {
@@ -206,4 +227,34 @@ class ConfigureAndroidModuleStepTest {
     myInvokeStrategy.updateAllSteps()
     assertThat(configureAndroidModuleStep.canGoForward().get()).isFalse()
   }
+
+  @Test
+  fun `creating new module picks highest SDK of existing project's modules`() {
+    val newAndroidModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        projectRule.project,
+        "",
+        ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+        FormFactor.Mobile,
+        Category.Other,
+        false,
+      )
+
+    newAndroidModuleModel.apply {
+      androidSdkInfo.value = VersionItem.fromStableVersion(1)
+      newAndroidModuleModel.renderer.init()
+    }
+
+    assertThat(newAndroidModuleModel.recommendedBuildSdk?.apiLevel).isEqualTo(LIB1_COMPILE_SDK)
+    assertThat(newAndroidModuleModel.moduleTemplateDataBuilder.build().apis.buildApi.api)
+      .isEqualTo(LIB1_COMPILE_SDK)
+  }
+
+  companion object {
+    private const val APP_COMPILE_SDK = 31
+    private const val LIB1_COMPILE_SDK = 33
+    private const val LIB2_COMPILE_SDK = 32
+  }
+
+  private fun Int.toCompileTarget(): String = "android-$this"
 }

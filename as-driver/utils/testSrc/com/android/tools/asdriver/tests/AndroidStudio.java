@@ -18,160 +18,45 @@ package com.android.tools.asdriver.tests;
 import com.android.annotations.Nullable;
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
+import com.android.tools.asdriver.tests.base.Ide;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.perflogger.Benchmark;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.system.CpuArch;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidStudio implements AutoCloseable {
+public class AndroidStudio extends Ide {
 
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final ProcessHandle process;
   private final AndroidStudioInstallation install;
   private final Instant creationTime;
 
+  private final String PAST_DEADLINE = "Studio quitting thread is still alive at deadline in quit().";
+
   private VideoStitcher videoStitcher = null;
 
   private Benchmark benchmark = null;
 
-  static public AndroidStudio run(AndroidStudioInstallation installation,
-                                  Display display,
-                                  Map<String, String> env,
-                                  String[] args) throws IOException, InterruptedException {
-    return run(installation, display, env, args, false);
-  }
-
-  static public AndroidStudio run(AndroidStudioInstallation installation,
-                       Display display,
-                       Map<String, String> env,
-                       String[] args,
-                       boolean safeMode) throws IOException, InterruptedException {
-    Path workDir = installation.getWorkDir();
-
-    ArrayList<String> command = new ArrayList<>(args.length + 1);
-
-    String studioExecutable = getStudioExecutable(safeMode);
-    command.add(workDir.resolve(studioExecutable).toString());
-    command.addAll(Arrays.asList(args));
-    ProcessBuilder pb = new ProcessBuilder(command);
-    pb.environment().clear();
-
-    for (Map.Entry<String, String> entry : env.entrySet()) {
-      pb.environment().put(entry.getKey(), entry.getValue());
-    }
-    if (display.getDisplay() != null) {
-      pb.environment().put("DISPLAY", display.getDisplay());
-    }
-    pb.environment().put("XDG_DATA_HOME", workDir.resolve("data").toString());
-    String shell = System.getenv("SHELL");
-    if (shell != null && !shell.isEmpty()) {
-      pb.environment().put("SHELL", shell);
-    }
-
-    System.out.println("Starting Android Studio");
-    installation.getStdout().reset();
-    installation.getStderr().reset();
-    pb.redirectOutput(installation.getStdout().getPath().toFile());
-    pb.redirectError(installation.getStderr().getPath().toFile());
-    // We execute it and let the process instance go, as it reflects
-    // the shell process, not the idea one.
-    pb.start();
-    // Now we attach to the real one from the logs
-    AndroidStudio studio = attach(installation);
-    studio.startCapturingScreenshotsOnWindows();
-    return studio;
-  }
-
-  static private String getStudioExecutable(boolean useSafeMode) {
-    String studioExecutable;
-
-    if (useSafeMode) {
-      studioExecutable = "android-studio/bin/studio_safe.sh";
-      if (SystemInfo.isMac) {
-        studioExecutable = "Android Studio Preview.app/Contents/bin/studio_safe.sh";
-      } else if (SystemInfo.isWindows) {
-        studioExecutable = "android-studio/bin/studio_safe.bat";
-      }
-    } else {
-      studioExecutable = "android-studio/bin/studio.sh";
-      if (SystemInfo.isMac) {
-        studioExecutable = "Android Studio Preview.app/Contents/MacOS/studio";
-      } else if (SystemInfo.isWindows) {
-        studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
-      }
-    }
-
-    return studioExecutable;
-  }
-
-  static AndroidStudio attach(AndroidStudioInstallation installation) throws IOException, InterruptedException {
-    int pid;
-    try {
-      pid = waitForDriverPid(installation.getIdeaLog());
-    } catch (InterruptedException e) {
-      checkForJdwpError(installation);
-      throw e;
-    }
-
-    ProcessHandle process = ProcessHandle.of(pid).get();
-    int port = waitForDriverServer(installation.getIdeaLog());
-    return new AndroidStudio(installation, process, port);
-  }
-
-  private AndroidStudio(AndroidStudioInstallation install, ProcessHandle process, int port) {
+  public AndroidStudio(AndroidStudioInstallation install, ProcessHandle process, int port) {
     this.install = install;
     this.process = process;
     creationTime = Instant.now();
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
-  }
-
-  /**
-   * Checks to see if Android Studio failed to start because the JDWP address was already in use.
-   * This method will throw an exception in the test process rather than the developer having to
-   * check Android Studio's stderr itself. I.e. this method is purely for developer convenience
-   * when testing locally.
-   */
-  static private void checkForJdwpError(AndroidStudioInstallation installation) {
-    try {
-      List<String> stderrContents = Files.readAllLines(installation.getStderr().getPath());
-      boolean hasJdwpError = stderrContents.stream().anyMatch((line) -> line.contains("JDWP exit error AGENT_ERROR_TRANSPORT_INIT"));
-      boolean isAddressInUse = stderrContents.stream().anyMatch((line) -> line.contains("Address already in use"));
-      if (hasJdwpError && isAddressInUse) {
-        throw new IllegalStateException("The JDWP address is already in use. You can fix this either by removing your " +
-                                        "AS_TEST_DEBUG env var or by terminating the existing Android Studio process.");
-      }
-    }
-    catch (IOException e) {
-      // We tried our best. :(
-    }
-  }
-
-  static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 120, TimeUnit.SECONDS);
-    return Integer.parseInt(matcher.group(1));
-  }
-
-  static private int waitForDriverServer(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
-    return Integer.parseInt(matcher.group(1));
   }
 
   public void waitForProcess() throws ExecutionException, InterruptedException {
@@ -221,11 +106,39 @@ public class AndroidStudio implements AutoCloseable {
    */
   public void quit(boolean force) {
     ASDriver.QuitRequest rq = ASDriver.QuitRequest.newBuilder().setForce(force).build();
+
+    // gRPC may not return from the call when Studio shuts down. So we need to place a timer on the shutdown and check the state
+    // of shutdown using alternative methods in case the gRPC call doesn't return by the deadline.
+    Ref<Throwable> throwableRef = new Ref<>(null);
+    Thread thread = new Thread(() -> {
+      try {
+        ASDriver.QuitResponse ignore = androidStudio.quit(rq);
+      }
+      catch (StatusRuntimeException ignored) {
+        // This is normally what gRPC will throw when the other end disconnects.
+      }
+      catch (Throwable t) {
+        throwableRef.set(t);
+      }
+    }, "gRPC Studio Shutdown");
+    thread.start();
+
     try {
-      ASDriver.QuitResponse ignore = androidStudio.quit(rq);
+      thread.join(TimeUnit.SECONDS.toMillis(30));
+      if (thread.isAlive()) {
+        throw new RuntimeException(PAST_DEADLINE);
+      }
+      Throwable t = throwableRef.get();
+      if (t != null) {
+        TestLogger.log("Studio quitting has thrown an error: %s", t.getMessage());
+        throw new RuntimeException(t);
+      }
     }
-    catch (StatusRuntimeException e) {
-      // Expected as the process is killed.
+    catch (InterruptedException e) {
+      thread.interrupt();
+      Thread.currentThread().interrupt();
+      TestLogger.log("Quitting Studio was interrupted.");
+      throw new RuntimeException("Quitting Studio was interrupted.", e);
     }
   }
 
@@ -261,10 +174,24 @@ public class AndroidStudio implements AutoCloseable {
    * Quit Studio such that Gradle and other Studio-owned processes are properly disposed of.
    */
   private void quitAndWaitForShutdown() throws IOException, InterruptedException {
-    System.out.println("Quitting Studio...");
+    TestLogger.log("Quitting Studio...");
     waitToWorkAroundWindowsIssue();
-    quit(false);
-    install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
+    try {
+      quit(false);
+      try {
+        install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        // Sometimes, it just doesn't print the shutdown.
+        TestLogger.log("VFS dispose did not occur/complete during shutdown.");
+      }
+    }
+    catch (Throwable t) {
+      if (t.getMessage() == PAST_DEADLINE) {
+        install.getStdout().waitForMatchingLine(".*Exiting Studio.", 10, TimeUnit.SECONDS);
+        return;
+      }
+      throw t;
+    }
   }
 
   public boolean showToolWindow(String toolWindow) {
@@ -290,14 +217,13 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
-  private void startCapturingScreenshotsOnWindows() throws IOException {
+  public void startCapturingScreenshotsOnWindows() throws IOException {
     if (!SystemInfo.isWindows) {
       return;
     }
 
     Path destination = VideoStitcher.getScreenshotFolder();
-    System.out.printf("Setting up screenshot capture (to %s) since this is Windows%n", destination);
-
+    TestLogger.log("Setting up screenshot capture (to %s) since this is Windows", destination);
     ASDriver.StartCapturingScreenshotsRequest rq =
       ASDriver.StartCapturingScreenshotsRequest.newBuilder().setDestinationPath(destination.toString())
         .setScreenshotNameFormat(VideoStitcher.SCREENSHOT_NAME_FORMAT).build();
@@ -357,7 +283,7 @@ public class AndroidStudio implements AutoCloseable {
 
   public void waitForIndex() throws IOException, InterruptedException {
     benchmarkLog("calling_waitForIndex");
-    System.out.println("Waiting for indexing to complete");
+    TestLogger.log("Waiting for indexing to complete");
     ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
     install.getIdeaLog().reset(); //Log position can be moved past if used after waitForBuild
@@ -368,6 +294,10 @@ public class AndroidStudio implements AutoCloseable {
   public void waitForNativeBreakpointHit() throws IOException, InterruptedException {
     System.out.println("Waiting for native breakpoint to hit");
     install.getIdeaLog().waitForMatchingLine(".*Native breakpoint hit.*", 3, TimeUnit.MINUTES);
+  }
+
+  public void waitForFinishedCodeAnalysis(@Nullable String project) {
+    executeCommand("%waitForFinishedCodeAnalysis", project);
   }
 
   /**
@@ -501,6 +431,27 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
+  /**
+   * Moves caret in the currently open editor to position indicated by the window string.
+   *
+   * @param window the string indicating where the cursor should be moved. The string needs to contain a `|` character surrounded by a
+   *               prefix and/or suffix to be found in the file. The file is searched for the concatenation of prefix and suffix strings
+   *               and the caret is placed at the first matching offset, between the prefix and suffix.
+   */
+  public void moveCaret(String window) {
+    ASDriver.MoveCaretRequest rq = ASDriver.MoveCaretRequest.newBuilder().setWindow(window).build();
+    ASDriver.MoveCaretResponse response = androidStudio.moveCaret(rq);
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException(String.format("Could not move caret with window '%s'. %s",
+                                                      window, formatErrorMessage(response.getErrorMessage())));
+      default:
+        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
+  }
+
   /** Waits for a {@code Component} whose <b>entire</b> text matches {@code componentText}.*/
   public void waitForComponentWithExactText(String componentText) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
@@ -544,14 +495,14 @@ public class AndroidStudio implements AutoCloseable {
     switch (response.getResult()) {
       case OK -> {}
       case ERROR -> throw new IllegalStateException(String.format("Failed while waiting for component with these matchers: %s. %s",
-                                                    requestBuilder, formatErrorMessage(response.getErrorMessage())));
+                                                                  requestBuilder, formatErrorMessage(response.getErrorMessage())));
       default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
 
   public void waitForProjectInit() {
     // Need to wait for the device selector to be ready
-    System.out.println("Wait for ActionToolBar");
+    TestLogger.log("Wait for ActionToolBar");
     this.waitForComponentByClass(true, "MainToolbar", "MyActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
   }
 
@@ -574,10 +525,10 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForBuild(long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    System.out.printf("Waiting up to %d %s for Gradle build%n", timeout, unit);
+    TestLogger.log("Waiting up to %d %s for Gradle build", timeout, unit);
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle build finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
-    System.out.println("Build took " + matcher.group(1));
+    TestLogger.log("Build took %s", matcher.group(1));
   }
 
   public void waitForSync() throws IOException, InterruptedException {
@@ -588,10 +539,10 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    System.out.printf("Waiting up to %d %s for Gradle sync%n", timeout, unit);
+    TestLogger.log("Waiting up to %d %s for Gradle sync", timeout, unit);
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
-    System.out.println("Sync took " + matcher.group(1));
+    TestLogger.log("Sync took %s", matcher.group(1));
   }
 
   /**
@@ -616,7 +567,13 @@ public class AndroidStudio implements AutoCloseable {
       builder.append(" ").append(variant);
     }
     executeCommand(builder.toString(), null);
-    executeCommand("%pressKey ESCAPE", null);
+    pressKey(Keys.ESCAPE, null);
+  }
+
+  public enum Keys { ENTER, ESCAPE, BACKSPACE }
+
+  public void pressKey(Keys key, @Nullable String project) {
+    executeCommand("%pressKey " + key.name(), project);
   }
 
   /**
@@ -645,6 +602,10 @@ public class AndroidStudio implements AutoCloseable {
    */
   public void closeAllEditorTabs() {
     executeCommand("%closeAllTabs", null);
+  }
+
+  public void altEnter(@NotNull final String intention, boolean invoke) {
+    executeCommand(String.format("%%altEnter %s|%b", intention, invoke), null);
   }
 
   /**

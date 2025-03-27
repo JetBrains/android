@@ -16,10 +16,10 @@
 package com.android.tools.idea.vitals.client.grpc
 
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.io.grpc.Server
-import com.android.tools.idea.io.grpc.ServerBuilder
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
+import io.grpc.Server
+import io.grpc.ServerBuilder
 import java.util.concurrent.TimeUnit
 import org.junit.runner.Description
 

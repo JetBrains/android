@@ -54,7 +54,7 @@ public class DefaultStudioProgramRunnerTest {
 
       @NotNull
       @Override
-      public ListenableFuture<SyncResult> syncProject(@NotNull SyncReason reason) {
+      public ListenableFuture<SyncResult> requestSyncProject(@NotNull SyncReason reason) {
         throw(new IllegalStateException("syncProject unimplemented"));
       }
 

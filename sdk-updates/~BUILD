@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 
@@ -41,6 +42,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",

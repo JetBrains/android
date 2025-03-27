@@ -15,7 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="com.android.tools.idea.ui.screenshot.ScreenshotViewer$PersistentState" />
     <projectService
         serviceInterface="com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache"
         serviceImplementation="com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCacheImpl"/>

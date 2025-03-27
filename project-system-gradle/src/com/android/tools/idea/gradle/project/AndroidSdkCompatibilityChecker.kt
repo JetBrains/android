@@ -51,7 +51,8 @@ class AndroidSdkCompatibilityChecker {
       val compileTargetSdk: String = androidProject.compileTarget
       val version: AndroidVersion? = AndroidTargetHash.getPlatformVersion(compileTargetSdk)
       return@mapNotNull version?.let { sdkVersion ->
-        if (sdkVersion.compareTo(maxRecommendedCompileSdk.apiLevel, maxRecommendedCompileSdk.codename) > 0) {
+        // Don't worry about extension levels for this check.
+        if (AndroidVersion.API_LEVEL_ORDERING.compare(sdkVersion, maxRecommendedCompileSdk) > 0) {
           Pair(moduleName, sdkVersion)
         } else {
           null

@@ -29,6 +29,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.P
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.RESOURCE_PREFIX;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TARGET_PROJECT_PATH;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TEST_NAMESPACE;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_DCL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
@@ -51,17 +52,17 @@ import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
-public final class AndroidDslElement extends GradleDslBlockElement {
+public class AndroidDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
     new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
 
-  public static final PropertiesElementDescription<AndroidDslElement> ANDROID_APP =
-    new PropertiesElementDescription<>("androidApp", AndroidDslElement.class, AndroidDslElement::new);
+  public static final PropertiesElementDescription<DeclarativeAndroidDslElement> ANDROID_APP =
+    new PropertiesElementDescription<>("androidApp", DeclarativeAndroidDslElement.class, DeclarativeAndroidDslElement::new);
 
-  public static final PropertiesElementDescription<AndroidDslElement> ANDROID_LIBRARY =
-    new PropertiesElementDescription<>("androidLibrary", AndroidDslElement.class, AndroidDslElement::new);
+  public static final PropertiesElementDescription<DeclarativeAndroidDslElement> ANDROID_LIBRARY =
+    new PropertiesElementDescription<>("androidLibrary", DeclarativeAndroidDslElement.class, DeclarativeAndroidDslElement::new);
 
-  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+  public static final ImmutableMap<String, PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},
     {"androidResources", AndroidResourcesDslElement.ANDROID_RESOURCES},
     {"adbOptions", AdbOptionsDslElement.ADB_OPTIONS},
@@ -90,12 +91,22 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"viewBinding", ViewBindingDslElement.VIEW_BINDING}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
+  public static final ImmutableMap<String, PropertiesElementDescription<?>> DCL_CHILD_PROPERTIES_ELEMENTS_MAP =
+    ImmutableMap.<String, PropertiesElementDescription<?>>builder()
+      .putAll(CHILD_PROPERTIES_ELEMENTS_MAP)
+      .put("dependenciesDcl", DEPENDENCIES_DCL).build();
+
   @Override
   @NotNull
-  public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     GradleDslNameConverter.Kind kind
   ) {
-    return CHILD_PROPERTIES_ELEMENTS_MAP;
+    if (kind == GradleDslNameConverter.Kind.DECLARATIVE) {
+      return DCL_CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+    else {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
   }
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{

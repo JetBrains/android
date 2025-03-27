@@ -1,8 +1,9 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
+load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/common:version.bzl", "LAST_STABLE_BUILD_VERSION")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 
 app_icon(
@@ -55,8 +56,8 @@ studio_plugin(
         "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//prebuilts/tools/common/m2:oauth2",
         "//prebuilts/tools/common/m2:jewel-ide",
-        "//prebuilts/tools/common/m2:commonmark-0.22.0",
         "//prebuilts/tools/common/m2:compose-desktop",
+        "//prebuilts/tools/common/m2:google-api-services-drive-v3-rev20241027-2.0.0",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
@@ -89,16 +90,15 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:gemini_java_proto",
-        "//tools/adt/idea/app-quality-insights/api:gemini_java_proto",
-        "//tools/adt/idea/app-quality-insights/api:titan_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:libgemini_java_proto",
+        "//tools/adt/idea/app-quality-insights/api:libtitan_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/logcat:logcat-proto",
@@ -109,15 +109,18 @@ studio_plugin(
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:libjava_sites",
         "//tools/base/lint:liblint-checks-proto",
+        "//tools/base/repository:schema-generated",
         "//tools/base/sdk-common:aia-proto",
+        "//tools/base/sdklib:schema-generated",
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/base/deploy/deployer:libjava_version",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
+        "//tools/adt/idea/android-common:libandroid-core-proto",
     ],
-    licenses = [
+    license_files = [
         "//prebuilts/r8:license",
         "//prebuilts/tools/common/m2:ffmpeg-licenses",
         "//tools/adt/idea/android/lib:licenses",
@@ -149,6 +152,9 @@ studio_plugin(
             "//tools/adt/idea/profilers:intellij.android.profilers",
             "//tools/adt/idea/transport-database:intellij.android.transportDatabase",
         ],
+        "android-screenshot-testing.jar": [
+            "//tools/adt/idea/screenshot-testing:intellij.android.screenshot-test",
+        ],
         "android-rt.jar": [
             "//tools/adt/idea/rt:intellij.android.rt",
         ],
@@ -170,6 +176,8 @@ studio_plugin(
             "//tools/adt/idea/android-lint:intellij.android.lint",
             "//tools/adt/idea/android-templates:intellij.android.templates",
             "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
+            "//tools/adt/idea/apkanalyzer/apk:intellij.android.apkanalyzer.apk",
+            "//tools/adt/idea/apkanalyzer/gradle:intellij.android.apkanalyzer.gradle",
             "//tools/base/profgen/profgen:studio.android.sdktools.profgen",
             "//tools/adt/idea/app-inspection/api:app-inspection.api",
             "//tools/adt/idea/app-inspection/ide:app-inspection.ide",
@@ -247,6 +255,7 @@ studio_plugin(
             "//tools/adt/idea/threading-checker:intellij.android.threading-checker",
             "//tools/adt/idea/android-transport:intellij.android.transport",
             "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
+            "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements",
             "//tools/adt/idea/wear-whs:intellij.android.wear-whs",
             "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
             "//tools/adt/idea/wizard:intellij.android.wizard",
@@ -265,6 +274,10 @@ studio_plugin(
             "//tools/adt/idea/safemode:intellij.android.safemode",
             "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
             "//tools/adt/idea/completion:intellij.android.completion",
+            "//tools/adt/idea/studio-labs:intellij.android.studio-labs",
+            "//tools/adt/idea/gmaven:intellij.android.gmaven",
+            "//tools/adt/idea/settings-sync:intellij.android.settings-sync",
+            "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
@@ -319,6 +332,7 @@ studio_plugin(
             "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
             "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
             "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+            "//tools/base/kexter:studio.android.sdktools.kexter",
             "//tools/base/jdwp-scache:studio.android.sdktools.jdwpscache",
             "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
             "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
@@ -386,6 +400,7 @@ studio_plugin(
             "//tools/base/app-inspection/inspectors/network:bundle",
             "//tools/base/app-inspection/inspectors/database:bundle",
             "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
+            "//prebuilts/tools/common/app-inspection/androidx/compose/ui:bundle",  # TODO(b/381887363): remove after release of compose 1.8.0
             "//tools/base/process-monitor/process-tracker-agent:bundle",
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
@@ -407,8 +422,11 @@ studio_plugin(
         "@intellij//:JUnit",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.modules.json",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:com.intellij.properties",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
         "@intellij//:intellij.platform.lvcs.impl",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "@intellij//:intellij.platform.vcs.impl",
@@ -464,7 +482,7 @@ studio_plugin(
     libs = [
         "//tools/adt/idea/.idea/libraries:layoutlib",
     ],
-    licenses = [
+    license_files = [
         "//prebuilts/studio/layoutlib:licenses",
     ],
     modules = {
@@ -481,6 +499,7 @@ studio_plugin(
             "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
             "//tools/adt/idea/wear-designer:intellij.android.wear-designer",
             "//tools/adt/idea/motion-editor:intellij.android.motion-editor",
+            "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
         ],
     },
     resources = {
@@ -505,6 +524,7 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:com.intellij.modules.json",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )
@@ -525,11 +545,12 @@ studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     libs = [
-        "//tools/vendor/google/firebase:firebase_java_proto",
-        "//tools/vendor/google/firebase:gemini_java_proto",
+        "//tools/vendor/google/firebase:libfirebase_java_proto",
+        "//tools/vendor/google/firebase:libgemini_java_proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
+        "//prebuilts/tools/common/m2:protobuf-java-util-3.22.3",
     ],
-    licenses = [
+    license_files = [
         "//tools/vendor/google/firebase:licenses",
     ],
     modules = {"firebase.jar": ["//tools/vendor/google/firebase:firebase"]},
@@ -538,6 +559,8 @@ studio_plugin(
         ":com.google.gct.test.recorder",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
     ],
@@ -602,7 +625,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
         "//prebuilts/tools/common/m2:google-api-services-sourcerepo",
     ],
-    licenses = [
+    license_files = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
     ],
     modules = {
@@ -641,7 +664,7 @@ studio_plugin(
         "//tools/studio/google/cloud/testing/test-recorder/lib:uiautomatorviewer",
         "//tools/studio/google/cloud/testing/test-recorder/lib:swt",
     ],
-    licenses = [
+    license_files = [
         "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
     ],
     modules = {
@@ -682,13 +705,11 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.gradle.dcl",
     directory = "gradle-declarative",
-    libs = [
-        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
-    ],
     modules = {
         "gradle-declarative.jar": [
             "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
             "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
+            "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
         ],
     },
     visibility = ["//visibility:public"],
@@ -715,28 +736,51 @@ studio_plugin(
     name = "com.google.tools.ij.aiplugin",
     directory = "gemini",
     libs = [
+        "//prebuilts/tools/common/m2:libgoogle_auth_transitive_deps",
+        "//tools/vendor/google/ml/aiplugin/cloudcode-core:libgoogle_auth_intellij_lib",
+        "//tools/vendor/google/ml/aiplugin/cloudcode-core:libfeedback_java_proto",
+        "//tools/vendor/google/ml/aiplugin/cloudcode-core:libv1internal_java_rest",
+        "//tools/vendor/google/ml/aiplugin/cloudcode-core:libserviceusage_v1_java_lib",
         "//tools/vendor/google/ml/aiplugin/core:aida_grpc",
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
-        "//prebuilts/tools/common/m2:commonmark-0.22.0",
     ],
     modules = {
         "aiplugin.jar": [
             "//tools/vendor/google/ml/aiplugin/core:aiplugin.core",
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
+            "//tools/vendor/google/ml/aiplugin/android/journeys:aiplugin.android.journeys",
+            "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
+            "//tools/vendor/google/ml/aiplugin/android-plugin/descriptor:aiplugin.android-plugin.descriptor",
             "//tools/vendor/google/ml/aiplugin/lang/kotlin:aiplugin.lang.kotlin",
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
+            "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
+            "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
         ],
     },
     visibility = ["//visibility:public"],
     deps = [
+        ":com.android.tools.design",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:org.jetbrains.kotlin",
     ],
+)
+
+studio_plugin(
+    name = "com.android.altlang.soong",
+    directory = "soong-plugin",
+    libs = [
+        "//tools/vendor/google/alt-lang/soong/parser-prereqs:soong-parser-prereqs",
+        "//tools/vendor/google/alt-lang/soong/plugin:libblueprint-lexer-parser",
+    ],
+    modules = {
+        "soong-plugin.jar": ["//tools/vendor/google/alt-lang/soong/plugin:soong-plugin"],
+    },
+    visibility = ["//visibility:public"],
 )
 
 exports_files([
@@ -783,13 +827,6 @@ android_studio(
         ":com.google.targetsdkversionassistant",
         ":com.android.tools.gradle.dcl",
     ],
-    properties = select({
-        "//conditions:default": [],
-        "//tools/adt/idea/studio:nightly-build": [
-            "gradle.ide.agp.version.to.use=" + LAST_STABLE_BUILD_VERSION,
-        ],
-    }),
-    searchable_options = "//tools/adt/idea/searchable-options",
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
@@ -1039,7 +1076,7 @@ iml_module(
         "//tools/vendor/google/url-assistant[module]",
         "//tools/vendor/google/targetsdkversion-upgrade-assistant[module]",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
-        "//tools/vendor/google/ml/aiplugin/android:aiplugin.android[module]",
+        "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin[module]",
         "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental[module]",
         "//tools/adt/idea/studio:studio-sdk-all-plugins[module]",
         "@intellij//:intellij-sdk",
@@ -1070,6 +1107,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
@@ -1088,6 +1126,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
@@ -1102,6 +1141,11 @@ iml_test(
     name = "StartUpTest",
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
+    tags_mac = [
+        "ci:studio-mac",
+        "ci:studio-mac-arm",
+        "cpu:4",
+    ],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.StartUpTest",
 )
@@ -1172,12 +1216,12 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.java-i18n",
         "@intellij//:com.intellij.java.ide",
+        "@intellij//:com.intellij.modules.json",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:com.intellij.plugins.eclipsekeymap",
         "@intellij//:com.intellij.plugins.netbeanskeymap",
         "@intellij//:com.intellij.plugins.visualstudiokeymap",
         "@intellij//:com.intellij.properties",
-        "@intellij//:com.intellij.rml.dfa",
         "@intellij//:com.intellij.tasks",
         "@intellij//:com.intellij.turboComplete",
         "@intellij//:com.jetbrains.performancePlugin",
@@ -1187,30 +1231,45 @@ iml_module(
         "@intellij//:intellij.java.structuralSearch",
         "@intellij//:intellij.java.unscramble",
         "@intellij//:intellij.java.vcs",
+        "@intellij//:intellij.jvm.analysis.impl",
+        "@intellij//:intellij.libraries.compose.desktop",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
         "@intellij//:intellij.libraries.ktor.client",
+        "@intellij//:intellij.libraries.ktor.client.cio",
         "@intellij//:intellij.libraries.microba",
+        "@intellij//:intellij.libraries.skiko",
+        "@intellij//:intellij.markdown.compose.preview",
         "@intellij//:intellij.platform.clouds",
         "@intellij//:intellij.platform.collaborationTools",
+        "@intellij//:intellij.platform.compose",
         "@intellij//:intellij.platform.coverage",
         "@intellij//:intellij.platform.coverage.agent",
+        "@intellij//:intellij.platform.debugger.impl.backend",
+        "@intellij//:intellij.platform.debugger.impl.frontend",
+        "@intellij//:intellij.platform.diagnostic.freezeAnalyzer",
+        "@intellij//:intellij.platform.diagnostic.freezes",
         "@intellij//:intellij.platform.execution.dashboard",
         "@intellij//:intellij.platform.execution.serviceView",
+        "@intellij//:intellij.platform.frontend",
         "@intellij//:intellij.platform.images.backend.svg",
         "@intellij//:intellij.platform.images.copyright",
-        "@intellij//:intellij.platform.kernel",
+        "@intellij//:intellij.platform.inline.completion",
         "@intellij//:intellij.platform.kernel.backend",
         "@intellij//:intellij.platform.lvcs.impl",
         "@intellij//:intellij.platform.navbar",
         "@intellij//:intellij.platform.navbar.backend",
         "@intellij//:intellij.platform.navbar.frontend",
         "@intellij//:intellij.platform.navbar.monolith",
+        "@intellij//:intellij.platform.progress.backend",
+        "@intellij//:intellij.platform.project.backend",
+        "@intellij//:intellij.platform.rpc.backend",
         "@intellij//:intellij.platform.settings.local",
         "@intellij//:intellij.platform.smRunner.vcs",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
+        "@intellij//:intellij.rml.dfa.impl",
         "@intellij//:intellij.smart.update",
         "@intellij//:intellij.turboComplete.languages.kotlin",
         "@intellij//:intellij.webp",
@@ -1247,23 +1306,34 @@ iml_module(
         "@intellij//:intellij.java.structuralSearch",
         "@intellij//:intellij.java.unscramble",
         "@intellij//:intellij.java.vcs",
+        "@intellij//:intellij.jvm.analysis.impl",
+        "@intellij//:intellij.libraries.grpc",
+        "@intellij//:intellij.libraries.grpc.netty.shaded",
         "@intellij//:intellij.libraries.ktor.client",
+        "@intellij//:intellij.libraries.ktor.client.cio",
         "@intellij//:intellij.libraries.microba",
         "@intellij//:intellij.platform.clouds",
         "@intellij//:intellij.platform.collaborationTools",
         "@intellij//:intellij.platform.coverage",
         "@intellij//:intellij.platform.coverage.agent",
+        "@intellij//:intellij.platform.debugger.impl.backend",
+        "@intellij//:intellij.platform.debugger.impl.frontend",
+        "@intellij//:intellij.platform.diagnostic.freezeAnalyzer",
+        "@intellij//:intellij.platform.diagnostic.freezes",
         "@intellij//:intellij.platform.execution.dashboard",
         "@intellij//:intellij.platform.execution.serviceView",
+        "@intellij//:intellij.platform.frontend",
         "@intellij//:intellij.platform.images.backend.svg",
         "@intellij//:intellij.platform.images.copyright",
-        "@intellij//:intellij.platform.kernel",
         "@intellij//:intellij.platform.kernel.backend",
         "@intellij//:intellij.platform.lvcs.impl",
         "@intellij//:intellij.platform.navbar",
         "@intellij//:intellij.platform.navbar.backend",
         "@intellij//:intellij.platform.navbar.frontend",
         "@intellij//:intellij.platform.navbar.monolith",
+        "@intellij//:intellij.platform.progress.backend",
+        "@intellij//:intellij.platform.project.backend",
+        "@intellij//:intellij.platform.rpc.backend",
         "@intellij//:intellij.platform.settings.local",
         "@intellij//:intellij.platform.smRunner.vcs",
         "@intellij//:intellij.platform.vcs.dvcs.impl",
@@ -1271,5 +1341,6 @@ iml_module(
         "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:intellij.smart.update",
         "@intellij//:intellij.turboComplete.languages.kotlin",
+        "@intellij//:intellij.platform.inline.completion",
     ],
 )

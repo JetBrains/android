@@ -21,7 +21,9 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.util.application
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -48,62 +50,66 @@ class AndroidRequiresPermissionCompletionContributorTest {
   }
 
   @Test
-  @OptIn(KaAllowAnalysisFromWriteAction::class)
+  @OptIn(KaAllowAnalysisOnEdt::class, KaAllowAnalysisFromWriteAction::class)
   fun basicCompletionKotlin() {
-    // b/364384369: The machinery for completion runs on the EDT in unit-test mode.
-    // This causes the test to fail under K2 due to running analysis inside a write
-    // action, unless we exempt it here.
-    // (In production, the completion contributor runs on a background thread.)
-    allowAnalysisFromWriteAction {
-      val addedFile =
-        fixture.addFileToProject(
-          "src/com/example/Foo.kt",
-          // language=kotlin
-          """
-          package com.example
-
-          import androidx.annotation.RequiresPermission
-
-          class Foo {
-            @RequiresPermission(<caret>)
-            fun doSomething() {}
-          }
-          """
-            .trimIndent(),
-        )
-
-      fixture.configureFromExistingVirtualFile(addedFile.virtualFile)
-
-      // Validate that completion contains various permissions entries.
-      fixture.completeBasic()
-      assertThat(fixture.lookupElementStrings)
-        .containsAllOf("ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE")
-
-      // Now filter the list down to a single entry, and verify its insertion.
-      application.invokeAndWait { fixture.type("ACCESS_FINE") }
-      val lookupElements = fixture.completeBasic()
-      assertWithMessage(
-        "Expect lookupElements to be null, signifying there is a single lookup entry."
-      )
-        .that(lookupElements)
-        .isNull()
-
-      fixture.checkResult(
+    val addedFile =
+      fixture.addFileToProject(
+        "src/com/example/Foo.kt",
         // language=kotlin
         """
         package com.example
 
-        import android.Manifest
         import androidx.annotation.RequiresPermission
 
         class Foo {
-          @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+          @RequiresPermission(<caret>)
           fun doSomething() {}
         }
         """
-          .trimIndent()
+          .trimIndent(),
       )
+
+    fixture.configureFromExistingVirtualFile(addedFile.virtualFile)
+
+    // Validate that completion contains various permissions entries.
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings)
+      .containsAllOf("ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_EXTERNAL_STORAGE")
+
+    // Now filter the list down to a single entry, and verify its insertion.
+    application.invokeAndWait {
+      // b/364384369: The machinery for completion runs on the EDT in unit-test mode.
+      // This causes the test to fail under K2 due to running analysis inside a write
+      // action, unless we exempt it here.
+      // (In production, the completion contributor runs on a background thread.)
+      allowAnalysisFromWriteAction {
+        allowAnalysisOnEdt {
+          fixture.type("ACCESS_FINE")
+        }
+      }
     }
+    val lookupElements = fixture.completeBasic()
+    assertWithMessage(
+      "Expect lookupElements to be null, signifying there is a single lookup entry."
+    )
+      .that(lookupElements)
+      .isNull()
+
+    fixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import android.Manifest
+      import androidx.annotation.RequiresPermission
+
+      class Foo {
+        @RequiresPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+        fun doSomething() {}
+      }
+      """
+        .trimIndent()
+    )
   }
 
   @Test

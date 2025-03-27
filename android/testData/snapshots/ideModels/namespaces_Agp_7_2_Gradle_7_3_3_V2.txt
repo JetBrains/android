@@ -419,6 +419,11 @@ MODULE                        : project
                             qName                         : :otherlib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -437,8 +442,8 @@ MODULE                        : project.app
             ApiLevel                      : 19
             ApiString                     : 19
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -487,6 +492,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : testData.namespaces
         testApplicationId             : testData.namespaces.test
@@ -510,8 +516,8 @@ MODULE                        : project.app
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -678,8 +684,8 @@ MODULE                        : project.app
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact
@@ -786,8 +792,8 @@ MODULE                        : project.lib
             ApiLevel                      : 19
             ApiString                     : 19
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
@@ -836,6 +842,7 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
         buildType                     : debug
@@ -853,8 +860,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1019,8 +1026,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact
@@ -1119,8 +1126,8 @@ MODULE                        : project.otherlib
             ApiLevel                      : 19
             ApiString                     : 19
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :otherlib
@@ -1169,6 +1176,7 @@ MODULE                        : project.otherlib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.otherlib.test
         buildType                     : debug
@@ -1186,8 +1194,8 @@ MODULE                        : project.otherlib
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1352,8 +1360,8 @@ MODULE                        : project.otherlib
                 ApiLevel                      : 19
                 ApiString                     : 19
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact

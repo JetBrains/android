@@ -16,7 +16,10 @@
 package com.android.tools.idea.avd
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,48 +30,58 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
-import com.android.tools.idea.adddevicedialog.AndroidVersionSelection
-import com.android.tools.idea.adddevicedialog.TableSelectionState
-import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
-import com.android.tools.idea.avdmanager.skincombobox.Skin
-import java.nio.file.Path
+import com.android.tools.idea.adddevicedialog.DeviceDetails
 import java.util.EnumSet
 import java.util.TreeSet
-import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.VerticallyScrollableContainer
 import org.jetbrains.jewel.ui.theme.defaultTabStyle
 
 @Composable
 internal fun ConfigureDevicePanel(
   configureDevicePanelState: ConfigureDevicePanelState,
   initialSystemImage: ISystemImage?,
-  images: ImmutableList<ISystemImage>,
+  images: SystemImageState,
   deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
-  onImportButtonClick: () -> Unit,
 ) {
-  Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-    Text(
-      "Configure virtual device",
-      fontWeight = FontWeight.SemiBold,
-      fontSize = LocalTextStyle.current.fontSize * 1.2,
-    )
-    Tabs(
-      configureDevicePanelState,
-      initialSystemImage,
-      images,
-      deviceNameValidator,
-      onDownloadButtonClick,
-      onSystemImageTableRowClick,
-      onImportButtonClick,
+  Row(Modifier.padding(top = Padding.LARGE)) {
+    Column(Modifier.weight(1f)) {
+      Text(
+        "Configure virtual device",
+        fontWeight = FontWeight.SemiBold,
+        fontSize = LocalTextStyle.current.fontSize * 1.2,
+        modifier =
+          Modifier.padding(horizontal = Padding.EXTRA_LARGE).padding(bottom = Padding.SMALL_MEDIUM),
+      )
+      Tabs(
+        configureDevicePanelState,
+        initialSystemImage,
+        images,
+        deviceNameValidator,
+        onDownloadButtonClick,
+        onSystemImageTableRowClick,
+      )
+    }
+
+    Divider(Orientation.Vertical, Modifier.fillMaxHeight())
+    DeviceDetails(
+      configureDevicePanelState.device.device.toVirtualDeviceProfile(),
+      Modifier.padding(horizontal = Padding.SMALL_MEDIUM).width(200.dp),
+      systemImage =
+        configureDevicePanelState.systemImageTableSelectionState.selection?.takeIf {
+          configureDevicePanelState.validity.isSystemImageTableSelectionValid
+        },
     )
   }
 }
@@ -77,11 +90,10 @@ internal fun ConfigureDevicePanel(
 private fun Tabs(
   configureDevicePanelState: ConfigureDevicePanelState,
   initialSystemImage: ISystemImage?,
-  images: ImmutableList<ISystemImage>,
+  imageState: SystemImageState,
   deviceNameValidator: DeviceNameValidator,
   onDownloadButtonClick: (String) -> Unit,
   onSystemImageTableRowClick: (ISystemImage) -> Unit,
-  onImportButtonClick: () -> Unit,
 ) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE) }
 
@@ -94,57 +106,64 @@ private fun Tabs(
         closable = false,
       )
     },
-    style = JewelTheme.defaultTabStyle,
+    JewelTheme.defaultTabStyle,
+    Modifier.padding(start = Padding.EXTRA_LARGE),
   )
 
   val servicesSet =
-    images.mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices).toImmutableSet()
+    imageState.images
+      .mapTo(EnumSet.noneOf(Services::class.java), ISystemImage::getServices)
+      .toImmutableSet()
 
-  val androidVersions = images.map { it.androidVersion }.relevantVersions()
+  val androidVersions = imageState.images.map { it.androidVersion }.relevantVersions()
 
-  val devicePanelState = remember {
+  val systemImageFilterState = remember {
     if (initialSystemImage == null) {
-      DevicePanelState(
-        AndroidVersionSelection(
-          androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
-        ),
-        servicesSet.firstOrNull(),
-        images,
+      SystemImageFilterState(
+        selectedApi =
+          AndroidVersionSelection(
+            androidVersions.firstOrNull { !it.isPreview } ?: AndroidVersion.DEFAULT
+          ),
+        selectedServices = servicesSet.firstOrNull(),
       )
     } else {
-      DevicePanelState(
-        AndroidVersionSelection(AndroidVersion(initialSystemImage.androidVersion.apiLevel)),
-        initialSystemImage.getServices(),
-        images,
-        !initialSystemImage.androidVersion.isBaseExtension,
-        initialSystemImage.isRecommended(),
+      SystemImageFilterState(
+        selectedApi =
+          AndroidVersionSelection(initialSystemImage.androidVersion.withBaseExtensionLevel()),
+        selectedServices = initialSystemImage.getServices(),
+        showSdkExtensionSystemImages = !initialSystemImage.androidVersion.isBaseExtension,
+        showUnsupportedSystemImages = !initialSystemImage.isSupported(),
       )
     }
-  }
-
-  val additionalSettingsPanelState = remember {
-    AdditionalSettingsPanelState(configureDevicePanelState.device)
   }
 
   when (selectedTab) {
     Tab.DEVICE ->
       DevicePanel(
         configureDevicePanelState,
-        devicePanelState,
+        systemImageFilterState,
+        imageState,
         androidVersions,
         servicesSet,
         deviceNameValidator,
         onDownloadButtonClick,
         onSystemImageTableRowClick,
-        Modifier.padding(Padding.SMALL),
+        Modifier.padding(horizontal = Padding.EXTRA_LARGE, vertical = Padding.SMALL_MEDIUM),
       )
-    Tab.ADDITIONAL_SETTINGS ->
-      AdditionalSettingsPanel(
-        configureDevicePanelState,
-        additionalSettingsPanelState,
-        onImportButtonClick,
-        Modifier.padding(Padding.SMALL),
-      )
+    Tab.ADDITIONAL_SETTINGS -> {
+      if (configureDevicePanelState.hasPlayStore()) {
+        WarningBanner(
+          "Some device settings cannot be configured when using a Google Play Store image"
+        )
+      }
+
+      VerticallyScrollableContainer {
+        AdditionalSettingsPanel(
+          configureDevicePanelState,
+          Modifier.padding(horizontal = Padding.EXTRA_LARGE, vertical = Padding.SMALL_MEDIUM),
+        )
+      }
+    }
   }
 }
 
@@ -154,74 +173,11 @@ private fun Tabs(
  */
 private fun Collection<AndroidVersion>.relevantVersions(): ImmutableList<AndroidVersion> {
   val (previewVersions, stableVersions) =
-    mapTo(TreeSet()) { AndroidVersion(it.apiLevel, it.codename) }.partition { it.isPreview }
+    mapTo(TreeSet()) { it.withBaseExtensionLevel() }.partition { it.isPreview }
   val latestStableVersion = stableVersions.maxOrNull() ?: AndroidVersion.DEFAULT
   return (previewVersions.filter { it > latestStableVersion } + stableVersions)
     .sortedDescending()
     .toImmutableList()
-}
-
-internal class ConfigureDevicePanelState
-internal constructor(
-  device: VirtualDevice,
-  skins: ImmutableCollection<Skin>,
-  image: ISystemImage?,
-) {
-  internal var device by mutableStateOf(device)
-
-  internal var skins by mutableStateOf(skins)
-    private set
-
-  internal val systemImageTableSelectionState = TableSelectionState(image)
-
-  internal var validity by mutableStateOf(Validity())
-    private set
-
-  init {
-    setExpandedStorage(device.expandedStorage)
-  }
-
-  internal fun setDeviceName(deviceName: String) {
-    device = device.copy(name = deviceName)
-  }
-
-  internal fun setIsSystemImageTableSelectionValid(isSystemImageTableSelectionValid: Boolean) {
-    validity = validity.copy(isSystemImageTableSelectionValid = isSystemImageTableSelectionValid)
-  }
-
-  internal fun setIsDeviceNameValid(isDeviceNameValid: Boolean) {
-    validity = validity.copy(isDeviceNameValid = isDeviceNameValid)
-  }
-
-  internal fun setSkin(path: Path) {
-    device = device.copy(skin = getSkin(path))
-  }
-
-  private fun getSkin(path: Path): Skin {
-    var skin = skins.firstOrNull { it.path() == path }
-
-    if (skin == null) {
-      skin = DefaultSkin(path)
-      skins = (skins + skin).sorted().toImmutableList()
-    }
-
-    return skin
-  }
-
-  internal fun setExpandedStorage(expandedStorage: ExpandedStorage) {
-    device = device.copy(expandedStorage = expandedStorage)
-    validity = validity.copy(isExpandedStorageValid = expandedStorage.isValid())
-  }
-}
-
-internal data class Validity
-internal constructor(
-  private val isSystemImageTableSelectionValid: Boolean = true,
-  internal val isExpandedStorageValid: Boolean = true,
-  private val isDeviceNameValid: Boolean = true,
-) {
-  internal val isValid
-    get() = isSystemImageTableSelectionValid && isExpandedStorageValid && isDeviceNameValid
 }
 
 private enum class Tab(val text: String) {

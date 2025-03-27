@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingStatusChangedListener
 import com.google.common.util.concurrent.Futures
@@ -33,7 +33,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class WearPairingManagerTest {
   @get:Rule val applicationRule = ApplicationRule()
@@ -42,7 +43,7 @@ class WearPairingManagerTest {
     PairingDevice(
       deviceID = "localhost:4432",
       displayName = "My Phone",
-      apiLevel = 34,
+      androidVersion = AndroidVersion(34),
       isWearDevice = false,
       isEmulator = false,
       hasPlayStore = true,
@@ -52,22 +53,16 @@ class WearPairingManagerTest {
     PairingDevice(
       deviceID = "id2",
       displayName = "Round Watch",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isEmulator = true,
       isWearDevice = true,
       hasPlayStore = true,
       state = ConnectionState.ONLINE,
     )
   private val wearPropertiesMap =
-    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
+    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
-    AvdInfo(
-      Paths.get("ini"),
-      Paths.get("id2"),
-      Mockito.mock(ISystemImage::class.java),
-      wearPropertiesMap,
-      null,
-    )
+    AvdInfo(Paths.get("ini"), Paths.get("id2"), mock<ISystemImage>(), wearPropertiesMap, null)
 
   private val pairingManager = WearPairingManager()
 
@@ -284,7 +279,7 @@ class WearPairingManagerTest {
       PairingDevice(
         deviceID = "phoneId",
         displayName = "My Phone",
-        apiLevel = 34,
+        androidVersion = AndroidVersion(34),
         isWearDevice = false,
         isEmulator = true,
         hasPlayStore = true,
@@ -294,7 +289,7 @@ class WearPairingManagerTest {
       AvdInfo(
         Paths.get("ini"),
         Paths.get(phoneDevice.deviceID),
-        Mockito.mock(ISystemImage::class.java),
+        mock<ISystemImage>(),
         mapOf(),
         null,
       )

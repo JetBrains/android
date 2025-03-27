@@ -17,6 +17,7 @@ package com.android.tools.idea
 
 import com.android.tools.idea.IdeChannel.Channel.DEV
 import com.android.tools.idea.IdeChannel.Channel.STABLE
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import java.util.regex.Pattern
@@ -50,15 +51,28 @@ object IdeChannel {
     return Pattern.compile("\\b$channel\\b", Pattern.CASE_INSENSITIVE).matcher(versionName ?: return false).find()
   }
 
+  private var _channel: Channel? = null
+
+  val channel: Channel
+    get() = _channel ?: computeChannel().also { _channel = it }
+
+  @VisibleForTesting
+  fun setChannel(versionName: String?) {
+    _channel = versionName?.let { getChannelFromVersionName(it) }
+  }
+
   /**
    * Returns the [Channel] based on the given [ApplicationInfo].
    */
-  fun getChannel(versionProvider: (() -> String)? = null): Channel {
+  private fun computeChannel(): Channel {
     val versionName = when {
-      versionProvider != null -> versionProvider()
       ApplicationManager.getApplication() == null || ApplicationManager.getApplication().getServiceIfCreated(ApplicationInfo::class.java) == null -> "dev"
       else -> ApplicationInfo.getInstance().fullVersion
     }
+    return getChannelFromVersionName(versionName)
+  }
+
+  private fun getChannelFromVersionName(versionName: String) : Channel {
     return when {
       versionNameContainsChannel(versionName, "dev") -> Channel.DEV
       versionNameContainsChannel(versionName, "nightly") -> Channel.NIGHTLY

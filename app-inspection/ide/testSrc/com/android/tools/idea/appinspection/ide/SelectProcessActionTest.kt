@@ -1,8 +1,5 @@
 package com.android.tools.idea.appinspection.ide
 
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
@@ -12,32 +9,38 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.verify
+import com.intellij.openapi.actionSystem.ex.ActionUtil.SHOW_TEXT_IN_TOOLBAR
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 private const val FAKE_MANUFACTURER_NAME = "FakeManufacturer"
 
 class SelectProcessActionTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = ProjectRule()
 
-  @Before
-  fun setUp() {
-    projectRule.mockService(ActionManager::class.java)
-  }
+  @get:Rule
+  val rule = RuleChain(projectRule, ApplicationServiceRule(ActionManager::class.java, mock()))
 
   private fun createFakeStream(
     serial: String = UUID.randomUUID().toString(),
@@ -67,7 +70,7 @@ class SelectProcessActionTest {
   }
 
   private fun createFakeEvent(): AnActionEvent =
-    AnActionEvent.createFromDataContext("", null, DataContext.EMPTY_CONTEXT)
+    AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)
 
   @Test
   fun testNoProcesses() {
@@ -170,8 +173,7 @@ class SelectProcessActionTest {
     assertThat(children[1].templateText)
       .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
-    val processes = (device as ActionGroup).getChildren(null)
-    processes.forEach { it.update(createFakeEvent()) }
+    val processes = device.getChildren()
     assertThat(processes).hasLength(3)
 
     // Preferred process B should be ahead of Non-preferred process A
@@ -195,8 +197,7 @@ class SelectProcessActionTest {
     selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
     val children = selectProcessAction.getChildren(null)
     val device = children[0]
-    val processes = (device as ActionGroup).getChildren(null)
-    processes.forEach { it.update(createFakeEvent()) }
+    val processes = device.getChildren()
     assertThat(processes).hasLength(7)
 
     // Preferred processes first, then non-preferred, but everything sorted
@@ -228,7 +229,7 @@ class SelectProcessActionTest {
       assertThat(children[1].templateText)
         .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
-      val processAction = (deviceAction as ActionGroup).getChildren(null)[0]
+      val processAction = deviceAction.getChildren()[0]
       assertThat(processAction.templateText).isEqualTo("A")
     }
 
@@ -241,7 +242,7 @@ class SelectProcessActionTest {
       assertThat(children[1].templateText)
         .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
-      val processAction = (deviceAction as ActionGroup).getChildren(null)[0]
+      val processAction = deviceAction.getChildren()[0]
       assertThat(processAction.templateText).isEqualTo("A [DETACHED]")
     }
   }
@@ -265,7 +266,7 @@ class SelectProcessActionTest {
       assertThat(children[1].templateText)
         .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
 
-      val processAction = (deviceAction as ActionGroup).getChildren(null)[0]
+      val processAction = deviceAction.getChildren()[0]
       assertThat(processAction.templateText).isEqualTo("A")
     }
 
@@ -276,7 +277,7 @@ class SelectProcessActionTest {
       assertThat(selectProcessAction.childrenCount).isEqualTo(2)
       val children = selectProcessAction.getChildren(null)
       val deviceAction = children[0] as ActionGroup
-      assertThat(deviceAction.getChildren(null).toList().map { it.templateText })
+      assertThat(deviceAction.getChildren().map { it.templateText })
         .containsExactly(AppInspectionBundle.message("action.no.debuggable.process"))
       assertThat(children[1].templateText)
         .isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
@@ -307,8 +308,7 @@ class SelectProcessActionTest {
     assertThat(children).hasLength(2)
     val device = children[0]
     assertThat(device.templateText).isEqualTo("FakeDevice")
-    assertThat((device as ActionGroup).getChildren(null).map { it.templateText })
-      .containsExactly("B")
+    assertThat(device.getChildren().map { it.templateText }).containsExactly("B")
 
     val stop = children[1]
     assertThat(stop.templateText).isEqualTo(AppInspectionBundle.message("action.stop.inspectors"))
@@ -320,7 +320,7 @@ class SelectProcessActionTest {
     val refreshedChildren = selectProcessAction.getChildren(null)
     assertThat(refreshedChildren).hasLength(2)
     val refreshedDevice = refreshedChildren[0]
-    val processes = (refreshedDevice as ActionGroup).getChildren(null)
+    val processes = refreshedDevice.getChildren()
     assertThat(processes).hasLength(2)
     assertThat(processes.map { it.templateText }).containsExactly("B", "B [DETACHED]")
   }
@@ -356,11 +356,26 @@ class SelectProcessActionTest {
     }
   }
 
-  private fun update(action: AnAction): AnActionEvent {
-    val presentation = action.templatePresentation.clone()
-    val event: AnActionEvent = mock()
-    whenever(event.presentation).thenReturn(presentation)
-    action.update(event)
-    return event
+  @Test
+  fun createCustomComponent_setsSHOW_TEXT_IN_TOOLBAR() {
+    val testNotifier = TestProcessDiscovery()
+    val model = ProcessesModel(testNotifier)
+    val selectProcessAction = SelectProcessAction(model)
+
+    val presentation = Presentation()
+    selectProcessAction.createCustomComponent(presentation, "place")
+
+    assertThat(presentation.getClientProperty(SHOW_TEXT_IN_TOOLBAR)).isTrue()
   }
 }
+
+private fun update(action: AnAction): AnActionEvent {
+  val presentation = action.templatePresentation.clone()
+  val event: AnActionEvent = mock()
+  whenever(event.presentation).thenReturn(presentation)
+  @Suppress("OverrideOnly") action.update(event)
+  return event
+}
+
+private fun AnAction.getChildren() =
+  (this as? DefaultActionGroup)?.getChildren(null) ?: emptyArray()

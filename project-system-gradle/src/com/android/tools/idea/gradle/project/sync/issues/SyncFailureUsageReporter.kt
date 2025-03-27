@@ -22,10 +22,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.BuildOutputWindowStats
+import com.google.wireless.android.sdk.stats.GradleFailureDetails
 import com.intellij.build.SyncViewManager
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.output.BuildOutputParser
-import com.intellij.concurrency.ConcurrentCollectionFactory.createConcurrentMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.util.GradleBundle
+import java.util.concurrent.ConcurrentHashMap
 
 private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
 
@@ -50,8 +51,9 @@ private val LOG = Logger.getInstance(SyncFailureUsageReporter::class.java)
  */
 @Service(Service.Level.APP)
 class SyncFailureUsageReporter {
-  private val collectedFailuresByProjectPath = createConcurrentMap<String, GradleSyncFailure>()
-  private val collectedFailureDetailsByBuildId = createConcurrentMap<Any, AndroidStudioEvent.Builder>()
+  private val collectedFailureTypesByProjectPath = ConcurrentHashMap<String, GradleSyncFailure>()
+  private val collectedFailureDetailsByProjectPath = ConcurrentHashMap<String, GradleFailureDetails>()
+  private val collectedFailureDetailsByBuildId = ConcurrentHashMap<Any, AndroidStudioEvent.Builder>()
 
   companion object {
     @JvmStatic
@@ -60,7 +62,8 @@ class SyncFailureUsageReporter {
 
   fun onSyncStart(externalSystemTaskId: ExternalSystemTaskId?, project: Project, rootProjectPath: @SystemIndependent String) {
     if (externalSystemTaskId == null) return
-    collectedFailuresByProjectPath.remove(rootProjectPath)
+    collectedFailureTypesByProjectPath.remove(rootProjectPath)
+    collectedFailureDetailsByProjectPath.remove(rootProjectPath)
 
     val disposable = Disposer.newDisposable("syncViewListenerDisposable")
     Disposer.register(project, disposable)
@@ -78,7 +81,7 @@ class SyncFailureUsageReporter {
   }
 
   fun collectFailure(rootProjectPath: @SystemIndependent String, failure: GradleSyncFailure) {
-    val previousValue = collectedFailuresByProjectPath.put(rootProjectPath, failure)
+    val previousValue = collectedFailureTypesByProjectPath.put(rootProjectPath, failure)
     if (previousValue != null) {
       LOG.warn("Multiple sync failures reported. Discarding: $previousValue")
     }
@@ -88,13 +91,17 @@ class SyncFailureUsageReporter {
     if (externalSystemTaskId == null) return
     // If nothing was collected by the issue checkers try to derive a bit more details from the processed error.
     // e.g. if it has a BuildIssue attached then something just did not report the recognized failure.
-    val failureType = collectedFailuresByProjectPath.remove(rootProjectPath) ?: deriveSyncFailureFromProcessedError(processedError)
+    val failureType = collectedFailureTypesByProjectPath.remove(rootProjectPath) ?: deriveSyncFailureFromProcessedError(processedError)
+    val failureErrorDetails = collectedFailureDetailsByProjectPath.remove(rootProjectPath)
+                              ?: extractGradleFailureDetails(processedError)
+                              ?: GradleFailureDetails.newBuilder().build()
     // At this point we start waiting for finish event in the listener and loosing guarantee that no other sync starts before that.
     // Create half-prepared event from what we have now and put it to the map by build id.
     val syncStateHolder = GradleSyncStateHolder.getInstance(project)
     collectedFailureDetailsByBuildId[externalSystemTaskId] = syncStateHolder
       .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS, rootProjectPath)
       .setGradleSyncFailure(failureType)
+      .setGradleFailureDetails(failureErrorDetails)
   }
 
   private fun deriveSyncFailureFromProcessedError(error: Throwable?) = if (error is BuildIssueException) {
@@ -110,7 +117,7 @@ class SyncFailureUsageReporter {
       error?.message?.startsWith("Could not get unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
       error?.message?.startsWith("Could not set unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
       error?.message?.startsWith("Script compilation error:") == true -> GradleSyncFailure.KTS_COMPILATION_ERROR
-      error?.message?.startsWith("Compilation failed; see the compiler error output for details.") == true -> GradleSyncFailure.JAVA_COMPILATION_ERROR
+      error?.message?.startsWith("Compilation failed; see the compiler ") == true -> GradleSyncFailure.JAVA_COMPILATION_ERROR
       error?.message?.startsWith("Cannot cast object ") == true -> GradleSyncFailure.CANNOT_BE_CAST_TO // Cast exception in groovy code
       error?.isTomlError() == true -> GradleSyncFailure.INVALID_TOML_DEFINITION
       error?.cause?.toString()?.startsWith("org.codehaus.groovy.control.MultipleCompilationErrorsException:") == true ->
@@ -123,5 +130,16 @@ class SyncFailureUsageReporter {
         GradleSyncFailure.MISSING_DEPENDENCY_OTHER
       else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
     }
+  }
+
+  fun collectUnprocessedGradleError(rootProjectPath: @SystemIndependent String, gradleError: Throwable?) {
+    extractGradleFailureDetails(gradleError)?.let { gradleFailureDetails ->
+      collectedFailureDetailsByProjectPath.put(rootProjectPath, gradleFailureDetails)
+    }
+  }
+
+  private fun extractGradleFailureDetails(gradleError: Throwable?): GradleFailureDetails? {
+    if (gradleError == null) return null
+    return GradleExceptionAnalyticsSupport().extractFailureDetails(gradleError).toAnalyticsMessage()
   }
 }

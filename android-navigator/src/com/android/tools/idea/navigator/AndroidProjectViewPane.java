@@ -194,24 +194,26 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   }
 
   @Override
-  @NotNull
-  public PsiDirectory[] getSelectedDirectories() {
-    Object selectedElement = getSelectedElement();
-    if (selectedElement instanceof PackageElement) {
-      PackageElement packageElement = (PackageElement)selectedElement;
+  public PsiDirectory @NotNull [] getSelectedDirectories() {
+    Object[] selectedElements = getSelectedUserObjects();
+    Object selectedElement = null;
+    if (selectedElements.length == 1) {
+      selectedElement = selectedElements[0];
+    }
+    if (selectedElement instanceof PackageElement packageElement) {
       Module m = packageElement.getModule();
       if (m != null) {
         return packageElement.getPackage().getDirectories(GlobalSearchScope.moduleScope(m));
       }
     }
 
-    NodeDescriptor descriptor = getSelectedDescriptor();
+    NodeDescriptor descriptor = TreeUtil.getLastUserObject(NodeDescriptor.class, getSelectedPath());
     if (descriptor instanceof FolderGroupNode) {
       return ((FolderGroupNode)descriptor).getFolders().toArray(PsiDirectory.EMPTY_ARRAY);
     }
 
     PsiDirectory[] selectedDirectories = super.getSelectedDirectories();
-    // For modules we'll include generated folders too but we don't want
+    // For modules we'll include generated folders too, but we don't want
     // to treat these as selectable (for target output directories etc)
     if (selectedElement instanceof Module && selectedDirectories.length > 0) {
       List<PsiDirectory> dirs = new ArrayList<>(selectedDirectories.length);

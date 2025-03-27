@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBViewport
 import java.awt.BorderLayout
@@ -120,8 +121,6 @@ class BackgroundTaskEntriesView(
       tableView.treeModel.allTags.forEach { tag -> add(FilterWithTagToggleAction(tag)) }
       return true
     }
-
-    override fun displayTextInToolbar() = true
   }
 
   /** ToggleAction that filters works with a specific [tag]. */
@@ -154,6 +153,7 @@ class BackgroundTaskEntriesView(
 
     override fun update(e: AnActionEvent) {
       super.update(e)
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       e.presentation.isEnabled = contentMode == Mode.GRAPH
     }
   }

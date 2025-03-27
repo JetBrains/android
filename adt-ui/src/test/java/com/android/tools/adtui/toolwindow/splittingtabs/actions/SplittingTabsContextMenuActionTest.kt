@@ -18,8 +18,8 @@ package com.android.tools.adtui.toolwindow.splittingtabs.actions
 import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -47,7 +47,7 @@ class SplittingTabsContextMenuActionTest {
   private val content by lazy {
     toolWindow.contentManager.factory.createContent(null, "Content", false).also {
       it.component = SplittingPanel(it, null, object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
+        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
       })
       toolWindow.contentManager.addContent(it)
     }
@@ -109,7 +109,7 @@ class SplittingTabsContextMenuActionTest {
     // A content that hasn't been added has a null manager.
     val content = toolWindow.contentManager.factory.createContent(null, "Content", false).also {
       it.component = SplittingPanel(it, null, object : ChildComponentFactory {
-        override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
+        override fun createChildComponent(state: String?, popupActionGroup: DefaultActionGroup): JComponent = JPanel()
       })
     }
     Disposer.register(toolWindow.contentManager, content)

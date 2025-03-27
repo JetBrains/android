@@ -34,16 +34,13 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.util.CommonAndroidUtil
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.Separator
@@ -139,17 +136,6 @@ internal fun defaultCreateInformationPopup(
         }
       )
     ).also { newPopup ->
-      // Register the data provider of the popup to be the same as the one used in the toolbar.
-      // This allows for actions within the popup to query for things like the Editor even when
-      // the Editor is not directly related to the popup.
-      DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
-        if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
-          DataProvider { dataContext.getData(it) }
-        }
-        else {
-          dataContext.getData(dataId)
-        }
-      }
       configureLiveEditAction.parentDisposable = newPopup
     }
   }

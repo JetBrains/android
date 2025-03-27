@@ -38,7 +38,8 @@ class ErrorOpeningZipFileIssueChecker: GradleIssueChecker {
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.CANNOT_OPEN_ZIP_FILE)
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     return BuildIssueComposer("Failed to open zip file.").apply {
-      addDescription("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+      addDescriptionOnNewLine("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+      startNewParagraph()
       addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
     }.composeBuildIssue()
   }

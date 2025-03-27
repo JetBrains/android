@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException;
 import com.google.idea.blaze.base.bazel.BuildSystem;
@@ -36,7 +34,6 @@ import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 /** An object that knows how to build dependencies for given targets */
 public class BazelAppInspectorBuilder implements AppInspectorBuilder {
@@ -50,7 +47,7 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
   }
 
   @Override
-  public AppInspectorInfo buildAppInspector(BlazeContext context, Set<Label> buildTargets)
+  public AppInspectorInfo buildAppInspector(BlazeContext context, Label buildTarget)
       throws IOException, BuildException {
     BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
     try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
@@ -65,13 +62,13 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
 
       BlazeCommand.Builder builder =
           BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
-              .addBlazeFlags(buildTargets.stream().map(Label::toString).collect(toImmutableList()))
+              .addBlazeFlags(buildTarget.toString())
               .addBlazeFlags(buildResultHelper.getBuildFlags())
               .addBlazeFlags(additionalBlazeFlags);
 
       BlazeBuildOutputs outputs =
           invoker.getCommandRunner().run(project, builder, buildResultHelper, context);
-      BazelExitCodeException.throwIfFailed(builder, outputs.buildResult);
+      BazelExitCodeException.throwIfFailed(builder, outputs.buildResult());
 
       return createAppInspectorInfo(outputs);
     }
@@ -79,8 +76,8 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
 
   private AppInspectorInfo createAppInspectorInfo(BlazeBuildOutputs blazeBuildOutputs) {
     ImmutableList<OutputArtifact> appInspectorJars =
-        blazeBuildOutputs.getOutputGroupArtifacts(s -> s.contains("default"));
+        blazeBuildOutputs.getOutputGroupArtifacts("default");
 
-    return AppInspectorInfo.create(appInspectorJars, blazeBuildOutputs.buildResult.exitCode);
+    return AppInspectorInfo.create(appInspectorJars, blazeBuildOutputs.buildResult().exitCode);
   }
 }

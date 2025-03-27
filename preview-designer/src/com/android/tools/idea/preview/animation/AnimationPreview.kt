@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
+import com.android.tools.idea.uibuilder.scene.LayoutlibCallbacksConfig
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.google.common.annotations.VisibleForTesting
@@ -33,7 +34,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
-import com.intellij.util.io.await
 import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -67,29 +67,30 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  */
 abstract class AnimationPreview<T : AnimationManager>(
   project: Project,
-  private val sceneManagerProvider: () -> LayoutlibSceneManager?,
+  @VisibleForTesting val sceneManagerProvider: () -> LayoutlibSceneManager?,
   rootComponent: JComponent,
   private val tracker: AnimationTracker,
 ) : Disposable {
 
   private val logger: Logger = Logger.getInstance(AnimationPreview::class.java)
+
+  private val errorLabel = // Create an error label
+    JLabel().apply {
+      horizontalAlignment = SwingConstants.CENTER
+      verticalAlignment = SwingConstants.CENTER
+    }
+
   private val errorPanel =
     JPanel(BorderLayout()).apply {
       name = "Error Panel"
-      add(
-        JLabel().apply {
-          text = message("animation.inspector.error.panel.message")
-          horizontalAlignment = SwingConstants.CENTER
-          verticalAlignment = SwingConstants.CENTER
-        }
-      )
+      add(errorLabel)
     }
 
   protected val scope =
     AndroidCoroutineScope(
       this,
       CoroutineExceptionHandler { _, throwable ->
-        invokeLater { showErrorPanel(throwable) }
+        invokeLater { showErrorPanel(message("animation.inspector.error.panel.message")) }
         logger.error("Error in Animation Inspector", throwable)
       },
     )
@@ -300,7 +301,12 @@ abstract class AnimationPreview<T : AnimationManager>(
 
   /** Triggers a render/update of the displayed preview. */
   protected suspend fun renderAnimation() {
-    sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
+    sceneManagerProvider()?.let {
+      it.sceneRenderConfiguration.layoutlibCallbacksConfig.set(
+        LayoutlibCallbacksConfig.EXECUTE_BEFORE_RENDERING
+      )
+      it.requestRenderAndWait()
+    }
   }
 
   private fun updateTimelineMaximum() {
@@ -416,11 +422,24 @@ abstract class AnimationPreview<T : AnimationManager>(
     sceneManagerProvider()?.executeInRenderSession(longTimeout) { function() }
   }
 
-  private fun showErrorPanel(e: Throwable) {
+  @UiThread
+  protected fun showErrorPanel(errorMessage: String) {
+    errorLabel.text = errorMessage
     animationPreviewPanel.removeAll()
     animationPreviewPanel.add(errorPanel, TabularLayout.Constraint(0, 0))
     animationPreviewPanel.revalidate()
     animationPreviewPanel.repaint()
+  }
+
+  @UiThread
+  protected fun hideErrorPanel() {
+    if (animationPreviewPanel.components.contains(errorPanel)) {
+      animationPreviewPanel.remove(errorPanel)
+      animationPreviewPanel.add(tabbedPane.component, TabularLayout.Constraint(0, 0))
+      animationPreviewPanel.add(bottomPanel, TabularLayout.Constraint(1, 0))
+      animationPreviewPanel.revalidate()
+      animationPreviewPanel.repaint()
+    }
   }
 
   override fun dispose() {

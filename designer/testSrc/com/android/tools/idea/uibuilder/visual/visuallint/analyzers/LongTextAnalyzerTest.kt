@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
-import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.rendering.RenderTask
+import com.android.tools.visuallint.analyzers.LongTextAnalyzer
 import com.intellij.openapi.application.ApplicationManager
-import junit.framework.Assert
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -66,20 +64,12 @@ class LongTextAnalyzerTest {
     val configuration =
       RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_phone")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-        configuration,
-      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = LongTextAnalyzer.findIssues(result, nlModel)
+        val issues = LongTextAnalyzer.findIssues(result, configuration)
         Assert.assertEquals(0, issues.size)
       } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
@@ -96,20 +86,12 @@ class LongTextAnalyzerTest {
     val configuration =
       RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_tablet")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel =
-      SyncNlModel.create(
-        projectRule.fixture.testRootDisposable,
-        NlComponentRegistrar,
-        AndroidBuildTargetReference.gradleOnly(facet),
-        file,
-        configuration,
-      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
       try {
         val result = task.render().get()
-        val issues = LongTextAnalyzer.findIssues(result, nlModel)
+        val issues = LongTextAnalyzer.findIssues(result, configuration)
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals(
           "textview1 <TextView> has lines containing more than 120 characters",

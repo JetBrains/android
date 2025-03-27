@@ -20,9 +20,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import javax.swing.JComponent
 
-/**
- * Creation options for [SimpleDialog]
- */
+/** Creation options for [SimpleDialog] */
 data class SimpleDialogOptions(
   val project: Project,
   val canBeParent: Boolean,
@@ -36,5 +34,5 @@ data class SimpleDialogOptions(
   val okButtonText: String? = null,
   val okActionHandler: () -> Boolean = { false },
   val cancelButtonText: String? = null,
-  val validationHandler: () -> ValidationInfo? = { null }
+  val validationHandler: () -> ValidationInfo? = { null },
 )

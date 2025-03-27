@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.Version.ANDROID_TOOLS_BASE_VERSION
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.PathManager
@@ -164,9 +164,6 @@ class ProjectDumper(
 
   fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
   else this
-
-  fun String.replaceCurrentSdkVersion(apiLevel: Int, codename: String?) = if (apiLevel == SdkVersionInfo.HIGHEST_KNOWN_API && codename == null) "<SDK_VERSION>" else this
-  fun String.replaceCurrentSdkVersion(): String = replace(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(), "<SDK_VERSION>")
   fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
 
   fun String.replaceKnownPatterns(): String =
@@ -186,6 +183,7 @@ class ProjectDumper(
     this
       .let { offlineRepos.fold(it) { text, repo -> text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false) } }
       .let { additionalRoots.entries.fold(it) { text, (name, dir) -> text.replace(dir.absolutePath, "<$name>", ignoreCase = false) } }
+      .replaceJdkPath()
       .replace("/transformed/jetified-", "/transformed/")
       .replace(FileUtils.toSystemIndependentPath(currentRootDirectory.absolutePath), "<$currentRootDirectoryName>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(gradleCache.absolutePath), "<GRADLE>", ignoreCase = false)
@@ -202,7 +200,6 @@ class ProjectDumper(
           "<ANDROID_SDK>",
           it.substringAfter("<ANDROID_SDK>", "")
             .replaceCurrentBuildToolsVersion()
-            .replaceCurrentSdkVersion()
         )
       }
       .let {
@@ -233,6 +230,7 @@ class ProjectDumper(
       .removeAndroidVersionsFromPath()
       .replace(transformFolderPattern, "/<TRANSFORMS>/")
       .replace(gradleVersionWithoutPrefixPattern, "/<GRADLE_VERSION>/")
+      .replaceKotlinVersionForTests()
 
   fun String.replaceAgpVersion(): String = replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
 
@@ -309,6 +307,14 @@ class ProjectDumper(
       .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
   }
 
+  fun String.replaceJdkPath() = when(this) {
+    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() -> "<JDK_PATH>"
+    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString() -> "<JDK_PATH-17>"
+    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString() -> "<JDK_PATH-11>"
+    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() -> "<JDK_PATH-1_8>"
+    else -> this
+  }
+
   fun String.replaceMatchingVersion(version: String?): String =
     if (version != null) this.replace("-$version", "-<VERSION>") else this
 
@@ -359,7 +365,7 @@ private fun getSystemHomeLocation() = getStudioSourcesLocation()?.toPath()?.pare
 private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
 
 private fun getOfflineM2Repositories(): List<File> =
-    (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths())
+    (GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths())
         .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
 
 /**

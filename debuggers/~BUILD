@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 # managed by go/iml_to_build
 iml_module(
@@ -25,6 +26,9 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/analytics[module]",
+        "//tools/base/kexter:studio.android.sdktools.kexter[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
     ],
 )
 
@@ -35,7 +39,7 @@ iml_module(
     test_class = "com.android.tools.idea.debuggers.DebuggersTestSuite",
     # keep sorted
     test_data = [
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:platforms/android-30",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:sources",
@@ -48,6 +52,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/debuggers:intellij.android.debuggers[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -61,6 +66,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )
 
@@ -69,4 +75,16 @@ jvm_import(
     name = "libjava_sites",
     jars = ["//tools/base/deploy/sites:libjava_sites.jar"],
     visibility = ["//visibility:public"],
+)
+
+kotlin_library(
+    name = "android-field-visibility-provider",
+    srcs = ["src/com/android/tools/idea/debug/AndroidFieldVisibilityProvider.kt"],
+    coverage_baseline_enabled = False,
+    lint_enabled = False,
+    visibility = ["//visibility:public"],
+    deps = [
+        "//tools/adt/idea/debuggers:intellij.android.debuggers",
+        "@intellij//:com.intellij.java",
+    ],
 )

@@ -909,46 +909,46 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
             Scope                         : Runtime
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: gradle-api-6.7.1.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: gradle-api-6.7.1.jar
                 *CLASSES                      : jar://<GRADLE>/caches/6.7.1/generated-gradle-jars/gradle-api-6.7.1.jar!/
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: gradle-installation-beacon-6.7.1.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/groovy-all-1.3-2.5.12.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: gradle-installation-beacon-6.7.1.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/gradle-installation-beacon-6.7.1.jar!/
+        LIBRARY                       : Gradle: groovy-all-1.3-2.5.12.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-all-1.3-2.5.12.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/groovy-all-1.3-2.5.12.jar!/
+        LIBRARY                       : Gradle: kotlin-reflect-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-reflect-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-common-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-common-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-jdk7-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-jdk7-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-jdk8-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-jdk8-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
         Classes
             -                             : file://<PROJECT>/buildSrc/build/classes/java/main
         BUILD_TASKS
@@ -978,46 +978,46 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
             Scope                         : Runtime
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.main
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: gradle-api-6.7.1.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: gradle-api-6.7.1.jar
                 *CLASSES                      : jar://<GRADLE>/caches/6.7.1/generated-gradle-jars/gradle-api-6.7.1.jar!/
-        LIBRARY                       : Gradle:  [=]
+        LIBRARY                       : Gradle: gradle-installation-beacon-6.7.1.jar [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/groovy-all-1.3-2.5.12.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle:  [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle:
+            LIBRARY                       : Gradle: gradle-installation-beacon-6.7.1.jar
                 *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/gradle-installation-beacon-6.7.1.jar!/
+        LIBRARY                       : Gradle: groovy-all-1.3-2.5.12.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: groovy-all-1.3-2.5.12.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/groovy-all-1.3-2.5.12.jar!/
+        LIBRARY                       : Gradle: kotlin-reflect-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-reflect-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-common-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-common-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-jdk7-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-jdk7-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: kotlin-stdlib-jdk8-1.3.72.jar [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: kotlin-stdlib-jdk8-1.3.72.jar
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
         BUILD_TASKS
     MODULE                        : android-included
         ExternalModuleGroup           : com.test.composite1

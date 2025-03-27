@@ -16,7 +16,6 @@
 package com.android.tools.profilers
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
@@ -38,6 +37,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import javax.swing.JComponent
 import javax.swing.JPanel
 

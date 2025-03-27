@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiReference
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.findTopmostParentOfType
 import com.intellij.testFramework.RunsInEdt
@@ -100,7 +101,30 @@ class DeclarativeVersionCatalogReferenceContributorTest {
     )
   }
 
+  @Test
+  fun testEnum() {
+    doNoReferenceTest(
+      """
+      androidLibrary {
+        compileOptions {
+          targetCompatibility = VERS^ION_1_1
+        }
+    }
+    """.trimIndent()
+    )
+  }
+
   private fun doTest(text: String, elementName: String, filename: String) {
+    doInternalTest(text) { reference ->
+      Truth.assertThat(reference).isNotNull()
+      val referenceTarget = reference!!.resolve()
+      Truth.assertThat(referenceTarget).isNotNull()
+      Truth.assertThat(referenceTarget!!.containingFile.name).isEqualTo(filename)
+      Truth.assertThat(referenceTarget.findParentOfType<TomlKeyValue>()!!.text).isEqualTo(elementName)
+    }
+  }
+
+  private fun doInternalTest(text: String, assert: (ref: PsiReference?) -> Unit) {
     val caret = text.indexOf('^')
     Truth.assertWithMessage("The text must include ^ somewhere to point to reference").that(caret).isNotEqualTo(-1)
     val withoutCaret = text.substring(0, caret) + text.substring(caret + 1)
@@ -111,14 +135,16 @@ class DeclarativeVersionCatalogReferenceContributorTest {
     projectRule.fixture.openFileInEditor(file)
 
     runReadAction {
-      val file = PsiManager.getInstance(projectRule.project).findFile(file)!!
-      val referee = file.findElementAt(caret)!!.findTopmostParentOfType<DeclarativeProperty>()!!
-      val reference = referee.references.filter { it.absoluteRange.contains(caret) }.singleOrNull()
-      Truth.assertThat(reference).isNotNull()
-      val referenceTarget = reference!!.resolve()
-      Truth.assertThat(referenceTarget).isNotNull()
-      Truth.assertThat(referenceTarget!!.containingFile.name).isEqualTo(filename)
-      Truth.assertThat(referenceTarget.findParentOfType<TomlKeyValue>()!!.text).isEqualTo(elementName)
+      val psiFile = PsiManager.getInstance(projectRule.project).findFile(file)!!
+      val referee = psiFile.findElementAt(caret)!!.findTopmostParentOfType<DeclarativeProperty>()!!
+      val reference = referee.references.singleOrNull { it.absoluteRange.contains(caret) }
+      assert(reference)
+    }
+  }
+
+  private fun doNoReferenceTest(text: String) {
+    doInternalTest(text) { reference ->
+      Truth.assertThat(reference).isNull()
     }
   }
 

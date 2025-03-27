@@ -16,23 +16,27 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.io.grpc.Status
-import com.android.tools.idea.io.grpc.StatusRuntimeException
-import com.android.tools.idea.io.grpc.netty.GrpcSslContexts
-import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
-import com.android.tools.idea.io.grpc.protobuf.StatusProto
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.net.ssl.CertificateManager
 import com.intellij.util.net.ssl.ConfirmingTrustManager
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslProvider
+import io.grpc.protobuf.StatusProto
 import java.io.IOException
 import java.net.SocketException
 import java.net.UnknownHostException
 import kotlin.random.Random
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
@@ -63,6 +67,7 @@ private fun log() = Logger.getInstance("GrpcUtils")
  * the rpc call to ensure the accurate management of retrying here.
  */
 suspend fun <T> retryRpc(
+  name: String = getName(),
   maxRetries: Int = GRPC_MAX_RETRY_ATTEMPTS,
   initialBackoff: Long = GRPC_INITIAL_BACKOFF_MILLIS,
   maxBackoff: Long = GRPC_MAX_BACKOFF_MILLIS,
@@ -84,7 +89,7 @@ suspend fun <T> retryRpc(
         .also {
           log()
             .warn(
-              "Retry attempt #${count + 1} for a rpc call, retrying in ${it / 1000.0} second(s)..."
+              "Retry attempt #${count + 1} for rpc call - $name, retrying in ${it / 1000.0} second(s)..."
             )
         }
         .apply { delay(this) }
@@ -97,8 +102,15 @@ suspend fun <T> retryRpc(
 
 private const val SUGGEST_FOR_UNAUTHORIZED = "Please log back in."
 
+suspend fun <T> runGrpcCatchingWithSupervisorScope(
+  notFoundFallbackValue: LoadingState.Done<T>,
+  name: String = getName(),
+  block: suspend CoroutineScope.() -> LoadingState.Done<T>,
+) = supervisorScope { runGrpcCatching(notFoundFallbackValue, name) { block() } }
+
 suspend fun <T> runGrpcCatching(
   notFoundFallbackValue: LoadingState.Done<T>,
+  name: String = getName(),
   block: suspend () -> LoadingState.Done<T>,
 ): LoadingState.Done<T> =
   withContext(Dispatchers.IO) {
@@ -128,7 +140,8 @@ suspend fun <T> runGrpcCatching(
         }
         else -> {
           val parsed = StatusProto.fromThrowable(exception)
-          log().warn("Got StatusRuntimeException: ${exception.message} (parsed info: $parsed)")
+          log()
+            .warn("$name - Got StatusRuntimeException: ${exception.message} (parsed info: $parsed)")
           LoadingState.UnknownFailure(exception.message, exception, parsed)
         }
       }
@@ -143,12 +156,15 @@ suspend fun <T> runGrpcCatching(
       }
     } catch (exception: TimeoutCancellationException) {
       LoadingState.NetworkFailure(exception.message, exception)
+    } catch (exception: Exception) {
+      log().warn("$name - Got exception: ${exception.message}")
+      LoadingState.UnknownFailure(exception.message, exception)
     }
   }
 
 fun channelBuilderForAddress(address: String): NettyChannelBuilder {
   val sslContext =
-    GrpcSslContexts.forClient()
+    GrpcSslContexts.configure(SslContextBuilder.forClient(), SslProvider.JDK)
       .trustManager(
         ConfirmingTrustManager.createForStorage(
           CertificateManager.DEFAULT_PATH,
@@ -157,4 +173,16 @@ fun channelBuilderForAddress(address: String): NettyChannelBuilder {
       )
       .build()
   return NettyChannelBuilder.forTarget(address).sslContext(sslContext)
+}
+
+private fun getName(): String {
+  return StackWalker.getInstance().walk { frames ->
+    frames
+      .map { it.methodName }
+      .filter { it != null }
+      // Skip getName and the function from where it was called
+      .skip(2)
+      .findFirst()
+      .orElse("")
+  }
 }

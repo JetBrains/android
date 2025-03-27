@@ -61,7 +61,12 @@ internal class ComposeStateNode(
         else -> append(getStateSummary())
       }
     }
-    node.setPresentation(StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION, null, text, true)
+    node.setPresentation(
+      /* icon = */ StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION,
+      /* type = */ null,
+      /* value = */ text,
+      /* hasChildren = */ childNodes.isNotEmpty(),
+    )
   }
 
   override fun computeChildren(node: XCompositeNode) {

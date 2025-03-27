@@ -15,62 +15,88 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
+import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
+import com.intellij.application.options.CodeStyle
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.UsefulTestCase
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-// Test is based on generated schema files. Schema has declarations for
-// androidApplication{compileSdk, namespace, jdkVersion, minSdk}, declarativeDependencies{api, implementation}
-@org.junit.Ignore("b/349894866")
+// Test is based on generated schema files.
+@RunWith(JUnit4::class)
 @RunsInEdt
-class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
+class DeclarativeCompletionContributorTest : UsefulTestCase() {
   @get:Rule
-  override val projectRule = AndroidProjectRule.onDisk().onEdt()
+  val projectRule = AndroidProjectRule.onDisk().onEdt()
   private val fixture by lazy { projectRule.fixture }
 
   @Before
-  fun before() = DeclarativeIdeSupport.override(true)
+  fun before() {
+    DeclarativeIdeSupport.override(true)
+    registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
+  }
 
   @After
   fun onAfter() = DeclarativeIdeSupport.clearOverride()
 
   @Test
   fun testBasicRootCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("and$caret") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApplication", "androidLibrary"
+        "androidApp", "androidLibrary"
+      )
+    }
+    doTest("and$caret { }") { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "androidApp", "androidLibrary"
       )
     }
   }
 
   @Test
   fun testInsideBlockCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
-      androidApplication{
+      androidApp{
         a$caret
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "applicationId", "coreLibraryDesugaring", "namespace", "versionName"
+        "buildFeatures", "defaultConfig", "namespace", "productFlavors"
       )
     }
   }
 
   @Test
+  fun testBeforeOpenBlock() {
+    doNoSuggestionTest("""
+      androidApp $caret{
+        
+      }
+      """)
+    doNoSuggestionTest("""
+      androidApp$caret{
+        
+      }
+      """)
+  }
+
+  @Test
   fun testPluginBlockCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_SETTINGS_SCHEMAS)
     doTest("""
       pl$caret
-      """) { suggestions ->
+      """, "settings.gradle.dcl") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
         "pluginManagement", "plugins"
       )
@@ -79,85 +105,188 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
 
   @Test
   fun testInsideApplicationBlockCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
-      androidApplication{
+      androidApp{
         a$caret
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "applicationId", "coreLibraryDesugaring", "namespace", "versionName"
+        "buildFeatures", "defaultConfig", "namespace", "productFlavors"
       )
     }
   }
 
   @Test
   fun testAfterPropertyCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doNoSuggestionTest("""
       androidLibrary {
           compileSdk = 1$caret
         }""".trimIndent()
-      )
+    )
+
+    doNoSuggestionTest("""
+      androidLibrary {
+          compileSdk = 1${caret}3
+        }""".trimIndent()
+    )
   }
 
   @Test
   fun testInsideApplicationBlockCompletionNoTyping() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
-      androidApplication {
+      androidApp {
         $caret
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "applicationId", "buildTypes", "compileSdk", "coreLibraryDesugaring", "dependencies",
-        "jdkVersion", "minSdk", "namespace", "versionCode", "versionName"
+        "buildFeatures", "buildOutputs", "buildTypes", "compileOptions",
+        "compileSdk", "defaultConfig", "dependenciesDcl", "lint", "namespace",
+        "productFlavors", "signingConfigs", "sourceSets"
       )
     }
   }
 
   @Test
   fun testInsideFileCompletionNoTyping() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
         $caret
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApplication", "androidLibrary", "javaApplication", "javaLibrary", "jvmApplication", "jvmLibrary", "kotlinApplication",
-        "kotlinJvmApplication", "kotlinJvmLibrary", "kotlinLibrary"
+        "androidApp", "androidLibrary", "layout"
+      )
+    }
+  }
+
+  @Test
+  fun testSuggestionOfFactoryBlock() {
+    doTest("""
+    androidApp {
+      buildTypes{
+        $caret
+      }
+    }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("buildType")
+    }
+  }
+
+  @Test
+  fun testSuggestionInFactoryBlock() {
+    doTest("""
+    androidApp {
+      buildTypes{
+        buildType("new"){
+          $caret
+        }
+      }
+    }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("isMinifyEnabled")
+    }
+  }
+
+  @Test
+  fun testEnumIsSuggestion() {
+    doTest("""
+    androidApp {
+        compileOptions {
+           $caret
+        }
+      }
+    }
+      """) { suggestions ->
+      // sourceCompatibility and targetCompatibility are enums
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "encoding", "isCoreLibraryDesugaringEnabled", "sourceCompatibility", "targetCompatibility"
+      )
+    }
+  }
+
+  @Test
+  fun testLayoutFileFactory() {
+    // test first level
+    doTest("""
+      androidApp {
+        bundle {
+          deviceTargetingConfig = $caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "layout"
+      )
+    }
+
+    // test second level
+    doTest("""
+      androidApp {
+        bundle {
+          deviceTargetingConfig = layout.$caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "projectDirectory", "settingsDirectory"
+      )
+    }
+    // test last level
+    doTest("""
+      androidApp {
+        bundle {
+          deviceTargetingConfig = layout.projectDirectory.$caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "dir", "file"
       )
     }
   }
 
   @Test
   fun testCompletionStringProperty() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doCompletionTest("""
-      androidApplication {
-        applica$caret
+      androidApp {
+        defaultConfig {
+          versionNameS$caret
+        }
       }
       """, """
-      androidApplication {
-        applicationId = "$caret"
+      androidApp {
+        defaultConfig {
+          versionNameSuffix = "$caret"
+        }
       }
       """)
   }
 
   @Test
   fun testCompletionBlock() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    // inserting caret with indent position (default 4 whitespaces)
     doCompletionTest(
       "androidApp$caret",
       """
-        androidApplication {
-          $caret
+        androidApp {
+            $caret
         }
         """.trimIndent())
   }
 
   @Test
+  fun testCompletionBlockWithUpdatedIndent() {
+    doCompletionTest(
+      "androidApp$caret",
+      """
+        androidApp {
+              $caret
+        }
+        """.trimIndent()) { psiFile ->
+      CodeStyle.getIndentOptions(psiFile).INDENT_SIZE = 6
+    }
+  }
+
+  @Test
   fun testCompletionBlock2() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doCompletionTest(
       """
         androidLibrary {
@@ -165,66 +294,234 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
         }""".trimIndent(),
       """
         androidLibrary {
-          dependencies {
-            $caret
+          dependenciesDcl {
+              $caret
           }
         }""".trimIndent())
   }
 
   @Test
   fun testCompletionInt() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
-
     doCompletionTest("""
-      androidApplication {
-           minS$caret
-      }
-    """, """
-      androidApplication {
-           minSdk = $caret
-      }
-    """)
+     androidApp {
+       defaultConfig {
+         maxSd$caret
+       }
+     }
+     """, """
+     androidApp {
+       defaultConfig {
+         maxSdk = $caret
+       }
+     }
+     """)
   }
 
   @Test
   fun testCompletionBoolean() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doCompletionTest("""
-      androidLibrary{
-        testing {
-          testOptions {
-              returnDefaultV$caret
-          }
-        }
+    androidLibrary {
+      defaultConfig {
+        multiDexEnab$caret
       }
+    }
     """, """
-      androidLibrary{
-        testing {
-          testOptions {
-              returnDefaultValues = $caret
-          }
-        }
+    androidLibrary {
+      defaultConfig {
+        multiDexEnabled = $caret
       }
+    }
     """)
   }
 
   @Test
   fun testCompletionFunction() {
-    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
-
     doCompletionTest("""
       androidLibrary {
-        dependencies {
-          implemen$caret
+        dependenciesDcl {
+          androidTestIm$caret
         }
       }
-    """, """
-      androidLibrary {
-        dependencies {
-          implementation($caret)
+    """.trimIndent(), """
+    androidLibrary {
+      dependenciesDcl {
+        androidTestImplementation($caret)
+      }
+    }
+    """.trimIndent())
+  }
+
+  @Test
+  fun testCompletionEnum() {
+    doCompletionTest("""
+      androidApp {
+        compileOptions {
+          sourceCom$caret
         }
       }
-    """)
+    """.trimIndent(), """
+    androidApp {
+      compileOptions {
+        sourceCompatibility = $caret
+      }
+    }
+    """.trimIndent())
+  }
+
+  @Test
+  fun testCompletionUriValues() {
+    doCompletionTest("""
+     dependencyResolutionManagement {
+       repositories {
+         maven {
+            ur$caret
+         }
+       }
+     }
+     """,
+     "settings.gradle.dcl", """
+     dependencyResolutionManagement {
+       repositories {
+         maven {
+            url = uri("$caret")
+         }
+       }
+     }
+     """)
+  }
+
+  @Test
+  fun testCompletionUriValues2() {
+    doCompletionTest("""
+   dependencyResolutionManagement {
+     repositories {
+       maven {
+          url = u$caret
+       }
+     }
+   }
+   """, "settings.gradle.dcl", """
+   dependencyResolutionManagement {
+     repositories {
+       maven {
+          url = uri($caret)
+       }
+     }
+   }
+   """)
+  }
+
+  @Test
+  fun testCompletionEnumValues() {
+    doTest("""
+      androidApp {
+        compileOptions {
+          sourceCompatibility = $caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsAllIn(
+        listOf("VERSION_1_1", "VERSION_1_2", "VERSION_26", "VERSION_27", "VERSION_HIGHER")
+      )
+    }
+  }
+
+  @Test
+  fun testBooleanProperty() {
+    doTest("""
+      androidApp {
+        buildFeatures {
+          dataBinding = $caret
+        }
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("true", "false")
+    }
+  }
+
+  @Test
+  fun testSuggestionsUriFunction() {
+    doTest("""
+    dependencyResolutionManagement {
+      repositories {
+        maven {
+          url = $caret
+        }
+      }
+    }
+    """, "settings.gradle.dcl") { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("rootProject", "uri")
+    }
+  }
+
+  @Test
+  fun testSuggestionsPlugins() {
+    doTest("""
+    plugins {
+      id("some").$caret
+    }
+    """, "settings.gradle.dcl") { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsAllIn(listOf("version", "apply"))
+    }
+  }
+
+  @Test
+  fun testRootProjects() {
+    doTest("""
+    rootProject.$caret
+    """, "settings.gradle.dcl") { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly("name")
+    }
+  }
+
+  @Test
+  fun testRootProject() {
+    doCompletionTest("""
+    rootProje$caret
+   """, "settings.gradle.dcl", """
+    rootProject.name = "$caret"
+   """)
+  }
+
+  @Test
+  fun testRootProject2() {
+    doCompletionTest("""
+    rootProject$caret
+   """, "settings.gradle.dcl", """
+    rootProject.name = "$caret"
+   """)
+  }
+
+  @Test
+  // data property should not have another data property
+  // except rootProject.name
+  // once this test fail we need to add more completion logic
+  fun testNoDataPropertyForDataProperty() {
+    val knownPaths = listOf(listOf("rootProject", "name"))
+    val schema = DeclarativeService.getInstance(fixture.project).getDeclarativeSchema() ?: return
+
+    fun EntryWithContext.check() {
+      val maybeDataProperty = entry
+      if (maybeDataProperty is DataProperty) {
+        val type = maybeDataProperty.valueType
+        if (type is DataClassRef)
+          getNextLevel().forEach { nextLevelElement ->
+            (nextLevelElement.entry as? DataProperty)?.let{
+              Truth.assertThat(listOf(maybeDataProperty.name, it.name)).isIn(knownPaths)
+            }
+          }
+      }
+    }
+
+    fun EntryWithContext.iterate(seen: List<Entry>) {
+      check()
+      getNextLevel().forEach {
+        if (!seen.contains(it.entry)) it.iterate(seen + it.entry)
+      }
+    }
+
+    // looking for root properties that has simple props like rootProject.name
+    schema.getTopLevelEntries("settings.gradle.dcl").forEach { it.iterate(listOf(it.entry)) }
   }
 
   private fun doTest(declarativeFile: String, check: (List<String>) -> Unit) {
@@ -252,9 +549,12 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
     Truth.assertThat(fixture.lookup).isNull()
   }
 
-  private fun doCompletionTest(declarativeFile: String, fileAfter: String) {
-    val buildFile = fixture.addFileToProject(
-      "build.gradle.dcl", declarativeFile)
+  private fun doCompletionTest(declarativeFile: String, fileAfter: String, update:(PsiFile) -> Unit = {}) =
+    doCompletionTest(declarativeFile, "build.gradle.dcl", fileAfter, update )
+
+  private fun doCompletionTest(declarativeFile: String, fileName: String, fileAfter: String, update:(PsiFile) -> Unit = {}) {
+    val buildFile = fixture.addFileToProject(fileName, declarativeFile)
+    update(buildFile)
     fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     fixture.completeBasic()
 

@@ -22,15 +22,16 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
-import com.android.tools.idea.run.deployment.liveedit.registerComposeCompilerPlugin
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.buildAndWait
-import com.android.tools.idea.testing.withKotlin
+import com.android.tools.idea.testing.withCompileSdk
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -39,15 +40,11 @@ import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.io.File
-import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-
-/** Default Kotlin version used for Compose projects using this rule. */
-internal const val DEFAULT_KOTLIN_VERSION = "1.7.20"
 
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
@@ -55,24 +52,18 @@ internal const val DEFAULT_KOTLIN_VERSION = "1.7.20"
 private class ComposeGradleProjectRuleImpl(
   private val projectPath: String,
   private val testDataPath: String,
-  private val kotlinVersion: String,
   private val projectRule: AndroidGradleProjectRule,
 ) : NamedExternalResource() {
   override fun before(description: Description) {
-    registerComposeCompilerPlugin(projectRule.project)
-
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     projectRule.fixture.testDataPath = resolveWorkspacePath(testDataPath).toString()
-    projectRule.load(projectPath, AGP_CURRENT.withKotlin(kotlinVersion))
+    projectRule.load(projectPath, AGP_CURRENT.withCompileSdk("35"))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
-      Assert.assertTrue(
-        "The project must compile correctly for the test to pass",
-        isBuildSuccessful,
-      )
+      assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
@@ -91,7 +82,6 @@ private class ComposeGradleProjectRuleImpl(
 open class ComposeGradleProjectRule(
   projectPath: String,
   testDataPath: String = TEST_DATA_PATH,
-  kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
   private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
 ) : TestRule {
   val project: Project
@@ -103,11 +93,12 @@ open class ComposeGradleProjectRule(
   protected open val delegate: RuleChain =
     RuleChain.outerRule(TestLoggerRule())
       .around(projectRule)
-      .around(ComposeGradleProjectRuleImpl(projectPath, testDataPath, kotlinVersion, projectRule))
+      .around(ComposeGradleProjectRuleImpl(projectPath, testDataPath, projectRule))
       .around(EdtRule())
       .around(FlagRule(StudioFlags.GRADLE_SAVE_LOG_TO_FILE, true))
 
-  fun androidFacet(gradlePath: String) = projectRule.androidFacet(gradlePath)
+  fun androidFacet(gradlePath: String) =
+    projectRule.gradleModule(gradlePath).getMainModule().androidFacet ?: error("No Android facet")
 
   override fun apply(base: Statement, description: Description): Statement =
     delegate.apply(base, description)

@@ -756,7 +756,6 @@ MODULE                        : MainActivity
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -911,7 +910,6 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathRemoteReleaseUnitTest          : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1324,7 +1322,6 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         kotlinScriptDef               : <empty>
                         kotlinScriptDefExtensions     : <empty>
@@ -1451,7 +1448,6 @@ MODULE                        : MainActivity
                         _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                         _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                         _internal-unified-test-platform-core    : <empty>
                         _internal-unified-test-platform-launcher          : <empty>
@@ -1564,7 +1560,6 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1681,6 +1676,21 @@ MODULE                        : MainActivity
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                test                          : test (DefaultExternalTask)
+                    qName                         : :javaLib:test
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :lib:testDebugUnitTest
+                testLocalDebugUnitTest        : testLocalDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testLocalDebugUnitTest
+                testLocalReleaseUnitTest      : testLocalReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testLocalReleaseUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :lib:testReleaseUnitTest
+                testRemoteDebugUnitTest       : testRemoteDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testRemoteDebugUnitTest
+                testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testRemoteReleaseUnitTest
 MODULE                        : MainActivity.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
@@ -1699,14 +1709,14 @@ MODULE                        : MainActivity.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
@@ -1749,6 +1759,7 @@ MODULE                        : MainActivity.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : localDebug
         applicationId                 : com.example.mainactivity
         testApplicationId             : com.example.mainactivity.test
@@ -1764,7 +1775,7 @@ MODULE                        : MainActivity.app
         applicationId                 : com.example.mainactivity
         buildType                     : release
     FlavorDimensions              : type
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1781,8 +1792,8 @@ MODULE                        : MainActivity.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2060,8 +2071,8 @@ MODULE                        : MainActivity.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameSuffix             :
             VersionNameWithSuffix         : 1.0
@@ -2467,6 +2478,7 @@ MODULE                        : MainActivity.app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2486,6 +2498,7 @@ MODULE                        : MainActivity.app
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -2513,6 +2526,11 @@ MODULE                        : MainActivity.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             localDebug                    : KotlinTaskPropertiesImpl
@@ -2525,31 +2543,31 @@ MODULE                        : MainActivity.app
                 incremental                   : true
                 pluginVersion                 : <CUT>
     kaptGradleModel               : <PROXY>
-        buildDirectory                : <ROOT>/app/build [-]
         isEnabled                     : true
+        buildDirectory                : <ROOT>/app/build [-]
         - sourceSets                  : localDebug (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
             generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
             generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebug [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebug [-]
         - sourceSets                  : localDebugAndroidTest (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
+            isTest                        : true
             generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
             generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
-            isTest                        : true
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugAndroidTest [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugAndroidTest [-]
         - sourceSets                  : localDebugUnitTest (<PROXY>)
-            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
-            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
-            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
-            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
-            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
-            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
             isTest                        : true
+            generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
+            generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+            generatedKotlinSourcesDir     : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
+            generatedSourcesDirFile       : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
+            generatedClassesDirFile       : <ROOT>/app/build/tmp/kapt3/classes/localDebugUnitTest [-]
+            generatedKotlinSourcesDirFile : <ROOT>/app/build/generated/source/kaptKotlin/localDebugUnitTest [-]
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : MainActivity.app.androidTest
 MODULE                        : MainActivity.app.main
@@ -2620,6 +2638,11 @@ MODULE                        : MainActivity.javaLib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -2669,14 +2692,14 @@ MODULE                        : MainActivity.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
@@ -2719,12 +2742,13 @@ MODULE                        : MainActivity.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2736,8 +2760,8 @@ MODULE                        : MainActivity.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2897,8 +2921,8 @@ MODULE                        : MainActivity.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             MainArtifact
@@ -3717,6 +3741,7 @@ MODULE                        : MainActivity.lib
                     noReflect                     : true
                     noStdlib                      : true
                     serializeIr                   : none
+                    useInlineScopesNumbers        : true
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
@@ -3742,6 +3767,11 @@ MODULE                        : MainActivity.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

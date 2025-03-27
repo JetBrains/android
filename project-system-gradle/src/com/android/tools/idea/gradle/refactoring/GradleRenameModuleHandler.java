@@ -30,7 +30,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.google.common.base.Joiner;
@@ -292,7 +293,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_REFACTOR_MODULE_RENAMED), null);
+    ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager()
+      .requestSyncProject(new ProjectSystemSyncManager.SyncReason(TRIGGER_REFACTOR_MODULE_RENAMED));
   }
 
   private static String getNewPath(@NotNull String oldPath, @NotNull String newName) {

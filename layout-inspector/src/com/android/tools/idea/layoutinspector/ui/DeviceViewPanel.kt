@@ -326,7 +326,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
         layoutInspector.currentClient.stats.recompositionHighlightColor =
           renderSettings.highlightColor
 
-        if (shouldZoomToFit) {
+        if (shouldZoomToFit && !model.isXr) {
           // Zoom to fit each time a new window shows up immediately after a process change
           // we should do this only after a process change, because the new window showing up could
           // be a dialog being open, in which case
@@ -336,6 +336,10 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
           // center it.
           zoom(ZoomType.FIT)
           shouldZoomToFit = false
+        } else if (model.isXr) {
+          // For XR, zoom to fit each time a new window shows up. Since windows are laid out in a
+          // grid, only resizing when the process changes is not enough.
+          zoom(ZoomType.FIT)
         }
       }
     }
@@ -347,7 +351,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
       }
       if (prevZoom != renderSettings.scalePercent) {
         layoutInspector.coroutineScope.launch {
-          floatingToolbarProvider.zoomChanged(prevZoom / 100.0, renderSettings.scalePercent / 100.0)
+          floatingToolbarProvider.zoomChanged()
           prevZoom = renderSettings.scalePercent
           model.windows.values.forEach { it.refreshImages(renderSettings.scaleFraction) }
           contentPanel.renderModel.refresh()
@@ -389,8 +393,23 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
   private fun getFitZoom(): Int {
     // If the window bounds are available, prefer that as size, to avoid empty space.
     val size =
-      layoutInspector.inspectorModel.windowBounds?.toDimension()
-        ?: layoutInspector.inspectorModel.screenDimension
+      if (layoutInspector.inspectorModel.isXr) {
+        // XR windows are not all loaded at the same time, just using the root's layout bounds all
+        // the time would cause jarring rescale if for example a small window is loaded first.
+        val dim1 = layoutInspector.inspectorModel.root.layoutBounds.toDimension()
+        val dim2 =
+          layoutInspector.inspectorModel.windowBounds?.toDimension()
+            ?: layoutInspector.inspectorModel.screenDimension
+        if (dim1.width * dim1.height > dim2.width * dim2.height) {
+          dim1
+        } else {
+          dim2
+        }
+      } else {
+        layoutInspector.inspectorModel.windowBounds?.toDimension()
+          ?: layoutInspector.inspectorModel.screenDimension
+      }
+
     val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
     val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
     val desiredWidth = (size.width).toDouble()

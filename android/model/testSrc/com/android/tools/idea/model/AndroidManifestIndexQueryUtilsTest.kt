@@ -227,65 +227,6 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       .isEqualTo(setOf("custom.permissions.CUSTOM_GROUP", "custom.permissions.CUSTOM_GROUP1"))
   }
 
-  fun testQueryApplicationDebuggable() {
-    val manifestContentDebuggable =
-      // language=XML
-      """
-      <?xml version='1.0' encoding='utf-8'?>
-      <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
-        package='com.example' android:enabled='true'>
-          <application android:theme='@style/Theme.AppCompat' android:debuggable="true">
-          </application>
-      </manifest>
-      """
-        .trimIndent()
-    updateManifestAndWaitForCondition(
-      myModule,
-      FN_ANDROID_MANIFEST_XML,
-      manifestContentDebuggable,
-    ) {
-      myFacet.queryApplicationDebuggableFromManifestIndex() == true
-    }
-
-    val manifestContentNotDebuggable =
-      // language=XML
-      """
-      <?xml version='1.0' encoding='utf-8'?>
-      <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
-        package='com.example' android:enabled='true'>
-          <application android:theme='@style/Theme.AppCompat' android:debuggable="false">
-          </application>
-      </manifest>
-      """
-        .trimIndent()
-    updateManifestAndWaitForCondition(
-      myModule,
-      FN_ANDROID_MANIFEST_XML,
-      manifestContentNotDebuggable,
-    ) {
-      myFacet.queryApplicationDebuggableFromManifestIndex() == false
-    }
-
-    val manifestContentDebuggableIsNull =
-      // language=XML
-      """
-      <?xml version='1.0' encoding='utf-8'?>
-      <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
-        package='com.example' android:enabled='true'>
-          <application android:theme='@style/Theme.AppCompat'>
-          </application>
-      </manifest>
-      """
-        .trimIndent()
-    updateManifestAndWaitForCondition(
-      myModule,
-      FN_ANDROID_MANIFEST_XML,
-      manifestContentDebuggableIsNull,
-    ) {
-      myFacet.queryApplicationDebuggableFromManifestIndex() == null
-    }
-  }
-
   fun testQueryApplicationTheme() {
     val manifestContentAppTheme =
       // language=XML

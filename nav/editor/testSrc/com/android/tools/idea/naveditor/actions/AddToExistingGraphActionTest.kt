@@ -28,8 +28,8 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.TestActionEvent
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 
 class AddToExistingGraphActionTest : NavTestCase() {
   /**

@@ -307,7 +307,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
  */
 private class PartitionGenerator(val array: IntArray) : Iterator<Pair<IntArray, IntArray>> {
   var size = array.size
-  val indices = IntArray(array.size) { 0 }
+  val indices = IntArray(array.size)
 
   override fun hasNext(): Boolean {
     return size > 1 || (size > 0 && (array.size == 1 || array.size - size > 1))
@@ -323,7 +323,7 @@ private class PartitionGenerator(val array: IntArray) : Iterator<Pair<IntArray, 
     }
 
     val first = IntArray(size) { i -> array[indices[i]] }
-    val second = IntArray(array.size - size) { 0 }
+    val second = IntArray(array.size - size)
     var i = 0
     for (index in array.indices) {
       if (index !in indices) {

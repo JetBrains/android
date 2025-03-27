@@ -24,6 +24,8 @@ import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralR
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
+import com.android.tools.idea.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
@@ -42,6 +44,8 @@ import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -49,9 +53,22 @@ import org.junit.Test;
  */
 public class RepositoriesModelTest extends GradleFileModelTestCase {
 
-
   @NotNull private static final String TEST_DIR = "hello/i/am/a/dir";
   @NotNull private static final String OTHER_TEST_DIR = "/this/is/also/a/dir";
+
+  @Before
+  @Override
+  public void before() throws Exception {
+    DeclarativeIdeSupport.override(true);
+    DeclarativeStudioSupport.override(true);
+    super.before();
+  }
+
+  @After
+  public void after() {
+    DeclarativeIdeSupport.clearOverride();
+    DeclarativeStudioSupport.clearOverride();
+  }
 
   @Test
   public void testParseJCenterDefaultRepository() throws IOException {
@@ -81,9 +98,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenCentralRepository() throws IOException {
-    writeToBuildFile(TestFile.PARSE_MAVEN_CENTRAL_REPOSITORY);
-
-    RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
+    RepositoriesModel repositoriesModel = initTest(TestFile.PARSE_MAVEN_CENTRAL_REPOSITORY);
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
@@ -133,9 +148,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCustomMavenRepository() throws IOException {
-    writeToBuildFile(TestFile.PARSE_CUSTOM_MAVEN_REPOSITORY);
-
-    RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
+    RepositoriesModel repositoriesModel = initTest(TestFile.PARSE_CUSTOM_MAVEN_REPOSITORY);
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
@@ -252,9 +265,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseGoogleDefaultRepository() throws IOException {
-    writeToBuildFile(TestFile.PARSE_GOOGLE_DEFAULT_REPOSITORY);
-
-    RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
+    RepositoriesModel repositoriesModel = initTest(TestFile.PARSE_GOOGLE_DEFAULT_REPOSITORY);
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     verifyGoogleDefaultRepositoryModel(repositories.get(0));
@@ -474,6 +485,8 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddFlatRepository() throws IOException {
+    isIrrelevantForDeclarative("addFlatDirRepository is not support for declarative");
+
     writeToBuildFile("repositories {\n}");
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -498,6 +511,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddFlatRepositoryFromEmpty() throws IOException {
+    isIrrelevantForDeclarative("addFlatDirRepository is not support for declarative");
     writeToBuildFile("");
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -790,6 +804,17 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
     assertThat(repositories.get(0).getPsiElement().getText()).isEqualTo("mavenCentral()");
+  }
+
+  private RepositoriesModel initTest(TestFileName testFilename) throws IOException {
+    if(isGradleDeclarative()) {
+      writeToSettingsFile(testFilename);
+      return getGradleDeclarativeSettingsModel().dependencyResolutionManagement().repositories();
+    } else {
+      writeToBuildFile(testFilename);
+      return getGradleBuildModel().repositories();
+
+    }
   }
 
   enum TestFile implements TestFileName {

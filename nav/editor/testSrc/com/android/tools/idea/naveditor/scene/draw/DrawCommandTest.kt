@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
@@ -31,9 +30,10 @@ import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.util.concurrent.CompletableFuture
 import org.mockito.InOrder
-import org.mockito.Mockito.inOrder
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 
 private val RECTANGLE = Rectangle2D.Float(10f, 20f, 80f, 120f)
 private val IMAGE_RECTANGLE = Rectangle2D.Float(15f, 25f, 60f, 100f)
@@ -61,7 +61,7 @@ class DrawCommandTest : NavTestCase() {
 
   override fun setUp() {
     super.setUp()
-    context = mock(SceneContext::class.java)
+    context = mock<SceneContext>()
   }
 
   fun testDrawPlaceholder() {
@@ -324,7 +324,7 @@ class DrawCommandTest : NavTestCase() {
   }
 
   private fun verifyDrawCommand(command: DrawCommand, verifier: (InOrder, Graphics2D) -> Unit) {
-    val root = mock(Graphics2D::class.java)
+    val root = mock<Graphics2D>()
 
     val graphics = makeGraphicsMock()
     whenever(root.create()).thenReturn(graphics)

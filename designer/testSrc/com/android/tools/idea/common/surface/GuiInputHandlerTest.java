@@ -80,9 +80,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 
-/**
- * TODO: remove layout-specific stuff, add generic tests.
- */
 public class GuiInputHandlerTest extends LayoutTestCase {
   private final NlTreeDumper myTreeDumper = new NlTreeDumper(true, false);
 
@@ -416,7 +413,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
 
   public void testCursorChangeWhenSetPanningTrue() {
     DesignSurface<?> surface = setupConstraintLayoutCursorTest();
-    GuiInputHandler manager =surface.getGuiInputHandler();
+    GuiInputHandler manager = surface.getGuiInputHandler();
 
     manager.setPanning(true);
 

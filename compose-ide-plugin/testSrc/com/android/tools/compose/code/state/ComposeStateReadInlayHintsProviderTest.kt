@@ -15,9 +15,6 @@
  */
 package com.android.tools.compose.code.state
 
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
@@ -44,9 +41,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
-import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.android.compose.stubComposeRuntime
-import org.jetbrains.android.compose.stubKotlinStdlib
+import org.jetbrains.android.compose.addComposeRuntimeDep
+import org.jetbrains.android.compose.addComposeRuntimeSaveableDep
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -55,17 +51,19 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.awt.event.MouseEvent
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunsInEdt
 @RunWith(JUnit4::class)
 class ComposeStateReadInlayHintsProviderTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin().onEdt()
 
   private val scheduler = TestCoroutineScheduler()
   private val dispatcher = StandardTestDispatcher(scheduler)
@@ -79,9 +77,8 @@ class ComposeStateReadInlayHintsProviderTest {
   @Before
   fun setUp() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.stubComposableAnnotation()
-    fixture.stubComposeRuntime()
-    fixture.stubKotlinStdlib()
+    fixture.addComposeRuntimeDep()
+    fixture.addComposeRuntimeSaveableDep()
     StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.override(true)
   }
 
@@ -89,7 +86,7 @@ class ComposeStateReadInlayHintsProviderTest {
   fun createCollector_notKtFile() {
     val javaFile =
       fixture.loadNewFile(
-        "com/example/Foo.java",
+        "src/com/example/Foo.java",
         // language=java
         """
         package com.example;
@@ -107,7 +104,7 @@ class ComposeStateReadInlayHintsProviderTest {
 
     val kotlinFile =
       fixture.loadNewFile(
-        "com/example/Foo.kt",
+        "src/com/example/Foo.kt",
         // language=kotlin
         """
         package com.example
@@ -123,7 +120,7 @@ class ComposeStateReadInlayHintsProviderTest {
   fun createCollector() {
     val kotlinFile =
       fixture.loadNewFile(
-        "com/example/Foo.kt",
+        "src/com/example/Foo.kt",
         // language=kotlin
         """
         package com.example
@@ -139,7 +136,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun collectFromElement_notKtNameReferenceExpression() {
     fixture.loadNewFile(
-      "com/example/Foo.java",
+      "src/com/example/Foo.java",
       // language=java
       """
       package com.example;
@@ -157,7 +154,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun collectFromElement_notStateRead() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -181,7 +178,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun collectFromElement_stateRead() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -190,9 +187,9 @@ class ComposeStateReadInlayHintsProviderTest {
       import androidx.compose.runtime.mutableStateOf
       import androidx.compose.runtime.saveable.rememberSaveable
       @Composable
-      fun Bar(arg: String, onNameChange: (String) -> Unit)
+      fun Bar(arg: String, onNameChange: (String) -> Unit) {}
       @Composable
-      fun Foo {
+      fun Foo() {
         var stateVar = rememberSaveable { mutableStateOf("foo") }
         Bar(arg = stateVar.value) { stateVar.value = it }
       }
@@ -204,25 +201,25 @@ class ComposeStateReadInlayHintsProviderTest {
     ComposeStateReadInlayHintsCollector.collectFromElement(element, sink)
 
     val tooltip = ComposeBundle.message("state.read.message", "stateVar", "Foo")
-    val positionCaptor: ArgumentCaptor<InlineInlayPosition> = argumentCaptor()
-    val builderCaptor: ArgumentCaptor<PresentationTreeBuilder.() -> Unit> = argumentCaptor()
+    val positionCaptor = argumentCaptor<InlineInlayPosition>()
+    val builderCaptor = argumentCaptor<PresentationTreeBuilder.() -> Unit>()
     verify(sink)
       .addPresentation(
-        positionCaptor.captureNonNull(),
+        positionCaptor.capture(),
         payloads = eq(null),
         tooltip = eq(tooltip),
         hasBackground = eq(true),
-        builder = builderCaptor.captureNonNull(),
+        builder = builderCaptor.capture(),
       )
-    with(positionCaptor.value) {
+    with(positionCaptor.firstValue) {
       assertThat(offset).isEqualTo(fixture.offsetForWindow("stateVar.value|)"))
       assertThat(relatedToPrevious).isTrue()
       assertThat(priority).isEqualTo(0)
     }
-    builderCaptor.value.invoke(treeBuilder)
-    val actionDataCaptor: ArgumentCaptor<InlayActionData> = argumentCaptor()
+    builderCaptor.firstValue.invoke(treeBuilder)
+    val actionDataCaptor = argumentCaptor<InlayActionData>()
     verify(treeBuilder).text(eq(ComposeBundle.message("state.read")), actionDataCaptor.capture())
-    with(actionDataCaptor.value) {
+    with(actionDataCaptor.firstValue) {
       assertThat(payload).isInstanceOf(PsiPointerInlayActionPayload::class.java)
       val expectedScope =
         fixture.getEnclosing<KtFunction>("stateVar = rememberSaveable").bodyExpression
@@ -235,7 +232,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun handleClick_highlightsCorrectRange() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -257,7 +254,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun handleClick_noHighlightAfterCaretMovement() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -280,7 +277,7 @@ class ComposeStateReadInlayHintsProviderTest {
   @Test
   fun handleClick_highlightFlash() {
     fixture.loadNewFile(
-      "com/example/Foo.kt",
+      "src/com/example/Foo.kt",
       // language=kotlin
       """
       package com.example
@@ -328,8 +325,3 @@ class ComposeStateReadInlayHintsProviderTest {
       .isEmpty()
   }
 }
-
-fun ArgumentCaptor<InlineInlayPosition>.captureNonNull() =
-  capture() ?: InlineInlayPosition(0, false)
-
-fun <T> ArgumentCaptor<T.() -> Unit>.captureNonNull() = capture() ?: {}

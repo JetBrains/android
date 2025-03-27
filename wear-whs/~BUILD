@@ -17,6 +17,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",

@@ -35,6 +35,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.AAR_ADDRESS_KEY
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_KEY
+import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.InnerRClassBase
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
@@ -65,11 +66,10 @@ class SmallAarRClass(
   private val aarResources: ResourceRepository,
   private val resourceNamespace: ResourceNamespace,
   aarAddress: String,
-) : AndroidRClassBase(psiManager, packageName) {
+) : AndroidRClassBase(psiManager, packageName, AndroidLightClassModuleInfo.from(library)) {
 
   init {
-    setModuleInfo(library)
-    val lightVirtualFile = myFile.viewProvider.virtualFile
+    val lightVirtualFile = containingFile.viewProvider.virtualFile
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, SmallAarRClass::class.java)
     lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)
   }
@@ -92,7 +92,7 @@ class SmallAarRClass(
 
 /** Implementation of [InnerRClassBase] used by [SmallAarRClass]. */
 private class SmallAarInnerRClass(
-  parent: PsiClass,
+  parent: AndroidLightClassBase,
   resourceType: ResourceType,
   private val resourceNamespace: ResourceNamespace,
   private val aarResources: ResourceRepository,
@@ -131,11 +131,10 @@ class TransitiveAarRClass(
   packageName: String,
   private val symbolFile: File,
   aarAddress: String,
-) : AndroidRClassBase(psiManager, packageName) {
+) : AndroidRClassBase(psiManager, packageName, AndroidLightClassModuleInfo.from(library)) {
 
   init {
-    setModuleInfo(library)
-    val lightVirtualFile = myFile.viewProvider.virtualFile
+    val lightVirtualFile = containingFile.viewProvider.virtualFile
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, TransitiveAarRClass::class.java)
     lightVirtualFile.putUserData(AAR_ADDRESS_KEY, aarAddress)
   }
@@ -186,7 +185,7 @@ class TransitiveAarRClass(
  * It eagerly computes names and types of fields and releases the [SymbolTable].
  */
 private class TransitiveAarInnerRClass(
-  parent: PsiClass,
+  parent: AndroidLightClassBase,
   resourceType: ResourceType,
   symbolTable: SymbolTable,
 ) : InnerRClassBase(parent, resourceType) {

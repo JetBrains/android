@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.dagger.index
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
@@ -32,6 +30,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -625,14 +625,11 @@ class DaggerDataIndexerTest {
     assertThat(indexer.map(fileContentWithNoKnownToken)).isEmpty()
   }
 
-  private fun createFileContent(fileType: FileType, text: String): FileContent {
+  private fun createFileContent(fileType: FileType, text: String): FileContent = mock {
     val psiFile = myFixture.configureByText(fileType, text)
-
-    return mock<FileContent>().apply {
-      whenever(this.fileType).thenReturn(fileType)
-      whenever(this.contentAsText).thenReturn(text)
-      whenever(this.psiFile).thenReturn(psiFile)
-      whenever(this.file).thenReturn(psiFile.viewProvider.virtualFile)
-    }
+    on { this.fileType } doReturn fileType
+    on { contentAsText } doReturn text
+    on { this.psiFile } doReturn psiFile
+    on { file } doReturn psiFile.viewProvider.virtualFile
   }
 }

@@ -32,7 +32,7 @@ internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableI
 internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: IrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
   val project = inputs.first().file.project
   val compiler =
-    LiveEditCompiler(project, irClassCache).also { it.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.Legacy(project)) }
+    LiveEditCompiler(project, irClassCache).also { it.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.LegacyForTests(project)) }
   return compile(inputs, compiler)
 }
 

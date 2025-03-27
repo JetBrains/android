@@ -21,7 +21,6 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
@@ -30,6 +29,7 @@ import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.NamedExternalResource
 import org.junit.runner.Description
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.file.Path
 

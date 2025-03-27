@@ -17,6 +17,12 @@ package com.android.tools.idea.gradle.dcl.lang.ide
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
+import com.android.tools.idea.gradle.dcl.lang.sync.BlockFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRef
+import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
+import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
+import com.android.tools.idea.gradle.dcl.lang.sync.SimpleTypeRef
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.JavaPsiFacade
@@ -69,19 +75,38 @@ private fun findProperty(clazz: PsiClass, propertyName: String): PsiElement? {
 }
 
 private fun findDslElementClassName(path: List<String>, element: DeclarativeIdentifier): String? {
-  val service = DeclarativeService.getInstance(element.project)
-  val schema = service.getSchema() ?: return null
+  val schema = DeclarativeService.getInstance(element.project).getDeclarativeSchema() ?: return null
+  val fileName = element.containingFile.name
+
+  fun extractFqName(receivers: List<EntryWithContext>): String =
+    receivers.map { it.entry }.firstNotNullOf {
+      when (it) {
+        is SchemaFunction ->
+          when (val semantic = it.semantic) {
+            is BlockFunction -> semantic.accessor.fqName.name
+            is PlainFunction -> null
+          }
+
+        is DataProperty ->
+          when (val type = it.valueType) {
+            is DataClassRef -> type.fqName.name
+            is SimpleTypeRef -> null
+          }
+      }
+    }
 
   if (path.isEmpty()) {
-    return element.name?.let { getTopLevelReceiverByName(it, schema) }?.qualifiedName
+    return element.name?.let {
+      val result = schema.getTopLevelEntriesByName(it, fileName)
+      extractFqName(result)
+    }
   }
   else {
-    var fqName = getTopLevelReceiverByName(path[0], schema)
+    var receivers = schema.getTopLevelEntriesByName(path[0], fileName)
     for (i in 1 until path.size) {
-      val dataClass = schema.getDataClassesByFqName()[fqName] ?: return null
-      fqName = getReceiverByName(path[i], dataClass.memberFunctions)
+      receivers = receivers.flatMap { it.getNextLevel(path[i]) }
     }
-    return fqName?.qualifiedName
+    return extractFqName(receivers)
   }
 }
 
@@ -93,9 +118,7 @@ private fun generateExistingPath(start: DeclarativeIdentifier): List<String> {
     if (element != null) {
       action(element)
       val block = element.parent.parentOfTypes(DeclarativeBlock::class)
-      block?.identifier?.let {
-        navigateToRoot(it, action)
-      }
+      navigateToRoot(block?.identifier, action)
     }
   }
 

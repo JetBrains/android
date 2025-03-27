@@ -18,8 +18,8 @@ package com.android.tools.idea.insights
 import com.android.tools.idea.insights.proto.BuildStamp
 import com.android.tools.idea.insights.proto.RepositoryInfo
 import com.android.tools.idea.insights.proto.VersionControlSystem
-import com.android.tools.idea.protobuf.TextFormat
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.TextFormat
 import org.junit.Test
 
 class AppVcsInfoKtTest {

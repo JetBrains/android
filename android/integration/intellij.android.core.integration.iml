@@ -7,13 +7,17 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="as-driver.utils" scope="TEST" />
-    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
-    <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.as-driver.utils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.analysis.impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
   </component>
 </module>

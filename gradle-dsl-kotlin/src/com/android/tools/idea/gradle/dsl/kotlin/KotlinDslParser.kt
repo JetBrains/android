@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getPropertiesElement
+import com.android.tools.idea.gradle.dsl.parser.isDomainObjectConfiguratorMethodName
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.android.tools.idea.gradle.dsl.parser.setMaybeIndirectedElement
 import com.google.common.collect.Lists
@@ -386,7 +387,7 @@ class KotlinDslParser(
       is KtCallExpression -> {
         // Check if this is about a localMethod used for blocks referencing, or not.
         val referenceName = selector.name()
-        if (isValidBlockName(referenceName)) {
+        if (isDomainObjectConfiguratorMethodName(referenceName)) {
           return GradleDslLiteral(parent, expression, name, expression, GradleDslLiteral.LiteralType.REFERENCE)
         }
         else {
@@ -571,7 +572,7 @@ class KotlinDslParser(
       val argumentExpression = arguments[0].getArgumentExpression()
       if (argumentExpression is KtCallExpression) {
         val argumentsName = (arguments[0].getArgumentExpression() as KtCallExpression).name() ?: return null
-        if (isValidBlockName(argumentsName)) {
+        if (isDomainObjectConfiguratorMethodName(argumentsName)) {
           return GradleDslLiteral(parentElement, argumentExpression, name, argumentExpression, GradleDslLiteral.LiteralType.REFERENCE)
         }
         if (isFirstCall) {

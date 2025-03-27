@@ -40,16 +40,13 @@ import com.android.tools.idea.common.model.NlComponentReference
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.componenttree.NlVisibilityModel.Visibility
 import com.android.tools.idea.uibuilder.model.ensureLiveId
 import com.android.tools.idea.uibuilder.model.getViewGroupHandler
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.isGroup
 import com.android.tools.idea.uibuilder.model.w
-import com.android.tools.idea.uibuilder.structure.BackNavigationComponent
-import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
-import com.android.tools.idea.uibuilder.structure.findComponent
-import com.android.tools.idea.uibuilder.structure.getVisibilityFromParents
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.google.common.collect.ImmutableList
@@ -61,7 +58,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.DataSink.Companion.uiDataSnapshot
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.IdeActions
@@ -315,7 +311,7 @@ private class ComponentTreePanel(
       // Provide a way to delete a reference from a helper
       sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = referenceDeleteProvider
     }
-    uiDataSnapshot(sink, surface)
+    DataSink.uiDataSnapshot(sink, surface)
   }
 
   /** The [NodeType] used for [NlComponent]s in the [NlModel] of the design surface. */
@@ -373,7 +369,7 @@ private class ComponentTreePanel(
       // be saved as references)
       return (components.isNotEmpty() &&
         node.isGroup() &&
-        treeWriter.canAddComponents(components, node, null)) ||
+        treeWriter.canAddComponents(components, node, null, ignoreMissingDependencies = true)) ||
         node.getViewGroupHandler {}?.holdsReferences() == true
     }
 
@@ -401,8 +397,12 @@ private class ComponentTreePanel(
       when {
         node.isGroup() &&
           refs.isEmpty() &&
-          treeWriter.canAddComponents(components, node, before as? NlComponent) ->
-          treeWriter.addComponents(components, node, before as? NlComponent, insertType, null)
+          treeWriter.canAddComponents(
+            components,
+            node,
+            before as? NlComponent,
+            ignoreMissingDependencies = true,
+          ) -> treeWriter.addComponents(components, node, before as? NlComponent, insertType, null)
         node.getViewGroupHandler {}?.holdsReferences() == true ->
           updateReferences(node, components, refs, before as? NlComponentReference, insertType)
         else -> return false

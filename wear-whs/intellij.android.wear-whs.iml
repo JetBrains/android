@@ -18,20 +18,11 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.layout-ui" />
-    <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ui" />
-    <orderEntry type="module" module-name="intellij.platform.extensions" />
-    <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
@@ -39,6 +30,9 @@
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.platform.collaborationTools" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />

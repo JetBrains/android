@@ -15,43 +15,90 @@
  */
 package com.android.tools.idea.avd
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
 internal fun StorageCapacityField(
-  value: StorageCapacity,
-  onValueChange: (StorageCapacity) -> Unit,
+  state: StorageCapacityFieldState,
+  errorMessage: String?,
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
+  outline: Outline = if (errorMessage == null) Outline.None else Outline.Error,
 ) {
   Row(modifier) {
-    TextField(
-      value.value.toString(),
-      {
-        if (STORAGE_CAPACITY_VALUE_REGEX.matches(it)) {
-          try {
-            onValueChange(StorageCapacity(it.toLong(), value.unit))
-          } catch (_: NumberFormatException) {}
-        }
-      },
-      Modifier.padding(end = Padding.SMALL).testTag("StorageCapacityFieldTextField"),
-      enabled,
-    )
+    @OptIn(ExperimentalFoundationApi::class)
+    ErrorTooltip(errorMessage) {
+      TextField(
+        state.value,
+        Modifier.padding(end = Padding.SMALL).testTag("StorageCapacityFieldTextField"),
+        enabled,
+        inputTransformation = {
+          if (!STORAGE_CAPACITY_VALUE_REGEX.matches(asCharSequence())) revertAllChanges()
+        },
+        outline = outline,
+      )
+    }
 
-    Dropdown(
-      value.unit,
-      UNITS,
-      onSelectedItemChange = { onValueChange(StorageCapacity(value.value, it)) },
-      enabled = enabled,
-    )
+    Dropdown(state.selectedUnit, state.units, state::selectedUnit::set, enabled = enabled)
   }
 }
 
-private val STORAGE_CAPACITY_VALUE_REGEX = Regex("\\d+")
-private val UNITS = enumValues<StorageCapacity.Unit>().asIterable().toImmutableList()
+internal class StorageCapacityFieldState
+internal constructor(
+  value: StorageCapacity,
+  minValue: StorageCapacity = StorageCapacity.MIN,
+  internal val units: ImmutableCollection<StorageCapacity.Unit> =
+    enumValues<StorageCapacity.Unit>().asIterable().toImmutableList(),
+) {
+  internal val value = TextFieldState(value.value.toString())
+  internal var minValue by mutableStateOf(minValue)
+  internal var selectedUnit by mutableStateOf(value.unit)
+  internal val storageCapacity = snapshotFlow { result().storageCapacity }
+
+  internal fun valid() = result() as Valid
+
+  internal fun result() =
+    if (value.text.isEmpty()) {
+      Empty
+    } else {
+      try {
+        val value = StorageCapacity(value.text.toString().toLong(), selectedUnit)
+        if (value < minValue) LessThanMin else Valid(value)
+      } catch (exception: NumberFormatException) {
+        // value.text.toString().toLong() overflowed
+        Overflow
+      } catch (exception: ArithmeticException) {
+        // StorageCapacity(value.text.toString().toLong(), unit) can't be expressed in bytes
+        Overflow
+      }
+    }
+
+  internal class Valid internal constructor(override val storageCapacity: StorageCapacity) :
+    Result()
+
+  internal object Empty : Result()
+
+  internal object LessThanMin : Result()
+
+  internal object Overflow : Result()
+
+  internal sealed class Result {
+    internal open val storageCapacity: StorageCapacity? = null
+  }
+}
+
+private val STORAGE_CAPACITY_VALUE_REGEX = Regex("\\d*")

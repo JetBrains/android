@@ -17,9 +17,6 @@ package com.android.tools.idea.execution.common.processhandler
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.AnsiEscapeDecoder
@@ -33,15 +30,18 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mock
-import org.mockito.Mockito.anyBoolean
-import org.mockito.Mockito.argThat
-import org.mockito.Mockito.inOrder
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.timeout
-import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.timeout
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 /**
  * Unit test for [AndroidProcessHandler].
@@ -247,7 +247,7 @@ class AndroidProcessHandlerTest {
   }
 
   private fun createMockDevice(apiVersion: Int): IDevice {
-    val mockDevice = mock(IDevice::class.java)
+    val mockDevice = mock<IDevice>()
     whenever(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
     return mockDevice
   }

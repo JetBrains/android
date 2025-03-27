@@ -15,15 +15,18 @@
  */
 package com.android.tools.adtui.actions
 
-import com.android.testutils.MockitoKt.whenever
+import org.mockito.kotlin.whenever
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -32,25 +35,26 @@ import org.mockito.Mockito.verify
 
 @RunWith(JUnit4::class)
 class PanSurfaceActionTest {
-  private lateinit var panAction: PanSurfaceAction
+  @get:Rule val applicationRule = ApplicationRule()
 
-  private val actionManager: ActionManagerEx = mock(ActionManagerEx::class.java)
-  private val context: DataContext = mock(DataContext::class.java)
+  private lateinit var panAction: PanSurfaceAction
+  private var contextHasPannable: Boolean = true
+  private val context: DataContext
+    get() = if (contextHasPannable) SimpleDataContext.getSimpleContext(PANNABLE_KEY, pannable) else DataContext.EMPTY_CONTEXT
   private val pannable: Pannable = mock(Pannable::class.java)
 
   private val actionEvent: AnActionEvent
-    get() = AnActionEvent(null, context, "PanPlace", panAction.templatePresentation.clone(), actionManager, 0)
+    get() = TestActionEvent.createTestEvent(panAction, context)
 
   @Before
   fun setUp() {
     panAction = PanSurfaceAction
-    whenever(context.getData(PANNABLE_KEY)).thenReturn(pannable)
     whenever(pannable.isPannable).thenReturn(true)
   }
 
   @Test
   fun testHiddenAction() {
-    whenever(context.getData(PANNABLE_KEY)).thenReturn(null)
+    contextHasPannable = false
     val event = actionEvent
     panAction.update(event)
     assertFalse(event.presentation.isEnabledAndVisible)

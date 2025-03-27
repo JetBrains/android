@@ -23,13 +23,16 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.util.concurrent.CountDownLatch
 
 
-class ResourceIdManagerBaseTest {
+@RunWith(Parameterized::class)
+class ResourceIdManagerBaseTest(private val useRBytecodeParsing: Boolean) {
   @Test
   fun testDynamicIds() {
-    val idManager = StubbedResourceIdManager()
+    val idManager = StubbedResourceIdManager(useRBytecodeParsing)
     val initialGeneration = idManager.generation
     val stringId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string"))
     assertNotNull(stringId)
@@ -48,7 +51,7 @@ class ResourceIdManagerBaseTest {
 
   @Test
   fun testResetDynamicIds() {
-    val idManager = StubbedResourceIdManager()
+    val idManager = StubbedResourceIdManager(useRBytecodeParsing)
     var lastGeneration = idManager.generation
     idManager.resetDynamicIds()
     assertNotEquals(lastGeneration, idManager.generation)
@@ -77,12 +80,12 @@ class ResourceIdManagerBaseTest {
 
   @Test
   fun testLoadCompiledResources() {
-    val idManager = StubbedResourceIdManager()
+    val idManager = StubbedResourceIdManager(useRBytecodeParsing)
     val stringId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string"))
     val styleId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STYLE, "style"))
     val layoutId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout"))
 
-    idManager.resetCompiledIds { it.parse(R::class.java) }
+    idManager.resetCompiledIds { it.parseUsingReflection(R::class.java) }
 
     // Compiled resources should replace the dynamic IDs.
     assertNotEquals(stringId, idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string")))
@@ -106,10 +109,10 @@ class ResourceIdManagerBaseTest {
 
   @Test
   fun testResetIdsDoesNotPreventAccess() {
-    val idManager = StubbedResourceIdManager()
+    val idManager = StubbedResourceIdManager(useRBytecodeParsing)
     assertNull(idManager.findById(0x7f000001))
 
-    idManager.resetCompiledIds { it.parse(R::class.java) }
+    idManager.resetCompiledIds { it.parseUsingReflection(R::class.java) }
 
     assertNotNull(idManager.findById(0x7f000001))
 
@@ -120,7 +123,7 @@ class ResourceIdManagerBaseTest {
       idManager.resetCompiledIds {
         idsReset.countDown()
         canParse.await()
-        it.parse(R::class.java)
+        it.parseUsingReflection(R::class.java)
       }
     }
     thread.start()
@@ -156,5 +159,11 @@ class ResourceIdManagerBaseTest {
         const val layout: Int = 0x7f020001
       }
     }
+  }
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "useRBytecodeParsing={0}")
+    fun userRBytecodeParsing() = listOf(false, true)
   }
 }

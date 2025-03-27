@@ -27,7 +27,7 @@ import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 /** Updates project info according to the newly generated build graph. */
@@ -73,7 +73,7 @@ public class ProjectStatsLogger implements QuerySyncProjectListener {
                           .map(TargetBuildInfo::javaInfo)
                           .flatMap(Optional::stream)
                           .map(JavaArtifactInfo::jars)
-                          .mapToInt(List::size)
+                          .mapToInt(Collection::size)
                           .sum());
             });
     ;

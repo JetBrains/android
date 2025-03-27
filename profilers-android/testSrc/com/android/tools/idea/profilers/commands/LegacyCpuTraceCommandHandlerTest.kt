@@ -18,7 +18,6 @@ package com.android.tools.idea.profilers.commands
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.io.grpc.ManagedChannel
@@ -37,6 +36,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.LinkedBlockingDeque
 
 class LegacyCpuTraceCommandHandlerTest {

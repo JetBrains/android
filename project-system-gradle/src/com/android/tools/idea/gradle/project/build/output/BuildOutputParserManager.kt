@@ -44,7 +44,7 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       JavaLanguageLevelDeprecationOutputParser(),
                                                       AndroidGradlePluginOutputParser(),
                                                       DataBindingOutputParser(),
-                                                      JavacOutputParser(),
+                                                      JavacFilteringOutputParser(),
                                                       KotlincWithQuickFixesParser(),
                                                       ConfigurationCacheErrorParser(),
                                                       TomlErrorParser(),
@@ -54,7 +54,7 @@ class BuildOutputParserManager @TestOnly constructor(
     buildOutputParsers.map { BuildOutputParserWrapper(it, taskId) }
 
   fun onBuildStart(externalSystemTaskId: ExternalSystemTaskId) {
-    val disposable = Disposer.newDisposable("syncViewListenerDisposable")
+    val disposable = Disposer.newDisposable("buildViewListenerDisposable")
     Disposer.register(project, disposable)
     val errorsListener = BuildOutputErrorsListener(externalSystemTaskId, disposable) { buildErrorMessages ->
       try {

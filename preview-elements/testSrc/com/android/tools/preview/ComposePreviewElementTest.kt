@@ -15,13 +15,13 @@
  */
 package com.android.tools.preview
 
+import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.fail
 import org.junit.Test
 import org.xml.sax.InputSource
-import java.io.StringReader
-import javax.xml.parsers.DocumentBuilderFactory
 
 class ComposePreviewElementTest {
 
@@ -31,28 +31,28 @@ class ComposePreviewElementTest {
       listOf(
         SingleComposePreviewElementInstance(
           "composableMethodName",
-          PreviewDisplaySettings("A name", "A base name", null,null, false, false, null),
+          PreviewDisplaySettings("A name", "A base name", null, null, false, false, null),
           null,
           null,
           PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
-          PreviewDisplaySettings("A name", "A base name", null,"group1", true, true, null),
+          PreviewDisplaySettings("A name", "A base name", null, "group1", true, true, null),
           null,
           null,
           PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
-          PreviewDisplaySettings("A name", "A base name", null,"group1", true, true, "#000"),
+          PreviewDisplaySettings("A name", "A base name", null, "group1", true, true, "#000"),
           null,
           null,
           PreviewConfiguration.cleanAndGet(),
         ),
         SingleComposePreviewElementInstance(
           "composableMethodName",
-          PreviewDisplaySettings("A name", "A base name", null,"group1", true, false, "#000"),
+          PreviewDisplaySettings("A name", "A base name", null, "group1", true, false, "#000"),
           null,
           null,
           PreviewConfiguration.cleanAndGet(),
@@ -124,7 +124,7 @@ $t
     val composable0b =
       SingleComposePreviewElementInstance(
         "composableMethodName",
-        PreviewDisplaySettings("A name", "A base name", null,null, false, false, null),
+        PreviewDisplaySettings("A name", "A base name", null, null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -134,7 +134,7 @@ $t
     val composable1 =
       SingleComposePreviewElementInstance(
         "composableMethodName2",
-        PreviewDisplaySettings("A name", "A base name", null,null, false, false, null),
+        PreviewDisplaySettings("A name", "A base name", null, null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -145,7 +145,7 @@ $t
       TestComposePreviewElementInstance(
         "composableMethodName",
         "composableMethodName",
-        PreviewDisplaySettings("A name", "A base name", null,null, false, false, null),
+        PreviewDisplaySettings("A name", "A base name", null, null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -156,7 +156,7 @@ $t
       TestComposePreviewElementInstance(
         "composableMethodName",
         "composableMethodName",
-        PreviewDisplaySettings("B name", "B base name", null,null, false, false, null),
+        PreviewDisplaySettings("B name", "B base name", null, null, false, false, null),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),

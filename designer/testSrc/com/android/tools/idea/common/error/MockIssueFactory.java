@@ -47,12 +47,13 @@ class MockIssueFactory {
   }
 
   public static void addLintIssue(LintAnnotationsModel model, HighlightDisplayLevel level) {
-    addLintIssue(model, level, Mockito.mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS));
+    NlComponent mockComponent = Mockito.mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS);
+    Mockito.when(mockComponent.getTagName()).thenReturn("MockTag");
+    addLintIssue(model, level, mockComponent);
   }
 
   public static void addLintIssue(LintAnnotationsModel model, HighlightDisplayLevel level, NlComponent source) {
-    addLintIssue(model, level, Mockito.mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS),
-                 Mockito.mock(SmartPsiElementPointer.class, Mockito.RETURNS_DEEP_STUBS),
+    addLintIssue(model, level, source, Mockito.mock(SmartPsiElementPointer.class, Mockito.RETURNS_DEEP_STUBS),
                  Mockito.mock(SmartPsiElementPointer.class, Mockito.RETURNS_DEEP_STUBS));
   }
 
@@ -65,7 +66,6 @@ class MockIssueFactory {
     AndroidLintInspectionBase inspection = new AndroidLintInspectionBase("Mock Issue", issue) {
     };
 
-    Mockito.when(sourceElement.getTagName()).thenReturn("MockTag");
     model.addIssue(sourceElement, null, new Incident(), issue, "",
                    inspection, level, startElementPointer, endElementPointer,
                    null);

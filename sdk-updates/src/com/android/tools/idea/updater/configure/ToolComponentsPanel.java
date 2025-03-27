@@ -17,19 +17,17 @@ package com.android.tools.idea.updater.configure;
 
 import static com.android.repository.util.RepoPackageUtilKt.getRepoPackagePrefix;
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
-
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
-import com.android.tools.idea.welcome.install.Aehd;
+import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
@@ -62,7 +60,7 @@ public class ToolComponentsPanel {
 
   // TODO: Add more fine-grained support for ChromeOS to SDK repo infrastructure (b/131738330)
   private static final Set<String> CHROME_OS_INCOMPATIBLE_PATHS =
-    ImmutableSet.of(SdkConstants.FD_EMULATOR, Aehd.InstallerInfo.getRepoPackagePath());
+    ImmutableSet.of(SdkConstants.FD_EMULATOR, AehdSdkComponentTreeNode.InstallerInfo.getRepoPackagePath());
 
   private static final String TOOLS_DETAILS_CHECKBOX_SELECTED = "updater.configure.tools.details.checkbox.selected";
 
@@ -84,9 +82,9 @@ public class ToolComponentsPanel {
   private final Multimap<String, UpdatablePackage> myMultiVersionPackages = HashMultimap.create();
 
   @VisibleForTesting
-  public UpdaterTreeNode myToolsDetailsRootNode;
+  UpdaterTreeNode myToolsDetailsRootNode;
   @VisibleForTesting
-  public UpdaterTreeNode myToolsSummaryRootNode;
+  UpdaterTreeNode myToolsSummaryRootNode;
 
   Set<PackageNodeModel> myStates = Sets.newHashSet();
 
@@ -100,7 +98,7 @@ public class ToolComponentsPanel {
   }
 
   @VisibleForTesting
-  public ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
+  ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
     myToolsDetailsCheckbox.setSelected(propertiesComponent.getBoolean(TOOLS_DETAILS_CHECKBOX_SELECTED, false));
     myToolsDetailsCheckbox.addActionListener(e -> {
       propertiesComponent.setValue(TOOLS_DETAILS_CHECKBOX_SELECTED, myToolsDetailsCheckbox.isSelected());
@@ -231,7 +229,7 @@ public class ToolComponentsPanel {
   }
 
   private void createUIComponents() {
-    myToolsLoadingIcon = new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText());
+    myToolsLoadingIcon = new AsyncProcessIcon("Loading...");
 
     myToolsSummaryRootNode = new RootNode();
     myToolsDetailsRootNode = new RootNode();

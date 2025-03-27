@@ -19,7 +19,7 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.uibuilder.model.viewInfo
-import com.android.tools.idea.wear.preview.WearTilePreviewElement
+import com.android.tools.wear.preview.WearTilePreviewElement
 
 /**
  * Detects animations within an inflated Wear Tile view.
@@ -30,7 +30,7 @@ import com.android.tools.idea.wear.preview.WearTilePreviewElement
 fun detectAnimations(sceneManager: SceneManager) {
   if (!StudioFlags.WEAR_TILE_ANIMATION_INSPECTOR.get()) return
   val previewElementInstance =
-    sceneManager.model.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement<*>
+    sceneManager.model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as? WearTilePreviewElement<*>
       ?: return
   val tileServiceViewAdapter = sceneManager.scene.root?.nlComponent?.viewInfo?.viewObject
   previewElementInstance.tileServiceViewAdapter.value = tileServiceViewAdapter
@@ -41,12 +41,18 @@ fun detectAnimations(sceneManager: SceneManager) {
 
 /** Supposed to be invoked on instance of [TileServiceViewAdapter]. */
 internal fun Any.getAnimations(): List<ProtoAnimation> {
-  val getAnimationsMethod =
-    this::class
-      .java
-      .declaredMethods
-      .single { it.name == "getAnimations" }
-      .also { it.isAccessible = true }
-  val list = getAnimationsMethod.invoke(this) as List<*>
-  return list.requireNoNulls().map { ProtoAnimation(it) }
+  try {
+    val getAnimationsMethod =
+      this::class
+        .java
+        .declaredMethods
+        .single { it.name == "getAnimations" }
+        .also { it.isAccessible = true }
+    val list = getAnimationsMethod.invoke(this) as List<*>
+    return list.requireNoNulls().map { ProtoAnimation(it) }
+  } catch (_: Exception) {
+    // If the androidx library is not the most up-to-date, the getAnimations method might not exist,
+    // leading to potential exceptions
+    return emptyList()
+  }
 }

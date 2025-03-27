@@ -38,7 +38,7 @@ class FakeBuildSystemLiveEditServices : BuildSystemLiveEditServices<AndroidProje
     val testApplicationLiveEditServices = testApplicationLiveEditServices
     return when {
       testApplicationLiveEditServices != null -> testApplicationLiveEditServices
-      applicationProjectContext is FacetBasedApplicationProjectContext -> ApplicationLiveEditServices.Legacy(applicationProjectContext.project)
+      applicationProjectContext is FacetBasedApplicationProjectContext -> ApplicationLiveEditServices.LegacyForTests(applicationProjectContext.project)
       applicationProjectContext is TestApplicationProjectContext -> ApplicationLiveEditServicesForTests(classFiles = mapOf())
       else -> error("Unexpected application project context: $applicationProjectContext")
     }

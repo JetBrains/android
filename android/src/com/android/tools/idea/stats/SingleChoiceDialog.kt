@@ -41,7 +41,7 @@ private const val SUBMIT_BUTTON_TEXT = "Submit"
 private const val NEXT_BUTTON_TEXT = "Next"
 private val CENTER_PANEL_BORDER = JBUI.Borders.empty(0, 0, 10, 50)
 
-class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, hasFollowup: Boolean)
+class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, private val followupSurvey: Survey?)
   : DialogWrapper(null), ActionListener, ItemListener {
   val buttonGroup = ButtonGroup()
   private val buttons: MutableList<JRadioButton> = mutableListOf()
@@ -68,12 +68,7 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
   init {
     isAutoAdjustable = true
     setOKButtonText(
-      if (hasFollowup) {
-        NEXT_BUTTON_TEXT
-      }
-      else {
-        SUBMIT_BUTTON_TEXT
-      }
+      followupSurvey?.let { NEXT_BUTTON_TEXT } ?: SUBMIT_BUTTON_TEXT
     )
     setResizable(false)
     title = survey.title
@@ -89,6 +84,10 @@ class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: C
 
   override fun doOKAction() {
     choiceLogger.log(survey.name, ordering[buttons.indexOfFirst { it.isSelected }])
+    followupSurvey?.let {
+      val dialog = createDialog(followupSurvey)
+      dialog.show()
+    }
     super.doOKAction()
   }
 

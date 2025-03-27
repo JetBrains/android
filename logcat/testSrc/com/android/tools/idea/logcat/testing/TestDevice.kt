@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.testing
 import com.android.adblib.DeviceState
 import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
+import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
@@ -30,6 +31,9 @@ import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.idea.logcat.devices.Device
 import icons.StudioIcons
 import java.nio.file.Path
+import kotlin.io.path.pathString
+
+private val AVD_ROOT = Path.of("/tmp/fake_avds")
 
 internal class TestDevice(
   val serialNumber: String,
@@ -45,7 +49,16 @@ internal class TestDevice(
   val device =
     when {
       serialNumber.isEmulatorSerial() ->
-        Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName, sdk, type)
+        Device.createEmulator(
+          serialNumber,
+          state == ONLINE,
+          release,
+          sdk,
+          avdName,
+          AVD_ROOT.resolve("$avdName.avd").pathString,
+          sdk,
+          type,
+        )
       else ->
         Device.createPhysical(
           serialNumber,
@@ -115,7 +128,7 @@ private fun makeAvdInfo(
     mapOf(
       ConfigKey.DEVICE_MANUFACTURER to manufacturer,
       ConfigKey.DEVICE_NAME to model,
-      ConfigKey.ANDROID_API to androidVersion.apiStringWithoutExtension,
+      ConfigKey.TARGET to AndroidTargetHash.getPlatformHashString(androidVersion),
       ConfigKey.ABI_TYPE to Abi.ARM64_V8A.toString(),
       ConfigKey.DISPLAY_NAME to avdName,
     ),

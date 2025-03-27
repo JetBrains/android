@@ -202,7 +202,6 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
         1.0
       }
       ZoomType.FIT -> return null
-      else -> throw IllegalArgumentException("Unsupported zoom type $zoomType")
     }
     val newScaledSize = computeActualSize().scaled(newScale)
     return newScaledSize.scaled(1 / screenScale)

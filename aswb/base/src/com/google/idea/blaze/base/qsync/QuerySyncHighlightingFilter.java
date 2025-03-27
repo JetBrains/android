@@ -19,6 +19,7 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoFilter;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,9 +32,13 @@ public class QuerySyncHighlightingFilter implements HighlightInfoFilter {
     if (psiFile == null) {
       return true;
     }
+    VirtualFile virtualFile = psiFile.getVirtualFile();
+    if (virtualFile == null) {
+      return true;
+    }
 
     if (Blaze.getProjectType(psiFile.getProject()) == ProjectType.QUERY_SYNC) {
-      return QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(psiFile);
+      return QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(virtualFile);
     } else {
       return true;
     }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MICROBENCHMARK
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleModel
@@ -51,7 +50,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
       moduleParent = ":",
       projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
     ).apply {
-      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
+      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(21) // SimpleApplication app minSdkVersion
       packageName.set("template.test.pkg")
       benchmarkModuleType.set(MICROBENCHMARK)
       useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
@@ -59,7 +58,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
 
     model.handleFinished() // Generate module files
 
-    projectRule.invokeTasks("assembleDebug").apply {
+    projectRule.invokeTasks(10000, "assembleDebug").apply {
       buildError?.printStackTrace()
       assertTrue("Project didn't compile correctly", isBuildSuccessful)
     }
@@ -75,7 +74,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
       moduleParent = ":",
       projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
     ).apply {
-      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
+      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(23) // Lowest supported min sdk for macrobenchmark
       benchmarkModuleType.set(MACROBENCHMARK)
       targetModule.value = project.findAppModule()
       useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
@@ -83,7 +82,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
 
     model.handleFinished() // Generate module files
 
-    projectRule.invokeTasks("assembleDebug").apply {
+    projectRule.invokeTasks(10000, "assembleDebug").apply {
       buildError?.printStackTrace()
       assertTrue("Project didn't compile correctly", isBuildSuccessful)
     }

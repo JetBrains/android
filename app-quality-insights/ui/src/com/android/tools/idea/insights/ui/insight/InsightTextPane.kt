@@ -15,37 +15,59 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.insights.ui.AqiHtmlRenderer
-import com.android.tools.idea.insights.ui.MarkDownConverter
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.CopyProvider
 import com.intellij.ide.actions.CopyAction
+import com.intellij.markdown.utils.doc.DocMarkdownToHtmlConverter
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.project.Project
 import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import javax.swing.JTextPane
+import javax.swing.event.HyperlinkEvent.EventType
 import javax.swing.text.DefaultCaret
 
 private const val EMPTY_PARAGRAPH = "<p></p>"
+private const val SPACING = 5
 
 /** [JTextPane] that displays the AI insight. */
-class InsightTextPane : JTextPane(), CopyProvider {
-
-  private val markDownConverter = MarkDownConverter { AqiHtmlRenderer(it) }
+class InsightTextPane(private val project: Project) : JTextPane(), CopyProvider {
 
   init {
     contentType = "text/html"
-    editorKit =
-      HTMLEditorKitBuilder.simple().apply { styleSheet.addRule("body { white-space: pre-wrap; }") }
     isEditable = false
     isOpaque = false
-    border = JBUI.Borders.empty(8)
+    editorKit =
+      HTMLEditorKitBuilder().withoutContentCss().withWordWrapViewFactory().build().apply {
+        with(styleSheet) {
+          addRule("body { white-space: pre-wrap; }")
+          addRule(
+            "ul { margin-bottom: ${JBUI.scale(SPACING)}; margin-top: ${JBUI.scale(SPACING)}; }"
+          )
+          addRule(
+            "ol { margin-bottom: ${JBUI.scale(SPACING)}; margin-top: ${JBUI.scale(SPACING)}; }"
+          )
+          addRule(
+            "p { margin-bottom: ${JBUI.scale(SPACING)}; margin-top: ${JBUI.scale(SPACING)}; }"
+          )
+          addRule("li p { margin-bottom: 0; margin-top: 0; }")
+        }
+      }
+
     font = StartupUiUtil.labelFont
+
+    addHyperlinkListener {
+      if (it.eventType == EventType.ACTIVATED) {
+        BrowserUtil.browse(it.url)
+      }
+    }
 
     val actionManager = ActionManager.getInstance()
     val group =
@@ -65,7 +87,8 @@ class InsightTextPane : JTextPane(), CopyProvider {
       // random (un)ordered list tags
       super.setText(EMPTY_PARAGRAPH)
     } else {
-      super.setText(markDownConverter.toHtml(text))
+      val htmlText = runReadAction { DocMarkdownToHtmlConverter.convert(project, text) }
+      super.setText(htmlText)
     }
     val caret = caret
     if (caret is DefaultCaret) {

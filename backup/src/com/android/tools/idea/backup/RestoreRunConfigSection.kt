@@ -18,20 +18,19 @@ package com.android.tools.idea.backup
 
 import com.android.backup.BackupService
 import com.android.tools.idea.backup.BackupBundle.message
-import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.RunConfigSection
 import com.android.tools.idea.run.ValidationError
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.observable.properties.ObservableMutableProperty
 import com.intellij.openapi.observable.properties.PropertyGraph
+import com.intellij.openapi.observable.util.bind
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.bindSelected
-import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
 import java.awt.Component
@@ -46,17 +45,23 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
   private val projectSystem = project.getProjectSystem()
   private val propertyGraph = PropertyGraph()
   private val restoreApp = propertyGraph.property(false)
+  private val freshInstall = propertyGraph.property(false)
   private var backupFile = propertyGraph.property("")
   private var restoreSupported = propertyGraph.property(true)
 
   override fun getComponent(parentDisposable: Disposable): Component {
     return panel {
       group(message("restore.run.config.group")) {
-          row { checkBox(message("restore.run.config.checkbox")).bindSelected(restoreApp) }
-          indent {
-            row { backupFileChooser(PATH_FIELD_WIDTH).enabledIf(restoreApp).bindText(backupFile) }
+        row { checkBox(message("restore.run.config.checkbox")).bindSelected(restoreApp) }
+        indent {
+          row { backupFileChooser(PATH_FIELD_WIDTH).bindText(backupFile) }
+          row {
+            checkBox(message("restore.run.config.fresh.install.checkbox"))
+              .bindSelected(freshInstall)
           }
         }
+          .enabledIf(restoreApp)
+      }
         .enabledIf(restoreSupported)
     }
   }
@@ -66,6 +71,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     restoreSupported.set(config.DEPLOY_AS_INSTANT)
     restoreApp.set(config.RESTORE_ENABLED)
     backupFile.set(config.RESTORE_FILE)
+    freshInstall.set(config.RESTORE_FRESH_INSTALL_ONLY)
     restoreSupported.set(!config.DEPLOY_AS_INSTANT)
   }
 
@@ -73,6 +79,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     val config = runConfiguration as? AndroidRunConfiguration ?: return
     config.RESTORE_ENABLED = restoreApp.get()
     config.RESTORE_FILE = backupFile.get()
+    config.RESTORE_FRESH_INSTALL_ONLY = freshInstall.get()
   }
 
   override fun validate(runConfiguration: RunConfiguration): List<ValidationError> {
@@ -85,17 +92,13 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
       return listOf(ValidationError.warning(message("backup.file.missing")))
     }
 
-    val path =
-      when (file.startsWith('/')) {
-        true -> Path.of(file)
-        false -> Path.of(project.basePath ?: "", file)
-      }
+    val path = Path.of(file).absoluteInProject(project)
     if (path.notExists()) {
       return listOf(ValidationError.warning(message("backup.file.not.exist")))
     }
 
     try {
-      val fileApplicationId = BackupService.validateBackupFile(path)
+      val fileApplicationId = BackupService.validateBackupFile(path).applicationId
       val packageName = projectSystem.getApplicationIdProvider(runConfiguration)?.packageName
       if (packageName != null && fileApplicationId != packageName) {
         return listOf(ValidationError.warning(message("backup.file.mismatch", fileApplicationId)))
@@ -111,19 +114,16 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
     restoreSupported.set(!instantAppDeploy)
   }
 
-  private fun Row.backupFileChooser(width: Int): Cell<TextFieldWithBrowseButton> {
-    val cell =
-      textFieldWithBrowseButton(
-        FILE_CHOOSER_DESCRIPTOR.withTitle(message("backup.choose.restore.file.dialog.title")),
-        project
-      ) {
-        val file = it.path
-        val basePath = project.basePath
-        file.takeIf { basePath == null } ?: file.removePrefix("$basePath/")
-      }
-    return cell.apply {
+  private fun Row.backupFileChooser(width: Int): Cell<BackupFileTextField> {
+    return cell(BackupFileTextField.createFileChooser(project)).applyToComponent {
       // TODO(aalbert): Figure out how to resize this properly. `Cell.resizeableColumn` doesn't work
-      applyToComponent { preferredSize = Dimension(JBUI.scale(width), preferredSize.height) }
+      preferredSize = Dimension(JBUI.scale(width), preferredSize.height)
     }
   }
+}
+
+fun Cell<BackupFileTextField>.bindText(
+  property: ObservableMutableProperty<String>
+): Cell<BackupFileTextField> {
+  return applyToComponent { textComponent.bind(property) }
 }

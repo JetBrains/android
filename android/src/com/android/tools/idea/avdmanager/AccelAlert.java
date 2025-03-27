@@ -37,6 +37,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.util.concurrent.CancellationException;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -175,10 +176,12 @@ public class AccelAlert extends JPanel {
 
       @Override
       public void onFailure(Throwable t) {
-        if (myLogger == null) {
-          myLogger = Logger.getInstance(AccelAlert.class);
+        if (!(t instanceof CancellationException)) {
+          if (myLogger == null) {
+            myLogger = Logger.getInstance(AccelAlert.class);
+          }
+          myLogger.warn("Check for emulation acceleration failed", t);
         }
-        myLogger.warn("Check for emulation acceleration failed", t);
       }
     }, EdtExecutorService.getInstance());
   }

@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.util.findAndroidModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
@@ -80,13 +81,13 @@ class CommonFastPreviewSurface(
    * time.
    */
   private val fastPreviewCompilationLauncher: UniqueTaskCoroutineLauncher by
-    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      UniqueTaskCoroutineLauncher(coroutineScope, "Compilation Launcher")
-    }
+  lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    UniqueTaskCoroutineLauncher(coroutineScope, "Compilation Launcher")
+  }
 
   override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult> =
     lifecycleManager.executeIfActive { async { requestFastPreviewRefreshSync() } }
-      ?: CompletableDeferred(CompilationResult.CompilationAborted())
+    ?: CompletableDeferred(CompilationResult.CompilationAborted())
 
   /**
    * Request a fast preview compilation, followed by preview refresh when the compilation is
@@ -96,31 +97,34 @@ class CommonFastPreviewSurface(
   suspend fun requestFastPreviewRefreshSync(): CompilationResult {
     val previewFile =
       readAction { psiFilePointer.element }
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File is not valid")
-        )
-    val previewFileModule =
-      readAction { previewFile.module }
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File does not have a valid module")
-        )
-    val previewFileAndroidModule = previewFileModule.findAndroidModule()
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File does not have a valid Android module")
-        )
+      ?: return CompilationResult.RequestException(
+        IllegalStateException("Preview File is not valid")
+      )
+    val previewFileBuildTargetReference =
+      readAction { BuildTargetReference.from(previewFile) }
+      ?: return CompilationResult.RequestException(
+        IllegalStateException("Preview File does not have a valid module")
+      )
+    val previewFileAndroidModule = previewFileBuildTargetReference.module.findAndroidModule()
+                                   ?: return CompilationResult.RequestException(
+                                     IllegalStateException("Preview File does not have a valid Android module")
+                                   )
     val outOfDateFiles =
       myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles
         .filterIsInstance<KtFile>()
         .filter { modifiedFile ->
           if (modifiedFile.isEquivalentTo(previewFile)) return@filter true
-          val modifiedFileModule = readAction { modifiedFile.module } ?: return@filter false
+          val modifiedFileBuildTargetReference =
+            readAction { BuildTargetReference.from(modifiedFile) } ?: return@filter false
 
           // Keep the file if the file is from this module or from a module we depend on
-          modifiedFileModule == previewFileModule ||
-            ModuleManager.getInstance(psiFilePointer.project)
-              .isModuleDependent(previewFileModule, modifiedFileModule) ||
-            ModuleManager.getInstance(psiFilePointer.project)
-              .isModuleDependent(previewFileAndroidModule, modifiedFileModule)
+          modifiedFileBuildTargetReference == previewFileBuildTargetReference ||
+          // TODO: solodkyy - This is wrong. Expose this operation via the BTR.
+          ModuleManager.getInstance(psiFilePointer.project)
+            .isModuleDependent(
+              previewFileAndroidModule,
+              modifiedFileBuildTargetReference.module,
+            )
         }
         .toSet()
 
@@ -129,7 +133,7 @@ class CommonFastPreviewSurface(
 
     return requestFastPreviewRefreshAndTrack(
       parentDisposable = this,
-      previewFileAndroidModule,
+      previewFileBuildTargetReference,
       outOfDateFiles,
       previewStatusProvider(),
       fastPreviewCompilationLauncher,

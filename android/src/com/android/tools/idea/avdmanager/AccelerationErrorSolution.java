@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_AEHD;
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.REINSTALL_AEHD;
-
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.sdklib.internal.avd.EmulatorPackage;
@@ -26,9 +23,9 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.wizard.AehdWizardService;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdk.wizard.AehdWizard;
-import com.android.tools.idea.welcome.install.Aehd;
+import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
@@ -217,9 +214,7 @@ public class AccelerationErrorSolution {
       case REINSTALL_AEHD:
         return () -> {
           try {
-            AehdWizard wizard = new AehdWizard(Aehd.InstallationIntention.INSTALL_WITH_UPDATES);
-            wizard.init();
-            myChangesMade = wizard.showAndGet();
+            myChangesMade = AehdWizardService.getInstance().showAndGet(AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES);
           }
           finally {
             reportBack();

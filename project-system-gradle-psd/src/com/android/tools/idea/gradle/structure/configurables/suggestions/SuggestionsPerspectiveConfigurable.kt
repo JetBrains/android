@@ -53,9 +53,10 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   override fun getId(): String = "android.psd.suggestions"
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<PsModule, *> =
-      when (module) {
-        is PsAndroidModule, is PsJavaModule -> createConfigurable(module)
-        is PsAllModulesFakeModule -> createAllModulesConfigurable(module)
+      when {
+        module is PsAndroidModule && module.isKmpModule.not() -> createConfigurable(module)
+        module is PsJavaModule -> createConfigurable(module)
+        module is PsAllModulesFakeModule -> createAllModulesConfigurable(module)
         else -> ModuleUnsupportedConfigurable(context, this, module)
       }
 

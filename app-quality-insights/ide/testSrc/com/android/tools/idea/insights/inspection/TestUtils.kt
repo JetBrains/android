@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppVcsInfo
@@ -32,14 +31,12 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
+import org.mockito.kotlin.mock
 
 data class LineToInsights(val line: Int, val insights: List<AppInsight>)
 
 internal fun buildIssue(appVcsInfo: AppVcsInfo): AppInsightsIssue {
-  return AppInsightsIssue(
-    issueDetails = MockitoKt.mock(),
-    sampleEvent = Event(appVcsInfo = appVcsInfo),
-  )
+  return AppInsightsIssue(issueDetails = mock(), sampleEvent = Event(appVcsInfo = appVcsInfo))
 }
 
 internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight {
@@ -47,9 +44,9 @@ internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight 
     line = frame.line.toInt() - 1,
     issue = issue,
     stackFrame = frame,
-    cause = MockitoKt.mock<Cause.Frame>(),
-    provider = MockitoKt.mock(),
-    markAsSelectedCallback = MockitoKt.mock(),
+    cause = mock<Cause.Frame>(),
+    providerName = "",
+    markAsSelectedCallback = mock(),
   )
 }
 

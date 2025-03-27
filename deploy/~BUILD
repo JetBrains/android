@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -29,5 +30,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

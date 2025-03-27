@@ -24,6 +24,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.ApiLayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.rendering.RenderService;
 import com.intellij.openapi.util.Disposer;
 
 import java.awt.image.BufferedImage;
@@ -52,6 +53,7 @@ public abstract class SceneTest extends ApiLayoutTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    RenderTestUtil.beforeRenderTestCase();
     myModel = createModel().build();
     myScreen = new ScreenFixture(myModel);
     myScreen.withScale(1);
@@ -75,7 +77,7 @@ public abstract class SceneTest extends ApiLayoutTestCase {
       t.printStackTrace();
     }
     try {
-      RenderTestUtil.waitForRenderTaskDisposeToFinish();
+      RenderTestUtil.afterRenderTestCase();
       myModel = null;
       myScene = null;
       mySceneManager = null;

@@ -19,7 +19,6 @@ import com.android.flags.ifEnabled
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.actions.SystemUiOptionsAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
@@ -35,7 +34,6 @@ import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.actions.ForceCompileAndRefreshActionForNotification
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
@@ -44,9 +42,7 @@ import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.GRID_NO_GROUP_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_NO_GROUP_LAYOUT_OPTION
+import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
@@ -75,6 +71,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.patterns.PlatformPatterns.psiFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
@@ -95,7 +92,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {
           ComposeFilterTextAction(ComposeViewSingleWordFilter())
-        }, // TODO(b/292057010) Enable group filtering for Gallery mode.
+        }, // TODO(b/292057010) Enable group filtering for Focus mode.
         GroupSwitchAction(
             isEnabled = { !isPreviewRefreshing(it.dataContext) },
             isVisible = {
@@ -117,7 +114,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
         ComposeViewControlAction(
-            layoutOptions = listOf(LIST_NO_GROUP_LAYOUT_OPTION, GRID_NO_GROUP_LAYOUT_OPTION),
+            layoutOptions = emptyList(),
             isSurfaceLayoutActionEnabled = {
               !isPreviewRefreshing(
                 it.dataContext
@@ -127,11 +124,6 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
           )
           .visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
-        StudioFlags.NELE_SYSTEM_UI_OPTIONS.ifEnabled {
-          SystemUiOptionsAction {
-            ForceCompileAndRefreshActionForNotification.getInstance().actionPerformed(it)
-          }
-        },
       )
     ) {
 
@@ -144,7 +136,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         if (isEssentialsModeSelected) {
           val layoutSwitcher = e.getData(DESIGN_SURFACE)?.layoutManagerSwitcher
           ApplicationManager.getApplication().invokeLater {
-            layoutSwitcher?.currentLayout?.value = GALLERY_LAYOUT_OPTION
+            layoutSwitcher?.currentLayoutOption?.value = FOCUS_MODE_LAYOUT_OPTION
           }
         }
       }
@@ -183,7 +175,10 @@ class ComposePreviewRepresentationProvider(
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
     psiFile.virtualFile.isKotlinFileType() &&
-      (readAction { (psiFile.getModuleSystem()?.usesCompose == true || isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary() })
+      (readAction {
+        (psiFile.getModuleSystem()?.usesCompose == true ||
+          isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary()
+      })
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
@@ -209,6 +204,9 @@ class ComposePreviewRepresentationProvider(
 }
 
 private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
+  // We need to be in smart mode to be able to access the index for the annotations.
+  if (DumbService.getInstance(file.project).isDumb) return false
+
   val module = ModuleUtilCore.findModuleForFile(file) ?: return false
   // we only accept modules that are:
   // - Android modules

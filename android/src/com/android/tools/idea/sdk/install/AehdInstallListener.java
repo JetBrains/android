@@ -21,13 +21,14 @@ import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.Uninstaller;
 import com.android.tools.idea.sdk.wizard.AehdWizard;
-import com.android.tools.idea.welcome.install.Aehd;
+import com.android.tools.idea.sdk.wizard.AehdWizardService;
+import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * {@link PackageOperation.StatusChangeListener} for installing AEHD. Runs the {@link VmWizard} instead of the normal quickfix wizard.
+ * {@link PackageOperation.StatusChangeListener} for installing AEHD. Runs the {@link AehdWizard} instead of the normal quickfix wizard.
  */
 public class AehdInstallListener implements PackageOperation.StatusChangeListener {
   @Override
@@ -50,10 +51,8 @@ public class AehdInstallListener implements PackageOperation.StatusChangeListene
       ApplicationManager.getApplication().invokeAndWait(() -> {
         // Either we just installed the package and we need to "configure" it (run the installation script),
         // or we're about to uninstall it.
-        AehdWizard wizard =
-          new AehdWizard(op instanceof Uninstaller ? Aehd.InstallationIntention.UNINSTALL : Aehd.InstallationIntention.CONFIGURE_ONLY);
-        wizard.init();
-        result.set(wizard.showAndGet());
+        AehdSdkComponentTreeNode.InstallationIntention installationIntention = op instanceof Uninstaller ? AehdSdkComponentTreeNode.InstallationIntention.UNINSTALL : AehdSdkComponentTreeNode.InstallationIntention.CONFIGURE_ONLY;
+        result.set(AehdWizardService.getInstance().showAndGet(installationIntention));
       }, ModalityState.any());
       if (!result.get()) {
         throw new PackageOperation.StatusChangeListenerException("AEHD setup failed!");

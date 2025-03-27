@@ -6,7 +6,6 @@ ext {
   foobar = ['foo', 'bar']
   bazquux = ['baz', 'quux']
 }
-
 android {
   defaultConfig {
     consumerProguardFiles quux, baz

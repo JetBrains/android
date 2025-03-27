@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.Companion.openTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule

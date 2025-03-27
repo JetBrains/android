@@ -27,7 +27,7 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.verify
 
 class AddGlobalActionTest {
 

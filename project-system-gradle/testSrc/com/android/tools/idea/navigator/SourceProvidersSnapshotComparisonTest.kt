@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.SnapshotContext
+import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpSourceProviders
@@ -98,7 +99,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/sourceProviders"
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos() =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
 
   fun testJpsWithQualifiedNames() {
     val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES))

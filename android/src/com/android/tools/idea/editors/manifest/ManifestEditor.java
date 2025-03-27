@@ -234,7 +234,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       });
     }
 
-    PsiManager.getInstance(project).addPsiTreeChangeListener(myPsiChangeListener);
+    PsiManager.getInstance(project).addPsiTreeChangeListener(myPsiChangeListener, this);
     reload();
   }
 

@@ -18,34 +18,18 @@ package com.android.tools.idea.tests.gui.compose
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.bleak.UseBleak
-import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import icons.StudioIcons
-import org.fest.swing.core.GenericTypeMatcher
-import org.fest.swing.exception.ComponentLookupException
-import org.fest.swing.exception.WaitTimedOutError
-import org.fest.swing.fixture.JPopupMenuFixture
-import org.fest.swing.timing.Wait
-import org.fest.swing.util.PatternTextMatcher
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
@@ -53,25 +37,35 @@ import java.awt.datatransfer.UnsupportedFlavorException
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.swing.JMenuItem
-
+import org.fest.swing.core.GenericTypeMatcher
+import org.fest.swing.exception.ComponentLookupException
+import org.fest.swing.exception.WaitTimedOutError
+import org.fest.swing.fixture.JPopupMenuFixture
+import org.fest.swing.timing.Wait
+import org.fest.swing.util.PatternTextMatcher
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
-  @get:Rule
-  val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
-  @get:Rule
-  val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
+  @get:Rule val guiTest = ComposeDesignerTestDataRule().withTimeout(10, TimeUnit.MINUTES)
 
-  @get:Rule
-  val adbRule: FakeAdbTestRule = FakeAdbTestRule()
+  @get:Rule val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
-  private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt"):
-    SplitEditorFixture {
+  @get:Rule val adbRule: FakeAdbTestRule = FakeAdbTestRule("35")
+
+  private fun openComposePreview(
+    fixture: IdeFrameFixture,
+    fileName: String = "MainActivity.kt",
+  ): SplitEditorFixture {
     // Open the main compose activity and check that the preview is present
     val editor = fixture.editor
     val file = "app/src/main/java/google/simpleapplication/$fileName"
 
-    fixture.invokeProjectMake(null)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     editor.open(file)
     editor.waitUntilErrorAnalysisFinishes()
@@ -84,11 +78,20 @@ class ComposePreviewTest {
   }
 
   private fun getSyncedProjectFixture() =
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    guiTest
+      .importProjectAndWaitForProjectSyncToFinishWithSpecificSdk(
+        "SimpleComposeApplication-ui",
+        "35",
+      )
+      .also {
+        it.buildToolWindow.activate()
+        assertThat(it.invokeProjectMake().isBuildSuccessful).isTrue()
+        guiTest.ideFrame().buildToolWindow.hide()
+      }
 
   @Test
   @Throws(Exception::class)
-  fun testOpenAndClosePreview() {
+  fun testOpenAndClosePreview2() {
     openAndClosePreview(getSyncedProjectFixture())
   }
 
@@ -101,43 +104,60 @@ class ComposePreviewTest {
     assertFalse(composePreview.hasRenderErrors())
 
     clearClipboard()
-    assertFalse(Toolkit.getDefaultToolkit().systemClipboard.getContents(this).isDataFlavorSupported(DataFlavor.imageFlavor))
+    assertFalse(
+      Toolkit.getDefaultToolkit()
+        .systemClipboard
+        .getContents(this)
+        .isDataFlavorSupported(DataFlavor.imageFlavor)
+    )
 
     val designSurfaceTarget = composePreview.designSurface.target()
     composePreview.robot.click(designSurfaceTarget)
-    JPopupMenuFixture(composePreview.robot(), composePreview.robot.showPopupMenu(designSurfaceTarget))
-      .menuItem(object : GenericTypeMatcher<JMenuItem>(JMenuItem::class.java) {
-        override fun isMatching(component: JMenuItem): Boolean {
-          return "Copy Image" == component.text
+    JPopupMenuFixture(
+        composePreview.robot(),
+        composePreview.robot.showPopupMenu(designSurfaceTarget),
+      )
+      .menuItem(
+        object : GenericTypeMatcher<JMenuItem>(JMenuItem::class.java) {
+          override fun isMatching(component: JMenuItem): Boolean {
+            return "Copy Image" == component.text
+          }
         }
-      }).click()
+      )
+      .click()
 
     assertTrue(getClipboardContents().isDataFlavorSupported(DataFlavor.imageFlavor))
 
     fixture.editor.close()
   }
 
-  /**
-   * Returns the current system clipboard contents.
-   */
-  private fun getClipboardContents(): Transferable = Toolkit.getDefaultToolkit().systemClipboard.getContents(this)
+  /** Returns the current system clipboard contents. */
+  private fun getClipboardContents(): Transferable =
+    Toolkit.getDefaultToolkit().systemClipboard.getContents(this)
 
   /**
-   * Clears the system clipboard by copying an "Empty" [Transferable]. This can be used to verify that copy operations of other elements
-   * do succeed.
+   * Clears the system clipboard by copying an "Empty" [Transferable]. This can be used to verify
+   * that copy operations of other elements do succeed.
    */
   private fun clearClipboard() {
-    Toolkit.getDefaultToolkit().systemClipboard.setContents(object : Transferable {
-      override fun getTransferData(flavor: DataFlavor?): Any = when (flavor) {
-        DataFlavor.stringFlavor -> "Empty"
-        else -> throw UnsupportedFlavorException(flavor)
-      }
+    Toolkit.getDefaultToolkit()
+      .systemClipboard
+      .setContents(
+        object : Transferable {
+          override fun getTransferData(flavor: DataFlavor?): Any =
+            when (flavor) {
+              DataFlavor.stringFlavor -> "Empty"
+              else -> throw UnsupportedFlavorException(flavor)
+            }
 
-      override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = flavor == DataFlavor.stringFlavor
+          override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean =
+            flavor == DataFlavor.stringFlavor
 
-      override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(DataFlavor.stringFlavor)
-
-    }, null)
+          override fun getTransferDataFlavors(): Array<DataFlavor> =
+            arrayOf(DataFlavor.stringFlavor)
+        },
+        null,
+      )
   }
 
   @Test
@@ -167,7 +187,10 @@ class ComposePreviewTest {
 
     guiTest.robot().waitForIdle()
 
-    GuiTests.waitUntilShowing(guiTest.robot(), Matchers.buttonWithIcon(AllIcons.General.InspectionsPause))
+    GuiTests.waitUntilShowing(
+      guiTest.robot(),
+      Matchers.buttonWithIcon(AllIcons.General.InspectionsPause),
+    )
 
     // Undo modifications and close editor to return to the initial state
     editor.select("(${modification})")
@@ -184,15 +207,18 @@ class ComposePreviewTest {
     assertFalse(composePreview.hasRenderErrors())
 
     val editor = fixture.editor
-    // Get the design surface before removing the preview annotation, because accessing the property will call [waitUntilShowing] before
-    // returning the surface. If we call it after removing the annotation, the surface won´t be visible by then.
+    // Get the design surface before removing the preview annotation, because accessing the property
+    // will call [waitUntilShowing] before
+    // returning the surface. If we call it after removing the annotation, the surface won´t be
+    // visible by then.
     val designSurface = composePreview.designSurface
     editor.select("(@Preview)")
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
 
-    guiTest.ideFrame().invokeMenuPath("Code", "Optimize Imports") // This will remove the Preview import
-    designSurface
-      .waitUntilNotShowing(Wait.seconds(10));
+    guiTest
+      .ideFrame()
+      .invokeMenuPath("Code", "Optimize Imports") // This will remove the Preview import
+    designSurface.waitUntilNotShowing(Wait.seconds(10))
 
     editor.close()
   }
@@ -205,14 +231,11 @@ class ComposePreviewTest {
 
     composePreview.waitForSceneViewsCount(3)
 
-    composePreview.designSurface
-      .allSceneViews
-      .first()
-      .toolbar()
-      .clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+    val sceneView = composePreview.designSurface.allSceneViews.first()
+    composePreview.robot.rightClick(sceneView.target())
+    sceneView.clickActionByText("Start Interactive Mode")
 
-    composePreview
-      .waitForRenderToFinish()
+    composePreview.waitForRenderToFinish()
 
     composePreview.waitForSceneViewsCount(1)
 
@@ -221,8 +244,7 @@ class ComposePreviewTest {
       .waitUntilEnabledAndShowing()
       .click()
 
-    composePreview
-      .waitForRenderToFinish()
+    composePreview.waitForRenderToFinish()
 
     composePreview.waitForSceneViewsCount(3)
 
@@ -232,71 +254,80 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testAnimationInspector() {
-    fun SplitEditorFixture.findAnimationInspector() =
-      try {
-        guiTest.ideFrame().robot().finder().findByName(this.editor.component, "Animation Preview")
+    /** Wait 10 seconds for a given state (open or closed) of the Animation Inspector. */
+    fun SplitEditorFixture.waitForAnimationInspectorState(isOpen: Boolean) {
+      val expectationMessage = "Animation preview to be ${if (isOpen) "open" else "closed"}"
+      Wait.seconds(10).expecting(expectationMessage).until {
+        val animationInspector =
+          try {
+            guiTest
+              .ideFrame()
+              .robot()
+              .finder()
+              .findByName(this.editor.component, "Animation Preview")
+          } catch (e: ComponentLookupException) {
+            null
+          }
+        // If the inspector is expected to be open, we want it to be non-null
+        isOpen == (animationInspector != null)
       }
-      catch (e: ComponentLookupException) {
-        null
-      }
+    }
 
     val fixture = getSyncedProjectFixture()
-    val noAnimationsComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
-      .waitForRenderToFinish()
-      .waitForSceneViewsCount(3)
 
-    val previewToolbar =
-      noAnimationsComposePreview
-        .designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
+    assertThat(fixture.invokeProjectMake().isBuildSuccessful).isTrue()
+
+    val noAnimationsComposePreview =
+      openComposePreview(fixture, "MultipleComposePreviews.kt")
+        .waitForRenderToFinish()
+        .waitForSceneViewsCount(3)
+
+    var sceneView = noAnimationsComposePreview.designSurface.allSceneViews.first()
+    noAnimationsComposePreview.robot.rightClick(sceneView.target())
 
     try {
-      // MultipleComposePreviews does not have animations, so the animation preview button is expected not to be displayed.
-      previewToolbar.clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      // MultipleComposePreviews does not have animations, so the animation preview button is
+      // expected not to be displayed.
+      sceneView.clickActionByText("Start Animation Preview")
       fail("The animation preview icon is not expected to be found.")
-    }
-    catch (_: WaitTimedOutError) {
+    } catch (_: WaitTimedOutError) {
       // Expected to be thrown
     }
-    fixture.editor.closeFile("app/src/main/java/google/simpleapplication/MultipleComposePreviews.kt")
+    fixture.editor.closeFile(
+      "app/src/main/java/google/simpleapplication/MultipleComposePreviews.kt"
+    )
 
-    val composePreview = openComposePreview(fixture, "Animations.kt")
-      .waitForRenderToFinish()
-      .waitForSceneViewsCount(2)
+    val composePreview =
+      openComposePreview(fixture, "Animations.kt").waitForRenderToFinish().waitForSceneViewsCount(2)
 
     // First preview have an animation
-    composePreview.designSurface
-      .allSceneViews
-      .first()
-      .toolbar()
-      .clickActionByIcon("GestureAnimationSample", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    assertNotNull(composePreview.findAnimationInspector())
+    sceneView = composePreview.designSurface.allSceneViews.first()
+    composePreview.robot.rightClick(sceneView.target())
+    sceneView.clickActionByText("Start Animation Preview")
 
-    // Open the animation inspector in another file
-    val otherComposePreview = openComposePreview(fixture, "Animations2.kt")
-      .waitForRenderToFinish()
-      .waitForSceneViewsCount(1)
+    composePreview.waitForAnimationInspectorState(isOpen = true)
 
-    otherComposePreview
-      .designSurface
-      .allSceneViews
-      .first()
-      .toolbar()
-      .clickActionByIcon("VerySimpleAnimation", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    assertNotNull(otherComposePreview.findAnimationInspector())
+    // Open the Animation preview in another file
+    val otherComposePreview =
+      openComposePreview(fixture, "Animations2.kt")
+        .waitForRenderToFinish()
+        .waitForSceneViewsCount(1)
+
+    sceneView = otherComposePreview.designSurface.allSceneViews.first()
+    otherComposePreview.robot.rightClick(sceneView.target())
+    sceneView.clickActionByText("Start Animation Preview")
+    otherComposePreview.waitForAnimationInspectorState(isOpen = true)
 
     val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
     fixture.editor.open(animations1Relative)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     // Animation Preview was closed in Animations.kt after we opened it in Animations2.kt
-    assertNull(composePreview.findAnimationInspector())
+    composePreview.waitForAnimationInspectorState(isOpen = false)
 
     // Return to Animations2.kt, where the Animation Preview should still be open
     fixture.editor.closeFile(animations1Relative)
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
-    assertNotNull(otherComposePreview.findAnimationInspector())
+    otherComposePreview.waitForAnimationInspectorState(isOpen = true)
 
     // Clicking on the "Stop Animation Preview" button should close the animation preview panel
     otherComposePreview
@@ -305,7 +336,7 @@ class ComposePreviewTest {
       .findActionButtonByText("Stop Animation Preview")
       .waitUntilEnabledAndShowing()
       .click()
-    assertNull(otherComposePreview.findAnimationInspector())
+    otherComposePreview.waitForAnimationInspectorState(isOpen = false)
 
     fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations2.kt")
   }
@@ -315,14 +346,18 @@ class ComposePreviewTest {
   fun testDeployPreview() {
     val composablePackageName = "google.simpleapplication"
     val composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
+    val deployPreviewCommand =
+      "start -n $composablePackageName/$COMPOSE_PREVIEW_ACTIVITY_FQN -a android.intent.action.MAIN -c" +
+        " android.intent.category.LAUNCHER --es composable $composableFqn --splashscreen-show-icon"
     val processId = 42
 
     val deviceState = adbRule.connectAndWaitForDevice()
+    var deployPreviewCommandIsReceived = false
     deviceState.setActivityManager { args, _ ->
       val command = args.joinToString(" ")
-      val deployPreviewCommand = "start -n $composablePackageName/$COMPOSE_PREVIEW_ACTIVITY_FQN -a android.intent.action.MAIN -c" +
-                                 " android.intent.category.LAUNCHER --es composable $composableFqn"
+
       if (command == deployPreviewCommand) {
+        deployPreviewCommandIsReceived = true
         deviceState.startClient(processId, 111, composablePackageName, false)
       }
     }
@@ -330,20 +365,25 @@ class ComposePreviewTest {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
-    composePreview.designSurface
-      .allSceneViews
-      .first()
-      .toolbar()
-      .clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.RUN_ON_DEVICE)
+    val sceneView = composePreview.designSurface.allSceneViews.first()
+    composePreview.robot.rightClick(sceneView.target())
+    sceneView.clickActionByText("Run Preview")
 
-    val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
-    val contentFixture = runToolWindowFixture.findContent("Preview1")
+    Wait.seconds(180).expecting("Device received deployPreviewCommand").until {
+      deployPreviewCommandIsReceived
+    }
+
+    val runToolWindow = guiTest.ideFrame().runToolWindow
+    val contentFixture = runToolWindow.findContent("Preview1")
     // We should display "Launching <Compose Preview Configuration Name> on <Device>"
     val launchingPreview = Pattern.compile(".*Launching Preview1 on .*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
-    // We should display the adb shell command saying that we connected to the target process, which happens when the ActivityManager
-    // processes the command to start the PreviewActivity (see [deviceState.setActivityManager] above)
-    val previewActivity = Pattern.compile(".*Connected to process $processId on device.*", Pattern.DOTALL)
+    // We should display the adb shell command saying that we connected to the target process, which
+    // happens when the ActivityManager
+    // processes the command to start the PreviewActivity (see [deviceState.setActivityManager]
+    // above)
+    val previewActivity =
+      Pattern.compile(".*Connected to process $processId on device.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(previewActivity), 10)
 
     guiTest.ideFrame().invokeMenuPath("Run", "Stop 'Preview1'")

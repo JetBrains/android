@@ -11,6 +11,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
@@ -20,6 +21,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )
 
@@ -154,6 +156,22 @@ iml_test(
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.EditorPerformanceTest",
+)
+
+iml_test(
+    name = "StartupPerformanceTest",
+    timeout = "long",
+    data = editor_performance_test_data,
+    module = ":intellij.android.core.integration",
+    tags = [
+        "ci:perfgate-linux",
+        "ci:perfgate-win",
+        "noci:studio-linux",
+        "noci:studio-win",
+    ],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.StartupPerformanceTest",
 )
 
 iml_test(
@@ -384,8 +402,8 @@ iml_test(
 create_project_test_data = [
     ":createproject_deps",
     "//prebuilts/studio/sdk:build-tools/33.0.1",
-    "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
-    "//prebuilts/studio/sdk:platforms/latest",
+    "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+    "//prebuilts/studio/sdk:platforms/android-34",
     "//tools/base/build-system:gradle-distrib-8.0",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
 ]
 
@@ -409,23 +427,29 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.collection.collection-ktx_1.4.0",  # Required by CreateProjectTest after updating to Compose BOM 2024.04.01
         "@maven//:androidx.compose.compiler.compiler_1.5.1",
-        "@maven//:androidx.compose.compose-bom_2024.04.01",
+        "@maven//:androidx.compose.compose-bom_2024.09.00",
         "@maven//:androidx.compose.foundation.foundation-layout_1.5.0",
         "@maven//:androidx.compose.foundation.foundation_1.5.0",
         "@maven//:androidx.compose.material.material-icons-core_1.5.0",
         "@maven//:androidx.compose.material.material-ripple_1.5.0",
-        "@maven//:androidx.compose.material.material_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.material3.material3_1.2.1",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.6.6",  # Compose BOM 2024.04.01
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.material.material_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.material3.material3_1.3.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.7.0",  # Compose BOM 2024.09.00
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-tooling_1.7.0",  # Compose BOM 2024.09.00
         "@maven//:androidx.compose.ui.ui_1.5.0",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.10.1",
-        "@maven//:androidx.core.core-ktx_1.12.0",  # Required by CreateProjectTest after updating to Compose BOM 2024.04.01
+        "@maven//:androidx.core.core-ktx_1.13.1",  # Compose BOM 2024.09.00
         "@maven//:androidx.databinding.viewbinding_7.4.1",
-        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-process_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.8.3",  # Compose BOM 2024.09.00
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.8.3",  # Compose BOM 2024.09.00
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.4.1",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.4.1",
         "@maven//:androidx.test.espresso.espresso-core_3.5.1",
@@ -439,24 +463,24 @@ maven_repository(
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",
-        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_2.0.21",  # Empty Activity template Kotlin/Compose 2.0.21
         "@maven//:org.jetbrains.kotlin.jvm.org.jetbrains.kotlin.jvm.gradle.plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kapt.org.jetbrains.kotlin.kapt.gradle.plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-annotation-processing-gradle_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.21",  # Empty Activity template Kotlin/Compose 2.0.21
         "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.kotlin-compose-compiler-plugin-embeddable_2.0.21",  # Empty Activity template Kotlin/Compose 2.0.21
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_2.0.21",  # Empty Activity template Kotlin/Compose 2.0.21
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
-        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.0",  # Empty Activity template Kotlin/Compose 2.0.0
+        "@maven//:org.jetbrains.kotlin.plugin.compose.org.jetbrains.kotlin.plugin.compose.gradle.plugin_2.0.21",  # Empty Activity template Kotlin/Compose 2.0.21
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.6.4",
         "@maven//:org.jetbrains.markdown_0.2.1",
@@ -681,6 +705,40 @@ iml_test(
     tags_mac = [],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.MultiProjectSameWindowTest",
+)
+
+first_launch_test_data = [
+    ":buildproject_deps",
+    ":minapp",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/3534162-studio.sdk-patcher.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/addon2-3.xml",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/android-ndk-r23-beta4-linux-x86_64.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/build-tools_r35_linux.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/build-tools_r35_windows.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/cmake-3.22.1-linux.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/google_apis-24_r1.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/platform-24_r02.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/platform-35_r01.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/platform-tools_r35.0.2-linux.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/platform-tools_r35.0.2-win.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/source-35_r01.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/emulator-linux_x64-12234444.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/emulator-windows_x64-12234444.zip",
+    "//prebuilts/studio/sdk/remote:dl.google.com/android/repository/repository2-3.xml",
+    INTEGRATION_TEST_GRADLE_VERSION,
+]
+
+iml_test(
+    name = "FirstLaunchTest",
+    timeout = "moderate",
+    data = first_launch_test_data,
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+    ],
+    test_class = "com.android.tools.idea.FirstLaunchTest",
 )
 
 maven_repository(
@@ -931,4 +989,32 @@ filegroup(
 filegroup(
     name = "architectureSamplesScenarioScripts",
     srcs = glob(["testData/architecture-samples-scenarios/**"]),
+)
+
+# Backup and Restore Test ===========================================================
+iml_test(
+    name = "BackupRestoreTest",
+    timeout = "long",
+    data = [
+        ":backuprestore",
+        ":buildproject_deps",
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        INTEGRATION_TEST_SYSTEM_IMAGE,
+    ],
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.BackupRestoreTest",
+)
+
+filegroup(
+    name = "backuprestore",
+    srcs = glob(["testData/backuprestore/**"]),
 )

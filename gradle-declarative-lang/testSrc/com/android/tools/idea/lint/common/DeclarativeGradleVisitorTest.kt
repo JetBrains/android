@@ -16,8 +16,6 @@
 package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.lint.client.api.Configuration
 import com.android.tools.lint.client.api.LintDriver
@@ -32,6 +30,8 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.junit.Assert
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class DeclarativeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
 
@@ -119,6 +119,17 @@ class DeclarativeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       checkMethodCall(statement="buildscript", unnamedArguments="{ repositories { jcenter() } }")
       checkMethodCall(statement="repositories", parent="buildscript", unnamedArguments="{ jcenter() }")
       checkMethodCall(statement="jcenter", parent="repositories", parentParent="buildscript")
+      """,
+    )
+  }
+
+  fun testAssignment() {
+    check(
+      """
+      rootProject.name = some.value
+      """,
+      """
+      checkDslPropertyAssignment(property="name", value="some.value", parent="rootProject")
       """,
     )
   }

@@ -239,7 +239,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
         // Request a sync
         ApplicationManager.getApplication().invokeLater(() -> ProjectSystemUtil.getProjectSystem(myProject)
-          .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
+          .getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
       };
 
       progress.setTitle("Adding Dependencies to Gradle build file");

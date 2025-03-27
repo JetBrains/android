@@ -31,7 +31,6 @@ import javax.swing.JViewport
 import javax.swing.Timer
 import kotlin.math.abs
 import kotlin.math.max
-import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * If the difference between old and new scaling values is less than threshold, the scaling will be
@@ -56,16 +55,12 @@ private const val SCALE_CHANGES_PER_ANIMATION = 50
  * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
  * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
  * @param scenesOwner The owner of this [ZoomController].
- * @param maxZoomToFitLevel The maximum zoom level allowed for ZoomType#FIT.
  */
 abstract class DesignSurfaceZoomController(
   private val designerAnalyticsManager: DesignerAnalyticsManager?,
   private val selectionModel: SelectionModel?,
   private val scenesOwner: ScenesOwner?,
 ) : ZoomController {
-
-  /** Emits an event of [ZoomType] before the given zoom is applied. */
-  val beforeZoomChange = MutableStateFlow<ZoomType?>(null)
 
   override var storeId: String? = null
 
@@ -120,13 +115,20 @@ abstract class DesignSurfaceZoomController(
         val previousScale = currentScale
         currentScale = scaleIncrement
         scaleListener?.onScaleChange(
-          ScaleChange(previousScale, scaleIncrement, Point(x, y), isAnimating)
+          ScaleChange(
+            previousScale = previousScale,
+            newScale = scaleIncrement,
+            focusPoint = Point(x, y),
+            isAnimating = isAnimating,
+          )
         )
       }
     } else {
       val previewsScale = currentScale
       currentScale = newScale
-      scaleListener?.onScaleChange(ScaleChange(previewsScale, newScale, Point(x, y)))
+      scaleListener?.onScaleChange(
+        ScaleChange(previousScale = previewsScale, newScale = newScale, focusPoint = Point(x, y))
+      )
     }
     return true
   }
@@ -208,9 +210,6 @@ abstract class DesignSurfaceZoomController(
     var newY = y
     // track user triggered change
     designerAnalyticsManager?.trackZoom(type)
-
-    // We notify which zoom is going to be applied
-    beforeZoomChange.tryEmit(type)
 
     val view = getFocusedSceneView()
     if (

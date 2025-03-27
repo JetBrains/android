@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.utils
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.utils.environment.TestSystemEnvironment
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
@@ -26,6 +25,7 @@ import com.intellij.openapi.externalSystem.util.environment.Environment
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 
 object EnvironmentUtils {
 

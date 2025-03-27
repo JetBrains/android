@@ -26,6 +26,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -52,7 +53,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 
 /**
@@ -186,10 +186,6 @@ class TestProjectSystem @JvmOverloads constructor(
 
       override fun getDirectResourceModuleDependents() = emptyList<Module>()
 
-      override fun registerDependency(coordinate: GradleCoordinate) {
-        registerDependency(coordinate, DependencyType.IMPLEMENTATION)
-      }
-
       override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
         coordinateToFakeRegisterDependencyError[coordinate]?.let {
           throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
@@ -235,10 +231,6 @@ class TestProjectSystem @JvmOverloads constructor(
             )
           }
         )
-
-      override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
-        return CapabilityNotSupported()
-      }
 
       override fun getOrCreateSampleDataDirectory(): PathString? = null
 
@@ -295,7 +287,7 @@ class TestProjectSystem @JvmOverloads constructor(
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = object : ProjectSystemSyncManager {
-    override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
+    override fun requestSyncProject(reason: SyncReason): ListenableFuture<SyncResult> {
       emulateSync(SyncResult.SUCCESS)
       return Futures.immediateFuture(SyncResult.SUCCESS)
     }
@@ -311,13 +303,6 @@ class TestProjectSystem @JvmOverloads constructor(
 
   private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = false)
 
-  override fun getDefaultApkFile(): VirtualFile? {
-    error("not supported for the test implementation")
-  }
-
-  override fun getPathToAapt(): Path {
-    error("not supported for the test implementation")
-  }
 
   override fun allowsFileCreation(): Boolean {
     error("not supported for the test implementation")

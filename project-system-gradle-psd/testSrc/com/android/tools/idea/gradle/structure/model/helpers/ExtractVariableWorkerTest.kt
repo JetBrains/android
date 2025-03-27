@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
@@ -31,7 +30,9 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.withoutKtsRelatedIndexing
@@ -60,15 +61,15 @@ class ExtractVariableWorkerTest {
       val worker = ExtractVariableWorker(compileSdkVersion)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("compileSdkVersion"))
-      assertThat(newProperty.getParsedValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString().asParsed().annotated()))
+      assertThat(newProperty.getParsedValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.asParsed().annotated()))
 
       worker.commit("compileSdkVersion")
       assertThat(compileSdkVersion.getParsedValue(),
-                 equalTo(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+                 equalTo(ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk,
                                                 DslText.Reference("compileSdkVersion"))
                                                            .annotated()))
       assertThat(appModule.variables.getOrCreateVariable("compileSdkVersion").value,
-                 equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.asParsed<Any>()))
+                 equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt().asParsed<Any>()))
     }
 
     run {
@@ -76,18 +77,18 @@ class ExtractVariableWorkerTest {
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("compileSdkVersion1"))   // The second suggested name is the preferredName + "1".
       assertThat(newProperty.getParsedValue(),
-                 equalTo(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+                 equalTo(ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk,
                                                 DslText.Reference("compileSdkVersion"))
                                                            .annotated()))
 
       worker.commit("otherName")
       assertThat(compileSdkVersion.getParsedValue(),
-                 equalTo(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+                 equalTo(ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk,
                                                 DslText.Reference("otherName"))
                                                            .annotated()))
       assertThat(appModule.variables.getOrCreateVariable("otherName").value,
                  equalTo(
-                   ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, DslText.Reference("compileSdkVersion"))))
+                   ParsedValue.Set.Parsed(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt(), DslText.Reference("compileSdkVersion"))))
     }
   }
 
@@ -119,19 +120,19 @@ class ExtractVariableWorkerTest {
         val worker = ExtractVariableWorker(compileSdkVersion)
         val (newName, newProperty) = worker.changeScope(appModule.variables, "")
         assertThat(newName, equalTo("compileSdkVersion"))
-        assertThat(newProperty.getParsedValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString().asParsed().annotated()))
+        assertThat(newProperty.getParsedValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.asParsed().annotated()))
 
 
         val (newName2, newProperty2) = worker.changeScope(project.variables, "renamedName")
         assertThat(newName2, equalTo("renamedName"))
-        assertThat(newProperty2.getParsedValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString().asParsed().annotated()))
+        assertThat(newProperty2.getParsedValue(), equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.asParsed().annotated()))
 
         worker.commit("renamedName")
         assertThat(
           compileSdkVersion.getParsedValue(),
           equalTo(
             ParsedValue.Set.Parsed(
-              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+              AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk,
               DslText.Reference("renamedName")
             )
               .annotated()
@@ -141,7 +142,7 @@ class ExtractVariableWorkerTest {
 
         assertThat(
           project.variables.getOrCreateVariable("renamedName").value,
-          equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.asParsed<Any>())
+          equalTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk.toInt().asParsed<Any>())
         )
       }
     }
@@ -349,8 +350,8 @@ class ExtractVariableWorkerTest {
         checkPreferredName(maxSdkVersion, "defaultMaxSdkVersion", 26)
         // do not be fooled by the literal 9 in psdSample/app/build.gradle: it gets overwritten on project setup
         // (see AndroidGradleTests.updateMinSdkVersion)
-        checkPreferredName(minSdkVersion, "defaultMinSdkVersion", SdkVersionInfo.LOWEST_ACTIVE_API.toString())
-        checkPreferredName(targetSdkVersion, "defaultTargetSdkVersion", SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
+        checkPreferredName(minSdkVersion, "defaultMinSdkVersion", BuildEnvironment.getInstance().minSdkVersion)
+        checkPreferredName(targetSdkVersion, "defaultTargetSdkVersion", AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk)
       }
       run {
         val paidProductFlavor = appModule.productFlavors.find { it.name == "paid" }!!
@@ -359,7 +360,7 @@ class ExtractVariableWorkerTest {
         val targetSdkVersion = PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion.bind(paidProductFlavor)
         checkPreferredName(maxSdkVersion, "paidMaxSdkVersion", 25)
         checkPreferredName(minSdkVersion, "paidMinSdkVersion", "10")
-        checkPreferredName(targetSdkVersion, "paidTargetSdkVersion", "${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}")
+        checkPreferredName(targetSdkVersion, "paidTargetSdkVersion", AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.targetSdk)
       }
 
       // test{ApplicationId,FunctionalTest,HandleProfiling,InstrumentationRunner}

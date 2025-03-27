@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.logcat.message.LogcatMessage
-import java.util.Collections
 
 /**
  * Manages a cyclic collection of [LogcatMessage]s that is limited by the size in bytes of the
@@ -37,10 +36,10 @@ import java.util.Collections
  */
 internal class MessageBacklog(private var maxSize: Int) {
 
-  // The internal messages collection is exposed as a read-only list
+  // The internal messages collection is exposed as a copy of the internal ArrayDeque
   private val _messages = ArrayDeque<LogcatMessage>()
   val messages: List<LogcatMessage>
-    get() = Collections.unmodifiableList(_messages)
+    get() = _messages.toList()
 
   private var size = 0
 

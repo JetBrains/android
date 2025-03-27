@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.parser
 
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_LPAREN
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.TokenType.WHITE_SPACE
+import com.intellij.psi.tree.IElementType
 
 object DeclarativeParserUtil: GeneratedParserUtilBase() {
   @JvmStatic
@@ -38,7 +40,19 @@ object DeclarativeParserUtil: GeneratedParserUtilBase() {
     exit_section_(b, marker, null, result)
     return result
   }
+
+  @JvmStatic
+  fun notBeforeLParen(b: PsiBuilder, level: Int, parser: Parser): Boolean {
+    val marker = enter_section_(b)
+    b.eof() // skip whitespace
+    val result = parser.parse(b, level) && !isBefore(b, OP_LPAREN)
+    exit_section_(b, marker, null, result)
+    return result
+  }
 }
+
+private fun isBefore(b: PsiBuilder, element: IElementType): Boolean =
+  b.rawLookup(0) == element
 
 private fun isNextAfterNewLine(b: PsiBuilder): Boolean {
   return when (b.rawLookup(-1)) {

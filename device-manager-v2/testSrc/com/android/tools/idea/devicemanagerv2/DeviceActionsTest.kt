@@ -20,11 +20,10 @@ import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.deviceprovisioner.DEVICE_TEMPLATE_KEY
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
@@ -79,8 +78,7 @@ class DeviceActionsTest {
   }
 }
 
-internal fun actionEvent(dataContext: DataContext) =
-  AnActionEvent(null, dataContext, "", Presentation(), ActionManager.getInstance(), 0)
+internal fun actionEvent(dataContext: DataContext) = TestActionEvent.createTestEvent(dataContext)
 
 internal fun dataContext(
   deviceManager: DeviceManagerPanel? = null,
@@ -88,13 +86,11 @@ internal fun dataContext(
   device: DeviceHandle? = deviceRowData?.handle,
   deviceTemplate: DeviceTemplate? = deviceRowData?.template,
   coroutineScope: CoroutineScope? = deviceManager?.panelScope,
-) = DataContext {
-  when {
-    DEVICE_HANDLE_KEY.`is`(it) -> device
-    DEVICE_TEMPLATE_KEY.`is`(it) -> deviceTemplate
-    DEVICE_ROW_DATA_KEY.`is`(it) -> deviceRowData
-    DEVICE_MANAGER_PANEL_KEY.`is`(it) -> deviceManager
-    DEVICE_MANAGER_COROUTINE_SCOPE_KEY.`is`(it) -> coroutineScope
-    else -> null
-  }
-}
+) =
+  SimpleDataContext.builder()
+    .add(DEVICE_HANDLE_KEY, device)
+    .add(DEVICE_TEMPLATE_KEY, deviceTemplate)
+    .add(DEVICE_ROW_DATA_KEY, deviceRowData)
+    .add(DEVICE_MANAGER_PANEL_KEY, deviceManager)
+    .add(DEVICE_MANAGER_COROUTINE_SCOPE_KEY, coroutineScope)
+    .build()

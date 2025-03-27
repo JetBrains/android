@@ -22,8 +22,8 @@ import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Path;
 import org.junit.Rule;
@@ -51,6 +51,7 @@ public class CreateProjectTest {
     // GradleVersionRefactoringProcessor#getCompatibleGradleVersion).
     // AGP version 7.4.1 is chosen because version catalogs requires at least AGP 7.4.0
     system.getInstallation().addVmOption("-Dgradle.ide.agp.version.to.use=8.1.0");
+    system.getInstallation().addVmOption("-Dnpw.new.project.compile.sdk=34");
 
     String distributionPath = "tools/external/gradle/";
     String localDistributionUrl = TestUtils.resolveWorkspacePathUnchecked(distributionPath).toUri().toString();

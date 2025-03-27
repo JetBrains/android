@@ -17,9 +17,9 @@ package com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithTag
-import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.StudioTestTheme
+import com.android.tools.adtui.compose.standaloneSingleWindowApplication
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -79,7 +79,7 @@ class RecordingListTest {
   @Test
   fun `visual test, dark theme`() {
     recordingListModel.setRecordingList(listOf(createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
-    singleWindowApplication(
+    standaloneSingleWindowApplication(
       title = "Testing TaskGridView",
     ) {
       StudioTestTheme (darkMode = true) {

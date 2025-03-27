@@ -6,9 +6,9 @@ MODULE                        : TestCompositeLib1.app
     MavenName                     : com.test.composite1:app:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -259,7 +259,7 @@ MODULE                        : TestCompositeLib1.app
         - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         SourceProviders
             - ManifestFiles               : <ROOT>/TestCompositeLib1/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/TestCompositeLib1/app/src/main/java
@@ -669,9 +669,9 @@ MODULE                        : TestCompositeLib1.lib
     MavenName                     : com.test.composite1:lib:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -933,7 +933,7 @@ MODULE                        : TestCompositeLib1.lib
         - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         SourceProviders
             - ManifestFiles               : <ROOT>/TestCompositeLib1/lib/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/TestCompositeLib1/lib/src/main/java
@@ -1325,9 +1325,9 @@ MODULE                        : TestCompositeLib3.app
     MavenName                     : TestCompositeLib3:app:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -1566,7 +1566,7 @@ MODULE                        : TestCompositeLib3.app
         - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         SourceProviders
             - ManifestFiles               : <ROOT>/TestCompositeLib3/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/TestCompositeLib3/app/src/main/java
@@ -1976,9 +1976,9 @@ MODULE                        : TestCompositeLib3.lib
     MavenName                     : com.test.composite3:lib:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -2207,7 +2207,7 @@ MODULE                        : TestCompositeLib3.lib
         - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         SourceProviders
             - ManifestFiles               : <ROOT>/TestCompositeLib3/lib/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/TestCompositeLib3/lib/src/main/java
@@ -2599,9 +2599,9 @@ MODULE                        : project.app
     MavenName                     : project:app:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -2852,7 +2852,7 @@ MODULE                        : project.app
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         SourceProviders
             - ManifestFiles               : <ROOT>/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/app/src/main/java
@@ -3262,9 +3262,9 @@ MODULE                        : project.lib
     MavenName                     : com.test.composite:lib:
     AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
-    - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     LintOptions
         AbortOnError                  : true
         AbsolutePaths                 : true
@@ -3508,7 +3508,7 @@ MODULE                        : project.lib
         - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
-        TargetSdkVersion              : API <SDK_VERSION>
+        TargetSdkVersion              : API 34
         SourceProviders
             - ManifestFiles               : <ROOT>/lib/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/lib/src/main/java

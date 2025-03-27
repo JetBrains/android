@@ -15,11 +15,38 @@
  */
 package com.android.tools.profilers.integration.taskbased
 
-import com.android.tools.asdriver.tests.Emulator
-import com.android.tools.profilers.integration.ProfilersTestBase
+import com.android.tools.asdriver.tests.AndroidStudio
+import com.android.tools.profilers.integration.ProfilersTaskTestBase
 import org.junit.Test
 
-class JavaKotlinAllocationsTaskTest : ProfilersTestBase() {
+class JavaKotlinAllocationsTaskTest : ProfilersTaskTestBase() {
+
+  override fun selectTask(studio: AndroidStudio) {
+    selectJavaKotlinAllocationsTask(studio)
+  }
+
+  override fun verifyTaskStarted(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 180)
+    verifyIdeaLog(".*PROFILER\\:\\s+Enter\\s+AllocationStage", 120)
+
+    // Collecting the session data with Allocation tracking set to "Full" (which is by default)
+    // Verifying if the task started.
+    verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+Allocations\\s+capture\\s+start\\s+succeeded", 120)
+    studio.waitForComponentByClass("profilers.memory.AllocationTimelineComponent")
+  }
+
+  override fun verifyTaskStopped(studio: AndroidStudio) {
+    verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+Allocations\\s+capture\\s+stop\\s+succeeded", 300)
+    verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+stopped.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
+  }
+
+  override fun verifyUIComponents(studio: AndroidStudio) {
+    studio.waitForComponentByClass("profilers.memory.AllocationTimelineComponent")
+  }
+
+  // Since the java/kotlin allocations for O+ devices, stopTracking method is being invoked using stopJavaKotlinAllocationsTask.
+  // For Pre-O devices, stopTask method should be invoked
+  override fun stopCurrentTask(studio: AndroidStudio) = stopJavaKotlinAllocationsTask(studio)
 
   /**
    * Validate java/kotlin allocations task workflow (for O+ devices) is working.
@@ -40,44 +67,5 @@ class JavaKotlinAllocationsTaskTest : ProfilersTestBase() {
    *  6. Verify UI components after capture is parsed.
    */
   @Test
-  fun test() {
-    taskBasedProfiling(
-      systemImage = Emulator.SystemImage.API_33,
-      deployApp = true,
-      testFunction = { studio, _ ->
-        // Selecting the device.
-        selectDevice(studio)
-
-        // Selecting the process id which consists of `minapp`
-        selectProcess(studio)
-
-        // Selecting native allocations task.
-        selectJavaKotlinAllocationsTask(studio)
-
-        // Set profiling starting point
-        setProfilingStartingPointToNow(studio)
-
-        // Starting Task
-        startTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 180)
-        verifyIdeaLog(".*PROFILER\\:\\s+Enter\\s+AllocationStage", 120)
-
-        // Collecting the session data with Allocation tracking set to "Full" (which is by default)
-        // Verifying if the task started.
-        verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+Allocations\\s+capture\\s+start\\s+succeeded", 120)
-        studio.waitForComponentByClass("profilers.memory.AllocationTimelineComponent")
-
-        Thread.sleep(4000) //For the session to run a few seconds.
-
-        // Since the java/kotlin allocations for O+ devices, stopTracking method is being invoked using stopJavaKotlinAllocationsTask.
-        // For Pre-O devices, stopTask method should be invoked
-        stopJavaKotlinAllocationsTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+Allocations\\s+capture\\s+stop\\s+succeeded", 300)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+stopped.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
-
-        // Verify if the session is displayed after session ended.
-        studio.waitForComponentByClass("profilers.memory.AllocationTimelineComponent")
-      }
-    )
-  }
+  fun test() = testTask()
 }

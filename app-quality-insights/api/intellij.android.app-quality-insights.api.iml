@@ -10,6 +10,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -20,11 +21,41 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="google-login-as" />
-    <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="gradle-shared-proto" level="project" />
     <orderEntry type="library" name="google-api-client" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../bazel-bin/tools/adt/idea/app-quality-insights/api/proto/libtitan_java_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../bazel-bin/tools/adt/idea/app-quality-insights/api/proto/libgemini_java_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="studio-grpc-testutils" scope="TEST" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.server-flags" />
     <orderEntry type="module" module-name="intellij.android.ml-api" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc" level="project" />
+    <orderEntry type="library" name="studio-plugin-intellij.libraries.grpc.netty.shaded" level="project" />
   </component>
 </module>

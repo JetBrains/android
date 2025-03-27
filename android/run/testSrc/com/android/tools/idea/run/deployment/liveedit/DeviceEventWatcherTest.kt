@@ -18,12 +18,12 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -31,7 +31,7 @@ import kotlin.test.assertNull
 class DeviceEventWatcherTest {
 
   @Mock
-  private val testDevice: IDevice = MockitoKt.mock()
+  private val testDevice: IDevice = mock()
 
   @Test
   fun testDeviceDisconnect() {
@@ -60,8 +60,8 @@ class DeviceEventWatcherTest {
       event = e
     }
 
-    val notMyClient: Client = MockitoKt.mock()
-    val notMyData: ClientData = MockitoKt.mock()
+    val notMyClient: Client = mock()
+    val notMyData: ClientData = mock()
     Mockito.`when`(notMyClient.clientData).thenReturn(notMyData)
     Mockito.`when`(notMyData.packageName).thenReturn("not.mine")
 
@@ -70,8 +70,8 @@ class DeviceEventWatcherTest {
     assertNull(device)
     assertNull(event)
 
-    val myClient: Client = MockitoKt.mock()
-    val myData: ClientData = MockitoKt.mock()
+    val myClient: Client = mock()
+    val myData: ClientData = mock()
     Mockito.`when`(myClient.device).thenReturn(testDevice)
     Mockito.`when`(myClient.clientData).thenReturn(myData)
     Mockito.`when`(myData.packageName).thenReturn(appId)
@@ -95,8 +95,8 @@ class DeviceEventWatcherTest {
       event = e
     }
 
-    val myClient: Client = MockitoKt.mock()
-    val myData: ClientData = MockitoKt.mock()
+    val myClient: Client = mock()
+    val myData: ClientData = mock()
     Mockito.`when`(myClient.device).thenReturn(testDevice)
     Mockito.`when`(testDevice.clients).thenReturn(arrayOf(myClient))
 
@@ -131,8 +131,8 @@ class DeviceEventWatcherTest {
       event = e
     }
 
-    val notMyClient: Client = MockitoKt.mock()
-    val notMyData: ClientData = MockitoKt.mock()
+    val notMyClient: Client = mock()
+    val notMyData: ClientData = mock()
     Mockito.`when`(notMyClient.clientData).thenReturn(notMyData)
     Mockito.`when`(notMyClient.isDebuggerAttached).thenReturn(true)
     Mockito.`when`(notMyData.packageName).thenReturn("not.mine")
@@ -142,8 +142,8 @@ class DeviceEventWatcherTest {
     assertNull(device)
     assertNull(event)
 
-    val myClient: Client = MockitoKt.mock()
-    val myData: ClientData = MockitoKt.mock()
+    val myClient: Client = mock()
+    val myData: ClientData = mock()
     Mockito.`when`(myClient.device).thenReturn(testDevice)
     Mockito.`when`(myClient.clientData).thenReturn(myData)
     Mockito.`when`(myData.packageName).thenReturn(appId)

@@ -23,6 +23,7 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.application
 import java.nio.file.Paths
 
+@Suppress("UnstableApiUsage")
 internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
 
   override fun tearDown() {
@@ -44,18 +45,18 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
 
     service<IComponentStore>().createAndroidSdkPathStore { androidSdkPathStore ->
       assertNull(PropertiesComponent.getInstance().getValue("android.sdk.path"))
-      assertEquals(ANDROID_SDK_PATH.toString(), androidSdkPathStore.androidSdkPath.toString())
+      assertEquals(ANDROID_SDK_PATH, androidSdkPathStore.androidSdkPath)
     }
   }
 
-  fun testSaveAndroidSDKPathWhenStoreIsEmptyAndMigrationIsNotRequired() {
+  fun testSaveAndroidSdkPathWhenStoreIsEmptyAndMigrationIsNotRequired() {
     setMigrationNotRequired()
 
     service<IComponentStore>().createAndroidSdkPathStore { androidSdkPathStore ->
       assertNull(androidSdkPathStore.androidSdkPath)
 
       androidSdkPathStore.androidSdkPath = ANDROID_SDK_PATH
-      assertEquals(ANDROID_SDK_PATH.toString(), androidSdkPathStore.androidSdkPath.toString())
+      assertEquals(ANDROID_SDK_PATH, androidSdkPathStore.androidSdkPath)
 
       androidSdkPathStore.androidSdkPath = null
       assertNull(androidSdkPathStore.androidSdkPath)
@@ -66,13 +67,14 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
     setMigrationNotRequired()
 
     service<IComponentStore>().createAndroidSdkPathStore(initialAndroidSdkPathState = ANDROID_SDK_PATH.toString()) { androidSdkPathStore ->
-      assertEquals(ANDROID_SDK_PATH.toString(), androidSdkPathStore.androidSdkPath.toString())
+      assertEquals(ANDROID_SDK_PATH, androidSdkPathStore.androidSdkPath)
 
       androidSdkPathStore.androidSdkPath = null
       assertNull(androidSdkPathStore.androidSdkPath)
 
-      androidSdkPathStore.androidSdkPath = Paths.get("/home/new-user/Android/Sdk")
-      assertEquals("/home/new-user/Android/Sdk", androidSdkPathStore.androidSdkPath.toString())
+      val newSdkPath = Paths.get("/home/new-user/Android/Sdk").toAbsolutePath()
+      androidSdkPathStore.androidSdkPath = newSdkPath
+      assertEquals(newSdkPath, androidSdkPathStore.androidSdkPath)
     }
   }
 
@@ -114,6 +116,6 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
   }
 
   companion object {
-    private val ANDROID_SDK_PATH = Paths.get("/home/user/Android/sdk")
+    private val ANDROID_SDK_PATH = Paths.get("/home/user/Android/sdk").toAbsolutePath()
   }
 }

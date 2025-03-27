@@ -15,12 +15,17 @@
  */
 package com.google.idea.blaze.base.qsync.artifacts;
 
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteSource;
+import com.google.common.io.MoreFiles;
+import com.google.idea.blaze.base.qsync.BazelDependencyBuilder;
 import com.google.idea.blaze.base.qsync.FileRefresher;
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
@@ -84,7 +89,15 @@ public class ProjectArtifactStore {
     Files.write(projectDirectoriesFile, paths);
   }
 
-  public void update(Context<?> context, QuerySyncProjectSnapshot graph) throws BuildException {
+  /**
+   * The outcome of an {@link #update} call.
+   *
+   * @param incompleteTargets The set of targets for which build artifacts were missing.
+   */
+  public record UpdateResult(ImmutableSet<Label> incompleteTargets) {}
+
+  public UpdateResult update(Context<?> context, QuerySyncProjectSnapshot graph)
+      throws BuildException {
     List<IOException> exceptions = Lists.newArrayList();
     ImmutableSet.Builder<Path> updatedPaths = ImmutableSet.builder();
     Map<String, ArtifactDirectoryContents> toUpdate = Maps.newHashMap();
@@ -93,13 +106,19 @@ public class ProjectArtifactStore {
     readPreviousProjectDirectories()
         .forEach(dir -> toUpdate.putIfAbsent(dir, ArtifactDirectoryContents.getDefaultInstance()));
 
+    ImmutableSet.Builder<Label> incompleteTargets = ImmutableSet.builder();
     for (Map.Entry<String, ArtifactDirectoryContents> entry : toUpdate.entrySet()) {
       Path root = projectDir.resolve(entry.getKey());
       ArtifactDirectoryUpdate dirUpdate =
           new ArtifactDirectoryUpdate(
-              artifactCache, workspacePath, root, entry.getValue(), sourcesStripper);
+              artifactCache,
+              workspacePath,
+              root,
+              entry.getValue(),
+              sourcesStripper,
+              BazelDependencyBuilder.buildGeneratedSrcJars.getValue());
       try {
-        dirUpdate.update();
+        incompleteTargets.addAll(dirUpdate.update());
       } catch (IOException e) {
         exceptions.add(e);
       }
@@ -117,5 +136,23 @@ public class ProjectArtifactStore {
       exceptions.stream().forEach(e::addSuppressed);
       throw e;
     }
+    return new UpdateResult(incompleteTargets.build());
+  }
+
+  public ImmutableMap<String, ByteSource> getBugreportFiles() {
+    ImmutableMap.Builder<String, ByteSource> bugreportFiles = ImmutableMap.builder();
+    for (String name : readPreviousProjectDirectories()) {
+      Path contentsFile = ArtifactDirectoryUpdate.getContentsFile(projectDir.resolve(name));
+      if (Files.exists(contentsFile)) {
+        bugreportFiles.put(
+            contentsFile.getFileName().toString(), MoreFiles.asByteSource(contentsFile));
+      }
+    }
+    return bugreportFiles.build();
+  }
+
+  @VisibleForTesting
+  public void purgeForTest(Context<?> context) throws BuildException {
+    update(context, QuerySyncProjectSnapshot.EMPTY);
   }
 }

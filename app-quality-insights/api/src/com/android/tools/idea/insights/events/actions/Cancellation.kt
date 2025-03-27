@@ -71,10 +71,10 @@ class JobCancellationToken(private val job: Job, override val action: Action.Sin
   override fun cancel(reason: Action): JobCancellationToken? {
     if (job.isCompleted) return null
     if (action.maybeCancel(reason) != null) {
-      Logger.getInstance(ActionDispatcher::class.java).info("Not cancelling job \"$action\"")
+      Logger.getInstance(ActionDispatcher::class.java).debug("Not cancelling job \"$action\"")
       return this
     }
-    Logger.getInstance(ActionDispatcher::class.java).info("Cancelling job \"$action\"")
+    Logger.getInstance(ActionDispatcher::class.java).debug("Cancelling job \"$action\"")
     job.cancel()
     return null
   }

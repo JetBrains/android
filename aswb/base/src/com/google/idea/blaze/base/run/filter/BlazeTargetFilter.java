@@ -23,6 +23,7 @@ import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.intellij.execution.filters.ConsoleFilterProvider;
 import com.intellij.execution.filters.Filter;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
@@ -63,13 +64,13 @@ public class BlazeTargetFilter implements Filter {
       int prefixLength = Optional.ofNullable(matcher.group(1)).map(String::length).orElse(0);
 
       String labelString = matcher.group().substring(prefixLength);
-      Label label = LabelUtils.createLabelFromString(/* blazePackage= */ null, labelString);
-      if (label == null) {
-        continue;
-      }
       // for performance reasons, don't resolve until the user clicks the link
       NonProblemHyperlinkInfo link =
           project -> {
+            Label label = LabelUtils.createLabelFromString(/* blazePackage= */ null, labelString);
+            if (label == null) {
+              Logger.getInstance(this.getClass()).error(new IllegalStateException("Parsing returned illegal label: " + labelString));
+            }
             PsiElement psi = BuildReferenceManager.getInstance(project).resolveLabel(label);
             if (psi instanceof NavigatablePsiElement) {
               ((NavigatablePsiElement) psi).navigate(true);

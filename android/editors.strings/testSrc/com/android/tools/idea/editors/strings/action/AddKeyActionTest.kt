@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.action
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.getDescendant
@@ -29,17 +26,18 @@ import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.android.tools.idea.res.StringResourceWriter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.EditorTextField
+import javax.swing.JButton
+import kotlin.test.assertFailsWith
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
@@ -49,8 +47,9 @@ import org.junit.runners.JUnit4
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import javax.swing.JButton
-import kotlin.test.assertFailsWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 
 /** Test [AddKeyAction] methods. */
@@ -81,8 +80,7 @@ class AddKeyActionTest {
         .add(CommonDataKeys.PROJECT, projectRule.project)
         .add(PlatformDataKeys.FILE_EDITOR, stringResourceEditor)
         .build()
-    event =
-      AnActionEvent(null, dataContext, "place", Presentation(), ActionManager.getInstance(), 0)
+    event = TestActionEvent.createTestEvent(dataContext)
 
     whenever(stringResourceEditor.panel).thenReturn(panel)
     whenever(panel.table).thenReturn(table)

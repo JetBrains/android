@@ -64,7 +64,34 @@ class AndroidAdbUsageTracker : AdbUsageTracker {
           previousFailureType
       }
     }
+
+    adbDeviceStateChange?.let { deviceStateChange ->
+      val builder = androidStudioEvent.adbUsageEventBuilder.deviceStateChangeEventBuilder
+      builder.setDeviceState(deviceStateChange.deviceState.toProtoEnum())
+      deviceStateChange.previousDeviceState?.let { builder.previousDeviceState = it.toProtoEnum() }
+      deviceStateChange.lastOnlineMs?.let { builder.lastOnlineMs = it }
+    }
+
     return androidStudioEvent
+  }
+
+  private fun AdbUsageTracker.DeviceState.toProtoEnum():
+    AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState {
+    return when (this) {
+      AdbUsageTracker.DeviceState.BOOTLOADER ->
+        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.BOOTLOADER
+      AdbUsageTracker.DeviceState.AUTHORIZING ->
+        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.AUTHORIZING
+      AdbUsageTracker.DeviceState.CONNECTING ->
+        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.CONNECTING
+      AdbUsageTracker.DeviceState.OFFLINE ->
+        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.OFFLINE
+      AdbUsageTracker.DeviceState.ONLINE ->
+        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.ONLINE
+      AdbUsageTracker.DeviceState.DISCONNECTED ->
+        AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.DISCONNECTED
+      AdbUsageTracker.DeviceState.OTHER -> AdbUsageEvent.AdbDeviceStateChangeEvent.DeviceState.OTHER
+    }
   }
 
   private fun AdbUsageTracker.JdwpProcessPropertiesCollectorFailureType.toProtoEnum():

@@ -18,13 +18,10 @@ package com.android.tools.idea.uibuilder.visual
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.components.JBTextField
 import javax.swing.JButton
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.jetbrains.android.AndroidTestCase
 
-class CustomConfigurationSetCreatePaletteTest {
+class CustomConfigurationSetCreatePaletteTest : AndroidTestCase() {
 
-  @Test
   fun testSetNameCannotBeBlank() {
     val palette = CustomConfigurationSetCreatePalette {}
 
@@ -39,6 +36,25 @@ class CustomConfigurationSetCreatePaletteTest {
 
     // Also test the blank text
     textField.text = "    "
+    assertFalse(addButton.isEnabled)
+  }
+
+  fun testSetNameCannotBeDuplicated() {
+    val existingCustomSetName = "My Existing Custom Config"
+    // Simulate the creation of a config named [existingCustomSetName]
+    val createdConfigSet = CustomConfigurationSet(existingCustomSetName, emptyList())
+    VisualizationUtil.setCustomConfigurationSet("id", createdConfigSet)
+
+    val palette = CustomConfigurationSetCreatePalette {}
+
+    val textField = ComponentUtil.findComponentsOfType(palette, JBTextField::class.java).single()
+    val addButton = ComponentUtil.findComponentsOfType(palette, JButton::class.java).single()
+    val customSetName = "My Custom Config"
+
+    textField.text = customSetName
+    assertTrue(addButton.isEnabled)
+
+    textField.text = existingCustomSetName
     assertFalse(addButton.isEnabled)
   }
 }

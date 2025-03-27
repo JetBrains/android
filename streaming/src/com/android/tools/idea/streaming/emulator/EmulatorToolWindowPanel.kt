@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -48,6 +49,7 @@ import com.android.tools.idea.streaming.emulator.actions.showManageSnapshotsDial
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.components.PersistentStateComponent
@@ -55,7 +57,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -99,19 +100,26 @@ internal class EmulatorToolWindowPanel(
     get() = emulator.emulatorId
 
   override val title: String
-    get() = emulatorId.avdName
+    get() {
+      val avdName = emulatorId.avdName
+      if (avdName.contains(" API ")) {
+        return avdName
+      }
+      return "$avdName API ${emulator.emulatorConfig.androidVersion.apiStringWithoutExtension}"
+    }
 
   override val description: String
-    get() = "${emulatorId.avdName} ${"(${emulatorId.serialNumber})".htmlColored(JBColor.GRAY)}"
+    get() = "$title ${"(${emulatorId.serialNumber})".htmlColored(JBColor.GRAY)}"
 
   override val icon: Icon
     get() {
-      val avd = AvdManagerConnection.getDefaultAvdManagerConnection().findAvd(emulatorId.avdId)
+      val avd = AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithFolder(emulatorId.avdFolder)
       val icon = avd?.icon ?: StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
       return ExecutionUtil.getLiveIndicator(icon)
     }
 
-  override val isClosable: Boolean = true
+  override val deviceType: DeviceType
+    get() = emulator.emulatorConfig.deviceType
 
   override val preferredFocusableComponent: JComponent
     get() = primaryDisplayView ?: this
@@ -142,6 +150,7 @@ internal class EmulatorToolWindowPanel(
     if (connectionState == ConnectionState.CONNECTED) {
       displayConfigurator.refreshDisplayConfiguration()
     }
+    ActivityTracker.getInstance().inc()
   }
 
   /**
@@ -149,7 +158,7 @@ internal class EmulatorToolWindowPanel(
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
     if (contentDisposable != null) {
-      thisLogger().error(IllegalStateException("${title}: content already exists"))
+      LOG.error(IllegalStateException("$title: content already exists"))
       return
     }
 
@@ -167,9 +176,7 @@ internal class EmulatorToolWindowPanel(
     emulatorView.addDisplayConfigurationListener(displayConfigurator)
     emulatorView.addPostureListener(object: PostureListener {
       override fun postureChanged(posture: PostureDescriptor) {
-        EventQueue.invokeLater {
-          mainToolbar.updateActionsAsync()
-        }
+        ActivityTracker.getInstance().inc()
       }
     })
     emulator.addConnectionStateListener(this)
@@ -192,8 +199,7 @@ internal class EmulatorToolWindowPanel(
     mainToolbar.targetComponent = emulatorView
     secondaryToolbar.targetComponent = emulatorView
     emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
-      mainToolbar.updateActionsAsync()
-      secondaryToolbar.updateActionsAsync()
+      ActivityTracker.getInstance().inc()
     }
 
     val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
@@ -325,8 +331,7 @@ internal class EmulatorToolWindowPanel(
       val rootPanel = buildLayout(layoutRoot, newDisplays)
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
-      mainToolbar.updateActionsAsync()
-      secondaryToolbar.updateActionsAsync()
+      ActivityTracker.getInstance().inc()
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
@@ -381,8 +386,7 @@ internal class EmulatorToolWindowPanel(
       // Toolbar updates should be requested after all AbstractDisplayView have been placed in component hierarchy.
       // Otherwise, we risk the action update to have a partial component hierarchy which may lead to wrong results.
       // See b/351129848
-      mainToolbar.updateActionsAsync() // Rotation buttons are hidden in multi-display mode.
-      secondaryToolbar.updateActionsAsync()
+      ActivityTracker.getInstance().inc()
     }
 
     private fun getDisplayDescriptors(emulatorView: EmulatorView, displays: List<DisplayConfiguration>): List<DisplayDescriptor> {

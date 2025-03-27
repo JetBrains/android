@@ -75,11 +75,9 @@ private fun ProjectDumper.dump(lintModelModule: LintModelModule) {
   lintModelModule.lintRuleJars.forEach { prop("- LintRuleJars") { it.path.toPrintablePath() } }
   prop("ResourcePrefix") { lintModelModule.resourcePrefix }
   lintModelModule.dynamicFeatures.forEach { prop("- DynamicFeatures") { it } }
-  lintModelModule.bootClassPath.forEach {
-    prop("- BootClassPath") { it.path.toPrintablePath().replaceCurrentSdkVersion() }
-  }
+  lintModelModule.bootClassPath.forEach { prop("- BootClassPath") { it.path.toPrintablePath() } }
   prop("JavaSourceLevel") { lintModelModule.javaSourceLevel }
-  prop("CompileTarget") { lintModelModule.compileTarget.replaceCurrentSdkVersion() }
+  prop("CompileTarget") { lintModelModule.compileTarget }
   this.dump(lintModelModule.lintOptions)
   lintModelModule.variants.forEach { dump(it) }
 }
@@ -151,7 +149,7 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
       }
       prop("Package") { `package` }
       prop("MinSdkVersion") { minSdkVersion?.toString() }
-      prop("TargetSdkVersion") { targetSdkVersion?.toString()?.replaceCurrentSdkVersion() }
+      prop("TargetSdkVersion") { targetSdkVersion?.toString() }
       if (resValues.isNotEmpty()) {
         head("ResValues")
         nest { resValues.forEach { (key, value) -> prop(key) { value.toString() } } }

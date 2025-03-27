@@ -16,8 +16,7 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.device.DeviceUiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
@@ -29,16 +28,12 @@ import kotlinx.coroutines.launch
 import java.awt.Dimension
 import java.awt.EventQueue
 
-private val isSettingsPickerEnabled: Boolean
-  get() = StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.get()
-
 /**
  * Opens a picker with UI settings of a physical device.
  */
 internal class DeviceUiSettingsAction : AbstractDeviceAction(
   configFilter = {
     it.apiLevel >= 33
-    && isSettingsPickerEnabled
     && it.deviceProperties.resolution != null
     && it.deviceProperties.density != null
     && it.deviceType != DeviceType.AUTOMOTIVE
@@ -56,7 +51,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     val density = config.deviceProperties.density ?: return
     val model = UiSettingsModel(screenSize, density, config.apiLevel, deviceType)
     val controller = DeviceUiSettingsController(deviceController, config, project, model, deviceView)
-    AndroidCoroutineScope(deviceView).launch {
+    deviceView.createCoroutineScope().launch {
       controller.populateModel()
       EventQueue.invokeLater {
         val panel = UiSettingsPanel(model, deviceType)

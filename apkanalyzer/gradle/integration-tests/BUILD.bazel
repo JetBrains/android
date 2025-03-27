@@ -1,0 +1,237 @@
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list")
+load(
+    "//tools/adt/idea/old-agp-tests:agp_versions.bzl",
+    "AGP_4_1",
+    "AGP_4_2",
+    "AGP_7_0",
+    "AGP_7_1",
+    "AGP_7_2",
+    "AGP_7_3",
+    "AGP_7_4",
+    "AGP_8_0",
+    "AGP_8_1",
+    "AGP_8_2",
+    "AGP_DATA",
+    "GRADLE_6_7_1",
+    "GRADLE_7_0_2",
+    "GRADLE_7_2",
+    "GRADLE_7_3_3",
+    "GRADLE_7_4",
+    "GRADLE_7_5",
+    "GRADLE_8_0",
+    "GRADLE_8_2",
+    "GRADLE_DISTRIBUTIONS",
+)
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.apkanalyzer.gradle.integration-tests",
+    iml_files = ["intellij.android.apkanalyzer.gradle.integration-tests.iml"],
+    test_srcs = ["testSrc"],
+    test_tags = ["manual"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk[test]",
+        "//tools/adt/idea/apkanalyzer/gradle:intellij.android.apkanalyzer.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module, test]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:truth-java8-extension[test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+    ],
+)
+
+generate_old_agp_tests_from_list(
+    name = "ApkAnalyzerGradleTokenIntegrationTest",
+    iml_module = ":intellij.android.apkanalyzer.gradle.integration-tests",
+    tests_list = [
+        dict(
+            agp_version = AGP_4_1,
+            data = [
+                "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_4_1] + GRADLE_DISTRIBUTIONS[GRADLE_6_7_1],
+            gradle_version = GRADLE_6_7_1,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:4.1.0",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_4_2,
+            data = [
+                "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_4_2] + GRADLE_DISTRIBUTIONS[GRADLE_6_7_1],
+            gradle_version = GRADLE_6_7_1,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:4.2.0",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_7_0,
+            data = [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_7_0] + GRADLE_DISTRIBUTIONS[GRADLE_7_0_2],
+            gradle_version = GRADLE_6_7_1,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:7.0.0",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_7_1,
+            data = [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_7_1] + GRADLE_DISTRIBUTIONS[GRADLE_7_2],
+            gradle_version = GRADLE_7_2,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:7.1.0",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_7_2,
+            data = [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_7_2] + GRADLE_DISTRIBUTIONS[GRADLE_7_3_3],
+            gradle_version = GRADLE_7_3_3,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:7.2.0",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_7_3,
+            data = [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_7_3] + GRADLE_DISTRIBUTIONS[GRADLE_7_4],
+            gradle_version = GRADLE_7_4,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:7.3.0",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_7_4,
+            data = [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_7_4] + GRADLE_DISTRIBUTIONS[GRADLE_7_5],
+            gradle_version = GRADLE_7_5,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:7.4.1",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_8_0,
+            data = [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_8_0] + GRADLE_DISTRIBUTIONS[GRADLE_8_0],
+            gradle_version = GRADLE_8_0,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:8.0.2",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_8_1,
+            data = [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_8_1] + GRADLE_DISTRIBUTIONS[GRADLE_8_0],
+            gradle_version = GRADLE_8_0,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:8.1.0",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+        dict(
+            agp_version = AGP_8_2,
+            data = [
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication",
+            ] + AGP_DATA[AGP_8_2] + GRADLE_DISTRIBUTIONS[GRADLE_8_2],
+            gradle_version = GRADLE_8_2,
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:8.2.0",
+                "//tools/adt/idea/apkanalyzer/gradle/integration-tests/projects/simpleApplication:deps",
+            ],
+            tags = [
+                "block-network",
+                "noci:studio-win",
+            ],
+            test_class = "com.android.tools.idea.apk.viewer.gradle.ApkAnalyzerGradleIntegrationTestSuite",
+        ),
+    ],
+)

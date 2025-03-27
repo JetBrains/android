@@ -15,33 +15,21 @@
  */
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.INFO_ICON_DESC
-import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_PREFERRED_REBUILD_INSTRUCTION_TOOLTIP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_REBUILD_INSTRUCTION_TOOLTIP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_PREFERRED_WARNING_TOOLTIP
 import icons.StudioIconsCompose
-import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun ProfileablePreferredWarning(isPreferredProcessSelected: Boolean, isCollapsed: Boolean) {
-  val tooltip: @Composable () -> Unit = {
-    Column(modifier = Modifier.fillMaxWidth()) {
-      Text(PROFILEABLE_PREFERRED_WARNING_TOOLTIP)
-      if (isPreferredProcessSelected) {
-        Spacer(modifier = Modifier.height(TOOLTIP_VERTICAL_SPACING_DP))
-        Text(PROFILEABLE_PREFERRED_REBUILD_INSTRUCTION_TOOLTIP)
-      }
-    }
+fun ProfileablePreferredWarning(isPreferredProcessSelected: Boolean) {
+  var subText = PROFILEABLE_PREFERRED_WARNING_TOOLTIP
+  if (isPreferredProcessSelected) {
+    subText += "\n\n$PROFILEABLE_REBUILD_INSTRUCTION_TOOLTIP"
   }
 
-  CollapsibleNotification(mainText = PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT, tooltip = tooltip,
-                          iconKey = StudioIconsCompose.Common.Warning,
-                          iconDescription = INFO_ICON_DESC, isCollapsed = isCollapsed)
+  NotificationWithTooltip(notificationText = PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT,
+                          tooltipMainText = PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT, tooltipSubText = subText,
+                          iconKey = StudioIconsCompose.Common.Warning, iconDescription = INFO_ICON_DESC)
 }

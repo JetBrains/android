@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
-import com.android.tools.idea.gradle.dependencies.DependenciesHelper
+import com.android.tools.idea.gradle.dependencies.PluginsHelper
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -61,17 +61,18 @@ class AddComposeCompilerGradlePluginProcessor(
   public override fun performRefactoring(usages: Array<out UsageInfo>) {
     updateProjectBuildModel()
 
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN)
+    project.getSyncManager().requestSyncProject(TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN.toReason())
   }
 
   @VisibleForTesting
   fun updateProjectBuildModel() {
     val projectBuildModel = ProjectBuildModel.get(myProject)
     val moduleBuildModels = affectedModules.mapNotNull { projectBuildModel.getModuleBuildModel(it) }
-    DependenciesHelper.withModel(projectBuildModel)
-      .addPlugin(
+    PluginsHelper.withModel(projectBuildModel)
+      .addPluginOrClasspath(
         "org.jetbrains.kotlin.plugin.compose",
-        "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlinVersion",
+        "org.jetbrains.kotlin:compose-compiler-gradle-plugin",
+        kotlinVersion,
         moduleBuildModels
       )
 

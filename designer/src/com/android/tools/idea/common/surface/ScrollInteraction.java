@@ -143,7 +143,7 @@ public class ScrollInteraction implements Interaction {
 
     if (scrolled != 0) {
       myScrolledAmount += scrollAmount;
-      mySceneView.getSceneManager().requestRenderAsync();
+      ScrollInteractionUtilKt.requestRenderAndUpdate(mySceneView.getSceneManager());
     }
   }
 
@@ -159,7 +159,7 @@ public class ScrollInteraction implements Interaction {
   public void cancel(@NotNull InteractionEvent event) {
     // Make sure we reset the scroll to where it was
     myHandler.update(0);
-    mySceneView.getSceneManager().requestRenderAsync();
+    mySceneView.getSceneManager().requestRender();
   }
 
   @Nullable

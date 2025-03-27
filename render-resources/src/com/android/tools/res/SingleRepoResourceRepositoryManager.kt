@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceRepository
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 
 /**
  * [ResourceRepositoryManager] backed by just a single repository with no framework resources. Suitable for tests and for the cases where
@@ -33,6 +34,7 @@ class SingleRepoResourceRepositoryManager(
   override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
   override val namespace: ResourceNamespace = ResourceNamespace.RES_AUTO
   override val localesInProject: ImmutableList<Locale> = ImmutableList.of()
+  override val languagesInProject: ImmutableSet<String> = ImmutableSet.of()
   override val moduleResources: ResourceRepository = resourcesRepo
   override fun getFrameworkResources(languages: Set<String>, overlays: List<FrameworkOverlay>): ResourceRepository? = null
 }

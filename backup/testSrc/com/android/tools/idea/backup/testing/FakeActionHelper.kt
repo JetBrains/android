@@ -24,16 +24,15 @@ internal class FakeActionHelper(
   private val applicationId: String?,
   private val targetCount: Int,
   private val serialNumber: String?,
+  private val isCompatibleApp: Boolean = true,
 ) : ActionHelper {
-  val warnings = mutableListOf<String>()
-
   override fun getApplicationId(project: Project) = applicationId
 
   override fun getDeployTargetCount(project: Project) = targetCount
 
   override suspend fun getDeployTargetSerial(project: Project) = serialNumber
 
-  override suspend fun showWarning(project: Project, title: String, message: String) {
-    warnings.add("$title: $message")
+  override suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean {
+    return isCompatibleApp
   }
 }

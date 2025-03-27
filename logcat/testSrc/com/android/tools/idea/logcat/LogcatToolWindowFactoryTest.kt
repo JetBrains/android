@@ -17,8 +17,6 @@ package com.android.tools.idea.logcat
 
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
@@ -37,7 +35,7 @@ import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.DisposableRule
@@ -49,14 +47,16 @@ import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.util.io.delete
-import java.nio.file.Files
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 
 @RunsInEdt
 class LogcatToolWindowFactoryTest {
@@ -121,7 +121,7 @@ class LogcatToolWindowFactoryTest {
   fun createChildComponent_isLogcatMainPanel() {
     val childComponent =
       logcatToolWindowFactory()
-        .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = null)
+        .createChildComponent(project, DefaultActionGroup(), clientState = null)
 
     assertThat(childComponent).isInstanceOf(LogcatMainPanel::class.java)
     Disposer.dispose(childComponent as Disposable)
@@ -143,7 +143,7 @@ class LogcatToolWindowFactoryTest {
       logcatToolWindowFactory()
         .createChildComponent(
           project,
-          ActionGroup.EMPTY_GROUP,
+          DefaultActionGroup(),
           clientState = LogcatPanelConfig.toJson(logcatPanelConfig),
         )
 
@@ -158,7 +158,7 @@ class LogcatToolWindowFactoryTest {
   fun createChildComponent_invalidState() {
     val logcatMainPanel =
       logcatToolWindowFactory()
-        .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = "invalid state")
+        .createChildComponent(project, DefaultActionGroup(), clientState = "invalid state")
 
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
     Disposer.dispose(logcatMainPanel)

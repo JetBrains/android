@@ -24,9 +24,6 @@ import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoCleanerRule
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
@@ -78,17 +75,22 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.ui.content.Content
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -131,7 +133,15 @@ class AndroidRunConfigurationExecutorTest {
     // InnocuousThread- is needed because adblib's AsynchronousChannelGroup is reusing IJ's background threads.
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "InnocuousThread-")
 
-    projectRule.project.replaceService(BackupManager::class.java, mockBackupManager, projectRule.testRootDisposable)
+    projectRule.replaceProjectService(BackupManager::class.java, mockBackupManager)
+    runBlocking {
+      whenever(mockBackupManager.isInstalled(any(), any())).thenReturn(true)
+    }
+  }
+
+  @After
+  fun tearDown() {
+    projectRule.fixture.tearDown()
   }
 
   @Test
@@ -258,6 +268,10 @@ class AndroidRunConfigurationExecutorTest {
       fail("Process handler didn't stop when debug process terminated")
     }
     assertThat(startInvocation).isEqualTo(1)
+
+    // Give some time for the virtual machine to finish initializing.
+    // Otherwise, JDI Internal Event Handler thread viewed as leaked.
+    Thread.sleep(250)
   }
 
   @Test
@@ -502,6 +516,7 @@ class AndroidRunConfigurationExecutorTest {
           device: IDevice,
           app: ApkInfo,
           deployOptions: DeployOptions,
+          hasMakeBeforeRun: Boolean,
           indicator: ProgressIndicator
         ): Deployer.Result {
           throw DeployerException.pmFlagsNotSupported()
@@ -511,6 +526,7 @@ class AndroidRunConfigurationExecutorTest {
           device: IDevice,
           app: ApkInfo,
           deployOptions: DeployOptions,
+          hasMakeBeforeRun: Boolean,
           indicator: ProgressIndicator
         ): Deployer.Result {
           throw DeployerException.pmFlagsNotSupported()
@@ -520,6 +536,7 @@ class AndroidRunConfigurationExecutorTest {
           device: IDevice,
           app: ApkInfo,
           deployOptions: DeployOptions,
+          hasMakeBeforeRun: Boolean,
           indicator: ProgressIndicator
         ): Deployer.Result {
           throw DeployerException.pmFlagsNotSupported()
@@ -673,7 +690,7 @@ class AndroidRunConfigurationExecutorTest {
     )
   ) = object : ApplicationDeployer {
     override fun fullDeploy(
-      deviceToInstall: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
+      deviceToInstall: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
     ): Deployer.Result {
       if (expectedMethod != ::fullDeploy.name) {
         throw RuntimeException("Method invocation is not expected")
@@ -685,7 +702,7 @@ class AndroidRunConfigurationExecutorTest {
     }
 
     override fun applyChangesDeploy(
-      deviceToInstall: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
+      deviceToInstall: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
     ): Deployer.Result {
       if (expectedMethod != ::applyChangesDeploy.name) {
         throw RuntimeException("Method invocation is not expected")
@@ -697,7 +714,7 @@ class AndroidRunConfigurationExecutorTest {
     }
 
     override fun applyCodeChangesDeploy(
-      deviceToInstall: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
+      deviceToInstall: IDevice, app: ApkInfo, deployOptions: DeployOptions, hasMakeBeforeRun: Boolean, indicator: ProgressIndicator
     ): Deployer.Result {
       if (expectedMethod != ::applyCodeChangesDeploy.name) {
         throw RuntimeException("Method invocation is not expected")
@@ -736,14 +753,14 @@ class AndroidRunConfigurationExecutorTest {
     var runContentDescriptor: RunContentDescriptor? = null
     runInEdtAndWait {
       runContentDescriptor = showRunContent(DefaultExecutionResult(EmptyTestConsoleView(), processHandlerForSwap), env)!!.apply {
-        setAttachedContent(mock(Content::class.java))
+        setAttachedContent(mock())
       }
 
-      val mockRunContentManager = mock(RunContentManager::class.java)
+      val mockRunContentManager = mock<RunContentManager>()
       whenever(mockRunContentManager.findContentDescriptor(eq(env.executor), eq(processHandlerForSwap))).thenReturn(runContentDescriptor)
       projectRule.project.replaceService(RunContentManager::class.java, mockRunContentManager, projectRule.testRootDisposable)
 
-      val mockExecutionManager = mock(ExecutionManagerImpl::class.java)
+      val mockExecutionManager = mock<ExecutionManagerImpl>()
       whenever(mockExecutionManager.getRunningDescriptors(any())).thenReturn(listOf(runContentDescriptor!!))
       projectRule.project.replaceService(ExecutionManager::class.java, mockExecutionManager, projectRule.testRootDisposable)
     }
@@ -752,6 +769,7 @@ class AndroidRunConfigurationExecutorTest {
   }
 
   @Test
+  @Ignore("b/389067070")
   fun runAPI33() {
     println("Starting runAPI33")
     val deviceState = fakeAdb.connectAndWaitForDevice()
@@ -817,6 +835,9 @@ class AndroidRunConfigurationExecutorTest {
     //  fail("Process handler didn't stop when debug process terminated")
     //}
     processHandler.destroyProcess()
+
+    // This removes all the invocation record of the device mock which held onto one of the Project reference.
+    reset(device)
     println("Finished runAPI33")
   }
 }

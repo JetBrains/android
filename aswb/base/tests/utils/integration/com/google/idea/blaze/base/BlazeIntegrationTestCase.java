@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base;
 
-import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.io.FileOperationProvider;
@@ -36,7 +35,6 @@ import com.google.idea.testing.EdtRule;
 import com.google.idea.testing.IntellijTestSetupRule;
 import com.google.idea.testing.ServiceHelper;
 import com.google.idea.testing.VerifyRequiredPluginsEnabled;
-import com.google.idea.testing.java.BaseJavaSdkTestCompat;
 import com.google.idea.testing.runfiles.Runfiles;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -224,7 +222,7 @@ public abstract class BlazeIntegrationTestCase {
 
     if (isLightTestCase()) {
       TestFixtureBuilder<IdeaProjectTestFixture> fixtureBuilder =
-          BaseJavaSdkTestCompat.createIdeaFixtureBuilder(factory, "test-project");
+          factory.createLightFixtureBuilder("test-project");
       IdeaProjectTestFixture lightFixture = fixtureBuilder.getFixture();
       return factory.createCodeInsightFixture(lightFixture, new LightTempDirTestFixtureImpl(true));
     }

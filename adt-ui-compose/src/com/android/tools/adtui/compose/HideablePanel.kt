@@ -19,6 +19,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -26,17 +27,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.intellij.icons.AllIcons
-import org.jetbrains.jewel.foundation.Stroke
-import org.jetbrains.jewel.foundation.modifier.border
-import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.util.thenIf
+import org.jetbrains.jewel.ui.component.styling.LocalGroupHeaderStyle
+import org.jetbrains.jewel.ui.focusOutline
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 /**
  * A panel that can be opened or closed. It has a header with a title and an arrow indicating
@@ -52,26 +55,33 @@ fun HideablePanel(
   var isOpen by remember { mutableStateOf(initiallyOpen) }
   var isFocused by remember { mutableStateOf(false) }
   Column(modifier) {
-    Row(
-      modifier =
-        Modifier.thenIf(isFocused) {
-            border(
-              Stroke.Alignment.Outside,
-              shape = RoundedCornerShape(4.dp),
-              color = JewelTheme.globalColors.outlines.focused,
-              width = JewelTheme.globalMetrics.outlineWidth,
-            )
-          }
-          .onFocusChanged { isFocused = it.isFocused }
-          .clickable { isOpen = !isOpen }
-    ) {
-      if (isOpen) {
-        Icon("general/arrowDown.svg", "open", AllIcons::class.java)
-      } else {
-        Icon("general/arrowRight.svg", "closed", AllIcons::class.java)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Row(
+        modifier =
+          Modifier.semantics(mergeDescendants = true) { heading() }
+            .focusOutline(isFocused, RoundedCornerShape(2.dp))
+            .onFocusChanged { isFocused = it.isFocused }
+            .clickable(interactionSource = null, indication = null) { isOpen = !isOpen }
+            .padding(vertical = 6.dp)
+      ) {
+        if (isOpen) {
+          Icon(AllIconsKeys.General.ArrowDown, "open")
+        } else {
+          Icon(AllIconsKeys.General.ArrowRight, "closed")
+        }
+        Spacer(Modifier.padding(8.dp))
+        Text(title)
+        Spacer(Modifier.padding(4.dp))
       }
-      Spacer(Modifier.padding(2.dp))
-      Text(title, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+      Spacer(Modifier.padding(4.dp))
+      val groupHeaderStyle = LocalGroupHeaderStyle.current
+      Divider(
+        orientation = Orientation.Horizontal,
+        Modifier.fillMaxWidth(),
+        color = groupHeaderStyle.colors.divider,
+        thickness = groupHeaderStyle.metrics.dividerThickness,
+        startIndent = groupHeaderStyle.metrics.indent,
+      )
     }
     if (isOpen) {
       content()

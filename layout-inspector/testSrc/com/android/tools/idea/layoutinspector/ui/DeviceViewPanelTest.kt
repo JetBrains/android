@@ -22,6 +22,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.DeviceState.Connected
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.test.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
@@ -42,6 +46,7 @@ import com.android.tools.idea.appinspection.internal.process.TransportProcessDes
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
@@ -76,8 +81,10 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
+import com.android.tools.idea.layoutinspector.viewWindow
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.runDispatching
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.android.tools.idea.testing.ui.flatten
@@ -85,6 +92,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -103,11 +111,23 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
-import icons.StudioIcons
 import junit.framework.TestCase
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
+import org.junit.Before
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -123,15 +143,6 @@ import javax.swing.JScrollPane
 import javax.swing.JViewport
 import javax.swing.plaf.basic.BasicScrollBarUI
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.TestScope
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 private val MODERN_PROCESS =
   MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -151,9 +162,14 @@ class DeviceViewPanelWithFullInspectorTest {
     )
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
+  private val deviceProvisionerRule = DeviceProvisionerRule()
+
+  private val deviceProvisionerService: DeviceProvisionerService = mock()
+
   @get:Rule
   val ruleChain =
-    RuleChain.outerRule(projectRule)
+    RuleChain.outerRule(deviceProvisionerRule)
+      .around(projectRule)
       .around(appInspectorRule)
       .around(inspectorRule)
       .around(fileOpenCaptureRule)
@@ -173,6 +189,14 @@ class DeviceViewPanelWithFullInspectorTest {
   @Before
   fun before() {
     deviceModel = DeviceModel(projectRule.testRootDisposable, inspectorRule.processes)
+    projectRule.project.replaceService(
+      DeviceProvisionerService::class.java,
+      deviceProvisionerService,
+      projectRule.testRootDisposable,
+    )
+    whenever(deviceProvisionerService.deviceProvisioner)
+      .thenReturn(deviceProvisionerRule.deviceProvisioner)
+
     inspectorRule.attachDevice(MODERN_DEVICE)
     projectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
@@ -339,7 +363,7 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   @Test
-  fun testSelectProcessDropDown() {
+  fun testSelectProcessDropDown() = runBlocking {
     val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
 
     val selectTargetAction =
@@ -349,6 +373,13 @@ class DeviceViewPanelWithFullInspectorTest {
     connect(process)
     inspectorRule.processNotifier.addDevice(LEGACY_DEVICE)
     inspectorRule.processNotifier.addDevice(OLDER_LEGACY_DEVICE)
+    createFakeProvisionerDevices(
+      listOf(
+        MODERN_DEVICE.serial to ICON_PHONE,
+        LEGACY_DEVICE.serial to ICON_LEGACY_PHONE,
+        OLDER_LEGACY_DEVICE.serial to ICON_PHONE,
+      )
+    )
     if (dropDownAction is SelectProcessAction) {
       dropDownAction.updateActions(DataContext.EMPTY_CONTEXT)
 
@@ -368,15 +399,10 @@ class DeviceViewPanelWithFullInspectorTest {
         ICON_PHONE,
         "Google Older Legacy Model (Unsupported for API < 23)",
       )
-      checkDeviceAction(
-        children[3],
-        enabled = true,
-        StudioIcons.Shell.Toolbar.STOP,
-        "Stop Inspector",
-      )
+      checkDeviceAction(children[3], enabled = true, AllIcons.Run.Stop, "Stop Inspector")
     } else if (dropDownAction is SelectDeviceAction) {
+      waitForCondition(10.seconds) { dropDownAction.deviceIcons.size == 3 }
       dropDownAction.updateActions(DataContext.EMPTY_CONTEXT)
-
       val children = dropDownAction.getChildren(null)
       assertThat(children).hasLength(4)
       // alphabetically sorted in SelectDeviceAction
@@ -398,12 +424,7 @@ class DeviceViewPanelWithFullInspectorTest {
         ICON_PHONE,
         "Google Older Legacy Model (Unsupported for API < 23)",
       )
-      checkDeviceAction(
-        children[3],
-        enabled = true,
-        StudioIcons.Shell.Toolbar.STOP,
-        "Stop Inspector",
-      )
+      checkDeviceAction(children[3], enabled = true, AllIcons.Run.Stop, "Stop Inspector")
     }
   }
 
@@ -516,6 +537,24 @@ class DeviceViewPanelWithFullInspectorTest {
     inspectorRule.processNotifier.addDevice(process.device)
     inspectorRule.processNotifier.fireConnected(process)
   }
+
+  private suspend fun createFakeProvisionerDevices(deviceIconPairs: List<Pair<String, Icon?>>) {
+    deviceIconPairs.forEach { (serial, deviceIcon) ->
+      val device =
+        deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(
+          serial,
+          DeviceProperties.buildForTest {
+            manufacturer = "Google"
+            model = "test"
+            androidVersion = AndroidVersion(31)
+            androidRelease = "11"
+            icon = deviceIcon
+          },
+        )
+      device.activationAction.activate()
+      device.stateFlow.takeWhile { it !is Connected }.collect()
+    }
+  }
 }
 
 @RunsInEdt
@@ -523,16 +562,28 @@ class DeviceViewPanelTest {
 
   @get:Rule val disposableRule = DisposableRule()
 
+  @get:Rule val deviceProvisionerRule = DeviceProvisionerRule()
+
   @get:Rule val edtRule = EdtRule()
 
   @get:Rule val projectRule = ProjectRule()
 
   @get:Rule val adbRule = FakeAdbRule()
 
+  private val deviceProvisionerService: DeviceProvisionerService = mock()
+
   @Before
   fun setup() {
     ApplicationManager.getApplication()
       .registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
+    projectRule.project.replaceService(
+      DeviceProvisionerService::class.java,
+      deviceProvisionerService,
+      projectRule.disposable,
+    )
+    whenever(deviceProvisionerService.deviceProvisioner)
+      .thenReturn(deviceProvisionerRule.deviceProvisioner)
+
     replaceAdtUiCursorWithPredefinedCursor(
       AdtUiCursorType.GRAB,
       Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR),
@@ -700,6 +751,60 @@ class DeviceViewPanelTest {
   }
 
   @Test
+  fun textXrZoom() {
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+    val model = InspectorModel(projectRule.project, coroutineScope)
+    val notificationModel = NotificationModel(projectRule.project)
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val launcher =
+      InspectorClientLauncher(
+        processModel,
+        listOf(),
+        projectRule.project,
+        notificationModel,
+        coroutineScope,
+        disposableRule.disposable,
+        executor = MoreExecutors.directExecutor(),
+        metrics = mock(),
+      )
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val treeSettings = FakeTreeSettings()
+    val inspector =
+      LayoutInspector(
+        coroutineScope,
+        processModel,
+        deviceModel,
+        null,
+        clientSettings,
+        launcher,
+        model,
+        notificationModel,
+        treeSettings,
+        MoreExecutors.directExecutor(),
+      )
+    treeSettings.hideSystemNodes = true
+    val panel = DeviceViewPanel(inspector, disposableRule.disposable)
+
+    val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
+    scrollPane.setSize(200, 300)
+    model.resourceLookup.screenDimension = Dimension(200, 300)
+
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
+
+    val newWindow1 =
+      viewWindow(ROOT, 0, 0, 100, 200, isXr = true) { view(VIEW1, 25, 30, 50, 50) { image() } }
+    model.update(newWindow1, listOf(ROOT), 0)
+
+    val newWindow2 =
+      viewWindow(ROOT2, 0, 0, 1000, 2000, isXr = true) { view(VIEW2, 25, 30, 50, 50) { image() } }
+    model.update(newWindow2, listOf(ROOT, ROOT2), 1)
+
+    // now we should be zoomed to fit
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(11)
+  }
+
+  @Test
   fun testDrawNewWindow() {
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val model = InspectorModel(projectRule.project, coroutineScope)
@@ -796,7 +901,7 @@ class DeviceViewPanelTest {
       val latch = CountDownLatch(1)
       model.update(window1, listOf(ROOT), 0) { latch.countDown() }
       latch.await()
-      testScheduler.advanceUntilIdle()
+      testScheduler.advanceTimeBy(1.seconds)
     }
     waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 2 }
 
@@ -809,7 +914,7 @@ class DeviceViewPanelTest {
       val latch = CountDownLatch(1)
       model.update(window2, listOf(ROOT, ROOT2), 1) { latch.countDown() }
       latch.await()
-      testScheduler.advanceUntilIdle()
+      testScheduler.advanceTimeBy(1.seconds)
     }
     waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 4 }
 
@@ -862,7 +967,7 @@ class DeviceViewPanelTest {
     fromSnapshot: Boolean = false,
   ) {
     val model =
-      model(disposableRule.disposable) {
+      model(disposableRule.disposable, projectRule.project) {
         view(ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) }
       }
 

@@ -21,7 +21,7 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
+import kotlin.reflect.KClass
 
 /**
  * Describes all the actions available in App Insights.
@@ -139,13 +139,20 @@ sealed class Action {
   /** Fetch AI generated insight */
   data class FetchInsight(
     override val id: IssueId,
+    val variantId: String?,
     val issueFatality: FailureType,
     val event: Event,
-    val contextSharingOverride: Boolean = false,
-    val forceFetch: Boolean = false,
   ) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is FetchInsight || shouldCancelFetch(it) }
+  }
+
+  data class DisableAction(val action: KClass<out Action>) : Single() {
+    override fun maybeDoCancel(reasons: List<Single>) = this
+  }
+
+  data class EnableAction(val action: KClass<out Action>) : Single() {
+    override fun maybeDoCancel(reasons: List<Single>) = this
   }
 
   /** Cancel all outstanding fetches. */
@@ -216,6 +223,9 @@ sealed class Action {
         }
     }
   }
+
+  infix fun and(others: Collection<Action>): Action =
+    others.fold(this) { acc, next -> acc and next }
 
   val isNoop: Boolean
     get() = this is Multiple && this.actions.isEmpty()

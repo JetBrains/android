@@ -27,5 +27,5 @@ public interface ProtoXmlPrettyPrinter {
    * Throws if the argument is not a valid XML resource proto.
    */
   @NotNull
-  String prettyPrint(@NotNull byte[] content) throws IOException;
+  String prettyPrint(byte @NotNull [] content) throws IOException;
 }

@@ -17,10 +17,10 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class FakeAndroidDeviceTest {
   @Test
@@ -47,7 +47,7 @@ class FakeAndroidDeviceTest {
       name: String?,
       version: AndroidVersion = AndroidVersion(28, null)
     ): IDevice {
-      val device = Mockito.mock(IDevice::class.java)
+      val device = mock<IDevice>()
       whenever(device.isEmulator).thenReturn(true)
       whenever(device.avdName).thenReturn(name)
       whenever(device.serialNumber).thenReturn("local:5554")

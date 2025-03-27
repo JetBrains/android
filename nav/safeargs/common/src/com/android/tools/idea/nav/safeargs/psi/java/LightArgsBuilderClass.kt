@@ -16,7 +16,6 @@
 package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.tools.idea.nav.safeargs.module.NavInfo
-import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.util.PsiTypesUtil
@@ -52,10 +51,7 @@ import org.jetbrains.android.augment.AndroidLightClassBase
  * See also: [LightArgsClass], which own this builder.
  */
 class LightArgsBuilderClass(private val navInfo: NavInfo, private val argsClass: LightArgsClass) :
-  AndroidLightClassBase(
-    PsiManager.getInstance(navInfo.facet.module.project),
-    setOf(PsiModifier.PUBLIC, PsiModifier.STATIC),
-  ) {
+  AndroidLightClassBase(argsClass, setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
   companion object {
     const val BUILDER_NAME = "Builder"
   }
@@ -68,10 +64,6 @@ class LightArgsBuilderClass(private val navInfo: NavInfo, private val argsClass:
   override fun getName() = name
 
   override fun getQualifiedName() = qualifiedName
-
-  override fun getContainingFile() = argsClass.containingFile
-
-  override fun getContainingClass() = argsClass
 
   override fun getParent() = argsClass
 
@@ -110,13 +102,13 @@ class LightArgsBuilderClass(private val navInfo: NavInfo, private val argsClass:
 
     // Create a getter and setter per argument
     val argMethods: Array<PsiMethod> =
-      containingClass.destination.arguments
+      argsClass.destination.arguments
         .flatMap { arg ->
           val argType = arg.parsePsiType(navInfo.packageName, this)
           val setter =
             createMethod(
                 name = "set${arg.name.toUpperCamelCase()}",
-                navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
+                navigationElement = argsClass.getFieldNavigationElementByName(arg.name),
                 returnType = annotateNullability(thisType),
               )
               .addParameter(arg.name.toCamelCase(), argType)
@@ -124,7 +116,7 @@ class LightArgsBuilderClass(private val navInfo: NavInfo, private val argsClass:
           val getter =
             createMethod(
               name = "get${arg.name.toUpperCamelCase()}",
-              navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
+              navigationElement = argsClass.getFieldNavigationElementByName(arg.name),
               returnType = annotateNullability(argType, arg.isNonNull()),
             )
 

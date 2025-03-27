@@ -19,33 +19,35 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.AvdNames
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.adddevicedialog.DeviceSource
+import com.android.tools.adtui.compose.WizardAction
+import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.adddevicedialog.LoadingState
-import com.android.tools.idea.adddevicedialog.WizardAction
-import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.avdmanager.ui.NameComparator
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.sdk.DeviceManagers
+import com.intellij.openapi.components.service
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.withContext
 
 internal class LocalVirtualDeviceSource(
   private val skins: ImmutableCollection<Skin>,
   val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
-  private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
-) : DeviceSource<VirtualDeviceProfile> {
+  val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
+  val systemImageStateFlow: StateFlow<SystemImageState> =
+    service<SystemImageStateService>().systemImageStateFlow,
+) {
 
   companion object {
     internal fun create(): LocalVirtualDeviceSource {
@@ -57,30 +59,31 @@ internal class LocalVirtualDeviceSource(
     }
   }
 
-  override fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile) {
+  fun WizardPageScope.selectionUpdated(
+    profile: VirtualDeviceProfile,
+    finish: suspend (VirtualDevice, ISystemImage) -> Boolean,
+  ) {
     nextAction = WizardAction {
       pushPage {
-        val deviceNameValidator = DeviceNameValidatorImpl(avdManager)
+        leftSideButtons = emptyList()
+
+        val deviceNameValidator = DeviceNameValidator.createForAvdManager(avdManager)
         ConfigurationPage(
           VirtualDevice.withDefaults(profile.device)
-            .copy(name = deviceNameValidator.uniquify(profile.name)),
+            .copy(name = deviceNameValidator.uniquify(AvdNames.cleanDisplayName(profile.name))),
           null,
+          systemImageStateFlow,
           skins,
           deviceNameValidator,
           sdkHandler,
-          ::add,
+          finish,
         )
       }
     }
     finishAction = WizardAction.Disabled
   }
 
-  private suspend fun add(device: VirtualDevice, image: ISystemImage): Boolean {
-    withContext(AndroidDispatchers.diskIoThread) { VirtualDevices(avdManager).add(device, image) }
-    return true
-  }
-
-  override val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
+  val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
     callbackFlow {
         send(LoadingState.Loading)
 
@@ -107,5 +110,5 @@ internal class LocalVirtualDeviceSource(
       .conflate()
 }
 
-private fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
+internal fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
   VirtualDeviceProfile.Builder().apply { initializeFromDevice(this@toVirtualDeviceProfile) }.build()

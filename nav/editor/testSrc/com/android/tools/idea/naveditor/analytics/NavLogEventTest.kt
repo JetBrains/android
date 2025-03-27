@@ -38,13 +38,13 @@ import com.intellij.openapi.command.WriteCommandAction
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 
 class NavLogEventTest : NavTestCase() {
 
   fun testLog() {
-    val tracker = mock(NavUsageTracker::class.java)
+    val tracker = mock<NavUsageTracker>()
     NavLogEvent(NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE, tracker).log()
     verify(tracker)
       .logEvent(
@@ -123,7 +123,7 @@ class NavLogEventTest : NavTestCase() {
   }
 
   private fun validateActionInfo(model: NlModel, actionId: String, expected: NavActionInfo) {
-    val tracker = mock(NavUsageTracker::class.java)
+    val tracker = mock<NavUsageTracker>()
     val proto =
       NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
         .withActionInfo(model.treeReader.find(actionId)!!)
@@ -200,7 +200,7 @@ class NavLogEventTest : NavTestCase() {
     destinationId: String,
     expected: NavDestinationInfo,
   ) {
-    val tracker = mock(NavUsageTracker::class.java)
+    val tracker = mock<NavUsageTracker>()
     val proto =
       NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
         .withDestinationInfo(model.treeReader.find(destinationId)!!)
@@ -253,7 +253,7 @@ class NavLogEventTest : NavTestCase() {
         }
       }
 
-    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), model, Consumer {})
+    val tracker = NavUsageTrackerImpl(mock<Executor>(), model, Consumer {})
     val proto =
       NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
         .withNavigationContents()
@@ -377,7 +377,7 @@ class NavLogEventTest : NavTestCase() {
     component: NlComponent,
     expected: NavPropertyInfo,
   ) {
-    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), component.model, Consumer {})
+    val tracker = NavUsageTrackerImpl(mock<Executor>(), component.model, Consumer {})
     val proto =
       NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
         .withAttributeInfo(propertyName, component.tagName, wasEmpty)
@@ -419,7 +419,7 @@ class NavLogEventTest : NavTestCase() {
           custom("mycustomdestination")
         }
       }
-    val tracker = NavUsageTrackerImpl(mock(Executor::class.java), model, Consumer {})
+    val tracker = NavUsageTrackerImpl(mock<Executor>(), model, Consumer {})
     val proto =
       NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
         .withSchemaInfo()

@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync;
 
+import autovalue.shaded.com.google.common.collect.Sets;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.annotations.VisibleForTesting;
@@ -53,7 +54,6 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class QuerySyncProjectSnapshot {
 
-  @VisibleForTesting
   public static final QuerySyncProjectSnapshot EMPTY =
       builder()
           .graph(BuildGraphData.EMPTY)
@@ -71,16 +71,18 @@ public abstract class QuerySyncProjectSnapshot {
   /** Project proto reflecting the structure of the IJ project. */
   public abstract ProjectProto.Project project();
 
+  public abstract ImmutableSet<Label> incompleteTargets();
+
   @Memoized
   public PendingExternalDeps<Label> pendingExternalDeps() {
     return new PendingExternalDeps<>(
         graph().transitiveExternalDeps(),
-        artifactState().depsMap().keySet(),
+        Sets.difference(artifactState().depsMap().keySet(), incompleteTargets()),
         graph()::getDependencyTrackingBehaviors);
   }
 
   public static Builder builder() {
-    return new AutoValue_QuerySyncProjectSnapshot.Builder();
+    return new AutoValue_QuerySyncProjectSnapshot.Builder().incompleteTargets(ImmutableSet.of());
   }
 
   public abstract Builder toBuilder();
@@ -99,9 +101,8 @@ public abstract class QuerySyncProjectSnapshot {
    *
    * @param path a workspace relative path.
    */
-  @Nullable
   public ImmutableSet<Label> getTargetOwners(Path path) {
-    return graph().getTargetOwners(path);
+    return graph().getSourceFileOwners(path);
   }
 
   /**
@@ -116,7 +117,7 @@ public abstract class QuerySyncProjectSnapshot {
   @Nullable
   @Deprecated
   public Label getTargetOwner(Path path) {
-    return graph().selectLabelWithLeastDeps(graph().getTargetOwners(path));
+    return graph().selectLabelWithLeastDeps(graph().getSourceFileOwners(path));
   }
 
   /** Returns mapping of targets to {@link BuildTarget} */
@@ -126,7 +127,7 @@ public abstract class QuerySyncProjectSnapshot {
 
   @Memoized
   public ArtifactIndex getArtifactIndex() {
-    return ArtifactIndex.create(artifactState(), project().getArtifactDirectories());
+    return ArtifactIndex.create(artifactState());
   }
 
   /**
@@ -169,6 +170,8 @@ public abstract class QuerySyncProjectSnapshot {
     public abstract Builder artifactState(ArtifactTracker.State state);
 
     public abstract Builder project(ProjectProto.Project value);
+
+    public abstract Builder incompleteTargets(ImmutableSet<Label> value);
 
     public abstract QuerySyncProjectSnapshot build();
   }

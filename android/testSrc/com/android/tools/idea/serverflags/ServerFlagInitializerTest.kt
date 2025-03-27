@@ -21,26 +21,29 @@ import com.android.tools.analytics.CommonMetricsData.OS_NAME_LINUX
 import com.android.tools.analytics.CommonMetricsData.OS_NAME_MAC
 import com.android.tools.analytics.CommonMetricsData.OS_NAME_WINDOWS
 import com.android.tools.idea.serverflags.protos.Brand
+import com.android.tools.idea.serverflags.protos.FlagValue
+import com.android.tools.idea.serverflags.protos.MultiValueServerFlag
 import com.android.tools.idea.serverflags.protos.OSType
 import com.android.tools.idea.serverflags.protos.ServerFlagList
 import com.android.tools.idea.serverflags.protos.ServerFlagTest
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
+import com.google.protobuf.Any
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.util.io.FileUtil
-import junit.framework.TestCase
 import java.nio.file.Path
+import junit.framework.TestCase
+import org.junit.Rule
+import org.junit.Test
 
 private const val VERSION = "4.2.0.0"
-private val EXPERIMENTS = listOf("boolean", "int")
-private val TEST_PROTO = ServerFlagTest.newBuilder().apply {
-  content = "content"
-}.build()
+private val EXPERIMENTS = mapOf("boolean" to 0, "int" to 0)
+private val TEST_PROTO = ServerFlagTest.newBuilder().apply { content = "content" }.build()
 
 class ServerFlagInitializerTest : TestCase() {
-  lateinit var testDirectoryPath: Path
-  lateinit var localPath: Path
-  var service = ServerFlagServiceEmpty
+  private lateinit var testDirectoryPath: Path
+  private lateinit var localPath: Path
 
   override fun setUp() {
     super.setUp()
@@ -61,7 +64,14 @@ class ServerFlagInitializerTest : TestCase() {
 
   fun testFileNotPresent() {
     ServerFlagServiceImpl.initializer = {
-      ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, EXPERIMENTS)
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        OS_NAME_MAC,
+        AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
+        EXPERIMENTS,
+        false,
+      )
     }
     val service = ServerFlagServiceImpl()
 
@@ -77,7 +87,16 @@ class ServerFlagInitializerTest : TestCase() {
   fun testPercentEnabled() {
     val expected = serverFlagTestData
 
-    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, emptyList()) }
+    ServerFlagServiceImpl.initializer = {
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        OS_NAME_MAC,
+        AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
+        emptyMap(),
+        false,
+      )
+    }
     saveServerFlagList(expected, localPath, VERSION)
     val service = ServerFlagServiceImpl()
 
@@ -87,6 +106,26 @@ class ServerFlagInitializerTest : TestCase() {
       assertThat(getFloat("float")).isEqualTo(1f)
       assertThat(getString("string")).isEqualTo("foo")
       assertThat(getString("linux")).isNull()
+    }
+  }
+
+  fun testOverrideFlags() {
+    saveServerFlagList(serverFlagTestData, localPath, VERSION)
+    with(
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        OS_NAME_MAC,
+        AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
+        mapOf("boolean" to 0, "string" to 0),
+        false,
+      ) {
+        0
+      }
+    ) {
+      assertThat(flags).hasSize(2)
+      assertThat(flags["boolean"]?.value?.booleanValue).isTrue()
+      assertThat(flags["string"]?.value?.stringValue).isEqualTo("foo")
     }
   }
 
@@ -115,27 +154,57 @@ class ServerFlagInitializerTest : TestCase() {
   }
 
   fun testAndroidStudioWithBlaze() {
-    testBrand(AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE, Brand.BRAND_ANDROID_STUDIO_WITH_BLAZE)
+    testBrand(
+      AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE,
+      Brand.BRAND_ANDROID_STUDIO_WITH_BLAZE,
+    )
   }
 
   private fun testOsType(osName: String, osType: OSType) {
     saveServerFlagList(serverFlagTestDataByOs, localPath, VERSION)
 
-    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, osName, AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, emptyList()) }
+    ServerFlagServiceImpl.initializer = {
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        osName,
+        AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
+        emptyMap(),
+        false,
+      )
+    }
     val service = ServerFlagServiceImpl()
-    assertThat(service.names).containsExactlyElementsIn(listOf(osType.toString()))
+    assertThat(service.flagAssignments.keys).containsExactlyElementsIn(listOf(osType.toString()))
   }
 
   private fun testBrand(brand: AndroidStudioEvent.IdeBrand, filterBy: Brand) {
     saveServerFlagList(serverFlagTestDataByBrand, localPath, VERSION)
 
-    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, brand, emptyList()) }
+    ServerFlagServiceImpl.initializer = {
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        OS_NAME_MAC,
+        brand,
+        emptyMap(),
+        false,
+      )
+    }
     val service = ServerFlagServiceImpl()
-    assertThat(service.names).containsExactlyElementsIn(listOf(filterBy.toString()))
+    assertThat(service.flagAssignments.keys).containsExactlyElementsIn(listOf(filterBy.toString()))
   }
 
   private fun testServerFlagInitializer(expected: ServerFlagList) {
-    ServerFlagServiceImpl.initializer = { ServerFlagInitializer.initializeService(localPath, VERSION, OS_NAME_MAC, AndroidStudioEvent.IdeBrand.ANDROID_STUDIO, EXPERIMENTS) }
+    ServerFlagServiceImpl.initializer = {
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        OS_NAME_MAC,
+        AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
+        EXPERIMENTS,
+        false,
+      )
+    }
     val service = ServerFlagServiceImpl()
 
     service.apply {
@@ -149,5 +218,199 @@ class ServerFlagInitializerTest : TestCase() {
 
     val actual = loadServerFlagList(localPath, VERSION)
     assertThat(actual).isEqualTo(expected)
+  }
+}
+
+class MultiValueServerFlagInitializerTest {
+
+  @get:Rule val dirRule = TemporaryDirectoryRule()
+
+  private val multiValueFlag: List<MultiValueServerFlag> =
+    listOf(
+      MultiValueServerFlag.newBuilder()
+        .apply {
+          addAllFlagValues(
+            listOf(
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  booleanValue = true
+                }
+                .build(),
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  intValue = 10
+                }
+                .build(),
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  floatValue = 2f
+                }
+                .build(),
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  stringValue = "flagValue"
+                }
+                .build(),
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  protoValue =
+                    Any.pack(
+                      ServerFlagTest.newBuilder().apply { content = "flagValueContent" }.build()
+                    )
+                }
+                .build(),
+            )
+          )
+        }
+        .build(),
+      MultiValueServerFlag.newBuilder()
+        .apply {
+          addAllFlagValues(
+            listOf(
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  booleanValue = true
+                }
+                .build()
+            )
+          )
+        }
+        .build(),
+      MultiValueServerFlag.newBuilder()
+        .apply {
+          addAllFlagValues(
+            listOf(
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  stringValue = "flagValue"
+                }
+                .build(),
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  stringValue = "flagValue2"
+                }
+                .build(),
+              FlagValue.newBuilder()
+                .apply {
+                  percentEnabled = 20
+                  stringValue = "flagValue3"
+                }
+                .build(),
+            )
+          )
+        }
+        .build(),
+    )
+
+  private fun makeFlagList(): ServerFlagList {
+    val flagData =
+      listOf(
+        makeServerFlagData("invalid", multiValueFlag[0]),
+        makeServerFlagData("singleValue", multiValueFlag[1]),
+        makeServerFlagData("multiValue", multiValueFlag[2]),
+      )
+
+    val builder = ServerFlagList.newBuilder().apply { configurationVersion = 1 }
+    builder.addAllServerFlags(flagData)
+    return builder.build()
+  }
+
+  @Test
+  fun `check value types of multi value flags`() {
+    val localPath = dirRule.newPath()
+    saveServerFlagList(makeFlagList(), localPath, VERSION)
+    with(
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        OS_NAME_MAC,
+        AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
+        emptyMap(),
+        true,
+      ) {
+        0
+      }
+    ) {
+      assertThat(flags).hasSize(2)
+      assertThat(flags["invalid"]).isNull()
+    }
+  }
+
+  @Test
+  fun `verify flag assigned based on percentEnabled`() {
+    val localPath = dirRule.newPath()
+    var hash = 15
+    val hashFunction = { _: String -> hash }
+
+    ServerFlagServiceImpl.initializer = {
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        OS_NAME_MAC,
+        AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
+        emptyMap(),
+        true,
+        hashFunction,
+      )
+    }
+    saveServerFlagList(makeFlagList(), localPath, VERSION)
+
+    hash = 15
+    with(ServerFlagServiceImpl()) {
+      assertThat(getString("multiValue")).isEqualTo("flagValue")
+      assertThat(getBoolean("singleValue")).isTrue()
+      assertThat(flagAssignments["multiValue"]).isEqualTo(0)
+      assertThat(flagAssignments["singleValue"]).isEqualTo(0)
+    }
+    hash = 21
+    with(ServerFlagServiceImpl()) {
+      assertThat(getString("multiValue")).isEqualTo("flagValue2")
+      assertThat(getBoolean("singleValue")).isNull()
+      assertThat(flagAssignments["multiValue"]).isEqualTo(1)
+    }
+    hash = 59
+    with(ServerFlagServiceImpl()) {
+      assertThat(getString("multiValue")).isEqualTo("flagValue3")
+      assertThat(getBoolean("singleValue")).isNull()
+      assertThat(flagAssignments["multiValue"]).isEqualTo(2)
+    }
+    hash = 66
+    with(ServerFlagServiceImpl()) {
+      assertThat(getString("multiValue1")).isNull()
+      assertThat(getBoolean("singleValue")).isNull()
+    }
+    hash = 99
+    with(ServerFlagServiceImpl()) {
+      assertThat(getString("multiValue1")).isNull()
+      assertThat(getBoolean("singleValue")).isNull()
+    }
+  }
+
+  @Test
+  fun `verify override param`() {
+    val localPath = dirRule.newPath()
+    saveServerFlagList(makeFlagList(), localPath, VERSION)
+    with(
+      ServerFlagInitializer.initializeService(
+        localPath,
+        VERSION,
+        OS_NAME_MAC,
+        AndroidStudioEvent.IdeBrand.ANDROID_STUDIO,
+        mapOf("multiValue" to 1, "singleValue" to 0),
+        true,
+      )
+    ) {
+      assertThat(flags).hasSize(2)
+      assertThat(flags["multiValue"]?.value?.hasStringValue()).isTrue()
+      assertThat(flags["singleValue"]?.value?.hasBooleanValue()).isTrue()
+    }
   }
 }

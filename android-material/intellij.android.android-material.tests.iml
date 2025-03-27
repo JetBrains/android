@@ -15,6 +15,7 @@
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -29,5 +30,8 @@
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="gson" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.android-material" />
 </module>

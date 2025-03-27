@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
-import com.android.sdklib.computeFullApiName
+import com.android.sdklib.getFullApiName
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.AdtUiUtils.allComponents
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
@@ -277,9 +277,7 @@ class DeviceListStep(
               )
               add(
                 JBLabel(
-                    computeFullApiName(
-                      apiLevel = value.apiLevel,
-                      extensionLevel = null,
+                    value.androidVersion.getFullApiName(
                       includeReleaseName = true,
                       includeCodeName = true,
                     )
@@ -419,15 +417,15 @@ class DeviceListStep(
 
 private fun PairingDevice.isDisabled(): Boolean {
   return state == ConnectionState.DISCONNECTED ||
-    isEmulator && !isWearDevice && (apiLevel < 30 || !hasPlayStore) ||
-    isEmulator && isWearDevice && apiLevel < 28
+    isEmulator && !isWearDevice && (androidVersion.featureLevel < 30 || !hasPlayStore) ||
+    isEmulator && isWearDevice && androidVersion.featureLevel < 28
 }
 
 private fun PairingDevice.getTooltip(): String? {
   return when {
-    isEmulator && isWearDevice && apiLevel < 28 ->
+    isEmulator && isWearDevice && androidVersion.featureLevel < 28 ->
       message("wear.assistant.device.list.tooltip.requires.api", 28)
-    isEmulator && !isWearDevice && apiLevel < 30 ->
+    isEmulator && !isWearDevice && androidVersion.featureLevel < 30 ->
       message("wear.assistant.device.list.tooltip.requires.api", 30)
     isEmulator && !isWearDevice && !hasPlayStore ->
       message("wear.assistant.device.list.tooltip.requires.play")

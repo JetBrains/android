@@ -29,7 +29,6 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
@@ -70,19 +69,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val module: Module
 
   /** [ClassFileFinder] that uses this module as scope for the search. */
+  @Deprecated("ClassFileFinder needs to be requested in a context of a specific file. Talk to @xof or @solodkyy about alternatives.")
   val moduleClassFileFinder: ClassFileFinder
-
-  /**
-   * Optional method to implement by [AndroidModuleSystem] implementations that allows scoping the search to a specific
-   * origin source file to allow for disambiguation.
-   * If the given [sourceFile] is null, this method will return the [moduleClassFileFinder] for the [Module].
-   *
-   * Implementations of this method should avoid performing read actions and grabbing the read lock
-   * to avoid deadlocks when class loading is performed in the render thread. If read actions are
-   * completely necessary, then they must be non-blocking.
-   */
-  @Deprecated("Create or use application spcific token interfaces and implementations")
-  fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) = moduleClassFileFinder
 
   /**
    * Requests information about the folder layout for the module. This can be used to determine
@@ -166,29 +154,15 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
 
   /**
-   * Register a requested dependency with the build system. Note that the requested dependency won't be available (a.k.a. resolved)
-   * until the next sync. To ensure the dependency is resolved and available for use, sync the project after calling this function.
-   * This method throws [DependencyManagementException] for any errors that occur when adding the dependency.
-   * <p>
+   * Register a requested dependency of the given type with the build system.  Note that the requested dependency
+   * won't be available (a.k.a. resolved) until the next sync. To ensure the dependency is resolved and available
+   * for use, sync the project after calling this function.  This method throws [DependencyManagementException] for
+   * any errors that occur when adding the dependency.
+   *
    * **Note**: This function will perform a write action.
    */
   @Throws(DependencyManagementException::class)
-  fun registerDependency(coordinate: GradleCoordinate)
-
-  /**
-   * Like [registerDependency] where you can specify the type of dependency to add.
-   * This method throws [DependencyManagementException] for any errors that occur when adding the dependency.
-   */
-  @Throws(DependencyManagementException::class)
   fun registerDependency(coordinate: GradleCoordinate, type: DependencyType)
-
-  /**
-   * Updates any coordinates to the versions specified in the [toVersions] list.
-   * For example, if you pass it [com.android.support.constraint:constraint-layout:1.0.0-alpha2],
-   * it will find any constraint layout occurrences of 1.0.0-alpha1 and replace them with 1.0.0-alpha2.
-   */
-  @Throws(DependencyManagementException::class)
-  fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) : Unit = throw UnsupportedOperationException()
 
   /**
    * Returns the resolved libraries that this module depends on.
@@ -223,12 +197,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * be determined from order entries for all supported build systems.
    */
   fun getDirectResourceModuleDependents(): List<Module>
-
-  /**
-   * Determines whether or not the underlying build system is capable of generating a PNG
-   * from vector graphics.
-   */
-  fun canGeneratePngFromVectorGraphics(): CapabilityStatus
 
   /**
    * Returns the overrides that the underlying build system applies when computing the module's
@@ -368,7 +336,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val testRClassConstantIds: Boolean get() = true
 
   fun getTestLibrariesInUse(): TestLibraries? = null
-  fun getModuleNameForCompilation(virtualFile: VirtualFile): String = module.name
 
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean get() = true
@@ -397,6 +364,18 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   //  all the modules in this linked module group".  The difference shows up in projects that have type = Type.TEST under Gradle, where
   //  the main module of that linked group is not a production module.
   fun isProductionAndroidModule() = AndroidFacet.getInstance(module) != null
+
+  /**
+   * Given a module, return a module associated with it ("associated" by the Module System, possibly the module itself) containing
+   * production sources.
+   */
+  fun getProductionAndroidModule(): Module? = module.takeIf { isProductionAndroidModule() }
+
+  /**
+   * Given a module, return the module associated with it ("associated" by the Module system, possibly the module itself) conceptually
+   * "holding" all the other modules in its association group.
+   */
+  fun getHolderModule(): Module = module
 
   /**
    * Is this module suitable for use in an [AndroidRunConfiguration] editor?
@@ -480,40 +459,7 @@ enum class ScopeType {
     }
 }
 
-/**
- * This class, along with the key [LINKED_ANDROID_GRADLE_MODULE_GROUP] is used to track and group modules
- * that are based on the same Gradle project.  In Gradle projects, instances of this class will be attached
- * to all Android modules.  This class should not be accessed directly from outside the Gradle project system (but
- * is unfortunately more widely accessible for historical reasons).
- */
-data class LinkedAndroidGradleModuleGroup(
-  val holder: Module,
-  val main: Module,
-  val unitTest: Module?,
-  val androidTest: Module?,
-  val testFixtures: Module?,
-  val screenshotTest: Module?
-) {
-  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest)
-  override fun toString(): String =
-    "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, " +
-    "androidTest=${androidTest?.name}, testFixtures=${testFixtures?.name}, screenshotTest=${screenshotTest?.name}"
-}
-
-/**
- * Key used to store [LinkedAndroidGradleModuleGroup] on all modules that are part of the same Gradle project.  This key should
- * not be accessed from outside the Gradle project system (but is unfortunately more widely-accessible for historical reasons.)
- */
-val LINKED_ANDROID_GRADLE_MODULE_GROUP = Key.create<LinkedAndroidGradleModuleGroup>("linked.android.gradle.module.group")
-
-
-fun Module.getHolderModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.holder ?: this
-
-fun Module.getMainModule() : Module = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.main ?: this
-
-fun Module.getAndroidTestModule() : Module? = getUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP)?.androidTest
-
-fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
+fun AndroidFacet.getProductionAndroidModule(): Module = module.getModuleSystem().getProductionAndroidModule() ?: module
 
 /**
  * Returns the type of Android project this module represents.

@@ -42,6 +42,7 @@ import com.intellij.psi.PsiFile
 interface BuildTargetReference {
   val project: Project get() = module.project
   val module: Module
+  val moduleIfNotDisposed: Module?
 
   companion object {
     private val Project.buildTargets: BuildSystemFilePreviewServices.BuildTargets

@@ -23,6 +23,9 @@
     -->
     <extensionPoint qualifiedName="com.android.tools.idea.compose.preview.composeEditorNotificationProvider"
                     interface="com.intellij.ui.EditorNotificationProvider" />
+
+    <extensionPoint qualifiedName="com.android.tools.idea.compose.preview.composeStudioBotActionFactory"
+                    interface="com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -80,6 +83,14 @@
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.no.multiple.preview.provider.description"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewParameterProviderOnFirstParameterInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.parameter.provider.on.first.parameter.description"
                      level="ERROR"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerAnnotationInspection"
@@ -162,18 +173,6 @@
             class="com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction">
       <add-to-group group-id="Android.Designer.IssuePanel.ToolbarActions" anchor="first"/>
     </action>
-
-    <group id="Android.Designer.ComposePreviewActionGroup">
-      <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewAction"
-              id="Android.Designer.GenerateComposePreviewAction">
-        <add-to-group group-id="GenerateGroup" anchor="first"/>
-      </action>
-      <action class="com.android.tools.idea.compose.preview.actions.ml.GenerateComposePreviewsForFileAction"
-              id="Android.Designer.GenerateComposePreviewsForFileAction">
-      </action>
-      <separator/>
-      <add-to-group group-id="sml.studiobot.gemini.editor.group" />
-    </group>
 
   </actions>
 

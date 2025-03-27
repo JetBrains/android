@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -39,7 +40,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
     PairingDevice(
       deviceID = "id1",
       displayName = "My Phone",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isWearDevice = false,
       isEmulator = true,
       hasPlayStore = true,
@@ -49,7 +50,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
     PairingDevice(
       deviceID = "id2",
       displayName = "Round Watch",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isEmulator = true,
       isWearDevice = true,
       hasPlayStore = true,

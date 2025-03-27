@@ -219,14 +219,16 @@ class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     }
   }
 
-  override fun requestRenderAsync(): CompletableFuture<Void> {
+  override fun requestRender() {
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
     if (wasEmpty) {
       ApplicationManager.getApplication().invokeLater { designSurface.zoomController.zoomToFit() }
     }
+  }
 
-    return CompletableFuture.completedFuture(null)
+  override suspend fun requestRenderAndWait() {
+    requestRender()
   }
 
   private fun layoutAll(root: SceneComponent) {
@@ -301,7 +303,7 @@ class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     override fun modelChanged(model: NlModel) {
       updateHierarchy(model, model)
       designSurface.refreshRoot()
-      requestRenderAsync()
+      requestRender()
       model.notifyListenersModelDerivedDataChanged()
     }
 
@@ -559,7 +561,7 @@ class NavSceneManager(model: NlModel, surface: NavDesignSurface) :
     super.activate(source).also {
       if (it) {
         updateHierarchy(model, model)
-        requestRenderAsync()
+        requestRender()
       }
     }
 }

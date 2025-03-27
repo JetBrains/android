@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.ExportDialogParams
@@ -30,6 +28,8 @@ import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   val sqliteEvaluatorView: FakeSqliteEvaluatorView = spy(FakeSqliteEvaluatorView::class.java)

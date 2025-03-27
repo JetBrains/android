@@ -17,6 +17,7 @@ package com.google.idea.blaze.android;
 
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.idea.blaze.base.WorkspaceFileSystem;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.intellij.openapi.application.ApplicationManager;
@@ -30,7 +31,6 @@ import com.intellij.util.containers.MultiMap;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkDataCompat;
 import org.jetbrains.android.sdk.AndroidSdkType;
 
 /**
@@ -141,7 +141,7 @@ public class MockSdkUtil {
       workspace.createFile(new WorkspacePath(workspacePathToAndroid, "data/annotations.zip"));
     }
     String sdkHomeDir = workspace.createDirectory(SDK_DIR).getPath();
-    AndroidSdkDataCompat.getSdkData(new File(sdkHomeDir), true);
+    AndroidSdkData.getSdkData(new File(sdkHomeDir), true);
 
     Sdk sdk = ProjectJdkTable.getInstance().createSdk(sdkName, AndroidSdkType.getInstance());
 

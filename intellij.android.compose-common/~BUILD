@@ -27,6 +27,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/testutils:studio.android.sdktools.testutils[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",

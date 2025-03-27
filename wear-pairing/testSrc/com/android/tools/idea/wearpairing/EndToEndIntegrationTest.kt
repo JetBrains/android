@@ -22,7 +22,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
@@ -46,22 +45,18 @@ import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class EndToEndIntegrationTest : LightPlatform4TestCase() {
   private val invokeStrategy = TestInvokeStrategy()
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   private val wearPropertiesMap =
-    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.ANDROID_API to "28")
+    mapOf(ConfigKey.TAG_ID to "android-wear", ConfigKey.TARGET to "android-28")
   private val avdWearInfo =
-    AvdInfo(
-      Paths.get("ini"),
-      Paths.get("folder"),
-      Mockito.mock(ISystemImage::class.java),
-      wearPropertiesMap,
-      null,
-    )
+    AvdInfo(Paths.get("ini"), Paths.get("folder"), mock<ISystemImage>(), wearPropertiesMap, null)
 
   override fun setUp() {
     // Studio Icons must be of type CachedImageIcon for image asset
@@ -146,7 +141,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
   }
 
   private fun mockPhoneDevice() =
-    Mockito.mock(IDevice::class.java).apply {
+    mock<IDevice>().apply {
       whenever(isOnline).thenReturn(true)
       whenever(name).thenReturn("MyPhone")
       whenever(serialNumber).thenReturn("serialNumber")
@@ -167,7 +162,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     }
 
   private fun mockWearDevice(avdWearInfo: AvdInfo) =
-    Mockito.mock(IDevice::class.java).apply {
+    mock<IDevice>().apply {
       whenever(isOnline).thenReturn(true)
       whenever(isEmulator).thenReturn(true)
       whenever(name).thenReturn(avdWearInfo.name)
@@ -220,7 +215,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING }
 
   private fun IDevice.addExecuteShellCommandReply(requestHandler: (request: String) -> String) {
-    whenever(executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer { invocation ->
+    whenever(executeShellCommand(any(), any())).thenAnswer { invocation ->
       val request = invocation.arguments[0] as String
       val receiver = invocation.arguments[1] as IShellOutputReceiver
       val reply = requestHandler(request)

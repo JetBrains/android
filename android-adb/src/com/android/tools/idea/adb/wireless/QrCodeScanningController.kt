@@ -22,19 +22,19 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
+import java.time.Duration
+import java.util.concurrent.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
-import java.time.Duration
-import java.util.concurrent.CancellationException
 
-/**
- * Handles the QR Code pairing aspect of the "Pair device over Wi-FI" dialog
- */
+/** Handles the QR Code pairing aspect of the "Pair device over Wi-FI" dialog */
 @UiThread
-class QrCodeScanningController(private val service: WiFiPairingService,
-                               private val view: WiFiPairingView,
-                               parentDisposable: Disposable) : Disposable {
+class QrCodeScanningController(
+  private val service: WiFiPairingService,
+  private val view: WiFiPairingView,
+  parentDisposable: Disposable,
+) : Disposable {
   private val LOG = logger<QrCodeScanningController>()
   private val modelListener = MyModelListener()
   private val viewListener = MyViewListener()
@@ -75,7 +75,7 @@ class QrCodeScanningController(private val service: WiFiPairingService,
         val device = service.waitForDevice(pairingResult)
         state = State.PairingSuccess
         view.showQrCodePairingSuccess(mdnsService, device)
-      } catch(error: Throwable) {
+      } catch (error: Throwable) {
         if (!isCancelled(error)) {
           LOG.warn("Error pairing device ${mdnsService}", error)
           state = State.PairingError
@@ -96,11 +96,12 @@ class QrCodeScanningController(private val service: WiFiPairingService,
         try {
           val services = service.scanMdnsServices()
           withContext(uiThread(ModalityState.any())) {
-            view.model.pairingCodeServices = services.filter { it.serviceType == ServiceType.PairingCode }
+            view.model.pairingCodeServices =
+              services.filter { it.serviceType == ServiceType.PairingCode }
             view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
           }
         } catch (e: Throwable) {
-          //TODO: Should we show an error to the user?
+          // TODO: Should we show an error to the user?
           LOG.warn("Error scanning mDNS services", e)
         }
 
@@ -116,15 +117,16 @@ class QrCodeScanningController(private val service: WiFiPairingService,
     Pairing,
     PairingError,
     PairingSuccess,
-    Disposed
+    Disposed,
   }
 
   @UiThread
   inner class MyViewListener : WiFiPairingView.Listener {
     override fun onScanAnotherQrCodeDeviceAction() {
-      when(state) {
-        State.PairingError, State.PairingSuccess -> {
-          scope.launch(uiThread(ModalityState.any())) {  startPairingProcess() }
+      when (state) {
+        State.PairingError,
+        State.PairingSuccess -> {
+          scope.launch(uiThread(ModalityState.any())) { startPairingProcess() }
         }
         else -> {
           // Ignore
@@ -143,18 +145,20 @@ class QrCodeScanningController(private val service: WiFiPairingService,
 
   @UiThread
   inner class MyModelListener : AdbDevicePairingModelListener {
-    override fun qrCodeGenerated(newImage: QrCodeImage) {
-    }
+    override fun qrCodeGenerated(newImage: QrCodeImage) {}
 
     override fun qrCodeServicesDiscovered(services: List<MdnsService>) {
       LOG.info("${services.size} QR code connect services discovered")
       services.forEachIndexed { index, it ->
-        LOG.info("  QR code connect service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
+        LOG.info(
+          "  QR code connect service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}"
+        )
       }
 
       // If there is a QR Code displayed, look for a mDNS service with the same service name
       view.model.qrCodeImage?.let { qrCodeImage ->
-        services.firstOrNull { it.serviceName == qrCodeImage.serviceName }
+        services
+          .firstOrNull { it.serviceName == qrCodeImage.serviceName }
           ?.let {
             // We found the service we created, meaning the phone is in "pairing" mode
             startPairingDevice(it, qrCodeImage.password)
@@ -165,7 +169,9 @@ class QrCodeScanningController(private val service: WiFiPairingService,
     override fun pairingCodeServicesDiscovered(services: List<MdnsService>) {
       LOG.info("${services.size} pairing code pairing services discovered")
       services.forEachIndexed { index, it ->
-        LOG.info("  Pairing code pairing service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}")
+        LOG.info(
+          "  Pairing code pairing service #${index + 1}: name=${it.serviceName} - ip=${it.ipAddress} - port=${it.port}"
+        )
       }
     }
   }

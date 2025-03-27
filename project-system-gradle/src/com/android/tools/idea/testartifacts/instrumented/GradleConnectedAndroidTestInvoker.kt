@@ -36,7 +36,7 @@ import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFr
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
-import com.android.tools.utp.UtpAndroidGradleTaskManagerExtension
+import com.android.tools.utp.GradleAndroidProjectResolverExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.google.common.base.Joiner
@@ -111,7 +111,7 @@ class GradleConnectedAndroidTestInvoker(
 
     val listeners = mutableListOf<AndroidTestResultListener>(androidTestSuiteView)
     TEST_LISTENER_KEY[executionEnvironment]?.let { listeners.addAll(it) }
-    val adapters: Map<String, List<GradleTestResultAdapter>> = devices.associate { device ->
+    val adapters = devices.associate { device ->
       val adapterList = listeners.map { gradleTestResultAdapterFactory(device, taskId, gradleAndroidModel.getArtifactForAndroidTest(), it) }
       adapterList.first().device.id to adapterList
     }
@@ -135,7 +135,8 @@ class GradleConnectedAndroidTestInvoker(
       val testRunIsCancelled = AtomicBoolean(false)
       val onEndIsCalled = AtomicBoolean(false)
 
-      override fun onCancel(projectPath: String, id: ExternalSystemTaskId) {
+      override fun onCancel(id: ExternalSystemTaskId) {
+        super.onCancel(id)
         testRunIsCancelled.set(true)
       }
 
@@ -148,10 +149,12 @@ class GradleConnectedAndroidTestInvoker(
         }
       }
 
-      override fun onEnd(projectPath: String, id: ExternalSystemTaskId) {
+      override fun onEnd(id: ExternalSystemTaskId) {
         if (onEndIsCalled.getAndSet(true)) {
           return
         }
+
+        super.onEnd(id)
 
         val allAdapters = adapters.values.flatten()
         val testSuiteStartedOnAnyDevice = allAdapters.any(GradleTestResultAdapter::testSuiteStarted)
@@ -248,11 +251,15 @@ class GradleConnectedAndroidTestInvoker(
       project, devices, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
       retentionConfiguration, extraInstrumentationOptions)
 
-    gradleExecutionSettings.tasks = taskNames
-
     backgroundTaskExecutor {
       try {
-        gradleTaskManagerFactory().executeTasks(path.path, externalTaskId, gradleExecutionSettings, listener)
+        gradleTaskManagerFactory().executeTasks(
+          externalTaskId,
+          taskNames,
+          path.path,
+          gradleExecutionSettings,
+          null,
+          listener)
       } catch (e: ExternalSystemException) {
         // No-op.
         // If there is a failing test case, the test task finished in failed state
@@ -263,7 +270,7 @@ class GradleConnectedAndroidTestInvoker(
         // When a Gradle task fails, GradleTaskManager.executeTasks method may throw
         // an ExternalSystemException without calling onEnd() or onFailure() callback.
         // This often happens on Windows.
-        listener.onEnd(path.path, externalTaskId)
+        listener.onEnd(externalTaskId)
       }
     }
   }
@@ -289,7 +296,7 @@ class GradleConnectedAndroidTestInvoker(
       withArguments(getDeviceSpecificArguments())
 
       // Enable UTP test results reporting by embedded XML tag in stdout.
-      withArgument("-P${UtpAndroidGradleTaskManagerExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
+      withArgument("-P${GradleAndroidProjectResolverExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
 
       if (retentionConfiguration.enabled == EnableRetention.YES) {
         withArgument("-P$RETENTION_ENABLE_PROPERTY=${retentionConfiguration.maxSnapshots}")

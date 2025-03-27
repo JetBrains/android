@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
-import com.android.tools.idea.io.grpc.stub.StreamObserver
-import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.play.developer.reporting.App
 import com.google.play.developer.reporting.FetchReleaseFilterOptionsRequest
@@ -26,6 +24,8 @@ import com.google.play.developer.reporting.ReportingServiceGrpc.ReportingService
 import com.google.play.developer.reporting.SearchAccessibleAppsRequest
 import com.google.play.developer.reporting.SearchAccessibleAppsResponse
 import com.google.play.developer.reporting.Track
+import com.google.protobuf.GeneratedMessageV3
+import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.channels.SendChannel
 
 class FakeReportingService(

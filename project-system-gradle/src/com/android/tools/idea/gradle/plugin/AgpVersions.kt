@@ -25,7 +25,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.IdeAndroidGradlePluginSnapshotRepositoryProvider
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.util.StudioPathManager
@@ -73,7 +73,7 @@ object AgpVersions {
 
       // When running from sources allow fallback to the latest stable if AGP has not been built locally
       if (StudioPathManager.isRunningFromSources() && ApplicationManager.getApplication() != null && !GuiTestingService.isInTestingMode()) {
-        val repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+        val repoPaths = GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths()
         for (repoPath in repoPaths) {
           if (Files.isDirectory(MavenRepositories.getArtifactDirectory(repoPath.toPath(), AGP_APP_PLUGIN_MARKER))) {
             return ANDROID_GRADLE_PLUGIN_VERSION // Found locally built AGP
@@ -91,6 +91,11 @@ object AgpVersions {
         return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION // No locally built AGP exists, use stable version
 
       }
+
+      if (StudioFlags.USE_STABLE_AGP_VERSION_FOR_NEW_PROJECTS.get()) {
+        return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION;
+      }
+
       // In packaged studio and for tests, use the AGP that was built alongside Studio
       return ANDROID_GRADLE_PLUGIN_VERSION
     }
@@ -146,9 +151,8 @@ object AgpVersions {
     latestKnown: AgpVersion,
     gmavenVersions: Set<AgpVersion>,
     localAndSnapshotVersions: List<NewProjectWizardAgpVersion>,
-    includeHistoricalAgpVersions: Boolean
+    includeHistoricalAgpVersions: Boolean,
   ): List<NewProjectWizardAgpVersion> {
-    val newProjectDefaultVersion = newProject
     val include = setOf(AndroidGradlePluginCompatibility.COMPATIBLE, AndroidGradlePluginCompatibility.DEPRECATED)
     val recommended = mutableListOf<NewProjectWizardAgpVersion>()
     // Offer versions from the development offline repo, if present
@@ -180,7 +184,7 @@ object AgpVersions {
           return recommended
         }
       }
-      recommended.add(NewProjectWizardAgpVersion(version, info = if (version == newProjectDefaultVersion) "New project default" else ""))
+      recommended.add(NewProjectWizardAgpVersion(version))
     }
     return recommended
   }
@@ -190,7 +194,7 @@ object AgpVersions {
 
   @Slow
   private fun getDevelopmentLocalRepoVersions(): List<NewProjectWizardAgpVersion> {
-    return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+    return GradleProjectSystemUtil.findAndroidStudioLocalMavenRepoPaths()
       .flatMap { localRepo ->
         MavenRepositories.getAllVersions(localRepo.toPath(), AGP_APP_PLUGIN_MARKER.module)
           .mapNotNullTo(mutableSetOf()) {

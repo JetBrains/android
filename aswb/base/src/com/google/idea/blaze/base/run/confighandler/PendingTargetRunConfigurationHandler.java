@@ -38,7 +38,7 @@ import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.application.ApplicationManager;
 import javax.annotation.Nullable;
 
-class PendingTargetRunConfigurationHandler implements BlazeCommandRunConfigurationHandler {
+public class PendingTargetRunConfigurationHandler implements BlazeCommandRunConfigurationHandler {
 
   private final BuildSystemName buildSystemName;
   private final BlazeCommandRunConfigurationCommonState state;

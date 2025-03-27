@@ -22,7 +22,6 @@ import com.android.builder.model.InstantAppProjectBuildOutput
 import com.android.builder.model.InstantAppVariantBuildOutput
 import com.android.builder.model.ProjectBuildOutput
 import com.android.builder.model.VariantBuildOutput
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
@@ -42,6 +41,7 @@ import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.io.File
 
 /**

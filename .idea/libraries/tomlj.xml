@@ -14,8 +14,13 @@
       </exclude>
     </properties>
     <CLASSES>
+<<<<<<< HEAD
       <root url="jar://$MAVEN_REPOSITORY$/org/tomlj/tomlj/1.1.0/tomlj-1.1.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.11.1/antlr4-runtime-4.11.1.jar!/" />
+=======
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/tomlj/tomlj/1.1.0/tomlj-1.1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/antlr/antlr4-runtime/4.11.1/antlr4-runtime-4.11.1.jar!/" />
+>>>>>>> studio-2024.3.2-alpha05
     </CLASSES>
     <JAVADOC />
     <SOURCES />

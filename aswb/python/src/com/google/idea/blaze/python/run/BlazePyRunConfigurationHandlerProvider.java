@@ -26,6 +26,11 @@ public class BlazePyRunConfigurationHandlerProvider
     implements BlazeCommandRunConfigurationHandlerProvider {
 
   @Override
+  public String getDisplayLabel() {
+    return "Python";
+  }
+
+  @Override
   public boolean canHandleKind(TargetState state, @Nullable Kind kind) {
     return PyDebugUtils.canUsePyDebugger(kind);
   }

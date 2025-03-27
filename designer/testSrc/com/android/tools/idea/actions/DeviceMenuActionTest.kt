@@ -166,6 +166,9 @@ class DeviceMenuActionTest {
               Automotive (1080p landscape) (1440 × 800 dp, ldpi)
               Automotive (1024p landscape) (1024 × 768 dp, mdpi)
               ------------------------------------------------------
+              XR
+              XR Device (1280 × 1279 dp, xhdpi)
+              ------------------------------------------------------
               Custom
               ------------------------------------------------------
               Generic Devices

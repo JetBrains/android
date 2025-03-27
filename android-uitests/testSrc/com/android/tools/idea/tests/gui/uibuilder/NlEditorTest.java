@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -91,6 +92,22 @@ public class NlEditorTest {
 
     // It should be selected now
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
+  }
+
+  // Regression test for b/376481249
+  @Test
+  public void testZoomToFitOnFirstOpening() throws Exception {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor();
+    layout.waitForRenderToFinish();
+
+    // We should have zoom-to-fit scale
+    assertFalse(layout.getSurface().target().getZoomController().canZoomToFit());
   }
 
   @Test

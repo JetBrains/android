@@ -20,20 +20,21 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
-import com.intellij.ide.DataManager
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.util.concurrency.ThreadingAssertions
 
 const val SPLITTER_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
@@ -76,6 +77,9 @@ interface LayoutInspectorManager : Disposable {
 
   /** Returns true if Layout Inspector can be enabled for [deviceId], false otherwise. */
   fun isSupported(deviceId: DeviceId): Boolean
+
+  /** Disable embedded Layout Inspector by removing the injected UI from all tabs */
+  fun disable()
 }
 
 /** This class is meant to be used on the UI thread, to avoid concurrency issues. */
@@ -85,7 +89,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   /** Tabs on which Layout Inspector is enabled. */
   private var tabsWithLayoutInspector = setOf<DeviceId>()
     set(value) {
-      ThreadingAssertions.assertEventDispatchThread()
+      ApplicationManager.getApplication().assertIsDispatchThread()
       if (value == field) {
         return
       }
@@ -109,7 +113,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   /** The tab on which Layout Inspector is running */
   private var selectedTab: SelectedTabState? = null
     set(value) {
-      ThreadingAssertions.assertEventDispatchThread()
+      ApplicationManager.getApplication().assertIsDispatchThread()
       if (field == value) {
         return
       }
@@ -165,10 +169,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   private var existingRunningDevicesTabs: List<DeviceId> = emptyList()
 
   init {
-    check(LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
-      "LayoutInspectorManager is intended for use only in embedded Layout Inspector."
-    }
-
     RunningDevicesStateObserver.getInstance(project)
       .addListener(
         object : RunningDevicesStateObserver.Listener {
@@ -219,23 +219,21 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   }
 
   private fun createTabState(deviceId: DeviceId): SelectedTabState {
-    ThreadingAssertions.assertEventDispatchThread()
-    val selectedTabContent = RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
-    val selectedTabDataProvider = checkNotNull(selectedTabContent?.component).let {
-      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, it)
-    }
+    val selectedTabContent =
+      RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
+    val selectedDataContext =
+      IdeUiService.getInstance().createCustomizedDataContext(DataContext.EMPTY_CONTEXT, EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, selectedTabContent!!.component) })
 
-    val streamingContentPanel =
-      STREAMING_CONTENT_PANEL_KEY.getData(selectedTabDataProvider)
-    val displayView =
-      DISPLAY_VIEW_KEY.getData(selectedTabDataProvider)
+    val streamingContentPanel = selectedDataContext.getData(STREAMING_CONTENT_PANEL_KEY)!!
+    val displayView = selectedDataContext.getData(DISPLAY_VIEW_KEY)!!
 
     checkNotNull(selectedTabContent)
     checkNotNull(streamingContentPanel)
-    checkNotNull(displayView)
 
-    val tabComponents = TabComponents(
+    val tabComponents =
+      TabComponents(
         disposable = selectedTabContent,
         tabContentPanel = streamingContentPanel,
         tabContentPanelContainer = streamingContentPanel.parent,
@@ -246,13 +244,13 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   }
 
   override fun addStateListener(listener: LayoutInspectorManager.StateListener) {
-    ThreadingAssertions.assertEventDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
     updateListeners(listOf(listener))
     stateListeners.add(listener)
   }
 
   override fun enableLayoutInspector(deviceId: DeviceId, enable: Boolean) {
-    ThreadingAssertions.assertEventDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
 
     if (enable) {
       val toolWindow =
@@ -302,7 +300,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   }
 
   override fun isEnabled(deviceId: DeviceId): Boolean {
-    ThreadingAssertions.assertEventDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
     return selectedTab?.deviceId == deviceId
   }
 
@@ -315,10 +313,15 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     tabsWithLayoutInspector = emptySet()
   }
 
+  override fun disable() {
+    selectedTab = null
+    tabsWithLayoutInspector = emptySet()
+  }
+
   private fun updateListeners(
     listenersToUpdate: List<LayoutInspectorManager.StateListener> = stateListeners
   ) {
-    ThreadingAssertions.assertEventDispatchThread()
+    ApplicationManager.getApplication().assertIsDispatchThread()
     listenersToUpdate.forEach { listener -> listener.onStateUpdate(tabsWithLayoutInspector) }
   }
 }

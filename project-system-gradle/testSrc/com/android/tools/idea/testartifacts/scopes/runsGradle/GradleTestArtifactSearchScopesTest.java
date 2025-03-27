@@ -29,7 +29,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -85,7 +84,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testSrcFolderIncluding() throws Exception {
     loadProject(SIMPLE_APP_WITH_SCREENSHOT_TEST);
-    Module module1 = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), "app"));
+    Module module1 = LinkedAndroidModuleGroupUtilsKt.getMainModule(TestModuleUtil.findModule(getProject(), "app"));
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module1);
     assertNotNull(testArtifactSearchScopes);
 
@@ -134,10 +133,10 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assert unitTestModule != null;
 
     // In the beginning only androidTest includes the GSON dependency
-    Module androidTestModule = ModuleSystemUtil.getAndroidTestModule(module1holderModule);
+    Module androidTestModule = LinkedAndroidModuleGroupUtilsKt.getAndroidTestModule(module1holderModule);
     assert androidTestModule != null;
 
-    Module mainModule = ModuleSystemUtil.getMainModule(module1holderModule);
+    Module mainModule = LinkedAndroidModuleGroupUtilsKt.getMainModule(module1holderModule);
     GlobalSearchScope mainModuleModuleWithDependenciesScope = mainModule.getModuleWithLibrariesScope();
     assertScopeContainsLibrary(mainModuleModuleWithDependenciesScope, gson, false);
 
@@ -219,7 +218,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   @NotNull
   private TestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
     loadProject(SYNC_MULTIPROJECT);
-    Module module1 = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), moduleName));
+    Module module1 = LinkedAndroidModuleGroupUtilsKt.getMainModule(TestModuleUtil.findModule(getProject(), moduleName));
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module1);
     assertNotNull(testArtifactSearchScopes);
     return testArtifactSearchScopes;

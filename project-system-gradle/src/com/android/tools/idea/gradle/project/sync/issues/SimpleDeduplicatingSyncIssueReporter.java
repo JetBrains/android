@@ -22,11 +22,11 @@ import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.project.messages.SyncMessageWithContext;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.ImmutableList;
@@ -65,7 +65,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * A convenience method to report a single sync issue in tests.
    */
   @TestOnly
-  public final @NotNull List<SyncMessage> report(@NotNull IdeSyncIssue syncIssue,
+  public final @NotNull List<SyncMessageWithContext> report(@NotNull IdeSyncIssue syncIssue,
                                                  @NotNull Module module,
                                                  @Nullable VirtualFile buildFile) {
     return reportAll(ImmutableList.of(syncIssue), ImmutableMap.of(syncIssue, module),
@@ -73,10 +73,10 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
   }
 
   @Override
-  public final @NotNull List<SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
-                                                    @NotNull Map<IdeSyncIssue, Module> moduleMap,
-                                                    @NotNull Map<Module, VirtualFile> buildFileMap) {
-    final var result = new ArrayList<SyncMessage>();
+  public final @NotNull List<SyncMessageWithContext> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+                                                               @NotNull Map<IdeSyncIssue, Module> moduleMap,
+                                                               @NotNull Map<Module, VirtualFile> buildFileMap) {
+    final var result = new ArrayList<SyncMessageWithContext>();
     // Group by the deduplication key.
     Map<Object, List<IdeSyncIssue>> groupedIssues = new LinkedHashMap<>();
     for (IdeSyncIssue issue : syncIssues) {
@@ -97,7 +97,8 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       List<Module> affectedModules =
         entry.stream().map(moduleMap::get).filter(Objects::nonNull).distinct().sorted(Comparator.comparing(Module::getName))
              .collect(Collectors.toList());
-      result.add(createSyncMessage(module.getProject(), entry, affectedModules, buildFileMap, getMessageType(entry)));
+      SyncMessage syncMessage = createSyncMessage(module.getProject(), entry, affectedModules, buildFileMap, getMessageType(entry));
+      result.add(new SyncMessageWithContext(syncMessage, affectedModules));
     }
     return result;
   }
@@ -266,7 +267,6 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                          @NotNull Map<Module, VirtualFile> buildFileMap,
                                          @NotNull MessageType type) {
     assert !syncIssues.isEmpty();
-    GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
     PositionInFile position = null;
     // If we only have one module/file allow us to navigate to it.
     if (affectedModules.size() == 1) {

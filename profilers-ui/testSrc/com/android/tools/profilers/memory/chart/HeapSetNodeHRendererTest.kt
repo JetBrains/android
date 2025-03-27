@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory.chart
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -35,6 +34,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.awt.Font
 import java.awt.Paint
 import java.awt.Shape

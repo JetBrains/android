@@ -20,7 +20,7 @@ import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.EXT_GRADLE_KTS
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.fileTypes.FontFileType
-import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
+import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.android.tools.idea.lang.aidl.AidlFileType
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType
 import com.intellij.ide.highlighter.JavaFileType

@@ -5,103 +5,148 @@
 load(
     ":build_dependencies_deps.bzl",
     "ANDROID_IDE_INFO",
-    "CPP_COMPILE_ACTION_NAME",
-    "C_COMPILE_ACTION_NAME",
     "ZIP_TOOL_LABEL",
+    _ide_cc_not_validated = "IDE_CC",
+    _ide_java_not_validated = "IDE_JAVA",
+    _ide_java_proto_not_validated = "IDE_JAVA_PROTO",
+    _ide_kotlin_not_validated = "IDE_KOTLIN",
 )
 
-ALWAYS_BUILD_RULES = "java_proto_library,java_lite_proto_library,java_mutable_proto_library,kt_proto_library_helper,_java_grpc_library,_java_lite_grpc_library,kt_grpc_library_helper,java_stubby_library,kt_stubby_library_helper,aar_import,java_import"
+ALWAYS_BUILD_RULES = "java_proto_library,java_lite_proto_library,java_mutable_proto_library,kt_proto_library_helper,_java_grpc_library,_java_lite_grpc_library,kt_grpc_library_helper,java_stubby_library,kt_stubby_library_helper,aar_import,java_import, j2kt_native_import"
 
-PROTO_RULE_KINDS = [
-    "java_proto_library",
-    "java_lite_proto_library",
-    "java_mutable_proto_library",
-    "kt_proto_library_helper",
-]
+def _rule_function(
+        rule):  # @unused
+    return []
 
-SRC_ATTRS = [
-    "srcs",
-    "java_srcs",
-    "kotlin_srcs",
-    "java_test_srcs",
-    "kotlin_test_srcs",
-    "common_srcs",
-]
+def _target_rule_function(
+        target,  # @unused
+        rule):  # @unused
+    return []
 
-def _package_dependencies_impl(target, ctx):
-    java_info_file = _write_java_target_info(target, ctx)
-    cc_info_file = _write_cc_target_info(target, ctx)
+def _unique(values):
+    return {k: None for k in values}.keys()
+
+def _validate_ide(unvalidated, template):
+    "Basic validation that a provided implementation conforms to a given template"
+    for a in dir(template):
+        if not hasattr(unvalidated, a):
+            fail("attribute missing: ", a, unvalidated)
+        elif type(getattr(unvalidated, a)) != type(getattr(template, a)):
+            fail("attribute type mismatch: ", a, type(getattr(unvalidated, a)), type(getattr(template, a)))
+    return struct(**{a: getattr(unvalidated, a) for a in dir(template) if a not in dir(struct())})
+
+IDE_JAVA = _validate_ide(
+    _ide_java_not_validated,
+    template = struct(
+        srcs_attributes = [],  # Additional srcs like attributes.
+        get_java_info = _target_rule_function,  # A function that takes a rule and returns a JavaInfo like structure (or the provider itself).
+    ),
+)
+
+IDE_KOTLIN = _validate_ide(
+    _ide_kotlin_not_validated,
+    template = struct(
+        srcs_attributes = [],  # Additional srcs like attributes.
+        follow_attributes = [],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
+        follow_additional_attributes = [],  # Additional attributes for the aspect to follow without requesting DependenciesInfo provider.
+        followed_dependencies = _rule_function,  # A function that takes a rule and returns a list of dependencies (targets or toolchain containers).
+        toolchains_aspects = [],  # Toolchain types for the aspect to follow.
+    ),
+)
+
+IDE_JAVA_PROTO = _validate_ide(
+    _ide_java_proto_not_validated,
+    template = struct(
+        get_java_proto_info = _target_rule_function,  # A function that takes a rule and returns a marker structure (empty for now).
+        srcs_attributes = [],  # Additional srcs like attributes.
+        follow_attributes = [],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
+        followed_dependencies = _rule_function,  # A function that takes a rule and returns a list of dependencies (targets or toolchain containers).
+        toolchains_aspects = [],  # Toolchain types for the aspect to follow.
+    ),
+)
+
+IDE_CC = _validate_ide(
+    _ide_cc_not_validated,
+    template = struct(
+        c_compile_action_name = "",  # An action named to be used with cc_common.get_memory_inefficient_command_line or similar.
+        cpp_compile_action_name = "",  # An action named to be used with cc_common.get_memory_inefficient_command_line or similar.
+        follow_attributes = ["_cc_toolchain"],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
+        toolchains_aspects = [],  # Toolchain types for the aspect to follow.
+        toolchain_target = _rule_function,  # A function that takes a rule and returns a toolchain target (or a toolchain container).
+    ),
+)
+
+JVM_SRC_ATTRS = _unique(["srcs"] + IDE_JAVA.srcs_attributes + IDE_JAVA_PROTO.srcs_attributes + IDE_KOTLIN.srcs_attributes)
+
+def _noneToEmpty(d):
+    return d if d else depset()
+
+def _package_dependencies_impl(target, ctx, params):
+    dep_info = target[DependenciesInfo]
+
+    if params.experiment_multi_info_file:
+        java_info_files = _noneToEmpty(dep_info.java_info_files)
+        cc_info_files = _noneToEmpty(dep_info.cc_info_files)
+    else:
+        target_to_artifacts = target[DependenciesInfo].target_to_artifacts
+        if target_to_artifacts:
+            java_info_files = [_write_java_target_info(target.label, target_to_artifacts, ctx)]
+        else:
+            java_info_files = []
+
+        cc_compilation_info = target[DependenciesInfo].cc_compilation_info
+        if cc_compilation_info:
+            cc_info_files = [_write_cc_target_info(target.label, cc_compilation_info, ctx)] + [dep_info.cc_toolchain_info.file] if dep_info.cc_toolchain_info else []
+        else:
+            cc_info_files = []
 
     return [OutputGroupInfo(
-        qsync_jars = target[DependenciesInfo].compile_time_jars.to_list(),
-        artifact_info_file = java_info_file,
-        qsync_aars = target[DependenciesInfo].aars.to_list(),
-        qsync_gensrcs = target[DependenciesInfo].gensrcs.to_list(),
-        cc_headers = target[DependenciesInfo].cc_headers.to_list(),
-        cc_info_file = cc_info_file + [target[DependenciesInfo].cc_toolchain_info.file] if target[DependenciesInfo].cc_toolchain_info else [],
+        qs_jars = _noneToEmpty(dep_info.compile_time_jars),
+        qs_info = java_info_files,
+        qs_aars = _noneToEmpty(dep_info.aars),
+        qs_gensrcs = _noneToEmpty(dep_info.gensrcs),
+        qs_cc_headers = _noneToEmpty(dep_info.cc_headers),
+        qs_cc_info = cc_info_files,
     )]
 
-def _write_java_target_info(target, ctx, custom_prefix = ""):
+def _write_java_target_info(label, target_to_artifacts, ctx, custom_prefix = ""):
     """Write java target info to a file in proto format.
 
     The proto format used is defined by proto bazel.intellij.JavaArtifacts.
     """
-    target_to_artifacts = dict(target[DependenciesInfo].target_to_artifacts)
-
-    jar_map = {}
-    for jar in target[DependenciesInfo].compile_time_jars.to_list():
-        if jar.owner:
-            owner = str(jar.owner)
-            if not owner in jar_map:
-                jar_map[owner] = []
-            jar_map[owner].append(jar)
-        else:
-            # I don't believe this will ever happen; `owner` can be None for a source file, but all
-            # the jar files are build artifacts. If it does happen we probably need to handle the
-            # case inside `_collect_own_java_artifacts` where the depset is populated.
-            print("WARNING: ignoring unowned jar file", jar.path)
-    for (owner, jars) in jar_map.items():
-        if owner not in target_to_artifacts:
-            target_to_artifacts[owner] = _target_to_artifact_entry(jars = jars)
-        else:
-            target_to_artifacts[owner] = dict(target_to_artifacts[owner])
-            target_to_artifacts[owner]["jars"] = list(target_to_artifacts[owner]["jars"])
-            target_to_artifacts[owner]["jars"].extend(jars)
-
-    if not target_to_artifacts:
-        return []
-    file_name = custom_prefix + target.label.name + ".java-info.txt"
+    file_name = custom_prefix + label.name + ".java-info.txt"
     artifact_info_file = ctx.actions.declare_file(file_name)
     ctx.actions.write(
         artifact_info_file,
         _encode_target_info_proto(target_to_artifacts),
     )
-    return [artifact_info_file]
+    return artifact_info_file
 
-def _write_cc_target_info(target, ctx):
+def _write_cc_target_info(label, cc_compilation_info, ctx):
     """Write CC target info to a file in proto format.
 
     The proto format used defined by proto bazel.intellij.CcCompilationInfo.
     """
-    if not target[DependenciesInfo].cc_info:
-        return []
-    cc_info_file_name = target.label.name + ".cc-info.txt"
+    cc_info_file_name = label.name + ".cc-info.txt"
     cc_info_file = ctx.actions.declare_file(cc_info_file_name)
     ctx.actions.write(
         cc_info_file,
-        _encode_cc_info_proto(target.label, target[DependenciesInfo].cc_info),
+        _encode_cc_compilation_info_proto(label, cc_compilation_info),
     )
-    return [cc_info_file]
+    return cc_info_file
 
 DependenciesInfo = provider(
     "The out-of-project dependencies",
     fields = {
+        "label": "the label of a target it describes",
+        "java_info_files": "a list of java info files",
         "compile_time_jars": "a list of jars generated by targets",
         "target_to_artifacts": "a map between a target and all its artifacts",
         "aars": "a list of aars with resource files",
         "gensrcs": "a list of sources generated by project targets",
         "expand_sources": "boolean, true if the sources for this target should be expanded when it appears inside another rules srcs list",
-        "cc_info": "a structure containing info required to compile cc sources",
+        "cc_info_files": "a list of cc info files",
+        "cc_compilation_info": "a structure containing info required to compile cc sources",
         "cc_headers": "a depset of generated headers required to compile cc sources",
         "cc_toolchain_info": "struct containing cc toolchain info, with keys file (the output file) and id (unique ID for the toolchain info, referred to from elsewhere)",
         "test_mode_own_files": "a structure describing Java artifacts required when the target is requested within the project scope",
@@ -110,56 +155,141 @@ DependenciesInfo = provider(
 )
 
 def create_dependencies_info(
+        label,
+        java_info_files = depset(),
         compile_time_jars = depset(),
         target_to_artifacts = {},
         aars = depset(),
         gensrcs = depset(),
         expand_sources = False,
-        cc_info = None,
+        cc_info_files = depset(),
+        cc_compilation_info = None,
         cc_headers = depset(),
         cc_toolchain_info = None,
         test_mode_own_files = None,
         test_mode_cc_src_deps = depset()):
     """A helper function to create a DependenciesInfo provider instance."""
     return DependenciesInfo(
+        label = label,
+        java_info_files = java_info_files,
         compile_time_jars = compile_time_jars,
         target_to_artifacts = target_to_artifacts,
         aars = aars,
         gensrcs = gensrcs,
         expand_sources = expand_sources,
-        cc_info = cc_info,
+        cc_info_files = cc_info_files,
+        cc_compilation_info = cc_compilation_info,
         cc_headers = cc_headers,
         cc_toolchain_info = cc_toolchain_info,
         test_mode_own_files = test_mode_own_files,
         test_mode_cc_src_deps = test_mode_cc_src_deps,
     )
 
-def merge_dependencies_info(dep_infos):
+def create_java_dependencies_info(
+        compile_time_jars,
+        info_files,
+        target_to_artifacts,
+        aars,
+        gensrcs,
+        expand_sources,
+        test_mode_own_files):
+    """A helper function to create a DependenciesInfo provider instance."""
+    return struct(
+        compile_time_jars = compile_time_jars,
+        info_files = info_files,
+        target_to_artifacts = target_to_artifacts,
+        aars = aars,
+        gensrcs = gensrcs,
+        expand_sources = expand_sources,
+        test_mode_own_files = test_mode_own_files,
+    )
+
+def create_cc_dependencies_info(
+        cc_info_files = depset(),
+        cc_compilation_info = None,
+        cc_headers = depset(),
+        cc_toolchain_info = None,
+        test_mode_cc_src_deps = depset()):
+    """A helper function to create a DependenciesInfo provider instance."""
+    return struct(
+        cc_info_files = cc_info_files,
+        cc_compilation_info = cc_compilation_info,
+        cc_headers = cc_headers,
+        cc_toolchain_info = cc_toolchain_info,
+        test_mode_cc_src_deps = test_mode_cc_src_deps,
+    )
+
+def create_cc_toolchain_info(
+        cc_toolchain_info = None,
+        test_mode_cc_src_deps = depset()):
+    """A helper function to create a DependenciesInfo provider instance."""
+    return struct(
+        cc_toolchain_info = cc_toolchain_info,
+        test_mode_cc_src_deps = test_mode_cc_src_deps,
+    )
+
+def merge_dependencies_info(
+        target,
+        ctx,  # @unused
+        java_dep_info,
+        cc_dep_info,
+        cc_toolchain_dep_info,
+        experiment_multi_info_file):
     """Merge multiple DependenciesInfo providers into one.
 
-    Depsets and dicts are merged. For members such as `cc_info`, we require that at most one of the
+    Depsets and dicts are merged. For members such as `cc_compilation_info`, we require that at most one of the
     DependenciesInfo's defines this which should always be the case.
+
+    Args:
+      target: the target.
+      ctx: the context which is ignored in this function.
+      java_dep_info: java dep info.
+      cc_dep_info: cc dep info.
+      cc_toolchain_dep_info: cc toolchain dep info.
+      experiment_multi_info_file: experiment multi info file flag.
+    Returns:
+      Merged dependencies info.
     """
-    if len(dep_infos) == 0:
-        return []
-    merged = create_dependencies_info()
-    for dep_info in dep_infos:
-        merged = create_dependencies_info(
-            compile_time_jars = depset(transitive = [merged.compile_time_jars, dep_info.compile_time_jars]),
-            target_to_artifacts = dict(merged.target_to_artifacts, **dep_info.target_to_artifacts),
-            aars = depset(transitive = [merged.aars, dep_info.aars]),
-            gensrcs = depset(transitive = [merged.gensrcs, dep_info.gensrcs]),
-            expand_sources = merged.expand_sources or dep_info.expand_sources,
-            cc_info = one_of(merged.cc_info, dep_info.cc_info),
-            cc_headers = depset(transitive = [merged.cc_headers, dep_info.cc_headers]),
-            cc_toolchain_info = one_of(merged.cc_toolchain_info, dep_info.cc_toolchain_info),
-            test_mode_own_files = one_of(merged.test_mode_own_files, dep_info.test_mode_own_files),
-            test_mode_cc_src_deps = depset(transitive = [merged.test_mode_cc_src_deps, dep_info.test_mode_cc_src_deps]),
-        )
-    return [merged]
+
+    if not java_dep_info and not cc_dep_info and not cc_toolchain_dep_info:
+        return create_dependencies_info(label = target.label)
+
+    if cc_dep_info and cc_toolchain_dep_info:
+        test_mode_cc_src_deps = depset(transitive = [cc_dep_info.test_mode_cc_src_deps, cc_toolchain_dep_info.test_mode_cc_src_deps])
+    elif cc_dep_info:
+        test_mode_cc_src_deps = cc_dep_info.test_mode_cc_src_deps
+    elif cc_toolchain_dep_info:
+        test_mode_cc_src_deps = cc_toolchain_dep_info.test_mode_cc_src_deps
+    else:
+        test_mode_cc_src_deps = None
+
+    merged = create_dependencies_info(
+        label = target.label,
+        java_info_files = java_dep_info.info_files if experiment_multi_info_file and java_dep_info else None,
+        compile_time_jars = java_dep_info.compile_time_jars if java_dep_info else None,
+        target_to_artifacts = java_dep_info.target_to_artifacts if not experiment_multi_info_file and java_dep_info else None,
+        aars = java_dep_info.aars if java_dep_info else None,
+        gensrcs = java_dep_info.gensrcs if java_dep_info else None,
+        expand_sources = java_dep_info.expand_sources if java_dep_info else None,
+        cc_info_files = cc_dep_info.cc_info_files if experiment_multi_info_file and cc_dep_info else None,
+        cc_compilation_info = cc_dep_info.cc_compilation_info if cc_dep_info else None,
+        cc_headers = cc_dep_info.cc_headers if cc_dep_info else None,
+        cc_toolchain_info = cc_toolchain_dep_info.cc_toolchain_info if cc_toolchain_dep_info else None,
+        test_mode_own_files = java_dep_info.test_mode_own_files if java_dep_info else None,
+        test_mode_cc_src_deps = test_mode_cc_src_deps,
+    )
+    return merged
 
 def one_of(a, b):
-    """Returns whichever of a or b is not None, None if both are, or fails if neither are."""
+    """
+    Returns whichever of a or b is not None, None if both are, or fails if neither are.
+
+    Args:
+      a: maybe None argument.
+      b: maybe None argument.
+    Returns:
+      Whichever of a or b is not None, None if both are, or fails if neither are.
+    """
     if a == None:
         return b
     if b == None:
@@ -196,26 +326,32 @@ def _encode_file_list(files):
             r.append(struct(file = f.path))
     return r
 
-def _encode_cc_info_proto(label, cc_info):
+def _encode_cc_compilation_info_proto(label, cc_compilation_info):
     return proto.encode_text(
         struct(targets = [
             struct(
                 label = str(label),
-                defines = cc_info.transitive_defines,
-                include_directories = cc_info.transitive_include_directory,
-                quote_include_directories = cc_info.transitive_quote_include_directory,
-                system_include_directories = cc_info.transitive_system_include_directory,
-                framework_include_directories = cc_info.framework_include_directory,
-                gen_hdrs = _encode_file_list(cc_info.gen_headers),
-                toolchain_id = cc_info.toolchain_id,
+                defines = cc_compilation_info.transitive_defines,
+                include_directories = cc_compilation_info.transitive_include_directory,
+                quote_include_directories = cc_compilation_info.transitive_quote_include_directory,
+                system_include_directories = cc_compilation_info.transitive_system_include_directory,
+                framework_include_directories = cc_compilation_info.framework_include_directory,
+                gen_hdrs = _encode_file_list(cc_compilation_info.gen_headers),
+                toolchain_id = cc_compilation_info.toolchain_id,
             ),
         ]),
     )
 
-package_dependencies = aspect(
-    implementation = _package_dependencies_impl,
-    required_aspect_providers = [[DependenciesInfo]],
-)
+def package_dependencies(parameters):
+    def _impl(target, ctx):
+        return _package_dependencies_impl(target, ctx, parameters)
+
+    return aspect(
+        implementation = _impl,
+        required_aspect_providers = [[DependenciesInfo]],
+    )
+
+package_dependencies_for_tests = package_dependencies(struct(experiment_multi_info_file = False))
 
 def declares_android_resources(target, ctx):
     """
@@ -274,15 +410,11 @@ def declares_aar_import(ctx):
     """
     return ctx.rule.kind == "aar_import" and hasattr(ctx.rule.attr, "aar")
 
-def _collect_dependencies_impl(target, ctx):
+def _collect_dependencies_impl(target, ctx, params):
     return _collect_dependencies_core_impl(
         target,
         ctx,
-        ctx.attr.include,
-        ctx.attr.exclude,
-        ctx.attr.always_build_rules,
-        ctx.attr.generate_aidl_classes,
-        ctx.attr.use_generated_srcjars,
+        params,
         test_mode = False,
     )
 
@@ -290,11 +422,14 @@ def _collect_all_dependencies_for_tests_impl(target, ctx):
     return _collect_dependencies_core_impl(
         target,
         ctx,
-        include = None,
-        exclude = None,
-        always_build_rules = ALWAYS_BUILD_RULES,
-        generate_aidl_classes = None,
-        use_generated_srcjars = True,
+        struct(
+            include = None,
+            exclude = None,
+            always_build_rules = ALWAYS_BUILD_RULES,
+            generate_aidl_classes = None,
+            use_generated_srcjars = True,
+            experiment_multi_info_file = False,
+        ),
         test_mode = True,
     )
 
@@ -302,11 +437,14 @@ def collect_dependencies_for_test(target, ctx, include = []):
     return _collect_dependencies_core_impl(
         target,
         ctx,
-        include = ",".join(include),
-        exclude = "",
-        always_build_rules = ALWAYS_BUILD_RULES,
-        generate_aidl_classes = None,
-        use_generated_srcjars = True,
+        struct(
+            include = include,
+            exclude = "",
+            always_build_rules = ALWAYS_BUILD_RULES,
+            generate_aidl_classes = None,
+            use_generated_srcjars = True,
+            experiment_multi_info_file = False,
+        ),
         test_mode = False,
     )
 
@@ -326,49 +464,57 @@ def _target_within_project_scope(label, include, exclude):
     package = label.package
     result = False
     if include:
-        for inc in [Label(i) for i in include.split(",")]:
-            if _get_repo_name(inc) == repo and _package_prefix_match(package, inc.package):
-                result = True
-                break
+        if len(include) == 1 and include[0] == "//":
+            # when workspace root is included
+            result = True
+        else:
+            for inc in [Label(i) for i in include]:
+                if _get_repo_name(inc) == repo and _package_prefix_match(package, inc.package):
+                    result = True
+                    break
     if result and len(exclude) > 0:
-        for exc in [Label(i) for i in exclude.split(",")]:
+        for exc in [Label(i) for i in exclude]:
             if _get_repo_name(exc) == repo and _package_prefix_match(package, exc.package):
                 result = False
                 break
     return result
 
-def _get_followed_java_dependency_infos(rule):
+def _get_dependency_attribute(rule, attr):
+    if hasattr(rule.attr, attr):
+        to_add = getattr(rule.attr, attr)
+        if type(to_add) == "list":
+            return [t for t in to_add if type(t) == "Target"]
+        elif type(to_add) == "Target":
+            return [to_add]
+    return []
+
+def _get_followed_java_dependency_infos(
+        label,  # @unused
+        rule):
     deps = []
-    for (attr, kinds) in FOLLOW_JAVA_ATTRIBUTES_BY_RULE_KIND:
-        if hasattr(rule.attr, attr) and (not kinds or rule.kind in kinds):
-            to_add = getattr(rule.attr, attr)
-            if type(to_add) == "list":
-                deps += [t for t in to_add if type(t) == "Target"]
-            elif type(to_add) == "Target":
-                deps.append(to_add)
+    for attr in FOLLOW_JAVA_ATTRIBUTES:
+        deps.extend(_get_dependency_attribute(rule, attr))
+
+    deps.extend(IDE_JAVA_PROTO.followed_dependencies(rule))
+    deps.extend(IDE_KOTLIN.followed_dependencies(rule))
 
     return {
-        str(dep.label): dep[DependenciesInfo]
+        str(dep[DependenciesInfo].label): dep[DependenciesInfo]  # NOTE: This handles duplicates.
         for dep in deps
-        if DependenciesInfo in dep and dep[DependenciesInfo].target_to_artifacts
+        if DependenciesInfo in dep and (dep[DependenciesInfo].java_info_files or dep[DependenciesInfo].target_to_artifacts)
     }
 
 def _collect_own_java_artifacts(
         target,
         ctx,
-        dependency_infos,
         always_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
         target_is_within_project_scope):
     rule = ctx.rule
 
-    # Toolchains are collected for proto targets via aspect traversal, but jars
-    # produced for proto deps of the underlying proto_library are not
-    can_follow_dependencies = bool(dependency_infos) and not ctx.rule.kind in PROTO_RULE_KINDS
-
     must_build_main_artifacts = (
-        not target_is_within_project_scope or rule.kind in always_build_rules.split(",")
+        not target_is_within_project_scope or rule.kind in always_build_rules
     )
 
     own_jar_files = []
@@ -379,6 +525,12 @@ def _collect_own_java_artifacts(
     own_srcjar_files = []
     resource_package = ""
 
+    java_info = IDE_JAVA.get_java_info(target, ctx.rule)
+
+    # Targets recognised as java_proto_info can have java_info dependencies.
+    java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
+    android = _get_android_provider(target)
+
     if must_build_main_artifacts:
         # For rules that we do not follow dependencies of (either because they don't
         # have further dependencies with JavaInfo or do so in attributes we don't care)
@@ -387,11 +539,8 @@ def _collect_own_java_artifacts(
         # This is done primarily for rules like proto, whose toolchain classes
         # are collected via attribute traversal, but still requires jars for any
         # proto deps of the underlying proto_library.
-        if JavaInfo in target:
-            if can_follow_dependencies:
-                own_jar_depsets.append(target[JavaInfo].compile_jars)
-            else:
-                own_jar_depsets.append(target[JavaInfo].transitive_compile_time_jars)
+        if java_info:
+            own_jar_depsets.append(java_info.compile_jars)
 
         if declares_android_resources(target, ctx):
             ide_aar = _get_ide_aar_file(target, ctx)
@@ -407,7 +556,6 @@ def _collect_own_java_artifacts(
                 own_ide_aar_files.append(ide_aar)
 
     else:
-        android = _get_android_provider(target)
         if android != None:
             resource_package = android.java_package
 
@@ -433,8 +581,8 @@ def _collect_own_java_artifacts(
 
         # Add generated java_outputs (e.g. from annotation processing)
         generated_class_jars = []
-        if JavaInfo in target:
-            for java_output in target[JavaInfo].java_outputs:
+        if java_info:
+            for java_output in java_info.java_outputs:
                 # Prefer source jars if they exist and are requested:
                 if use_generated_srcjars and java_output.generated_source_jar:
                     own_gensrc_files.append(java_output.generated_source_jar)
@@ -445,25 +593,20 @@ def _collect_own_java_artifacts(
             own_jar_files += generated_class_jars
 
         # Add generated sources for included targets
-        for src_attr in SRC_ATTRS:
+        for src_attr in JVM_SRC_ATTRS:
             if hasattr(rule.attr, src_attr):
                 for src in getattr(rule.attr, src_attr):
-                    for file in src.files.to_list():
-                        if not file.is_source:
-                            expand_sources = False
-                            if str(file.owner) in dependency_infos:
-                                src_depinfo = dependency_infos[str(file.owner)]
-                                expand_sources = src_depinfo.expand_sources
-
-                            # If the target that generates this source specifies that
-                            # the sources should be expanded, we ignore the generated
-                            # sources - the IDE will substitute the target sources
-                            # themselves instead.
-                            if not expand_sources:
+                    # If the target that generates this source specifies that
+                    # the sources should be expanded, we ignore the generated
+                    # sources - the IDE will substitute the target sources
+                    # themselves instead.
+                    if not (DependenciesInfo in src and src[DependenciesInfo].expand_sources):
+                        for file in src.files.to_list():
+                            if not file.is_source:
                                 own_gensrc_files.append(file)
 
     if not target_is_within_project_scope:
-        for src_attr in SRC_ATTRS:
+        for src_attr in JVM_SRC_ATTRS:
             if hasattr(rule.attr, src_attr):
                 for src in getattr(rule.attr, src_attr):
                     for file in src.files.to_list():
@@ -479,13 +622,25 @@ def _collect_own_java_artifacts(
                     else:
                         own_gensrc_files.append(file)
 
+    if not (java_info or android or java_proto_info or own_gensrc_files or own_src_files or own_srcjar_files):
+        return None
+    if own_jar_files or len(own_jar_depsets) > 1:
+        own_jar_depset = depset(own_jar_files, transitive = own_jar_depsets)
+        # here two cases left: own_jar_files is None/[] and own_jar_depsets is None/[] or a singleton.
+
+    elif not own_jar_depsets:
+        own_jar_depset = depset()
+    elif len(own_jar_depsets) == 1:
+        own_jar_depset = own_jar_depsets[0]
+    else:
+        # See the comment above.
+        fail("Unexpected: " + str(own_jar_files) + " " + str(own_jar_depsets))
     return struct(
-        jars = own_jar_files,
-        jar_depsets = own_jar_depsets,
-        ide_aars = own_ide_aar_files,
-        gensrcs = own_gensrc_files,
-        srcs = own_src_files,
-        srcjars = own_srcjar_files,
+        jar_depset = own_jar_depset,
+        ide_aar_depset = depset(own_ide_aar_files),
+        gensrc_depset = depset(own_gensrc_files),
+        src_depset = depset(own_src_files),
+        srcjar_depset = depset(own_srcjar_files),
         android_resources_package = resource_package,
     )
 
@@ -505,6 +660,10 @@ def _target_to_artifact_entry(
         "android_resources_package": android_resources_package,
     }
 
+# Collects artifacts exposed by this java-like (i.e. java, android or proto-for-java) target and its dependencies if it is such a target.
+# For non-Java targets only generated sources are collected without recursing to its dependencies. Therefore, for example, if there are
+# generated proto files they won't be collected and this use case will need to be supported explicitly. Not following non-Java dependencies
+# while collecting Java info files substantially reduces the number of generated and fetched info files.
 def _collect_own_and_dependency_java_artifacts(
         target,
         ctx,
@@ -512,67 +671,64 @@ def _collect_own_and_dependency_java_artifacts(
         always_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
-        target_is_within_project_scope):
+        target_is_within_project_scope,
+        experiment_multi_info_file):
     own_files = _collect_own_java_artifacts(
         target,
         ctx,
-        dependency_infos,
         always_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
         target_is_within_project_scope,
     )
 
-    has_own_artifacts = (
-        len(own_files.jars) +
-        len(own_files.jar_depsets) +
-        len(own_files.ide_aars) +
-        len(own_files.gensrcs) +
-        len(own_files.srcs) +
-        len(own_files.srcjars) +
-        (1 if own_files.android_resources_package else 0)
-    ) > 0
+    if not own_files:
+        # Any target recognized as a java related target gets at least
+        # an empty own_files structure.
+        return None
 
     target_to_artifacts = {}
-    if has_own_artifacts:
-        # Pass the following lists through depset() to to remove any duplicates.
-        ide_aars = depset(own_files.ide_aars).to_list()
-        gen_srcs = depset(own_files.gensrcs).to_list()
-        target_to_artifacts[str(target.label)] = _target_to_artifact_entry(
-            ide_aars = ide_aars,
-            gen_srcs = gen_srcs,
-            srcs = own_files.srcs,
-            srcjars = own_files.srcjars,
-            android_resources_package = own_files.android_resources_package,
-        )
-    elif target_is_within_project_scope:
-        target_to_artifacts[str(target.label)] = _target_to_artifact_entry()
 
-    own_and_transitive_jar_depsets = list(own_files.jar_depsets)  # Copy to prevent changes to own_jar_depsets.
+    # Flattening is fine here as these are files from a single target (maybe some are re-exported from a few of its depende3ncies).
+    jars = own_files.jar_depset.to_list()
+    ide_aars = own_files.ide_aar_depset.to_list()
+    gen_srcs = own_files.gensrc_depset.to_list()  # Flattening is fine here (these are files from one target)
+    target_to_artifacts[str(target.label)] = _target_to_artifact_entry(
+        jars = jars,
+        ide_aars = ide_aars,
+        gen_srcs = gen_srcs,
+        srcs = own_files.src_depset.to_list(),
+        srcjars = own_files.srcjar_depset.to_list(),
+        android_resources_package = own_files.android_resources_package,
+    )
+
+    own_and_transitive_jar_depsets = [own_files.jar_depset]  # Copy to prevent changes to own_files.jar_depset.
     own_and_transitive_ide_aar_depsets = []
     own_and_transitive_gensrc_depsets = []
 
     for info in dependency_infos.values():
-        target_to_artifacts.update(info.target_to_artifacts)
+        if not experiment_multi_info_file:
+            # NOTE: This is where the dependency graph used to be flattened causing huge total download size in the multi-target mode.
+            target_to_artifacts.update(info.target_to_artifacts)
         own_and_transitive_jar_depsets.append(info.compile_time_jars)
         own_and_transitive_ide_aar_depsets.append(info.aars)
         own_and_transitive_gensrc_depsets.append(info.gensrcs)
 
-    return (
-        target_to_artifacts,
-        depset(own_files.jars, transitive = own_and_transitive_jar_depsets),
-        depset(own_files.ide_aars, transitive = own_and_transitive_ide_aar_depsets),
-        depset(own_files.gensrcs, transitive = own_and_transitive_gensrc_depsets),
+    return struct(
+        target_to_artifacts = target_to_artifacts,
+        compile_jars = depset(transitive = own_and_transitive_jar_depsets),
+        aars = depset(ide_aars, transitive = own_and_transitive_ide_aar_depsets),
+        gensrcs = depset(gen_srcs, transitive = own_and_transitive_gensrc_depsets),
     )
 
-def _get_followed_cc_dependency_info(rule):
-    if hasattr(rule.attr, "_cc_toolchain"):
-        cc_toolchain_target = getattr(rule.attr, "_cc_toolchain")
-        if DependenciesInfo in cc_toolchain_target:
-            return cc_toolchain_target[DependenciesInfo]
+def _get_cc_toolchain_dependency_info(rule):
+    cc_toolchain_target = IDE_CC.toolchain_target(rule)
+    if cc_toolchain_target and DependenciesInfo in cc_toolchain_target:
+        return cc_toolchain_target[DependenciesInfo]
     return None
 
-def _collect_own_and_dependency_cc_info(target, dependency_info, test_mode):
+def _collect_own_and_dependency_cc_info(target, rule, test_mode):
+    dependency_info = _get_cc_toolchain_dependency_info(rule)
     compilation_context = target[CcInfo].compilation_context
     cc_toolchain_info = None
     test_mode_cc_src_deps = depset()
@@ -616,90 +772,98 @@ def _collect_own_and_dependency_cc_info(target, dependency_info, test_mode):
 def _collect_dependencies_core_impl(
         target,
         ctx,
-        include,
-        exclude,
-        always_build_rules,
-        generate_aidl_classes,
-        use_generated_srcjars,
+        params,
         test_mode):
-    dep_infos = _collect_java_dependencies_core_impl(
+    if hasattr(ctx.rule.attr, "tags"):
+        if "no-ide" in ctx.rule.attr.tags:
+            return create_dependencies_info(label = target.label)
+
+    java_dep_info = _collect_java_dependencies_core_impl(
         target,
         ctx,
-        include,
-        exclude,
-        always_build_rules,
-        generate_aidl_classes,
-        use_generated_srcjars,
+        params,
         test_mode,
     )
+    cc_dep_info = None
     if CcInfo in target:
-        dep_infos.append(_collect_cc_dependencies_core_impl(target, ctx, test_mode))
+        cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx, test_mode, params.experiment_multi_info_file)
+    cc_toolchain_dep_info = None
     if cc_common.CcToolchainInfo in target:
-        dep_infos.append(_collect_cc_toolchain_info(target, ctx))
-    return merge_dependencies_info(dep_infos)
+        cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
+    return merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchain_dep_info, params.experiment_multi_info_file)
 
 def _collect_java_dependencies_core_impl(
         target,
         ctx,
-        include,
-        exclude,
-        always_build_rules,
-        generate_aidl_classes,
-        use_generated_srcjars,
+        params,
         test_mode):
-    target_is_within_project_scope = _target_within_project_scope(target.label, include, exclude) and not test_mode
-    dependency_infos = _get_followed_java_dependency_infos(ctx.rule)
+    target_is_within_project_scope = _target_within_project_scope(target.label, params.include, params.exclude) and not test_mode
+    dependency_infos = _get_followed_java_dependency_infos(target.label, ctx.rule)
 
-    target_to_artifacts, compile_jars, aars, gensrcs = _collect_own_and_dependency_java_artifacts(
+    own_and_dependencies = _collect_own_and_dependency_java_artifacts(
         target,
         ctx,
         dependency_infos,
-        always_build_rules,
-        generate_aidl_classes,
-        use_generated_srcjars,
+        params.always_build_rules,
+        params.generate_aidl_classes,
+        params.use_generated_srcjars,
         target_is_within_project_scope,
+        params.experiment_multi_info_file,
     )
+
+    if own_and_dependencies == None:
+        return None
+
+    target_to_artifacts = own_and_dependencies.target_to_artifacts
+    compile_jars = own_and_dependencies.compile_jars
+    aars = own_and_dependencies.aars
+    gensrcs = own_and_dependencies.gensrcs
 
     test_mode_own_files = None
     if test_mode:
         within_scope_own_files = _collect_own_java_artifacts(
             target,
             ctx,
-            dependency_infos,
-            always_build_rules,
-            generate_aidl_classes,
-            use_generated_srcjars,
+            params.always_build_rules,
+            params.generate_aidl_classes,
+            params.use_generated_srcjars,
             target_is_within_project_scope = True,
         )
-        test_mode_own_files = struct(
-            test_mode_within_scope_own_jar_files = depset(within_scope_own_files.jars, transitive = within_scope_own_files.jar_depsets).to_list(),
-            test_mode_within_scope_own_ide_aar_files = within_scope_own_files.ide_aars,
-            test_mode_within_scope_own_gensrc_files = within_scope_own_files.gensrcs,
-        )
+        if within_scope_own_files:
+            test_mode_own_files = struct(
+                test_mode_within_scope_own_jar_files = within_scope_own_files.jar_depset.to_list(),
+                test_mode_within_scope_own_ide_aar_files = within_scope_own_files.ide_aar_depset.to_list(),
+                test_mode_within_scope_own_gensrc_files = within_scope_own_files.gensrc_depset.to_list(),
+            )
 
     expand_sources = False
     if hasattr(ctx.rule.attr, "tags"):
         if "ij-ignore-source-transform" in ctx.rule.attr.tags:
             expand_sources = True
 
-    return [
-        create_dependencies_info(
-            target_to_artifacts = target_to_artifacts,
-            compile_time_jars = compile_jars,
-            aars = aars,
-            gensrcs = gensrcs,
-            expand_sources = expand_sources,
-            test_mode_own_files = test_mode_own_files,
-        ),
-    ]
+    java_info_file = []
+    if params.experiment_multi_info_file:
+        java_info_file = _write_java_target_info(target.label, target_to_artifacts, ctx)
 
-def _collect_cc_dependencies_core_impl(target, ctx, test_mode):
-    dependency_info = _get_followed_cc_dependency_info(ctx.rule)
+    return create_java_dependencies_info(
+        info_files = depset([java_info_file], transitive = [d.java_info_files for d in dependency_infos.values()]) if params.experiment_multi_info_file else None,
+        target_to_artifacts = target_to_artifacts if not params.experiment_multi_info_file else None,
+        compile_time_jars = compile_jars,
+        aars = aars,
+        gensrcs = gensrcs,
+        expand_sources = expand_sources,
+        test_mode_own_files = test_mode_own_files,
+    )
 
-    cc_info = _collect_own_and_dependency_cc_info(target, dependency_info, test_mode)
+def _collect_cc_dependencies_core_impl(target, ctx, test_mode, experiment_multi_info_file):
+    cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule, test_mode)
+    cc_info_files = []
+    if experiment_multi_info_file:
+        cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
 
-    return create_dependencies_info(
-        cc_info = cc_info.compilation_info,
+    return create_cc_dependencies_info(
+        cc_info_files = depset(cc_info_files) if experiment_multi_info_file else None,
+        cc_compilation_info = cc_info.compilation_info,
         cc_headers = cc_info.gen_headers,
         cc_toolchain_info = cc_info.cc_toolchain_info,
         test_mode_cc_src_deps = cc_info.test_mode_cc_src_deps,
@@ -740,12 +904,12 @@ def _collect_cc_toolchain_info(target, ctx):
     )
     c_options = cc_common.get_memory_inefficient_command_line(
         feature_configuration = feature_config,
-        action_name = C_COMPILE_ACTION_NAME,
+        action_name = IDE_CC.c_compile_action_name,
         variables = c_variables,
     )
     cpp_options = cc_common.get_memory_inefficient_command_line(
         feature_configuration = feature_config,
-        action_name = CPP_COMPILE_ACTION_NAME,
+        action_name = IDE_CC.cpp_compile_action_name,
         variables = cpp_variables,
     )
     toolchain_id = str(target.label) + "%" + toolchain_info.target_gnu_system_name
@@ -770,7 +934,7 @@ def _collect_cc_toolchain_info(target, ctx):
         ),
     )
 
-    return create_dependencies_info(
+    return create_cc_toolchain_info(
         cc_toolchain_info = struct(file = cc_toolchain_file, id = toolchain_id),
         test_mode_cc_src_deps = depset([f for f in toolchain_info.all_files.to_list() if f.is_source]),
     )
@@ -854,56 +1018,45 @@ def _package_ide_aar(ctx, aar, file_map):
 #   2. A list of rule kinds to specify which rules for which the attribute labels
 #      need to be added as dependencies. If empty, the attribute is followed for
 #      all rules.
-FOLLOW_JAVA_ATTRIBUTES_BY_RULE_KIND = [
-    ("deps", []),
-    ("exports", []),
-    ("srcs", []),
-    ("_junit", []),
-    ("_aspect_proto_toolchain_for_javalite", []),
-    ("_aspect_java_proto_toolchain", []),
-    ("runtime", ["proto_lang_toolchain", "java_rpc_toolchain"]),
-    ("_toolchain", ["_java_grpc_library", "_java_lite_grpc_library", "kt_jvm_library_helper", "android_library", "kt_android_library"]),
-    ("kotlin_libs", ["kt_jvm_toolchain"]),
-]
+FOLLOW_JAVA_ATTRIBUTES = [
+    "deps",
+    "exports",
+    "srcs",
+    "_junit",
+    "_aspect_proto_toolchain_for_javalite",
+    "_aspect_java_proto_toolchain",
+] + IDE_KOTLIN.follow_attributes
 
-FOLLOW_CC_ATTRIBUTES = ["_cc_toolchain"]
+FOLLOW_JAVA_PROTO_ATTRIBUTES = IDE_JAVA_PROTO.follow_attributes
+FOLLOW_CC_ATTRIBUTES = IDE_CC.follow_attributes
 
-FOLLOW_ATTRIBUTES = [attr for (attr, _) in FOLLOW_JAVA_ATTRIBUTES_BY_RULE_KIND] + FOLLOW_CC_ATTRIBUTES
+FOLLOW_ADDITIONAL_ATTRIBUTES = ["runtime", "_toolchain"] + IDE_KOTLIN.follow_additional_attributes
 
-collect_dependencies = aspect(
-    implementation = _collect_dependencies_impl,
-    provides = [DependenciesInfo],
-    attr_aspects = FOLLOW_ATTRIBUTES,
-    attrs = {
-        "include": attr.string(
-            doc = "Comma separated list of workspace paths included in the project as source. Any targets inside here will not be built.",
-            mandatory = True,
-        ),
-        "exclude": attr.string(
-            doc = "Comma separated list of exclusions to 'include'.",
-            default = "",
-        ),
-        "always_build_rules": attr.string(
-            doc = "Comma separated list of rules. Any targets belonging to these rules will be built, regardless of location",
-            default = "",
-        ),
-        "generate_aidl_classes": attr.bool(
-            doc = "If True, generates classes for aidl files included as source for the project targets",
-            default = False,
-        ),
-        "use_generated_srcjars": attr.bool(
-            doc = "If True, collects generated source jars for a target instead of compiled jar",
-            default = False,
-        ),
-        "_build_zip": attr.label(
-            allow_files = True,
-            cfg = "exec",
-            executable = True,
-            default = ZIP_TOOL_LABEL,
-        ),
-    },
-    fragments = ["cpp"],
-)
+FOLLOW_ATTRIBUTES = _unique(FOLLOW_JAVA_ATTRIBUTES + FOLLOW_JAVA_PROTO_ATTRIBUTES + FOLLOW_CC_ATTRIBUTES + FOLLOW_ADDITIONAL_ATTRIBUTES)
+
+TOOLCHAINS_ASPECTS = IDE_KOTLIN.toolchains_aspects + IDE_JAVA_PROTO.toolchains_aspects + IDE_CC.toolchains_aspects
+
+def collect_dependencies(parameters):
+    def _impl(target, ctx):
+        return _collect_dependencies_impl(target, ctx, parameters)
+
+    return aspect(
+        implementation = _impl,
+        provides = [DependenciesInfo],
+        attr_aspects = FOLLOW_ATTRIBUTES,
+        attrs = {
+            "_build_zip": attr.label(
+                allow_files = True,
+                cfg = "exec",
+                executable = True,
+                default = ZIP_TOOL_LABEL,
+            ),
+        },
+        fragments = ["cpp"],
+        **{
+            "toolchains_aspects": TOOLCHAINS_ASPECTS,
+        } if TOOLCHAINS_ASPECTS else {}
+    )
 
 collect_all_dependencies_for_tests = aspect(
     doc = """
@@ -931,7 +1084,9 @@ collect_all_dependencies_for_tests = aspect(
 def _write_java_info_txt_impl(ctx):
     info_txt_files = []
     for dep in ctx.attr.deps:
-        info_txt_files.extend(_write_java_target_info(dep, ctx, custom_prefix = ctx.label.name + "."))
+        target_to_artifacts = dep[DependenciesInfo].target_to_artifacts
+        if target_to_artifacts:
+            info_txt_files.extend([_write_java_target_info(dep.label, target_to_artifacts, ctx, custom_prefix = ctx.label.name + ".")])
     return DefaultInfo(files = depset(info_txt_files))
 
 def collect_dependencies_aspect_for_tests(custom_aspect_impl):

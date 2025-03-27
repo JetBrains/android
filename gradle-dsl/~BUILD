@@ -56,6 +56,7 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -68,9 +69,10 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[module, test]",
+        "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide[module]",
         "//tools/adt/idea/.idea/libraries:mockito",
         "@intellij//:org.toml.lang",
+        "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang[module, test]",
     ],
 )
 
@@ -95,6 +97,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",

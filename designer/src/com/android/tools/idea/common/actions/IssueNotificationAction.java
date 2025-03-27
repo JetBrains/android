@@ -71,13 +71,13 @@ public class IssueNotificationAction extends ToggleAction {
     Presentation presentation = event.getPresentation();
 
     if (surface == null || !NlSupportedActionsKt.isActionSupported(surface, NlSupportedActions.TOGGLE_ISSUE_PANEL)) {
-      event.getPresentation().setEnabled(false);
+      event.getPresentation().setEnabledAndVisible(false);
       presentation.setText(SHOW_ISSUE);
       presentation.setDescription(DEFAULT_TOOLTIP);
       presentation.setIcon(DISABLED_ICON);
     }
     else {
-      event.getPresentation().setEnabled(true);
+      event.getPresentation().setEnabledAndVisible(true);
       IssueModel issueModel = surface.getIssueModel();
       boolean hasIssues = issueModel.hasIssues();
 

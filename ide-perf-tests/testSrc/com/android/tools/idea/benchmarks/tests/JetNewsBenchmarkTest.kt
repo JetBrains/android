@@ -63,17 +63,12 @@ class JetNewsBenchmarkTest : FullProjectBenchmark() {
   // No warmup, only one file per language
   @Test
   fun fullProjectLintInspection() {
-    val fileTypes = listOf(KotlinFileType.INSTANCE, TomlFileType)
     runInEdtAndWait {
-      for (fileType in fileTypes) {
-        measureLintInspections(
-          fileType,
-          PROJECT_NAME,
-          maxFiles = 1,
-          doWarmup = false,
-          doLogging = false
-        )
-      }
+      measureLintInspections(
+        PROJECT_NAME,
+        doWarmup = false,
+        doLogging = false
+      )
     }
   }
 }

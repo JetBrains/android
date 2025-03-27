@@ -28,7 +28,7 @@ open class TestComposePreviewManager : ComposePreviewManager {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      previewedFile = null,
+      psiFilePointer = null,
     )
 
   override fun status(): ComposePreviewManager.Status = currentStatus
@@ -40,8 +40,6 @@ open class TestComposePreviewManager : ComposePreviewManager {
   override var isFilterEnabled: Boolean = false
 
   override var isUiCheckFilterEnabled: Boolean = false
-
-  override var atfChecksEnabled: Boolean = false
 
   private val _mode: MutableStateFlow<PreviewMode> = MutableStateFlow(PreviewMode.Default())
   override val mode = _mode.asStateFlow()

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.templates.live
 
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.templates.SDK_VERSION_FOR_TEMPLATE_TESTS
 import com.android.tools.idea.testing.caret
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.template.impl.LiveTemplateCompletionContributor
@@ -25,7 +27,7 @@ import org.jetbrains.android.AndroidTestCase
 /**
  * Base setup for live template tests.
  */
-abstract class LiveTemplateTestCase : AndroidTestCase() {
+abstract class LiveTemplateTestCase : AndroidTestCase(AndroidVersion(SDK_VERSION_FOR_TEMPLATE_TESTS)) {
 
   /**
    * Insertion location of a live template

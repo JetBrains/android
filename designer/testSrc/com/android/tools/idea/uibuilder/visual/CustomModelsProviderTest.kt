@@ -19,7 +19,8 @@ import com.android.ide.common.resources.Locale
 import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
-import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.AndroidTargetHash
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
@@ -83,7 +84,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
       CustomConfigurationAttribute(
         "Preview",
         "pixel_3",
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        AndroidTargetHash.getVersionFromHash(TestUtils.getLatestAndroidPlatform())!!.apiLevel,
         ScreenOrientation.PORTRAIT,
         Locale.ANY.toString(),
         defaultConfig.getPreferredTheme(),
@@ -123,7 +124,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
       CustomConfigurationAttribute(
         "Preview",
         "pixel_3",
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        AndroidTargetHash.getVersionFromHash(TestUtils.getLatestAndroidPlatform())!!.apiLevel,
         ScreenOrientation.PORTRAIT,
         Locale.create("en").toString(),
         defaultConfig.getPreferredTheme(),
@@ -155,7 +156,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
       CustomConfigurationAttribute(
         "Preview",
         "pixel_3",
-        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        AndroidTargetHash.getVersionFromHash(TestUtils.getLatestAndroidPlatform())!!.apiLevel,
         ScreenOrientation.LANDSCAPE,
         Locale.ANY.toString(),
         defaultConfig.getPreferredTheme(),

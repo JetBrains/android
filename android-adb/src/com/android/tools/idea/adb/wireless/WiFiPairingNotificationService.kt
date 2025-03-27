@@ -21,7 +21,8 @@ import icons.StudioIcons
 import javax.swing.Icon
 
 /**
- * Service responsible for showing notification popups related to ADB device pairing (see [WiFiPairingController])
+ * Service responsible for showing notification popups related to ADB device pairing (see
+ * [WiFiPairingController])
  */
 @UiThread
 interface WiFiPairingNotificationService {
@@ -33,5 +34,6 @@ fun WiFiPairingNotificationService.showPairingSuccessBalloon(device: AdbOnlineDe
     "${device.displayString} connected over Wi-Fi",
     "The device is now available to use.",
     NotificationType.INFORMATION,
-    StudioIcons.Common.SUCCESS)
+    StudioIcons.Common.SUCCESS,
+  )
 }

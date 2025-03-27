@@ -31,7 +31,6 @@ import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.lint.model.LintModelFactory;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
@@ -116,7 +115,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       // Wrap list with a mutable list since we'll be removing the files as we see them
       files = Lists.newArrayList(files);
     }
-    for (Module module : Arrays.stream(modules).map(ModuleSystemUtil::getMainModule).distinct().collect(Collectors.toList())) {
+    for (Module module : Arrays.stream(modules).map(LinkedAndroidModuleGroupUtilsKt::getMainModule).distinct().collect(Collectors.toList())) {
       addProjects(client, module, files, moduleMap, libraryMap, projectMap, projects, false);
     }
 
@@ -207,14 +206,14 @@ public class AndroidLintIdeProject extends LintIdeProject {
     // Prefer Android app modules
     for (AndroidFacet facet : facets) {
       if (facet.getConfiguration().isAppProject()) {
-        return ModuleSystemUtil.getMainModule(facet.getModule());
+        return LinkedAndroidModuleGroupUtilsKt.getMainModule(facet.getModule());
       }
     }
 
     // Resort to library modules if no app module depends directly on it
     if (!facets.isEmpty()) {
       AndroidFacet facet = facets.iterator().next();
-      return ModuleSystemUtil.getMainModule(facet.getModule());
+      return LinkedAndroidModuleGroupUtilsKt.getMainModule(facet.getModule());
     }
 
     return null;
@@ -223,7 +222,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   private static void addAndroidModules(Set<AndroidFacet> androidFacets, Set<Module> seen, Graph<Module> graph, Module module) {
     Iterator<Module> iterator = graph.getOut(module);
     while (iterator.hasNext()) {
-      Module dep = ModuleSystemUtil.getMainModule(iterator.next());
+      Module dep = LinkedAndroidModuleGroupUtilsKt.getMainModule(iterator.next());
       AndroidFacet facet = AndroidFacet.getInstance(dep);
       if (facet != null) {
         androidFacets.add(facet);
@@ -261,7 +260,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       List<Module> dependentModules =
         AndroidDependenciesCache.getAllAndroidDependencies(module, false).stream()
           .map(Facet::getModule)
-          .map(ModuleSystemUtil::getMainModule)
+          .map(LinkedAndroidModuleGroupUtilsKt::getMainModule)
           .distinct()
           .toList();
       for (Module dependentModule : dependentModules) {
@@ -287,7 +286,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     List<Module> dependentModules =
         AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream()
           .map(Facet::getModule)
-          .map(ModuleSystemUtil::getMainModule)
+          .map(LinkedAndroidModuleGroupUtilsKt::getMainModule)
           .distinct()
           .collect(Collectors.toList());
     for (Module dependentModule : dependentModules) {
@@ -459,7 +458,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
         p = new LintGradleLibraryProject(client, dir, dir, dependency, library);
         p.setIdeaProject(ideaProject);
         libraryMap.put(library, p);
-        projectMap.put(p, ModuleSystemUtil.getMainModule(facet.getModule()));
+        projectMap.put(p, LinkedAndroidModuleGroupUtilsKt.getMainModule(facet.getModule()));
         projects.add(p);
 
         if (files != null) {
@@ -497,13 +496,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
     protected final AndroidFacet myFacet;
 
     private LintAndroidProject(@NonNull LintClient client, @NonNull File dir, @NonNull File referenceDir, @NonNull AndroidFacet facet) {
-      super(client, dir, referenceDir, ModuleSystemUtil.getMainModule(facet.getModule()));
+      super(client, dir, referenceDir, LinkedAndroidModuleGroupUtilsKt.getMainModule(facet.getModule()));
       myFacet = facet;
 
       gradleProject = false;
       library = myFacet.getConfiguration().isLibraryProject();
 
-      AndroidPlatform platform = AndroidPlatforms.getInstance(ModuleSystemUtil.getMainModule(myFacet.getModule()));
+      AndroidPlatform platform = AndroidPlatforms.getInstance(LinkedAndroidModuleGroupUtilsKt.getMainModule(myFacet.getModule()));
       if (platform != null) {
         buildSdk = platform.getApiLevel();
       }

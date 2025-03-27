@@ -1101,6 +1101,11 @@ MODULE                        : TestCompositeLib1
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : TestCompositeLib1.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -1119,8 +1124,8 @@ MODULE                        : TestCompositeLib1.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :app
@@ -1169,6 +1174,7 @@ MODULE                        : TestCompositeLib1.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.composite1
         testApplicationId             : com.test.composite1.test
@@ -1193,8 +1199,8 @@ MODULE                        : TestCompositeLib1.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1371,8 +1377,8 @@ MODULE                        : TestCompositeLib1.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite1
@@ -1757,6 +1763,11 @@ MODULE                        : TestCompositeLib1.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -1794,8 +1805,8 @@ MODULE                        : TestCompositeLib1.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :lib
@@ -1844,6 +1855,7 @@ MODULE                        : TestCompositeLib1.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite1.test
         buildType                     : debug
@@ -1862,8 +1874,8 @@ MODULE                        : TestCompositeLib1.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2030,8 +2042,8 @@ MODULE                        : TestCompositeLib1.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite1
@@ -2384,6 +2396,11 @@ MODULE                        : TestCompositeLib1.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -2771,6 +2788,11 @@ MODULE                        : TestCompositeLib3
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : TestCompositeLib3.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -2789,8 +2811,8 @@ MODULE                        : TestCompositeLib3.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :app
@@ -2839,6 +2861,7 @@ MODULE                        : TestCompositeLib3.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.composite3
         testApplicationId             : com.test.composite3.test
@@ -2863,8 +2886,8 @@ MODULE                        : TestCompositeLib3.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3041,8 +3064,8 @@ MODULE                        : TestCompositeLib3.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite3
@@ -3415,6 +3438,11 @@ MODULE                        : TestCompositeLib3.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3452,8 +3480,8 @@ MODULE                        : TestCompositeLib3.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :lib
@@ -3502,6 +3530,7 @@ MODULE                        : TestCompositeLib3.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite3.test
         buildType                     : debug
@@ -3520,8 +3549,8 @@ MODULE                        : TestCompositeLib3.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3688,8 +3717,8 @@ MODULE                        : TestCompositeLib3.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite3
@@ -4785,6 +4814,11 @@ MODULE                        : project
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -4803,8 +4837,8 @@ MODULE                        : project.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -4853,6 +4887,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.compositeapp
         testApplicationId             : com.test.compositeapp.test
@@ -4877,8 +4912,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -5055,8 +5090,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.compositeapp
@@ -5441,6 +5476,11 @@ MODULE                        : project.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -5478,8 +5518,8 @@ MODULE                        : project.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
@@ -5528,6 +5568,7 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite0.test
         buildType                     : debug
@@ -5546,8 +5587,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -5714,8 +5755,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             DeprecatedPreMergedApplicationId        : com.test.composite0
@@ -6050,6 +6091,11 @@ MODULE                        : project.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

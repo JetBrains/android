@@ -19,9 +19,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.bazel.BuildSystem.SyncStrategy;
+import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefinition;
 import com.google.idea.blaze.base.model.BlazeVersionData;
@@ -32,8 +34,12 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
+import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -215,6 +221,34 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
+    public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder)
+        throws BuildException {
+      return inner.invoke(blazeCommandBuilder);
+    }
+
+    @Override
+    public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) throws BuildException {
+      try (InputStream in = inner.invokeQuery(blazeCommandBuilder)) {
+        return in;
+      } catch (IOException e) {
+        throw new BuildException(
+            String.format("Error invoking blaze query with %s", inner.getClass().getSimpleName()),
+            e);
+      }
+    }
+
+    @Override
+    public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) throws BuildException {
+      try (InputStream in = inner.invokeInfo(blazeCommandBuilder)) {
+        return in;
+      } catch (IOException e) {
+        throw new BuildException(
+            String.format("Error invoking blaze info with %s", inner.getClass().getSimpleName()),
+            e);
+      }
+    }
+
+    @Override
     public BuildBinaryType getType() {
       if (buildBinaryType != null) {
         return buildBinaryType;
@@ -271,6 +305,12 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     }
 
     @Override
+    public BuildInvoker getBuildInvoker(
+        Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
+      return inner.getBuildInvoker(project, context, requirements);
+    }
+
+    @Override
     public BuildInvoker getBuildInvoker(Project project, BlazeContext context) {
       return new BuildInvokerWrapper(inner.getBuildInvoker(project, context));
     }
@@ -284,11 +324,6 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     @Override
     public Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context) {
       return inner.getParallelBuildInvoker(project, context).map(i -> new BuildInvokerWrapper(i));
-    }
-
-    @Override
-    public Optional<BuildInvoker> getLocalBuildInvoker(Project project, BlazeContext context) {
-      return inner.getLocalBuildInvoker(project, context).map(i -> new BuildInvokerWrapper(i));
     }
 
     @Override

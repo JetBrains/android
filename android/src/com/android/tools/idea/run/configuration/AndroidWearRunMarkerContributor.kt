@@ -33,7 +33,9 @@ import org.jetbrains.kotlin.lexer.KtTokens
  * The icon can be used to create new [AndroidWearConfiguration] or run an existing configuration.
  */
 class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
-  override fun getInfo(e: PsiElement): Info? {
+  override fun getInfo(element: PsiElement): Info? = null
+
+  override fun getSlowInfo(e: PsiElement): Info? {
     val elementType = e.node.elementType
     if (!(elementType is KtToken && elementType == KtTokens.CLASS_KEYWORD) // do not force loading of KtTokens in Java files
         && !(elementType is IJavaElementType && elementType == JavaTokenType.CLASS_KEYWORD)) {
@@ -42,9 +44,9 @@ class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
 
     if (!CommonAndroidUtil.getInstance().isAndroidProject(e.project)) return null
 
-    val psiClass = e.getPsiClass() ?: return null
+    val psiClass = e.parent ?: return null
     if (psiClass.isValidWatchFaceService() || psiClass.isValidTileService() || psiClass.isValidComplicationService()) {
-      val serviceName = psiClass.name ?: return null
+      val serviceName = e.getClassQualifiedName() ?: return null
       return Info(AllIcons.RunConfigurations.TestState.Run, ExecutorAction.getActions()) {
         AndroidBundle.message("android.run.configuration.run", JavaExecutionUtil.getPresentableClassName(serviceName)!!)
       }

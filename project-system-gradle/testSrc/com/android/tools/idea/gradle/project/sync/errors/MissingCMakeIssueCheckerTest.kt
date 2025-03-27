@@ -84,7 +84,7 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
   }
 
   fun testAlreadyInstalledRemoteMalformed() {
-    val error = "Unable to find CMake with version: 3.10.2 "
+    val error = "Unable to find CMake with version: 3.10.2"
     val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
     val issueChecker = MissingCmakeIssueCheckerFake(listOf("3.10.2"), listOf("3.10.2"), CMakeDirGetterResponse.THROW_IO_EXCEPTION)
 

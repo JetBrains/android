@@ -23,7 +23,7 @@ import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.util.ProcessGroupUtil;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Platform;

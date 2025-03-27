@@ -73,12 +73,23 @@ interface AppInsightsTracker {
     mode: ConnectionMode,
     issueId: String,
     eventId: String,
-    isFetched: Boolean,
+  )
+
+  fun logEventsFetched(
+    unanonymizedAppId: String,
+    issueId: String,
+    crashType: FailureType,
+    isFirstFetch: Boolean,
   )
 
   fun logInsightSentiment(sentiment: Sentiment, crashType: CrashType, insight: AiInsight)
 
-  fun logInsightFetch(unanonymizedAppId: String, crashType: FailureType, insight: AiInsight)
+  fun logInsightFetch(
+    unanonymizedAppId: String,
+    crashType: FailureType,
+    insight: AiInsight,
+    contextLimit: Int,
+  )
 
   enum class ProductType {
     CRASHLYTICS,

@@ -15,25 +15,21 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.gemini.formatForTests
+import com.android.tools.idea.insights.ISSUE1
+import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ai.InsightSource
-import com.android.tools.idea.studiobot.AiExcludeService
-import com.android.tools.idea.studiobot.ChatService
-import com.android.tools.idea.studiobot.Content
-import com.android.tools.idea.studiobot.GenerationConfig
-import com.android.tools.idea.studiobot.Model
-import com.android.tools.idea.studiobot.ModelConfig
-import com.android.tools.idea.studiobot.ModelType
-import com.android.tools.idea.studiobot.StudioBot
-import com.android.tools.idea.studiobot.prompts.Prompt
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.ai.codecontext.Language
+import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.testing.disposable
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.replaceService
-import com.intellij.util.application
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -44,39 +40,19 @@ class GeminiAiInsightClientTest {
   @get:Rule val projectRule = ProjectRule()
 
   private var expectedPromptText: String = ""
-  private val fakeStudioBot =
-    object : StudioBot {
-      override val MAX_QUERY_CHARS = 1000
 
-      override fun aiExcludeService(project: Project) = AiExcludeService.FakeAiExcludeService()
-
-      override fun chat(project: Project) = ChatService.StubChatService()
-
-      override fun model(project: Project, modelType: ModelType) =
-        object : Model {
-          override fun config() = ModelConfig(emptySet(), 1000, 1000, true)
-
-          override fun generateContent(prompt: Prompt, config: GenerationConfig) = flow {
-            assertThat(prompt.messages.size).isEqualTo(2)
-            val preamble = prompt.messages[0]
-            assertThat(preamble.chunks.size).isEqualTo(1)
-            val systemChunk = preamble.chunks[0] as Prompt.TextChunk
-            assertThat(systemChunk.text).isEqualTo(GEMINI_PREAMBLE)
-            val message = prompt.messages[1]
-            assertThat(message.chunks.size).isEqualTo(1)
-            val chunk = message.chunks[0] as Prompt.TextChunk
-            assertThat(chunk.filesUsed).isEmpty()
-            assertThat(chunk.text).isEqualTo(expectedPromptText)
-            emit(Content.TextContent("TextContent start"))
-            emit(Content.FunctionCall("someFunctionName", emptyMap()))
-            emit(Content.TextContent("This is added after FunctionCall"))
-          }
-        }
-    }
+  private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
 
   @Before
   fun setup() {
-    application.replaceService(StudioBot::class.java, fakeStudioBot, projectRule.disposable)
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    fakeGeminiPluginApi.generateResponse = "TextContent start. This is added after FunctionCall"
+
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(fakeGeminiPluginApi),
+      projectRule.disposable,
+    )
   }
 
   @Test
@@ -94,17 +70,24 @@ class GeminiAiInsightClientTest {
 
     expectedPromptText =
       """
-      Explain this exception from my app running on DeviceName with Android version ApiLevel:
-      Exception:
-      ```
-      stack
-        Trace
-      ```
-    """
-        .trimIndent()
+      |SYSTEM
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
+      |
+      |USER
+      |Explain this exception from my app running on DeviceName with Android version ApiLevel:
+      |Exception:
+      |```
+      |stack
+      |  Trace
+      |```"""
+        .trimMargin()
     val insight = client.fetchCrashInsight("", request)
 
-    assertThat(insight.rawInsight).isEqualTo("TextContent start\nThis is added after FunctionCall")
+    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
+
+    assertThat(insight.rawInsight).isEqualTo("TextContent start. This is added after FunctionCall")
   }
 
   @Test
@@ -154,34 +137,114 @@ class GeminiAiInsightClientTest {
 
     expectedPromptText =
       """
-      Explain this exception from my app running on DeviceName with Android version ApiLevel.
-      Please reference the provided source code if they are helpful.
-      Exception:
-      ```
-      stack
-        Trace
-      ```
-      a/b/c/HelloWorld1.kt:
-      ```
-      package a.b.c
-      
-      fun helloWorld() {
-        println("Hello World")
-      }
-      ```
-      a/b/c/HelloWorld2.kt:
-      ```
-      package a.b.c
-      
-      fun helloWorld2() {
-        println("Hello World 2")
-      }
-      ```
-    """
-        .trimIndent()
+      |SYSTEM
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
+      |
+      |USER
+      |Explain this exception from my app running on DeviceName with Android version ApiLevel.
+      |Please reference the provided source code if they are helpful.
+      |Exception:
+      |```
+      |stack
+      |  Trace
+      |```
+      |a/b/c/HelloWorld1.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld() {
+      |  println("Hello World")
+      |}
+      |```
+      |a/b/c/HelloWorld2.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld2() {
+      |  println("Hello World 2")
+      |}
+      |```"""
+        .trimMargin()
     val insight = client.fetchCrashInsight("", request)
 
-    assertThat(insight.rawInsight).isEqualTo("TextContent start\nThis is added after FunctionCall")
+    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
+
+    assertThat(insight.rawInsight).isEqualTo("TextContent start. This is added after FunctionCall")
+    assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
+  }
+
+  @Test
+  fun `create gemini insight request truncates at the context limit`() = runBlocking {
+    val client = GeminiAiInsightClient.create(projectRule.project)
+
+    val event = ISSUE1.sampleEvent
+    val codeContextData =
+      CodeContextData(
+        listOf(
+          CodeContext(
+            "HelloWorld.kt",
+            "a/b/c/HelloWorld.kt",
+            """
+            |package a.b.c
+            |
+            |fun helloWorld() {
+            |  println("Hello World")
+            |}"""
+              .trimMargin(),
+            Language.KOTLIN,
+          ),
+          CodeContext(
+            "HelloWorld2.kt",
+            "a/b/c/HelloWorld2.kt",
+            """
+            |package a.b.c
+            |
+            |fun helloWorld2() {
+            |  println("Hello World 2")
+            |}"""
+              .trimMargin(),
+            Language.KOTLIN,
+          ),
+        ),
+        Experiment.TOP_THREE_SOURCES,
+      )
+
+    // This should truncate the second source code file.
+    fakeGeminiPluginApi.MAX_QUERY_CHARS = 650
+    val request = createGeminiInsightRequest(event, codeContextData)
+
+    expectedPromptText =
+      """
+      |SYSTEM
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
+      |
+      |USER
+      |Explain this exception from my app running on Google Pixel 4a with Android version 12.
+      |Please reference the provided source code if they are helpful.
+      |Exception:
+      |```
+      |retrofit2.HttpException: HTTP 401 
+	    |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+	    |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      |```
+      |a/b/c/HelloWorld.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld() {
+      |  println("Hello World")
+      |}
+      |```"""
+        .trimMargin()
+    val insight = client.fetchCrashInsight("", request)
+
+    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
+
+    assertThat(insight.rawInsight).isEqualTo("TextContent start. This is added after FunctionCall")
     assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
   }
 }

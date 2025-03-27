@@ -49,7 +49,8 @@ import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -92,6 +93,7 @@ import javax.swing.JViewport
 import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.test.assertEquals
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -139,10 +141,10 @@ class DeviceToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
-    waitForFrame()
+    waitForFrame(5.seconds)
     assertAppearance("AppearanceAndToolbarActions1",  maxPercentDifferentLinux = 0.03, maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat(panel.icon).isNotNull()
@@ -168,13 +170,13 @@ class DeviceToolWindowPanelTest {
     var action = ActionManager.getInstance().getAction("android.device.power.button")
     var keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
     val dataContext = DataManager.getInstance().getDataContext(panel.primaryDisplayView)
-    action.actionPerformed(AnActionEvent.createFromAnAction(action, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
+    action.actionPerformed(createEvent(action, dataContext, null, ActionPlaces.KEYBOARD_SHORTCUT, ActionUiKind.NONE, keyEvent))
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, AKEYCODE_POWER, 0))
 
     // Check DevicePowerAndVolumeUpButtonAction invoked by a keyboard shortcut.
     action = ActionManager.getInstance().getAction("android.device.power.and.volume.up.button")
     keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK or SHIFT_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
-    action.actionPerformed(AnActionEvent.createFromAnAction(action, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
+    action.actionPerformed(createEvent(action, dataContext, null, ActionPlaces.KEYBOARD_SHORTCUT, ActionUiKind.NONE, keyEvent))
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_VOLUME_UP, 0))
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, AKEYCODE_POWER, 0))
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_VOLUME_UP, 0))
@@ -197,13 +199,14 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.primaryDisplayView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     waitForFrame()
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
 
+    fakeUi.updateToolbarsIfNecessary()
     // Check push button actions.
     val pushButtonCases = listOf(
       Pair("Button 1", AKEYCODE_STEM_PRIMARY),
@@ -260,7 +263,7 @@ class DeviceToolWindowPanelTest {
     val deviceView = panel.primaryDisplayView!!
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5.seconds) { agent.isRunning && panel.isConnected }
+    waitForCondition(10.seconds) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     waitForFrame()
@@ -314,15 +317,15 @@ class DeviceToolWindowPanelTest {
     val externalDisplayId = 1
     agent.addDisplay(externalDisplayId, 1080, 1920, DisplayType.EXTERNAL)
     waitForCondition(2.seconds) { fakeUi.findAllComponents<DeviceView>().size == 2 }
-    waitForFrame(PRIMARY_DISPLAY_ID)
-    waitForFrame(externalDisplayId)
+    waitForFrame(displayId = PRIMARY_DISPLAY_ID)
+    waitForFrame(displayId = externalDisplayId)
     assertAppearance("MultipleDisplays1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
 
     agent.clearCommandLog()
     // Rotating the device. Only the internal display should rotate.
     executeStreamingAction("android.device.rotate.left", panel.primaryDisplayView!!, project)
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(orientation=1))
-    waitForFrame(externalDisplayId)
+    waitForFrame(displayId = externalDisplayId)
     assertAppearance("MultipleDisplays2", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
 
     agent.removeDisplay(externalDisplayId)
@@ -487,13 +490,13 @@ class DeviceToolWindowPanelTest {
 
   private fun getNextControlMessageAndWaitForFrame(displayId: Int = PRIMARY_DISPLAY_ID): ControlMessage {
     val message = agent.getNextControlMessage(2.seconds, filter = controlMessageFilter)
-    waitForFrame(displayId)
+    waitForFrame(displayId = displayId)
     return message
   }
 
   /** Waits for all video frames to be received after the given one. */
-  private fun waitForFrame(displayId: Int = PRIMARY_DISPLAY_ID, minFrameNumber: UInt = 1u) {
-    waitForCondition(2.seconds) {
+  private fun waitForFrame(timeout: Duration = 2.seconds, displayId: Int = PRIMARY_DISPLAY_ID, minFrameNumber: UInt = 1u) {
+    waitForCondition(timeout) {
       panel.isConnected &&
       agent.getFrameNumber(displayId) >= minFrameNumber &&
       renderAndGetFrameNumber(displayId) == agent.getFrameNumber(displayId)
@@ -510,7 +513,7 @@ class DeviceToolWindowPanelTest {
                                maxPercentDifferentLinux: Double = 0.0003,
                                maxPercentDifferentMac: Double = 0.0003,
                                maxPercentDifferentWindows: Double = 0.0003) {
-    fakeUi.updateToolbars()
+    fakeUi.updateToolbarsIfNecessary()
     val image = fakeUi.render()
     val maxPercentDifferent = when {
       SystemInfo.isMac -> maxPercentDifferentMac
@@ -525,7 +528,7 @@ class DeviceToolWindowPanelTest {
   }
 
   private val DeviceToolWindowPanel.isConnected
-    get() = IdeUiService.getInstance().createUiDataContext(this).getData(DEVICE_VIEW_KEY)?.isConnected == true
+    get() = primaryDisplayView?.isConnected == true
 
   private fun DeviceToolWindowPanel.findDisplayView(displayId: Int): DeviceView? =
     if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }

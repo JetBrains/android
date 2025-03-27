@@ -28,10 +28,10 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -95,7 +95,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   @Override
   public void importProjects(Map<String, VirtualFile> projects) {
     try {
-      importModules(this, projects, myProject, null);
+      importModules(this, projects, myProject);
     }
     catch (IOException e) {
       LOG.error(e);
@@ -210,28 +210,20 @@ public final class GradleModuleImporter extends ModuleImporter {
    * be copied as is and settings.xml will be updated for the imported modules. It is callers' responsibility to ensure content
    * can be copied to the target directory and that module list is valid.
    *
-   * @param modules  mapping between module names and locations on the filesystem. Neither name nor location should be null
-   * @param project  project to import the modules to
-   * @param listener optional object that gets notified of operation success or failure
+   * @param modules mapping between module names and locations on the filesystem. Neither name nor location should be null
+   * @param project project to import the modules to
    */
   @VisibleForTesting
   static void importModules(@NotNull final Object requestor,
                             @NotNull final Map<String, VirtualFile> modules,
-                            @Nullable final Project project,
-                            @Nullable final GradleSyncListener listener) throws IOException {
+                            @Nullable final Project project) throws IOException {
     String error = validateProjectsForImport(modules);
     if (error != null) {
-      if (listener != null && project != null) {
-        listener.syncFailed(project, error);
-        return;
-      }
-      else {
-        throw new IOException(error);
-      }
+      throw new IOException(error);
     }
 
     assert project != null;
-    writeCommandAction(project).run(() -> copyAndRegisterModule(requestor, modules, project, listener));
+    writeCommandAction(project).run(() -> copyAndRegisterModule(requestor, modules, project));
   }
 
   /**
@@ -264,8 +256,7 @@ public final class GradleModuleImporter extends ModuleImporter {
    */
   private static void copyAndRegisterModule(@NotNull Object requestor,
                                             @NotNull Map<String, VirtualFile> modules,
-                                            @NotNull Project project,
-                                            @Nullable GradleSyncListener listener) throws IOException {
+                                            @NotNull Project project) throws IOException {
     VirtualFile projectRoot = Objects.requireNonNull(ProjectUtil.guessProjectDir(project));
     GradleSettingsModel gradleSettingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
     if (gradleSettingsModel == null) {
@@ -305,8 +296,7 @@ public final class GradleModuleImporter extends ModuleImporter {
                                "Gradle Module Import Error");
     } else {
       gradleSettingsModel.applyChanges();
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_IMPORT_MODULES_COPIED);
-      GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
+      ProjectSystemService.getInstance(project).getProjectSystem().getSyncManager().requestSyncProject(new ProjectSystemSyncManager.SyncReason(TRIGGER_IMPORT_MODULES_COPIED));
     }
   }
 

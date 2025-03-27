@@ -16,6 +16,7 @@
 package com.android.tools.idea.serverflags
 
 import com.android.tools.idea.serverflags.protos.Brand
+import com.android.tools.idea.serverflags.protos.MultiValueServerFlag
 import com.android.tools.idea.serverflags.protos.OSType
 import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.android.tools.idea.serverflags.protos.ServerFlagData
@@ -30,92 +31,118 @@ private const val FILE_NAME = "serverflaglist.protobuf"
 
 val serverFlagTestData: ServerFlagList
   get() {
-    val flags = mutableListOf(
-      ServerFlag.newBuilder().apply {
-        percentEnabled = 0
-        booleanValue = true
-      }.build(),
-      ServerFlag.newBuilder().apply {
-        percentEnabled = 0
-        intValue = 1
-      }.build(),
-      ServerFlag.newBuilder().apply {
-        percentEnabled = 100
-        floatValue = 1f
-      }.build(),
-      ServerFlag.newBuilder().apply {
-        percentEnabled = 100
-        stringValue = "foo"
-      }.build(),
-      ServerFlag.newBuilder().apply {
-        percentEnabled = 100
-        protoValue = Any.pack(ServerFlagTest.newBuilder().apply {
-          content = "content"
-        }.build())
-      }.build(),
-    )
+    val flags =
+      listOf(
+        ServerFlag.newBuilder()
+          .apply {
+            percentEnabled = 0
+            booleanValue = true
+          }
+          .build(),
+        ServerFlag.newBuilder()
+          .apply {
+            percentEnabled = 0
+            intValue = 1
+          }
+          .build(),
+        ServerFlag.newBuilder()
+          .apply {
+            percentEnabled = 100
+            floatValue = 1f
+          }
+          .build(),
+        ServerFlag.newBuilder()
+          .apply {
+            percentEnabled = 100
+            stringValue = "foo"
+          }
+          .build(),
+        ServerFlag.newBuilder()
+          .apply {
+            percentEnabled = 100
+            protoValue = Any.pack(ServerFlagTest.newBuilder().apply { content = "content" }.build())
+          }
+          .build(),
+      )
 
-    val flagData = listOf(
-      makeServerFlagData("boolean", flags[0]),
-      makeServerFlagData("int", flags[1]),
-      makeServerFlagData("float", flags[2]),
-      makeServerFlagData("string", flags[3]),
-      makeServerFlagData("proto", flags[4]),
-    )
+    val flagData =
+      listOf(
+        makeServerFlagData("boolean", flags[0]),
+        makeServerFlagData("int", flags[1]),
+        makeServerFlagData("float", flags[2]),
+        makeServerFlagData("string", flags[3]),
+        makeServerFlagData("proto", flags[4]),
+      )
 
-    val builder = ServerFlagList.newBuilder().apply {
-      configurationVersion = 1
-    }
+    val builder = ServerFlagList.newBuilder().apply { configurationVersion = 1 }
     builder.addAllServerFlags(flagData)
     return builder.build()
   }
 
 val serverFlagTestDataByOs: ServerFlagList
   get() {
-    val flagData = enumValues<OSType>().map {
-      makeServerFlagData(it.toString(),
-                         ServerFlag.newBuilder().apply {
-                           percentEnabled = 100
-                           booleanValue = true
-                           addOsType(it)
-                         }.build())
-    }
+    val flagData =
+      enumValues<OSType>().map {
+        makeServerFlagData(
+          it.toString(),
+          ServerFlag.newBuilder()
+            .apply {
+              percentEnabled = 100
+              booleanValue = true
+              addOsType(it)
+            }
+            .build(),
+        )
+      }
 
-    val builder = ServerFlagList.newBuilder().apply {
-      configurationVersion = 1
-    }
+    val builder = ServerFlagList.newBuilder().apply { configurationVersion = 1 }
     builder.addAllServerFlags(flagData)
     return builder.build()
   }
 
 val serverFlagTestDataByBrand: ServerFlagList
   get() {
-    val flagData = enumValues<Brand>().map {
-      makeServerFlagData(it.toString(),
-                         ServerFlag.newBuilder().apply {
-                           percentEnabled = 100
-                           booleanValue = true
-                           addBrand(it)
-                         }.build())
-    }
+    val flagData =
+      enumValues<Brand>().map {
+        makeServerFlagData(
+          it.toString(),
+          ServerFlag.newBuilder()
+            .apply {
+              percentEnabled = 100
+              booleanValue = true
+              addBrand(it)
+            }
+            .build(),
+        )
+      }
 
-    val builder = ServerFlagList.newBuilder().apply {
-      configurationVersion = 1
-    }
+    val builder = ServerFlagList.newBuilder().apply { configurationVersion = 1 }
     builder.addAllServerFlags(flagData)
     return builder.build()
   }
 
 private fun makeServerFlagData(flagName: String, flag: ServerFlag): ServerFlagData {
-  return ServerFlagData.newBuilder().apply {
-    name = flagName
-    serverFlag = flag
-  }.build()
+  return ServerFlagData.newBuilder()
+    .apply {
+      name = flagName
+      serverFlag = flag
+    }
+    .build()
 }
+
+fun makeServerFlagData(flagName: String, flag: MultiValueServerFlag): ServerFlagData =
+  ServerFlagData.newBuilder()
+    .apply {
+      name = flagName
+      multiValueServerFlag = flag
+    }
+    .build()
 
 fun loadServerFlagList(path: Path, version: String): ServerFlagList {
   val filePath = path.resolve("$version/$FILE_NAME")
-  filePath.toFile().inputStream().use { return ServerFlagList.parseFrom(it) }
+  filePath.toFile().inputStream().use {
+    return ServerFlagList.parseFrom(it)
+  }
 }
 
 fun saveServerFlagList(serverFlagList: ServerFlagList, path: Path, version: String) {

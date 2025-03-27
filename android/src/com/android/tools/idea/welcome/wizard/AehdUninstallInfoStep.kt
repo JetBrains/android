@@ -15,29 +15,30 @@
  */
 package com.android.tools.idea.welcome.wizard
 
+import com.android.tools.idea.welcome.wizard.deprecated.AehdUninstallInfoStepForm
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
-import com.intellij.ui.dsl.builder.panel
+import com.google.wireless.android.sdk.stats.SetupWizardEvent
+import com.intellij.openapi.util.SystemInfo
+import javax.swing.JComponent
 
 /**
- * This is to be shown as the first AEHD Wizard step just to inform the user that AEHD uninstallation is about to start.
- * It is here just to make sure we don't run uninstallation operations straight away as the first wizard step,
- * as this would not be in line with common wizard conventions.
+ * This is to be shown as the first AEHD Wizard step just to inform the user that AEHD
+ * uninstallation is about to start. It is here just to make sure we don't run uninstallation
+ * operations straight away as the first wizard step, as this would not be in line with common
+ * wizard conventions.
  */
-class AehdUninstallInfoStep(
-) : ModelWizardStep.WithoutModel("Uninstalling Android Emulator hypervisor driver") {
+class AehdUninstallInfoStep(private val tracker: FirstRunWizardTracker) :
+  ModelWizardStep.WithoutModel("Uninstalling Android Emulator hypervisor driver") {
+  private val form = AehdUninstallInfoStepForm()
 
-  private val infoText = """
-This wizard will execute Android Emulator hypervisor driver stand-alone uninstaller. This is an additional step required to remove this package<br><br>
-Click 'Next' to proceed
-"""
+  override fun getComponent(): JComponent = form.root
 
-  private val myPanel = panel {
-    row { text(infoText) }
+  override fun getPreferredFocusComponent(): JComponent = form.root
+
+  override fun shouldShow(): Boolean = SystemInfo.isWindows
+
+  override fun onShowing() {
+    super.onShowing()
+    tracker.trackStepShowing(SetupWizardEvent.WizardStep.WizardStepKind.AEHD_UNINSTALL_INFO)
   }
-
-  private val root = wrapWithVScroll(myPanel)
-
-  override fun getComponent() = root
-  override fun getPreferredFocusComponent() = myPanel
 }

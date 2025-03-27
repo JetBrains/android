@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -34,9 +35,29 @@ import com.android.tools.rendering.imagepool.ImagePool
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.io.await
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.job
 import org.jetbrains.kotlin.utils.identity
+
+/**
+ * When rendering a model, different use cases require to execute the layoutlib callbacks in
+ * different moments. And it can be specified in a [LayoutlibSceneRenderConfiguration] by using this
+ * enum.
+ */
+enum class LayoutlibCallbacksConfig {
+  /** Indicates that layoutlib callbacks should not be executed. */
+  DO_NOT_EXECUTE,
+
+  /** Indicates that layoutlib callbacks should be executed before the next render. */
+  EXECUTE_BEFORE_RENDERING,
+
+  /**
+   * Indicates that after the next render, layoutlib callbacks should be executed and then the model
+   * should be re-rendered.
+   */
+  EXECUTE_AND_RERENDER,
+}
 
 /**
  * Render configuration to be used when rendering the given [model].
@@ -75,6 +96,9 @@ class LayoutlibSceneRenderConfiguration(
 
   /** When true, a re-render of the model will be done after the next render if needed. */
   val doubleRenderIfNeeded = AtomicBoolean(false)
+
+  /** See [LayoutlibCallbacksConfig]. */
+  val layoutlibCallbacksConfig = AtomicReference(LayoutlibCallbacksConfig.DO_NOT_EXECUTE)
 
   /**
    * If true, when a render fails, the result will retain the last successful image.
@@ -202,6 +226,7 @@ class LayoutlibSceneRenderConfiguration(
         .taskBuilder(model.buildTarget, configuration, logger) { wrapRenderModule(it) }
         .withPsiFile(PsiXmlFile(model.file))
         .withLayoutScanner(layoutScannerConfig.isLayoutScannerEnabled)
+        .withForceMonochromeIcon(StudioFlags.FORCE_MONOCHROME_ADAPTIVE_ICON.get())
         .withTopic(renderingTopic)
         .setUseCustomInflater(useCustomInflater)
     if (!useImagePool) taskBuilder.disableImagePool()

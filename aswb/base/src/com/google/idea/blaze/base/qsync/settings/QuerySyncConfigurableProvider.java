@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.qsync.settings;
 
-import com.google.idea.blaze.base.qsync.QuerySync;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableProvider;
 import org.jetbrains.annotations.Nullable;
@@ -26,19 +25,10 @@ public class QuerySyncConfigurableProvider extends ConfigurableProvider {
   @Override
   @Nullable
   public Configurable createConfigurable() {
-    if (QuerySync.useByDefault()) {
-      return new QuerySyncConfigurable();
-    } else {
-      return new QuerySyncBetaConfigurable();
-    }
+    return new QuerySyncConfigurable();
   }
 
   public static Class<? extends QuerySyncConfigurable> getConfigurableClass() {
-    if (QuerySync.useByDefault()) {
-      return QuerySyncConfigurable.class;
-    } else {
-      return QuerySyncBetaConfigurable.class;
-    }
+    return QuerySyncConfigurable.class;
   }
-
 }

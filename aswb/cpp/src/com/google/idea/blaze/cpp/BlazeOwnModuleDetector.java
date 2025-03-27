@@ -17,12 +17,12 @@ package com.google.idea.blaze.cpp;
 
 import static com.google.idea.blaze.base.settings.Blaze.isBlazeProject;
 
-import com.google.idea.sdkcompat.cpp.CidrOwnModuleDetectorWrapper;
 import com.intellij.openapi.module.Module;
+import com.jetbrains.cidr.project.workspace.CidrOwnModuleDetector;
 import org.jetbrains.annotations.NotNull;
 
 /** A module to mark blaze's module as the project's own module. */
-public class BlazeOwnModuleDetector implements CidrOwnModuleDetectorWrapper {
+public class BlazeOwnModuleDetector implements CidrOwnModuleDetector {
   @Override
   public boolean isOwnModule(@NotNull Module module) {
     return isBlazeProject(module.getProject());

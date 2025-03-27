@@ -28,16 +28,26 @@ public interface DeclarativeElementTypeHolder {
 
   IElementType ARGUMENT = new DeclarativeElementType("ARGUMENT");
   IElementType ARGUMENTS_LIST = new DeclarativeElementType("ARGUMENTS_LIST");
+  IElementType ASSIGNABLE_BARE = new DeclarativeElementType("ASSIGNABLE_BARE");
+  IElementType ASSIGNABLE_PROPERTY = new DeclarativeElementType("ASSIGNABLE_PROPERTY");
+  IElementType ASSIGNABLE_QUALIFIED = new DeclarativeElementType("ASSIGNABLE_QUALIFIED");
   IElementType ASSIGNMENT = new DeclarativeElementType("ASSIGNMENT");
   IElementType BARE = new DeclarativeElementType("BARE");
+  IElementType BARE_RECEIVER = new DeclarativeElementType("BARE_RECEIVER");
   IElementType BLOCK = new DeclarativeElementType("BLOCK");
   IElementType BLOCK_GROUP = new DeclarativeElementType("BLOCK_GROUP");
   IElementType EMBEDDED_FACTORY = new DeclarativeElementType("EMBEDDED_FACTORY");
-  IElementType FACTORY = new DeclarativeElementType("FACTORY");
+  IElementType FACTORY_PROPERTY_RECEIVER = new DeclarativeElementType("FACTORY_PROPERTY_RECEIVER");
+  IElementType FACTORY_RECEIVER = new DeclarativeElementType("FACTORY_RECEIVER");
   IElementType IDENTIFIER = new DeclarativeElementType("IDENTIFIER");
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
+  IElementType PROPERTY_RECEIVER = new DeclarativeElementType("PROPERTY_RECEIVER");
+  IElementType PROPERTY_SIMPLE_FACTORY = new DeclarativeElementType("PROPERTY_SIMPLE_FACTORY");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
+  IElementType QUALIFIED_RECEIVER = new DeclarativeElementType("QUALIFIED_RECEIVER");
+  IElementType RECEIVER_PREFIXED_FACTORY = new DeclarativeElementType("RECEIVER_PREFIXED_FACTORY");
+  IElementType SIMPLE_FACTORY = new DeclarativeElementType("SIMPLE_FACTORY");
 
   IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
   IElementType BOOLEAN = new DeclarativeTokenType("boolean");
@@ -68,11 +78,20 @@ public interface DeclarativeElementTypeHolder {
       else if (type == ARGUMENTS_LIST) {
         return new DeclarativeArgumentsListImpl(type);
       }
+      else if (type == ASSIGNABLE_BARE) {
+        return new DeclarativeAssignableBareImpl(type);
+      }
+      else if (type == ASSIGNABLE_QUALIFIED) {
+        return new DeclarativeAssignableQualifiedImpl(type);
+      }
       else if (type == ASSIGNMENT) {
         return new DeclarativeAssignmentImpl(type);
       }
       else if (type == BARE) {
         return new DeclarativeBareImpl(type);
+      }
+      else if (type == BARE_RECEIVER) {
+        return new DeclarativeBareReceiverImpl(type);
       }
       else if (type == BLOCK) {
         return new DeclarativeBlockImpl(type);
@@ -83,8 +102,8 @@ public interface DeclarativeElementTypeHolder {
       else if (type == EMBEDDED_FACTORY) {
         return new DeclarativeEmbeddedFactoryImpl(type);
       }
-      else if (type == FACTORY) {
-        return new DeclarativeFactoryImpl(type);
+      else if (type == FACTORY_PROPERTY_RECEIVER) {
+        return new DeclarativeFactoryPropertyReceiverImpl(type);
       }
       else if (type == IDENTIFIER) {
         return new DeclarativeIdentifierImpl(type);
@@ -92,8 +111,20 @@ public interface DeclarativeElementTypeHolder {
       else if (type == LITERAL) {
         return new DeclarativeLiteralImpl(type);
       }
+      else if (type == PROPERTY_SIMPLE_FACTORY) {
+        return new DeclarativePropertySimpleFactoryImpl(type);
+      }
       else if (type == QUALIFIED) {
         return new DeclarativeQualifiedImpl(type);
+      }
+      else if (type == QUALIFIED_RECEIVER) {
+        return new DeclarativeQualifiedReceiverImpl(type);
+      }
+      else if (type == RECEIVER_PREFIXED_FACTORY) {
+        return new DeclarativeReceiverPrefixedFactoryImpl(type);
+      }
+      else if (type == SIMPLE_FACTORY) {
+        return new DeclarativeSimpleFactoryImpl(type);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

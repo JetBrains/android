@@ -25,18 +25,29 @@ import com.intellij.openapi.extensions.ExtensionPointName
 class TemplateResolver {
 
   companion object {
-    private val EP_NAME = ExtensionPointName<WizardTemplateProvider>("com.android.tools.idea.wizard.template.wizardTemplateProvider")
+    private val EP_NAME =
+      ExtensionPointName<WizardTemplateProvider>(
+        "com.android.tools.idea.wizard.template.wizardTemplateProvider"
+      )
 
     fun getAllTemplates(): List<Template> {
-      return EP_NAME.extensions
-        .flatMap {
-          it.getTemplates().filter {
-            StudioFlags.NPW_ENABLE_GENAI_TEMPLATE.get() || it.name != "Gemini API Starter"
+      return EP_NAME.extensions.flatMap {
+        it.getTemplates().filter { template ->
+          when (template.name) {
+            "Gemini API Starter" -> StudioFlags.NPW_ENABLE_GENAI_TEMPLATE.get()
+            "Basic Headset Activity" -> StudioFlags.NPW_ENABLE_XR_TEMPLATE.get()
+            "Navigation UI Activity" -> StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()
+            else -> true
           }
         }
+      }
     }
 
-    fun getTemplateByName(name: String, category: Category? = null, formFactor: FormFactor? = null) =
+    fun getTemplateByName(
+      name: String,
+      category: Category? = null,
+      formFactor: FormFactor? = null,
+    ) =
       getAllTemplates()
         .filter { category == null || it.category == category }
         .filter { formFactor == null || it.formFactor == formFactor }

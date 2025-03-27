@@ -33,6 +33,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -86,7 +87,7 @@ public final class FakeAndroidDevice implements AndroidDevice {
 
   @Override
   public boolean supportsMultipleScreenFormats() {
-    return myDevice.getVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
+    return myDevice.getVersion().isAtLeast(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
            && "resizable".equals(myDevice.getProperty(PROP_DEVICE_BOOT_QEMU_DISPLAY_NAME));
   }
 
@@ -118,11 +119,11 @@ public final class FakeAndroidDevice implements AndroidDevice {
       if (avdData == null) {
         return null;
       }
-      String avdName = avdData.getName();
-      if (avdName == null) {
+      Path avdFolder = avdData.getAvdFolder();
+      if (avdFolder == null) {
         return null;
       }
-      AvdInfo info = AvdManagerConnection.getDefaultAvdManagerConnection().findAvd(avdName);
+      AvdInfo info = AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithFolder(avdFolder);
       if (info == null) {
         return null;
       }
@@ -153,7 +154,7 @@ public final class FakeAndroidDevice implements AndroidDevice {
 
   @Override
   public boolean getSupportsSdkRuntime() {
-    return myDevice.services().containsKey("sdk_sandbox") && myDevice.getVersion().isGreaterOrEqualThan(34);
+    return myDevice.services().containsKey("sdk_sandbox") && myDevice.getVersion().isAtLeast(34);
   }
 
   @NotNull

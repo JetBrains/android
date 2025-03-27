@@ -614,7 +614,6 @@
                             _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                             _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                             _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                            _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                             _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                             _internal-unified-test-platform-core    : <empty>
                             _internal-unified-test-platform-launcher          : <empty>
@@ -724,7 +723,6 @@
                             kotlinCompilerPluginClasspathRelease    : <empty>
                             kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                             kotlinKlibCommonizerClasspath : <empty>
-                            kotlinNativeBundleConfiguration         : <empty>
                             kotlinNativeCompilerPluginClasspath     : <empty>
                             lintChecks                    : <empty>
                             lintPublish                   : <empty>
@@ -880,7 +878,6 @@
                             kotlinCompilerPluginClasspathMain       : <empty>
                             kotlinCompilerPluginClasspathTest       : <empty>
                             kotlinKlibCommonizerClasspath : <empty>
-                            kotlinNativeBundleConfiguration         : <empty>
                             kotlinNativeCompilerPluginClasspath     : <empty>
                             npmAggregated                 : <empty>
                             - publicPackageJsonConfiguration        : <ROOT>/jsModule/build/tmp/publicPackageJson/package.json [-]
@@ -914,7 +911,7 @@
                     group                         : kotlinMultiPlatform
                     version                       : unspecified
                     projectDir                    : <ROOT>/module2
-                    buildDir                      : <ROOT>/module2/build [-]
+                    buildDir                      : <ROOT>/module2/build
                     buildFile                     : <ROOT>/module2/build.gradle
                     externalSystemId              : GRADLE
                     sourceSetModel                : DefaultGradleSourceSetModel
@@ -932,7 +929,6 @@
                             _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
                             _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
                             _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                            _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
                             _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
                             _internal-unified-test-platform-core    : <empty>
                             _internal-unified-test-platform-launcher          : <empty>
@@ -1092,14 +1088,17 @@
                             debugAnnotationProcessorClasspath       : <empty>
                             debugApi                      : <empty>
                             debugApiElements              : <empty>
+                            - debugApiElements-published  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                             debugCompileClasspath         : <empty>
                             debugCompileOnly              : <empty>
                             debugCompileOnlyApi           : <empty>
                             debugImplementation           : <empty>
                             debugRuntimeClasspath         : <empty>
                             debugRuntimeElements          : <empty>
+                            - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                             debugRuntimeOnly              : <empty>
                             - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
+                            - debugSourcesElements-published        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                             debugUnitTestAnnotationProcessorClasspath         : <empty>
                             debugUnitTestCompileClasspath : <empty>
                             debugUnitTestRuntimeClasspath : <empty>
@@ -1116,7 +1115,6 @@
                             kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
                             kotlinCompilerPluginClasspathMetadataMain         : <empty>
                             kotlinKlibCommonizerClasspath : <empty>
-                            kotlinNativeBundleConfiguration         : <empty>
                             kotlinNativeCompilerPluginClasspath     : <empty>
                             lintChecks                    : <empty>
                             lintPublish                   : <empty>
@@ -1126,19 +1124,22 @@
                             metadataCompilationImplementation       : <empty>
                             metadataCompilationRuntimeOnly          : <empty>
                             metadataCompileClasspath      : <empty>
-                            metadataSourcesElements       : <empty>
+                            - metadataSourcesElements     : <ROOT>/module2/build/libs/module2-kotlin-sources.jar [-]
                             releaseAnnotationProcessor    : <empty>
                             releaseAnnotationProcessorClasspath     : <empty>
                             releaseApi                    : <empty>
                             releaseApiElements            : <empty>
+                            - releaseApiElements-published          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                             releaseCompileClasspath       : <empty>
                             releaseCompileOnly            : <empty>
                             releaseCompileOnlyApi         : <empty>
                             releaseImplementation         : <empty>
                             releaseRuntimeClasspath       : <empty>
                             releaseRuntimeElements        : <empty>
+                            - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                             releaseRuntimeOnly            : <empty>
                             - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
+                            - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                             releaseUnitTestAnnotationProcessorClasspath       : <empty>
                             releaseUnitTestCompileClasspath         : <empty>
                             releaseUnitTestRuntimeClasspath         : <empty>
@@ -1193,6 +1194,13 @@
                     archives                      : <empty>
                     default                       : <empty>
             taskModel                     : DefaultGradleTaskModel
+                tasks
+                    browserTest                   : browserTest (DefaultExternalTask)
+                        qName                         : :jsModule:browserTest
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testDebugUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseUnitTest
     MODULE                        : kotlinMultiPlatform.app
         GradleModuleModel
             agpVersion                    : <AGP_VERSION>
@@ -1211,14 +1219,14 @@
                 ApiLevel                      : 16
                 ApiString                     : 16
             targetSdk
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
         RootBuildId                   : <ROOT>
         BuildId                       : <ROOT>
         ProjectPath                   : :app
         ModelVersion                  : <AGP_VERSION>
         ProjectType                   : PROJECT_TYPE_APP
-        CompileTarget                 : android-<SDK_VERSION>
+        CompileTarget                 : android-34
         BuildFolder                   : <ROOT>/app/build [-]
         buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
         IsBaseSplit                   : true
@@ -1261,6 +1269,7 @@
             MlModelBindingEnabled         : false
             AndroidResourcesEnabled       : true
             DataBindingEnabled            : false
+            GenerateManifestClass         : false
         - basicVariant:               : debug
             applicationId                 : com.example.android.kotlin
             testApplicationId             : com.example.android.kotlin.test
@@ -1268,7 +1277,7 @@
         - basicVariant:               : release
             applicationId                 : com.example.android.kotlin
             buildType                     : release
-        BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+        BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
         ViewBindingOptions
             Enabled                       : false
         DependenciesInfo
@@ -1285,8 +1294,8 @@
                     ApiLevel                      : 16
                     ApiString                     : 16
                 TargetSdkVersion
-                    ApiLevel                      : <SDK_VERSION>
-                    ApiString                     : <SDK_VERSION>
+                    ApiLevel                      : 34
+                    ApiString                     : 34
                 VectorDrawables
                     UseSupportLibrary             : false
             SourceProvider
@@ -1453,8 +1462,8 @@
                     ApiLevel                      : 16
                     ApiString                     : 16
                 TargetSdkVersion
-                    ApiLevel                      : <SDK_VERSION>
-                    ApiString                     : <SDK_VERSION>
+                    ApiLevel                      : 34
+                    ApiString                     : 34
                 VersionCode                   : 1
                 VersionNameWithSuffix         : 1.0
                 TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -2223,6 +2232,7 @@
                         noReflect                     : true
                         noStdlib                      : true
                         serializeIr                   : none
+                        useInlineScopesNumbers        : true
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         explicitApi                   : disable
@@ -2241,6 +2251,7 @@
                         noReflect                     : true
                         noStdlib                      : true
                         serializeIr                   : none
+                        useInlineScopesNumbers        : true
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         explicitApi                   : disable
@@ -2266,6 +2277,11 @@
                         useFirLT                      : true
             gradleUserHome                : <GRADLE>
             hasKotlinPlugin               : true
+            kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+                major                         : 2
+                minor                         : 1
+                patch                         : 20
+                versionString                 : <KOTLIN_VERSION_FOR_TESTS>
             kotlinTarget                  : kotlin-android
             kotlinTaskProperties
                 debug                         : KotlinTaskPropertiesImpl
@@ -2359,29 +2375,26 @@ Required by:
                         - dependencies                : 1
                         - dependencies                : 2
                         languageSettings              : KotlinLanguageSettingsImpl
-                            - freeCompilerArgs            : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule
                         - regularDependencies         : 1
                         - regularDependencies         : 2
                         - resourceDirs                : <ROOT>/jsModule/src/main/resources [-]
                         - sourceDirs                  : <ROOT>/jsModule/src/main/kotlin [-]
                         platform                      : JS
+                    archiveFile                   : <ROOT>/jsModule/build/libs/jsModule.klib [-]
                     compilerArguments             : K2JVMCompilerArguments
                         assertionsMode                : legacy
                         backendThreads                : 1
                         jvmDefault                    : disable
-                        noStdlib                      : true
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         errors                        : ArgumentParseErrors
                             - unknownArgs                 : -main
-                            - unknownArgs                 : -meta-info
                             - unknownArgs                 : -ir-output-name
                             - unknownArgs                 : -ir-output-dir
                             - unknownArgs                 : -source-map
                             - unknownArgs                 : -source-map-embed-sources
                             - unknownArgs                 : -target
-                            - unknownExtraFlags           : -Xir-only
                             - unknownExtraFlags           : -Xir-produce-klib-dir
                             - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule
                             - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule
@@ -2416,7 +2429,6 @@ Required by:
                         - dependencies                : 1
                         isTestComponent               : true
                         languageSettings              : KotlinLanguageSettingsImpl
-                            - freeCompilerArgs            : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test
                         - regularDependencies         : 3
                         - regularDependencies         : 1
                         - resourceDirs                : <ROOT>/jsModule/src/test/resources [-]
@@ -2429,19 +2441,16 @@ Required by:
                         assertionsMode                : legacy
                         backendThreads                : 1
                         jvmDefault                    : disable
-                        noStdlib                      : true
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         errors                        : ArgumentParseErrors
                             - unknownArgs                 : -main
-                            - unknownArgs                 : -meta-info
                             - unknownArgs                 : -ir-output-name
                             - unknownArgs                 : -ir-output-dir
                             - unknownArgs                 : -source-map
                             - unknownArgs                 : -source-map-embed-sources
                             - unknownArgs                 : -target
-                            - unknownExtraFlags           : -Xir-only
                             - unknownExtraFlags           : -Xir-produce-klib-dir
                             - unknownExtraFlags           : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test
                             - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule_test
@@ -2502,15 +2511,15 @@ Required by:
                 ApiLevel                      : 16
                 ApiString                     : 16
             targetSdk
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
         RootBuildId                   : <ROOT>
         BuildId                       : <ROOT>
         ProjectPath                   : :module2
         ModelVersion                  : <AGP_VERSION>
         ProjectType                   : PROJECT_TYPE_LIBRARY
-        CompileTarget                 : android-<SDK_VERSION>
-        BuildFolder                   : <ROOT>/module2/build [-]
+        CompileTarget                 : android-34
+        BuildFolder                   : <ROOT>/module2/build
         buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
         IsBaseSplit                   : false
         GroupId                       : kotlinMultiPlatform
@@ -2552,12 +2561,13 @@ Required by:
             MlModelBindingEnabled         : false
             AndroidResourcesEnabled       : true
             DataBindingEnabled            : false
+            GenerateManifestClass         : false
         - basicVariant:               : debug
             testApplicationId             : com.example.test.multiproject.module2.test
             buildType                     : debug
         - basicVariant:               : release
             buildType                     : release
-        BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+        BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
         ViewBindingOptions
             Enabled                       : false
         DefaultConfig
@@ -2567,8 +2577,8 @@ Required by:
                     ApiLevel                      : 16
                     ApiString                     : 16
                 TargetSdkVersion
-                    ApiLevel                      : <SDK_VERSION>
-                    ApiString                     : <SDK_VERSION>
+                    ApiLevel                      : 34
+                    ApiString                     : 34
                 VectorDrawables
                     UseSupportLibrary             : false
             SourceProvider
@@ -2773,8 +2783,8 @@ Required by:
                     ApiLevel                      : 16
                     ApiString                     : 16
                 TargetSdkVersion
-                    ApiLevel                      : <SDK_VERSION>
-                    ApiString                     : <SDK_VERSION>
+                    ApiLevel                      : 34
+                    ApiString                     : 34
                 MainArtifact
                     Name                          : MAIN
                     CompileTaskName               : compileDebugSources

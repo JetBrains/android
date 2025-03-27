@@ -18,18 +18,15 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.waitForCondition
 import com.android.testutils.VirtualTimeScheduler
+import com.android.testutils.waitForCondition
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.deploy.proto.Deploy
 import com.android.tools.deployer.AdbClient
 import com.android.tools.deployer.Installer
 import com.android.tools.deployer.TestLogger
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.deploy.proto.Deploy
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
@@ -51,7 +48,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito.spy
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -92,7 +92,7 @@ class LiveEditProjectMonitorTest {
       LiveEditService.getInstance(myProject), myProject);
     val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
 
-    val device: IDevice = MockitoKt.mock()
+    val device: IDevice = mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
     monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
@@ -110,9 +110,9 @@ class LiveEditProjectMonitorTest {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() : Int { return 1}") as KtFile
 
     // Fake a UpToDate Physical Device
-    val device1: IDevice = MockitoKt.mock()
-    MockitoKt.whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    MockitoKt.whenever(device1.isEmulator).thenReturn(false)
+    val device1: IDevice = mock()
+    whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    whenever(device1.isEmulator).thenReturn(false)
     monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device1, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
     // Push A.class into the class cache and pretend we already modified it once already.
@@ -135,7 +135,7 @@ class LiveEditProjectMonitorTest {
       LiveEditService.getInstance(myProject), myProject);
     val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
 
-    val device: IDevice = MockitoKt.mock()
+    val device: IDevice = mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
     monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
@@ -150,7 +150,7 @@ class LiveEditProjectMonitorTest {
       LiveEditService.getInstance(myProject), myProject);
     val file = projectRule.createKtFile("A.kt", "fun foo() : String { return 1}")
 
-    val device: IDevice = MockitoKt.mock()
+    val device: IDevice = mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.isEmulator).thenReturn(false)
     monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
@@ -169,10 +169,10 @@ class LiveEditProjectMonitorTest {
   @Test
   fun testMultiDeploy() {
     val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
-    val device1: IDevice = MockitoKt.mock()
-    MockitoKt.whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    val device2: IDevice = MockitoKt.mock()
-    MockitoKt.whenever(device2.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    val device1: IDevice = mock()
+    whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    val device2: IDevice = mock()
+    whenever(device2.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
     val manager = monitor.liveEditDevices
     manager.addDevice(device1, LiveEditStatus.UpToDate)
@@ -215,14 +215,14 @@ class LiveEditProjectMonitorTest {
   fun recomposition() {
     val taskFinished = CountDownLatch(1)
     var monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject);
-    val device: IDevice = MockitoKt.mock()
-    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    val device: IDevice = mock()
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
     val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
     val adb = AdbClient(device, TestLogger())
-    val deployer: LiveUpdateDeployer = MockitoKt.mock()
+    val deployer: LiveUpdateDeployer = mock()
 
-    MockitoKt.whenever(deployer.retrieveComposeStatus(any(), any(), any())).then {
+    whenever(deployer.retrieveComposeStatus(any(), any(), any())).then {
       taskFinished.countDown()
       throw IOException("Fake IO Exception")
     }
@@ -254,15 +254,15 @@ class LiveEditProjectMonitorTest {
     val taskComposeStatusFinished = CountDownLatch(1)
 
     val monitor = spy(LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject))
-    val device: IDevice = MockitoKt.mock()
-    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    val device: IDevice = mock()
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
     val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
     val adb = AdbClient(device, TestLogger())
-    val deployer: LiveUpdateDeployer = MockitoKt.mock()
+    val deployer: LiveUpdateDeployer = mock()
 
     var totalStatusRetrieve = 0
-    MockitoKt.whenever(deployer.retrieveComposeStatus(any(), any(), any())).then {
+    whenever(deployer.retrieveComposeStatus(any(), any(), any())).then {
       recompositionStatusRequestFinished.await() // Wait until all 10 request has been queued up before we return the one status.
       taskComposeStatusFinished.countDown()
       totalStatusRetrieve++
@@ -305,14 +305,14 @@ class LiveEditProjectMonitorTest {
       }
     }
 
-    val device: IDevice = MockitoKt.mock()
-    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    val device: IDevice = mock()
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
     val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
     val adb = AdbClient(device, TestLogger())
-    val deployer: LiveUpdateDeployer = MockitoKt.mock()
+    val deployer: LiveUpdateDeployer = mock()
 
-    MockitoKt.whenever(deployer.retrieveComposeStatus(any(), any(), any())).thenReturn(listOf(Deploy.ComposeException.newBuilder().build()))
+    whenever(deployer.retrieveComposeStatus(any(), any(), any())).thenReturn(listOf(Deploy.ComposeException.newBuilder().build()))
     // Fake Deployment
     monitor.notifyAppDeploy(TestApplicationProjectContext("some.app"), device, LiveEditApp(emptySet(), 32), emptyList()) { true }
     monitor.liveEditDevices.update(LiveEditStatus.UpToDate)
@@ -335,8 +335,8 @@ class LiveEditProjectMonitorTest {
     val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     val file = projectRule.fixture.configureByText("A.java", "class A() { }")
 
-    val device: IDevice = MockitoKt.mock()
-    val client: Client = MockitoKt.mock()
+    val device: IDevice = mock()
+    val client: Client = mock()
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     whenever(device.getClient(appId)).thenReturn(client)
 

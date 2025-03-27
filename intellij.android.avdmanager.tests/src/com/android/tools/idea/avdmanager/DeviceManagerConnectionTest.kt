@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager
 import com.android.sdklib.TempSdkManager
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
-import com.android.sdklib.devices.DeviceManager.DeviceFilter
+import com.android.sdklib.devices.DeviceManager.DeviceCategory
 import com.android.testutils.NoErrorsOrWarningsLogger
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -30,7 +30,7 @@ class DeviceManagerConnectionTest {
   @Test
   fun createDevices() {
     val deviceManager =
-      DeviceManager.createInstance(sdkManager.sdkHandler, NoErrorsOrWarningsLogger())
+      DeviceManager.createInstance(sdkManager.sdkHandler, NoErrorsOrWarningsLogger(), { true })
     val deviceManagerConnection = DeviceManagerConnection(deviceManager)
     val device =
       Device.Builder(deviceManagerConnection.devices.first())
@@ -38,15 +38,21 @@ class DeviceManagerConnectionTest {
         .build()
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(deviceManagerConnection.getDevices(listOf(DeviceFilter.USER)).map { it.displayName })
+    assertThat(
+        deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName }
+      )
       .containsExactly("TestDevice")
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(deviceManagerConnection.getDevices(listOf(DeviceFilter.USER)).map { it.displayName })
+    assertThat(
+        deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName }
+      )
       .containsExactly("TestDevice", "TestDevice_2")
 
     deviceManagerConnection.createDevices(listOf(device))
-    assertThat(deviceManagerConnection.getDevices(listOf(DeviceFilter.USER)).map { it.displayName })
+    assertThat(
+        deviceManagerConnection.getDevices(listOf(DeviceCategory.USER)).map { it.displayName }
+      )
       .containsExactly("TestDevice", "TestDevice_2", "TestDevice_3")
   }
 }

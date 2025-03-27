@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
 import "common.proto";
-import "decimal.proto";
 import "device.proto";
 import "metrics.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/decimal.proto";
 option java_package = "com.google.play.developer.reporting";
 option java_outer_classname = "VitalsErrorsServiceProto";
 option java_multiple_files = true;
@@ -67,7 +67,7 @@ enum ErrorType {
 message ErrorReport {
   // The resource name of the report.
   //
-  // Format: apps/{app}/errorReports/{report}
+  // Format: apps/{app}/{report}
   string name = 1;
 
   // Type of the error for which this report was generated.
@@ -129,7 +129,7 @@ message ErrorReport {
 message ErrorIssue {
   // The resource name of the issue.
   //
-  // Format: apps/{app}/errorIssues/{issue}
+  // Format: apps/{app}/{issue}
   string name = 1;
 
   // Type of the errors grouped in this issue.
@@ -199,6 +199,11 @@ message ErrorIssue {
   // affected by this issue (only considering occurrences matching the filters
   // and within the requested time period).
   google.type.Decimal distinct_users_percent = 14;
+
+  // Sample error reports which belong to this ErrorIssue.
+  // *Note:* currently a maximum of 1 per ErrorIssue is supported.
+  // Format: "apps/{app}/{report}"
+  repeated string sample_error_reports = 15;
 }
 
 // Request to search error reports.
@@ -258,6 +263,9 @@ message SearchErrorReportsRequest {
   // * `errorIssueId`: Matches error reports belonging to the requested error
   //    issue ids only.
   //    Example: `errorIssueId = 1234 OR errorIssueId = 4567`.
+  // * `errorReportId`: Matches error reports with the requested error report
+  //    id.
+  //    Example: `errorReportId = 1234 OR errorReportId = 4567`.
   // * `appProcessState`: Matches error reports on the process state of an app,
   //    indicating whether an app runs in the foreground (user-visible) or
   //    background.
@@ -402,6 +410,11 @@ message SearchErrorIssuesRequest {
   //
   // *Note:* currently only one field is supported at a time.
   string order_by = 6;
+
+  // Number of sample error reports to return per ErrorIssue.
+  // If unspecified, 0 will be used.
+  // *Note:* currently only 0 and 1 are supported.
+  int32 sample_error_report_limit = 7;
 }
 
 // Response with a paginated list of issues that matched the request.
@@ -430,7 +443,7 @@ message GetErrorCountMetricSetRequest {
 //
 // **Supported aggregation periods:**
 //
-//  * [HOURLY][google.play.developer.reporting.{$api_version}.AggregationPeriod.HOURLY]:
+//  * [HOURLY][google.play.developer.reporting.v1beta1.AggregationPeriod.HOURLY]:
 //    metrics are aggregated in hourly intervals. The default and only
 //    supported timezone is `UTC`.
 //  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
@@ -582,10 +595,6 @@ message QueryErrorCountMetricSetRequest {
   //     the type of error. The value should correspond to one of the possible
   //     values in
   //     [ErrorType][google.play.developer.reporting.v1beta1.ErrorType].
-  //  * `isUserPerceived`
-  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     denotes whether error is user perceived or not, USER_PERCEIVED or
-  //     NOT_USER_PERCEIVED.
   //  * `issueId`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     the id an error was assigned to. The value should correspond to the
@@ -659,7 +668,12 @@ message QueryErrorCountMetricSetRequest {
 
   // Filters to apply to data. The filtering expression follows
   // [AIP-160](https://google.aip.dev/160) standard and supports filtering
-  // by equality of all breakdown dimensions.
+  // by equality of all breakdown dimensions and:
+  //
+  //  * `isUserPerceived`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     denotes whether error is user perceived or not, USER_PERCEIVED or
+  //     NOT_USER_PERCEIVED.
   string filter = 7;
 }
 

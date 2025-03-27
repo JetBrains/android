@@ -1,0 +1,31 @@
+-
+ -failed
+  :clean
+  :app:clean
+  :app:preBuild
+  :app:extractProguardFiles
+  :app:preDebugBuild
+  :app:checkDebugManifest
+  :app:generateDebugBuildConfig
+  :app:mainApkListPersistenceDebug
+  :app:generateDebugResValues
+  :app:createDebugCompatibleScreenManifests
+  :app:mergeDebugShaders
+  :app:compileDebugShaders
+  :app:compileDebugAidl
+  :app:compileDebugRenderscript
+  :app:generateDebugResources
+  :app:processDebugManifest
+  :app:generateDebugAssets
+  :app:mergeDebugAssets
+  :app:validateSigningDebug
+  :app:signingConfigWriterDebug
+  :app:mergeDebugResources
+  -:app:processDebugResources
+   -styles.xml
+    Android resource linking failed
+    Android resource linking failed
+    Android resource linking failed
+    Android resource linking failed
+   Android resource linking failed
+  fake exception for test

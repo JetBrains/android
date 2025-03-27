@@ -1048,6 +1048,11 @@ MODULE                        : My_First_App
                             qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : My_First_App.app
     GradleModuleModel
         agpVersion                    : 7.2.0
@@ -1066,8 +1071,8 @@ MODULE                        : My_First_App.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
     ProjectPath                   : :app
@@ -1116,6 +1121,7 @@ MODULE                        : My_First_App.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.example.firstapp
         testApplicationId             : com.example.firstapp.test
@@ -1140,8 +1146,8 @@ MODULE                        : My_First_App.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1318,8 +1324,8 @@ MODULE                        : My_First_App.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -2170,6 +2176,11 @@ MODULE                        : My_First_App.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -2206,8 +2217,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
     ProjectPath                   : :app:mysharedlibrary
@@ -2256,6 +2267,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.mysharedlibrary.test
         buildType                     : debug
@@ -2275,8 +2287,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2443,8 +2455,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             ConsumerProguardFiles         : <ROOT>/shared/mysharedlibrary/consumer-rules.pro
@@ -3350,6 +3362,11 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

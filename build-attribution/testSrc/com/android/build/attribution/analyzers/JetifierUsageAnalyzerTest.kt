@@ -27,7 +27,6 @@ import com.android.buildanalyzer.common.DependencyPath
 import com.android.buildanalyzer.common.FullDependencyPath
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.ide.common.repository.AgpVersion
-import com.android.testutils.MockitoKt
 import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -44,6 +43,7 @@ import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.io.File
 
 class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
@@ -247,7 +247,7 @@ class JetifierUsageAnalyzerUnitTest {
       buildInvocationType = BuildInvocationType.REGULAR_BUILD,
       enableJetifierPropertyState = true,
       useAndroidXPropertyState = true,
-      buildRequestHolder = MockitoKt.mock()
+      buildRequestHolder = mock()
     )
     val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
@@ -39,6 +40,8 @@ class EditDeviceAction : DumbAwareAction("Edit", "Edit this device", AllIcons.Ac
       DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION
     )
 
-    handle.launchCatchingDeviceActionException { handle.editAction?.edit() }
+    handle.launchCatchingDeviceActionException {
+      handle.editAction?.edit(e.componentToRestoreFocusTo())
+    }
   }
 }

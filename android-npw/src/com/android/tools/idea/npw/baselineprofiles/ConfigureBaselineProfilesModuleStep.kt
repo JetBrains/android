@@ -53,12 +53,12 @@ import javax.swing.JPanel
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
 
-
-private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(
-  "android.hardware.type.automotive",
-  "android.hardware.type.watch",
-  "android.software.leanback"
-)
+private val USES_FEATURE_OTHER_FORM_FACTORS =
+  setOf(
+    "android.hardware.type.automotive",
+    "android.hardware.type.watch",
+    "android.software.leanback",
+  )
 
 private val ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION = Version.parse("1.2.0")
 private const val ANDROIDX_BENCHMARK_LIBRARY_GROUP = "androidx.benchmark"
@@ -66,14 +66,15 @@ private const val ANDROIDX_BENCHMARK_LIBRARY_GROUP = "androidx.benchmark"
 class ConfigureBaselineProfilesModuleStep(
   model: NewBaselineProfilesModuleModel,
   disposable: Disposable? = null,
-) : ConfigureModuleStep<NewBaselineProfilesModuleModel>(
-  model = model,
-  formFactor = FormFactor.MOBILE,
-  minSdkLevel = SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION,
-  basePackage = getSuggestedProjectPackage(),
-  title = AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.app"),
-  parentDisposable = disposable
-) {
+) :
+  ConfigureModuleStep<NewBaselineProfilesModuleModel>(
+    model = model,
+    formFactor = FormFactor.MOBILE,
+    minSdkLevel = SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION,
+    basePackage = getSuggestedProjectPackage(),
+    title = AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.app"),
+    parentDisposable = disposable,
+  ) {
 
   @VisibleForTesting
   val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
@@ -97,17 +98,17 @@ class ConfigureBaselineProfilesModuleStep(
     // Map each module with the parsed manifests. This allows to check later
     // what uses-feature tags are defined in the manifest and whether a module is for tv,
     // automotive and/or wear. We only enable GMD for smartphones.
-    val appModules = AndroidProjectInfo
-      .getInstance(model.project)
-      .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
-      .filter { it.androidFacet != null }
-      .associateWith { module ->
-        AndroidManifestIndex.getDataForMergedManifestContributors(module.androidFacet!!).toList().flatMap { it.usedFeatures }
-      }
+    val appModules =
+      AndroidProjectInfo.getInstance(model.project)
+        .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
+        .filter { it.androidFacet != null }
+        .associateWith { module ->
+          AndroidManifestIndex.getDataForMergedManifestContributors(module.androidFacet!!)
+            .toList()
+            .flatMap { it.usedFeatures }
+        }
 
-    appModules.forEach { e ->
-      targetModuleCombo.addItem(e.key)
-    }
+    appModules.forEach { e -> targetModuleCombo.addItem(e.key) }
 
     targetModuleCombo.addItemListener { itemEvent ->
       useGmdCheck.isEnabled = appModules[itemEvent.item]?.usesFeatureAutomotiveOrWearOrTv() == false
@@ -135,26 +136,27 @@ class ConfigureBaselineProfilesModuleStep(
     bindings.bindTwoWay(SelectedItemProperty(targetModuleCombo), model.targetModule)
 
     val targetModuleValidator = ModuleSelectedValidator()
-    validatorPanel.registerValidator(model.targetModule, createValidator { value ->
-      targetModuleValidator.validate(value)
-    })
+    validatorPanel.registerValidator(
+      model.targetModule,
+      createValidator { value -> targetModuleValidator.validate(value) },
+    )
   }
 
   private fun validateAgpVersion() =
     validatorPanel.registerValidator(
-      model.agpVersion,
-      createValidator { version ->
-        if (version.compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
+      model.agpVersionSelector,
+      createValidator { versionSelector ->
+        if (!versionSelector.willSelectAtLeast(BP_PLUGIN_MIN_SUPPORTED)) {
           Validator.Result.fromNullableMessage(
             AndroidBundle.message(
               "android.wizard.validate.module.needs.new.agp.baseline.profiles",
-              BP_PLUGIN_MIN_SUPPORTED.toString()
+              BP_PLUGIN_MIN_SUPPORTED.toString(),
             )
           )
         } else {
           Validator.Result.OK
         }
-      }
+      },
     )
 
   private fun validateTargetModule() =
@@ -192,7 +194,7 @@ class ConfigureBaselineProfilesModuleStep(
           Validator.Result.OK
         }
       },
-      model.packageName
+      model.packageName,
     )
 
   private fun validatePackageName() =
@@ -236,7 +238,7 @@ class ConfigureBaselineProfilesModuleStep(
           Validator.Result.OK
         }
       },
-      model.targetModule
+      model.targetModule,
     )
 
   private fun validateAndroidXBenchmarkDependencyVersion() =
@@ -254,33 +256,48 @@ class ConfigureBaselineProfilesModuleStep(
           )
         }
         val module = it.get()
-        GradleAndroidModel.get(module) ?: return@createValidator Validator.Result.fromNullableMessage(
-          AndroidBundle.message("android.wizard.validate.module.invalid.application.baseline.profiles")
-        )
+        GradleAndroidModel.get(module)
+          ?: return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message(
+              "android.wizard.validate.module.invalid.application.baseline.profiles"
+            )
+          )
 
         if (getBenchmarkLibrariesInTestModulesLessThanMinVersion(module.project).isNotEmpty()) {
           return@createValidator Validator.Result(
             Validator.Severity.WARNING,
-            AndroidBundle.message("android.wizard.module.help.baselineprofiles.minversionrequired")
+            AndroidBundle.message("android.wizard.module.help.baselineprofiles.minversionrequired"),
           )
         } else {
           return@createValidator Validator.Result.OK
         }
       },
-      model.targetModule
+      model.targetModule,
     )
 
   override fun createMainPanel(): JPanel = panel {
     row {
-      comment("<strong>" + AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description") + "</strong>")
+      comment(
+        "<strong>" +
+          AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description") +
+          "</strong>"
+      )
     }
 
     row {
-      comment(AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description.extra"))
+      comment(
+        AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description.extra")
+      )
     }
 
     row(
-      contextLabel("Target application", AndroidBundle.message("android.wizard.module.help.baselineprofiles.target.module.description"))) {
+      contextLabel(
+        "Target application",
+        AndroidBundle.message(
+          "android.wizard.module.help.baselineprofiles.target.module.description"
+        ),
+      )
+    ) {
       cell(targetModuleCombo).align(AlignX.FILL)
     }
 
@@ -288,13 +305,9 @@ class ConfigureBaselineProfilesModuleStep(
       cell(moduleName).align(AlignX.FILL)
     }
 
-    row("Package name") {
-      cell(packageName).align(AlignX.FILL)
-    }
+    row("Package name") { cell(packageName).align(AlignX.FILL) }
 
-    row("Language") {
-      cell(languageCombo).align(AlignX.FILL)
-    }
+    row("Language") { cell(languageCombo).align(AlignX.FILL) }
 
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
       generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
@@ -303,7 +316,9 @@ class ConfigureBaselineProfilesModuleStep(
     row {
       topGap(TopGap.SMALL)
       cell(useGmdCheck)
-      rowComment(AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description"))
+      rowComment(
+        AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description")
+      )
     }
   }
 
@@ -327,8 +342,7 @@ class ConfigureBaselineProfilesModuleStep(
 }
 
 fun getBenchmarkLibrariesInTestModulesLessThanMinVersion(project: Project) =
-  AndroidProjectInfo
-    .getInstance(project)
+  AndroidProjectInfo.getInstance(project)
     .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_TEST)
     .asSequence()
     .filter { it.androidFacet != null }
@@ -337,7 +351,11 @@ fun getBenchmarkLibrariesInTestModulesLessThanMinVersion(project: Project) =
     .flatMap { v -> v.mainArtifact.compileClasspath.libraries }
     .filterIsInstance<IdeArtifactLibrary>()
     .filter { it.name.startsWith(ANDROIDX_BENCHMARK_LIBRARY_GROUP) }
-    .filter { it.component?.let { c -> c.version <= ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION } ?: false }
+    .filter {
+      it.component?.let { c -> c.version <= ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION } ?: false
+    }
     .toList()
 
-fun List<UsedFeatureRawText>.usesFeatureAutomotiveOrWearOrTv() = any { it.name in USES_FEATURE_OTHER_FORM_FACTORS && it.required?.toBooleanStrictOrNull() ?: true }
+fun List<UsedFeatureRawText>.usesFeatureAutomotiveOrWearOrTv() = any {
+  it.name in USES_FEATURE_OTHER_FORM_FACTORS && it.required?.toBooleanStrictOrNull() ?: true
+}

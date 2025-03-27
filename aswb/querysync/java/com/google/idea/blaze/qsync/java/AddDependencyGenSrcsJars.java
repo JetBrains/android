@@ -15,20 +15,23 @@
  */
 package com.google.idea.blaze.qsync.java;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata.Extractor;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
-import com.google.idea.blaze.qsync.deps.ArtifactMetadata;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
-import com.google.idea.blaze.qsync.java.SrcJarInnerPathFinder.JarPath;
+import com.google.idea.blaze.qsync.java.JavaArtifactMetadata.SrcJarJavaPackageRoots;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto.LibrarySource;
+import java.nio.file.Path;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -40,10 +43,10 @@ import java.util.stream.Stream;
 public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
 
   private final ProjectDefinition projectDefinition;
-  private final SourceJarInnerPackageRoots srcJarPathsMetadata;
+  private final Extractor<SrcJarJavaPackageRoots> srcJarPathsMetadata;
 
   public AddDependencyGenSrcsJars(
-      ProjectDefinition projectDefinition, SourceJarInnerPackageRoots srcJarPathsMetadata) {
+      ProjectDefinition projectDefinition, Extractor<SrcJarJavaPackageRoots> srcJarPathsMetadata) {
     this.projectDefinition = projectDefinition;
     this.srcJarPathsMetadata = srcJarPathsMetadata;
   }
@@ -61,7 +64,7 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifacts(
+  public ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>> getRequiredArtifacts(
       TargetBuildInfo forTarget) {
     return getDependencyGenSrcJars(forTarget)
         .collect(
@@ -82,8 +85,11 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
                         .orElse(null);
 
                 if (projectArtifact != null) {
-                  srcJarPathsMetadata.from(target, genSrc).stream()
-                      .map(JarPath::path)
+                  genSrc
+                      .getMetadata(SrcJarJavaPackageRoots.class)
+                      .map(SrcJarJavaPackageRoots::roots)
+                      .orElse(ImmutableSet.of(Path.of("")))
+                      .stream()
                       .map(projectArtifact::withInnerJarPath)
                       .map(ProjectPath::toProto)
                       .map(LibrarySource.newBuilder()::setSrcjar)

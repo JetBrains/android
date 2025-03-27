@@ -35,7 +35,8 @@ internal class MirroringConfirmationDialog(val title: String) {
     "<p><b>Warning:</b> Mirroring might result in information disclosure for devices connected with" +
     " the<code>&nbsp;adb&nbsp;tcpip </code>command because the&nbsp;mirroring information and commands are passed" +
     " over a&nbsp;non-encrypted channel. Mirroring information might also be intercepted by other users on your host" +
-    " machine since the&nbsp;communication channel between ${ApplicationNamesInfo.getInstance().fullProductName} and the&nbsp;adb server is not encrypted.</p>"
+    " machine since the&nbsp;communication channel between ${ApplicationNamesInfo.getInstance().fullProductName} and" +
+    " the&nbsp;adb server is not encrypted.</p>"
   }
 
   /**

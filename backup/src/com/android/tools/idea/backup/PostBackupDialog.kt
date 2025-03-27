@@ -20,6 +20,7 @@ import com.android.backup.BackupService
 import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.PostBackupDialog.Mode.EXISTING_CONFIG
 import com.android.tools.idea.backup.PostBackupDialog.Mode.NEW_CONFIG
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -63,6 +64,8 @@ internal class PostBackupDialog(private val project: Project, private val backup
   init {
     init()
     title = "Add To Run Configuration"
+    pack()
+    isResizable = false
   }
 
   override fun createCenterPanel(): JComponent {
@@ -123,7 +126,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
     val settings =
       runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
     runManager.setUniqueNameIfNeeded(settings.configuration)
-    val applicationId = BackupService.getApplicationId(backupPath)
+    val applicationId = BackupService.getMetadata(backupPath).applicationId
     val module = findModule(applicationId)
     if (module != null) {
       val config = settings.configuration as AndroidRunConfiguration
@@ -139,7 +142,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
 
   private fun getRunConfigSettings(): List<RunnerAndConfigurationSettings> {
     val runManager = RunManager.getInstance(project)
-    val applicationId = BackupService.getApplicationId(backupPath)
+    val applicationId = BackupService.getMetadata(backupPath).applicationId
     val selectedConfiguration = runManager.selectedConfiguration
     return buildList {
       if (selectedConfiguration?.isApplicable(applicationId) == true) {
@@ -178,5 +181,10 @@ internal class PostBackupDialog(private val project: Project, private val backup
   }
 
   private fun findModule(applicationId: String) =
-    project.getProjectSystem().findModulesWithApplicationId(applicationId).firstOrNull()
+    project
+      .getProjectSystem()
+      .findModulesWithApplicationId(applicationId)
+      .firstOrNull()
+      ?.getModuleSystem()
+      ?.getHolderModule()
 }

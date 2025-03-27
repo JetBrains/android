@@ -60,6 +60,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "@intellij//:intellij-sdk[test]",

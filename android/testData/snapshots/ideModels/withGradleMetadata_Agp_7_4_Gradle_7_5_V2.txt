@@ -195,6 +195,11 @@ MODULE                        : withGradleMetadata
                             qName                         : :app:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : withGradleMetadata.app
     GradleModuleModel
         agpVersion                    : 7.4.1
@@ -220,7 +225,7 @@ MODULE                        : withGradleMetadata.app
     ProjectPath                   : :app
     ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
@@ -263,6 +268,7 @@ MODULE                        : withGradleMetadata.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : come.example.with.gradle.metadata
         testApplicationId             : come.example.with.gradle.metadata.test
@@ -270,7 +276,7 @@ MODULE                        : withGradleMetadata.app
     - basicVariant:               : release
         applicationId                 : come.example.with.gradle.metadata
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo

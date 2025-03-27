@@ -81,6 +81,20 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
+      """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: java.lang.NoSuchMethodError
+              at: [2]org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget#applyImperative
+          }
+        }
       """.trimIndent()
     )
   }
@@ -101,6 +115,22 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
+      """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: org.gradle.api.internal.plugins.PluginApplicationException
+              at: [0]org.gradle.api.internal.plugins.DefaultPluginManager#doApply
+            exception: java.lang.ClassCastException
+              at: [2]org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget#applyImperative
+          }
+        }
       """.trimIndent()
     )
   }
@@ -122,6 +152,24 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
         SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
         FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
         FAILURE : SYNC_TOTAL
+      """.trimIndent(),
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: org.gradle.tooling.BuildActionFailureException
+              at: [0]org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection#run
+            exception: org.gradle.api.ProjectConfigurationException
+              at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
+            exception: org.gradle.api.GradleScriptException
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory${'$'}ScriptRunnerImpl#run
+            exception: org.gradle.api.internal.plugins.PluginApplicationException
+              at: [0]org.gradle.api.internal.plugins.DefaultPluginManager#doApply
+            exception: java.lang.RuntimeException
+              at: [2]org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget#applyImperative
+            exception: java.lang.ClassNotFoundException
+              at: [0]org.gradle.internal.classloader.VisitableURLClassLoader${'$'}InstrumentingVisitableURLClassLoader#findClass
+          }
+        }
       """.trimIndent()
     )
   }

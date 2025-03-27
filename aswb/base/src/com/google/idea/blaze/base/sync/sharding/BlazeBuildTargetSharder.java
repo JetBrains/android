@@ -37,7 +37,7 @@ import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.scope.output.StatusOutput;
 import com.google.idea.blaze.base.scope.scopes.TimingScope;
 import com.google.idea.blaze.base.scope.scopes.TimingScope.EventType;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.sync.projectview.TargetExpressionList;
 import com.google.idea.blaze.base.sync.sharding.WildcardTargetExpander.ExpandedTargetsResult;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;

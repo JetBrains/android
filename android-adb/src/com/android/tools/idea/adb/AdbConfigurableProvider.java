@@ -22,6 +22,7 @@ import com.intellij.xdebugger.settings.DebuggerConfigurableProvider;
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 public class AdbConfigurableProvider extends DebuggerConfigurableProvider {
@@ -30,7 +31,7 @@ public class AdbConfigurableProvider extends DebuggerConfigurableProvider {
   public Collection<? extends Configurable> getConfigurables(@NotNull DebuggerSettingsCategory category) {
     if (category == DebuggerSettingsCategory.GENERAL) {
       return ImmutableList.of(SimpleConfigurable.create("adbSettingsConfigurable", "Android Debug Bridge (adb)", AdbConfigurableUi.class,
-                                                        AdbOptionsService::getInstance));
+                                                        (Supplier<AdbOptionsService>) AdbOptionsService::getInstance));
     }
     return Collections.emptyList();
   }

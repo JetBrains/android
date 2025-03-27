@@ -6,13 +6,9 @@ iml_module(
     iml_files = ["intellij.android.core.res.iml"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_data = [
-        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:layoutlib_extensions",
-        "//prebuilts/studio/layoutlib/data:native_libs",
-        "//prebuilts/studio/layoutlib/data/fonts",
-        "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/base/resource-repository/test/resources",
@@ -22,6 +18,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
@@ -44,5 +41,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "@intellij//:org.jetbrains.kotlin[test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

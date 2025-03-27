@@ -15,30 +15,24 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.AgpVersion
 import com.android.repository.Revision
-import com.android.tools.idea.npw.project.determineKotlinVersion
+import com.android.tools.idea.npw.project.determineKotlinVersionOrDefault
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.refactoring.isAndroidx
 import java.io.File
 import java.net.URL
-
-private val log: Logger get() = logger<ProjectTemplateDataBuilder>()
+import org.jetbrains.android.refactoring.isAndroidx
 
 /**
  * Builder for [ProjectTemplateData].
  *
  * Extracts information from various data sources.
  */
-
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var agpVersion: AgpVersion? = null
@@ -57,16 +51,14 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
 
   internal fun setEssentials(project: Project) {
     applicationName = project.name
-    kotlinVersion = determineKotlinVersion(project)
+    kotlinVersion = determineKotlinVersionOrDefault(project, isNewProject)
     // If we create a new project, then we have a checkbox for androidX support
     if (!isNewProject) {
       androidXSupport = project.isAndroidx()
     }
   }
 
-  /**
-   * Sets basic information which is available in [Project].
-   */
+  /** Sets basic information which is available in [Project]. */
   fun setProjectDefaults(project: Project) {
     setEssentials(project)
 
@@ -80,24 +72,19 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     sdkDir = sdkHandler.location?.toFile()
   }
 
-  @Slow
-  private fun determineKotlinVersion(project: Project): String {
-    return determineKotlinVersion(project, isNewProject)
-  }
-
-  fun build() = ProjectTemplateData(
-    androidXSupport!!,
-    agpVersion!!,
-    additionalMavenRepos,
-    sdkDir,
-    Language.valueOf(language!!.toString()),
-    kotlinVersion!!,
-    topOut!!,
-    applicationPackage,
-    includedFormFactorNames,
-    debugKeyStoreSha1,
-    overridePathCheck,
-    isNewProject
-  )
+  fun build() =
+    ProjectTemplateData(
+      androidXSupport!!,
+      agpVersion!!,
+      additionalMavenRepos,
+      sdkDir,
+      Language.valueOf(language!!.toString()),
+      kotlinVersion!!,
+      topOut!!,
+      applicationPackage,
+      includedFormFactorNames,
+      debugKeyStoreSha1,
+      overridePathCheck,
+      isNewProject,
+    )
 }
-

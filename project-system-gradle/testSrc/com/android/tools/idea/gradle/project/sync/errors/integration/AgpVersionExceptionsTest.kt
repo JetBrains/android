@@ -57,7 +57,15 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
         expect.that(buildIssue.quickFixes).hasSize(0)
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+              at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -80,7 +88,15 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+              at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -103,7 +119,15 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
           .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+              at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+          }
+        }
+      """.trimIndent()
     )
   }
 
@@ -126,7 +150,15 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
           .isEqualTo("https://developer.android.com/studio/preview/features#agp-previews")
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE,
-      expectedPhasesReported = null // Because of using simulated error phases are not relevant in this test
+      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+      expectedFailureDetailsString = """
+        failure {
+          error {
+            exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+              at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+          }
+        }
+      """.trimIndent()
     )
   }
 

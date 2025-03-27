@@ -41,7 +41,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
@@ -167,7 +167,7 @@ abstract class ProjectsUpgradeTestBase {
         when (relative.path) {
           FN_GRADLE_PROPERTIES -> {
             VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
-            AndroidGradleTests.updateGradleProperties(projectRoot, AgpVersion.parse(environment.agpVersion), AndroidVersion(environment.compileSdk));
+            AndroidGradleTests.updateGradleProperties(projectRoot, AgpVersion.parse(environment.agpVersion), AndroidVersion.fromString(environment.compileSdk));
           }
         }
       }
@@ -199,7 +199,7 @@ abstract class ProjectsUpgradeTestBase {
       // Setting actual expected gradle path here, which does not use EmbeddedDistributionPaths.findEmbeddedGradleDistributionFile() or
       // AndroidGradleTests.createGradleWrapper() because the file does not necessarily exist (because of bazel sandboxing, for example).
       val wrapper = GradleWrapper.create(projectRoot, null)
-      EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath()
+      GradleProjectSystemUtil.findEmbeddedGradleDistributionPath()
         ?.resolve("gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
         ?.let { file -> wrapper.updateDistributionUrl(file) } ?: error("failed to set expected Gradle path")
     }
@@ -268,7 +268,8 @@ abstract class ProjectsUpgradeTestBase {
       agpVersion = agpVersionString(),
       gradleVersion = gradleVersionString(),
       jdkVersion = jdkVersion(),
-      kotlinVersion = kotlinVersion()
+      kotlinVersion = kotlinVersion(),
+      compileSdk = version.compileSdkVersion.apiStringWithoutExtension,
     )
 
   private fun AUATestProjectState.ndkVersion(): String? = null

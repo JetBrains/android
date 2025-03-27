@@ -1,3 +1,4 @@
+import json
 import xml.etree.ElementTree as ET
 import os
 import re
@@ -194,6 +195,25 @@ class StudioTests(unittest.TestCase):
         for f in file.infolist():
           if f.external_attr & 0x1800000 != 0x1800000:
             self.fail("Found file without full read/write permissions: %s %x" % (f.filename, f.external_attr))
+
+  def test_product_info(self):
+    # Ensure product-info.json contains metadata for our Bazel-built plugins (b/393595344).
+    with zipfile.ZipFile(f"tools/adt/idea/studio/android-studio.linux.zip", "r") as distro:
+      product_info = json.loads(distro.read("android-studio/product-info.json").decode("utf-8"))
+      zip_entries = set(distro.namelist())
+    self.assertIn("org.jetbrains.android", product_info["bundledPlugins"])
+    [android_plugin_layout] = [p for p in product_info["layout"] if p["kind"] == "plugin" and p["name"] == "org.jetbrains.android"]
+    classpath_jars = android_plugin_layout["classPath"]
+    self.assertNotEqual(0, len(classpath_jars))
+    for jar in classpath_jars:
+      self.assertTrue(f"android-studio/{jar}" in zip_entries, f"product-info.json refers to non-existent file: {jar}")
+
+    # Ensure our metadata format matches JetBrains metadata (to hopefully catch schema changes).
+    self.assertIn("com.intellij.java", product_info["bundledPlugins"])
+    [java_plugin_layout] = [p for p in product_info["layout"] if p["kind"] == "plugin" and p["name"] == "com.intellij.java"]
+    self.assertEqual(android_plugin_layout.keys(), java_plugin_layout.keys(), "did the schema for product-info.json change?")
+    java_plugin_jar = java_plugin_layout["classPath"][0]
+    self.assertRegex(java_plugin_jar, r"^plugins/java/lib/[^/]*\.jar$", "did the scheme for product-info.json change?")
 
 if __name__ == "__main__":
   unittest.main()

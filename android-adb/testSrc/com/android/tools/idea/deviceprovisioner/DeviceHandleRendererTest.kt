@@ -41,6 +41,7 @@ class DeviceHandleRendererTest {
     androidVersion = AndroidVersion(31)
     icon = EmptyIcon.DEFAULT
   }
+
   val properties1 =
     DeviceProperties.buildForTest {
       baseProperties()

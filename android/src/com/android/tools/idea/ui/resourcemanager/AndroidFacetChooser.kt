@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProductionAndroidModule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -34,7 +34,7 @@ internal const val MODULE_NAME_KEY = "ModuleName"
 internal fun findCompatibleFacetFromOpenedFiles(project: Project): AndroidFacet? =
   // Find facet for active files in editor
   FileEditorManager.getInstance(project).selectedFiles.mapNotNull { file ->
-    ModuleUtilCore.findModuleForFile(file, project)?.getMainModule()?.androidFacet
+    ModuleUtilCore.findModuleForFile(file, project)?.getModuleSystem()?.getProductionAndroidModule()?.androidFacet
   }.firstOrNull() ?:
   // Fallback to the first facet we can find
   findCompatibleFacets(project).firstOrNull()
@@ -56,7 +56,7 @@ internal fun findCompatibleFacets(project: Project): List<AndroidFacet> =
  * True if the given [androidFacet] is supported in the ResourceExplorer.
  */
 internal fun compatibleFacetExists(androidFacet: AndroidFacet): Boolean =
-  when (val mainFacet = androidFacet.module.getMainModule().androidFacet) {
+  when (val mainFacet = androidFacet.getProductionAndroidModule().androidFacet) {
     null -> false
     else -> findCompatibleFacets(androidFacet.module.project).any { compatibleFacet -> mainFacet == compatibleFacet }
   }

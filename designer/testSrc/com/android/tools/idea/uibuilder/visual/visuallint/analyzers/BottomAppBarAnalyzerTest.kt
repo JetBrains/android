@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.visuallint.analyzers.BottomAppBarAnalyzer
 import com.google.common.collect.ImmutableList
 
 class BottomAppBarAnalyzerTest : LayoutTestCase() {
@@ -40,7 +41,7 @@ class BottomAppBarAnalyzerTest : LayoutTestCase() {
         )
         .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = BottomAppBarAnalyzer.findIssues(renderResult, model)
+    val issues = BottomAppBarAnalyzer.findIssues(renderResult, model.configuration)
     assertEquals(0, issues.size)
   }
 
@@ -62,7 +63,7 @@ class BottomAppBarAnalyzerTest : LayoutTestCase() {
     val tabletConfig = RenderTestUtil.getConfiguration(myModule, model.virtualFile, "Nexus 9")
     model.setConfiguration(tabletConfig)
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
-    val issues = BottomAppBarAnalyzer.findIssues(renderResult, model)
+    val issues = BottomAppBarAnalyzer.findIssues(renderResult, model.configuration)
     assertEquals(1, issues.size)
     assertEquals("Bottom app bars are only recommended for compact screens", issues[0].message)
   }

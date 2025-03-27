@@ -16,12 +16,60 @@
 package org.jetbrains.android.compose
 
 import com.android.SdkConstants
+import com.android.test.testutils.TestUtils
+import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.util.io.ZipUtil
+import java.io.File
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinFileType
+
+private const val COMPOSE_LIB_VERSION = "1.7.1"
+
+private enum class ComposeLib(val libPath: String) {
+  Runtime(
+    "androidx/compose/runtime/runtime-android/$COMPOSE_LIB_VERSION/runtime-android-$COMPOSE_LIB_VERSION.aar"
+  ),
+  RuntimeSaveable(
+    "androidx/compose/runtime/runtime-saveable-android/$COMPOSE_LIB_VERSION/runtime-saveable-android-$COMPOSE_LIB_VERSION.aar"
+  ),
+  Ui("androidx/compose/ui/ui-android/$COMPOSE_LIB_VERSION/ui-android-$COMPOSE_LIB_VERSION.aar"),
+  UiGraphics(
+    "androidx/compose/ui/ui-graphics-android/$COMPOSE_LIB_VERSION/ui-graphics-android-$COMPOSE_LIB_VERSION.aar"
+  ),
+}
+
+fun CodeInsightTestFixture.addComposeRuntimeDep() {
+  addLibDep(ComposeLib.Runtime)
+}
+
+fun CodeInsightTestFixture.addComposeRuntimeSaveableDep() {
+  addLibDep(ComposeLib.RuntimeSaveable)
+}
+
+fun CodeInsightTestFixture.addComposeUiDep() {
+  addLibDep(ComposeLib.Ui)
+}
+
+fun CodeInsightTestFixture.addComposeUiGraphicsDep() {
+  addLibDep(ComposeLib.UiGraphics)
+}
+
+private fun CodeInsightTestFixture.addLibDep(composeLib: ComposeLib) {
+  val aarPath = File(TestUtils.getLocalMavenRepoFile(composeLib.libPath).toString()).toPath()
+
+  val libName = composeLib.libPath.split("/")[3]
+  val tempDir = tempDirFixture.findOrCreateDir("composeTestLib_$libName").toIoFile()
+  ZipUtil.extract(aarPath, tempDir.toPath()) { _, filename -> filename == "classes.jar" }
+  val jarPath = File(tempDir, "classes.jar").path
+
+  LocalFileSystem.getInstance().refreshAndFindFileByPath(jarPath)
+  PsiTestUtil.addLibrary(module, jarPath)
+}
 
 fun CodeInsightTestFixture.stubComposableAnnotation(modulePath: String = "") {
   addFileToProject(
@@ -38,253 +86,7 @@ fun CodeInsightTestFixture.stubComposableAnnotation(modulePath: String = "") {
     )
     annotation class Composable
     """
-      .trimIndent()
-  )
-}
-
-fun CodeInsightTestFixture.stubComposeRuntime() {
-  addFileToProject(
-    "src/androidx/compose/runtime/Runtime.kt",
-    // language=kotlin
-    """
-    package androidx.compose.runtime
-
-    @Target(
-        AnnotationTarget.FUNCTION,
-        AnnotationTarget.TYPE_USAGE,
-        AnnotationTarget.TYPE,
-        AnnotationTarget.TYPE_PARAMETER,
-        AnnotationTarget.PROPERTY_GETTER
-    )
-    annotation class Composable
-
-    @Target(
-        AnnotationTarget.FUNCTION,
-        AnnotationTarget.PROPERTY_GETTER
-    )
-    annotation class ReadOnlyComposable
-
-    @Target(AnnotationTarget.TYPE)
-    annotation class DisallowComposableCalls
-
-    @Target(
-        AnnotationTarget.FILE,
-        AnnotationTarget.CLASS,
-        AnnotationTarget.FUNCTION,
-        AnnotationTarget.PROPERTY_GETTER,
-        AnnotationTarget.TYPE,
-        AnnotationTarget.TYPE_PARAMETER,
-    )
-    annotation class ComposableTarget(val applier: String)
-
-    @Target(AnnotationTarget.ANNOTATION_CLASS)
-    annotation class ComposableTargetMarker(val description: String = "")
-
-    @Composable
-    inline fun <T> remember(calculation: @DisallowComposableCalls () -> T): T = calculation()
-
-    interface State<T> {
-        val value: T
-    }
-
-    interface MutableState<T> : State<T> {
-        override var value: T
-        operator fun component1(): T
-        operator fun component2(): (T) -> Unit
-    }
-
-    interface IntState : State<Int> {
-        override val value: Int
-          get() = intValue
-        val intValue: Int
-    }
-
-    interface MutableIntState : IntState, MutableState<Int> {
-      override var value: Int
-        get() = intValue
-        set(value) { intValue = value }
-      override var intValue: Int
-    }
-
-    fun mutableIntStateOf(value: int): MutableIntState = object : MutableIntState {
-      override var intValue = value
-    }
-
-    interface LongState : State<Long> {
-        override val value: Long
-          get() = longValue
-        val longValue: Long
-    }
-
-    interface MutableLongState : LongState, MutableState<Long> {
-      override var value: Long
-        get() = longValue
-        set(value) { longValue = value }
-      override var longValue: Long
-    }
-
-    fun mutableLongStateOf(value: Long): MutableLongState = object : MutableLongState {
-      override var longValue = value
-    }
-
-    interface FloatState : State<Float> {
-        override val value: Float
-          get() = floatValue
-        val floatValue: Float
-    }
-
-    interface MutableFloatState : FloatState, MutableState<Float> {
-      override var value: Float
-        get() = floatValue
-        set(value) { floaValue = value }
-      override var floatValue: Float
-    }
-
-    fun mutableFloatStateOf(value: Float): MutableFloatState = object : MutableFloatState {
-      override var floatValue = value
-    }
-
-    interface DoubleState : State<Double> {
-        override val value: Double
-          get() = doubleValue
-        val doubleValue: Double
-    }
-
-    interface MutableDoubleState : DoubleState, MutableState<Double> {
-      override var value: Double
-        get() = doubleValue
-        set(value) { doubleValue = value }
-      override var doubleValue: Double
-    }
-
-    fun mutableDoubleStateOf(value: Double): MutableDoubleState = object : MutableDoubleState {
-      override var doubleValue = value
-    }
-
-    inline operator fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T = value
-
-    inline operator fun <T> MutableState<T>.setValue(thisObj: Any?, property: KProperty<*>, value: T) {
-        this.value = value
-    }
-
-    interface SnapshotMutationPolicy<T> {
-        fun equivalent(a: T, b: T): Boolean
-        fun merge(previous: T, current: T, applied: T): T? = null
-    }
-
-    private object StructuralEqualityPolicy : SnapshotMutationPolicy<Any?> {
-        override fun equivalent(a: Any?, b: Any?) = a == b
-    }
-
-    fun <T> mutableStateOf(
-        value: T,
-        policy: SnapshotMutationPolicy<T> = StructuralEqualityPolicy
-    ): MutableState<T> = SnapshotMutableStateImpl(value)
-
-    private class SnapshotMutableStateImpl<T>(override var value: T) {
-      override operator fun component1(): T = value
-      override operator fun component2(): (T) -> Unit = { value = it }
-    }
-    """
-      .trimIndent()
-  )
-  addFileToProject(
-    "src/androidx/compose/runtime/saveable/RememberSaveable.kt",
-    // language=kotlin
-    """
-    package androidx.compose.runtime.saveable
-
-    @Composable
-    fun <T : Any> rememberSaveable(
-      vararg inputs: Any?,
-      saver: Saver<T, out Any> = autoSaver(),
-      key: String? = null,
-      init: () -> T
-    ): T = init()
-    """
-      .trimIndent()
-  )
-}
-
-fun CodeInsightTestFixture.stubKotlinStdlib() {
-  addFileToProject(
-    "src/kotlin/io/Console.kt",
-    // language=kotlin
-    """
-    package kotlin.io
-    fun print(message: Any?) {}
-    fun println(message: Any?) {}
-    """
-      .trimIndent()
-  )
-  addFileToProject(
-    "src/kotlin/collections/JVMCollections.kt",
-    // language=kotlin
-    """
-    package kotlin.collections
-
-    fun <T> listOf(element: T): List<T> = java.util.Collections.singletonList(element)
-    fun <T> listOf(vararg elements: T): List<T> = if (elements.size > 0) elements.asList() else emptyList()
-
-    inline fun <T> Iterable<T>.forEach(action: (T) -> Unit) {
-        for (element in this) action(element)
-    }
-    """
-      .trimIndent()
-  )
-
-  addFileToProject(
-    "src/kotlin/math/Math.kt",
-    // language=kotlin
-    """
-    package kotlin.math
-
-    object Math {
-      fun random(): Float = 0.5
-    }
-    """
-      .trimIndent()
-  )
-
-  addFileToProject(
-    "src/kotlin/util/Lazy.kt",
-    // language=kotlin
-    """
-    package kotlin
-
-    interface Lazy<out T> {
-      val value: T
-    }
-
-    inline operator fun <T> Lazy<T>.getValue(thisRef: Any?, property: KProperty<*>): T = value
-
-    fun <T> lazy(init: () -> T): Lazy<T> = SynchronizedLazyImpl(init)
-
-    private class SynchronizedLazyImpl<out T>(init: () -> T) : Lazy<T> {
-      private var _value: Any? = null
-      override val value: T
-        get() {
-          if (_value == null) {
-            _value = init()
-          }
-          return _value
-        }
-    }
-    """
-      .trimIndent()
-  )
-
-  addFileToProject(
-    "src/kotlin/util/Standard.kt",
-    // language=kotlin
-    """
-    package kotlin
-
-    import java.lang.Exception
-
-    inline fun TODO(): Nothing = throw Exception()
-    """
-      .trimIndent()
+      .trimIndent(),
   )
 }
 
@@ -332,7 +134,7 @@ fun CodeInsightTestFixture.stubPreviewAnnotation(modulePath: String = "") {
         val limit: Int = Int.MAX_VALUE
     )
     """
-      .trimIndent()
+      .trimIndent(),
   )
 }
 
@@ -360,7 +162,7 @@ fun CodeInsightTestFixture.stubConfigurationAsLibrary() {
     "configuration",
     SdkConstants.CLASS_CONFIGURATION,
     JavaFileType.INSTANCE,
-    fileContents
+    fileContents,
   )
 }
 
@@ -389,7 +191,7 @@ fun CodeInsightTestFixture.stubDevicesAsLibrary(devicesPackageName: String) {
     "devices",
     "$devicesPackageName.Devices",
     KotlinFileType.INSTANCE,
-    fileContents
+    fileContents,
   )
 }
 
@@ -398,7 +200,7 @@ private fun CodeInsightTestFixture.stubClassAsLibrary(
   libraryName: String,
   fqClassName: String,
   fileType: FileType,
-  fileContents: String
+  fileContents: String,
 ) {
   val filePath = fqClassName.replace('.', '/') + '.' + fileType.defaultExtension
   tempDirFixture.createFile("external/$libraryName/$filePath", fileContents)

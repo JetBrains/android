@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 import tarfile
 import tempfile
 import zipfile
@@ -50,8 +51,10 @@ def jps_build(args, environment, cwd):
             shutil.rmtree(workspace)
         os.makedirs(workspace)
 
+    fprint("%s: Setting up sources..." % (str(datetime.datetime.now())))
+    start = time.time()
     for source in args.sources:
-        fprint("Setting up source: " + source + " @ " + str(datetime.datetime.now()))
+        startFile = time.time()
         if source.endswith(".tar"):
             with tarfile.open(source, "r") as tar:
                 if not args.reuse_workspace:
@@ -72,6 +75,9 @@ def jps_build(args, environment, cwd):
                     shutil.copy2(path, dest)
         elif os.path.isdir(source):
             shutil.copytree(source, workspace, dirs_exist_ok=True)
+        fprint("  %s: %ds" % (source, time.time() - startFile))
+
+    fprint("Setup duration: %ds" % (time.time() - start) )
     sources = set(files_in_dir(workspace))
 
     home = os.path.join(workspace, "home")
@@ -86,7 +92,7 @@ def jps_build(args, environment, cwd):
     bin_cwd = os.path.join(workspace, args.working_directory)
     bin_path = os.path.join(bin_cwd, args.command)
 
-    fprint("Running at: " + str(datetime.datetime.now()))
+    fprint("%s: Running..." % (str(datetime.datetime.now())))
     cmd = [bin_path]
     cmd.extend([s.replace("{jps_bin_cwd}", bin_cwd) for s in args.args])
     if args.verbose:
@@ -94,7 +100,7 @@ def jps_build(args, environment, cwd):
     retcode = subprocess.call(cmd, cwd=bin_cwd, env=env)
 
     run_workspace = environment.get("BUILD_WORKSPACE_DIRECTORY")
-    fprint("Done running at: " + str(datetime.datetime.now()))
+    fprint("%s: Done running " % str(datetime.datetime.now()))
     if retcode == 0:
         all_files = set(files_in_dir(workspace))
 
@@ -113,11 +119,11 @@ def jps_build(args, environment, cwd):
 
         if args.download_cache and run_workspace:
             write_files(workspace, downloaded_files, os.path.join(run_workspace, args.download_cache))
-            fprint("Done writing cache at: " + str(datetime.datetime.now()))
+            fprint("%s: Done writing cache" % str(datetime.datetime.now()))
 
         if args.out_file:
             write_files(workspace, output_files, args.out_file)
-            fprint("Done writing output file at: " + str(datetime.datetime.now()))
+            fprint("%s: Done writing output file" % str(datetime.datetime.now()))
 
         if args.verbose:
             fprint("Output Dirs:\n " + "\n".join(args.output_dirs))
@@ -126,10 +132,10 @@ def jps_build(args, environment, cwd):
 
     if run_workspace and args.delete_workspace and not args.reuse_workspace:
         shutil.rmtree(workspace)
-        fprint("Done deleting at: " + str(datetime.datetime.now()))
+        fprint("%s: Done deleting" % str(datetime.datetime.now()))
     else:
         fprint("Leaving " + workspace + " behind.")
-    fprint("Done copying at: " + str(datetime.datetime.now()))
+    fprint("%s: Done copying" % str(datetime.datetime.now()))
 
     return retcode
 

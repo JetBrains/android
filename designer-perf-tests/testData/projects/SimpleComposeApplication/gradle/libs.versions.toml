@@ -1,0 +1,18 @@
+[versions]
+agp = "8.9.0-dev" # AGP version will be replaced by AndroidGradleTestCase
+appcompat = "1.7.0"
+kotlin = "2.1.0" # kotlin version will be replaced by AndroidGradleTestCase
+activityCompose = "1.9.3"
+ui = "1.8.0-alpha06"
+
+[libraries]
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+material = { module = "androidx.compose.material:material", version.ref = "ui" }
+ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "ui" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

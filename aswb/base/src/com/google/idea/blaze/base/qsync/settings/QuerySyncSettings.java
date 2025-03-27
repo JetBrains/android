@@ -15,15 +15,12 @@
  */
 package com.google.idea.blaze.base.qsync.settings;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.logging.LoggedSettingsProvider;
-import com.google.idea.blaze.base.qsync.QuerySync;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import java.util.function.Supplier;
 
 /** The settings for query sync to be stored per user. */
 @State(
@@ -34,9 +31,6 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
 
     /** Default query sync enabled settings, used when we are out of beta. */
     public boolean enabled = true;
-
-    /** Query sync enabled setting, used when in beta only. */
-    public boolean useQuerySync = false;
 
     public boolean showDetailedInformationInEditor = true;
 
@@ -51,21 +45,8 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
     return ApplicationManager.getApplication().getService(QuerySyncSettings.class);
   }
 
-  public void enableUseQuerySyncBeta(boolean useQuerySync) {
-    state.useQuerySync = useQuerySync;
-  }
-
   public void enableUseQuerySync(boolean enable) {
     state.enabled = enable;
-  }
-
-  /**
-   * Gets current state.useQuerySync value. This should only be used for query sync beta; when query
-   * sync is enabled by default (as per {@link QuerySync#useByDefault()}, the value returned by
-   * {@link #useQuerySync()} should be used instead.
-   */
-  public boolean useQuerySyncBeta() {
-    return state.useQuerySync;
   }
 
   public boolean useQuerySync() {
@@ -85,7 +66,8 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   }
 
   public boolean buildWorkingSet() {
-    return state.buildWorkingSet;
+    // Force to disable it as it's not a stable feature
+    return false;
   }
 
   public void enableSyncOnFileChanges(boolean syncOnFileChanges) {
@@ -93,7 +75,8 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   }
 
   public boolean syncOnFileChanges() {
-    return state.syncOnFileChanges;
+    // Force to disable it as it's not a stable feature
+    return false;
   }
 
   @Override
@@ -111,16 +94,8 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
    * logger.
    */
   public static class SettingsLogger implements LoggedSettingsProvider {
-    private final Supplier<Boolean> legacyExperimentSupplier;
 
-    public SettingsLogger() {
-      this(QuerySync::isLegacyExperimentEnabled);
-    }
-
-    @VisibleForTesting
-    public SettingsLogger(Supplier<Boolean> legacyExperimentSupplier) {
-      this.legacyExperimentSupplier = legacyExperimentSupplier;
-    }
+    public SettingsLogger() {}
 
     @Override
     public String getNamespace() {
@@ -132,9 +107,6 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
       QuerySyncSettings settings = QuerySyncSettings.getInstance();
 
       ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-      builder.put(
-          "useQuerySync",
-          Boolean.toString(settings.useQuerySyncBeta() || legacyExperimentSupplier.get()));
       builder.put("enabled", Boolean.toString(settings.useQuerySync()));
       builder.put(
           "showDetailedInformationInEditor",

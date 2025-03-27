@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -40,6 +39,7 @@ import org.hamcrest.CoreMatchers.hasItems
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.whenever
 import java.awt.event.ActionEvent
 import javax.swing.ListModel
 import javax.swing.text.JTextComponent

@@ -137,7 +137,17 @@ public class BuildVariantView {
   }
 
   private void updateContents() {
-    getVariantsTable().setBuildVariantTableModel(BuildVariantTableModel.create(myProject));
+    BuildVariantTableModel model = BuildVariantTableModel.create(myProject);
+
+    boolean allDefault = true;
+    for (BuildVariantTableRow row : model.getRows()) {
+      if (!row.variantItem().isDefault()) {
+        allDefault = false;
+        break;
+      }
+    }
+    myImportDefaultsButton.setEnabled(!allDefault);
+    getVariantsTable().setBuildVariantTableModel(model);
   }
 
   private void projectImportStarted() {
@@ -306,7 +316,6 @@ public class BuildVariantView {
       });
 
       setExpandableItemsEnabled(false);
-      TableSpeedSearch.installOn(this);
     }
 
     /**

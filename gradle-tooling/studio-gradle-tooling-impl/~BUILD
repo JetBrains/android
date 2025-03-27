@@ -17,6 +17,7 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module]",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:equalsverifier[test]",
     ],
 )

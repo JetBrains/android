@@ -168,11 +168,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  /**
-   * We are invoking the build action here as the "Rebuild Project" action is no longer on the menu.
-   */
   public BuildStatus invokeRebuildProject(@Nullable Wait wait) {
-    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Assemble Project"));
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Clean and Assemble Project with Tests"));
   }
 
   @NotNull
@@ -636,6 +633,24 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       waitAndInvokeMenuPath("Tools", "AGP Upgrade Assistant...");
     }
     return new AGPUpgradeAssistantToolWindowFixture(this);
+  }
+
+  /**
+   * Open "Code" > "Inspect Code..." and return InspectCodeDialogFixture
+   */
+  @NotNull
+  public InspectCodeDialogFixture invokeInspectCodeDialog() {
+    waitAndInvokeMenuPath("Code", "Inspect Code\u2026");
+    return InspectCodeDialogFixture.find(this);
+  }
+
+  /**
+   * Open "Run", "Edit Configurations..." and return EditConfigurationsDialogFixture
+   */
+  @NotNull
+  public EditConfigurationsDialogFixture invokeEditConfigurationsDialog() {
+    waitAndInvokeMenuPath("Run", "Edit Configurations\u2026");
+    return EditConfigurationsDialogFixture.find(this.robot());
   }
 
   @NotNull

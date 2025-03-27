@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.run.testlogs;
 
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import java.util.Optional;
 
 /**
@@ -34,7 +35,9 @@ public final class LocalBuildEventProtocolTestFinderStrategy
 
   @Override
   public BlazeTestResults findTestResults() throws GetArtifactsException {
-    return buildResultHelper.getTestResults(Optional.empty());
+    try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+      return BuildResultParser.getTestResults(bepStream);
+    }
   }
 
   @Override

@@ -18,13 +18,12 @@ package com.android.tools.idea.lint.quickFixes
 import com.android.SdkConstants.ATTR_TARGET_API
 import com.android.SdkConstants.FQCN_TARGET_API
 import com.android.SdkConstants.TOOLS_URI
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.isAnnotationTarget
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
+import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix.Companion.getVersionField
 import com.android.tools.idea.res.ensureNamespaceImported
-import com.android.tools.idea.util.mapAndroidxName
 import com.android.tools.lint.checks.ApiLookup
 import com.android.tools.lint.detector.api.ApiConstraint.SdkApiConstraint
 import com.android.tools.lint.detector.api.ClassContext
@@ -42,7 +41,6 @@ import com.intellij.modcommand.ActionContext
 import com.intellij.modcommand.ModPsiUpdater
 import com.intellij.modcommand.Presentation
 import com.intellij.modcommand.PsiUpdateModCommandAction
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiClass
@@ -70,13 +68,11 @@ import java.util.Locale
 class AddTargetApiQuickFix(
   private val requirements: List<SdkApiConstraint>,
   private val requiresApi: Boolean,
-  element: PsiElement,  // Do not hold on to element, the super class will maintain a SmartPsiElementPointer for it
+  // Not val: Do not hold on to element, the super class will maintain a
+  // SmartPsiElementPointer for it
+  element: PsiElement,
   private val requireClass: Boolean = false,
 ) : PsiUpdateModCommandAction<PsiElement>(element) {
-
-  private fun getSdkApiString(api: Int, fullyQualified: Boolean): String {
-    return AddTargetVersionCheckQuickFix.getVersionField(api, fullyQualified)
-  }
 
   private fun getName(element: PsiElement): String {
     val first = requirements.first()
@@ -90,22 +86,30 @@ class AddTargetApiQuickFix(
       !requiresApi ->
         AndroidLintBundle.message(
           "android.lint.fix.add.target.api",
-          getSdkApiString(first.min(), false),
+          getVersionField(first.min(), false),
         )
       requirements.size > 1 ->
         if (requirements.any { it.sdkId == ANDROID_SDK_ID })
           AndroidLintBundle.message("android.lint.fix.add.both.annotations")
         else AndroidLintBundle.message("android.lint.fix.add.sdk.annotation")
-      requiresApi && first.sdkId != ANDROID_SDK_ID ->
+      requiresApi && (first.sdkId != ANDROID_SDK_ID) -> {
+        // minor will always be 0 here; minor versions are only supported for the Android SDK
+        val fieldName = ExtensionSdk.getSdkExtensionField(first.sdkId, false)
         AndroidLintBundle.message(
           "android.lint.fix.add.requires.sdk.extension",
-          ExtensionSdk.getSdkExtensionField(first.sdkId, false),
+          fieldName,
           first.minString(),
         )
+      }
       else ->
         AndroidLintBundle.message(
           "android.lint.fix.add.requires.api",
-          getSdkApiString(first.min(), false),
+          getVersionField(
+            first.fromInclusive(),
+            first.fromInclusiveMinor(),
+            false,
+            requireFull = false,
+          ),
         )
     }
   }
@@ -124,16 +128,15 @@ class AddTargetApiQuickFix(
   override fun getFamilyName(): @IntentionFamilyName String = "AddTargetApi"
 
   private fun handleXml(startElement: PsiElement) {
-    // Find nearest method or class; can't add @TargetApi on modifier list owners like variable
-    // declarations
-    // XML file? Set attribute
+    // Find nearest method or class; can't add @TargetApi on modifier list
+    // owners like variable declarations XML file? Set attribute
     val element = getAnnotationContainer(startElement) as? XmlTag ?: return
     val file = PsiTreeUtil.getParentOfType(element, XmlFile::class.java, false)
     if (file != null) {
       ensureNamespaceImported(file, TOOLS_URI)
-      val api = requirements.first().min()
-      val codeName = SdkVersionInfo.getBuildCode(api)?.lowercase(Locale.US) ?: api.toString()
-      element.setAttribute(ATTR_TARGET_API, TOOLS_URI, codeName)
+      val first = requirements.first()
+      val value = first.minString()
+      element.setAttribute(ATTR_TARGET_API, TOOLS_URI, value)
     }
   }
 
@@ -153,7 +156,8 @@ class AddTargetApiQuickFix(
           container,
           requiresApi,
           requirement.sdkId,
-          requirement.min(),
+          requirement.fromInclusive(),
+          requirement.fromInclusiveMinor(),
           requirement.sdkId == ANDROID_SDK_ID,
         )
       }
@@ -166,20 +170,21 @@ class AddTargetApiQuickFix(
     requiresApi: Boolean,
     sdkId: Int,
     api: Int,
+    minor: Int,
     replace: Boolean,
   ) {
     val fqcn: String
     val annotationText: String
     if (requiresApi && sdkId == ANDROID_SDK_ID) {
-      val module = ModuleUtilCore.findModuleForPsiElement(container)
-      fqcn = module.mapAndroidxName(REQUIRES_API_ANNOTATION)
-      annotationText = "@" + fqcn + "(api=" + getSdkApiString(api, true) + ")"
+      fqcn = REQUIRES_API_ANNOTATION.newName()
+      annotationText =
+        "@" + fqcn + "(api=" + getVersionField(api, minor, true, requireFull = false) + ")"
     } else if (requiresApi) {
       fqcn = REQUIRES_EXTENSION_ANNOTATION
       annotationText = "@$fqcn(extension=${getSdkId(container.project, sdkId)}, version=$api)"
     } else {
       fqcn = FQCN_TARGET_API
-      annotationText = "@" + fqcn + "(" + getSdkApiString(api, true) + ")"
+      annotationText = "@" + fqcn + "(" + getVersionField(api, true) + ")"
     }
 
     addAnnotationJava(elementFactory, container, fqcn, annotationText, replace)
@@ -225,7 +230,8 @@ class AddTargetApiQuickFix(
         annotationContainer,
         requiresApi,
         requirement.sdkId,
-        requirement.min(),
+        requirement.fromInclusive(),
+        requirement.fromInclusiveMinor(),
         requirement.sdkId == ANDROID_SDK_ID,
       )
     }
@@ -236,22 +242,23 @@ class AddTargetApiQuickFix(
     requiresApi: Boolean,
     sdkId: Int,
     api: Int,
+    minor: Int,
     replace: Boolean,
   ) {
     val fqn =
       if (requiresApi && sdkId != ANDROID_SDK_ID) {
         REQUIRES_EXTENSION_ANNOTATION
       } else if (requiresApi) {
-        val module = ModuleUtilCore.findModuleForPsiElement(annotationContainer)
-        module.mapAndroidxName(REQUIRES_API_ANNOTATION)
+        REQUIRES_API_ANNOTATION.newName()
       } else {
         FQCN_TARGET_API
       }
     val inner =
       if (requiresApi && sdkId != ANDROID_SDK_ID) {
+        // minor is always 0 for extensions other than the Android one
         "extension=${getSdkId(annotationContainer.project, sdkId)}, version=$api"
       } else {
-        AddTargetVersionCheckQuickFix.getVersionField(api, true)
+        getVersionField(api, minor, true, requireFull = false)
       }
     addAnnotationKotlin(annotationContainer, fqn, inner, replace)
   }

@@ -38,6 +38,7 @@ import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 import kotlin.properties.Delegates
 import kotlinx.coroutines.Runnable
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.util.application.executeCommand
 
 class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProvider() {
@@ -119,7 +120,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         val quickFixes = inspection.getQuickFixes(startElement, endElement, issue.incident)
         val intentions = inspection.getIntentions(startElement, endElement)
         return quickFixes
-          .map { createQuickFixPair(it) }
+          .mapNotNull { createQuickFixPair(it) }
           .plus(intentions.map { createQuickFixPair(it) })
           .stream()
       }
@@ -134,25 +135,33 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
               val startElement = issue.startElementPointer.element ?: return@executeCommand
               val actionContext = ActionContext.from(null, startElement.containingFile)
 
-              ModCommandExecutor.getInstance().executeInteractively(
-                actionContext,
-                suppressLint.applyFix(startElement, actionContext),
-                null
-              )
+              ModCommandExecutor.getInstance()
+                .executeInteractively(
+                  actionContext,
+                  suppressLint.applyFix(startElement, actionContext),
+                  null,
+                )
             }
           }
         return Stream.of(suppress)
       }
 
-    private fun createQuickFixPair(fix: LintIdeQuickFix) =
-      Fix(
-        "Fix",
-        fix.name,
-        when (fix) {
-          is ModCommandLintQuickFix -> createQuickFixRunnable(fix.asIntention(issue.issue, issue.component.model.project))
-          else -> createQuickFixRunnable(fix as DefaultLintQuickFix)
-        },
-      )
+    @VisibleForTesting
+    fun createQuickFixPair(fix: LintIdeQuickFix): Fix? {
+      return when (fix) {
+        is ModCommandLintQuickFix -> {
+          val model = issue.component.model
+          val intention = fix.asIntention(issue.issue, model.project)
+          if (intention.isAvailable(model.project, null, model.file)) {
+            createQuickFixPair(intention)
+          } else {
+            null
+          }
+        }
+        is DefaultLintQuickFix -> return Fix("Fix", fix.name, createQuickFixRunnable(fix))
+        else -> null
+      }
+    }
 
     private fun createQuickFixPair(fix: IntentionAction) =
       Fix("Fix", fix.text, createQuickFixRunnable(fix))

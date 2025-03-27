@@ -20,8 +20,6 @@ import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolImageDisposer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -41,7 +39,6 @@ import java.awt.image.BufferedImage;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * Responsible for painting a screen view
@@ -82,26 +79,17 @@ public class ScreenViewLayer extends Layer {
   private final Rectangle myCachedScreenViewDisplayRect = new Rectangle();
   private double myLastScale;
 
-  private final ColorConverter myImageFilter;
-
   /**
    * Create a new ScreenViewLayer for the given screenView.
    * @param screenView The screenView containing the model to render
-   * @param colorBlindFilter the image filter to apply when rendering
    * @param parentDisposable parent [Disposable] for this component
    * @param rotation extra rotation for this layer
    */
-  public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull ColorBlindMode colorBlindFilter, @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
-    this(screenView, colorBlindFilter == ColorBlindMode.NONE ? null : new ColorConverter(colorBlindFilter), parentDisposable, rotation);
-  }
-
-  private ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ColorConverter imageFilter,  @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
+  public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
     myScreenView = screenView;
     myLastScale = myScreenView.getScale();
-    myImageFilter = imageFilter;
     myScreenRotation = rotation;
     Disposer.register(parentDisposable, this);
-    if(myImageFilter != null) Disposer.register(this, myImageFilter);
   }
 
   @SuppressWarnings("UseJBColor")
@@ -178,7 +166,7 @@ public class ScreenViewLayer extends Layer {
     RenderResult renderResult = myScreenView.getResult();
     boolean drawNewImg = false;
     if (newRenderImageAvailable(renderResult)) {
-      setLastRenderResult(renderResult);
+      myLastRenderResult = renderResult;
       myScreenView.getScene().needsRebuildList();
       drawNewImg = true;
     }
@@ -233,25 +221,6 @@ public class ScreenViewLayer extends Layer {
     g.dispose();
   }
 
-  protected void setLastRenderResult(@Nullable RenderResult result) {
-    myLastRenderResult = result;
-    if (myImageFilter == null || result == null) return;
-
-    // Apply the color converter if any.
-    // This is used for example to support different color-blind modes
-    result.processImageIfNotDisposed(image -> {
-      if (image == null) return;
-      BufferedImage copy = image.getCopy();
-      if (copy == null) return;
-      myImageFilter.convert(copy, copy);
-      image.paint(g2D -> {
-        int w = image.getWidth();
-        int h = image.getHeight();
-        g2D.drawImage(copy, 0, 0, w, h, 0, 0, w, h, null);
-      });
-    });
-  }
-
   /**
    * Check whether the provided render result has new image to draw. We only accept renders containing a valid image. If the new result is
    * an error without image, we prefer to keep the last valid image..
@@ -265,14 +234,9 @@ public class ScreenViewLayer extends Layer {
            renderResult != myLastRenderResult;
   }
 
-  @TestOnly
-  public ColorConverter getColorConverterForTest() {
-    return myImageFilter;
-  }
-
   @Override
   public void dispose() {
     super.dispose();
-    setLastRenderResult(null);
+    myLastRenderResult = null;
   }
 }

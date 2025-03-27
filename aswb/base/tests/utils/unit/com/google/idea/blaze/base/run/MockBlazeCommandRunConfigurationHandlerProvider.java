@@ -36,6 +36,11 @@ import org.jdom.Element;
 public class MockBlazeCommandRunConfigurationHandlerProvider
     implements BlazeCommandRunConfigurationHandlerProvider {
   @Override
+  public String getDisplayLabel() {
+    return "Mock";
+  }
+
+  @Override
   public boolean canHandleKind(TargetState state, @Nullable Kind kind) {
     return true;
   }

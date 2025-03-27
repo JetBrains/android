@@ -39,6 +39,8 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.BlazeInvocationContext.ContextType;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.LocalFileArtifact;
 import com.google.idea.blaze.base.command.buildresult.RemoteOutputArtifact;
@@ -48,7 +50,7 @@ import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.ideinfo.TargetMap;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
-import com.google.idea.blaze.base.lang.AdditionalLanguagesHelper;
+import com.google.idea.blaze.base.lang.LegacyAdditionalLanguagesHelper;
 import com.google.idea.blaze.base.model.AspectSyncProjectData;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.ProjectTargetData;
@@ -79,7 +81,6 @@ import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.sync.BlazeSyncBuildResult;
 import com.google.idea.blaze.base.sync.BuildPhaseSyncTask;
 import com.google.idea.blaze.base.sync.SyncProjectState;
-import com.google.idea.blaze.base.sync.aspects.BuildResult.Status;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy;
 import com.google.idea.blaze.base.sync.aspects.strategy.AspectStrategy.OutputGroup;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
@@ -165,16 +166,17 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
   }
 
   /** Returns the {@link OutputArtifact}s we want to track between syncs. */
-  private static ImmutableSet<OutputArtifact> getTrackedOutputs(BlazeBuildOutputs buildOutput) {
+  private static ImmutableSet<OutputArtifact> getTrackedOutputs(
+      BlazeBuildOutputs.Legacy buildOutput) {
     // don't track intellij-info.txt outputs -- they're already tracked in
     // BlazeIdeInterfaceState
     return getTrackedOutputs(buildOutput, group -> true);
   }
 
   private static ImmutableSet<OutputArtifact> getTrackedOutputs(
-      BlazeBuildOutputs buildOutput, Predicate<String> outputGroupFilter) {
+      BlazeBuildOutputs.Legacy buildOutput, Predicate<String> outputGroupFilter) {
     Predicate<String> pathFilter = AspectStrategy.ASPECT_OUTPUT_FILE_PREDICATE.negate();
-    return buildOutput.getOutputGroupArtifacts(outputGroupFilter).stream()
+    return buildOutput.getOutputGroupArtifactsLegacySyncOnly(outputGroupFilter).stream()
         .filter(a -> pathFilter.test(a.getBazelOutRelativePath()))
         .collect(toImmutableSet());
   }
@@ -190,8 +192,8 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       @Nullable AspectSyncProjectData oldProjectData) {
     // If there was a partial error, make a best-effort attempt to sync. Retain
     // any old state that we have in an attempt not to lose too much code.
-    if (buildResult.getBuildResult().buildResult.status == BuildResult.Status.BUILD_ERROR
-        || buildResult.getBuildResult().buildResult.status == Status.FATAL_ERROR) {
+    if (buildResult.getBuildResult().buildResult().status == BuildResult.Status.BUILD_ERROR
+        || buildResult.getBuildResult().buildResult().status == Status.FATAL_ERROR) {
       mergeWithOldState = true;
     }
 
@@ -203,7 +205,8 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     Collection<OutputArtifact> files =
         buildResult
             .getBuildResult()
-            .getOutputGroupArtifacts(group -> group.startsWith(OutputGroup.INFO.prefix))
+            .getOutputGroupArtifactsLegacySyncOnly(
+                group -> group.startsWith(OutputGroup.INFO.prefix))
             .stream()
             .filter(f -> ideInfoPredicate.test(f.getBazelOutRelativePath()))
             .distinct()
@@ -295,7 +298,8 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
           ImmutableList<OutputArtifact> resolveOutputs =
               buildResult
                   .getBuildResult()
-                  .getOutputGroupArtifacts(group -> group.startsWith(OutputGroup.RESOLVE.prefix));
+                  .getOutputGroupArtifactsLegacySyncOnly(
+                      group -> group.startsWith(OutputGroup.RESOLVE.prefix));
           prefetchGenfiles(context, resolveOutputs);
         });
     return state;
@@ -386,7 +390,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
                 for (TargetFilePair targetFilePair : Futures.allAsList(futures).get()) {
                   if (targetFilePair.target != null) {
                     OutputArtifactWithoutDigest file = targetFilePair.file;
-                    String config = file.getConfigurationMnemonic();
+                    String config = file.getConfigurationMnemonicForLegacySync();
                     configurations.add(config);
                     TargetKey key = targetFilePair.target.getKey();
                     if (targetMap.putIfAbsent(key, targetFilePair.target) == null) {
@@ -516,7 +520,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
             new NavigatableAdapter() {
               @Override
               public void navigate(boolean requestFocus) {
-                AdditionalLanguagesHelper.enableLanguageSupport(project, sorted);
+                LegacyAdditionalLanguagesHelper.enableLanguageSupport(project, sorted);
               }
             })
         .submit(context);
@@ -572,7 +576,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
   }
 
   @Override
-  public BlazeBuildOutputs build(
+  public BlazeBuildOutputs.Legacy build(
       Project project,
       BlazeContext context,
       WorkspaceRoot workspaceRoot,
@@ -586,7 +590,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       boolean invokeParallel) {
     AspectStrategy aspectStrategy = AspectStrategy.getInstance(blazeVersion);
 
-    final Ref<BlazeBuildOutputs> combinedResult = new Ref<>();
+    final Ref<BlazeBuildOutputs.Legacy> combinedResult = new Ref<>();
 
     // The build is a sync iff INFO output group is present
     boolean isSync = outputGroups.contains(OutputGroup.INFO);
@@ -635,7 +639,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
                   progressTracker.onBuildStarted(context);
 
                   try {
-                    BlazeBuildOutputs result =
+                    BlazeBuildOutputs.Legacy result =
                         runBuildForTargets(
                             project,
                             childContext,
@@ -647,7 +651,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
                             outputGroups,
                             additionalBlazeFlags,
                             invokeParallel);
-                    if (result.buildResult.outOfMemory()) {
+                    if (result.buildResult().outOfMemory()) {
                       logger.warn(
                           String.format(
                               "Build shard failed with OOM error build-id=%s",
@@ -660,7 +664,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
                               ? result
                               : combinedResult.get().updateOutputs(result));
                     }
-                    return result.buildResult;
+                    return result.buildResult();
                   } catch (BuildException e) {
                     context.handleException("Failed to build targets", e);
                     return BuildResult.FATAL_ERROR;
@@ -674,22 +678,25 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
     if (combinedResult.isNull()
         || (!BuildPhaseSyncTask.continueSyncOnOom.getValue()
             && buildResult.status == Status.FATAL_ERROR)) {
-      return BlazeBuildOutputs.noOutputs(buildResult);
+      return BlazeBuildOutputs.noOutputsForLegacy(buildResult);
     }
     return combinedResult.get();
   }
 
   /* Prints summary only for failed shards */
   private void printShardFinishedSummary(
-      BlazeContext context, String taskName, BlazeBuildOutputs result, BuildInvoker invoker) {
-    if (result.buildResult.status == Status.SUCCESS) {
+      BlazeContext context,
+      String taskName,
+      BlazeBuildOutputs.Legacy result,
+      BuildInvoker invoker) {
+    if (result.buildResult().status == Status.SUCCESS) {
       return;
     }
     StringBuilder outputText = new StringBuilder();
     outputText.append(
         String.format(
             "%s finished with %s errors. ",
-            taskName, result.buildResult.status == Status.BUILD_ERROR ? "build" : "fatal"));
+            taskName, result.buildResult().status == Status.BUILD_ERROR ? "build" : "fatal"));
     String invocationId =
         Iterables.getOnlyElement(
             result.getBuildIds(),
@@ -722,7 +729,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
   }
 
   /** Runs a blaze build for the given output groups. */
-  private static BlazeBuildOutputs runBuildForTargets(
+  private static BlazeBuildOutputs.Legacy runBuildForTargets(
       Project project,
       BlazeContext context,
       BuildInvoker invoker,
@@ -758,7 +765,7 @@ public class BlazeIdeInterfaceAspectsImpl implements BlazeIdeInterface {
       aspectStrategy.addAspectAndOutputGroups(
           builder, outputGroups, activeLanguages, onlyDirectDeps);
 
-      return invoker.getCommandRunner().run(project, builder, buildResultHelper, context);
+      return invoker.getCommandRunner().runLegacy(project, builder, buildResultHelper, context);
     }
   }
 }

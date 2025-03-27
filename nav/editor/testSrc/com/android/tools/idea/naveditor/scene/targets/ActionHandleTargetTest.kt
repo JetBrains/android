@@ -35,7 +35,7 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import java.awt.Point
 import java.awt.event.MouseEvent
 import org.mockito.Mockito
-import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 
 class ActionHandleTargetTest : NavTestCase() {
   private lateinit var surface: DesignSurface<*>

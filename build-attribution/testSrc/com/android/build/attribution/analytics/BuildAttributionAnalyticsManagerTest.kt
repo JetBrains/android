@@ -44,7 +44,6 @@ import com.android.buildanalyzer.common.DependencyPath
 import com.android.buildanalyzer.common.FullDependencyPath
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.ide.common.gradle.Version
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -70,6 +69,7 @@ import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.whenever
 import java.time.Duration
 
 class BuildAttributionAnalyticsManagerTest {

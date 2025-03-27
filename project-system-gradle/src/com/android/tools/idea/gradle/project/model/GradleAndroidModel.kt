@@ -131,6 +131,17 @@ class GradleAndroidModel(
            ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
   }
 
+  /**
+   * Returns the name of the Gradle screenshot test task name for the selected mode.
+   * TODO: Remove this method once a generic test suite support is ready b/394598774
+   *
+   * @param mode - can be "update" or "validate" for the two modes of screenshot test tasks.
+   * @return The name of the Gradle screenshot test task.
+   */
+  fun getGradleScreenshotTestTaskNameForSelectedVariant(mode: String): String {
+    return "$mode${selectedVariantName.usLocaleCapitalize()}ScreenshotTest"
+  }
+
   fun getGenerateBaselineProfileTaskNameForSelectedVariant(useAllVariants: Boolean): String? {
     val variant = if (useAllVariants) "" else selectedVariantName.replaceFirstChar {
       if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()

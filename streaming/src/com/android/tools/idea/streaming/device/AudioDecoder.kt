@@ -118,10 +118,6 @@ internal class AudioDecoder(
     }
   }
 
-  suspend fun closeChannel() {
-    audioChannel.close()
-  }
-
   private inner class PacketReader : AutoCloseable {
 
     private val headerBuffer: ByteBuffer = AudioPacketHeader.createBuffer()

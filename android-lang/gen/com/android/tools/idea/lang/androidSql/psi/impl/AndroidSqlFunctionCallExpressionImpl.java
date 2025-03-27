@@ -50,4 +50,22 @@ public class AndroidSqlFunctionCallExpressionImpl extends AndroidSqlExpressionIm
     return PsiTreeUtil.getChildrenOfTypeAsList(this, AndroidSqlExpression.class);
   }
 
+  @Override
+  @Nullable
+  public AndroidSqlFilterClause getFilterClause() {
+    return findChildByClass(AndroidSqlFilterClause.class);
+  }
+
+  @Override
+  @Nullable
+  public AndroidSqlOrderClause getOrderClause() {
+    return findChildByClass(AndroidSqlOrderClause.class);
+  }
+
+  @Override
+  @Nullable
+  public AndroidSqlOverClause getOverClause() {
+    return findChildByClass(AndroidSqlOverClause.class);
+  }
+
 }

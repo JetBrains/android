@@ -34,7 +34,7 @@ class CachedDependencyNotFoundIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
+    assertThat((buildIssue.quickFixes.first() as ToggleOfflineModeQuickFix).enableOfflineMode).isFalse()
   }
 
   fun testIssueHandled() {

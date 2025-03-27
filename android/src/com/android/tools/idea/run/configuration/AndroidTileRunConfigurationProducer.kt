@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.intellij.psi.PsiClass
-import com.intellij.psi.util.InheritanceUtil
+import com.intellij.psi.PsiElement
 
 /**
  * Producer of [AndroidTileConfiguration] for classes that extend `androidx.wear.tiles.TileService`.
@@ -24,9 +23,9 @@ import com.intellij.psi.util.InheritanceUtil
 class AndroidTileRunConfigurationProducer :
   AndroidWearRunConfigurationProducer<AndroidTileConfiguration>(AndroidTileConfigurationType::class.java) {
 
-  override fun isValidService(psiClass: PsiClass): Boolean = psiClass.isValidTileService()
+  override fun isValidService(psiElement: PsiElement): Boolean = psiElement.isValidTileService()
 }
 
-internal fun PsiClass.isValidTileService(): Boolean {
-  return WearBaseClasses.TILES.any { wearBase -> InheritanceUtil.isInheritor(this, wearBase) }
+internal fun PsiElement.isValidTileService(): Boolean {
+  return WearBaseClasses.TILES.any { wearBase -> isSubtypeOf(wearBase) }
 }

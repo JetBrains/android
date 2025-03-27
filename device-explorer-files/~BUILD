@@ -35,7 +35,7 @@ iml_module(
     test_class = "com.android.tools.idea.device.explorer.files.DeviceExplorerTestSuite",
     # keep sorted
     test_data = [
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
@@ -46,6 +46,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files[module, test]",
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
@@ -63,5 +64,6 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin[test]",
     ],
 )

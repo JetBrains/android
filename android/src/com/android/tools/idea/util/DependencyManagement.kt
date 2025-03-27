@@ -172,7 +172,7 @@ fun Module.addDependenciesWithUiConfirmation(coordinates: List<GradleCoordinate>
     Messages.showErrorDialog(errorMessage, "Could Not Add Dependency")
   }
   if (shouldSync) {
-    project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+    project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
   }
 
   return incompatibleDependencies + coordinatesToExceptions.map { it.first }

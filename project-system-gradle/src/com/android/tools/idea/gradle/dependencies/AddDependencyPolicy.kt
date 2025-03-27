@@ -18,10 +18,14 @@ package com.android.tools.idea.gradle.dependencies
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 
 enum class AddDependencyPolicy {
-  VERSION_CATALOG, BUILD_FILE;
+  VERSION_CATALOG, BUILD_FILE, DECLARATIVE;
 
   companion object {
-   @JvmStatic fun calculateAddDependencyPolicy(projectModel: ProjectBuildModel): AddDependencyPolicy {
+    @JvmStatic
+    fun calculateAddDependencyPolicy(projectModel: ProjectBuildModel): AddDependencyPolicy {
+      if (DependenciesHelper.isDeclarativeModel(projectModel.declarativeSettingsModel)) {
+        return DECLARATIVE
+      }
       val catalog = DependenciesHelper.getDefaultCatalogModel(projectModel)
       return if (catalog != null) VERSION_CATALOG else BUILD_FILE
     }

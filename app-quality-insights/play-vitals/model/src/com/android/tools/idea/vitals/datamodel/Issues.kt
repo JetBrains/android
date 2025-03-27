@@ -35,7 +35,7 @@ internal fun ErrorIssue.toIssueDetails(): IssueDetails {
     title = location, // e.g. java.lang.IllegalStateException
     subtitle = cause, // e,g, com.labpixies.flood.ExtraStepsActivity.onCreate
     fatality = type.toFailureType(),
-    sampleEvent = "", // Not in-use in vitals.
+    sampleEvent = sampleErrorReportsList.firstOrNull() ?: "", // Not in-use in vitals.
     firstSeenVersion = firstAppVersion.versionCode.toString(),
     lastSeenVersion = lastAppVersion.versionCode.toString(),
     lowestAffectedApiLevel = firstOsVersion.apiLevel,

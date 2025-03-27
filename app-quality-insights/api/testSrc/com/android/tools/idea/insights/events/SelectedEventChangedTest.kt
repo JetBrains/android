@@ -20,13 +20,14 @@ import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventMovement
+import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
-import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant
@@ -60,7 +61,8 @@ class SelectedEventChangedTest {
           LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 0, "")),
       )
     val transition =
-      SelectedEventChanged(EventMovement.NEXT).transition(state, TestAppInsightsTracker, TEST_KEY)
+      SelectedEventChanged(EventMovement.NEXT)
+        .transition(state, TestAppInsightsTracker, FakeInsightsProvider(), AppInsightsCacheImpl())
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 1, "")))
     assertThat(transition.action).isEqualTo(Action.NONE)
@@ -78,7 +80,7 @@ class SelectedEventChangedTest {
       )
     val transition =
       SelectedEventChanged(EventMovement.PREVIOUS)
-        .transition(state, TestAppInsightsTracker, TEST_KEY)
+        .transition(state, TestAppInsightsTracker, FakeInsightsProvider(), AppInsightsCacheImpl())
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 0, "")))
     assertThat(transition.action).isEqualTo(Action.NONE)
@@ -95,13 +97,14 @@ class SelectedEventChangedTest {
       )
     var transition =
       SelectedEventChanged(EventMovement.PREVIOUS)
-        .transition(state, TestAppInsightsTracker, TEST_KEY)
+        .transition(state, TestAppInsightsTracker, FakeInsightsProvider(), AppInsightsCacheImpl())
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")))
     assertThat(transition.action).isEqualTo(Action.NONE)
 
     transition =
-      SelectedEventChanged(EventMovement.NEXT).transition(state, TestAppInsightsTracker, TEST_KEY)
+      SelectedEventChanged(EventMovement.NEXT)
+        .transition(state, TestAppInsightsTracker, FakeInsightsProvider(), AppInsightsCacheImpl())
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "")))
     assertThat(transition.action).isEqualTo(Action.NONE)
@@ -114,13 +117,15 @@ class SelectedEventChangedTest {
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
-        currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "abc")),
+        currentEvents =
+          LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 0, "abc")),
       )
 
     val transition =
-      SelectedEventChanged(EventMovement.NEXT).transition(state, TestAppInsightsTracker, TEST_KEY)
+      SelectedEventChanged(EventMovement.NEXT)
+        .transition(state, TestAppInsightsTracker, FakeInsightsProvider(), AppInsightsCacheImpl())
     assertThat(transition.newState.currentEvents)
-      .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1")), 0, "abc")))
+      .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("1"), Event("2")), 1, "abc")))
     assertThat(transition.action).isEqualTo(Action.ListEvents(ISSUE1.id, null, "abc"))
   }
 }

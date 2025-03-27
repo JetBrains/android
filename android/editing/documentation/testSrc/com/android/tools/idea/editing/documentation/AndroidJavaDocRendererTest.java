@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editing.documentation;
 
-import static com.android.tools.idea.testing.SnaphotComparisonTestHelpersKt.normalizeHtmlForTests;
+import static com.android.tools.idea.testing.SnapshotComparisonTestHelpersKt.normalizeHtmlForTests;
 import static com.android.tools.idea.testing.SnapshotComparisonTestUtilsKt.assertIsEqualToSnapshot;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -116,7 +116,7 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
     // WebP images need to be rendered by layoutlib, so should show the rendered PNG.
     myFixture.copyFileToProject("javadoc/drawables/ic_launcher.webp", "res/drawable/ic_launcher.webp");
     String doc = generateDoc("/javadoc/drawables/Activity1.java", "src/p1/p2/Activity.java");
-    assertThat(doc).contains("render.png");
+    assertThat(doc).containsMatch("render\\d+\\.png");
     assertThat(doc).doesNotContain("Couldn't render");
   }
 

@@ -184,7 +184,8 @@ class PreviewPickerValuesProviderTest {
     assertEquals("Wear", deviceHeaders[4].header)
     assertEquals("Tv", deviceHeaders[5].header)
     assertEquals("Auto", deviceHeaders[6].header)
-    assertEquals("Generic Devices", deviceHeaders[7].header)
+    assertEquals("XR", deviceHeaders[7].header)
+    assertEquals("Generic Devices", deviceHeaders[8].header)
 
     // With Sdk verify that Wear, Tv and Auto have actual devices (their value start with "id:"
     // instead of "spec:")

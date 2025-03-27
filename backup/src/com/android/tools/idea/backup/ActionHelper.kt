@@ -33,6 +33,10 @@ internal interface ActionHelper {
    */
   suspend fun getDeployTargetSerial(project: Project): String?
 
-  /** Display a warning popup */
-  suspend fun showWarning(project: Project, title: String, message: String)
+  /**
+   * Returns true if a compatible app is installed
+   *
+   * A compatible app is an app that is part of the project
+   */
+  suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean
 }

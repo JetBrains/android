@@ -47,6 +47,18 @@ class DeclarativeLexerTest : LexerTestCase() {
     )
   }
 
+  fun testBlockCommentBeginning() {
+    doTest(
+      """
+        /* foo
+        bar
+      """.trimIndent(),
+      """
+        DeclarativeTokenType.BLOCK_COMMENT ('/* foo\nbar')
+      """.trimIndent()
+    )
+  }
+
   fun testKDocComment() {
     doTest(
       """

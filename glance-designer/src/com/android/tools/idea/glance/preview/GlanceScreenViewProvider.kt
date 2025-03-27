@@ -28,7 +28,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer
 import com.android.tools.idea.uibuilder.surface.sizepolicy.ImageContentSizePolicy
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 
@@ -39,7 +38,6 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 internal val GLANCE_SCREEN_VIEW_PROVIDER =
   object : ScreenViewProvider {
     override val displayName: String = "Glance"
-    override var colorBlindFilter: ColorBlindMode = ColorBlindMode.NONE
 
     override fun createPrimarySceneView(
       surface: NlDesignSurface,
@@ -49,7 +47,7 @@ internal val GLANCE_SCREEN_VIEW_PROVIDER =
         .withLayersProvider {
           ImmutableList.builder<Layer>()
             .apply {
-              add(ScreenViewLayer(it, colorBlindFilter, surface, surface::rotateSurfaceDegree))
+              add(ScreenViewLayer(it, surface, surface::rotateSurfaceDegree))
               add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
               StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
                 add(ClassLoadingDebugLayer(surface.models.first().facet.module))

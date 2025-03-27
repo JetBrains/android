@@ -17,8 +17,8 @@ package com.android.tools.idea.adb;
 
 import com.android.ddmlib.Log;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
 public class AdbLogOutput {
   /** {@link SystemLogRedirecter} redirects the output from {@link Log.ILogOutput} to IDEA's log files. */
   public static class SystemLogRedirecter implements Log.ILogOutput {
-    private static final NotificationGroup EVENT_LOG = NotificationGroup.logOnlyGroup("ADB Logs", PluginId.getId("org.jetbrains.android"));
+    private static final NotificationGroup EVENT_LOG =
+      NotificationGroupManager.getInstance().getNotificationGroup("ADB Logs");
     private static final Logger LOG = Logger.getInstance("#com.android.ddmlib");
 
     @Override

@@ -18,15 +18,13 @@ package com.android.tools.idea.execution.common.debug.utils
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.projectsystem.getAndroidTestModule
-import com.android.tools.idea.projectsystem.getMainModule
-import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
+import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -46,7 +44,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -63,7 +62,7 @@ class FacetFinderTest {
   }
 
   private class FakeClientData(private val applicationId: String?, private val processName: String?) :
-    ClientData(Mockito.mock(Client::class.java).also { whenever(it.device).thenReturn(mock<IDevice>()) }, -1) {
+    ClientData(mock<Client>().also { whenever(it.device).thenReturn(mock<IDevice>()) }, -1) {
     override fun getPackageName(): String? = applicationId ?: processName?.substringBefore(":") // See behaviour in overridden method
     override fun getProcessName(): String? = processName
   }

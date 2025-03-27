@@ -15,29 +15,21 @@
  */
 package com.android.tools.idea.imports
 
-import org.apache.commons.compress.utils.IOUtils
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import org.apache.commons.compress.utils.IOUtils
 
-/**
- *  Returns a decompressed byte array of the given content.
- */
+/** Returns a decompressed byte array of the given content. */
 fun ungzip(data: ByteArray): ByteArray {
   val byteArrayInputStream = data.inputStream()
-  return GZIPInputStream(byteArrayInputStream).use {
-    IOUtils.toByteArray(it)
-  }
+  return GZIPInputStream(byteArrayInputStream).use { IOUtils.toByteArray(it) }
 }
 
-/**
- *  Returns a compressed byte array of the given content.
- */
+/** Returns a compressed byte array of the given content. */
 fun gzip(content: ByteArray): ByteArray {
   val byteArrayOutputStream = ByteArrayOutputStream()
-  GZIPOutputStream(byteArrayOutputStream).use {
-    it.write(content)
-  }
+  GZIPOutputStream(byteArrayOutputStream).use { it.write(content) }
 
   return byteArrayOutputStream.toByteArray()
 }

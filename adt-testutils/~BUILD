@@ -27,6 +27,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

@@ -18,6 +18,8 @@ package com.android.tools.idea.bleak
 import com.intellij.openapi.Disposable
 import java.lang.reflect.Field
 
+data class CountInfo(val count: Int, val delta: Int)
+
 /**
  * [DisposerInfo] tracks child counts by class for each [Disposable]. This class-level granularity is not
  * exposed by the normal Bleak check, and is more robust in the face of removal of unrelated children (that
@@ -25,7 +27,7 @@ import java.lang.reflect.Field
  * growth in the number of B children will be discovered by this check, but Bleak would discard the parent
  * as not growing).
  */
-class DisposerInfo private constructor (val growingCounts: Map<Key, Int> = mapOf()) {
+class DisposerInfo private constructor (val growingCounts: Map<Key, CountInfo> = mapOf()) {
 
   class Key(val disposable: Disposable, val klass: Class<*>) {
     override fun equals(other: Any?): Boolean {
@@ -43,22 +45,22 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, Int> = mapOf
 
     fun propagateFrom(prevDisposerInfo: DisposerInfo): DisposerInfo {
       val currentClassCounts = getClassCountsMap()
-      val growingCounts = mutableMapOf<Key, Int>()
-      prevDisposerInfo.growingCounts.forEach { key, prevCount ->
+      val growingCounts = mutableMapOf<Key, CountInfo>()
+      prevDisposerInfo.growingCounts.forEach { key, (prevCount, _) ->
         val newCount = currentClassCounts[key]
-        if (newCount != null && newCount > prevCount) {
-          growingCounts[key] = newCount
+        if (newCount != null && newCount.count > prevCount) {
+          growingCounts[key] = CountInfo(newCount.count, newCount.count - prevCount)
         }
       }
       return DisposerInfo(growingCounts)
     }
 
-    private fun getClassCountsMap(): MutableMap<Key, Int> {
-      val counts = mutableMapOf<Key, Int>()
+    private fun getClassCountsMap(): MutableMap<Key, CountInfo> {
+      val counts = mutableMapOf<Key, CountInfo>()
       visitTree (object: Visitor {
         override fun visit(disposable: Disposable) {
           getChildren(disposable).forEach { child ->
-            counts.compute(Key(disposable, child.javaClass)) { k, v -> if (v == null) 1 else v + 1 }
+            counts.compute(Key(disposable, child.javaClass)) { k, v -> if (v == null) CountInfo(1, 0) else CountInfo(v.count + 1, 0) }
           }
         }
       })
@@ -140,12 +142,12 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, Int> = mapOf
   }
 }
 
-class DisposerLeakInfo(val key: DisposerInfo.Key, val count: Int) {
+class DisposerLeakInfo(val key: DisposerInfo.Key, val count: Int, val increase: Int) {
   override fun toString(): String {
     return if (key.disposable === DisposerInfo.rootDisposable) {
-      "There are an increasing number ($count) of Disposer roots of type ${key.klass.name}"
+      "There are an increasing number ($count total, +$increase/iteration) of Disposer roots of type ${key.klass.name}"
     } else {
-      "Disposable of type ${key.disposable.javaClass.name} has an increasing number ($count) of children of type ${key.klass.name}"
+      "Disposable of type ${key.disposable.javaClass.name} has an increasing number ($count total, +$increase/iteration) of children of type ${key.klass.name}"
     }
   }
 }
@@ -164,6 +166,6 @@ class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList()): BleakCheck<
   override fun lastIterationFinished() = middleIterationFinished()
 
   override fun getResults(ignoreList: IgnoreList<DisposerLeakInfo>) =
-    disposerInfo?.growingCounts?.map { (key, count) -> DisposerLeakInfo(key, count) }?.filterNot { ignoreList.matches(it) } ?: listOf()
+    disposerInfo?.growingCounts?.map { (key, value) -> DisposerLeakInfo(key, value.count, value.delta) }?.filterNot { ignoreList.matches(it) } ?: listOf()
 
 }

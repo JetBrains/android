@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.deps;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 
 /**
@@ -32,7 +33,7 @@ public interface ProjectProtoUpdateOperation {
   String JAVA_DEPS_LIB_NAME = ".dependencies";
   ImmutableSet<String> JAVA_ARCHIVE_EXTENSIONS = ImmutableSet.of("jar", "srcjar");
 
-  default ImmutableSetMultimap<BuildArtifact, ArtifactMetadata> getRequiredArtifacts(
+  default ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>> getRequiredArtifacts(
       TargetBuildInfo forTarget) {
     return ImmutableSetMultimap.of();
   }

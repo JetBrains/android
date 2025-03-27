@@ -18,26 +18,29 @@ package com.android.tools.idea.naveditor.surface
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.supportsActions
+import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.WriteCommandAction
 import java.awt.datatransfer.DataFlavor
 import java.util.stream.Collectors
 
-class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) :
-  DesignSurfaceActionHandler(surface) {
+class NavDesignSurfaceActionHandler(surface: DesignSurface<NavSceneManager>) :
+  DesignSurfaceActionHandler<DesignSurface<NavSceneManager>>(surface) {
 
   override val flavor: DataFlavor = ItemTransferable.NAV_FLAVOR
 
   override fun deleteElement(dataContext: DataContext) {
+    val surface = surfaceOrNull as? NavDesignSurface ?: return
     val superCall = { super.deleteElement(dataContext) }
 
-    val nextSelection = nextSelection()
+    val nextSelection = nextSelection(surface)
     val selection = surface.selectionModel.selection
 
     WriteCommandAction.runWriteCommandAction(
@@ -71,22 +74,26 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) :
   }
 
   override fun canDeleteElement(dataContext: DataContext): Boolean {
+    val surface = surfaceOrNull as? NavDesignSurface ?: return false
     return super.canDeleteElement(dataContext) &&
-      !mySurface.selectionModel.selection.contains(surface.currentNavigation)
+      !surface.selectionModel.selection.contains(surface.currentNavigation)
   }
 
   override fun isCutEnabled(dataContext: DataContext): Boolean {
+    val surface = surfaceOrNull as? NavDesignSurface ?: return false
     return super.isCutEnabled(dataContext) &&
-      !mySurface.selectionModel.selection.contains(surface.currentNavigation)
+      !surface.selectionModel.selection.contains(surface.currentNavigation)
   }
 
-  override val pasteTarget: NlComponent
+  override val pasteTarget: NlComponent?
     get() {
-      val selection = mySurface.selectionModel.selection
+      val surface = surfaceOrNull as? NavDesignSurface ?: return null
+      val selection = surface.selectionModel.selection
       return if (selection.size == 1) selection[0] else surface.currentNavigation
     }
 
   override fun canHandleChildren(component: NlComponent, pasted: List<NlComponent>): Boolean {
+    val surface = surfaceOrNull as? NavDesignSurface ?: return false
     // Actions can be children of anything selectable. Destinations are children of navigations, but
     // won't get pasted into a subnav
     // that's selected (unless it's also the current nav).
@@ -96,7 +103,7 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) :
 
   // Determine the next component to be selected after the current selection is deleted
   // Returns the root if multiple items are selected
-  private fun nextSelection(): NlComponent {
+  private fun nextSelection(surface: NavDesignSurface): NlComponent {
     val selection = surface.selectionModel.selection
     if (selection.size != 1) {
       return surface.currentNavigation

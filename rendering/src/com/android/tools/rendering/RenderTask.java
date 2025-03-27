@@ -165,7 +165,6 @@ public class RenderTask {
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderContext myContext;
 
-  @NotNull private final ModuleClassLoaderManager<?> myClassLoaderManager;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
@@ -188,6 +187,7 @@ public class RenderTask {
   private boolean myShowDecorations = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
+  private boolean myForceMonochromeIcon = false;
   private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
   private long myTimeout;
   @NotNull private final Locale myLocale;
@@ -222,7 +222,6 @@ public class RenderTask {
    * @param topic              enum value to specify the context or tool in which the render is happening
    */
   RenderTask(@NotNull RenderContext renderContext,
-             @NotNull ModuleClassLoaderManager classLoaderManager,
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
              @NotNull Object credential,
@@ -246,7 +245,6 @@ public class RenderTask {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
-    myClassLoaderManager = classLoaderManager;
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
 
@@ -271,20 +269,9 @@ public class RenderTask {
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    ModuleRenderContext moduleRenderContext = renderContext.getModule().createModuleRenderContext(new WeakReference<>(this));
-    if (privateClassLoader) {
-      myModuleClassLoaderReference = classLoaderManager.getPrivate(
-        myLayoutLib.getClassLoader(),
-        moduleRenderContext,
-        additionalProjectTransform, additionalNonProjectTransform);
-      onNewModuleClassLoader.run();
-    } else {
-      myModuleClassLoaderReference = classLoaderManager.getShared(myLayoutLib.getClassLoader(),
-                                                         moduleRenderContext,
-                                                         additionalProjectTransform,
-                                                         additionalNonProjectTransform,
-                                                         onNewModuleClassLoader);
-    }
+    RenderModelModule renderContextModule = renderContext.getModule();
+    myModuleClassLoaderReference = renderContextModule.getClassLoaderProvider(privateClassLoader)
+      .getClassLoader(myLayoutLib.getClassLoader(), additionalProjectTransform, additionalNonProjectTransform, onNewModuleClassLoader);
     ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
     immediateClassesToPreload.forEach(clazz -> {
       try {
@@ -299,14 +286,14 @@ public class RenderTask {
         new LayoutlibCallbackImpl(
           this,
           myLayoutLib,
-          renderContext.getModule(),
+          renderContextModule,
           myLogger,
           myCredential,
           actionBarHandler,
           parserFactory,
           moduleClassLoader,
           useCustomInflater);
-      if (renderContext.getModule().getResourceIdManager().getFinalIdsUsed()) {
+      if (renderContextModule.getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
       myLocale = renderContext.getConfiguration().getLocale();
@@ -412,7 +399,7 @@ public class RenderTask {
   // Workaround for http://b/143378087
   private void clearClassLoader() {
     try {
-      myClassLoaderManager.release(myModuleClassLoaderReference);
+      myModuleClassLoaderReference.close();
     }
     catch (AlreadyDisposedException e) {
       // The project has already been disposed.
@@ -577,6 +564,16 @@ public class RenderTask {
   }
 
   /**
+   * Sets whether the adaptive icon preview should automatically create a monochrome version if none is provided.
+   */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public RenderTask setForceMonochromeIcon(boolean forceMonochromeIcon) {
+    myForceMonochromeIcon = forceMonochromeIcon;
+    return this;
+  }
+
+  /**
    * Sets whether the rendering should use 'tools' namespaced 'visibility' and 'layout_editor_absoluteX/Y' attributes.
    * <p>
    * Default is {@code true}.
@@ -695,6 +692,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK, myEnableLayoutScanner);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_FORCE_MONOCHROME_ICON, myForceMonochromeIcon);
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_GESTURE_NAV, configuration.isGestureNav());
     params.setFlag(RenderParamsFlags.FLAG_KEY_EDGE_TO_EDGE, configuration.isEdgeToEdge());
@@ -1262,6 +1260,7 @@ public class RenderTask {
     params.setAssetRepository(context.getModule().getAssetRepository());
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
+    params.setFlag(RenderParamsFlags.FLAG_KEY_FORCE_MONOCHROME_ICON, myForceMonochromeIcon);
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
 
     return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))
@@ -1492,5 +1491,11 @@ public class RenderTask {
   @NotNull
   private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
     return RenderSessionCleaner.dispose(renderSession, myModuleClassLoaderReference.getClassLoader());
+  }
+
+  @TestOnly
+  @NotNull
+  public static ExecutorService getDisposeService() {
+    return ourDisposeService;
   }
 }

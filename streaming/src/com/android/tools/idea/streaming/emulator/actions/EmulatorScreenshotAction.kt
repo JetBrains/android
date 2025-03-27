@@ -80,16 +80,16 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val imageBytes = screenshot.image
         val image = ImageIO.read(imageBytes.newInput()) ?: throw IIOException("Corrupted screenshot image")
 
-        val screenshotDecorator = MyScreenshotDecorator(emulatorView)
+        val screenshotDecorator = EmulatorScreenshotDecorator(emulatorView)
         val emulatorController = emulatorView.emulator
         val framingOptions = if (emulatorController.getSkin() == null) listOf() else listOf(avdFrame)
         val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
-        val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull(), project)
+        val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
         val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
         val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
         processedImage.writeImage("PNG", file)
         val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException("Unable to save screenshot")
-        val screenshotSupplier = MyScreenshotSupplier(emulatorController)
+        val screenshotSupplier = EmulatorScreenshotSupplier(emulatorController)
 
         ApplicationManager.getApplication().invokeLater {
           val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotDecorator, framingOptions, 0,
@@ -103,7 +103,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class MyScreenshotSupplier(val emulatorController: EmulatorController) : ScreenshotSupplier {
+  private class EmulatorScreenshotSupplier(val emulatorController: EmulatorController) : ScreenshotSupplier {
 
     init {
       Disposer.register(emulatorController, this)
@@ -118,7 +118,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
         return ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType)
       }
-      catch (e: InterruptedException) {
+      catch (_: InterruptedException) {
         throw ProcessCanceledException()
       }
       catch (e: IOException) {
@@ -138,7 +138,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class MyScreenshotDecorator(val emulatorView: EmulatorView) : ScreenshotDecorator {
+  private class EmulatorScreenshotDecorator(val emulatorView: EmulatorView) : ScreenshotDecorator {
 
     override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
       val image = screenshotImage.image

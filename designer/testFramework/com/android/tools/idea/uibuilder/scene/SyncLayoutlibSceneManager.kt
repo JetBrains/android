@@ -23,17 +23,17 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableSet
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.EdtExecutorService
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-
-/** Number of seconds to wait for the render to complete in any of the render calls. */
-private const val RENDER_TIMEOUT_SECS = 60L
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 /** [LayoutlibSceneManager] used for tests that performs all operations synchronously. */
 open class SyncLayoutlibSceneManager(
@@ -55,34 +55,23 @@ open class SyncLayoutlibSceneManager(
     sceneRenderConfiguration.setRenderTaskBuilderWrapperForTest { it.disableSecurityManager() }
   }
 
-  private fun <T> waitForFutureWithoutBlockingUiThread(
-    future: CompletableFuture<T>
-  ): CompletableFuture<T> {
-    if (ApplicationManager.getApplication().isDispatchThread) {
-      // If this is happening in the UI thread, keep dispatching the events in the UI thread while
-      // we are waiting
-      PlatformTestUtil.waitForFuture(future, TimeUnit.SECONDS.toMillis(RENDER_TIMEOUT_SECS))
-    }
+  /**
+   * Allows to set desirable render result for tests, if result is not set returns default value.
+   */
+  override var renderResult: RenderResult? = null
+    get() = field ?: super.renderResult
 
-    val result =
-      CompletableFuture.completedFuture(
-        future.orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join()
-      )
-
-    // After running render calls, there might be pending actions to run on the UI thread, dispatch
-    // those to ensure that after this call, everything
-    // is done.
+  override fun requestRender() {
+    if (ignoreRenderRequests) return
+    runBlocking { requestRenderAndWait() }
     runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    return result
   }
 
-  override fun requestRenderAsync(): CompletableFuture<Void> {
-    if (ignoreRenderRequests) {
-      return CompletableFuture.completedFuture(null)
+  override suspend fun requestRenderAndWait() =
+    withContext(workerThread) {
+      if (ignoreRenderRequests) return@withContext
+      super.requestRenderAndWait()
     }
-    val result = waitForFutureWithoutBlockingUiThread(super.requestRenderAsync())
-    return result
-  }
 
   override fun executeInRenderSessionAsync(
     block: Runnable,
@@ -101,7 +90,7 @@ open class SyncLayoutlibSceneManager(
   ) {
     if (renderResult == null) {
       sceneRenderConfiguration.needsInflation.set(true)
-      requestRenderAsync().join()
+      requestRender()
     }
     val map: MutableMap<ResourceReference, ResourceValue> =
       renderResult!!.defaultProperties.getOrPut(component.snapshot!!) { HashMap() }

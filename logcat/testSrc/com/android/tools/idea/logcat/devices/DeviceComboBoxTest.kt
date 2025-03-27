@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
@@ -43,6 +42,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.whenever
 
 /** Tests for [DeviceComboBox] */
 @Suppress("OPT_IN_USAGE") // runTest is experimental
@@ -66,7 +66,7 @@ class DeviceComboBoxTest {
 
   private val device1 = Device.createPhysical("device1", false, "11", 30, "Google", "Pixel 2")
   private val device2 = Device.createPhysical("device2", false, "11", 30, "Google", "Pixel 2")
-  private val emulator = Device.createEmulator("emulator-5555", false, "11", 30, "AVD")
+  private val emulator = Device.createEmulator("emulator-5555", false, "11", 30, "AVD", "avdPath")
 
   @Test
   fun noDevice_noSelection(): Unit =

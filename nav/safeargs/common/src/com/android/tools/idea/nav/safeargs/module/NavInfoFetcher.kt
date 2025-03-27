@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.Version
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
@@ -33,10 +32,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
-import com.android.utils.TraceUtils.simpleId
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.ModificationTracker
@@ -44,7 +41,6 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KProperty
 import net.jcip.annotations.GuardedBy
 import org.jetbrains.android.facet.AndroidFacet
@@ -111,8 +107,6 @@ class NavInfoFetcher(
 ) : NavInfoFetcherBase, ModificationTracker {
 
   private val modificationTracker = SimpleModificationTracker()
-
-  private val returnedStaleResults = AtomicBoolean(false)
 
   init {
     // Invalidate whenever the dependencies of [getCurrentNavInfo] may have changed.
@@ -189,21 +183,6 @@ class NavInfoFetcher(
   override fun getCurrentNavInfo(): NavInfo? {
     val facet = androidFacetIfEnabled ?: return null
     val modulePackage = facet.getModuleSystem().getPackageName() ?: return null
-
-    if (!StudioFlags.SKIP_NAV_INFO_DUMB_MODE_CHECK.get()) {
-      if (DumbService.getInstance(module.project).isDumb) {
-        thisLogger()
-          .warn(
-            "Safe Args classes may be temporarily stale or unavailable due to indices not being ready right now. (${this.simpleId}"
-          )
-        returnedStaleResults.set(true)
-        return null
-      }
-
-      if (returnedStaleResults.getAndSet(false)) {
-        thisLogger().warn("Safe Args results returned after indexing completed. (${this.simpleId}")
-      }
-    }
 
     // Save version and modification count _before_ reading resources - in the event of a change,
     // this ensures that we don't match up the

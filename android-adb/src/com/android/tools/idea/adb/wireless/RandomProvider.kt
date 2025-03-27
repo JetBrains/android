@@ -17,13 +17,9 @@ package com.android.tools.idea.adb.wireless
 
 import java.security.SecureRandom
 
-/**
- * A wrapper around [SecureRandom] to improve testability
- */
+/** A wrapper around [SecureRandom] to improve testability */
 open class RandomProvider {
-  private val random by lazy {
-    SecureRandom()
-  }
+  private val random by lazy { SecureRandom() }
 
   open fun nextInt(bound: Int): Int {
     return random.nextInt(bound)

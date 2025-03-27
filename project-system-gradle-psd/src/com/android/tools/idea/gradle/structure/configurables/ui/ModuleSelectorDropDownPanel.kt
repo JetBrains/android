@@ -42,7 +42,7 @@ class ModuleSelectorDropDownPanel(
   }
 
   fun update() {
-    toolbar.updateActionsImmediately()
+    toolbar.updateActionsAsync()
   }
 
   private fun addToolbar(toolbar: ActionToolbar) {

@@ -19,6 +19,7 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "@intellij//:test-framework[test]",
     ],

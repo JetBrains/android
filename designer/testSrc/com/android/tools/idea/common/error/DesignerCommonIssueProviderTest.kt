@@ -20,7 +20,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.visuallint.VisualLintErrorType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.runInEdtAndGet

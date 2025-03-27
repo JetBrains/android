@@ -22,6 +22,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import static com.android.tools.idea.projectsystem.gradle.GradleModuleSystemKt.CHECK_DIRECT_GRADLE_DEPENDENCIES;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -37,6 +38,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -114,7 +116,8 @@ public class GradleDependencyManagerTest {
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-      boolean found = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean found = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
       assertTrue(found);
 
       List<ResourceItem> items = StudioResourceRepositoryManager
@@ -141,7 +144,8 @@ public class GradleDependencyManagerTest {
       assertFalse(isRecyclerViewRegistered(project));
       assertFalse(isRecyclerViewResolved(project));
 
-      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
 
       // If addDependencyAndSync worked correctly,
       // 1. findMissingDependencies with the added dependency should return empty.
@@ -177,7 +181,7 @@ public class GradleDependencyManagerTest {
       assertFalse(isRecyclerViewRegistered(project));
       assertFalse(isRecyclerViewResolved(project));
 
-      boolean result = dependencyManager.addDependenciesWithoutSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
 
       // If addDependencyWithoutSync worked correctly,
       // 1. findMissingDependencies with the added dependency should return empty.
@@ -197,11 +201,12 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
 
       Module appModule = TestModuleUtil.findAppModule(project);
-      List<Dependency> dependencies = ImmutableList.of(APP_COMPAT_DEPENDENCY, RECYCLER_VIEW_DEPENDENCY);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<Dependency> missing = dependencyManager.findMissingDependencies(appModule, dependencies);
-      assertThat(missing.size()).isEqualTo(1);
-      assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.4.0");
+      Boolean result = dependencyManager.addDependencies(appModule,  Collections.singletonList(RECYCLER_VIEW_DEPENDENCY));
+      requestProjectSync(project);
+      assertThat(result).isEqualTo(true);
+
+      assertBuildGradle(project, str -> str.contains("com.android.support:recyclerview-v7:25.4.0"));
       assertFalse(isRecyclerInCatalog(project));
       return null;
     });
@@ -247,15 +252,15 @@ public class GradleDependencyManagerTest {
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
 
       assertTrue(result);
-      GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
-      GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
 
-      assertThat(
-        dependencyManager.computeCatalogDependenciesInfo(appModule, dependencies, catalogModel).missingLibraries).isEmpty();
-      assertTrue(isRecyclerInCatalog(project));
+      String versionRef = extractVersionRef(project,"group=com.android.support,name=recyclerview-v7,version.ref=([0-9a-zA-Z-]+)");
+      assertNotNull(versionRef);
+      assertTrue(isInCatalog(project, versionRef + "=+"));
+
       assertBuildGradle(project, str -> !str.contains("com.android.support:libs.recyclerview-v7"));
       assertBuildGradle(project, str -> str.contains("implementation libs.recyclerview.v7"));
       return null;
@@ -272,14 +277,11 @@ public class GradleDependencyManagerTest {
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
 
       assertTrue(result);
-      GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
-      GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
 
-      assertThat(
-        dependencyManager.computeCatalogDependenciesInfo(appModule, dependencies, catalogModel).missingLibraries).isEmpty();
       assertTrue(isInCatalog(project, "group=androidx.room,name=room-ktx,version=2.5.0"));
       assertBuildGradle(project, str -> !str.contains("androidx.room:room-ktx:2.5.0"));
       assertBuildGradle(project, str -> str.contains("implementation libs.androidx.room.ktx"));
@@ -297,21 +299,16 @@ public class GradleDependencyManagerTest {
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
-      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+      boolean result = dependencyManager.addDependencies(appModule, dependencies);
+      requestProjectSync(project);
 
       assertTrue(result);
-      GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
-      GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
-
-      assertThat(
-        dependencyManager.computeCatalogDependenciesInfo(appModule, dependencies, catalogModel).missingLibraries).isEmpty();
 
       assertTrue(isInCatalog(project, "group=androidx.room,name=room-ktx,version=2.5.0"));
 
       String versionRef = extractVersionRef(project,"group=androidx.room,name=room-ktx,version.ref=([a-zA-Z-]+)");
       assertNotNull(versionRef);
       assertTrue(isInCatalog(project, versionRef + "=2.5.1"));
-
 
       assertBuildGradle(project, str -> !str.contains("androidx.room:room-ktx:2.5"));
       assertBuildGradle(project, str -> str.contains("implementation libs.room.ktx"));
@@ -364,7 +361,7 @@ public class GradleDependencyManagerTest {
   }
 
   private boolean isRecyclerInCatalog(Project project){
-    String versionRef = extractVersionRef(project,"group=com.android.support,name=recyclerview-v7,version.ref=([a-z0-9A-z-]+)");
+    String versionRef = extractVersionRef(project,"group=com.android.support,name=recyclerview-v7,version.ref=([a-z0-9A-Z-]+)");
     if(versionRef==null) return false;
     return isInCatalog(project, versionRef + "=+");
 
@@ -404,6 +401,11 @@ public class GradleDependencyManagerTest {
     PsiFile buildGradlePsi = PsiManager.getInstance(project).findFile(file);
     assertNotNull(buildGradlePsi.getText());
     return check.apply(buildGradlePsi.getText().replace(" ", "").replace("\"", ""));
+  }
+
+  private static void requestProjectSync(@NotNull Project project) {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_GRADLEDEPENDENCY_ADDED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
 
 }

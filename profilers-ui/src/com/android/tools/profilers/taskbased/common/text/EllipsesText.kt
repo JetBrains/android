@@ -42,9 +42,10 @@ fun EllipsisText(modifier: Modifier = Modifier,
                  fontStyle: FontStyle? = null,
                  textAlign: TextAlign = TextAlign.Unspecified,
                  lineHeight: TextUnit = TextUnit.Unspecified,
-                 color: Color = Color.Unspecified) {
+                 color: Color = Color.Unspecified,
+                 enableTooltipOnOverflow: Boolean = true) {
   var hasVisualOverflow by remember { mutableStateOf(false) }
-  if (hasVisualOverflow) {
+  if (hasVisualOverflow && enableTooltipOnOverflow) {
     Tooltip(tooltip = { Text(text) }) {
       EllipsisTextContent(text = text,
                           maxLines = maxLines,

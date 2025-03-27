@@ -16,8 +16,10 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.UiMessageHandler;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.DoNotAskOption;
+import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.OkCancelDialogBuilder;
 import com.intellij.util.Consumer;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -34,27 +36,28 @@ public class IntellijUiMessageHandler implements UiMessageHandler {
 
   @Override
   public boolean displayOkCancelMessage(@NotNull String title,
-                                     @NotNull String message,
-                                     @NotNull String okText,
-                                     @NotNull String cancelText,
-                                     @Nullable Icon icon,
-                                     @Nullable Consumer<Boolean> doNotShowSettingSaver) {
-    if (doNotShowSettingSaver == null) {
-      return Messages.OK == Messages.showOkCancelDialog(message, title, okText, cancelText, icon);
+                                        @NotNull String message,
+                                        @NotNull String okText,
+                                        @NotNull String cancelText,
+                                        @Nullable Icon icon,
+                                        @Nullable Consumer<Boolean> doNotShowSettingSaver) {
+    OkCancelDialogBuilder dialog = MessageDialogBuilder.okCancel(title, message);
+    if (doNotShowSettingSaver != null) {
+      dialog = dialog.doNotAsk(new DoNotAskOption.Adapter() {
+        @Override
+        public void rememberChoice(boolean isSelected, int exitCode) {
+          doNotShowSettingSaver.consume(isSelected);
+        }
+
+        @NotNull
+        @Override
+        public String getDoNotShowMessage() {
+          return DO_NOT_SHOW_TEXT;
+        }
+      });
     }
 
-    return Messages.OK ==
-           Messages.showOkCancelDialog(message, title, okText, cancelText, icon, new DialogWrapper.DoNotAskOption.Adapter() {
-             @Override
-             public void rememberChoice(boolean isSelected, int exitCode) {
-               doNotShowSettingSaver.consume(isSelected);
-             }
-
-             @NotNull
-             @Override
-             public String getDoNotShowMessage() {
-               return DO_NOT_SHOW_TEXT;
-             }
-           });
+    // guessWindowAndAsk() returns true if user selects "OK", false if "Cancel"
+    return dialog.guessWindowAndAsk();
   }
 }

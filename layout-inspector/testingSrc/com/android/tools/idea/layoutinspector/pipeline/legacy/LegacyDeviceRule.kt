@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.AdbServiceRule
@@ -45,6 +44,7 @@ import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.kotlin.mock
 
 /** Manifest sample xml file with 2 activities which have separate themes. */
 @Language("XML")
@@ -166,7 +166,7 @@ class LegacyDeviceRule(
           scope,
           disposable,
         )
-        .apply { launchMonitor = MockitoKt.mock() }
+        .apply { launchMonitor = mock() }
     // This causes the current client to register its listeners
     val treeSettings = FakeTreeSettings()
     LayoutInspector(

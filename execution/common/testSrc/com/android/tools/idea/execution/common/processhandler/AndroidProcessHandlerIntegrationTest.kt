@@ -20,12 +20,12 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.whenever
 import com.intellij.testFramework.ProjectRule
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
@@ -40,7 +40,7 @@ class AndroidProcessHandlerIntegrationTest {
   var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
   private fun createDevice(): IDevice {
-    val mockDevice = mock(IDevice::class.java)
+    val mockDevice = mock<IDevice>()
     whenever(mockDevice.version).thenReturn(AndroidVersion(26))
     whenever(mockDevice.isOnline).thenReturn(true)
     return mockDevice

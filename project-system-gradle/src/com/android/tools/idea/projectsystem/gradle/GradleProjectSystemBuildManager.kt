@@ -102,7 +102,6 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
    */
   override val isBuilding: Boolean
     get() {
-      ThreadingAssertions.assertEventDispatchThread()
       return project.getService(GradleProjectSystemBuildPublisher::class.java).isBuilding
     }
 }

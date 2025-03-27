@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
+import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
@@ -69,7 +70,11 @@ internal class EditorHyperlinkDetector(
 
   override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {
     filter.apiLevel = sdk
-    editorHyperlinkSupport.highlightHyperlinksLater(filter, startLine, endLine, expirableToken)
+    try {
+      editorHyperlinkSupport.highlightHyperlinksLater(filter, startLine, endLine, expirableToken)
+    } catch (e: Exception) {
+      LOGGER.warn("Error detecting hyperlinks", e)
+    }
   }
 
   override fun dispose() {

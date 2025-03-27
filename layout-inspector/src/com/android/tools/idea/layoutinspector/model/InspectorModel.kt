@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -130,6 +131,11 @@ class InspectorModel(
   val windows = ConcurrentHashMap<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
   val root = ViewNode("android.root - hide")
+
+  val isXr: Boolean
+    get() {
+      return windows.values.filterIsInstance<ViewAndroidWindow>().find { it.isXr } != null
+    }
 
   enum class Posture {
     HALF_OPEN,
@@ -261,8 +267,21 @@ class InspectorModel(
       root.children.forEach { it.parent = null }
       root.children.clear()
       root.drawChildren.clear()
-      val maxWidth = windows.values.map { it.width }.maxOrNull() ?: 0
-      val maxHeight = windows.values.map { it.height }.maxOrNull() ?: 0
+
+      // Calculate the root's width and height as the difference between the biggest and smallest
+      // coordinate on the two axis. This allows us to handle the case where some windows exist
+      // outside others, like in XR.
+      val smallestX = windows.values.minOfOrNull { it.root.layoutBounds.x } ?: 0
+      val biggestX =
+        windows.values.maxOfOrNull { it.root.layoutBounds.x + it.root.layoutBounds.width } ?: 0
+
+      val smallestY = windows.values.minOfOrNull { it.root.layoutBounds.y } ?: 0
+      val biggestY =
+        windows.values.maxOfOrNull { it.root.layoutBounds.y + it.root.layoutBounds.height } ?: 0
+
+      val maxWidth = biggestX - smallestX
+      val maxHeight = biggestY - smallestY
+
       root.layoutBounds.width = maxWidth
       root.layoutBounds.height = maxHeight
       for (id in allIds) {
@@ -350,6 +369,10 @@ class InspectorModel(
           }
         }
 
+        if (isXr) {
+          reLayoutWindowsForXr(this, windows.values.toList())
+        }
+
         updateRoot(allIds)
         if (selection?.parentSequence?.lastOrNull() !== root) {
           lastSelection = null
@@ -409,7 +432,7 @@ class InspectorModel(
 
   fun addHoverListener(listener: HoverListener) {
     listener.onHover(hoveredNode, hoveredNode)
-    hoverListeners.remove(listener)
+    hoverListeners.add(listener)
   }
 
   fun removeHoverListener(listener: HoverListener) {
@@ -493,6 +516,18 @@ class InspectorModel(
     hiddenNodes.clear()
     ViewNode.readAccess { hiddenNodes.addAll(root.flatten().minus(node.parentSequence)) }
     notifyModified()
+  }
+
+  fun showSubtree(node: ViewNode) {
+    ViewNode.readAccess { hiddenNodes.removeAll(node.flatten().toSet()) }
+    notifyModified()
+  }
+
+  fun hasHiddenSubtreeNodes(node: ViewNode): Boolean {
+    return ViewNode.readAccess {
+      val subtreeNodes = node.flatten().toSet()
+      hiddenNodes.firstOrNull() { subtreeNodes.contains(it) } != null
+    }
   }
 
   fun isVisible(node: ViewNode) = !hiddenNodes.contains(node)

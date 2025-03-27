@@ -18,8 +18,10 @@ package com.android.tools.idea.insights
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.FakeGeminiToolkit
+import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
+import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
@@ -36,6 +38,7 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQua
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.atomic.AtomicBoolean
@@ -55,20 +58,20 @@ private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(
 
 class AppInsightsProjectLevelControllerRule(
   private val projectProvider: () -> Project,
-  private val key: InsightsProviderKey,
+  private val provider: InsightsProvider,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
 ) : NamedExternalResource() {
   constructor(
     projectRule: ProjectRule,
-    key: InsightsProviderKey = TEST_KEY,
+    provider: InsightsProvider = FakeInsightsProvider(),
     onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
-  ) : this({ projectRule.project }, key, onErrorAction)
+  ) : this({ projectRule.project }, provider, onErrorAction)
 
   constructor(
     androidProjectRule: AndroidProjectRule,
-    key: InsightsProviderKey = TEST_KEY,
+    provider: InsightsProvider = FakeInsightsProvider(),
     onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> },
-  ) : this({ androidProjectRule.project }, key, onErrorAction)
+  ) : this({ androidProjectRule.project }, provider, onErrorAction)
 
   private val disposableRule = DisposableRule()
   val disposable: Disposable
@@ -83,7 +86,8 @@ class AppInsightsProjectLevelControllerRule(
   lateinit var tracker: AppInsightsTracker
   private lateinit var cache: AppInsightsCache
 
-  private val geminiToolkit = FakeGeminiToolkit(true)
+  lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
+  private val geminiToolkit = FakeAiInsightToolkit()
 
   override fun before(description: Description) {
     val offlineStatusManager = OfflineStatusManagerImpl()
@@ -93,9 +97,15 @@ class AppInsightsProjectLevelControllerRule(
     client = spy(TestAppInsightsClient(cache))
     connections = MutableSharedFlow(replay = 1)
     tracker = mock<AppInsightsTracker>()
+    fakeGeminiPluginApi = FakeGeminiPluginApi()
+    ExtensionTestUtil.maskExtensions(
+      GeminiPluginApi.EP_NAME,
+      listOf(fakeGeminiPluginApi),
+      disposable,
+    )
     controller =
       AppInsightsProjectLevelControllerImpl(
-        key,
+        provider,
         scope,
         AndroidDispatchers.workerThread,
         client,
@@ -107,7 +117,8 @@ class AppInsightsProjectLevelControllerRule(
         project = projectProvider(),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
-        geminiToolkit = geminiToolkit,
+        aiInsightToolkit = geminiToolkit,
+        cache = cache,
       )
     internalState = Channel(capacity = 5)
     scope.launch { controller.state.collect { internalState.send(it) } }
@@ -144,17 +155,21 @@ class AppInsightsProjectLevelControllerRule(
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
-        client.completeFetchInsightCallWith(insightState)
-        if (key != VITALS_KEY) {
+        if (provider.supportsMultipleEvents) {
           client.completeIssueVariantsCallWith(issueVariantsState)
           client.completeListEvents(eventsState)
+        } else {
+          client.completeFetchInsightCallWith(insightState)
         }
       }
-      if (key != VITALS_KEY) {
+      if (provider.supportsMultipleEvents) {
         consumeNext()
         consumeNext()
         consumeNext()
-        consumeNext()
+        if (eventsState is LoadingState.Ready && eventsState.value.events.isNotEmpty()) {
+          client.completeFetchInsightCallWith(insightState)
+          consumeNext()
+        }
         client.completeListNotesCallWith(notesState)
       }
       resultState = consumeNext()
@@ -181,7 +196,7 @@ class AppInsightsProjectLevelControllerRule(
     insightState: LoadingState.Done<AiInsight> = LoadingState.Ready(DEFAULT_AI_INSIGHT),
   ): AppInsightsState {
     connections.emit(connectionsState)
-    val loadingState = consumeNext()
+    val loadingState = consumeWhile { it.connections.items != connectionsState }
     assertThat(loadingState.connections)
       .isEqualTo(Selection(connectionsState.firstOrNull(), connectionsState))
     assertThat(loadingState.issues).isInstanceOf(LoadingState.Loading::class.java)
@@ -200,6 +215,14 @@ class AppInsightsProjectLevelControllerRule(
   }
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
+
+  suspend fun consumeWhile(condition: (AppInsightsState) -> Boolean): AppInsightsState {
+    var state = consumeNext()
+    while (condition(state)) {
+      state = consumeNext()
+    }
+    return state
+  }
 
   private suspend fun consumeLoading(): AppInsightsState {
     return internalState.receiveWithTimeout().also {
@@ -375,11 +398,11 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   override suspend fun fetchInsight(
     connection: Connection,
     issueId: IssueId,
+    variantId: String?,
     failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
     codeContextData: CodeContextData,
-    forceFetch: Boolean,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =

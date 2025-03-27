@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.NoDevicesSelectedException
@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.NoTypesSelectedException
 import com.android.tools.idea.insights.NoVersionsSelectedException
 import com.android.tools.idea.insights.UnconfiguredAppException
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
@@ -32,9 +33,10 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
-    var result = delegate.transition(state, tracker, key)
+    var result = delegate.transition(state, tracker, provider, cache)
     if (result.newState.connections.selected?.isConfigured != true) {
       return StateTransition(
         result.newState.copy(

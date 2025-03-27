@@ -61,6 +61,11 @@ class AccessibilityViewInfoTest {
       assertNotNull(children[0].accessibilityObject)
 
       children = children[0].children
+      assertEquals(1, children.size)
+      assertNotNull(children[0].accessibilityObject)
+
+      children = children[0].children
+      assertEquals(rootView.viewObject, children[0].viewObject)
       assertEquals(2, children.size)
 
       val textView = children[0]

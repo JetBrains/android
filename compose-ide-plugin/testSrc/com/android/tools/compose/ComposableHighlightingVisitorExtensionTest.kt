@@ -16,8 +16,6 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -38,6 +36,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @RunWith(JUnit4::class)
 class ComposableHighlightingVisitorExtensionTest {

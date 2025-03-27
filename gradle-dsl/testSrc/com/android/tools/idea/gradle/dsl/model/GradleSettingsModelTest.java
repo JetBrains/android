@@ -262,14 +262,12 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     GradleSettingsModel settingsModel = getGradleSettingsModel();
 
     settingsModel.setModuleDirectory(":app", new File(myProjectBasePath.getPath(), "newAppLocation"));
+    File preParseAppLocation = settingsModel.moduleDirectory(":app");
+    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
+
     applyChanges(settingsModel);
-
-    // Failure currently expected, the writing format and parsing format for this property don't match.
-    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
-    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
-
-    // Re-parsing should change the property into a readable format.
     settingsModel.reparse();
+
     File appLocation = settingsModel.moduleDirectory(":app");
     assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), appLocation);
 
@@ -282,17 +280,14 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     GradleSettingsModel settingsModel = getGradleSettingsModel();
 
     settingsModel.setModuleDirectory(":lib", new File(myProjectBasePath.getPath(), "libLocation"));
+    File preParseLibLocation = settingsModel.moduleDirectory(":lib");
+    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "libLocation"), preParseLibLocation);
+
     applyChanges(settingsModel);
-
-    // Failure currently expected, the writing format and parsing format for this property don't match.
-    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
-    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
-
-    // Re-parsing should change the property into a readable format.
     settingsModel.reparse();
-    File appLocation = settingsModel.moduleDirectory(":lib");
-    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "libLocation"), appLocation);
 
+    File libLocation = settingsModel.moduleDirectory(":lib");
+    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "libLocation"), libLocation);
     verifyFileContents(mySettingsFile, TestFile.SET_PROJECT_DIR_FROM_EXISTING_EXPECTED);
   }
 
@@ -303,13 +298,11 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     GradleSettingsModel settingsModel = getGradleSettingsModel();
 
     settingsModel.setModuleDirectory(":app", new File("/cool/app"));
+
+    File preParseAppLocation = settingsModel.moduleDirectory(":app");
+    assertEquals(new File("/cool/app").getAbsoluteFile(), preParseAppLocation);
+
     applyChanges(settingsModel);
-
-    // Failure currently expected, the writing format and parsing format for this property don't match.
-    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
-    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
-
-    // Re-parsing should change the property into a readable format.
     settingsModel.reparse();
     File appLocation = settingsModel.moduleDirectory(":app");
     File expected = new File("/cool/app").getAbsoluteFile();
@@ -353,6 +346,23 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertSize(2, repositories);
     assertEquals("Google", repositories.get(0).name().forceString());
     assertEquals("BintrayJCenter2", repositories.get(1).name().forceString());
+
+    assertEquals("FAIL_ON_PROJECT_REPOS", dependencyResolutionManagementModel.repositoriesMode().getRepositoriesMode());
+  }
+
+  @Test
+  public void testParseDependencyResolutionManagementPropertyAssignment() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT_PROPERTY_ASSIGNMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    DependencyResolutionManagementModel dependencyResolutionManagementModel = settingsModel.dependencyResolutionManagement();
+    RepositoriesModel repositoriesModel = dependencyResolutionManagementModel.repositories();
+
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertSize(2, repositories);
+    assertEquals("Google", repositories.get(0).name().forceString());
+    assertEquals("BintrayJCenter2", repositories.get(1).name().forceString());
+
+    assertEquals("FAIL_ON_PROJECT_REPOS", dependencyResolutionManagementModel.repositoriesMode().getRepositoriesMode());
   }
 
   @Test
@@ -499,7 +509,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     settingsModel.plugins().applyPlugin("com.android.settings", "7.4.0");
     applyChanges(settingsModel);
     verifyFileContents(mySettingsFile, TestFile.ADD_PLUGINS_BLOCK_EXPECTED);
-
   }
 
   @Test
@@ -682,6 +691,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     ADD_INCLUDE_AT_THE_END("addIncludeAtTheEnd"),
     ADD_INCLUDE_AT_THE_END_EXPECTED("addIncludeAtTheEndExpected"),
     PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT("parseDependencyResolutionManagement"),
+    PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT_PROPERTY_ASSIGNMENT("parseDependencyResolutionManagementPropertyAssignment"),
     ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT("addAndApplyDependencyResolutionManagement"),
     ADD_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT_EXPECTED("addAndApplyDependencyResolutionManagementExpected"),
     EDIT_AND_APPLY_DEPENDENCY_RESOLUTION_MANAGEMENT("editAndApplyDependencyResolutionManagement"),

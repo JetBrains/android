@@ -17,8 +17,10 @@ package com.android.tools.adtui.stdui
 
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.ShortcutSet
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
@@ -53,7 +55,7 @@ fun JComponent.registerAnActionKey(getAction: () -> AnAction?, keyStroke: KeyStr
       val inputEvent = KeyEvent(this@registerAnActionKey, KeyEvent.KEY_PRESSED, event.`when`, keyStroke.modifiers, keyStroke.keyCode,
                                 keyStroke.keyChar)
       val action = getAction()
-      action?.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ActionPlaces.TOOLWINDOW_POPUP, dataContext))
+      action?.actionPerformed(createEvent(action, dataContext, null, ActionPlaces.TOOLWINDOW_POPUP, ActionUiKind.NONE, inputEvent))
     }
 
     override fun isEnabled(): Boolean {

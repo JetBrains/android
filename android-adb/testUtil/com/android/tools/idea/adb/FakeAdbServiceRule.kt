@@ -18,8 +18,6 @@ package com.android.tools.idea.adb
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
@@ -27,41 +25,47 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
-import org.junit.rules.ExternalResource
-import org.mockito.Mockito
-
 import java.io.File
+import org.junit.rules.ExternalResource
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
 
 class FakeAdbServiceRule(
   private val projectSupplier: () -> Project,
-  private val adbRule: FakeAdbRule
+  private val adbRule: FakeAdbRule,
 ) : ExternalResource() {
   private var serverKilled = false
   private var serviceDisposable: Disposable? = null
 
   init {
-    // Ensure we use the protocol compliant `sync` handler. We can remove this when it is the default.
+    // Ensure we use the protocol compliant `sync` handler. We can remove this when it is the
+    // default.
     adbRule.withDeviceCommandHandler(SyncCommandHandler())
   }
 
   override fun before() {
-    val adbFile: File = MockitoKt.mock()
-    val bridge: AndroidDebugBridge = Mockito.spy(adbRule.bridge)
+    val adbFile: File = mock()
+    val bridge: AndroidDebugBridge = spy(adbRule.bridge)
     val disposable = Disposer.newDisposable().also { serviceDisposable = it }
     val adbFileProvider = AdbFileProvider { adbFile }
-    projectSupplier().registerServiceInstance(AdbFileProvider::class.java, adbFileProvider, disposable)
-    val service: AdbService = MockitoKt.mock()
+    projectSupplier()
+      .registerServiceInstance(AdbFileProvider::class.java, adbFileProvider, disposable)
+    val service: AdbService = mock()
     ApplicationManager.getApplication().replaceService(AdbService::class.java, service, disposable)
-    Mockito.doAnswer {
+    whenever(service.getDebugBridge(adbFile)).thenAnswer {
       serverKilled = false
       Futures.immediateFuture(bridge)
-    }.whenever(service).getDebugBridge(MockitoKt.eq(adbFile))
-    Mockito.doAnswer {
-      if (serverKilled) {
-        error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
+    }
+    doAnswer {
+        if (serverKilled) {
+          error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
+        }
+        adbRule.bridge.devices
       }
-      adbRule.bridge.devices
-    }.whenever(bridge).devices
+      .whenever(bridge)
+      .devices
   }
 
   override fun after() {
@@ -71,7 +75,8 @@ class FakeAdbServiceRule(
   /**
    * Imitate that the adb server was killed.
    *
-   * This can be used in tests to ensure that [AndroidDebugBridge.getDevices] are not called on a stale bridge instance.
+   * This can be used in tests to ensure that [AndroidDebugBridge.getDevices] are not called on a
+   * stale bridge instance.
    */
   fun killServer() {
     serverKilled = true

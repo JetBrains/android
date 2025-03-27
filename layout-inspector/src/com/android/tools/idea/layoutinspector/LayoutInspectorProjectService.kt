@@ -100,7 +100,13 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
     val edtExecutor = EdtExecutorService.getInstance()
 
     val notificationModel = NotificationModel(project)
-    TransportErrorListener(project, notificationModel, LayoutInspectorMetrics, disposable)
+    TransportErrorListener(
+      project,
+      notificationModel,
+      LayoutInspectorMetrics,
+      disposable,
+      layoutInspectorCoroutineScope,
+    )
 
     val processesModel =
       ProcessesModel(

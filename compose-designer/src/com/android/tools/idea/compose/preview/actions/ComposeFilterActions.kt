@@ -21,6 +21,8 @@ import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -28,6 +30,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.ui.components.JBTextField
@@ -49,6 +52,11 @@ class ComposeShowFilterAction :
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  companion object {
+    fun shouldBeEnabled() =
+      StudioFlags.COMPOSE_VIEW_FILTER.get() && !PreviewEssentialsModeManager.isEssentialsModeEnabled
+  }
 }
 
 /** The action to exit the query mode in compose preview. */
@@ -60,6 +68,7 @@ class ComposeHideFilterAction :
 
   @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
+    e.presentation.putClientProperty(ActionUtil.USE_SMALL_FONT_IN_TOOLBAR, true)
     e.presentation.isEnabledAndVisible =
       COMPOSE_PREVIEW_MANAGER.getData(e.dataContext)?.isFilterEnabled ?: false
     val views =
@@ -82,8 +91,6 @@ class ComposeHideFilterAction :
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithText(this, presentation, place, Dimension())
-
-  override fun useSmallerFontForTextInToolbar() = true
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

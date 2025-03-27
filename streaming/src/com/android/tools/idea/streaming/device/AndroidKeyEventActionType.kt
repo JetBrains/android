@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.entries
+
 /**
  * Keyboard event actions. See https://developer.android.com/reference/android/view/KeyEvent.
  */

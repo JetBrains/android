@@ -95,19 +95,6 @@ public class BazelProjectSystem implements AndroidProjectSystem {
     return true;
   }
 
-  @Nullable
-  @Override
-  public VirtualFile getDefaultApkFile() {
-    return null;
-  }
-
-  @Override
-  public Path getPathToAapt() {
-    return AaptInvoker.getPathToAapt(
-        AndroidSdks.getInstance().tryToChooseSdkHandler(),
-        new LogWrapper(BazelProjectSystem.class));
-  }
-
   @Override
   public ProjectSystemBuildManager getBuildManager() {
     return buildManager;

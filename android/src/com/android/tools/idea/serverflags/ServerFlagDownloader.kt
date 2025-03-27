@@ -29,19 +29,17 @@ private const val BASE_URL_OVERRIDE_KEY = "studio.server.flags.baseurl.override"
 private const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/server_flags/release"
 
 /**
- * ServerFlagDownloader downloads the protobuf file for the current version of Android Studio.
- * If it succeeds it will save the file to a local path.
+ * ServerFlagDownloader downloads the protobuf file for the current version of Android Studio. If it
+ * succeeds it will save the file to a local path.
  */
 @Service
 class ServerFlagDownloader {
   init {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      downloadServerFlagList()
-    }
+    ApplicationManager.getApplication().executeOnPooledThread { downloadServerFlagList() }
   }
 
   companion object {
-    fun getInstance() : ServerFlagDownloader {
+    fun getInstance(): ServerFlagDownloader {
       return ApplicationManager.getApplication().getService(ServerFlagDownloader::class.java)
     }
 
@@ -52,13 +50,20 @@ class ServerFlagDownloader {
 
     /**
      * Download the server flag list
+     *
      * @param baseUrl: The base url where the download files are located.
      * @param localCacheDirectory: The local directory to store the most recent download.
-     * @param version: The current version of Android Studio. This is used to construct the full paths from the first two parameters.
-     * @param tempFileCreator: Callback to create a temporary file for downloading. The resulting file will be deleted before this
-     * function returns.
+     * @param version: The current version of Android Studio. This is used to construct the full
+     *   paths from the first two parameters.
+     * @param tempFileCreator: Callback to create a temporary file for downloading. The resulting
+     *   file will be deleted before this function returns.
      */
-    fun downloadServerFlagList(baseUrl: String, localCacheDirectory: Path, version: String, tempFileCreator: () -> File?) {
+    fun downloadServerFlagList(
+      baseUrl: String,
+      localCacheDirectory: Path,
+      version: String,
+      tempFileCreator: () -> File?,
+    ) {
       val url = buildUrl(baseUrl, version) ?: return
       val tempFile = tempFileCreator() ?: return
 
@@ -70,8 +75,7 @@ class ServerFlagDownloader {
         unmarshalFlagList(tempFile) ?: return
         val localFilePath = buildLocalFilePath(localCacheDirectory, version)
         saveFile(tempFile, localFilePath.toFile())
-      }
-      finally {
+      } finally {
         tempFile.delete()
       }
     }
@@ -84,8 +88,7 @@ class ServerFlagDownloader {
           }
         }
         true
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         false
       }
     }
@@ -93,16 +96,14 @@ class ServerFlagDownloader {
     private fun saveFile(tempFile: File, localFilePath: File) {
       try {
         tempFile.copyTo(localFilePath, true)
-      }
-      catch (e: IOException) {
-      }
+      } catch (e: IOException) {}
     }
   }
 
   private class Initializer : ProjectActivity {
     override suspend fun execute(project: Project) {
       // Trigger initialization of ServerFlagDownloader
-      getInstance();
+      getInstance()
     }
   }
 }

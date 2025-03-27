@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.projectsystem.toReason
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.notification.Notification
@@ -42,7 +42,7 @@ class UseJdkAsProjectJdkListener(private val project: Project, private val defau
       runWriteAction {
         changeGradleProjectSetting()
       }
-      GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_GRADLEJVM_TO_USE_PROJECT_JDK)
+      project.getSyncManager().requestSyncProject(GradleSyncStats.Trigger.TRIGGER_QF_GRADLEJVM_TO_USE_PROJECT_JDK.toReason())
     }
     else {
       Messages.showErrorDialog(project, "Could not set project JDK", "Change Gradle JDK")

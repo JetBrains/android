@@ -20,16 +20,28 @@ import com.intellij.openapi.application.ApplicationManager
 
 interface ServerFlagService {
   val configurationVersion: Long
-  val names: List<String>
+
+  /** A map of names of active flags and their assigned value indices. */
+  val flagAssignments: Map<String, Int>
+
   fun getString(name: String): String? = null
+
   fun getInt(name: String): Int? = null
+
   fun getFloat(name: String): Float? = null
+
   fun getBoolean(name: String): Boolean? = null
+
   fun <T : Message> getProtoOrNull(name: String, instance: T): T? = null
+
   fun getString(name: String, defaultValue: String): String = getString(name) ?: defaultValue
+
   fun getInt(name: String, defaultValue: Int): Int = getInt(name) ?: defaultValue
+
   fun getFloat(name: String, defaultValue: Float): Float = getFloat(name) ?: defaultValue
+
   fun getBoolean(name: String, defaultValue: Boolean): Boolean = getBoolean(name) ?: defaultValue
+
   fun <T : Message> getProto(name: String, defaultInstance: T) =
     getProtoOrNull(name, defaultInstance) ?: defaultInstance
 

@@ -28,6 +28,7 @@ import com.intellij.idea.IdeaLogger
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.gradle.diagnostic.CompilerInternalError
 import java.lang.Integer.min
 import java.nio.charset.Charset
 import java.security.MessageDigest
@@ -388,7 +389,11 @@ class ExceptionDataCollection {
     val stackTraceElements = removeLoggerErrorFrames(t.stackTrace)
 
     val isLoggerErrorException = stackTraceElements.size != originalStackTraceElements.size
-    val exceptionName = if (isLoggerErrorException) LOGGER_ERROR_MESSAGE_EXCEPTION else t.javaClass.name
+    val exceptionName = when {
+      isLoggerErrorException -> LOGGER_ERROR_MESSAGE_EXCEPTION
+      t is CompilerInternalError -> t.extractKotlinCompilerInternalErrorExceptionName()
+      else -> t.javaClass.name
+    }
     sb.append("$exceptionName: <elided>\n") // note: some message is needed for the backend to parse the report properly
 
     var commonFrames = 0
@@ -460,6 +465,22 @@ class ExceptionDataCollection {
     val exceptionMessageLines = Arrays.stream(lines).limit(indexOfFirstFrame.toLong())
     val stackFramesLines = Arrays.stream(lines).skip(indexOfFirstNonLoggerFrame.toLong())
     return Stream.concat(exceptionMessageLines, stackFramesLines).collect(Collectors.joining("\n"))
+  }
+
+  /**
+   * Extracts the exception name from Kotlin [CompilerInternalError.message] to get a more detailed root cause (b/268521501).
+   *
+   * For example, Kotlin [CompilerInternalError]s may contain messages such as "java.lang.IllegalStateException: Failed to compile".
+   * In that case, this method will return "org.jetbrains.kotlin.idea.gradle.diagnostic.CompilerInternalError_java.lang.IllegalStateException".
+   * Note:
+   *   - We prefix CompilerInternalError to the root exception name to indicate that the root exception has been extracted from
+   *     CompilerInternalError.
+   *   - We use "_" to separate the two exception names instead of " " or other characters because for some reason the system might report
+   *     MissingCrashedThreadStack if " " is used.
+   */
+  private fun CompilerInternalError.extractKotlinCompilerInternalErrorExceptionName(): String {
+      val rootExceptionName = message.orEmpty().trim().substringBefore(delimiter = ":", missingDelimiterValue = "UnknownRootException")
+      return "${CompilerInternalError::class.java.name}_$rootExceptionName"
   }
 
   fun requiresConfirmation(t: Throwable): Boolean {

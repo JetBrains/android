@@ -2176,6 +2176,13 @@ MODULE                        : NonStandardSourceSetDependencies
                                     qName                         : :kmp-java:sample-test:testReleaseUnitTest
                 sourceSetModel                : DefaultGradleSourceSetModel
                 taskModel                     : DefaultGradleTaskModel
+                    tasks
+                        jvmTest                       : jvmTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample:jvmTest
+                        testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample-test:testDebugUnitTest
+                        testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                            qName                         : :kmp-java:sample-test:testReleaseUnitTest
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -2424,6 +2431,15 @@ MODULE                        : NonStandardSourceSetDependencies
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                jvmTest                       : jvmTest (DefaultExternalTask)
+                    qName                         : :common:jvmTest
+                test                          : test (DefaultExternalTask)
+                    qName                         : :desktop:test
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
     GradleModuleModel
         gradlePath                    : :aarWrapperLib
@@ -2452,8 +2468,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
             ApiLevel                      : 21
             ApiString                     : 21
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
@@ -2502,6 +2518,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : me.monori.gradleprojectpathissue
         testApplicationId             : me.monori.gradleprojectpathissue.test
@@ -2526,8 +2543,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2704,8 +2721,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 ApiLevel                      : 21
                 ApiString                     : 21
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -3246,6 +3263,11 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3528,6 +3550,11 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -3609,6 +3636,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.a.test
         buildType                     : debug
@@ -4606,6 +4634,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -4693,6 +4726,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.b.test
         buildType                     : debug
@@ -5405,6 +5439,11 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
             main                          : KotlinTaskPropertiesImpl
@@ -5699,6 +5738,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : test.test
         buildType                     : debug
@@ -5967,8 +6007,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 32
+            ApiString                     : 32
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
@@ -6017,6 +6057,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
         buildType                     : debug
@@ -6036,8 +6077,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -6204,8 +6245,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 32
+                ApiString                     : 32
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             ConsumerProguardFiles         : <ROOT>/lib/consumer-rules.pro
@@ -6469,6 +6510,11 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 1
+            minor                         : 9
+            patch                         : 23
+            versionString                 : 1.9.23
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

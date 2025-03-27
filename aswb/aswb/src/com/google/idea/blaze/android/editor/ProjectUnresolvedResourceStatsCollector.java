@@ -36,7 +36,7 @@ import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceFileFinder;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverProvider;
-import com.google.idea.blaze.base.syncstatus.SyncStatusContributor;
+import com.google.idea.blaze.base.syncstatus.LegacySyncStatusContributor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
@@ -241,7 +241,7 @@ class ProjectUnresolvedResourceStatsCollector implements Disposable {
 
       BlazeProjectData blazeProjectData = blazeProjectDataManager.getBlazeProjectData();
       if (blazeProjectData != null) {
-        fileSyncStatus = SyncStatusContributor.getSyncStatus(project, blazeProjectData, vFile);
+        fileSyncStatus = LegacySyncStatusContributor.getSyncStatus(project, blazeProjectData, vFile);
         fileSyncStatus = fileSyncStatus == null ? SyncStatus.UNSYNCED : fileSyncStatus;
       }
     }

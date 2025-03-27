@@ -21,7 +21,7 @@ internal class PsResolvedVariantCollection(parent: PsAndroidModule) : PsCollecti
   }
 
   override fun getKeys(from: PsAndroidModule): Set<PsVariantKey> =
-    from.resolvedModel?.variants?.map { PsVariantKey(it.buildType, it.productFlavors) }.orEmpty().toSet()
+    from.resolvedModel?.variants?.map { PsVariantKey(it.buildType, it.productFlavors, it.name) }.orEmpty().toSet()
 
   override fun create(key: PsVariantKey): PsVariant = PsVariant(parent, key)
 

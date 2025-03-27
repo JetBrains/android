@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.animation.state
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.preview.animation.AnimationTracker
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.Presentation
@@ -30,6 +29,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class ColorPickerActionTest {
   @get:Rule val projectRule = ApplicationRule()
@@ -73,6 +73,9 @@ class ColorPickerActionTest {
         otherCallbackValue = color
       }
 
+    callbackInvoked = false
+    otherCallbackInvoked = false
+
     action.swapWith(otherAction)
 
     // Verify colors were swapped and callbacks were called
@@ -82,6 +85,15 @@ class ColorPickerActionTest {
     assertTrue(otherCallbackInvoked)
     assertEquals(Color.BLUE, callbackValue)
     assertEquals(Color.RED, otherCallbackValue)
+
+    // Swap back
+    action.swapWith(otherAction)
+    assertEquals(Color.RED, action.currentValue)
+    assertEquals(Color.BLUE, otherAction.currentValue)
+    assertTrue(callbackInvoked)
+    assertTrue(otherCallbackInvoked)
+    assertEquals(Color.RED, callbackValue)
+    assertEquals(Color.BLUE, otherCallbackValue)
   }
 
   @Test

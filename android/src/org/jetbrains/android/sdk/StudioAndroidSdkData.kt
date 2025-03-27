@@ -17,11 +17,11 @@ package org.jetbrains.android.sdk
 
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.sdk.AndroidSdkData
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -70,7 +70,10 @@ class StudioAndroidSdkData {
     fun getSdkHolder(facet: AndroidFacet) = ModuleSdkDataHolder.getInstance(facet).sdkHandler
 
     @JvmStatic
-    fun getSdkData(project: Project) = ProjectRootManager.getInstance(project).projectSdk?.let { AndroidSdks.getSdkData(it) }
+    fun getSdkData(project: Project) = ProjectRootManager.getInstance(project).projectSdk?.let { getSdkData(it) }
+
+    @JvmStatic
+    fun getSdkData(sdk: Sdk) = sdk.homePath?.let(AndroidSdkData::getSdkData)
 
     @JvmStatic
     fun getSdkData(module: Module) = getSdkData(module.project)

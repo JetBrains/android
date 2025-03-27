@@ -24,6 +24,7 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
 
 private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
@@ -85,12 +86,18 @@ open class DesignToolsSplitEditor(
   override fun selectNotify() {
     super.selectNotify()
     // select/deselectNotify will be called when the user selects (clicks) or opens a new editor.
-    // However, in some cases, the editor might
-    // be deselected but still visible. We first check whether we should pay attention to the
-    // select/deselect so we only do something if we
-    // are visible.
-    if (FileEditorManager.getInstance(project).selectedEditors.contains(this)) {
-      designerEditor.component.activate()
+    // However, in some cases, the editor might be deselected but still visible. We first check
+    // whether we should pay attention to the select/deselect so we only do something if we are
+    // visible.
+
+    // If the editor is opened in a separate window, sometime selectNotify will be called before
+    // the load has completed. This means that it will not yet be in selectedEditors but will be
+    // added some time after. We call "runWhenLoaded" so, in that case, the activation is delayed
+    // to when the editor is active.
+    FileEditorManagerEx.getInstanceEx(project).runWhenLoaded(textEditor.editor) {
+      if (FileEditorManager.getInstance(project).selectedEditors.contains(this)) {
+        designerEditor.component.activate()
+      }
     }
   }
 
@@ -105,27 +112,30 @@ open class DesignToolsSplitEditor(
 
   override val showEditorAction: SplitEditorAction
     get() {
-    if (textViewToolbarAction == null) {
-      textViewToolbarAction = MyToolBarAction(super.showEditorAction, DesignerEditorPanel.State.DEACTIVATED)
+      if (textViewToolbarAction == null) {
+        textViewToolbarAction =
+          MyToolBarAction(super.showEditorAction, DesignerEditorPanel.State.DEACTIVATED)
+      }
+      return textViewToolbarAction!!
     }
-    return textViewToolbarAction!!
-  }
 
   override val showEditorAndPreviewAction: SplitEditorAction
     get() {
-    if (splitViewToolbarAction == null) {
-      splitViewToolbarAction = MyToolBarAction(super.showEditorAndPreviewAction, DesignerEditorPanel.State.SPLIT)
+      if (splitViewToolbarAction == null) {
+        splitViewToolbarAction =
+          MyToolBarAction(super.showEditorAndPreviewAction, DesignerEditorPanel.State.SPLIT)
+      }
+      return splitViewToolbarAction!!
     }
-    return splitViewToolbarAction!!
-  }
 
   override val showPreviewAction: SplitEditorAction
     get() {
-    if (designViewToolbarAction == null) {
-      designViewToolbarAction = MyToolBarAction(super.showPreviewAction, DesignerEditorPanel.State.FULL)
+      if (designViewToolbarAction == null) {
+        designViewToolbarAction =
+          MyToolBarAction(super.showPreviewAction, DesignerEditorPanel.State.FULL)
+      }
+      return designViewToolbarAction!!
     }
-    return designViewToolbarAction!!
-  }
 
   /** Persist the mode in order to restore it next time we open the editor. */
   private fun setModeProperty(state: DesignerEditorPanel.State) =

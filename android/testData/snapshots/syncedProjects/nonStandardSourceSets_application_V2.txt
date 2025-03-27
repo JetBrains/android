@@ -137,7 +137,7 @@ PROJECT                       : application
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar [=]
+        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
             Scope                         : Test
@@ -277,9 +277,15 @@ PROJECT                       : application
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         CONENT_ENTRY                  : file://<EXTERNAL_MANIFEST>
-        CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>
+        CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/assets [-]
+        CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/baselineProfiles [-]
+        CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/java
             JavaSource                    : file://<EXTERNAL_SOURCE_SET>/main/java
+        CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/kotlin [-]
+        CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/res
             JavaResource                  : file://<EXTERNAL_SOURCE_SET>/main/res
+        CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/resources [-]
+        CONENT_ENTRY                  : file://<EXTERNAL_SOURCE_SET>/main/shaders [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
@@ -304,7 +310,7 @@ PROJECT                       : application
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar [=]
+        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar [=]
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
         LIBRARY                       : Gradle: android.arch.lifecycle:common:<VERSION> [=]
@@ -411,7 +417,7 @@ PROJECT                       : application
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar [=]
+        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION> [=]
             Scope                         : Test
@@ -501,8 +507,8 @@ PROJECT                       : application
         ModuleName                    : application.app
         Module                        : application.app
     LIBRARY_TABLE
-        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar
-            *CLASSES                      : jar://<ANDROID_SDK>/platforms/android-<SDK_VERSION>/optional/org.apache.http.legacy.jar!/
+        LIBRARY                       : Gradle: <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
+            *CLASSES                      : jar://<ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar!/
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar

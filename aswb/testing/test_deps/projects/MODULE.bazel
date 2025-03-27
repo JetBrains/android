@@ -25,7 +25,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_kotlin",
-    version = "1.9.5",
+    version = "1.9.6",
 )
 bazel_dep(
     name = "rules_java",
@@ -33,7 +33,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "rules_cc",
-    version = "0.0.10-rc1",
+    version = "0.1.1",
 )
 bazel_dep(
     name = "platforms",
@@ -47,10 +47,4 @@ bazel_dep(
     name = "apple_support",
     version = "1.15.1",
     repo_name = "build_bazel_apple_support",
-)
-
-archive_override(
-    module_name = "rules_cc",
-    integrity = "sha256-11oEDDKVTaDTCNPy6iunNUkPSbOnqj5LQCWcpLgU+CU=",
-    urls = "https://github.com/bazelbuild/rules_cc/releases/download/0.0.10-rc1/rules_cc-0.0.10-rc1.tar.gz",
 )

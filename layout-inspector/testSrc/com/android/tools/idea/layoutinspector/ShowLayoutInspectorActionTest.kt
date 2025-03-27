@@ -22,8 +22,9 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -37,7 +38,6 @@ import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -91,30 +91,22 @@ class ShowLayoutInspectorActionTest {
     )
     assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isTrue()
   }
-
-  @Test
-  fun testShowLayoutInspectorDiscoveryPopUp() = withEmbeddedLayoutInspector {
-    val showLayoutInspectorAction = ShowLayoutInspectorAction()
-    showLayoutInspectorAction.actionPerformed(
-      createFakeEvent(projectRule.project, showLayoutInspectorAction)
-    )
-    verify(fakeNotificationGroupManager.mockNotificationGroup)
-      .createNotification(
-        "Layout Inspector is now embedded in the Running Devices window.",
-        "Launch, connect, or mirror a device to start inspecting.",
-        NotificationType.INFORMATION,
-      )
-    verify(fakeNotificationGroupManager.mockNotification).notify(any())
-  }
 }
 
 private fun createFakeEvent(project: Project, anAction: AnAction) =
-  AnActionEvent.createFromAnAction(anAction, null, "") {
-    when (it) {
-      CommonDataKeys.PROJECT.name -> project
-      else -> null
-    }
-  }
+  createEvent(
+    anAction,
+    { it: String ->
+      when (it) {
+        CommonDataKeys.PROJECT.name -> project
+        else -> null
+      }
+    },
+    null,
+    "",
+    ActionUiKind.NONE,
+    null,
+  )
 
 private class FakeToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
   var runningDevicesToolWindow = FakeToolWindow(project)

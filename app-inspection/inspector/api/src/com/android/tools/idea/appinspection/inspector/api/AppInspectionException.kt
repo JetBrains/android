@@ -88,3 +88,7 @@ class AppInspectionArtifactNotFoundException(
   val artifactCoordinate: RunningArtifactCoordinate,
   cause: Throwable? = null,
 ) : AppInspectionServiceException(message, cause)
+
+/** Thrown when failed to attach the transport agent. */
+class AppInspectionAgentUnattachableException(cause: Throwable? = null) :
+  AppInspectionServiceException("The agent is unattachable", cause)

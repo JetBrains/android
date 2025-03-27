@@ -22,12 +22,12 @@ namespace screensharing {
 
 using namespace std;
 
-IoException::IoException()
-    : errno_(errno) {
+IoException::IoException(int error_code)
+    : error_code_(error_code) {
 }
 
 IoException::IoException(const char* message)
-    : errno_(errno),
+    : error_code_(errno),
       message_(message) {
 }
 
@@ -35,8 +35,8 @@ string IoException::GetMessage() const {
   if (!message_.empty()) {
     return message_;
   }
-  if (errno_ != 0) {
-    return strerror(errno_);
+  if (error_code_ != 0) {
+    return strerror(error_code_);
   }
   return "";
 }

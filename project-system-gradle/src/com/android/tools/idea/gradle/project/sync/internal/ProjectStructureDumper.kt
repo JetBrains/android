@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.projectsystem.LINKED_ANDROID_GRADLE_MODULE_GROUP
+import com.android.tools.idea.projectsystem.gradle.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
-import com.android.tools.idea.projectsystem.LinkedAndroidGradleModuleGroup
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.android.utils.FileUtils
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
@@ -65,6 +65,7 @@ import com.intellij.openapi.util.Version
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
+import com.intellij.workspaceModel.ide.impl.legacyBridge.library.LibraryBridgeImpl
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
@@ -88,7 +89,9 @@ fun ProjectDumper.dumpProject(project: Project) {
     if (libraries.isNotEmpty()) {
       head("LIBRARY_TABLE")
       nest {
-        libraries.sortedBy { it.name }.forEach { dump(it) }
+        libraries.filterIsInstance<LibraryBridgeImpl>()
+          .filter { it.externalSource != null }
+          .sortedBy { it.name }.forEach { dump(it) }
       }
     }
     @Suppress("UnstableApiUsage")
@@ -275,7 +278,11 @@ private fun ProjectDumper.dumpJdk(jdkOrderEntry: JdkOrderEntry) {
 }
 
 private fun ProjectDumper.dumpLibrary(library: LibraryOrderEntry) {
-  head("LIBRARY") { library.libraryName?.markMatching(library?.library?.name.orEmpty())?.removeAndroidVersionsFromDependencyNames()?.replaceKnownPaths() }
+  if (!library.ownerModule.isKotlinBuildScript) {
+    head("LIBRARY") {
+      library.libraryName?.markMatching(library?.library?.name.orEmpty())?.removeAndroidVersionsFromDependencyNames()?.replaceKnownPaths()
+    }
+  }
   nest {
     prop("LibraryLevel") { library.libraryLevel.takeUnless { it == "project" } }
     prop("IsModuleLevel") { library.isModuleLevel.takeIf { it }?.toString() }
@@ -506,12 +513,12 @@ private fun ProjectDumper.dump(testModuleProperties: TestModuleProperties?) {
 private fun ProjectDumper.dump(linkedAndroidGradleModuleGroup: LinkedAndroidGradleModuleGroup) {
   head("LINKED_ANDROID_MODULE_GROUP") { null }
   nest {
-    prop("holder") { linkedAndroidGradleModuleGroup.holder.name }
-    prop("main") { linkedAndroidGradleModuleGroup.main.name }
-    prop("unitTest") { linkedAndroidGradleModuleGroup.unitTest?.name }
-    prop("androidTest") { linkedAndroidGradleModuleGroup.androidTest?.name }
-    prop("testFixtures") { linkedAndroidGradleModuleGroup.testFixtures?.name }
-    prop("screenshotTest") { linkedAndroidGradleModuleGroup.screenshotTest?.name }
+    prop("holder") { linkedAndroidGradleModuleGroup.holder.moduleName }
+    prop("main") { linkedAndroidGradleModuleGroup.main.moduleName }
+    prop("unitTest") { linkedAndroidGradleModuleGroup.unitTest?.moduleName }
+    prop("androidTest") { linkedAndroidGradleModuleGroup.androidTest?.moduleName }
+    prop("testFixtures") { linkedAndroidGradleModuleGroup.testFixtures?.moduleName }
+    prop("screenshotTest") { linkedAndroidGradleModuleGroup.screenshotTest?.moduleName }
   }
 }
 
@@ -530,3 +537,7 @@ class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
     println("Dumped to: file://$outputFile")
   }
 }
+
+private val Module.isKotlinBuildScript
+  get() = name.startsWith("Kotlin Scripts.KotlinBuildScript")
+

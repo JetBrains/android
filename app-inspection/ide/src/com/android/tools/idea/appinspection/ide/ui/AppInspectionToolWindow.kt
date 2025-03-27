@@ -20,13 +20,13 @@ import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationGroup
-import com.intellij.notification.NotificationListener
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -39,7 +39,6 @@ import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
 import javax.swing.JComponent
-import javax.swing.event.HyperlinkEvent
 import kotlinx.coroutines.withContext
 
 class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
@@ -52,12 +51,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
   private val ideServices: AppInspectionIdeServices =
     object : AppInspectionIdeServices {
       private val notificationGroup =
-        NotificationGroup.toolWindowGroup(
-          APP_INSPECTION_ID,
-          APP_INSPECTION_ID,
-          true,
-          PluginId.getId("org.jetbrains.android"),
-        )
+        NotificationGroupManager.getInstance().getNotificationGroup(APP_INSPECTION_NOTIFICATIONS_ID)
 
       @UiThread override fun showToolWindow() = toolWindow.show(null)
 
@@ -73,18 +67,17 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
             AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
             AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
           }
-
-        notificationGroup
-          .createNotification(title, content, type)
-          .setListener(
-            object : NotificationListener.Adapter() {
-              override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
-                hyperlinkClicked()
-                notification.expire()
+        val notification =
+          notificationGroup
+            .createNotification(title, content, type)
+            .addAction(
+              object : AnAction() {
+                override fun actionPerformed(e: AnActionEvent) {
+                  hyperlinkClicked()
+                }
               }
-            }
-          )
-          .notify(project)
+            )
+        Notifications.Bus.notify(notification, project)
       }
 
       override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {

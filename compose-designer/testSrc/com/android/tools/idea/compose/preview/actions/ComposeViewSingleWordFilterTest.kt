@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
@@ -25,11 +23,13 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @Suppress("UsePropertyAccessSyntax")
 class ComposeViewSingleWordFilterTest {
@@ -44,7 +44,7 @@ class ComposeViewSingleWordFilterTest {
     val yourView2 = createTestSceneView("YourView2")
 
     val surface = createTestSurface(myView1, myView2, yourView1, yourView2)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface)
     val filter = ComposeViewSingleWordFilter()
     filter.filter("My", dataContext)
     verify(myView1, times(1)).isVisible = true
@@ -79,7 +79,7 @@ class ComposeViewSingleWordFilterTest {
     val yourView2 = createTestSceneView("YourView2")
 
     val surface = createTestSurface(myView1, myView2, yourView1, yourView2)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface)
     val filter = ComposeViewSingleWordFilter()
     filter.filter("", dataContext)
     verify(myView1, times(1)).isVisible = true
@@ -106,7 +106,7 @@ class ComposeViewSingleWordFilterTest {
     val view2 = createTestSceneView("View2")
 
     val surface = createTestSurface(view1, view2)
-    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) surface else null }
+    val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface)
     val filter = ComposeViewSingleWordFilter()
     filter.filter("  View1  ", dataContext)
 

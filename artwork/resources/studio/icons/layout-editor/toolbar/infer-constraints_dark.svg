@@ -1,1 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><rect width="16" height="16" fill="none"/><g fill="none" fill-rule="evenodd"><path fill="#389FD6" d="M13.51 10.318l-.72.719-1.438-1.44.719-.718z"/><path fill="#3592C4" d="M13.51 10.317l-.72.72-1.438-1.439.719-.72z"/><path fill="#389FD6" d="M12.071 3.122l.719.72 1.439-1.44-.72-.718z"/><path fill="#3592C4" d="M13.51 1.683l.718.72L12.79 3.84l-.72-.719zM9 3h1V1H9z"/><path fill="#389FD6" d="M4.877 3.123l.719-.72 1.439 1.439-.72.719z"/><path fill="#3592C4" d="M4.877 3.122l.719-.719 1.439 1.438-.72.72z"/><path d="M1 13l2 2 9-9-2-2-9 9zm7-6l2-2 1 1-2 2-1-1z" fill="#AFB1B3"/><path fill="#3592C4" d="M13 7h2V6h-2z"/></g></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.843 12.036l6.364-6.364a.5.5 0 01.707 0l1.414 1.414a.5.5 0 010 .707l-6.364 6.364a.5.5 0 01-.707 0l-1.414-1.414a.5.5 0 010-.707z" stroke="#CED0D6" stroke-linecap="round"/><path d="M11.39 9.56l1.413 1.415M12.571 7.44h2M6.44 4.61L5.024 3.198M8.56 3.429v-2M11.036 4.964L12.45 3.55" stroke="#548AF7" stroke-linecap="round"/><path d="M6.44 7.44l2.12 2.12" stroke="#CED0D6" stroke-linecap="round"/></svg>

@@ -50,6 +50,12 @@ data class DynamicEventGallery(val events: List<Event>, val selectedIndex: Int, 
    */
   fun canRequestMoreEvents() = token.isNotEmpty()
 
+  /**
+   * Whether the selected index is the last index of the events list that we currently have. More
+   * events might be available.
+   */
+  fun isLastIndexSelected() = selectedIndex == events.size - 1
+
   /** Returns an event gallery with the index advanced if possible. */
   fun next(): DynamicEventGallery {
     if (hasNext()) {

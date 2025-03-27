@@ -17,11 +17,14 @@ package com.android.tools.idea.testing;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_VERSIONS_DOT_TOML;
+import static com.android.SdkConstants.EXT_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
@@ -53,7 +56,7 @@ import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTrackerManager;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -198,26 +201,21 @@ public class AndroidGradleTests {
 
     internalUpdateToolingVersionsAndPaths(path,
                                           true,
-                                          agpVersion.getGradleVersion(),
-                                          agpVersion.getAgpVersion(),
-                                          agpVersion.getKotlinVersion(),
-                                          agpVersion.getCompileSdk(),
+                                          agpVersion,
                                           ndkVersion,
                                           localRepos);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
                                                             boolean isRoot,
-                                                            @NotNull String gradleVersion,
-                                                            @NotNull String pluginVersion,
-                                                            @NotNull String kotlinVersion,
-                                                            @NotNull String compileSdkVersion,
+                                                            @NotNull ResolvedAgpVersionSoftwareEnvironment agpEnvironment,
                                                             @Nullable String ndkVersion,
                                                             @NotNull List<File> localRepos) throws IOException {
+
     // Tools/base versions are the same but with then major incremented by 23
-    int firstSeparator = pluginVersion.indexOf('.');
-    int majorVersion = Integer.parseInt(pluginVersion.substring(0, firstSeparator)) + 23;
-    String toolsBaseVersion = majorVersion + pluginVersion.substring(firstSeparator);
+    int firstSeparator = agpEnvironment.getAgpVersion().indexOf('.');
+    int majorVersion = Integer.parseInt(agpEnvironment.getAgpVersion().substring(0, firstSeparator)) + 23;
+    String toolsBaseVersion = majorVersion + agpEnvironment.getAgpVersion().substring(firstSeparator);
 
     BasicFileAttributes fileAttributes;
     try {
@@ -237,18 +235,14 @@ public class AndroidGradleTests {
 
         // Override settings just for tests (e.g. sdk.dir)
         updateLocalProperties(path, TestUtils.getSdk().toFile());
-        try {
-          updateGradleProperties(path, AgpVersion.parse(pluginVersion), new AndroidVersion(compileSdkVersion));
-        }
-        catch (AndroidVersion.AndroidVersionException e) {
-          throw new IOException(e);
-        }
+        updateGradleProperties(path, AgpVersion.parse(agpEnvironment.getAgpVersion()),
+                               AndroidVersion.fromString(agpEnvironment.getCompileSdk()));
         // We need the wrapper for import to succeed
-        createGradleWrapper(path, gradleVersion);
+        createGradleWrapper(path, agpEnvironment.getGradleVersion());
       }
       for (File child : notNullize(path.listFiles())) {
         internalUpdateToolingVersionsAndPaths(
-          child, false, gradleVersion, pluginVersion, kotlinVersion, compileSdkVersion, ndkVersion, localRepos
+          child, false, agpEnvironment, ndkVersion, localRepos
         );
       }
     }
@@ -258,18 +252,19 @@ public class AndroidGradleTests {
         String contents = contentsOrig;
         String localRepositories = getLocalRepositoriesForGroovy(localRepos);
 
-        contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", pluginVersion);
-        contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", pluginVersion);
+        contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", agpEnvironment.getAgpVersion());
 
-        contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
-        contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]", kotlinVersion);
+        contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", agpEnvironment.getKotlinVersion());
+        contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]",
+                                     agpEnvironment.getKotlinVersion());
 
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]", toolsBaseVersion);
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]", toolsBaseVersion);
 
         contents = updateBuildToolsVersion(contents);
-        contents = updateCompileSdkVersion(contents, compileSdkVersion);
-        contents = updateTargetSdkVersion(contents);
+        contents = updateCompileSdkVersion(contents, agpEnvironment.getCompileSdk());
+        contents = updateTargetSdkVersion(contents, agpEnvironment.getTargetSdk());
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion *[(=]? *(\\d+)");
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
@@ -287,25 +282,26 @@ public class AndroidGradleTests {
         String contents = contentsOrig;
         String localRepositories = getLocalRepositoriesForKotlin(localRepos);
 
-        contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]", pluginVersion);
-        contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", pluginVersion);
+        contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", agpEnvironment.getAgpVersion());
 
         contents = replaceRegexGroup(contents, "[a-zA-Z]+\\s*\\(?\\s*['\"]org.jetbrains.kotlin:kotlin[a-zA-Z\\-]*:(.+)['\"]",
-                                     kotlinVersion);
+                                     agpEnvironment.getKotlinVersion());
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]", toolsBaseVersion);
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]", toolsBaseVersion);
         // "implementation"(kotlin("stdlib", "1.3.61"))
-        contents = replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", kotlinVersion);
-        contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]", kotlinVersion);
+        contents = replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"",
+                                     agpEnvironment.getKotlinVersion());
+        contents = replaceRegexGroup(contents, "id ['\"]org.jetbrains.kotlin..+['\"].*version ['\"](.+)['\"]",
+                                     agpEnvironment.getKotlinVersion());
 
-        final var buildEnvironment = BuildEnvironment.getInstance();
-        contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
-        contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
-        contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
-        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", compileSdkVersion);
-        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", compileSdkVersion);
-        contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
-        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", buildEnvironment.getTargetSdkVersion());
+        contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", agpEnvironment.getAgpVersion());
+        contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", BuildEnvironment.getInstance().getBuildToolsVersion());
+        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", agpEnvironment.getCompileSdk());
+        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", agpEnvironment.getCompileSdk());
+        contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", agpEnvironment.getTargetSdk());
+        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", agpEnvironment.getTargetSdk());
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
@@ -318,13 +314,32 @@ public class AndroidGradleTests {
           Files.writeString(path.toPath(), contents);
         }
       }
+      else if (path.getPath().endsWith(EXT_GRADLE_DECLARATIVE)) {
+        String contentsOrig = Files.readString(path.toPath());
+        String contents = contentsOrig;
+        String localRepositories = getLocalRepositoriesForDeclarative(localRepos);
+        contents = replaceRegexGroup(contents, "id\\(\"com.android.ecosystem\"\\).version\\(\"(.+)\"\\)", agpEnvironment.getAgpVersion());
+
+        final var buildEnvironment = BuildEnvironment.getInstance();
+        contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
+        contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", agpEnvironment.getCompileSdk());
+        contents = replaceRegexGroup(contents, "compileSdk *= *(\\d+)", agpEnvironment.getCompileSdk());
+        contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", agpEnvironment.getTargetSdk());
+        contents = replaceRegexGroup(contents, "targetSdk *= *(\\d+)", agpEnvironment.getTargetSdk());
+        contents = replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\"org.jetbrains.kotlin:kotlin-stdlib:(.+)\"\\)", agpEnvironment.getKotlinVersion());
+
+        contents = updateLocalRepositories(contents, localRepositories);
+        if (!contents.equals(contentsOrig)) {
+          Files.writeString(path.toPath(), contents);
+        }
+      }
       else if (path.getPath().endsWith(DOT_VERSIONS_DOT_TOML)) {
         String contentsOrig = Files.readString(path.toPath());
         String contents = contentsOrig;
 
-        contents = updateVersionInCatalog(contents, "com.android.application", pluginVersion);
-        contents = updateVersionInCatalog(contents, "org.jetbrains.kotlin.android", kotlinVersion);
-        contents = updateVersionInCatalog(contents, "com.android.library", pluginVersion);
+        contents = updateVersionInCatalog(contents, "com.android.application", agpEnvironment.getAgpVersion());
+        contents = updateVersionInCatalog(contents, "org.jetbrains.kotlin.android", agpEnvironment.getKotlinVersion());
+        contents = updateVersionInCatalog(contents, "com.android.library", agpEnvironment.getAgpVersion());
 
         if (!contents.equals(contentsOrig)) {
           Files.writeString(path.toPath(), contents);
@@ -364,9 +379,9 @@ public class AndroidGradleTests {
   }
 
   @NotNull
-  public static String updateTargetSdkVersion(@NotNull String contents) {
-    contents = replaceRegexGroup(contents, "targetSdkVersion *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
-    contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+  public static String updateTargetSdkVersion(@NotNull String contents, @NotNull String targetSdkVersion) {
+    contents = replaceRegexGroup(contents, "targetSdkVersion *[(=]? *([0-9]+)", targetSdkVersion);
+    contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", targetSdkVersion);
     return contents;
   }
 
@@ -510,6 +525,16 @@ public class AndroidGradleTests {
   }
 
   @NotNull
+  public static String getLocalRepositoriesForDeclarative(@NotNull List<File> localRepos) {
+    // Add metadataSources to work around http://b/144088459.
+    return StringUtil.join(
+      Iterables.concat(getLocalRepositoryDirectories(), localRepos),
+      file -> "maven {\n" +
+              "  url = uri(\"" + file.toURI() + "\")\n" +
+              "}", "\n");
+  }
+
+  @NotNull
   public static Collection<File> getLocalRepositoryDirectories() {
     List<File> repositories = new ArrayList<>();
 
@@ -587,13 +612,7 @@ public class AndroidGradleTests {
    */
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
-    if (shouldUseRemoteRepositories()) {
-      assert !IdeInfo.getInstance().isAndroidStudio(): "Android Studio should use local gradle distribution.";
-      return; // download gradle distribution if needed in IDEA tests
-    }
-
-    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
-    TestCase.assertNotNull("Gradle version not found in EmbeddedDistributionPaths. Version = " + gradleVersion, path);
+    File path = GradleProjectSystemUtil.findEmbeddedGradleDistributionFile(gradleVersion);
     if (path != null) {
       assertAbout(file()).that(path).named("Gradle distribution path").isFile();
       wrapper.updateDistributionUrl(path);
@@ -721,8 +740,12 @@ public class AndroidGradleTests {
     File build = new File(srcRoot, FN_BUILD_GRADLE);
     File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
     File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
-    TestCase.assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
-                        settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
+    File dclSettings = new File(srcRoot, FN_SETTINGS_GRADLE_DECLARATIVE);
+    File dclBuild = new File(srcRoot, FN_BUILD_GRADLE_DECLARATIVE);
+    TestCase.assertTrue("Couldn't find build.gradle(.kts|.dcl) or settings.gradle(.kts|dcl) in " + srcRoot.getPath(),
+                        settings.exists() || build.exists() ||
+                        ktsSettings.exists() || ktsBuild.exists() ||
+                        dclSettings.exists() || dclBuild.exists());
   }
 
   public static void syncProject(@NotNull Project project,

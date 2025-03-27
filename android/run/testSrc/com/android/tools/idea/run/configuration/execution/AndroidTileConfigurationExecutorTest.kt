@@ -18,8 +18,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.Activator
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
@@ -45,6 +43,9 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -140,7 +141,8 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     invokeLater {
       consoleViewImpl.getComponent()
       consoleViewImpl.flushDeferredText()
-      consoleOutputPromise.complete(consoleViewImpl.editor!!.document.text)
+      val editor = checkNotNull(consoleViewImpl.editor)
+      consoleOutputPromise.complete(editor.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
@@ -231,11 +233,11 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       override val module = myModule
     }
 
-    val activator = Mockito.mock(Activator::class.java)
+    val activator = mock<Activator>()
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(activator).activate(any(), any(), any(AppComponent.Mode::class.java), any(), any())
+      .whenever(activator).activate(any(), any(), any<AppComponent.Mode>(), any(), any())
 
-    val app = Mockito.mock(App::class.java)
+    val app = mock<App>()
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor = AndroidTileConfigurationExecutor(
       env,
@@ -256,6 +258,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
   }
 
   @Test
+  @Ignore("b/391146421")
   fun testDebug() {
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())

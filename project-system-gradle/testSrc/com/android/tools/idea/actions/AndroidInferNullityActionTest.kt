@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -37,6 +35,8 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 class AndroidInferNullityActionTest : AndroidTestCase() {
 
@@ -125,6 +125,7 @@ public class TestNullity {
 
     try {
       val action = AndroidInferNullityAnnotationAction()
+      action.getAdditionalActionSettings(project, null)
       val spyAction = spy(action)
       val scope = AnalysisScope(project)
       // stop before syncAndRestartAnalysis method
@@ -159,6 +160,7 @@ public class TestNullity {
 
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
+    action.getAdditionalActionSettings(project, null)
 
     action.analyze(project, scope)
 
@@ -177,6 +179,7 @@ public class TestNullity {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
     val action = AndroidInferNullityAnnotationAction()
     val scope = AnalysisScope(project)
+    action.getAdditionalActionSettings(project, null)
     try {
       action.analyze(project, scope)
     }

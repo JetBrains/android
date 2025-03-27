@@ -60,7 +60,7 @@ private class TestSyncManager(project: Project): ProjectSystemSyncManager {
     }
   }
 
-  override fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult> {
+  override fun requestSyncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult> {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 

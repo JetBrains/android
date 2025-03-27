@@ -57,7 +57,7 @@ internal class Updater(
   private fun DeploymentTarget.displayText(): String {
     val disambiguatedName = device.disambiguatedName(devicesAndTargets.allDevices)
     return when {
-      bootOption is BootSnapshot -> "$disambiguatedName - ${bootOption.text}}"
+      bootOption is BootSnapshot -> "$disambiguatedName - ${bootOption.text}"
       else -> disambiguatedName
     }
   }

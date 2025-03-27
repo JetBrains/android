@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.collect.Maps;
 import com.intellij.ide.IdeBundle;
@@ -157,6 +158,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
     myIcon.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
   }
 
+  @UiThread
   @Override
   public void runSensitiveOperation(@NotNull final ProgressIndicator progressIndicator,
                                     boolean cancellable, @NotNull final Runnable operation) {
@@ -169,6 +171,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
     rootPane.setDefaultButton(null);
     updateButtons(false, false, true, false);
 
+    ModalityState modalityState = ModalityState.current();
     Task.Backgroundable task = new Task.Backgroundable(null, myWizard.getWizardActionDescription(), cancellable) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
@@ -180,7 +183,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
             updateButtons(false, false, false, true);
             myCurrentProgressIndicator.set(null);
           }
-        }, ModalityState.stateForComponent(myWizard.getContentPane()));
+        }, modalityState);
       }
     };
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, progressIndicator);

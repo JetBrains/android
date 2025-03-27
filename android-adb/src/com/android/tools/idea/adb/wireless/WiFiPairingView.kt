@@ -51,6 +51,8 @@ interface WiFiPairingView {
 
   fun showMacMdnsEnvironmentIsBroken()
 
+  fun showMdnsDisabledOnAdbServer()
+
   fun addListener(listener: Listener)
 
   fun removeListener(listener: Listener)

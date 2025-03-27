@@ -51,7 +51,11 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.base.util" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.coroutines" />
     <orderEntry type="module" module-name="intellij.java" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
   </component>
 </module>

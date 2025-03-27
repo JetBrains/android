@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
@@ -36,23 +38,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.intellij.icons.AllIcons
 import icons.StudioIconsCompose
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.ToggleableIconButton
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.rememberSplitLayoutState
-import org.jetbrains.jewel.ui.icon.PathIconKey
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
+/** A table of [DeviceProfile]s, along with filters, a search box, and device details pane. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun <DeviceT : DeviceProfile> DeviceTable(
@@ -60,98 +66,125 @@ fun <DeviceT : DeviceProfile> DeviceTable(
   columns: List<TableColumn<DeviceT>>,
   filterContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  showDetailsState: DeviceTableShowDetailsState = remember { DeviceTableShowDetailsState() },
+  lazyListState: LazyListState = rememberLazyListState(),
+  tableSortState: TableSortState<DeviceT> = remember { TableSortState() },
   tableSelectionState: TableSelectionState<DeviceT> = remember { TableSelectionState() },
   filterState: DeviceFilterState<DeviceT> = remember { DeviceFilterState() },
   onRowSecondaryClick: (DeviceT, Offset) -> Unit = { _, _ -> },
 ) {
-  var showDetails by remember { mutableStateOf(false) }
   val textState = rememberTextFieldState(filterState.textFilter.searchText)
   LaunchedEffect(Unit) {
     snapshotFlow { textState.text.toString() }.collect { filterState.textFilter.searchText = it }
   }
+  val searchFieldFocusRequester = remember { FocusRequester() }
 
-  Column(modifier) {
-    Row {
-      TextField(
-        textState,
-        leadingIcon = { Icon(StudioIconsCompose.Common.Search, contentDescription = "Search") },
-        trailingIcon = {
-          Icon(
-            AllIconsKeys.General.CloseSmall,
-            contentDescription = "Clear search",
-            Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
-              .pointerHoverIcon(PointerIcon.Default),
+  HorizontalSplitLayout(
+    first = { DeviceFiltersPanel { filterContent() } },
+    second = {
+      Column {
+        Row(Modifier.padding(start = 4.dp, end = 4.dp, top = 6.dp)) {
+          TextField(
+            textState,
+            leadingIcon = {
+              Icon(
+                StudioIconsCompose.Common.Search,
+                contentDescription = "Search",
+                Modifier.padding(end = 4.dp),
+              )
+            },
+            trailingIcon =
+              (@Composable {
+                  Icon(
+                    AllIconsKeys.General.CloseSmall,
+                    contentDescription = "Clear search",
+                    Modifier.clickable(onClick = { textState.setTextAndPlaceCursorAtEnd("") })
+                      .pointerHoverIcon(PointerIcon.Default),
+                  )
+                })
+                .takeIf { textState.text.isNotEmpty() },
+            placeholder = {
+              Text(filterState.textFilter.description, fontWeight = FontWeight.Light)
+            },
+            modifier = Modifier.weight(1f).padding(2.dp).focusRequester(searchFieldFocusRequester),
           )
-        },
-        placeholder = {
-          Text(
-            filterState.textFilter.description,
-            fontWeight = FontWeight.Light,
-            modifier = Modifier.padding(start = 4.dp),
-          )
-        },
-        modifier = Modifier.weight(1f).padding(2.dp),
-      )
-      Tooltip(tooltip = { Text("Show device details") }) {
-        IconButton(
-          onClick = { showDetails = !showDetails },
-          Modifier.align(Alignment.CenterVertically).padding(2.dp),
-        ) {
-          Icon(
-            key = PathIconKey("actions/previewDetails.svg", AllIcons::class.java),
-            contentDescription = "Details",
-            modifier = Modifier.size(20.dp),
-          )
+          Tooltip(tooltip = { Text("Show device details") }) {
+            ToggleableIconButton(
+              showDetailsState.visible,
+              onValueChange = { showDetailsState.visible = it },
+              Modifier.align(Alignment.CenterVertically).padding(4.dp),
+            ) {
+              Icon(
+                AllIconsKeys.Actions.PreviewDetails,
+                contentDescription = "Details",
+                modifier = Modifier.size(20.dp),
+              )
+            }
+          }
         }
-      }
-    }
-    if (devices.none(filterState.textFilter::apply)) {
-      EmptyStatePanel(
-        "No devices found for \"${filterState.textFilter.searchText}\".",
-        Modifier.fillMaxSize(),
-      )
-    } else {
-      HorizontalSplitLayout(
-        first = { DeviceFiltersPanel { filterContent() } },
-        second = {
-          Row {
-            val filteredDevices = devices.filter(filterState::apply)
-            if (filteredDevices.isEmpty()) {
+        Row {
+          val filteredDevices = devices.filter(filterState::apply)
+          if (filteredDevices.isEmpty()) {
+            if (devices.none(filterState.textFilter::apply)) {
+              EmptyStatePanel(
+                "No devices found for \"${filterState.textFilter.searchText}\".",
+                Modifier.fillMaxSize(),
+              )
+            } else {
               EmptyStatePanel(
                 "No devices found matching the current filters.",
                 Modifier.fillMaxSize(),
               )
-            } else {
-              Table(
-                columns,
-                filteredDevices,
-                { it },
-                modifier = Modifier.weight(1f),
-                tableSelectionState = tableSelectionState,
-                onRowSecondaryClick = onRowSecondaryClick,
-              )
-              if (showDetails) {
-                when (val selection = tableSelectionState.selection) {
-                  null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
-                  else ->
-                    DeviceDetails(selection, modifier = Modifier.width(200.dp).fillMaxHeight())
-                }
+            }
+          } else {
+            Table(
+              columns,
+              filteredDevices,
+              { it },
+              modifier = Modifier.weight(1f),
+              lazyListState = lazyListState,
+              tableSortState = tableSortState,
+              tableSelectionState = tableSelectionState,
+              onRowSecondaryClick = onRowSecondaryClick,
+            )
+            if (showDetailsState.visible) {
+              Divider(orientation = Orientation.Vertical, Modifier.fillMaxHeight())
+              when (
+                val selection = tableSelectionState.selection?.takeIf { filterState.apply(it) }
+              ) {
+                null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
+                else ->
+                  DeviceDetails(
+                    selection,
+                    modifier =
+                      Modifier.width(200.dp)
+                        .padding(vertical = 12.dp, horizontal = 8.dp)
+                        .fillMaxHeight(),
+                  )
               }
             }
           }
-        },
-        modifier = Modifier.fillMaxSize(),
-        firstPaneMinWidth = 100.dp,
-        secondPaneMinWidth = 300.dp,
-        state = rememberSplitLayoutState(.3f),
-      )
-    }
-  }
+        }
+      }
+    },
+    modifier = modifier.fillMaxSize(),
+    firstPaneMinWidth = 100.dp,
+    secondPaneMinWidth = 300.dp,
+    state = rememberSplitLayoutState(2 / 9f), // default dialog width is 900dp; approximately 200dp
+  )
+
+  LaunchedEffect(Unit) { searchFieldFocusRequester.requestFocus() }
+}
+
+class DeviceTableShowDetailsState {
+  var visible by mutableStateOf(false)
 }
 
 object DeviceTableColumns {
   val icon =
-    TableColumn<DeviceProfile>("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) }
+    TableColumn<DeviceProfile>("", TableColumnWidth.Fixed(16.dp)) { profile, _ ->
+      profile.Icon(Modifier.size(16.dp))
+    }
   val oem = TableTextColumn<DeviceProfile>("OEM", attribute = { it.manufacturer })
   val name =
     TableTextColumn<DeviceProfile>(
@@ -161,13 +194,52 @@ object DeviceTableColumns {
       maxLines = 2,
     )
   val api =
-    TableTextColumn<DeviceProfile>("API", attribute = { it.apiRange.lowerEndpoint().toString() })
+    DefaultSortableTableColumn<DeviceProfile, Int>(
+      "API",
+      width = TableColumnWidth.ToFit("API", extraPadding = 16.dp),
+      attribute = { it.apiRange.lowerEndpoint() },
+    )
+
+  private val minApiComparator: Comparator<DeviceProfile> = compareBy {
+    it.apiRange.let { if (it.hasLowerBound()) it.lowerEndpoint() else 1 }
+  }
+  private val maxApiComparator: Comparator<DeviceProfile> = compareBy {
+    it.apiRange.let { if (it.hasUpperBound()) it.upperEndpoint() else Int.MAX_VALUE }
+  }
+  val apiRangeAscendingOrder = minApiComparator.then(maxApiComparator)
+  val apiRangeDescendingOrder = maxApiComparator.then(minApiComparator).reversed()
+
+  val apiRange =
+    TableColumn(
+      "API",
+      width = TableColumnWidth.ToFit("30-35", extraPadding = 8.dp),
+      comparator = apiRangeAscendingOrder,
+      reverseComparator = apiRangeDescendingOrder,
+      rowContent = { profile, _ -> Text(profile.apiRange.firstAndLastApiLevel()) },
+    )
+
+  // Make it just big enough to fit the header plus the sort icon.
+  private val widthHeightColumnWidth = TableColumnWidth.ToFit("Height", extraPadding = 16.dp)
+
   val width =
-    TableTextColumn<DeviceProfile>("Width", attribute = { it.resolution.width.toString() })
+    DefaultSortableTableColumn<DeviceProfile, Int>(
+      "Width",
+      width = widthHeightColumnWidth,
+      attribute = { it.resolution.width },
+    )
   val height =
-    TableTextColumn<DeviceProfile>("Height", attribute = { it.resolution.height.toString() })
+    DefaultSortableTableColumn<DeviceProfile, Int>(
+      "Height",
+      width = widthHeightColumnWidth,
+      attribute = { it.resolution.height },
+    )
   val density =
-    TableTextColumn<DeviceProfile>("Density", attribute = { "${it.displayDensity} dpi" })
+    TableTextColumn<DeviceProfile>(
+      "Density",
+      width = TableColumnWidth.ToFit("Density", extraPadding = 16.dp),
+      attribute = { "${it.displayDensity} dpi" },
+      comparator = compareBy { it.displayDensity },
+    )
   val type =
     TableTextColumn<DeviceProfile>(
       "Type",
@@ -175,7 +247,12 @@ object DeviceTableColumns {
     )
 }
 
+/**
+ * A panel to be used when there is no data to show. Displays text in the center in a lighter color.
+ */
 @Composable
-private fun EmptyStatePanel(text: String, modifier: Modifier = Modifier) {
-  Box(modifier) { Text(text, Modifier.align(Alignment.Center)) }
+fun EmptyStatePanel(text: String, modifier: Modifier = Modifier) {
+  Box(modifier) {
+    Text(text, Modifier.align(Alignment.Center), color = JewelTheme.globalColors.text.info)
+  }
 }

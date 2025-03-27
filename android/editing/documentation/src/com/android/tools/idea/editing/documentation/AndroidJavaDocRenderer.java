@@ -25,7 +25,6 @@ import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.android.tools.idea.util.NonBlockingReadActionUtilKt.waitInterruptibly;
 import static com.android.utils.SdkUtils.hasImageExtension;
-import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 import static com.intellij.openapi.util.io.FileUtilRt.copy;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
@@ -80,6 +79,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -98,6 +98,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1027,7 +1028,9 @@ public class AndroidJavaDocRenderer {
         }
         else {
           try {
-            file = FileUtilRt.createTempFile("render", DOT_PNG, true);
+            Path outputPath = Files.createTempFile("render", DOT_PNG);
+            file = outputPath.toFile();
+            file.deleteOnExit();
             try (InputStream input = virtualFile.getInputStream();
                 OutputStream output = Files.newOutputStream(file.toPath(), StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
               copy(input, output);
@@ -1093,7 +1096,9 @@ public class AndroidJavaDocRenderer {
           if (image != null) {
             // Need to write it somewhere.
             try {
-              File tempFile = FileUtilRt.createTempFile("render", DOT_PNG, true);
+              Path outputFile = Files.createTempFile("render", DOT_PNG);
+              File tempFile = outputFile.toFile();
+              tempFile.deleteOnExit();
               boolean ok = ImageIO.write(image, "PNG", tempFile);
               if (ok) {
                 URL fileUrl = fileToUrl(tempFile);
@@ -1273,7 +1278,7 @@ public class AndroidJavaDocRenderer {
         // HTMLEditorKit does not support alpha in colors. When we have alpha, we manually do the blending to remove
         // the alpha from the color.
         float alpha = color.getAlpha() / 255f;
-        Color backgroundColor = EditorColorsUtil.getGlobalOrDefaultColor(COLOR_KEY);
+        Color backgroundColor = EditorColorsUtil.getGlobalOrDefaultColor(EditorColors.DOCUMENTATION_COLOR);
         if (backgroundColor != null) {
           //noinspection UseJBColor,AssignmentToMethodParameter
           color = new Color(

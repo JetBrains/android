@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModel
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.RENDER_SCRIPT;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.SHADERS;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.VIEW_BINDING;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.RES_VALUES;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -50,6 +51,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"buildConfig", property, BUILD_CONFIG, VAR},
     {"aidl", property, AIDL, VAR},
     {"shaders", property, SHADERS, VAR},
+    {"resValues", property, RES_VALUES, VAR},
   }).collect(toModelMap());
 
   public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
@@ -71,6 +73,8 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"aidl", exactly(1), AIDL, SET},
     {"shaders", property, SHADERS, VAR},
     {"shaders", exactly(1), SHADERS, SET},
+    {"resValues", property, RES_VALUES, VAR},
+    {"resValues", exactly(1), RES_VALUES, SET},
   }).collect(toModelMap());
 
   public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
@@ -83,6 +87,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"buildConfig", property, BUILD_CONFIG, VAR},
     {"aidl", property, AIDL, VAR},
     {"shaders", property, SHADERS, VAR},
+    {"resValues", property, RES_VALUES, VAR},
   }).collect(toModelMap());
   public static final PropertiesElementDescription<BuildFeaturesDslElement> BUILD_FEATURES =
     new PropertiesElementDescription<>("buildFeatures",

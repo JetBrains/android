@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
-import com.android.tools.idea.gradle.dcl.lang.lexer.DeclarativeHighlightingLexer
 import com.android.tools.idea.gradle.dcl.lang.ide.color.DeclarativeColor
+import com.android.tools.idea.gradle.dcl.lang.lexer.DeclarativeHighlightingLexer
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BOOLEAN
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.DOUBLE_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.INTEGER_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LINE_COMMENT
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LONG_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.NULL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
 import com.intellij.lexer.Lexer

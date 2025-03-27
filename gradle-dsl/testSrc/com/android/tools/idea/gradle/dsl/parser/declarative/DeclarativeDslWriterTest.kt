@@ -18,12 +18,16 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.blockOf
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.factoryOf
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile
 import com.android.tools.idea.gradle.dsl.parser.mapToProperties
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
@@ -160,7 +164,7 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
       "build.gradle.dcl",
       ""
     )
-    val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    val dslFile = object : GradleBuildFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
 
     val block = DependenciesDslElement(dslFile, GradleNameElement.create("dependenciesDeclarative"))
@@ -185,13 +189,42 @@ class DeclarativeDslWriterTest : LightPlatformTestCase() {
     """.trimIndent(), text)
   }
 
+  fun testFunctionChain(){
+    val file = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "settings.gradle.dcl",
+      ""
+    )
+    val dslFile = object : GradleSettingsFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    dslFile.parse()
+
+    val plugins = PluginsDslElement(dslFile, GradleNameElement.create("plugins"))
+    dslFile.setNewElement(plugins)
+
+    val declaration = GradleDslInfixExpression(plugins,null)
+    declaration.setNewElement(GradleDslLiteral(declaration, GradleNameElement.create("id")).apply { setValue("org.example") })
+    declaration.setNewElement(GradleDslLiteral(declaration, GradleNameElement.create("version")).apply { setValue("1.0") })
+    plugins.setNewElement(declaration)
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      dslFile.applyChanges()
+      dslFile.saveAllChanges()
+    }
+    val text = VfsUtil.loadText(file).replace("\r", "")
+    assertEquals("""
+      plugins {
+          id("org.example").version("1.0")
+      }
+    """.trimIndent(), text)
+  }
+
   private fun doTest(contents: Map<String, Any>, expected: String) {
     val file = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
       "build.gradle.dcl",
       ""
     )
-    val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    val dslFile = object : GradleBuildFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
     dslFile.parse()
     mapToProperties(contents, dslFile)
     WriteCommandAction.runWriteCommandAction(project) {

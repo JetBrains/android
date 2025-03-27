@@ -33,6 +33,19 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitElement(o);
   }
 
+  public void visitAssignableBare(@NotNull DeclarativeAssignableBare o) {
+    visitAssignableProperty(o);
+  }
+
+  public void visitAssignableProperty(@NotNull DeclarativeAssignableProperty o) {
+    visitContributedReferenceHost(o);
+    // visitReceiverPrefixed(o);
+  }
+
+  public void visitAssignableQualified(@NotNull DeclarativeAssignableQualified o) {
+    visitAssignableProperty(o);
+  }
+
   public void visitAssignment(@NotNull DeclarativeAssignment o) {
     visitEntry(o);
     // visitIdentifierOwner(o);
@@ -40,6 +53,10 @@ public class DeclarativeVisitor extends PsiElementVisitor {
 
   public void visitBare(@NotNull DeclarativeBare o) {
     visitProperty(o);
+  }
+
+  public void visitBareReceiver(@NotNull DeclarativeBareReceiver o) {
+    visitPropertyReceiver(o);
   }
 
   public void visitBlock(@NotNull DeclarativeBlock o) {
@@ -55,11 +72,16 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitAbstractFactory(o);
   }
 
-  public void visitFactory(@NotNull DeclarativeFactory o) {
+  public void visitFactoryPropertyReceiver(@NotNull DeclarativeFactoryPropertyReceiver o) {
     visitEntry(o);
     // visitIdentifierOwner(o);
-    // visitValue(o);
-    // visitAbstractFactory(o);
+    // visitReceiverBasedFactory(o);
+  }
+
+  public void visitFactoryReceiver(@NotNull DeclarativeFactoryReceiver o) {
+    visitEntry(o);
+    // visitIdentifierOwner(o);
+    // visitReceiverBasedFactory(o);
   }
 
   public void visitIdentifier(@NotNull DeclarativeIdentifier o) {
@@ -74,10 +96,35 @@ public class DeclarativeVisitor extends PsiElementVisitor {
   public void visitProperty(@NotNull DeclarativeProperty o) {
     visitValue(o);
     // visitContributedReferenceHost(o);
+    // visitReceiverPrefixed(o);
+    // visitValueFieldOwner(o);
+  }
+
+  public void visitPropertyReceiver(@NotNull DeclarativePropertyReceiver o) {
+    visitReceiverPrefixed(o);
+    // visitValueFieldOwner(o);
+  }
+
+  public void visitPropertySimpleFactory(@NotNull DeclarativePropertySimpleFactory o) {
+    visitEntry(o);
+    // visitIdentifierOwner(o);
+    // visitAbstractFactory(o);
   }
 
   public void visitQualified(@NotNull DeclarativeQualified o) {
     visitProperty(o);
+  }
+
+  public void visitQualifiedReceiver(@NotNull DeclarativeQualifiedReceiver o) {
+    visitPropertyReceiver(o);
+  }
+
+  public void visitReceiverPrefixedFactory(@NotNull DeclarativeReceiverPrefixedFactory o) {
+    visitFactoryReceiver(o);
+  }
+
+  public void visitSimpleFactory(@NotNull DeclarativeSimpleFactory o) {
+    visitFactoryReceiver(o);
   }
 
   public void visitAbstractFactory(@NotNull DeclarativeAbstractFactory o) {
@@ -88,7 +135,15 @@ public class DeclarativeVisitor extends PsiElementVisitor {
     visitElement(o);
   }
 
+  public void visitReceiverPrefixed(@NotNull DeclarativeReceiverPrefixed o) {
+    visitElement(o);
+  }
+
   public void visitValue(@NotNull DeclarativeValue o) {
+    visitElement(o);
+  }
+
+  public void visitContributedReferenceHost(@NotNull ContributedReferenceHost o) {
     visitElement(o);
   }
 

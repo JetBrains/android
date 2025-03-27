@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.ide.common.gradle.Version
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionAgentUnattachableException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.InspectorModel.ModificationListener
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -188,15 +192,15 @@ class AppInspectionInspectorClient(
 
         val debugViewAttributesDeferred = coroutineScope.async { enableDebugViewAttributes() }
         val enableBitmapScreenshotsDeferred = coroutineScope.async { enableBitmapScreenshots() }
+        val enableXrInspectionDeferred = coroutineScope.async { enableXrInspection() }
 
         // Perform setup operations in parallel.
         debugViewAttributesDeferred.await()
         enableBitmapScreenshotsDeferred.await()
+        enableXrInspectionDeferred.await()
 
         val viewUpdateDeferred = CompletableDeferred<Unit>()
-        val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
-          viewUpdateDeferred.complete(Unit)
-        }
+        val updateListener = ModificationListener { _, _, _ -> viewUpdateDeferred.complete(Unit) }
 
         model.addModificationListener(updateListener)
 
@@ -209,6 +213,8 @@ class AppInspectionInspectorClient(
         // wait until we start receiving updates
         viewUpdateDeferred.await()
         model.removeModificationListener(updateListener)
+
+        checkIfComposeSupportsXrInspection()
       }
       .recover { t ->
         val error = getOriginalError(t)
@@ -221,9 +227,35 @@ class AppInspectionInspectorClient(
       }
   }
 
+  /**
+   * A function to notify the user if the version of compose does not support xr inspection. This
+   * function must be called after the model is loaded.
+   */
+  // TODO: unify with compose checks in ComposeLayoutInspectorClient#checkComposeVersion
+  private fun checkIfComposeSupportsXrInspection() {
+    // The minimum version of compose required to support XR
+    val minComposeVersion = "1.8.0-alpha06"
+    val version = composeInspector?.composeVersion?.let { Version.parse(it) }
+    if (model.isXr && version != null && version < Version.parse(minComposeVersion)) {
+      val notificationId = "compose.inspection.does.not.support.xr"
+      notificationModel.addNotification(
+        notificationId,
+        LayoutInspectorBundle.message(notificationId, minComposeVersion),
+        Status.Warning,
+      )
+    }
+  }
+
   private suspend fun enableBitmapScreenshots() {
     if (inspectorClientSettings.enableBitmapScreenshot) {
       enableBitmapScreenshots(true)
+    }
+  }
+
+  private suspend fun enableXrInspection() {
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.get()) {
+      // TODO: check if the device is an XR device before doing this.
+      enableXrInspection(true)
     }
   }
 
@@ -295,6 +327,7 @@ class AppInspectionInspectorClient(
       when (throwable) {
         is CancellationException -> null
         is ConnectionFailedException -> throwable.message
+        is AppInspectionAgentUnattachableException -> "Failed to attach layout inspector agent."
         is AppInspectionCrashException -> "Layout Inspector crashed on the device."
         else -> "An unknown error happened."
       }
@@ -339,6 +372,10 @@ class AppInspectionInspectorClient(
   private suspend fun enableBitmapScreenshots(enable: Boolean) {
     // TODO(b/265150325) enableBitmapScreenshots to stats
     viewInspector?.enableBitmapScreenshots(enable)
+  }
+
+  private suspend fun enableXrInspection(enable: Boolean) {
+    viewInspector?.enableXrInspection(enable)
   }
 
   override suspend fun stopFetching() {
@@ -455,11 +492,15 @@ fun checkSystemImageForAppInspectionCompatibility(
   }
 
   val adb = AdbUtils.getAdbFuture(project).get()
-  val avdName =
-    adb?.devices?.find { it.serialNumber == serialNumber }?.avdData?.get(1, TimeUnit.SECONDS)?.name
-      ?: return Compatibility.Compatible
+  val avdFolder =
+    adb
+      ?.devices
+      ?.find { it.serialNumber == serialNumber }
+      ?.avdData
+      ?.get(1, TimeUnit.SECONDS)
+      ?.avdFolder ?: return Compatibility.Compatible
 
-  val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName)
+  val avd = AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvdWithFolder(avdFolder)
 
   return if (SystemImageTags.PLAY_STORE_TAG == avd?.tag) {
     // We don't support Play Store images on API 29: b/180622424

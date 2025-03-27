@@ -29,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.singleWindowApplication
+import com.android.tools.adtui.compose.standaloneSingleWindowApplication
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
@@ -65,7 +65,7 @@ import sample.samplecomposewindow.ComponentShowcase
  * NOTE: The Jewel standalone theme should only ever be used for testing and never used in production code.
  */
 fun main() {
-  singleWindowApplication(
+  standaloneSingleWindowApplication(
     title = "Jewel component catalog",
   ) {
     var swingCompat by remember { mutableStateOf(false) }

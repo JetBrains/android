@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.AutoCloseDisposable
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -26,6 +25,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.Mockito.spy
+import org.mockito.kotlin.whenever
 import java.util.concurrent.Executor
 
 /**

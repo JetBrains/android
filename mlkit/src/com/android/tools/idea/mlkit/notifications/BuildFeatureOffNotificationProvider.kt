@@ -67,7 +67,7 @@ class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
           )
         ) {
           addBuildFeature(module)
-          project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+          project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
         }
       }
       panel.createActionLabel("Hide notification") {

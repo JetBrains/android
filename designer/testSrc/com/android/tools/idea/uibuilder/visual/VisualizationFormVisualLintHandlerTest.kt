@@ -25,8 +25,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.android.tools.visuallint.VisualLintErrorType
 import com.google.common.collect.ImmutableCollection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

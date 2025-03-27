@@ -1,1 +1,16 @@
-<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 1L1 4l3.317 1.81L6.5 4.5l2.183 1.31L12 4 6.5 1z" fill="#3DDC84"/><path fill-rule="evenodd" clip-rule="evenodd" d="M4 6.59L1 5v6l5 3v-3.8L4 9V6.59z" fill="#073042"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7 10.2V14l5-3V5L9 6.59V9l-2 1.2z" fill="#4285F4"/><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 4.5L9 6v3l-2.5 1.5L4 9V6l2.5-1.5z" fill="#D6F0FF"/></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><mask id="a" maskUnits="userSpaceOnUse" x="1" y="1" width="12" height="13" fill="#000"><path fill="#fff" d="M1 1h12v13H1z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M7.426 12.693l4-1.885A1 1 0 0012 9.903V4.886a1 1 0 00-.574-.905l-4-1.886a1 1 0 00-.852 0l-4 1.886A1 1 0 002 4.886v5.017a1 1 0 00.574.905l4 1.885a1 1 0 00.852 0zm.021-2.022l2-1A1 1 0 0010 8.776V6.012a1 1 0 00-.553-.894l-2-1a1 1 0 00-.894 0l-2 1A1 1 0 004 6.012v2.764a1 1 0 00.553.895l2 1a1 1 0 00.894 0z"/></mask><path fill-rule="evenodd" clip-rule="evenodd" d="M7.426 12.693l4-1.885A1 1 0 0012 9.903V4.886a1 1 0 00-.574-.905l-4-1.886a1 1 0 00-.852 0l-4 1.886A1 1 0 002 4.886v5.017a1 1 0 00.574.905l4 1.885a1 1 0 00.852 0zm.021-2.022l2-1A1 1 0 0010 8.776V6.012a1 1 0 00-.553-.894l-2-1a1 1 0 00-.894 0l-2 1A1 1 0 004 6.012v2.764a1 1 0 00.553.895l2 1a1 1 0 00.894 0z" fill="#EDF3FF"/><path d="M11.426 10.808L11 9.903l.426.905zm-4 1.885L7 11.79l.426.904zm4-8.712L11 4.886l.426-.905zm-4-1.886l.427-.904-.427.904zm-.852 0l-.427-.904.427.904zm-4 1.886L3 4.886l-.426-.905zm0 6.827L3 9.903l-.426.905zm4 1.885L7 11.79l-.426.904zm2.873-3.022l.447.894-.447-.894zm-2 1l.447.894-.447-.894zm2-5.553l.447-.894-.447.894zm-2-1L7 5.012l.447-.894zm-.894 0l-.447-.894.447.894zm-2 1L5 6.012l-.447-.894zm0 4.553l-.447.894.447-.894zm2 1l-.447.894.447-.894zM11 9.903L7 11.79l.853 1.809 4-1.886L11 9.903zm0 0l.853 1.81A2 2 0 0013 9.902h-2zm0-5.017v5.017h2V4.886h-2zm0 0h2a2 2 0 00-1.147-1.81L11 4.887zM7 3l4 1.886.853-1.81-4-1.885L7 3zm0 0l.853-1.809a2 2 0 00-1.706 0L7 3zM3 4.886L7 3l-.853-1.809-4 1.886L3 4.886zm0 0l-.853-1.81A2 2 0 001 4.887h2zm0 5.017V4.886H1v5.017h2zm0 0H1a2 2 0 001.147 1.81L3 9.902zm4 1.886L3 9.903l-.853 1.81 4 1.885.853-1.81zm0 0l-.853 1.809a2 2 0 001.706 0L7 11.788zm2-3.013l-2 1 .894 1.79 2-1L9 8.775zm0 0l.894 1.79A2 2 0 0011 8.775H9zm0-2.764v2.764h2V6.012H9zm0 0h2a2 2 0 00-1.106-1.788L9 6.012zm-2-1l2 1 .894-1.788-2-1L7 5.012zm0 0l.894-1.788a2 2 0 00-1.788 0L7 5.012zm-2 1l2-1-.894-1.788-2 1L5 6.012zm0 0l-.894-1.788A2 2 0 003 6.012h2zm0 2.764V6.012H3v2.764h2zm0 0H3a2 2 0 001.106 1.79L5 8.775zm2 1l-2-1-.894 1.79 2 1L7 9.775zm0 0l-.894 1.79a2 2 0 001.788 0L7 9.775z" fill="#3574F0" mask="url(#a)"/><path d="M5 5.96l-3-1.5m7 1.5l3.5-1.5m-5.5 6v3" stroke="#3574F0"/></svg>

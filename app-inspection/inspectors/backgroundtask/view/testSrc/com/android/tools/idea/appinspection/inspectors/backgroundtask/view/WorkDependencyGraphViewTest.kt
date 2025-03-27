@@ -23,15 +23,15 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.StubBackgroundTaskInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.application.EDT
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.util.concurrency.EdtExecutorService
-import java.awt.event.ActionEvent
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -42,9 +42,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.event.ActionEvent
 
 class WorkDependencyGraphViewTest {
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
@@ -52,7 +53,7 @@ class WorkDependencyGraphViewTest {
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
   private lateinit var client: BackgroundTaskInspectorClient
   private lateinit var tab: BackgroundTaskInspectorTab
-  private lateinit var uiDispatcher: ExecutorCoroutineDispatcher
+  private lateinit var uiDispatcher: CoroutineDispatcher
   private lateinit var selectionModel: EntrySelectionModel
   private lateinit var entriesView: BackgroundTaskEntriesView
   private lateinit var graphView: WorkDependencyGraphView
@@ -60,7 +61,7 @@ class WorkDependencyGraphViewTest {
   @Before
   fun setUp() = runBlocking {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
-    uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    uiDispatcher = Dispatchers.EDT as CoroutineDispatcher
     withContext(uiDispatcher) {
       val backgroundTaskInspectorMessenger =
         BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)

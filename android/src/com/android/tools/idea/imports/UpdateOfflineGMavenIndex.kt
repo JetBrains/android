@@ -26,9 +26,9 @@ import java.nio.file.StandardOpenOption
 /**
  * Updates the checked in class index file of the Google Maven repository.
  *
- * This class can be run using IJ run configurations or from bazel:
- * `bazel run //tools/adt/idea/android:update_offline_gmaven_index_main`. In both cases, path to
- * the repo root directory (the one with `.repo` in it) needs to be passed as the only argument.
+ * This class can be run using IJ run configurations or from bazel: `bazel run
+ * //tools/adt/idea/android:update_offline_gmaven_index_main`. In both cases, path to the repo root
+ * directory (the one with `.repo` in it) needs to be passed as the only argument.
  */
 fun main(args: Array<String>) {
   val root = args.singleOrNull() ?: error("You have to specify the repo root as only argument.")
@@ -44,7 +44,5 @@ fun main(args: Array<String>) {
   println("Finished updating $file.")
 }
 
-/**
- * Reads the data from the given URL.
- */
+/** Reads the data from the given URL. */
 private fun readUrlData(url: String): ByteArray = Resources.asByteSource(URL(url)).read()

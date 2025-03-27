@@ -18,10 +18,10 @@ package com.android.tools.idea.uibuilder.actions
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.ml.xmltocompose.ComposeConverterDataType
 import com.android.tools.idea.ml.xmltocompose.ConversionResponse
 import com.android.tools.idea.ml.xmltocompose.NShotXmlToComposeConverter
-import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -52,7 +52,8 @@ class ConvertToComposeAction : AnAction(ACTION_TITLE) {
     super.update(e)
     val project = e.project
     // Only enable the action if user has opted-in to share context.
-    e.presentation.isEnabled = project != null && StudioBot.getInstance().isContextAllowed(project)
+    e.presentation.isEnabled =
+      project != null && GeminiPluginApi.getInstance().isContextAllowed(project)
   }
 
   override fun actionPerformed(e: AnActionEvent) {

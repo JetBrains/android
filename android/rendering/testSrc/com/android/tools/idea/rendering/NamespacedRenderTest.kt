@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.RenderTestUtil.checkRendering
 import com.android.tools.idea.rendering.RenderTestUtil.withRenderTask
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -32,7 +32,7 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
     super.setUp()
     RenderTestUtil.beforeRenderTestCase()
     loadProject(TestProjectPaths.NAMESPACES)
-    facet = getModule("app").getMainModule().androidFacet!!
+    facet = getModule("app").getModuleSystem().getProductionAndroidModule()!!.androidFacet!!
   }
 
   override fun tearDown() {

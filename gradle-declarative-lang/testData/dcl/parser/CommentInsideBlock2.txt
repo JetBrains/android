@@ -8,7 +8,7 @@ FILE
       PsiWhiteSpace('\n')
       PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/*apply(libs.plugins.app)*/')
       PsiWhiteSpace('\n  ')
-      PsiElement(FACTORY)
+      PsiElement(SIMPLE_FACTORY)
         PsiElement(IDENTIFIER)
           PsiElement(DeclarativeTokenType.token)('apply')
         PsiElement(DeclarativeTokenType.()('(')

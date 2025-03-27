@@ -19,6 +19,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationListener
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.util.application
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineDispatcher
@@ -95,6 +96,9 @@ constructor(coroutineScope: CoroutineScope, dispatcher: CoroutineDispatcher) :
     val oldFragment = event.oldFragment
     if (newFragment.isEmpty() && oldFragment.isEmpty()) return
 
+    val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
+    if (!file.isInLocalFileSystem) return
+
     codeEditingAction
       .get()
       .getCodeEditedEvents(newFragment.toString(), oldFragment.toString())
@@ -113,9 +117,11 @@ data class CodeEdited(
 enum class Source {
   UNKNOWN,
   TYPING,
+  IDE_ACTION,
   USER_PASTE,
+  REFACTORING,
+  CODE_COMPLETION,
   AI_CODE_COMPLETION,
   AI_CODE_GENERATION,
-  IDE_ACTION,
   PASTE_FROM_AI_CHAT,
 }

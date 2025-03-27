@@ -148,6 +148,7 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       val view = createProfilerToolWindow(project, toolWindow)
       val contentFactory = ContentFactory.getInstance()
       val content = contentFactory.createContent(view.profilersPanel, "", false)
+      content.isCloseable = false
       Disposer.register(project, view)
       toolWindow.contentManager.addContent(content)
 

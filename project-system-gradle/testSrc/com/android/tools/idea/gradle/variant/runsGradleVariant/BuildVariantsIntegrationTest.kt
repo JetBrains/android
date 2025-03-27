@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
@@ -581,7 +582,7 @@ class BuildVariantsIntegrationTest {
     val buildFilePath = File(path, FileUtil.join("app2", SdkConstants.FN_BUILD_GRADLE))
     FileUtil.writeToFile(buildFilePath, """apply plugin: 'com.android.application'
       android {
-          compileSdkVersion ${BuildEnvironment.getInstance().compileSdkVersion}
+          compileSdkVersion ${AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk}
           namespace "com.example"
       }
       dependencies {
@@ -685,7 +686,7 @@ class BuildVariantsIntegrationTest {
       apply plugin: 'com.android.application'
 
       android {
-          compileSdkVersion ${BuildEnvironment.getInstance().compileSdkVersion}
+          compileSdkVersion ${AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.compileSdk}
           namespace "com.example"
       }
     """.trimIndent())

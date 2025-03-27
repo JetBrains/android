@@ -15,44 +15,63 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.adtui.workbench.AutoHide
-import com.android.tools.adtui.workbench.Side
-import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolContent
-import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowContext
+import com.android.tools.idea.insights.ui.AppInsightsToolWindowDefinition
+import com.android.tools.idea.insights.ui.InsightDeprecatedPanel
 import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.intellij.openapi.Disposable
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 object InsightToolWindow {
   fun create(
     projectController: AppInsightsProjectLevelController,
     parentDisposable: Disposable,
     permissionDeniedHandler: InsightPermissionDeniedHandler,
-    enableInsightHandler: () -> Unit,
-  ): ToolWindowDefinition<AppInsightsToolWindowContext> {
-    return ToolWindowDefinition(
-      "Insights",
-      StudioIcons.StudioBot.LOGO,
-      "APP_INSIGHTS_INSIGHTS",
-      Side.RIGHT,
-      Split.TOP,
-      AutoHide.DOCKED,
-      ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
-      ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
-      ToolWindowDefinition.ALLOW_BASICS,
-    ) {
-      InsightToolWindowContent(
-        projectController,
-        parentDisposable,
-        permissionDeniedHandler,
-        enableInsightHandler,
-      )
-    }
+    tabVisibility: Flow<Boolean>,
+  ): AppInsightsToolWindowDefinition {
+    val content =
+      InsightToolWindowContent(projectController, parentDisposable, permissionDeniedHandler)
+    return AppInsightsToolWindowDefinition(
+        "Insights",
+        StudioIcons.StudioBot.LOGO_MONOCHROME,
+        "APP_INSIGHTS_INSIGHTS",
+        tabVisibility,
+      ) {
+        content
+      }
+      .apply {
+        val insightStateFLow =
+          projectController.state
+            .map { it.currentInsight }
+            .stateIn(
+              projectController.coroutineScope,
+              SharingStarted.Eagerly,
+              LoadingState.Ready(null),
+            )
+        projectController.coroutineScope.launch {
+          toolWindowVisibility.collect { isVisible ->
+            if (isVisible) {
+              projectController.enableAction(Action.FetchInsight::class)
+              if (insightStateFLow.value !is LoadingState.Ready) {
+                projectController.refreshInsight(false)
+              }
+            } else {
+              projectController.disableAction(Action.FetchInsight::class)
+            }
+          }
+        }
+      }
   }
 }
 
@@ -60,20 +79,21 @@ private class InsightToolWindowContent(
   projectController: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
-  enableInsightHandler: () -> Unit,
 ) : ToolContent<AppInsightsToolWindowContext> {
   private val component = JPanel(BorderLayout())
 
   init {
-    component.add(
-      InsightMainPanel(
-        projectController,
-        parentDisposable,
-        permissionDeniedHandler,
-        enableInsightHandler,
-      ),
-      BorderLayout.CENTER,
-    )
+    val comp =
+      if (projectController.aiInsightToolkit.insightDeprecationData.isDeprecated()) {
+        InsightDeprecatedPanel(
+          projectController.project,
+          projectController.aiInsightToolkit.insightDeprecationData,
+        )
+      } else {
+        InsightMainPanel(projectController, parentDisposable, permissionDeniedHandler)
+      }
+
+    component.add(comp, BorderLayout.CENTER)
   }
 
   override fun dispose() = Unit

@@ -49,7 +49,7 @@ class DeviceMonitorControllerImpl(
   private val project: Project,
   private val model: DeviceMonitorModel,
   private val view: DeviceMonitorView
-): Disposable, DeviceExplorerTabController {
+) : Disposable, DeviceExplorerTabController {
 
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
   private val viewListener = ViewListener()
@@ -71,7 +71,7 @@ class DeviceMonitorControllerImpl(
       PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
       ProjectApplicationIdsProvider.ProjectApplicationIdsListener {
         uiThreadScope.launch {
-           model.projectApplicationIdListChanged()
+          model.projectApplicationIdListChanged()
         }
       }
     )
@@ -169,14 +169,14 @@ class DeviceMonitorControllerImpl(
     override fun backupApplication(rows: IntArray) {
       uiThreadScope.launch {
         model.backupApplication(project, rows)
-        // TODO(b/348406593): trackAction(DeviceExplorerEvent.Action.BACKUP)
+        trackAction(DeviceExplorerEvent.Action.BACKUP_APP_DATA_CLICKED)
       }
     }
 
     override fun restoreApplication(rows: IntArray) {
       uiThreadScope.launch {
         model.restoreApplication(project, rows)
-        // TODO(b/348406593): trackAction(DeviceExplorerEvent.Action.BACKUP)
+        trackAction(DeviceExplorerEvent.Action.RESTORE_APP_DATA_CLICKED)
       }
     }
   }

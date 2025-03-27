@@ -30,11 +30,11 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.FILE_EDITOR
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.Editor
@@ -45,10 +45,9 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.util.SlowOperations
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
@@ -126,10 +125,8 @@ open class MultiRepresentationPreview(
   private val instanceId = psiFile.virtualFile.presentableName
 
   private val project = psiFile.project
-  private val psiFilePointer = runReadAction {
-    SlowOperations.allowSlowOperations(
-      ThrowableComputable { SmartPointerManager.createPointer(psiFile) }
-    )
+  private val psiFilePointer: SmartPsiElementPointer<PsiFile> by lazy {
+    SmartPointerManager.createPointer(psiFile)
   }
   private var shortcutsApplicableComponent: JComponent? = null
 
@@ -279,7 +276,9 @@ open class MultiRepresentationPreview(
   /** Updates the current representations and ensures the current selected one is valid. */
   private suspend fun updateRepresentationsImpl() {
     if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
-    val file = readAction { psiFilePointer.element?.takeIf { it.isValid } } ?: return
+    val file =
+      withContext(workerThread) { readAction { psiFilePointer.element?.takeIf { it.isValid } } }
+        ?: return
 
     val providers = providers.filter { it.accept(project, file) }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
@@ -291,15 +290,7 @@ open class MultiRepresentationPreview(
         Disposer.dispose(representation)
         return
       }
-      shortcutsApplicableComponent?.let {
-        launch(uiThread) {
-          SlowOperations.allowSlowOperations(
-            ThrowableComputable {
-              if (!Disposer.isDisposed(representation)) representation.registerShortcuts(it)
-            }
-          )
-        }
-      }
+      shortcutsApplicableComponent?.let { representation.registerShortcuts(it) }
       newRepresentations[provider.displayName] = representation
 
       // Restore the state of the representation
@@ -477,9 +468,8 @@ open class MultiRepresentationPreview(
           }
         }
       e.presentation.setText(previewEditor.currentRepresentationName, false)
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
-
-    override fun displayTextInToolbar() = true
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }

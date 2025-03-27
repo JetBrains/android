@@ -24,8 +24,8 @@ import static com.google.idea.blaze.base.bazel.BazelExitCodeException.ThrowOptio
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.command.BlazeCommand;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
-import com.google.idea.blaze.base.sync.aspects.BuildResult.Status;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult.Status;
 import com.google.idea.blaze.exception.BuildException;
 
 /**
@@ -36,36 +36,31 @@ import com.google.idea.blaze.exception.BuildException;
  */
 public class BazelExitCodeException extends BuildException {
 
-  /** Options that may be passed to {@link #throwIfFailed} to modify its behavior. */
+  /**
+   * Options that may be passed to {@link #throwIfFailed} to modify its behavior.
+   */
   public enum ThrowOption {
-    ALLOW_PARTIAL_SUCCESS,
-    ALLOW_BUILD_FAILURE,
+    ALLOW_PARTIAL_SUCCESS, ALLOW_BUILD_FAILURE,
   }
 
   private final int exitCode;
 
-  public static void throwIfFailed(
-      BlazeCommand.Builder command, BuildResult result, ThrowOption... options)
-      throws BazelExitCodeException {
+  public static void throwIfFailed(BlazeCommand.Builder command, BuildResult result, ThrowOption... options) throws BazelExitCodeException {
     if (result.status == Status.SUCCESS) {
       return;
     }
-    throwIfFailed(command, result.exitCode, options);
+    throwIfFailed(command.build(), result.exitCode, options);
   }
 
-  public static void throwIfFailed(
-      BlazeCommand.Builder command, int exitCode, ThrowOption... options)
-      throws BazelExitCodeException {
-    throwIfFailed("Command: " + command.build(), exitCode, options);
+  public static void throwIfFailed(BlazeCommand command, int exitCode, ThrowOption... options) throws BazelExitCodeException {
+    throwIfFailed("Command: " + command, exitCode, options);
   }
 
-  public static void throwIfFailed(String message, int exitCode, ThrowOption... options)
-      throws BazelExitCodeException {
+  public static void throwIfFailed(String message, int exitCode, ThrowOption... options) throws BazelExitCodeException {
     if (allowExitCode(exitCode, options)) {
       return;
     }
-    throw new BazelExitCodeException(
-        String.format("Build command failed with %d.\n%s", exitCode, message), exitCode);
+    throw new BazelExitCodeException(String.format("Build command failed with %d.\n%s", exitCode, message), exitCode);
   }
 
   private static boolean allowExitCode(int exitCode, ThrowOption... options) {

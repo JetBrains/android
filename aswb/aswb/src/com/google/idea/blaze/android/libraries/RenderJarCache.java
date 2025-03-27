@@ -142,7 +142,7 @@ public class RenderJarCache {
     ImmutableList<OutputArtifactWithoutDigest> renderJars =
         buildOutput
             .getOutputGroupArtifacts(
-                RenderResolveOutputGroupProvider.RESOLVE_OUTPUT_GROUP::contains)
+                RenderResolveOutputGroupProvider.RESOLVE_OUTPUT_GROUP)
             .stream()
             .collect(ImmutableList.toImmutableList());
     if (renderJars.isEmpty()) {

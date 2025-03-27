@@ -26,6 +26,10 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportErro
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 private const val TWO_VERSIONS_RUNNING_KEY = "two.versions.of.studio.running"
 
@@ -35,28 +39,31 @@ class TransportErrorListener(
   private val notificationModel: NotificationModel,
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
   disposable: Disposable,
+  scope: CoroutineScope,
 ) : TransportDeviceManager.TransportDeviceManagerListener {
 
   private var hasStartServerFailed = false
-    set(value) {
-      field = value
-      if (hasStartServerFailed) {
-        // the banner can't be dismissed. It will automatically be dismissed when the Transport
-        // tries to start again.
-        notificationModel.addNotification(
-          TWO_VERSIONS_RUNNING_KEY,
-          LayoutInspectorBundle.message(TWO_VERSIONS_RUNNING_KEY),
-          Status.Error,
-          emptyList(),
-        )
-        // TODO(b/258453315) log to metrics
-      } else {
-        notificationModel.removeNotification(TWO_VERSIONS_RUNNING_KEY)
-      }
-    }
 
   init {
     project.messageBus.connect(disposable).subscribe(TransportDeviceManager.TOPIC, this)
+    // Because the transport only attempts to start the server once, this notification is kept in
+    // the loop. This ensures that if the server fails to start, the user will continue to see the
+    // error banner, even if they restart the layout inspector multiple times.
+    scope.launch {
+      while (isActive) {
+        if (hasStartServerFailed) {
+          notificationModel.addNotification(
+            TWO_VERSIONS_RUNNING_KEY,
+            LayoutInspectorBundle.message(TWO_VERSIONS_RUNNING_KEY),
+            Status.Error,
+            emptyList(),
+          )
+        } else {
+          notificationModel.removeNotification(TWO_VERSIONS_RUNNING_KEY)
+        }
+        delay(500)
+      }
+    }
   }
 
   override fun onPreTransportDaemonStart(device: Common.Device) {

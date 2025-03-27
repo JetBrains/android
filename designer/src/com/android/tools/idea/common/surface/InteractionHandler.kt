@@ -92,31 +92,23 @@ interface InteractionHandler {
 
   /**
    * Called by [GuiInputHandler] when left mouse is clicked without shift and control (cmd on mac).
-   * ([x], [y]) is the clicked point of mouse, and [modifiersEx] is the pressed modifiers when
-   * clicked.
+   * [mouseEvent] is the mouse event that contains x and y, and [modifiersEx] is the pressed
+   * modifiers when clicked.
    *
    * This event happens when mouse is pressed and released at the same position without any
    * dragging.
    */
-  fun singleClick(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @InputEventMask modifiersEx: Int,
-  )
+  fun singleClick(mouseEvent: MouseEvent, @InputEventMask modifiersEx: Int)
 
   /**
-   * Called by [GuiInputHandler] when left mouse is double clicked (even the shift or control (cmd
-   * on mac) is pressed). ([x], [y]) is the clicked point of mouse, and [modifiersEx] is the pressed
-   * modifiers when clicking.
+   * Called by [GuiInputHandler] when left mouse is double-clicked (even the shift or control (cmd
+   * on Mac) is pressed). [mouseEvent] is the mouse event that contains x and y, and [modifiersEx]
+   * is the pressed modifiers when clicking.
    *
    * This event happens when mouse is pressed and released at the same position without any
    * dragging, before this event is triggered the [singleClick] will be triggered first.
    */
-  fun doubleClick(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @InputEventMask modifiersEx: Int,
-  )
+  fun doubleClick(mouseEvent: MouseEvent, @InputEventMask modifiersEx: Int)
 
   /** Called by [GuiInputHandler] when a zooming event happens. */
   fun zoom(type: ZoomType, mouseX: Int, mouseY: Int)
@@ -287,11 +279,9 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     return ScrollInteraction.createScrollInteraction(sceneView, component)
   }
 
-  override fun singleClick(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @InputEventMask modifiersEx: Int,
-  ) {
+  override fun singleClick(mouseEvent: MouseEvent, @InputEventMask modifiersEx: Int) {
+    val x = mouseEvent.x
+    val y = mouseEvent.y
     val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
     if (selectedEditor is DesignToolsSplitEditor) {
       val splitEditor = selectedEditor as DesignToolsSplitEditor?
@@ -306,11 +296,10 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     }
   }
 
-  override fun doubleClick(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @InputEventMask modifiersEx: Int,
-  ) {
+  override fun doubleClick(mouseEvent: MouseEvent, @InputEventMask modifiersEx: Int) {
+    val x: Int = mouseEvent.getX()
+    val y: Int = mouseEvent.getY()
+
     val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
 
     // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
@@ -408,9 +397,9 @@ object NopInteractionHandler : InteractionHandler {
 
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
 
-  override fun singleClick(x: Int, y: Int, modifiersEx: Int) {}
+  override fun singleClick(mouseEvent: MouseEvent,modifiersEx: Int) {}
 
-  override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {}
+  override fun doubleClick(mouseEvent: MouseEvent, modifiersEx: Int) {}
 
   override fun zoom(type: ZoomType, x: Int, y: Int) {}
 
@@ -463,11 +452,11 @@ class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopIntera
 
   override fun stayHovering(mouseX: Int, mouseY: Int) = delegate.stayHovering(mouseX, mouseY)
 
-  override fun singleClick(x: Int, y: Int, modifiersEx: Int) =
-    delegate.singleClick(x, y, modifiersEx)
+  override fun singleClick(mouseEvent: MouseEvent ,modifiersEx: Int) =
+    delegate.singleClick(mouseEvent, modifiersEx)
 
-  override fun doubleClick(x: Int, y: Int, modifiersEx: Int) =
-    delegate.doubleClick(x, y, modifiersEx)
+  override fun doubleClick( mouseEvent: MouseEvent, modifiersEx: Int) =
+    delegate.doubleClick(mouseEvent, modifiersEx)
 
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) =
     delegate.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx)

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getHolderModule;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
@@ -113,7 +113,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
   @Override
   protected Module findModule(AndroidRunConfiguration configuration, Module contextModule) {
     Module module = super.findModule(configuration, contextModule);
-    return (module == null) ? null : getHolderModule(module);
+    return (module == null) ? null : getModuleSystem(module).getHolderModule();
   }
 
   @Override

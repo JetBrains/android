@@ -68,7 +68,7 @@ public class MlClassFinder extends PsiElementFinder {
     }
 
     String modulePackageName = StringUtil.substringBeforeLast(packageName, MlNames.PACKAGE_SUFFIX);
-    for (AndroidFacet facet : ProjectSystemUtil.getProjectSystem(myProject).getAndroidFacetsWithPackageName(myProject, modulePackageName)) {
+    for (AndroidFacet facet : ProjectSystemUtil.getProjectSystem(myProject).getAndroidFacetsWithPackageName(modulePackageName)) {
       if (MlUtils.isMlModelBindingBuildFeatureEnabled(facet.getModule())) {
         return AndroidLightPackage.withName(packageName, myProject);
       }

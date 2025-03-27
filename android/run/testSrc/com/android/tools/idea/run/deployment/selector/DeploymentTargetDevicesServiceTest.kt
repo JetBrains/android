@@ -25,7 +25,6 @@ import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.TemplateState
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.run.DeviceHandleAndroidDevice
 import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
@@ -45,6 +44,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import org.junit.Test
+import org.mockito.kotlin.mock
 import java.util.EnumSet
 
 class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestCase() {

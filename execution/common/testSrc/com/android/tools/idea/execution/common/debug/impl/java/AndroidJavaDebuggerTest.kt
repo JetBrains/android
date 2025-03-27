@@ -20,10 +20,6 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
@@ -42,6 +38,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -56,9 +54,16 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for [AndroidJavaDebugger] code.
@@ -187,7 +192,7 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testCatchError() = runTest {
-    val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
+    val debuggerManagerExMock = mock<DebuggerManagerEx>()
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
     whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(
       ExecutionException("Test execution exception in test testCatchError"))
@@ -236,15 +241,67 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
+  fun testDoesDestroyOnDestroy() = runTest {
+    val isDestroyed = AtomicBoolean(false)
+    val session = DebugSessionStarter.attachDebuggerToStartedProcess(
+      device,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      executionEnvironment,
+      javaDebugger,
+      javaDebugger.createState(),
+      destroyRunningProcess = { isDestroyed.set(true) },
+      indicator = EmptyProgressIndicator())
+    @Suppress("UnstableApiUsage")
+    val processHandler = session.debugProcess.processHandler
+    val latch = CountDownLatch(1)
+    processHandler.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        latch.countDown()
+      }
+    })
+
+    processHandler.destroyProcess()
+
+    latch.await(5, TimeUnit.SECONDS)
+    assertThat(isDestroyed.get()).isTrue()
+  }
+
+  @Test
+  fun testDoesNotDestroyOnDetach() = runTest {
+    val isDestroyed = AtomicBoolean(false)
+    val session = DebugSessionStarter.attachDebuggerToStartedProcess(
+      device,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
+      executionEnvironment,
+      javaDebugger,
+      javaDebugger.createState(),
+      destroyRunningProcess = { isDestroyed.set(true) },
+      indicator = EmptyProgressIndicator())
+    @Suppress("UnstableApiUsage")
+    val processHandler = session.debugProcess.processHandler
+    val latch = CountDownLatch(1)
+    processHandler.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        latch.countDown()
+      }
+    })
+
+    processHandler.detachProcess()
+
+    latch.await(5, TimeUnit.SECONDS)
+    assertThat(isDestroyed.get()).isFalse()
+  }
+
+  @Test
   fun testVMExitedNotifierIsInvokedOnDetach() = runTest {
-    val spyClient = Mockito.spy(client)
+    val spyClient = spy(client)
 
     val mockDeploymentAppService = mock<DeploymentApplicationService>()
 
     ApplicationManager.getApplication()
       .replaceService(DeploymentApplicationService::class.java, mockDeploymentAppService, projectRule.project)
 
-    Mockito.`when`(mockDeploymentAppService.findClient(eq(device), eq(FakeAdbTestRule.CLIENT_PACKAGE_NAME))).thenReturn(listOf(spyClient))
+    whenever(mockDeploymentAppService.findClient(eq(device), eq(FakeAdbTestRule.CLIENT_PACKAGE_NAME))).thenReturn(listOf(spyClient))
 
 
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
@@ -260,6 +317,6 @@ class AndroidJavaDebuggerTest {
     Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
-    Mockito.verify(spyClient).notifyVmMirrorExited()
+    verify(spyClient).notifyVmMirrorExited()
   }
 }

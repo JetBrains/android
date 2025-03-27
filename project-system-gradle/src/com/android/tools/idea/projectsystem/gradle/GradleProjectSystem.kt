@@ -16,7 +16,6 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
@@ -34,7 +33,6 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSo
 import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
-import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -58,10 +56,7 @@ import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.projectsystem.getAndroidTestModule
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.scopeTypeByName
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
@@ -74,7 +69,6 @@ import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
@@ -97,7 +91,6 @@ import kotlinx.collections.immutable.toPersistentSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import java.io.File
-import java.nio.file.Path
 
 open class GradleProjectSystem(override val project: Project) : AndroidProjectSystem {
   private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider.getInstance(project)
@@ -124,35 +117,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
   override fun getBuildManager(): ProjectSystemBuildManager = myBuildManager
 
-  override fun getPathToAapt(): Path {
-    return AaptInvoker.getPathToAapt(AndroidSdks.getInstance().tryToChooseSdkHandler(), LogWrapper(GradleProjectSystem::class.java))
-  }
-
   override fun allowsFileCreation() = true
-
-  override fun getDefaultApkFile(): VirtualFile? {
-    return ModuleManager.getInstance(project).modules.asSequence()
-      .mapNotNull { GradleAndroidModel.get(it) }
-      .filter { it.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }
-      .flatMap { androidModel ->
-        if (androidModel.features.isBuildOutputFileSupported) {
-          androidModel
-            .selectedVariant
-            .mainArtifact
-            .buildInformation
-            .getOutputListingFile(OutputType.Apk)
-            ?.let { getOutputFilesFromListingFile(it) }
-            ?.asSequence()
-            .orEmpty()
-        }
-        else {
-          emptySequence()
-        }
-      }
-      .filterNotNull()
-      .find { it.exists() }
-      ?.let { VfsUtil.findFileByIoFile(it, true) }
-  }
 
   override fun getModuleSystem(module: Module): GradleModuleSystem {
     return GradleModuleSystem(module, myProjectBuildModelHandler, moduleHierarchyProvider.createForModule(module))
@@ -216,7 +181,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       ),
       postBuildModelProvider,
       forTests,
-      false // Overriden and doesn't matter.
+      false // Overridden and doesn't matter.
     )
       .getApks(
         emptyList(),

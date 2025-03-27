@@ -36,17 +36,15 @@ import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClien
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.treeStructure.Tree
 import java.util.EnumSet
 import javax.swing.JComponent
@@ -78,6 +76,7 @@ class TreeSettingsActionsTest {
   private val appClient: AppInspectionInspectorClient = mock()
   private val snapshotClient: FileEditorInspectorClient = mock()
   private var currentClient: InspectorClient? = appClient
+  private val panel: JPanel = JPanel()
 
   @Test
   fun testFilterSystemNodeAction() {
@@ -268,7 +267,6 @@ class TreeSettingsActionsTest {
     val tree: Tree = mock()
     val component: JComponent = mock()
     val treePanel: LayoutInspectorTreePanel = mock()
-    val panel = JPanel()
     panel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, treePanel)
     val inspector: LayoutInspector = mock()
     whenever(treePanel.tree).thenReturn(tree)
@@ -285,23 +283,14 @@ class TreeSettingsActionsTest {
     Mockito.doAnswer { inLiveMode }.whenever(appClient).inLiveMode
     Mockito.doAnswer { inLiveMode }.whenever(snapshotClient).inLiveMode
 
-    val dataContext =
-      object : DataContext {
-        override fun getData(dataId: String): Any? {
-          return null
-        }
-
-        override fun <T> getData(key: DataKey<T>): T? {
-          @Suppress("UNCHECKED_CAST")
-          return when (key) {
-            PlatformCoreDataKeys.CONTEXT_COMPONENT -> panel as T
-            LAYOUT_INSPECTOR_DATA_KEY -> inspector as T
-            else -> null
-          }
-        }
-      }
-    val actionManager: ActionManager = mock()
-    return AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
+    return runInEdtAndGet {
+      val dataContext =
+        SimpleDataContext.builder()
+          .add(PlatformCoreDataKeys.CONTEXT_COMPONENT, panel)
+          .add(LAYOUT_INSPECTOR_DATA_KEY, inspector)
+          .build()
+      TestActionEvent.createTestEvent(dataContext)
+    }
   }
 
   private fun createModel(): InspectorModel {

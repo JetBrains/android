@@ -159,7 +159,7 @@ class DetailsPanelHeader(
 
   override fun updateUI() {
     super.updateUI()
-    preferredSize = Dimension(0, JBUI.scale(35))
+    preferredSize = Dimension(0, commonToolbarHeight())
   }
 
   fun clear() {

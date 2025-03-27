@@ -18,7 +18,6 @@ package com.android.tools.idea.editing.metrics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -59,7 +58,7 @@ class CodeEditedTypedHandlerDelegateTest {
     application.invokeAndWait { fixture.moveCaret("fun foo|") }
     fixture.type("(")
 
-    assertThat(fakeCodeEditedMetricsService.actions)
+    assertThat(fakeCodeEditedMetricsService.eventToAction.values)
       .containsExactly(CodeEditingAction.Typing, CodeEditingAction.PairedEnclosureInserted(")"))
       .inOrder()
   }
@@ -80,7 +79,7 @@ class CodeEditedTypedHandlerDelegateTest {
     application.invokeAndWait { fixture.moveCaret("val foo = |") }
     fixture.type('"')
 
-    assertThat(fakeCodeEditedMetricsService.actions)
+    assertThat(fakeCodeEditedMetricsService.eventToAction.values)
       .containsExactly(CodeEditingAction.Typing, CodeEditingAction.PairedEnclosureInserted("\""))
       .inOrder()
   }
@@ -101,18 +100,7 @@ class CodeEditedTypedHandlerDelegateTest {
     application.invokeAndWait { fixture.moveCaret("val fo|") }
     fixture.type('o')
 
-    assertThat(fakeCodeEditedMetricsService.actions).containsExactly(CodeEditingAction.Typing)
+    assertThat(fakeCodeEditedMetricsService.eventToAction.values)
+      .containsExactly(CodeEditingAction.Typing)
   }
-}
-
-private class FakeCodeEditedMetricsService : CodeEditedMetricsService {
-  val actions = mutableListOf<CodeEditingAction>()
-
-  override fun setCodeEditingAction(action: CodeEditingAction) {
-    actions.add(action)
-  }
-
-  override fun clearCodeEditingAction() {}
-
-  override fun recordCodeEdited(event: DocumentEvent) {}
 }

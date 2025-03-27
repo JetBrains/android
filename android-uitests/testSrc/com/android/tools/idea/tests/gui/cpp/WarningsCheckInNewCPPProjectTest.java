@@ -77,7 +77,7 @@ public class WarningsCheckInNewCPPProjectTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     myIdeFrameFixture.requestFocusIfLost();
 
-    InspectionsFixture myInspections = myIdeFrameFixture.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
+    InspectionsFixture myInspections = myIdeFrameFixture.invokeInspectCodeDialog()
       .clickAnalyze();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     myEditorFixture.waitUntilErrorAnalysisFinishes();

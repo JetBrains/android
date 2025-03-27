@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests

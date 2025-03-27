@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.refactoring.modularize
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.mockStatic
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.util.CommonAndroidUtil
@@ -25,13 +23,17 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.actions.BaseRefactoringAction
+import com.intellij.testFramework.ApplicationRule
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.experimental.runners.Enclosed
@@ -41,6 +43,8 @@ import org.junit.runners.Parameterized.Parameters
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 
 /**
@@ -167,15 +171,17 @@ class AndroidModularizeActionTest {
         }
       }
       val file = fileAvail?.let {
-        mock<PsiFile>()
+        mock<PsiFile>().also { whenever(it.isValid).thenReturn(true) }
       }
       val availableFile = mock<PsiFile>()
       private val availableElement = mock<PsiElement>().also {
         whenever(it.containingFile).thenReturn(availableFile)
+        whenever(it.isValid).thenReturn(true)
       }
       val unavailableFile = mock<PsiFile>()
       private val unavailableElement = mock<PsiElement>().also {
         whenever(it.containingFile).thenReturn(unavailableFile)
+        whenever(it.isValid).thenReturn(true)
       }
       val elements = Array(numAvailElem) { availableElement }
         .let { if (addUnavailElem) it + unavailableElement else it }
@@ -183,6 +189,10 @@ class AndroidModularizeActionTest {
     }
 
     companion object {
+      @get:ClassRule
+      @JvmStatic
+      val applicationRule = ApplicationRule()
+
       @JvmStatic
       @Parameters(name = "{0}")
       fun data() = listOf(0, 1, 5, 10).flatMap {  // check various sizes including empty
@@ -229,23 +239,20 @@ class AndroidModularizeActionTest {
       Mockito.doReturn(true).whenever(action).isAvailableForFile(case.availableFile)
       Mockito.doReturn(false).whenever(action).isAvailableForFile(case.unavailableFile)
 
-      val dc = mock<DataContext>()
-      whenever(CommonDataKeys.PROJECT.getData(dc)).thenReturn(case.project)
-      whenever(CommonDataKeys.PSI_FILE.getData(dc)).thenReturn(case.file)
-      // getPsiElementArray is a super class static method
-      mockStatic<BaseRefactoringAction>().use {
-        whenever(BaseRefactoringAction.getPsiElementArray(dc)).thenReturn(case.elements)
-
-        val `JVM class name containing Project extension method getSyncManager` = Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
-        Mockito.mockStatic(`JVM class name containing Project extension method getSyncManager`).use {
-          // if there is a project then hook it up to a sync manager
-          case.project?.let {
-            whenever(it.getSyncManager()).thenReturn(case.syncManager!!)
-          }
-
-          // finally, we can actually do the test
-          assertThat(action.isEnabledOnDataContext(dc)).isEqualTo(case.expect)
+      val dc = SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, case.project)
+        .add(CommonDataKeys.PSI_FILE, case.file)
+        .add(PlatformCoreDataKeys.PSI_ELEMENT_ARRAY, case.elements)
+        .build()
+      val `JVM class name containing Project extension method getSyncManager` = Class.forName("com.android.tools.idea.projectsystem.ProjectSystemUtil")
+      Mockito.mockStatic(`JVM class name containing Project extension method getSyncManager`).use {
+        // if there is a project then hook it up to a sync manager
+        case.project?.let {
+          whenever(it.getSyncManager()).thenReturn(case.syncManager!!)
         }
+
+        // finally, we can actually do the test
+        assertThat(action.isEnabledOnDataContext(dc)).isEqualTo(case.expect)
       }
     }
   }

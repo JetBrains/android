@@ -17,17 +17,17 @@ package com.android.tools.idea.common.editor
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil.makeToolbarNavigable
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
-import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -39,11 +39,15 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -51,8 +55,10 @@ import org.jetbrains.annotations.TestOnly
  * no selection, the root layout)
  */
 class ActionsToolbar(private val parent: Disposable, private val surface: DesignSurface<*>) :
-  DesignSurfaceListener, Disposable, PanZoomListener, ConfigurationListener, ModelListener {
+  DesignSurfaceListener, Disposable, ConfigurationListener, ModelListener {
   val toolbarComponent: JComponent
+
+  val scope = AndroidCoroutineScope(this)
 
   @get:TestOnly
   var northToolbar: ActionToolbar? = null
@@ -72,11 +78,25 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private var layoutType: DesignerEditorFileType? = null
   private var toolbarActionGroups: ToolbarActionGroups? = null
   private var model: NlModel? = null
+    set(value) {
+      field?.removeListener(this)
+      field = value
+      field?.addListener(this)
+    }
 
   init {
     Disposer.register(parent, this)
+    scope.launch {
+      merge(surface.panningChanged, surface.zoomChanged).collect {
+        withContext(uiThread) { northEastToolbar?.updateActionsAsync() }
+      }
+    }
+
+    scope.launch {
+      surface.modelChanged.collect { models -> withContext(uiThread) { modelsChanged(models) } }
+    }
+
     surface.addListener(this)
-    surface.addPanZoomListener(this)
     // TODO: Update to support multiple configurations
     configuration = surface.configurations.firstOrNull()
     configuration?.addListener(this)
@@ -86,7 +106,6 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   override fun dispose() {
-    surface.removePanZoomListener(this)
     surface.removeListener(this)
     configuration?.removeListener(this)
     model?.removeListener(this)
@@ -96,8 +115,16 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private fun updateActionGroups(layoutType: DesignerEditorFileType) {
     toolbarComponent.removeAll()
     toolbarActionGroups?.let { Disposer.dispose(it) }
+
     toolbarActionGroups =
-      layoutType.getToolbarActionGroups(surface).apply { Disposer.register(parent, this) }
+      layoutType.getToolbarActionGroups(surface).apply {
+        if (!Disposer.tryRegister(parent, this)) {
+          // The parent object has been disposed so no more updates are needed.
+          // Dispose the newly created ToolbarActionGroups and return.
+          Disposer.dispose(this)
+          return@updateActionGroups
+        }
+      }
 
     northToolbar =
       createActionToolbar("NlConfigToolbar", surface, toolbarActionGroups!!.northGroup).apply {
@@ -142,18 +169,22 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     val northToolbarComponent = northToolbar!!.component
     val northEastToolbarComponent = northEastToolbar!!.component
 
-    if (northToolbarComponent.isVisible || northEastToolbarComponent.isVisible) {
-      AdtPrimaryPanel(BorderLayout()).apply {
-        // set background to null to use the parent's background
-        northToolbarComponent.background = null
-        northEastToolbarComponent.background = null
-        this.add(northToolbarComponent, BorderLayout.CENTER)
-        this.add(northEastToolbarComponent, BorderLayout.EAST)
-        this.border =
-          BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
-        toolbarComponent.add(this, BorderLayout.NORTH)
-      }
-    }
+    val toolbarPanel =
+      object : AdtPrimaryPanel(BorderLayout()) {
+          override fun getBackground() = surface.background
+
+          override fun isVisible(): Boolean =
+            northToolbarComponent.isVisible || northEastToolbarComponent.isVisible
+        }
+        .apply {
+          // set background to null to use the parent's background
+          northToolbarComponent.background = null
+          northEastToolbarComponent.background = null
+          this.add(northToolbarComponent, BorderLayout.CENTER)
+          this.add(northEastToolbarComponent, BorderLayout.EAST)
+          this.border = BORDER
+        }
+    toolbarComponent.add(toolbarPanel, BorderLayout.NORTH)
   }
 
   /**
@@ -162,10 +193,10 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
    */
   private fun refreshToolbarState() {
     UIUtil.invokeAndWaitIfNeeded {
-      northToolbar?.updateActionsImmediately()
-      northEastToolbar?.updateActionsImmediately()
-      eastToolbar?.updateActionsImmediately()
-      centerToolbar?.updateActionsImmediately()
+      northToolbar?.updateActionsAsync()
+      northEastToolbar?.updateActionsAsync()
+      eastToolbar?.updateActionsAsync()
+      centerToolbar?.updateActionsAsync()
     }
   }
 
@@ -210,12 +241,12 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   }
 
   @UiThread
-  override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
-    this.model?.removeListener(this)
-    model?.addListener(this)
-    this.model = model
-    northToolbar?.updateActionsImmediately()
-    northEastToolbar?.updateActionsImmediately()
+  private fun modelsChanged(models: List<NlModel?>) {
+    // Here it is only necessary to keep the reference to one of the models in order to set the
+    // ModelListener to one of them
+    this.model = models.firstOrNull()
+    northToolbar?.updateActionsAsync()
+    northEastToolbar?.updateActionsAsync()
     val surfaceLayoutType = surface.layoutType
     if (surfaceLayoutType !== layoutType) {
       layoutType = surfaceLayoutType
@@ -229,7 +260,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
   private fun updateBottomActionBarBorder() {
     val hasBottomActionBar = eastToolbar!!.component.isVisible || dynamicGroup.childrenCount > 0
     val bottom = if (hasBottomActionBar) 1 else 0
-    toolbarComponent.border = BorderFactory.createMatteBorder(0, 0, bottom, 0, border)
+    toolbarComponent.border =
+      BorderFactory.createMatteBorder(0, 0, bottom, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
   }
 
   // ---- Implements ModelListener ----
@@ -244,31 +276,26 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     }
   }
 
-  override fun zoomChanged(previousScale: Double, newScale: Double) {
-    UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsImmediately() }
-  }
-
-  override fun panningChanged() {
-    UIUtil.invokeLaterIfNeeded { northEastToolbar?.updateActionsImmediately() }
-  }
-
   override fun changed(flags: Int): Boolean {
     if ((flags and CONFIGURATION_UPDATE_FLAGS) > 0) {
       northToolbar?.let {
         // The North toolbar is the one holding the Configuration Actions
-        UIUtil.invokeLaterIfNeeded { it.updateActionsImmediately() }
+        UIUtil.invokeLaterIfNeeded { it.updateActionsAsync() }
       }
     }
     return true
   }
 
   companion object {
+
+    val BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, JBUI.CurrentTheme.Editor.BORDER_COLOR)
+
     private const val CONFIGURATION_UPDATE_FLAGS =
       ConfigurationListener.CFG_TARGET or ConfigurationListener.CFG_DEVICE
 
     private fun createToolbarComponent(): JComponent {
       val panel: JComponent = AdtPrimaryPanel(BorderLayout())
-      panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, border)
+      panel.border = BORDER
       return panel
     }
 

@@ -24,7 +24,6 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
-import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.actions.CONFIGURATIONS
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
@@ -47,6 +46,7 @@ import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.common.surface.DesignSurface.ZoomMaskConstants.Companion.INITIAL_STATE_INT_MASK
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane.Companion.createDefaultScrollPane
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
@@ -56,6 +56,7 @@ import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.base.Predicate
@@ -79,6 +80,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -97,6 +99,8 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.lang.ref.WeakReference
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Consumer
@@ -111,7 +115,8 @@ import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.future.await
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -146,15 +151,14 @@ abstract class DesignSurface<T : SceneManager>(
   interactionProviderCreator: (DesignSurface<T>) -> InteractionHandler,
   positionableLayoutManager: PositionableContentLayoutManager,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
-  // defined as open.
-  // "open" can be removed if we remove the mocks.
-  open val actionHandlerProvider: (DesignSurface<T>) -> DesignSurfaceActionHandler,
+  // defined as open. "open" can be removed if we remove the mocks.
+  open val actionHandlerProvider:
+    (DesignSurface<T>) -> DesignSurfaceActionHandler<DesignSurface<T>>,
   // We do not need "open" here, but unfortunately we use mocks, and they fail if this is not
-  // defined as open.
-  // "open" can be removed if we remove the mocks.
+  // defined as open. "open" can be removed if we remove the mocks.
   open val selectionModel: SelectionModel = DefaultSelectionModel(),
   private val zoomControlsPolicy: ZoomControlsPolicy,
-  private val shouldZoomOnFirstComponentResize: Boolean = true,
+  waitForRenderBeforeZoomToFit: Boolean = false,
 ) :
   EditorDesignSurface(BorderLayout()),
   Disposable,
@@ -165,16 +169,32 @@ abstract class DesignSurface<T : SceneManager>(
   /** [CoroutineScope] to be used by any operations constrained to this DesignSurface */
   protected val scope = AndroidCoroutineScope(this)
 
+  /** Stores whether this surface is disposed */
+  private val _isDisposed = AtomicBoolean(false)
+
+  /** The expected bitwise mask value for when we want to apply zoom-to-fit. */
+  private val expectedZoomToFitMask: Int =
+    if (waitForRenderBeforeZoomToFit) {
+      // We should wait for rendering, layout to be created and to DesignSurface to resize.
+      ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK or
+        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or
+        ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
+    } else {
+      // Zoom-to-fit can be applied immediately after DesignSurface resize and layout creation,
+      // without waiting for rendering.
+      ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or
+        ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
+    }
+
   init {
     // TODO: handle the case when selection are from different NlModels.
     // Manager can be null if the selected component is not part of NlModel. For example, a
-    // temporarily NlMode.
-    // In that case we don't change focused SceneView.
+    // temporarily NlModel. In that case we don't change focused SceneView.
     val selectionListener = SelectionListener { _, selection ->
       if (focusedSceneView != null) {
         notifySelectionChanged(selection)
       } else {
-        notifySelectionChanged(emptyList<NlComponent>())
+        notifySelectionChanged(emptyList())
       }
     }
     selectionModel.addListener(selectionListener)
@@ -214,6 +234,8 @@ abstract class DesignSurface<T : SceneManager>(
 
   protected val sceneViewPanel =
     SceneViewPanel(
+        scope = scope.createChildScope(),
+        uiThread,
         sceneViewProvider = ::sceneViews,
         interactionLayersProvider = ::getLayers,
         actionManagerProvider = ::actionManager,
@@ -221,9 +243,20 @@ abstract class DesignSurface<T : SceneManager>(
         layoutManager = positionableLayoutManager,
       )
       .apply {
-        Disposer.register(this@DesignSurface, this)
         background = this@DesignSurface.background
         if (hasZoomControls) alignmentX = CENTER_ALIGNMENT
+        scope.launch {
+          componentsUpdated.collect {
+            if (readyToZoomToFitMask.get() != ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
+              withContext(uiThread) {
+                // Premature zoom updates can occur if NOTIFY_COMPONENT_RESIZED_INT_MASK is updated
+                // before the component is created.
+                // This is avoided by calling NOTIFY_LAYOUT_CREATED_INT_MASK on component creation.
+                checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+              }
+            }
+          }
+        }
       }
 
   /** [JScrollPane] contained in this [DesignSurface] when zooming is enabled. */
@@ -345,7 +378,7 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   fun registerIndicator(indicator: ProgressIndicator) {
-    if (project.isDisposed || Disposer.isDisposed(this)) {
+    if (project.isDisposed || isDisposed()) {
       return
     }
     synchronized(progressIndicators) {
@@ -369,7 +402,7 @@ abstract class DesignSurface<T : SceneManager>(
 
   /** The editor has been activated */
   open fun activate() {
-    if (Disposer.isDisposed(this)) {
+    if (isDisposed()) {
       // Prevent activating a disposed surface.
       return
     }
@@ -406,32 +439,15 @@ abstract class DesignSurface<T : SceneManager>(
     // TODO: Do this as part of the layout/validate operation instead
     addComponentListener(
       object : ComponentAdapter() {
-        /**
-         * When surface is opened at first time, it zoom-to-fit the content to make the previews fit
-         * the initial window size. After that it leave user to control the zoom. This flag
-         * indicates if the initial zoom-to-fit is done or not.
-         */
-        private var isInitialZoomLevelDetermined = false
-
         override fun componentResized(componentEvent: ComponentEvent) {
           if (componentEvent.id == ComponentEvent.COMPONENT_RESIZED) {
-            // There are conditions where it is better to skip the first zooming.
-            // For example, if we are using a Compose Preview we want to wait for the content to be
-            // rendered before we can calculate the right fit scale.
-            if (!shouldZoomOnFirstComponentResize) {
-              // We skip the zooming calculation by setting the isInitialZoomLevelDetermined flag to
-              // true.
-              isInitialZoomLevelDetermined = true
-            }
-            if (!isInitialZoomLevelDetermined && isShowing && width > 0 && height > 0) {
-              // Set previous scale when DesignSurface becomes visible at first time.
-              val hasModelAttached = restoreZoomOrZoomToFit()
-              if (!hasModelAttached) {
-                // No model is attached, ignore the setup of initial zoom level.
-                return
-              }
-              // The default size is defined, enable the flag.
-              isInitialZoomLevelDetermined = true
+            if (
+              readyToZoomToFitMask.get() != ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK &&
+                isShowing &&
+                width > 0 &&
+                height > 0
+            ) {
+              checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
             }
             // We rebuilt the scene to make sure all SceneComponents are placed at right positions.
             sceneManagers.forEach { manager: T -> manager.scene.needsRebuildList() }
@@ -520,8 +536,6 @@ abstract class DesignSurface<T : SceneManager>(
 
   @GuardedBy("listenersLock") private val listeners = mutableListOf<DesignSurfaceListener>()
 
-  @GuardedBy("listenersLock") private val zoomListeners = mutableListOf<PanZoomListener>()
-
   fun addListener(listener: DesignSurfaceListener) {
     listenersLock.withLock {
       // Ensure single registration
@@ -534,33 +548,8 @@ abstract class DesignSurface<T : SceneManager>(
     listenersLock.withLock { listeners.remove(listener) }
   }
 
-  fun addPanZoomListener(listener: PanZoomListener) {
-    listenersLock.withLock {
-      // Ensure single registration
-      zoomListeners.remove(listener)
-      zoomListeners.add(listener)
-    }
-  }
-
-  fun removePanZoomListener(listener: PanZoomListener) {
-    listenersLock.withLock { zoomListeners.remove(listener) }
-  }
-
   private fun clearListeners() {
-    listenersLock.withLock {
-      listeners.clear()
-      zoomListeners.clear()
-    }
-  }
-
-  /**
-   * Gets a copy of [zoomListeners] under a lock. Use this method instead of accessing the listeners
-   * directly.
-   */
-  private fun getZoomListeners(): ImmutableList<PanZoomListener> {
-    listenersLock.withLock {
-      return ImmutableList.copyOf(zoomListeners)
-    }
+    listenersLock.withLock { listeners.clear() }
   }
 
   /**
@@ -573,18 +562,122 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  private fun notifyModelChanged(model: NlModel) {
+  private val _modelChanged = MutableSharedFlow<List<NlModel?>>()
+
+  /** The [DesignSurface]'s [models] has changed. */
+  val modelChanged = _modelChanged.asSharedFlow()
+
+  private fun notifyModelsChanged(models: List<NlModel?>) {
     val listeners = getSurfaceListeners()
     for (listener in listeners) {
-      runInEdt { listener.modelChanged(this, model) }
+      runInEdt { listener.modelsChanged(this, models) }
     }
+    scope.launch { _modelChanged.emit(models) }
   }
 
-  private fun notifySelectionChanged(newSelection: List<NlComponent?>) {
+  private fun notifySelectionChanged(newSelection: List<NlComponent>) {
     val listeners = getSurfaceListeners()
     for (listener in listeners) {
       listener.componentSelectionChanged(this, newSelection)
     }
+  }
+
+  /**
+   * A bitwise mask used by [notifyZoomToFit]. If the "or" operator applied to this mask gets a
+   * bitwise values of [ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK],
+   * [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK] we can apply zoom-to-fit.
+   */
+  private val readyToZoomToFitMask = AtomicInteger(ZoomMaskConstants.INITIAL_STATE_INT_MASK)
+
+  /**
+   * Notify to [DesignSurface] that we can now try to apply zoom to fit. This is used for when we
+   * need to wait for events external to [DesignSurface] (such as Rendering of the content) before
+   * trying to apply zoom-to-fit.
+   *
+   * Note: if [waitForRenderBeforeZoomToFit] flag is enabled, it waits [DesignSurface] to be resized
+   * before restoring the zoom.
+   */
+  @UiThread
+  fun notifyZoomToFit() {
+    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK)
+  }
+
+  /**
+   * Resets the bitwise mask responsible to wait for [notifyZoomToFit]. Resetting will allow
+   * DesignSurface to call [zoomToFit] as if it happens for the first time.
+   *
+   * This is useful when we switch modes or layouts.
+   *
+   * @param shouldWaitForResize When true, the zoom mask waits for the resize notification
+   *   [ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK]. When false, the notification is
+   *   applied immediately, avoiding the need to wait for the next [DesignSurface] resize event.
+   *
+   * Note: if [waitForRenderBeforeZoomToFit] is enabled, it will wait [notifyZoomToFit] to be
+   * performed at least once before trying to apply zoom-to-fit.
+   */
+  fun resetZoomToFitNotifier(shouldWaitForResize: Boolean = true) {
+    var newZoomToFitStateMask = INITIAL_STATE_INT_MASK
+
+    if (!shouldWaitForResize && height > 0 && width > 0) {
+      // If we want to perform a zoom-to-fit, but we don't need that [DesignSurface] notifies that
+      // has been resized we reset the mask adding [NOTIFY_COMPONENT_RESIZED_INT_MASK] already.
+      newZoomToFitStateMask =
+        newZoomToFitStateMask or ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
+    }
+
+    if (
+      readyToZoomToFitMask.get() == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK &&
+        height > 0 &&
+        width > 0
+    ) {
+      // If we have already performed a zoom-to-fit and we want to perform it again but the
+      // [DesignSurface] has changed we shouldn't wait for zoom-to-fit again. In this the new mask
+      // value will be NOTIFY_ZOOM_TO_FIT_INT_MASK flag.
+      newZoomToFitStateMask = newZoomToFitStateMask or ZoomMaskConstants.NOTIFY_ZOOM_TO_FIT_INT_MASK
+    }
+
+    // If we want to perform a zoom-to-fit, and we need to wait for the creation of a layout and
+    // the resize of design surface we set the mask to its initial bitwise number
+    // [INITIAL_STATE_INT_MASK].
+    readyToZoomToFitMask.set(newZoomToFitStateMask)
+  }
+
+  @TestOnly
+  fun notifyComponentResizedForTest() {
+    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK)
+  }
+
+  @TestOnly
+  fun notifyLayoutCreatedForTest() {
+    checkIfReadyToZoomToFit(ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK)
+  }
+
+  /**
+   * Synchronized function that checks if we can call [zoomToFit]. We can call it only when
+   * [bitwiseNumber] has received both "1" and "2" and "4". This function solves a race condition of
+   * when the sizes of the content to show and the sizes of [DesignSurface] aren't yet synchronized
+   * causing a wrong fitScale value.
+   *
+   * Note: if [waitForRenderBeforeZoomToFit] is enabled it will wait [notifyZoomToFit] to be
+   * performed at least once. if [waitForRenderBeforeZoomToFit] is disabled it will directly perform
+   * [zoomToFit]
+   */
+  @UiThread
+  private fun checkIfReadyToZoomToFit(bitwiseNumber: Int): Boolean {
+    val newMask =
+      readyToZoomToFitMask.updateAndGet {
+        if (it == expectedZoomToFitMask || it == ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
+          // The operations needed to apply zoom-to-fit are complete, we mark the mask as done.
+          ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK
+        } else {
+          // Calculate the new mask value.
+          it or bitwiseNumber
+        }
+      }
+    if (newMask == expectedZoomToFitMask) {
+      return zoomController.zoomToFit()
+    }
+    return false
   }
 
   override fun onScaleChange(update: ScaleChange) {
@@ -594,12 +687,12 @@ abstract class DesignSurface<T : SceneManager>(
     }
     models.firstOrNull()?.let { storeCurrentScale(it) }
     revalidateScrollArea()
-    notifyScaleChanged(update.previousScale, update.newScale)
+    scope.launch { _zoomChanged.emit(Unit) }
   }
 
   /** Save the current zoom level from the file of the given [NlModel]. */
   private fun storeCurrentScale(model: NlModel) {
-    if (!isKeepingScaleWhenReopen()) {
+    if (!shouldStoreScale) {
       return
     }
     val state = getInstance(project).surfaceState
@@ -607,16 +700,18 @@ abstract class DesignSurface<T : SceneManager>(
     state.saveFileScale(project, model.virtualFile, zoomController)
   }
 
-  protected fun notifyScaleChanged(previousScale: Double, newScale: Double) {
-    for (listener in getZoomListeners()) {
-      listener.zoomChanged(previousScale, newScale)
-    }
-  }
+  private val _zoomChanged = MutableSharedFlow<Unit>()
+
+  /** The [DesignSurface] screen scale has changed. */
+  val zoomChanged = _zoomChanged.asSharedFlow()
+
+  private val _panningChanged = MutableSharedFlow<Unit>()
+
+  /** The scrollbars value has changed. */
+  val panningChanged = _panningChanged.asSharedFlow()
 
   protected fun notifyPanningChanged() {
-    for (listener in getZoomListeners()) {
-      listener.panningChanged()
-    }
+    scope.launch { _panningChanged.emit(Unit) }
   }
 
   /**
@@ -647,6 +742,12 @@ abstract class DesignSurface<T : SceneManager>(
 
   /** When not null, returns a [JPanel] to be rendered next to the primary panel of the editor. */
   open val accessoryPanel: JPanel? = null
+
+  /**
+   * When true, it allows to store the scale change in the settings preferences, it doesn't store
+   * any scale change if it's false.
+   */
+  open val shouldStoreScale: Boolean = true
 
   /**
    * Scroll to the center of a list of given components. Usually the center of the area containing
@@ -727,56 +828,29 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
-  protected open fun isKeepingScaleWhenReopen(): Boolean {
-    return true
-  }
-
   /**
    * Restore the zoom level if it can be loaded from persistent settings, otherwise zoom-to-fit.
    *
    * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no
    *   model.
    */
-  fun restoreZoomOrZoomToFit(): Boolean {
-    val model = model ?: return false
-    if (!restorePreviousScale(model)) {
+  @UiThread
+  private fun restoreZoomOrZoomToFit(): Boolean {
+    if (!restorePreviousScale()) {
       zoomController.zoomToFit()
     }
     return true
   }
 
   /**
-   * Apply zoom to fit if there is a stored zoom in the persistent settings, it does nothing
-   * otherwise.
+   * Load the saved zoom level from the file.
    *
-   * Because zoom to fit scale gets calculated whenever [DesignSurface] changes its space or number
-   * of items, this function clear-up the stored zoom and replace it with the newly calculated zoom
-   * to fit value.
+   * @return true if the previous zoom level is restored, returns false if the previous zoom level
+   *   is not restored or [NlModel] is null.
    */
-  fun zoomToFitIfStorageNotEmpty() {
-    if (isZoomStored()) {
-      zoomController.zoomToFit()
-    }
-  }
-
-  /**
-   * Checks if there is zoom level stored from persistent settings.
-   *
-   * @return true if persistent settings contains a stored zoom, false otherwise.
-   */
-  private fun isZoomStored(): Boolean {
+  fun restorePreviousScale(): Boolean {
     val model = model ?: return false
-    return getInstance(model.project)
-      .surfaceState
-      .loadFileScale(project, model.virtualFile, zoomController) != null
-  }
-
-  /**
-   * Load the saved zoom level from the file of the given [NlModel]. Return true if the previous
-   * zoom level is restored, false otherwise.
-   */
-  private fun restorePreviousScale(model: NlModel): Boolean {
-    if (!isKeepingScaleWhenReopen()) {
+    if (!shouldStoreScale) {
       return false
     }
     val state = getInstance(model.project).surfaceState
@@ -841,7 +915,6 @@ abstract class DesignSurface<T : SceneManager>(
    * be moved to the last position which might affect rendering.
    *
    * @param model the added [NlModel]
-   * @see [addAndRenderModel]
    */
   @Slow
   private fun addModel(model: NlModel): T {
@@ -905,7 +978,6 @@ abstract class DesignSurface<T : SceneManager>(
     val manager: SceneManager?
     modelToSceneManagersLock.writeLock().withLock { manager = modelToSceneManagers.remove(model) }
     // Mark the scene view panel as invalid to force the scene views to be updated
-    sceneViewPanel.removeSceneViewForModel(model)
 
     if (manager == null) {
       return false
@@ -936,13 +1008,8 @@ abstract class DesignSurface<T : SceneManager>(
     }
 
   /** Returns the list of [SceneView]s attached to this [DesignSurface]. */
-  val sceneViews: ImmutableCollection<SceneView>
-    get() {
-      return sceneManagers
-        .stream()
-        .flatMap { sceneManager: T -> sceneManager.sceneViews.stream() }
-        .collect(ImmutableList.toImmutableList())
-    }
+  val sceneViews: List<SceneView>
+    get() = sceneManagers.flatMap { sceneManager: T -> sceneManager.sceneViews }
 
   @Deprecated("b/352512443 Owner can have multiple scenes")
   override val scene: Scene?
@@ -1070,7 +1137,6 @@ abstract class DesignSurface<T : SceneManager>(
   /**
    * Sets the current [NlModel] to [DesignSurface].
    *
-   * @see [addAndRenderModel]
    * @see [removeModel]
    */
   open fun setModel(newModel: NlModel?) {
@@ -1089,7 +1155,7 @@ abstract class DesignSurface<T : SceneManager>(
 
     scope.launch {
       addModel(newModel)
-      sceneManagers.forEach { it.requestRenderAsync().await() }
+      sceneManagers.forEach { it.requestRenderAndWait() }
       // Mark the scene view panel as invalid to force the scene views to be updated
       sceneViewPanel.invalidate()
 
@@ -1099,57 +1165,21 @@ abstract class DesignSurface<T : SceneManager>(
         revalidateScrollArea()
       }
 
-      notifyModelChanged(newModel)
+      notifyModelsChanged(listOf(newModel))
     }
-  }
-
-  /**
-   * Add an [NlModel] to [DesignSurface] and refreshes the rendering of the model. If the model was
-   * already part of the surface, it will be moved to the bottom of the list and a refresh will be
-   * triggered. The scene views are updated before starting to render and the callback
-   * [DesignSurfaceListener.modelChanged] is triggered after rendering. The method returns a
-   * [CompletableFuture] that will complete when the render of the new model has finished. Note that
-   * the order of the addition might be important for the rendering order.
-   * [PositionableContentLayoutManager] will receive the models in the order they are added.
-   *
-   * @param model the added [NlModel]
-   * @see [addModel]
-   */
-  fun addAndRenderModel(model: NlModel): CompletableFuture<Void> {
-    val modelSceneManager = addModel(model)
-
-    // Mark the scene view panel as invalid to force the scene views to be updated
-    sceneViewPanel.invalidate()
-
-    // We probably do not need to request a render for all models but it is currently the
-    // only point subclasses can override to disable the layoutlib render behaviour.
-    return modelSceneManager
-      .requestRenderAsync()
-      .whenCompleteAsync(
-        { _, _ ->
-          reactivateGuiInputHandler()
-          revalidateScrollArea()
-          notifyModelChanged(model)
-        },
-        EdtExecutorService.getInstance(),
-      )
   }
 
   /**
    * Add an [NlModel] to DesignSurface and return the created [SceneManager]. If it is added before
    * then it just returns the associated [SceneManager] which created before. In this function, the
-   * scene views are not updated and [DesignSurfaceListener.modelChanged] callback is triggered
-   * immediately. In the opposite, [addAndRenderModel] updates the scene views and triggers
-   * [DesignSurfaceListener.modelChanged] when render is completed.
+   * scene views are not updated and [DesignSurfaceListener.modelsChanged] callback is triggered
+   * immediately.
    *
    * Note that the order of the addition might be important for the rendering order.
    * [PositionableContentLayoutManager] will receive the models in the order they are added.
    *
    * @param model the added [NlModel]
    * @see [addModel]
-   * @see [addAndRenderModel]
-   *
-   * TODO(b/147225165): Remove [addAndRenderModel] function and rename this function as [addModel]
    */
   fun addModelWithoutRender(modelToAdd: NlModel): CompletableFuture<T> {
     return CompletableFuture.supplyAsync(
@@ -1159,11 +1189,25 @@ abstract class DesignSurface<T : SceneManager>(
       .whenCompleteAsync(
         { _, _ ->
           if (project.isDisposed || modelToAdd.isDisposed) return@whenCompleteAsync
-          notifyModelChanged(modelToAdd)
+          notifyModelsChanged(listOf(modelToAdd))
           reactivateGuiInputHandler()
         },
         EdtExecutorService.getInstance(),
       )
+  }
+
+  /**
+   * Bulk version of [addModelWithoutRender].
+   *
+   * This method is expected to be called in the background thread, and it will schedule the
+   * corresponding call to [DesignSurfaceListener.modelsChanged] in EDT for later.
+   */
+  @RequiresBackgroundThread
+  fun addModelsWithoutRender(models: List<NlModel>): List<T> {
+    val sceneManagers = models.map { addModel(it) }
+    notifyModelsChanged(models)
+    reactivateGuiInputHandler()
+    return sceneManagers
   }
 
   private var lintIssueProvider: LintIssueProvider? = null
@@ -1210,7 +1254,7 @@ abstract class DesignSurface<T : SceneManager>(
     sink[ZOOMABLE_KEY] = zoomController
     sink[CONFIGURATIONS] = configurations
 
-    val handler: DesignSurfaceActionHandler = actionHandlerProvider(this)
+    val handler: DesignSurfaceActionHandler<DesignSurface<T>> = actionHandlerProvider(this)
     sink[PlatformDataKeys.DELETE_ELEMENT_PROVIDER] = handler
     sink[PlatformDataKeys.CUT_PROVIDER] = handler
     sink[PlatformDataKeys.COPY_PROVIDER] = handler
@@ -1242,7 +1286,13 @@ abstract class DesignSurface<T : SceneManager>(
     }
   }
 
+  /** Returns true if this [DesignSurface] is disposed. */
+  fun isDisposed(): Boolean {
+    return _isDisposed.get()
+  }
+
   override fun dispose() {
+    _isDisposed.set(true)
     clearListeners()
     guiInputHandler.stopListening()
     Toolkit.getDefaultToolkit().removeAWTEventListener(onHoverListener)
@@ -1275,5 +1325,53 @@ abstract class DesignSurface<T : SceneManager>(
 
   final override fun add(comp: Component?): Component {
     return super.add(comp)
+  }
+
+  /**
+   * Class to define constants used to manage the bitwise logic to check if apply zoom-to-fit. These
+   * constants are integers masks to be used in bitwise operations.
+   *
+   * @see [readyToZoomToFitMask]
+   */
+  private class ZoomMaskConstants {
+    companion object {
+
+      /** Constant to represent the initial state, where none of the values below are set. */
+      const val INITIAL_STATE_INT_MASK = 0
+
+      /**
+       * Number used as part of the bitwise mask to notify [DesignSurface] to apply zoom-to-fit.
+       *
+       * @see [DesignSurface.notifyZoomToFit]
+       */
+      const val NOTIFY_ZOOM_TO_FIT_INT_MASK = 1
+
+      /**
+       * Number used as part of the bitwise mask to notify [DesignSurface] has been resized.
+       *
+       * @see also [DesignSurface.checkIfReadyToZoomToFit].
+       */
+      const val NOTIFY_COMPONENT_RESIZED_INT_MASK = 2
+
+      /**
+       * Number used as part of the bitwise mask to notify to [DesignSurface] its layout has been
+       * created.
+       *
+       * @see also [DesignSurface.checkIfReadyToZoomToFit].
+       */
+      const val NOTIFY_LAYOUT_CREATED_INT_MASK = 4
+
+      /**
+       * The expected bitwise Integer when
+       * * [DesignSurface] sizes is updated
+       * * preview renders and
+       * * layout is created
+       *
+       * It indicates that the zooming has been done already and should not have shared bits with
+       * [NOTIFY_ZOOM_TO_FIT_INT_MASK], [NOTIFY_COMPONENT_RESIZED_INT_MASK] or
+       * [NOTIFY_LAYOUT_CREATED_INT_MASK].
+       */
+      const val ZOOM_TO_FIT_DONE_INT_MASK = 8
+    }
   }
 }

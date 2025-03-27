@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
+import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
-class RestoreMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
+class RestoreMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext, private val project: Project) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     return if (context == MenuContext.Toolbar) {
-      "<html><b>Restore app</b><br>Restores app from a backup file</html>"
+      "<html><b>Restore app data</b><br>Restores app from a backup file</html>"
     } else {
-      "Restore app"
+      "Restore app data"
     }
   }
 
@@ -43,7 +45,11 @@ class RestoreMenuItem(listener: DeviceMonitorActionsListener, private val contex
 
   override val isEnabled: Boolean
     get() {
-      return listener.selectedProcessInfo.size == 1
+      if (listener.selectedProcessInfo.size != 1) {
+        return false
+      }
+      val packageName = listener.selectedProcessInfo.first().packageName ?: return false
+      return BackupManager.getInstance(project).isAppSupported(packageName)
     }
 
   override fun run() {

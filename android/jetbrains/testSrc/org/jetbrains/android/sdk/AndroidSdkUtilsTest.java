@@ -69,7 +69,7 @@ public class AndroidSdkUtilsTest extends HeavyPlatformTestCase {
     assertEquals("API -1", AndroidSdkUtils.getTargetLabel(unknownTarget));
 
     IAndroidTarget anotherUnknownTarget = new MockPlatformTarget(100, 1);
-    assertEquals("API 100", AndroidSdkUtils.getTargetLabel(anotherUnknownTarget));
+    assertEquals("API 100.0", AndroidSdkUtils.getTargetLabel(anotherUnknownTarget));
 
     IAndroidTarget platformPreviewTarget = new MockPlatformTarget(100, 1) {
       @NonNull

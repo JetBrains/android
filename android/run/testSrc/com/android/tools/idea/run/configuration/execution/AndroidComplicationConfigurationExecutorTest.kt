@@ -18,8 +18,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestResources
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.execution.common.AppRunSettings
@@ -46,7 +44,9 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.doReturn
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -163,7 +163,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     invokeLater {
       consoleViewImpl.component
       consoleViewImpl.flushDeferredText()
-      consoleOutputPromise.complete(consoleViewImpl.editor!!.document.text)
+      val editor = checkNotNull(consoleViewImpl.editor)
+      consoleOutputPromise.complete(editor.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
@@ -341,7 +342,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       // Initialize editor.
       consoleViewImpl.component
       consoleViewImpl.flushDeferredText()
-      consoleOutputPromise.complete(consoleViewImpl.editor!!.document.text)
+      val editor = checkNotNull(consoleViewImpl.editor)
+      consoleOutputPromise.complete(editor.document.text)
     }
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)

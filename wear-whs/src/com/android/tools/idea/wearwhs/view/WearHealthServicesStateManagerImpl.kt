@@ -37,11 +37,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -68,6 +65,8 @@ internal class WearHealthServicesStateManagerImpl(
 
   override val capabilitiesList = deviceManager.getCapabilities()
 
+  override val preset = MutableStateFlow(Preset.ALL)
+
   private val capabilityToState =
     capabilitiesList.associateWith {
       MutableStateFlow<CapabilityUIState>(
@@ -83,14 +82,6 @@ internal class WearHealthServicesStateManagerImpl(
 
   private val _isStateStale = MutableStateFlow(true)
   override val isStateStale = _isStateStale
-
-  override val hasUserChanges: StateFlow<Boolean> =
-    combine(ongoingExercise, combine(capabilitiesList.map { getState(it) }) { it }) {
-        ongoingExercise,
-        capabilities ->
-        capabilities.any { it.hasUserChanges(ongoingExercise) }
-      }
-      .stateIn(workerScope, SharingStarted.Eagerly, false)
 
   private var lastSuccessfulSync: Instant = Instant.MIN
 
@@ -193,6 +184,7 @@ internal class WearHealthServicesStateManagerImpl(
     }
 
   override fun loadPreset(preset: Preset): Job {
+    this.preset.value = preset
     return workerScope.launch {
       when (preset) {
         Preset.STANDARD ->
@@ -233,7 +225,7 @@ internal class WearHealthServicesStateManagerImpl(
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
       val dataValue = capability.dataType.value(value)
       val uiState = stateFlow.value
-      if (dataValue == uiState.currentState.overrideValue) {
+      if (dataValue == uiState.currentState.overrideValue || !uiState.currentState.enabled) {
         return
       }
 
@@ -251,7 +243,9 @@ internal class WearHealthServicesStateManagerImpl(
     capabilityUpdatesLock.withLock {
       val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
       val uiState = stateFlow.value
-      if (uiState.currentState.overrideValue is WhsDataValue.NoValue) {
+      if (
+        uiState.currentState.overrideValue is WhsDataValue.NoValue || !uiState.currentState.enabled
+      ) {
         return
       }
       val newState = uiState.currentState.clearOverride()
@@ -306,32 +300,44 @@ internal class WearHealthServicesStateManagerImpl(
       Result.success(Unit)
     }
 
-  private fun resetUiState() =
-    capabilityToState.forEach { (_, uiState) ->
-      uiState.value =
-        UpToDateCapabilityUIState(
-          if (ongoingExercise.value) uiState.value.upToDateState.clearOverride()
-          else uiState.value.upToDateState.enable()
-        )
-    }
-
   private suspend fun resetOverrides(): Result<Unit> {
     val capabilities =
       capabilityUpdatesLock.withLock { capabilityToState.entries }.map { it.key.dataType.noValue() }
-    return deviceManager.overrideValues(capabilities)
+    return deviceManager.overrideValues(capabilities).also {
+      if (it.isSuccess) {
+        capabilityToState.forEach { (_, uiState) ->
+          uiState.value = UpToDateCapabilityUIState(uiState.value.upToDateState.clearOverride())
+        }
+      }
+    }
+  }
+
+  private suspend fun resetCapabilities(): Result<Unit> {
+    loadPreset(preset.value).join()
+    val resetCapabilities =
+      capabilityToState.entries.associate { it.key.dataType to it.value.value.currentState.enabled }
+    return deviceManager.setCapabilities(resetCapabilities).also {
+      if (it.isSuccess) {
+        capabilityToState.forEach { (capability, uiState) ->
+          uiState.value =
+            UpToDateCapabilityUIState(
+              CapabilityState(
+                enabled = resetCapabilities.getValue(capability.dataType),
+                overrideValue = uiState.value.currentState.overrideValue,
+              )
+            )
+        }
+      }
+    }
   }
 
   override suspend fun reset() =
     runWithStatus(WhsStateManagerStatus.Syncing, MAX_WAIT_TIME_FOR_MODIFICATION) {
-      val reset =
-        if (!ongoingExercise.value) {
-          val loadPresetJob = loadPreset(Preset.ALL)
-          deviceManager.clearContentProvider().also { loadPresetJob.join() }
-        } else {
-          resetOverrides()
-        }
-
-      return@runWithStatus reset.also { if (it.isSuccess) resetUiState() }
+      if (!ongoingExercise.value) {
+        resetCapabilities()
+      } else {
+        resetOverrides()
+      }
     }
 
   override fun dispose() {}

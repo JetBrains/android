@@ -41,12 +41,6 @@
     <applicationService serviceImplementation="com.intellij.openapi.application.IdeUrlTrackingParametersProvider"
                         overrides="true"/>
 
-    <!-- Suppress tip-of-the-day because it does not work correctly in Android Studio (b/302571384). -->
-    <actionConfigurationCustomizer implementation="com.android.tools.idea.startup.SuppressTipOfTheDay$ActionSuppressor"/>
-    <applicationService serviceInterface="com.intellij.ide.util.TipAndTrickManager"
-                        serviceImplementation="com.android.tools.idea.startup.SuppressTipOfTheDay$OverridingTipAndTrickManager"
-                        overrides="true"/>
-
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
 
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
@@ -76,8 +70,6 @@
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
   </extensions>
 
-  <!--The following suppression is currently needed because PluginXmlDomInspection says, "Could not determine target platform version." -->
-  <!--suppress PluginXmlValidity-->
   <applicationListeners>
     <listener
         class="com.android.tools.idea.diagnostics.LastActionTracker$MyActionListener"
@@ -109,8 +101,23 @@
       <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
+    <group id="Internal.Android.FreezeTools" popup="true" internal="true" text="Freeze">
+      <action class="com.android.tools.idea.diagnostics.freeze.DeadlockUIThreadWithLocks" id="DeadlockUIThread"
+              text="Create UI thread deadlock with Locks" internal="true"/>
+
+      <action class="com.android.tools.idea.diagnostics.freeze.DeadlockUIThreadWithLocksTimeout" id="DeadlockUIThreadWithTimeout"
+              text="Create UI thread deadlock with Locks (10s timeout)" internal="true"/>
+
+      <action class="com.android.tools.idea.diagnostics.freeze.DeadlockUIThreadWithSynchronized" id="DeadlockUIThreadWithSynchronized"
+              text="Create UI thread deadlock with Synchronized" internal="true"/>
+
+      <action class="com.android.tools.idea.diagnostics.freeze.DeadlockUIThreadWithReadAction" id="DeadlockUIThreadWithReadAction"
+              text="Create UI thread deadlock with Read action" internal="true"/>
+      <add-to-group group-id="Internal.Android"/>
+    </group>
+
     <action class="com.android.tools.idea.diagnostics.hprof.action.InternalNonuserInvokedHeapDumpSnapshotAction" id="SilentHeapDumpSnapshot"
-            text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true">
+              text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true">
       <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
@@ -162,16 +169,10 @@
             class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction"
             icon="AllIcons.ToolbarDecorator.Import"
             overrides="true"/>
-    <!--
-    For historical reasons, our "ReportProblem" action has text "Submit Feedback" instead of "Submit a Bug Report" as in IntelliJ.
-    This could be changed, but then we need to update DAC too: https://developer.android.com/studio/report-bugs.
-    -->
     <action
         id="ReportProblem"
-        class="com.android.tools.idea.actions.SendFeedbackAction"
-        overrides="true"
-        text="Submit _Feedback"
-        description="Submit feedback to the Android Studio team"/>
+        class="com.android.tools.idea.actions.SubmitBugReportAction"
+        overrides="true"/>
     <action
         id="CollectZippedLogs"
         class="com.android.tools.idea.actions.CreateDiagnosticReportAction"

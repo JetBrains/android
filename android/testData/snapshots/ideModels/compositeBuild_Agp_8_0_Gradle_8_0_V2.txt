@@ -718,7 +718,6 @@ MODULE                        : TestCompositeLib1
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -949,7 +948,6 @@ MODULE                        : TestCompositeLib1
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -1062,6 +1060,11 @@ MODULE                        : TestCompositeLib1
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : TestCompositeLib1.app
     GradleModuleModel
         agpVersion                    : 8.0.2
@@ -1080,14 +1083,14 @@ MODULE                        : TestCompositeLib1.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :app
     ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
@@ -1130,6 +1133,7 @@ MODULE                        : TestCompositeLib1.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.composite1
         testApplicationId             : com.test.composite1.test
@@ -1137,7 +1141,7 @@ MODULE                        : TestCompositeLib1.app
     - basicVariant:               : release
         applicationId                 : com.test.composite1
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1154,8 +1158,8 @@ MODULE                        : TestCompositeLib1.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -1324,8 +1328,8 @@ MODULE                        : TestCompositeLib1.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -2162,6 +2166,11 @@ MODULE                        : TestCompositeLib1.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -2199,14 +2208,14 @@ MODULE                        : TestCompositeLib1.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :lib
     ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
@@ -2249,12 +2258,13 @@ MODULE                        : TestCompositeLib1.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite1.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -2267,8 +2277,8 @@ MODULE                        : TestCompositeLib1.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -2427,8 +2437,8 @@ MODULE                        : TestCompositeLib1.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -3316,6 +3326,11 @@ MODULE                        : TestCompositeLib1.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -3466,7 +3481,6 @@ MODULE                        : TestCompositeLib3
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -3690,6 +3704,11 @@ MODULE                        : TestCompositeLib3
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : TestCompositeLib3.app
     GradleModuleModel
         agpVersion                    : 8.0.2
@@ -3708,14 +3727,14 @@ MODULE                        : TestCompositeLib3.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :app
     ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
@@ -3758,6 +3777,7 @@ MODULE                        : TestCompositeLib3.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.composite3
         testApplicationId             : com.test.composite3.test
@@ -3765,7 +3785,7 @@ MODULE                        : TestCompositeLib3.app
     - basicVariant:               : release
         applicationId                 : com.test.composite3
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -3782,8 +3802,8 @@ MODULE                        : TestCompositeLib3.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -3952,8 +3972,8 @@ MODULE                        : TestCompositeLib3.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -4768,6 +4788,11 @@ MODULE                        : TestCompositeLib3.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -4805,14 +4830,14 @@ MODULE                        : TestCompositeLib3.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :lib
     ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
@@ -4855,12 +4880,13 @@ MODULE                        : TestCompositeLib3.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite3.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -4873,8 +4899,8 @@ MODULE                        : TestCompositeLib3.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -5033,8 +5059,8 @@ MODULE                        : TestCompositeLib3.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -6293,7 +6319,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -6527,7 +6552,6 @@ MODULE                        : project
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
-                        kotlinNativeBundleConfiguration         : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
                         lintPublish                   : <empty>
@@ -6640,6 +6664,11 @@ MODULE                        : project
                             qName                         : :lib:testReleaseUnitTest
         sourceSetModel                : DefaultGradleSourceSetModel
         taskModel                     : DefaultGradleTaskModel
+            tasks
+                testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                    qName                         : :app:testDebugUnitTest
+                testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                    qName                         : :app:testReleaseUnitTest
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.0.2
@@ -6658,14 +6687,14 @@ MODULE                        : project.app
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
     ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
@@ -6708,6 +6737,7 @@ MODULE                        : project.app
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         applicationId                 : com.test.compositeapp
         testApplicationId             : com.test.compositeapp.test
@@ -6715,7 +6745,7 @@ MODULE                        : project.app
     - basicVariant:               : release
         applicationId                 : com.test.compositeapp
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -6732,8 +6762,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -6902,8 +6932,8 @@ MODULE                        : project.app
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -7744,6 +7774,11 @@ MODULE                        : project.app
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl
@@ -7781,14 +7816,14 @@ MODULE                        : project.lib
             ApiLevel                      : 16
             ApiString                     : 16
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 34
+            ApiString                     : 34
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
     ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-34
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
@@ -7831,12 +7866,13 @@ MODULE                        : project.lib
         MlModelBindingEnabled         : false
         AndroidResourcesEnabled       : true
         DataBindingEnabled            : false
+        GenerateManifestClass         : false
     - basicVariant:               : debug
         testApplicationId             : com.test.composite0.test
         buildType                     : debug
     - basicVariant:               : release
         buildType                     : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -7849,8 +7885,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -8009,8 +8045,8 @@ MODULE                        : project.lib
                 ApiLevel                      : 16
                 ApiString                     : 16
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 34
+                ApiString                     : 34
             VersionCode                   : 1
             VersionNameWithSuffix         : 1.0
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
@@ -8865,6 +8901,11 @@ MODULE                        : project.lib
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
+        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
+            major                         : 2
+            minor                         : 1
+            patch                         : 20
+            versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
             debug                         : KotlinTaskPropertiesImpl

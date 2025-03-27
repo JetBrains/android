@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
+import com.android.tools.adtui.compose.WizardPageScope
 import com.google.common.collect.Range
 import icons.StudioIconsCompose
 import kotlin.time.Duration
@@ -26,8 +27,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import org.jetbrains.jewel.ui.component.Icon
 
-open class TestDeviceSource : DeviceSource<TestDevice> {
-  override val profiles = MutableStateFlow(LoadingState.Ready(emptyList<TestDevice>()))
+open class TestDeviceSource {
+  val profiles = MutableStateFlow(LoadingState.Ready(emptyList<TestDevice>()))
 
   val selectedProfile = MutableStateFlow<TestDevice?>(null)
 
@@ -35,7 +36,7 @@ open class TestDeviceSource : DeviceSource<TestDevice> {
     profiles.update { LoadingState.Ready(it.value + device) }
   }
 
-  override fun WizardPageScope.selectionUpdated(profile: TestDevice) {
+  open fun WizardPageScope.selectionUpdated(profile: TestDevice) {
     selectedProfile.value = profile
   }
 }
@@ -52,8 +53,7 @@ data class TestDevice(
   override val isRemote: Boolean = false,
   override val abis: List<Abi> = listOf(Abi.ARM64_V8A),
   override val formFactor: String = FormFactors.PHONE,
-  override val isAlreadyPresent: Boolean = false,
-  override val availabilityEstimate: Duration = Duration.ZERO,
+  val availabilityEstimate: Duration = Duration.ZERO,
 ) : DeviceProfile {
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@TestDevice) }
@@ -89,7 +89,6 @@ data class TestDevice(
         isRemote = isRemote,
         abis = abis,
         formFactor = formFactor,
-        isAlreadyPresent = isAlreadyPresent,
         availabilityEstimate = availabilityEstimate,
       )
   }

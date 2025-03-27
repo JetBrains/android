@@ -48,7 +48,8 @@ public enum TestData {
   PROTO_ONLY_QUERY("protoonly"),
   NESTED_PROTO_QUERY("nestedproto"),
   TAGS_QUERY("tags"),
-  EMPTY_QUERY("empty");
+  EMPTY_QUERY("empty"),
+  WORKSPACE_ROOT_INCLUDED_QUERY("workspacerootincluded");
 
   public final ImmutableList<Path> srcPaths;
 
@@ -56,7 +57,7 @@ public enum TestData {
     this.srcPaths = stream(paths).map(Path::of).collect(toImmutableList());
   }
 
-  private static final String WORKSPACE_NAME = "__main__";
+  private static final String WORKSPACE_NAME = "_main";
 
   public static final Path ROOT =
       Path.of(

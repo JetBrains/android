@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -59,7 +60,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     PairingDevice(
       deviceID = "id1",
       displayName = "My Phone",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isWearDevice = false,
       isEmulator = true,
       hasPlayStore = true,
@@ -69,7 +70,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     PairingDevice(
       deviceID = "id2",
       displayName = "Round Watch",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isEmulator = true,
       isWearDevice = true,
       hasPlayStore = true,
@@ -225,7 +226,11 @@ class DeviceListStepTest : LightPlatform4TestCase() {
         phoneDevice, // Selectable
         phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", state = DISCONNECTED),
         phoneDevice.copy(deviceID = "id3", displayName = "My Phone3"), // Selectable
-        phoneDevice.copy(deviceID = "id4", displayName = "My Phone4", apiLevel = 29),
+        phoneDevice.copy(
+          deviceID = "id4",
+          displayName = "My Phone4",
+          androidVersion = AndroidVersion(29),
+        ),
         phoneDevice.copy(
           deviceID = "id5",
           displayName = "My Phone5",
@@ -277,16 +282,20 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     model.phoneList.set(
       listOf(
-        phoneDevice.copy(deviceID = "id3", displayName = "My Phone2", apiLevel = 29),
+        phoneDevice.copy(
+          deviceID = "id3",
+          displayName = "My Phone2",
+          androidVersion = AndroidVersion(29),
+        ),
         phoneDevice.copy(deviceID = "id4", displayName = "My Phone3", hasPlayStore = false),
         phoneDevice.copy(
           deviceID = "id5",
           displayName = "My Phone3",
-          apiLevel = 29,
+          androidVersion = AndroidVersion(29),
           isEmulator = false,
         ),
         phoneDevice,
-        wearDevice.copy(deviceID = "id6", apiLevel = 25),
+        wearDevice.copy(deviceID = "id6", androidVersion = AndroidVersion(25)),
       )
     )
     fakeUi.layoutAndDispatchEvents()

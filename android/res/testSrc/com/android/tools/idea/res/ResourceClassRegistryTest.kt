@@ -17,9 +17,6 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceRepository
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceIdManagerBase
 import com.android.tools.res.ids.ResourceIdManagerModelModule
@@ -30,8 +27,10 @@ import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.withSettings
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import java.nio.ByteBuffer
 import kotlin.time.Duration.Companion.days
 
@@ -46,20 +45,21 @@ class ResourceClassRegistryTest {
   private val registry = ResourceClassRegistry(1.days) // Not testing the TimeoutCachedValue
   private val disposable = Disposer.newDisposable()
   private val idManager by lazy {
-    ResourceIdManagerBase(ResourceIdManagerModelModule.NO_NAMESPACING_APP)
+    ResourceIdManagerBase(ResourceIdManagerModelModule.noNamespacingApp())
   }
-  private val manager: ResourceRepositoryManager = mock()
   private val repository: ResourceRepository = mock()
   private val disposableRepository: ResourceRepository =
-    mock(withSettings().extraInterfaces(Disposable::class.java))
+    mock(extraInterfaces = arrayOf(Disposable::class))
+  private val manager: ResourceRepositoryManager = mock {
+    on { getAppResourcesForNamespace(PKG_1.namespace) } doReturn
+      listOf(repository, disposableRepository)
+    on { getAppResourcesForNamespace(PKG_2.namespace) } doReturn
+      listOf(repository, disposableRepository)
+  }
 
   @Before
   fun setUp() {
     Disposer.register(disposable, disposableRepository as Disposable)
-    whenever(manager.getAppResourcesForNamespace(eq(PKG_1.namespace)))
-      .thenReturn(listOf(repository, disposableRepository))
-    whenever(manager.getAppResourcesForNamespace(eq(PKG_2.namespace)))
-      .thenReturn(listOf(repository, disposableRepository))
   }
 
   @After
@@ -114,8 +114,7 @@ class ResourceClassRegistryTest {
   fun findClassDefinition_noPackageNameCollisionIfOneReturnedFromManager() {
     registry.addLibrary(repository, idManager, PKG_1, PKG_1.namespace)
     registry.addLibrary(disposableRepository, idManager, PKG_1, PKG_1.namespace)
-    whenever(manager.getAppResourcesForNamespace(eq(PKG_1.namespace)))
-      .thenReturn(listOf(repository))
+    whenever(manager.getAppResourcesForNamespace(PKG_1.namespace)).thenReturn(listOf(repository))
 
     assertThat(registry.findClassDefinition("$PKG_1.R\$string", manager)).isNotNull()
   }
@@ -123,7 +122,7 @@ class ResourceClassRegistryTest {
   @Test
   fun findClassDefinition_noRepository() {
     registry.addLibrary(repository, idManager, PKG_1, PKG_1.namespace)
-    whenever(manager.getAppResourcesForNamespace(eq(PKG_1.namespace))).thenReturn(listOf())
+    whenever(manager.getAppResourcesForNamespace(PKG_1.namespace)).thenReturn(listOf())
 
     assertThat(registry.findClassDefinition("$PKG_1.R", manager)).isNull()
   }

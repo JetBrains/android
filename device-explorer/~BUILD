@@ -34,7 +34,7 @@ iml_module(
     iml_files = ["intellij.android.device-explorer.tests.iml"],
     test_class = "com.android.tools.idea.device.explorer.DeviceExplorerTestSuite",
     test_data = [
-        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
@@ -45,6 +45,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -71,6 +72,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

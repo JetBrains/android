@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
@@ -60,95 +61,107 @@ class CommonIssueNotificationActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private var viewModelStatus = TestPreviewViewModelStatus()
-  private val dataContext = DataContext {
-    when (it) {
-      PREVIEW_VIEW_MODEL_STATUS.name -> viewModelStatus
-      CommonDataKeys.PROJECT.name -> projectRule.project
-      else -> null
-    }
-  }
+  private val dataContext
+    get() =
+      SimpleDataContext.builder()
+        .add(PREVIEW_VIEW_MODEL_STATUS, viewModelStatus)
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .build()
 
   @Test
   fun `check simple states`() {
     val action = CommonIssueNotificationAction()
-    val event = TestActionEvent.createTestEvent(dataContext)
-
-    action.update(event)
-    assertEquals("Up-to-date", event.presentation.text)
-    assertEquals("The preview is up to date", event.presentation.description)
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      assertEquals("Up-to-date", event.presentation.text)
+      assertEquals("The preview is up to date", event.presentation.description)
+    }
 
     viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
-    action.update(event)
-    assertEquals("Render Issues", event.presentation.text)
-    assertEquals(
-      "Some problems were found while rendering the preview",
-      event.presentation.description,
-    )
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      assertEquals("Render Issues", event.presentation.text)
+      assertEquals(
+        "Some problems were found while rendering the preview",
+        event.presentation.description,
+      )
+    }
 
     viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
-    action.update(event)
-    assertEquals("Out of date", event.presentation.text)
-    assertEquals("The preview is out of date", event.presentation.description)
-    try {
-      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
+    TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals("Out of date", event.presentation.text)
       assertEquals("The preview is out of date", event.presentation.description)
+    }
+    try {
+      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
+      TestActionEvent.createTestEvent(dataContext).let { event ->
+        action.update(event)
+        assertEquals("Out of date", event.presentation.text)
+        assertEquals("The preview is out of date", event.presentation.description)
+      }
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
     }
 
     viewModelStatus = TestPreviewViewModelStatus(hasSyntaxErrors = true)
-    action.update(event)
-    assertEquals("Paused", event.presentation.text)
-    assertEquals(
-      "The preview will not update while your project contains syntax errors.",
-      event.presentation.description,
-    )
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      assertEquals("Paused", event.presentation.text)
+      assertEquals(
+        "The preview will not update while your project contains syntax errors.",
+        event.presentation.description,
+      )
+    }
 
     viewModelStatus = TestPreviewViewModelStatus(isRefreshing = true)
-    action.update(event)
-    assertEquals("Loading...", event.presentation.text)
-    assertEquals("The preview is updating...", event.presentation.description)
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      assertEquals("Loading...", event.presentation.text)
+      assertEquals("The preview is updating...", event.presentation.description)
+    }
 
     viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
-    action.update(event)
-    val statusInfo = getStatusInfo(projectRule.project, dataContext)!!
-    assertTrue(statusInfo.hasRefreshIcon)
-    assertEquals(IdeStatus.Presentation.Warning, statusInfo.presentation)
-    assertEquals("Render Issues", event.presentation.text)
-    assertEquals(
-      "Some problems were found while rendering the preview",
-      event.presentation.description,
-    )
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      val statusInfo = getStatusInfo(projectRule.project, dataContext)!!
+      assertTrue(statusInfo.hasRefreshIcon)
+      assertEquals(IdeStatus.Presentation.Warning, statusInfo.presentation)
+      assertEquals("Render Issues", event.presentation.text)
+      assertEquals(
+        "Some problems were found while rendering the preview",
+        event.presentation.description,
+      )
+    }
   }
 
   @Test
   fun `check state priorities`() {
     val action = CommonIssueNotificationAction(::noPopupFactor)
-    val event = TestActionEvent.createTestEvent(dataContext)
-
     viewModelStatus =
       TestPreviewViewModelStatus(
         hasSyntaxErrors = true,
         hasErrorsAndNeedsBuild = true,
         isOutOfDate = true,
       )
-    action.update(event)
-    // Syntax errors take precedence over out of date when Fast Preview is Enabled
-    assertEquals("Paused", event.presentation.text)
-    assertEquals(
-      "The preview will not update while your project contains syntax errors.",
-      event.presentation.description,
-    )
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      // Syntax errors take precedence over out of date when Fast Preview is Enabled
+      assertEquals("Paused", event.presentation.text)
+      assertEquals(
+        "The preview will not update while your project contains syntax errors.",
+        event.presentation.description,
+      )
+    }
 
     try {
       FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
-
-      action.update(event)
-      // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
-      assertEquals("Out of date", event.presentation.text)
-      assertEquals("The preview is out of date", event.presentation.description)
+      TestActionEvent.createTestEvent(dataContext).let { event ->
+        action.update(event)
+        // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
+        assertEquals("Out of date", event.presentation.text)
+        assertEquals("The preview is out of date", event.presentation.description)
+      }
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
     }
@@ -160,10 +173,11 @@ class CommonIssueNotificationActionTest {
         isOutOfDate = true,
         isRefreshing = true,
       )
-    action.update(event)
-    assertEquals("Loading...", event.presentation.text)
-    assertEquals("The preview is updating...", event.presentation.description)
-
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      assertEquals("Loading...", event.presentation.text)
+      assertEquals("The preview is updating...", event.presentation.description)
+    }
     // Most other statuses take precedence over runtime errors
     viewModelStatus =
       TestPreviewViewModelStatus(
@@ -172,33 +186,38 @@ class CommonIssueNotificationActionTest {
         isOutOfDate = true,
         isRefreshing = true,
       )
-    action.update(event)
-    assertEquals("Loading...", event.presentation.text)
-    assertEquals("The preview is updating...", event.presentation.description)
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      assertEquals("Loading...", event.presentation.text)
+      assertEquals("The preview is updating...", event.presentation.description)
+    }
 
     viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true, isOutOfDate = true)
     try {
       FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
-
-      action.update(event)
-      // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
-      assertEquals("Out of date", event.presentation.text)
-      assertEquals("The preview is out of date", event.presentation.description)
+      TestActionEvent.createTestEvent(dataContext).let { event ->
+        action.update(event)
+        // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
+        assertEquals("Out of date", event.presentation.text)
+        assertEquals("The preview is out of date", event.presentation.description)
+      }
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
     }
 
     viewModelStatus =
       TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true, hasSyntaxErrors = true)
-    action.update(event)
-    assertEquals(
-      "The preview will not update while your project contains syntax errors.",
-      event.presentation.description,
-    )
-    assertEquals(
-      "The preview will not update while your project contains syntax errors.",
-      event.presentation.description,
-    )
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      assertEquals(
+        "The preview will not update while your project contains syntax errors.",
+        event.presentation.description,
+      )
+      assertEquals(
+        "The preview will not update while your project contains syntax errors.",
+        event.presentation.description,
+      )
+    }
   }
 
   private fun InformationPopup.labelsDescription(): String =

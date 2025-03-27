@@ -1,0 +1,6 @@
+<resources>
+
+    <style name="PreviewTheme" parent="android:Theme.Holo">
+    </style>
+
+</resources>

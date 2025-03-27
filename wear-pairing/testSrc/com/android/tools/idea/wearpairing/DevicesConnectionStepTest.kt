@@ -17,7 +17,7 @@ package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.testutils.MockitoKt.whenever
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.HtmlLabel
@@ -45,6 +45,9 @@ import javax.swing.JButton
 import javax.swing.JLabel
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class DevicesConnectionStepTest : LightPlatform4TestCase() {
   private val invokeStrategy = TestInvokeStrategy()
@@ -55,7 +58,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     PairingDevice(
       deviceID = "id1",
       displayName = "My Phone",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isWearDevice = false,
       isEmulator = true,
       hasPlayStore = true,
@@ -65,7 +68,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     PairingDevice(
       deviceID = "id2",
       displayName = "Round Watch",
-      apiLevel = 30,
+      androidVersion = AndroidVersion(30),
       isEmulator = true,
       isWearDevice = true,
       hasPlayStore = true,
@@ -256,8 +259,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   fun shouldShowErrorIfAgpConnectionFails() {
     val iDevice =
       createTestDevice(companionAppVersion = "versionName=1.0.0") // Simulate Companion App
-    whenever(iDevice.createForward(Mockito.anyInt(), Mockito.anyInt()))
-      .thenThrow(RuntimeException("Test"))
+    whenever(iDevice.createForward(any(), any())).thenThrow(RuntimeException("Test"))
     phoneDevice.launch = { iDevice }
     wearDevice.launch = phoneDevice.launch
 
@@ -364,7 +366,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     abis: List<String>? = null,
     additionalReplies: (request: String) -> String? = { null },
   ): IDevice {
-    val iDevice = Mockito.mock(IDevice::class.java)
+    val iDevice = mock<IDevice>()
     whenever(iDevice.executeShellCommand(Mockito.anyString(), Mockito.any())).thenAnswer {
       invocation ->
       val request = invocation.arguments[0] as String

@@ -18,7 +18,7 @@ package com.android.tools.profilers.memory.adapters
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId
 import com.android.tools.profiler.proto.Memory.AllocationStack
-import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
 class LiveAllocationInstanceObject(private val captureObject: LiveAllocationCaptureObject,
                                    private val classEntry: ClassDb.ClassEntry,
@@ -33,7 +33,7 @@ class LiveAllocationInstanceObject(private val captureObject: LiveAllocationCapt
   }
   private var allocTime = Long.MIN_VALUE
   private var deallocTime = Long.MAX_VALUE
-  private var jniRefs: TLongObjectHashMap<JniReferenceInstanceObject>? = null
+  private var jniRefs: Long2ObjectOpenHashMap<JniReferenceInstanceObject>? = null
 
   override fun getAllocTime() = allocTime
 
@@ -75,7 +75,7 @@ class LiveAllocationInstanceObject(private val captureObject: LiveAllocationCapt
   fun getJniRefByValue(refValue: Long) = jniRefs?.get(refValue)
 
   fun addJniRef(ref: JniReferenceInstanceObject) {
-    if (jniRefs == null) jniRefs = TLongObjectHashMap()
+    if (jniRefs == null) jniRefs = Long2ObjectOpenHashMap()
     jniRefs!!.put(ref.refValue, ref)
   }
 

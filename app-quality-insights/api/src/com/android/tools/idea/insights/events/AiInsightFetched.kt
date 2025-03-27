@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.insights.events
 
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsight>) :
@@ -27,13 +29,19 @@ data class AiInsightFetched(private val fetchedInsight: LoadingState.Done<AiInsi
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
+    cache: AppInsightsCache,
   ): StateTransition<Action> {
     val crashType = state.selectedIssue?.issueDetails?.fatality
     val appId = state.connections.selected?.appId
     val insight = (fetchedInsight as? LoadingState.Ready)?.value
     if (insight != null && crashType != null && appId != null) {
-      tracker.logInsightFetch(appId, crashType, insight)
+      tracker.logInsightFetch(
+        appId,
+        crashType,
+        insight,
+        GeminiPluginApi.getInstance().MAX_QUERY_CHARS,
+      )
     }
     return StateTransition(newState = state.copy(currentInsight = fetchedInsight), Action.NONE)
   }

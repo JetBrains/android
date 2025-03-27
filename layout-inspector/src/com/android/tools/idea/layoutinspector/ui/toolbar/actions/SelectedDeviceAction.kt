@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
+import com.android.adblib.DeviceSelector
+import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.appinspection.ide.ui.ICON_EMULATOR
 import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
 import com.android.tools.idea.appinspection.ide.ui.NO_DEVICE_ACTION
 import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
@@ -26,6 +27,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionSupport
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,10 +35,16 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
-import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import java.util.concurrent.ConcurrentHashMap
 import javax.swing.Icon
 import javax.swing.JComponent
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Action used to display a dropdown of all inspectable devices.
@@ -44,6 +52,8 @@ import javax.swing.JComponent
  * The UI of this action always reflects the [DeviceModel] passed as argument.
  */
 class SelectDeviceAction(
+  private val deviceProvisioner: DeviceProvisioner,
+  private val scope: CoroutineScope,
   private val deviceModel: DeviceModel,
   private val onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   private val onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
@@ -51,6 +61,17 @@ class SelectDeviceAction(
   private val onDetachAction: (() -> Unit) = {},
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> },
 ) : DropDownAction("Select device", "Select a device to connect to.", ICON_PHONE) {
+
+  init {
+    scope.launch {
+      while (isActive) {
+        updateDeviceIcons(deviceModel.devices)
+        delay(1000)
+      }
+    }
+  }
+
+  @VisibleForTesting val deviceIcons = ConcurrentHashMap<String, Icon?>()
 
   var button: JComponent? = null
     private set
@@ -85,6 +106,7 @@ class SelectDeviceAction(
 
     event.presentation.icon = dropDownPresentation.icon
     event.presentation.text = dropDownPresentation.text
+    event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
   }
 
   public override fun updateActions(context: DataContext): Boolean {
@@ -111,8 +133,6 @@ class SelectDeviceAction(
     return true
   }
 
-  override fun displayTextInToolbar() = true
-
   class DetachPresentation(
     val text: String = "Stop Inspector",
     val desc: String = "Stop running the layout inspector against the current device.",
@@ -121,7 +141,7 @@ class SelectDeviceAction(
   /** Action used to detach the inspector. */
   @VisibleForTesting
   inner class DetachInspectorAction :
-    AnAction(detachPresentation.text, detachPresentation.desc, StudioIcons.Shell.Toolbar.STOP) {
+    AnAction(detachPresentation.text, detachPresentation.desc, AllIcons.Run.Stop) {
 
     /** This action is enabled each time a device is selected. */
     @VisibleForTesting
@@ -143,17 +163,18 @@ class SelectDeviceAction(
   /** A device which the user can select. */
   private inner class DeviceAction(private val device: DeviceDescriptor) :
     ToggleAction(device.buildDeviceName(), null, device.toIcon()) {
-    override fun displayTextInToolbar() = true
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(event: AnActionEvent) {
       super.update(event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       // restore the icon after the Action was de-selected
       if (!Toggleable.isSelected(event.presentation)) {
         event.presentation.icon = device.toIcon()
       }
       customDeviceAttribution(device, event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
@@ -177,8 +198,6 @@ class SelectDeviceAction(
     ) {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    override fun displayTextInToolbar() = true
-
     init {
       val processes =
         deviceModel.processes
@@ -196,6 +215,7 @@ class SelectDeviceAction(
     override fun update(event: AnActionEvent) {
       super.update(event)
       customDeviceAttribution(device, event)
+      event.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
   }
 
@@ -211,6 +231,29 @@ class SelectDeviceAction(
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
+
+  /** Retrieves and updates device icons for the provided list of devices. */
+  private suspend fun updateDeviceIcons(devices: Set<DeviceDescriptor>) {
+    devices.forEach {
+      val icon =
+        deviceProvisioner
+          .findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(it.serial), 1.seconds)
+          ?.state
+          ?.properties
+          ?.icon
+
+      if (icon != null) {
+        deviceIcons[it.serial] = icon
+      }
+    }
+  }
+
+  private fun DeviceDescriptor.toIcon(): Icon? {
+    // If the icon is not found, display no icon to prevent replacing the placeholder icon after the
+    // actual icon is done loading. Which would result in a jarring user experience, Also the
+    // placeholder icon does not hold significant meaning about the device type.
+    return deviceIcons[serial]
+  }
 }
 
 private fun createDeviceLabel(
@@ -223,7 +266,5 @@ private fun createDeviceLabel(
     device.buildDeviceName()
   }
 }
-
-private fun DeviceDescriptor.toIcon() = if (isEmulator) ICON_EMULATOR else ICON_PHONE
 
 private data class DropDownPresentation(val text: String, val icon: Icon?)

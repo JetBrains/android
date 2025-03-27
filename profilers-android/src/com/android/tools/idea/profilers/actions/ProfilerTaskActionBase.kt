@@ -29,8 +29,11 @@ import com.intellij.openapi.project.Project
  */
 abstract class ProfilerTaskActionBase : AnAction() {
 
+  protected fun getProfilerToolWindow(project: Project) =
+    AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)
+
   protected fun getStudioProfilers(project: Project) =
-    AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers
+    getProfilerToolWindow(project)!!.profilers
 
   protected fun getTaskHomeTabModel(project: Project) =
     getStudioProfilers(project).taskHomeTabModel

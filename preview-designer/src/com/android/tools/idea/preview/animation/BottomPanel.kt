@@ -43,7 +43,7 @@ class BottomPanel(rootComponent: JComponent, private val tracker: AnimationTrack
   var clockTimeMs: Int = 0
     set(value) {
       field = value
-      westToolbar.updateActionsImmediately()
+      westToolbar.updateActionsAsync()
     }
 
   private val westToolbar =

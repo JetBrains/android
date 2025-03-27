@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.psi.PsiField
 import com.intellij.psi.PsiLiteralExpression
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
@@ -943,7 +944,61 @@ class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
     myFixture.configureFromExistingVirtualFile(dao.containingFile.virtualFile)
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.second.User"))
+  }
 
+  fun test_viewsResolve() {
+    myFixture.addClass( """
+        package com.example;
+        import androidx.room.Entity;
+        import androidx.room.PrimaryKey;
+        @Entity
+        public class Person {
+            @PrimaryKey(autoGenerate = true) public int id;
+            public String name;
+            public String lastName;
+            public int age;
+        }
+    """.trimIndent())
 
+    val viewClass = myFixture.addClass( """
+        package com.example;
+        import androidx.room.DatabaseView;
+        @DatabaseView("SELECT name, age FROM Person")
+        public class PersonView {
+            public String name;
+            public int age;
+        }
+    """.trimIndent())
+
+    myFixture.addClass("""
+        package com.example;
+        import androidx.room.Database;
+        import androidx.room.RoomDatabase;
+        @Database(entities = {Person.class}, views = {PersonView.class}, version = 1, exportSchema = false)
+        public abstract class PersonDB extends RoomDatabase {
+            public abstract PersonDAO personDAO();
+        }
+    """.trimIndent())
+
+    val dao = myFixture.addClass("""
+      package com.example;
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
+      @Dao
+      public interface PersonDAO {
+          @Query("SELECT name FROM Person")
+          List<String> getNamesFromPersonTable();
+          @Query("SELECT na<caret>me FROM PersonView")
+          List<String> getNamesFromPersonView();
+      }
+
+    """.trimIndent())
+
+    myFixture.configureFromExistingVirtualFile(dao.containingFile.virtualFile)
+
+    assertThat(myFixture.elementAtCaret).isInstanceOf(PsiField::class.java)
+    val field = myFixture.elementAtCaret as PsiField
+    assertThat(field.containingClass).isEqualTo(viewClass)
   }
 }

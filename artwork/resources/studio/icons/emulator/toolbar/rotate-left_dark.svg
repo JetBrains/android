@@ -1,1 +1,16 @@
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2 2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2zm0 10h5V4H2v8z" fill="#AFB1B3"/><path fill-rule="evenodd" clip-rule="evenodd" d="M10 4.126V7l1.828-1.828A4.002 4.002 0 0 1 10 11.874v2.043a6.002 6.002 0 0 0 3.243-10.16L15 2h-5V4.126z" fill="#3592C4"/></svg>
+<!--
+  - Copyright (C) 2025 The Android Open Source Project
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License");
+  - you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at
+  -
+  -      http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS,
+  - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  - See the License for the specific language governing permissions and
+  - limitations under the License.
+  -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_220_692)"><path d="M11.248 2.566a.5.5 0 00-.496.868l.496-.868zM14.5 8.5H14h.5zm-4.121 4.515a.5.5 0 00.242.97l-.242-.97zM13.5 3a.5.5 0 000-1v1zm-3-.5V2H10v.5h.5zm-.5 3a.5.5 0 001 0h-1zM11 3l-.248.434a.847.847 0 01.029.017l.099.062a8.365 8.365 0 011.504 1.265C13.213 5.667 14 6.926 14 8.5h1c0-1.925-.963-3.416-1.884-4.404a9.365 9.365 0 00-1.695-1.424 5.16 5.16 0 00-.158-.097l-.01-.006-.003-.002h-.001L11 3zm3 5.5c0 1.804-.891 2.918-1.8 3.6a5.947 5.947 0 01-1.791.907l-.026.007-.005.001.122.485.122.485h.002l.004-.002.012-.003.041-.011a6.327 6.327 0 00.636-.226A6.949 6.949 0 0012.8 12.9c1.091-.818 2.2-2.204 2.2-4.4h-1zM13.5 2h-3v1h3V2zm-3.5.5v3h1v-3h-1z" fill="#548AF7"/><path d="M8.5 3v10a.5.5 0 01-.5.5H2a.5.5 0 01-.5-.5V3a.5.5 0 01.5-.5h6a.5.5 0 01.5.5z" stroke="#CED0D6" stroke-linecap="round"/><rect x="4" y="4" width="2" height="1" rx=".5" fill="#CED0D6"/></g><defs><clipPath id="clip0_220_692"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>

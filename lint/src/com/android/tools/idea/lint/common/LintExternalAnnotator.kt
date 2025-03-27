@@ -400,7 +400,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     }
   }
 
-  private class MyDisableInspectionFix(key: HighlightDisplayKey) : IntentionAction, Iconable {
+  private class MyDisableInspectionFix(key: HighlightDisplayKey) :
+    IntentionAction, Iconable, PriorityAction {
     private val myDisableInspectionToolAction = DisableInspectionToolAction(key)
 
     override fun getText(): String {
@@ -431,6 +432,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     override fun getIcon(@IconFlags flags: Int): Icon {
       return myDisableInspectionToolAction.getIcon(flags)
     }
+
+    override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.LOW
   }
 
   class MyFixingIntention(
@@ -519,5 +522,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     CustomEditInspectionToolsSettingsAction(
       key,
       Computable { "Edit '" + inspection.displayName + "' inspection settings" },
-    )
+    ),
+    PriorityAction {
+    override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.LOW
+  }
 }

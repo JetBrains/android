@@ -17,6 +17,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -26,18 +27,22 @@ import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.IDE
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.MODELESS
 import com.intellij.openapi.util.Disposer
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.util.ui.JBUI
 import java.net.URL
+import kotlinx.coroutines.withContext
 
 // Keep an instance, so if the wizard is already running, just bring it to the front
 private var wizardDialog: ModelWizardDialog? = null
@@ -56,24 +61,30 @@ class WearDevicePairingWizard {
           wizardDialog?.close(CANCEL_EXIT_CODE)
 
           if (project == null) {
-            val actionId = "WelcomeScreen.RunDeviceManager2"
-            ActionManager.getInstance()
-              .getAction(actionId)
-              .actionPerformed(
-                AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { null }
+            val deviceManagerAction =
+              ActionManager.getInstance().getAction("WelcomeScreen.RunDeviceManager2")
+            val actionEvent =
+              AnActionEvent.createEvent(
+                DataContext.EMPTY_CONTEXT,
+                null,
+                ActionPlaces.UNKNOWN,
+                ActionUiKind.NONE,
+                null,
               )
+            ActionUtil.invokeAction(deviceManagerAction, actionEvent, null)
           } else {
             // from com.android.tools.idea.devicemanagerv2.DeviceManager2Action
-            val actionId = "Android.DeviceManager2"
-            val deviceManagerAction = ActionManager.getInstance().getAction(actionId)
-            val projectContext = SimpleDataContext.getProjectContext(project)
-            ActionUtil.invokeAction(
-              deviceManagerAction,
-              projectContext,
-              ActionPlaces.UNKNOWN,
-              null,
-              null,
-            )
+            val deviceManagerAction =
+              ActionManager.getInstance().getAction("Android.DeviceManager2")
+            val actionEvent =
+              AnActionEvent.createEvent(
+                SimpleDataContext.getProjectContext(project),
+                null,
+                ActionPlaces.UNKNOWN,
+                ActionUiKind.NONE,
+                null,
+              )
+            ActionUtil.invokeAction(deviceManagerAction, actionEvent, null)
           }
         }
 
@@ -113,19 +124,15 @@ class WearDevicePairingWizard {
 
   @UiThread
   fun show(project: Project?, selectedDeviceId: String?) {
-    object : Task.Modal(project, message("wear.assistant.device.connection.balloon.link"), true) {
-        var selectedDevice: PairingDevice? = null
-
-        override fun run(indicator: ProgressIndicator) {
-          if (selectedDeviceId != null) {
-            selectedDevice = WearPairingManager.getInstance().findDevice(selectedDeviceId)
-          }
-        }
-
-        override fun onFinished() {
-          show(project, selectedDevice)
-        }
-      }
-      .queue()
+    val owner = project?.let { ModalTaskOwner.project(project) } ?: ModalTaskOwner.guess()
+    runWithModalProgressBlocking(
+      owner,
+      message("wear.assistant.device.connection.balloon.link"),
+      cancellable(),
+    ) {
+      val selectedDevice =
+        selectedDeviceId?.let { WearPairingManager.getInstance().findDevice(selectedDeviceId) }
+      withContext(uiThread) { show(project, selectedDevice) }
+    }
   }
 }

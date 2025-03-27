@@ -16,7 +16,11 @@
 package com.android.tools.idea.templates.diff
 
 import com.android.test.testutils.TestUtils
+import com.android.tools.idea.templates.SDK_VERSION_FOR_TEMPLATE_TESTS
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.withCompileSdk
+import com.android.tools.idea.testing.withTargetSdk
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -31,8 +35,11 @@ object TemplateDiffTestUtils {
    *
    * TODO: extend this to more versions
    */
-  internal fun getPinnedAgpVersion(): AgpVersionSoftwareEnvironmentDescriptor {
-    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  internal fun getPinnedAgpVersion(): AgpVersionSoftwareEnvironment {
+    return AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk(
+        SDK_VERSION_FOR_TEMPLATE_TESTS.toString()
+      )
+      .withTargetSdk(SDK_VERSION_FOR_TEMPLATE_TESTS.toString())
   }
 
   /**
@@ -42,7 +49,7 @@ object TemplateDiffTestUtils {
    * file contents without having to update golden files every week just for this version string.
    */
   internal fun smartDiffAgpVersion(): Boolean {
-    return getPinnedAgpVersion() == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+    return getPinnedAgpVersion().agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.agpVersion
   }
 
   /**

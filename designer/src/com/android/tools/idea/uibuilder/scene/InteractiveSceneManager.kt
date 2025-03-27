@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
-import java.util.concurrent.CompletableFuture
-
 interface InteractiveSceneManager {
 
-  fun executeCallbacksAndRequestRender(): CompletableFuture<Void>
+  fun executeCallbacksAndRequestRender()
 
   /** Pauses session clock, so that session time stops advancing. */
   fun pauseSessionClock()

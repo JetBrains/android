@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_APP
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
+import com.android.tools.idea.testing.AndroidModuleDependency
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.wear.preview.WearTilePreviewElementSubject.Companion.assertThat
 import com.android.tools.preview.PreviewConfiguration
@@ -27,21 +35,49 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.diagnostic.Checks.fail
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.atMost
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewElementFinderTest {
-  @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule
+  val projectRule: AndroidProjectRule =
+    AndroidProjectRule.withAndroidModels(
+      rootModuleBuilder,
+      AndroidModuleModelBuilder(
+        ":lib",
+        "debug",
+        AndroidProjectBuilder(projectType = { PROJECT_TYPE_LIBRARY }),
+      ),
+      AndroidModuleModelBuilder(
+        ":app",
+        "debug",
+        AndroidProjectBuilder(
+          projectType = { PROJECT_TYPE_APP },
+          androidModuleDependencyList = {
+            listOf(AndroidModuleDependency(moduleGradlePath = ":lib", variant = "debug"))
+          },
+        ),
+      ),
+    )
 
   private val project
     get() = projectRule.project
@@ -54,7 +90,7 @@ class WearTilePreviewElementFinderTest {
   @Before
   fun setUp() {
     fixture.addFileToProjectAndInvalidate(
-      "android/content/Context.kt",
+      "lib/src/main/java/android/content/Context.kt",
       // language=kotlin
       """
         package android.content
@@ -63,14 +99,14 @@ class WearTilePreviewElementFinderTest {
       """
         .trimIndent(),
     )
-    fixture.stubWearTilePreviewAnnotation()
+    fixture.stubWearTilePreviewAnnotation("lib")
   }
 
   @Test
   fun testWearTileElementsFinder() = runBlocking {
     val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/Src.kt",
+        "app/src/main/java/com/android/test/Src.kt",
         // language=kotlin
         """
         package com.android.test
@@ -168,7 +204,7 @@ class WearTilePreviewElementFinderTest {
 
     val otherFileTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/OtherFile.kt",
+        "app/src/main/java/com/android/test/OtherFile.kt",
         // language=kotlin
         """
         package com.android.test
@@ -186,7 +222,7 @@ class WearTilePreviewElementFinderTest {
 
     val fileWithNoPreviews =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFileNone.kt",
+        "app/src/main/java/com/android/test/SourceFileNone.kt",
         // language=kotlin
         """
         package com.android.test
@@ -403,7 +439,7 @@ class WearTilePreviewElementFinderTest {
   fun testWearTileElementsFinderFindsAliasImports() = runBlocking {
     val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/Src.kt",
+        "app/src/main/java/com/android/test/Src.kt",
         // language=kotlin
         """
         package com.android.test
@@ -448,7 +484,7 @@ class WearTilePreviewElementFinderTest {
   fun testWearTileElementsFinderFindsJavaPreviews() = runBlocking {
     val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/JavaPreview.java",
+        "app/src/main/java/com/android/test/JavaPreview.java",
         // language=java
         """
         package com.android.test;
@@ -491,7 +527,7 @@ class WearTilePreviewElementFinderTest {
   @Test
   fun testFindsMultiPreviews() = runBlocking {
     fixture.addFileToProjectAndInvalidate(
-      "com/android/test/AllWearDevices.kt",
+      "app/src/main/java/com/android/test/AllWearDevices.kt",
       // language=kotlin
       """
         package com.android.test
@@ -510,7 +546,7 @@ class WearTilePreviewElementFinderTest {
 
     val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/Src.kt",
+        "app/src/main/java/com/android/test/Src.kt",
         // language=kotlin
         """
         package com.android.test
@@ -540,7 +576,7 @@ class WearTilePreviewElementFinderTest {
 
     val previewsWithoutDirectUseOfPreviewTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/OtherSrc.kt",
+        "app/src/main/java/com/android/test/OtherSrc.kt",
         // language=kotlin
         """
         package com.android.test
@@ -698,12 +734,66 @@ class WearTilePreviewElementFinderTest {
     }
   }
 
+  @Test
+  fun testFindsMultiPreviewsFromLibrary() = runBlocking {
+    fixture.addFileToProjectAndInvalidate(
+      "lib/src/main/java/com/android/test/AllWearDevices.kt",
+      // language=kotlin
+      """
+        package com.android.test
+
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.WearDevices
+
+        @Preview
+        annotation class MultiPreview
+        """
+        .trimIndent(),
+    )
+
+    val testFile =
+      fixture.addFileToProjectAndInvalidate(
+        "app/src/main/java/com/android/test/Src.kt",
+        // language=kotlin
+        """
+        package com.android.test
+
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+        @MultiPreview
+        private fun tilePreview(): TilePreviewData {
+          return TilePreviewData()
+        }
+        """
+          .trimIndent(),
+      )
+
+    assertTrue(elementFinder.hasPreviewElements(project, testFile.virtualFile))
+
+    val previewElements = elementFinder.findPreviewElements(project, testFile.virtualFile)
+    assertThat(previewElements).hasSize(1)
+
+    previewElements.single().let {
+      assertThat(it)
+        .hasDisplaySettings(
+          defaultDisplaySettings(
+            name = "tilePreview - MultiPreview 1",
+            baseName = "tilePreview",
+            parameterName = "MultiPreview 1",
+          )
+        )
+      assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
+      assertThat(it).previewBodyHasTextRange(testFile.textRange("tilePreview"))
+      assertThat(it).hasAnnotationDefinition("@MultiPreview")
+    }
+  }
+
   // Regression test for b/368402966
   @Test
   fun testHandlesInvalidPsiElements() = runBlocking {
     val previewFile =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/Test.kt",
+        "app/src/main/java/com/android/test/Test.kt",
         // language=kotlin
         """
           package com.android.test
@@ -733,6 +823,138 @@ class WearTilePreviewElementFinderTest {
     } catch (e: Exception) {
       fail("The invalid PSI element should be handled")
     }
+  }
+
+  // Regression test for b/344639845
+  @Test
+  fun testFindMethodsResultIsCachedEvenWhenTakingALongTime() =
+    runBlocking<Unit> {
+      val previewFile =
+        fixture.addFileToProjectAndInvalidate(
+          "app/src/main/java/com/android/test/Test.kt",
+          // language=kotlin
+          """
+          package com.android.test
+
+          import androidx.wear.tiles.tooling.preview.Preview
+          import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+          @Preview
+          private fun tilePreview(): TilePreviewData {
+            return TilePreviewData()
+          }
+          """
+            .trimIndent(),
+        )
+
+      val mockFindMethods = mock<(PsiFile?) -> Collection<PsiElement>>()
+      whenever(mockFindMethods.invoke(previewFile)).then {
+        runBlocking {
+          // simulate taking a bit of time to ensure we don't end up re-calling this method instead
+          // of re-using an existing computation
+          delay(2.seconds)
+        }
+        emptyList<PsiElement>()
+      }
+
+      val finder = WearTilePreviewElementFinder(findMethods = mockFindMethods)
+      withContext(AndroidDispatchers.workerThread) {
+        (0 until 20).forEach {
+          launch { finder.hasPreviewElements(project, previewFile.virtualFile) }
+          launch { finder.findPreviewElements(project, previewFile.virtualFile) }
+        }
+      }
+
+      verify(mockFindMethods, atLeastOnce()).invoke(previewFile)
+      // Checking if the cached value has been set and then setting it is not atomic, so in some
+      // cases the method can be called more than once. The import thing is to ensure the method
+      // is not called 40 times which was the case before. Here "4" should be a safe upper bound
+      // to prevent flakiness.
+      verify(mockFindMethods, atMost(4)).invoke(previewFile)
+    }
+
+  @Test
+  fun testPreviewNameAndOrder(): Unit = runBlocking {
+    val testFile =
+      fixture.addFileToProjectAndInvalidate(
+        "app/src/main/java/com/android/test/Test.kt",
+        // language=kotlin
+        """
+        import androidx.wear.tiles.tooling.preview.Preview
+        import androidx.wear.tiles.tooling.preview.TilePreviewData
+
+        @Annot3
+        @Preview
+        annotation class Annot1(){}
+
+        @Preview
+        annotation class Annot2(){}
+
+        @Annot1
+        @Preview
+        fun c() = TilePreviewData()
+
+        @Annot1
+        @Preview
+        annotation class Annot3(){}
+
+        @Annot2
+        @Preview
+        @Annot3
+        fun a() = TilePreviewData()
+
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview // 10 previews, for testing lexicographic order with double-digit numbers in the names
+        annotation class Many() {}
+
+        @Many
+        fun f() = TilePreviewData()
+      """
+          .trimIndent(),
+      )
+
+    elementFinder
+      .findPreviewElements(project, testFile.virtualFile)
+      .toMutableList()
+      .apply {
+        // Randomize to make sure the ordering works
+        shuffle()
+      }
+      .sortByDisplayAndSourcePosition()
+      .map { it.displaySettings.name }
+      .toTypedArray()
+      .let {
+        assertArrayEquals(
+          arrayOf(
+            "c - Annot1 1",
+            "c - Annot3 1",
+            "c", // Previews of 'C'
+            "a - Annot2 1",
+            "a",
+            "a - Annot1 1",
+            "a - Annot3 1", // Previews of 'a'
+            "f - Many 01",
+            "f - Many 02",
+            "f - Many 03",
+            "f - Many 04",
+            "f - Many 05",
+            "f - Many 06",
+            "f - Many 07",
+            "f - Many 08",
+            "f - Many 09",
+            "f - Many 10", // Previews of 'f'
+          ),
+          it,
+        )
+      }
   }
 }
 
@@ -795,7 +1017,7 @@ private fun defaultDisplaySettings(
     group = group,
     showBackground = true,
     showDecoration = false,
-    backgroundColor = "#ff000000",
+    backgroundColor = null,
   )
 
 private fun defaultConfiguration(

@@ -12,8 +12,8 @@ java_test(
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata:build_graphs",
         "//tools/adt/idea/aswb/shared",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -26,8 +26,8 @@ java_test(
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/query:QuerySummaryTestUtil",
         "//tools/adt/idea/aswb/shared:vcs",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -38,8 +38,8 @@ java_test(
     srcs = ["ProjectDefinitionTest.java"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -51,8 +51,8 @@ java_test(
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:language_class_java_proto",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:io.grpc.grpc-protobuf",
     ],
 )
@@ -63,8 +63,8 @@ java_test(
     srcs = ["TestSourceGlobMatcherTest.java"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -75,8 +75,8 @@ java_test(
     srcs = ["DepsGraphTest.java"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -87,8 +87,8 @@ java_test(
     srcs = ["ExternalTransitiveClosureTest.java"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
     ],
 )
@@ -99,8 +99,8 @@ java_test(
     srcs = ["PendingExternalDepsTest.java"],
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
-        "//tools/vendor/google/aswb/third_party/java/junit",
-        "//tools/vendor/google/aswb/third_party/java/truth",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
     ],
 )

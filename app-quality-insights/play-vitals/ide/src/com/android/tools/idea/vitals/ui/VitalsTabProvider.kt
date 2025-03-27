@@ -19,11 +19,12 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
-import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
+import com.android.tools.idea.insights.ui.ServiceDeprecatedPanel
+import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
@@ -32,22 +33,35 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.updateSettings.impl.UpdateChecker
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.StatusText
 import icons.StudioIllustrations
 import java.awt.Graphics
 import java.time.Clock
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class VitalsTabProvider : AppInsightsTabProvider {
-  override val displayName = VITALS_KEY.displayName
+  override val displayName = VitalsInsightsProvider.displayName
 
   override val icon = StudioIllustrations.Common.PLAY_CONSOLE_ICON
 
-  override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
+  override fun populateTab(
+    project: Project,
+    tabPanel: AppInsightsTabPanel,
+    activeTabFlow: Flow<Boolean>,
+  ) {
+    val deprecationData = getConfigurationManager(project).deprecationData
+    if (deprecationData.isDeprecated()) {
+      tabPanel.setComponent(
+        ServiceDeprecatedPanel(deprecationData) { UpdateChecker.updateAndShowResult(project) }
+      )
+      return
+    }
     tabPanel.setComponent(placeholderContent())
     AndroidCoroutineScope(tabPanel, AndroidDispatchers.diskIoThread).launch {
       val configManager = project.service<VitalsConfigurationService>().manager
@@ -84,6 +98,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
                   project,
                   Clock.systemDefaultZone(),
                   AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
+                  activeTabFlow,
                 )
               )
             }

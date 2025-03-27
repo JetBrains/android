@@ -17,11 +17,11 @@ package com.android.tools.idea.profilers
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Common
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.util.concurrent.LinkedBlockingDeque
 
 

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import org.junit.Assert
@@ -31,8 +31,9 @@ class ComposePreviewElementModelAdapterTest {
     object : ComposePreviewElementModelAdapter() {
       override fun toXml(previewElement: PsiComposePreviewElementInstance) = ""
 
-      override fun createDataContext(previewElement: PsiComposePreviewElementInstance) =
-        DataContext {}
+      override fun createDataProvider(
+        previewElement: PsiComposePreviewElementInstance
+      ): NlDataProvider? = null
     }
 
   @Test

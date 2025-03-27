@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.qsync.QuerySyncAsyncFileListener.SyncRequester;
-import com.google.idea.testing.java.CompatLightJavaCodeInsightFixtureTestCase4;
+import com.google.idea.testing.java.LightJavaCodeInsightFixtureTestCase4Concrete;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
@@ -41,7 +41,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
-public class QuerySyncAsyncFileListenerTest extends CompatLightJavaCodeInsightFixtureTestCase4 {
+public class QuerySyncAsyncFileListenerTest extends LightJavaCodeInsightFixtureTestCase4Concrete {
   @Rule public final MockitoRule mockito = MockitoJUnit.rule();
 
   @Mock private SyncRequester mockSyncRequester;

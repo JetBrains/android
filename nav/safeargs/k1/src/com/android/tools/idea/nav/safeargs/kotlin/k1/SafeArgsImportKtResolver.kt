@@ -31,6 +31,9 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.ui.popup.list.GroupedItemsListRenderer
+import java.awt.BorderLayout
+import javax.swing.JPanel
+import javax.swing.ListCellRenderer
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -54,9 +57,6 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.resolve.asImportedFromObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
-import java.awt.BorderLayout
-import javax.swing.JPanel
-import javax.swing.ListCellRenderer
 
 /**
  * Registers an unresolved reference resolver in Kotlin files which recognizes classes from Safe
@@ -112,31 +112,27 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
     }
 
     // Follow approach from KotlinAddImportAction and use JBPopupFactory to create popup
-    JBPopupFactory.getInstance().createListPopup(project, getVariantSelectionPopup(project, file, suggestions)) producer@{ renderer ->
-      val baseRenderer = renderer as? GroupedItemsListRenderer<Any> ?: return@producer renderer
-      val psiRenderer = SafeArgsPsiElementCellRenderer()
-      ListCellRenderer<AutoImportVariant> { list, value, index, isSelected, cellHasFocus ->
-        JPanel(BorderLayout()).apply {
-          baseRenderer.getListCellRendererComponent(
-            list,
-            value,
-            index,
-            isSelected,
-            cellHasFocus,
-          )
-          add(baseRenderer.nextStepLabel, BorderLayout.EAST)
-          add(
-            psiRenderer.getListCellRendererComponent(
-              list,
-              value.declarationToImport(project),
-              index,
-              isSelected,
-              cellHasFocus,
+    JBPopupFactory.getInstance()
+      .createListPopup(project, getVariantSelectionPopup(project, file, suggestions)) producer@{
+        renderer ->
+        val baseRenderer = renderer as? GroupedItemsListRenderer<Any> ?: return@producer renderer
+        val psiRenderer = SafeArgsPsiElementCellRenderer()
+        ListCellRenderer<AutoImportVariant> { list, value, index, isSelected, cellHasFocus ->
+          JPanel(BorderLayout()).apply {
+            baseRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+            add(baseRenderer.nextStepLabel, BorderLayout.EAST)
+            add(
+              psiRenderer.getListCellRendererComponent(
+                list,
+                value.declarationToImport(project),
+                index,
+                isSelected,
+                cellHasFocus,
+              )
             )
-          )
+          }
         }
       }
-    }
       .showInBestPositionFor(editor)
   }
 
@@ -150,7 +146,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       .asSequence()
       .flatMap { descriptor ->
         descriptor.findVisibleClassesBySimpleName(nameIdentifier) +
-          descriptor.findVisibleFunctionsBySimpleName(nameIdentifier)
+        descriptor.findVisibleFunctionsBySimpleName(nameIdentifier)
       }
       .map { AutoImportVariant(it) }
       .filter { it.importFqName != null }
@@ -162,14 +158,14 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
     name: Name
   ): Sequence<DeclarationDescriptor> {
     return getMemberScope()
-      .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { it == name }
-      .asSequence() +
-      getMemberScope()
-        .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS)
-        .asSequence()
-        .filterIsInstance<ClassDescriptor>()
-        .mapNotNull { it.companionObjectDescriptor }
-        .filter { it.name == name }
+             .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { it == name }
+             .asSequence() +
+           getMemberScope()
+             .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS)
+             .asSequence()
+             .filterIsInstance<ClassDescriptor>()
+             .mapNotNull { it.companionObjectDescriptor }
+             .filter { it.name == name }
   }
 
   private fun PackageFragmentDescriptor.findVisibleFunctionsBySimpleName(

@@ -1,5 +1,5 @@
 FILE
-  PsiElement(FACTORY)
+  PsiElement(SIMPLE_FACTORY)
     PsiElement(IDENTIFIER)
       PsiElement(DeclarativeTokenType.token)('factory')
     PsiElement(DeclarativeTokenType.()('(')
@@ -14,7 +14,7 @@ FILE
           PsiElement(DeclarativeTokenType.integer_literal)('1')
     PsiElement(DeclarativeTokenType.))(')')
   PsiWhiteSpace('\n')
-  PsiElement(FACTORY)
+  PsiElement(SIMPLE_FACTORY)
     PsiElement(IDENTIFIER)
       PsiElement(DeclarativeTokenType.token)('factory')
     PsiElement(DeclarativeTokenType.()('(')

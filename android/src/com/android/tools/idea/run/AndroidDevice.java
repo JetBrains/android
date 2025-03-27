@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.EnumSet;
 import java.util.List;
@@ -112,6 +113,19 @@ public interface AndroidDevice {
    */
   @NotNull
   ListenableFuture<IDevice> getLaunchedDevice();
+
+  /**
+   * Returns the IDevice if the device is connected and ready for use, or else null. Note that even
+   * if the device is [running][isRunning], the device may not yet be fully booted, so this may
+   * return null.
+   *
+   * This method should not block. This default method should be overridden if getLaunchedDevice
+   * may return an incomplete Future.
+   */
+  @Nullable
+  default IDevice getDdmlibDevice() {
+    return isRunning() ? Futures.getUnchecked(getLaunchedDevice()) : null;
+  }
 
   /**
    * Check if this device can run an application with given requirements.

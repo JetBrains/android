@@ -36,6 +36,7 @@ import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
@@ -44,6 +45,7 @@ import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import icons.StudioIcons
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 
 object DebugSessionStarter {
 
@@ -85,9 +87,21 @@ object DebugSessionStarter {
     val debugProcessHandler = session.debugProcess.processHandler
     debugProcessHandler.startNotify()
     debugProcessHandler.addProcessListener(object : ProcessAdapter() {
+      private val shouldDestroy = AtomicBoolean(false)
+
+      override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+        shouldDestroy.set(willBeDestroyed)
+      }
+
       override fun processTerminated(event: ProcessEvent) {
-        executeOnPooledThread { destroyRunningProcess(device) }
-        super.processTerminated(event)
+        if (shouldDestroy.get()) {
+          if (ApplicationManager.getApplication().isUnitTestMode) {
+            // In tests, we need to be able to assert this isn't called
+            destroyRunningProcess(device)
+          } else {
+            executeOnPooledThread { destroyRunningProcess(device) }
+          }
+        }
       }
     })
     AndroidSessionInfo.create(debugProcessHandler, listOf(device), applicationContext.applicationId)

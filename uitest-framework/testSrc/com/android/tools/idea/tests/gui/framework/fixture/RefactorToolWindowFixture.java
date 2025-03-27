@@ -45,9 +45,9 @@ public class RefactorToolWindowFixture extends ToolWindowFixture {
     return numChildren == 0;
   }
 
-  public void clickDoRefactorButton() {
-    JButton doRefactorButton = myRobot.finder().find(Matchers.byText(JButton.class, "Do Refactor"));
-    myRobot.click(doRefactorButton);
+  public void clickRefactorButton() {
+    JButton refactorButton = myRobot.finder().find(Matchers.byText(JButton.class, "Refactor"));
+    myRobot.click(refactorButton);
   }
 
 }

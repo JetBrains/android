@@ -19,20 +19,22 @@ import static com.android.tools.inspectors.common.api.stacktrace.ThreadId.DISPLA
 import static com.android.tools.inspectors.common.api.stacktrace.ThreadId.INVALID_THREAD_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 public class ThreadIdTest {
+  @SuppressWarnings("EqualsWithItself")
   @Test
   public void threadEqualityTest() {
     ThreadId threadId0 = new ThreadId(0);
     ThreadId threadId1 = new ThreadId(0);
     ThreadId threadId2 = new ThreadId(5);
 
-    assertEquals(threadId0, threadId0);
-    assertEquals(threadId1, threadId1);
-    assertEquals(threadId2, threadId2);
-    assertEquals(INVALID_THREAD_ID, INVALID_THREAD_ID);
+    assertTrue(threadId0.equals(threadId0));
+    assertTrue(threadId1.equals(threadId1));
+    assertTrue(threadId2.equals(threadId2));
+    assertTrue(INVALID_THREAD_ID.equals(INVALID_THREAD_ID));
 
     assertEquals(threadId0, threadId1);
     assertNotEquals(threadId0, threadId2);

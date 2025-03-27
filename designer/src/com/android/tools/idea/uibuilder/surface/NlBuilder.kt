@@ -42,6 +42,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.function.Supplier
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -130,7 +131,9 @@ class NlSurfaceBuilder(
       NlInteractionHandler(it)
     }
   private var _actionHandlerProvider:
-    (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler =
+    (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<
+        DesignSurface<LayoutlibSceneManager>
+      > =
     {
       defaultActionHandlerProvider(it)
     }
@@ -143,7 +146,7 @@ class NlSurfaceBuilder(
 
   private var _screenViewProvider: ScreenViewProvider? = null
   private var _setDefaultScreenViewProvider = false
-  private var _shouldZoomOnFirstComponentResize = true
+  private var _waitForRenderBeforeRestoringZoom = false
 
   private var _visualLintIssueProviderFactory:
     (DesignSurface<LayoutlibSceneManager>) -> VisualLintIssueProvider =
@@ -151,20 +154,18 @@ class NlSurfaceBuilder(
       ViewVisualLintIssueProvider(it)
     }
 
-  private var _shouldShowLayoutDeprecationBanner: (SurfaceLayoutOption) -> Boolean = { false }
-
   /** Allows customizing the [SurfaceLayoutOption]. */
-  @Suppress("deprecation")
   fun setLayoutOption(layoutOption: SurfaceLayoutOption): NlSurfaceBuilder {
     surfaceLayoutOption = layoutOption
     return this
   }
 
   /**
-   * The surface will calculate zoom-to-fit scale when a component is resized for the first time.
+   * The surface will wait for other events (for example preview rendering) before trying to restore
+   * zoom.
    */
-  fun shouldZoomOnFirstComponentResize(shouldZoomOnResize: Boolean): NlSurfaceBuilder {
-    _shouldZoomOnFirstComponentResize = shouldZoomOnResize
+  fun waitForRenderBeforeRestoringZoom(restoreZoomSynchronously: Boolean): NlSurfaceBuilder {
+    _waitForRenderBeforeRestoringZoom = restoreZoomSynchronously
     return this
   }
 
@@ -207,7 +208,10 @@ class NlSurfaceBuilder(
 
   /** Sets the [DesignSurfaceActionHandler] provider for this surface. */
   fun setActionHandler(
-    actionHandlerProvider: (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler
+    actionHandlerProvider:
+      (DesignSurface<LayoutlibSceneManager>) -> DesignSurfaceActionHandler<
+          DesignSurface<LayoutlibSceneManager>
+        >
   ): NlSurfaceBuilder {
     _actionHandlerProvider = actionHandlerProvider
     return this
@@ -278,17 +282,6 @@ class NlSurfaceBuilder(
     return this
   }
 
-  /**
-   * Consumer of [SurfaceLayoutOption] that will be used to determine if a deprecation banner should
-   * be displayed on top of the [NlDesignSurface] if the current mode is deprecated.
-   */
-  fun setShouldShowLayoutDeprecationBanner(
-    shouldShowLayoutDeprecationBanner: (SurfaceLayoutOption) -> Boolean
-  ): NlSurfaceBuilder {
-    _shouldShowLayoutDeprecationBanner = shouldShowLayoutDeprecationBanner
-    return this
-  }
-
   fun build(): NlDesignSurface {
     val nlDesignSurfacePositionableContentLayoutManager =
       NlDesignSurfacePositionableContentLayoutManager(surfaceLayoutOption ?: DEFAULT_OPTION)
@@ -305,18 +298,18 @@ class NlSurfaceBuilder(
         _zoomControlsPolicy,
         _supportedActionsProvider,
         _shouldRenderErrorsPanel,
-        _shouldZoomOnFirstComponentResize,
+        _waitForRenderBeforeRestoringZoom,
         _visualLintIssueProviderFactory,
         nlDesignSurfacePositionableContentLayoutManager,
       )
 
     Disposer.register(parentDisposable, surface)
+    Disposer.register(surface, nlDesignSurfacePositionableContentLayoutManager)
 
     nlDesignSurfacePositionableContentLayoutManager.surface = surface
-    AndroidCoroutineScope(surface).launch(uiThread) {
-      nlDesignSurfacePositionableContentLayoutManager.currentLayout.collect {
-        surface.onLayoutUpdated(it)
-        surface.updateLayoutDeprecationBannerVisibility(_shouldShowLayoutDeprecationBanner(it))
+    AndroidCoroutineScope(surface).launch {
+      nlDesignSurfacePositionableContentLayoutManager.currentLayoutOption.collect {
+        withContext(uiThread) { surface.onLayoutUpdated(it) }
       }
     }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.commands.LeakCanaryLogcatCommandHandler
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -35,6 +34,7 @@ import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 /**
  * Test cases that verify behavior of the profiler service. A PlatformTestCase is used for access to the Application and Project

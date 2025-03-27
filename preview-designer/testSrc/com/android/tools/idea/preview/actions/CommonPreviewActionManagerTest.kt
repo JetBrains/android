@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
@@ -33,7 +30,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runInEdt
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent.createTestEvent
@@ -46,6 +43,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyBoolean
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 // AnimationInspectorAction(),
 // EnableInteractiveAction(),
@@ -85,13 +85,11 @@ class CommonPreviewActionManagerTest {
     statusesToEnable.forEach { (status, expectedResult) ->
       val (isEnabled, description) = expectedResult
 
-      val dataContext = DataContext {
-        when (it) {
-          CommonDataKeys.PROJECT.name -> projectRule.project
-          PREVIEW_VIEW_MODEL_STATUS.name -> status
-          else -> null
-        }
-      }
+      val dataContext =
+        SimpleDataContext.builder()
+          .add(CommonDataKeys.PROJECT, projectRule.project)
+          .add(PREVIEW_VIEW_MODEL_STATUS, status)
+          .build()
       val testEvent = createTestEvent(dataContext)
 
       val actions =
@@ -125,13 +123,11 @@ class CommonPreviewActionManagerTest {
 
     val noErrorStatus =
       Status(hasErrorsAndNeedsBuild = false, hasSyntaxErrors = false, isRefreshing = false)
-    val dataContext = DataContext {
-      when (it) {
-        CommonDataKeys.PROJECT.name -> projectRule.project
-        PREVIEW_VIEW_MODEL_STATUS.name -> noErrorStatus
-        else -> null
-      }
-    }
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(PREVIEW_VIEW_MODEL_STATUS, noErrorStatus)
+        .build()
     val testEvent = createTestEvent(dataContext)
     val actions =
       (actionManager.getSceneViewContextToolbarActions().filterIsInstance<ActionGroup>().single())

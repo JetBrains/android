@@ -19,29 +19,27 @@ import com.android.tools.adtui.TreeWalker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.SplitEditorToolbar
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
-import com.intellij.openapi.fileEditor.impl.text.TextEditorPsiDataProvider
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.ui.NewUI
 import com.intellij.util.containers.orNull
@@ -60,10 +58,7 @@ abstract class SplitEditor<P : FileEditor>(
   designEditor: P,
   editorName: String,
   defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW,
-) :
-  TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout),
-  TextEditor,
-  DataProvider {
+) : TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout), TextEditor {
 
   private val textViewAction =
     SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.showEditorAction, true)
@@ -86,7 +81,9 @@ abstract class SplitEditor<P : FileEditor>(
     }
 
   override val isShowFloatingToolbar: Boolean
-    get() = false
+    // If there are no editor tabs, we should show the split controls as a floating
+    // toolbar, so the user can still switch between modes.
+    get() = UISettings.instanceOrNull?.editorTabPlacement == UISettings.TABS_NONE
 
   private val navigateRightAction =
     object : AnAction() {
@@ -102,9 +99,11 @@ abstract class SplitEditor<P : FileEditor>(
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
-    // If displaying the split controls in the editor tabs, we should make sure the legacy toolbar
-    // is not visible.
-    if (isShowActionsInTabs) {
+    // If displaying the split controls in the editor tabs, i.e. when using the new UI but not
+    // when editor tabs are hidden, we should make sure the legacy toolbar is not visible.
+    if (
+      NewUI.isEnabled() && UISettings.instanceOrNull?.editorTabPlacement != UISettings.TABS_NONE
+    ) {
       TreeWalker(thisComponent)
         .descendantStream()
         .filter { it is SplitEditorToolbar }
@@ -115,13 +114,11 @@ abstract class SplitEditor<P : FileEditor>(
     if (!isComponentInitialized) {
       isComponentInitialized = true
       registerModeNavigationShortcuts(thisComponent)
-
-      DataManager.registerDataProvider(thisComponent, SplitEditorDataProvider(editor))
     }
     return thisComponent
   }
 
-  override fun getFile() = myEditor.file
+  override fun getFile(): VirtualFile? = myEditor.file
 
   override fun getEditor() = myEditor.editor
 
@@ -138,26 +135,18 @@ abstract class SplitEditor<P : FileEditor>(
   override val showPreviewAction: SplitEditorAction
     get() = previewViewAction
 
-  override fun getData(dataId: String): Any? {
-    if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
-      return TextEditorPsiDataProvider().getData(dataId, editor, editor.caretModel.currentCaret)
-    }
-    if (SPLIT_TEXT_EDITOR_KEY.`is`(dataId)) {
-      return myEditor
-    }
-    return null
-  }
-
-  private fun getFakeActionEvent() =
-    AnActionEvent.createEvent(
-      CustomizedDataContext.withSnapshot(DataManager.getInstance().getDataContext(component)) { sink ->
+  private fun getFakeActionEvent(): AnActionEvent {
+    val parentContext = DataManager.getInstance().getDataContext(component)
+    return AnActionEvent.createEvent(
+      CustomizedDataContext.withSnapshot(parentContext) { sink ->
         sink[PlatformCoreDataKeys.FILE_EDITOR] = this
       },
       null,
       ActionPlaces.UNKNOWN,
       ActionUiKind.NONE,
-      null
+      null,
     )
+  }
 
   // TODO(b/143210506): Review the current APIs for selecting and checking the current mode to be
   // backed by an enum.
@@ -201,39 +190,6 @@ abstract class SplitEditor<P : FileEditor>(
       KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB),
       applicableTo,
     )
-  }
-
-  /** Data provider attached to the SplitEditor component. */
-  private class SplitEditorDataProvider(private val editor: Editor) : DataProvider {
-
-    override fun getData(dataId: String): Any? {
-      if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
-        return SplitEditorBackgroundDataProvider(editor)
-      }
-
-      return null
-    }
-  }
-
-  /** Background data provider attached to the SplitEditor component. */
-  private class SplitEditorBackgroundDataProvider(private val editor: Editor) : DataProvider {
-
-    override fun getData(dataId: String): Any? {
-      if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-        return getBackgroundDataProvider()?.getData(dataId)
-      }
-
-      return null
-    }
-
-    private fun getBackgroundDataProvider(): DataProvider? {
-      return TextEditorPsiDataProvider()
-        .getData(
-          PlatformCoreDataKeys.BGT_DATA_PROVIDER.name,
-          editor,
-          editor.caretModel.currentCaret,
-        ) as? DataProvider
-    }
   }
 
   /**
@@ -295,6 +251,7 @@ abstract class SplitEditor<P : FileEditor>(
 
     override fun update(e: AnActionEvent) {
       super.update(e)
+      e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
       val bothShortcutsEmpty =
         navigateLeftAction.shortcutSet == CustomShortcutSet.EMPTY &&
           navigateRightAction.shortcutSet == CustomShortcutSet.EMPTY
@@ -316,8 +273,6 @@ abstract class SplitEditor<P : FileEditor>(
           ?.let { " (${it})" } ?: ""
       e.presentation.description = "$name$suffix"
     }
-
-    override fun displayTextInToolbar() = true
 
     open fun onUserSelectedAction() {}
   }

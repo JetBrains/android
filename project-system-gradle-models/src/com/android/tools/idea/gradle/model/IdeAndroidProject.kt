@@ -78,7 +78,7 @@ interface IdeAndroidProject : Serializable {
   val aaptOptions: IdeAaptOptions
 
   /** Returns the lint options.  */
-  val lintOptions: IdeLintOptions
+  val lintOptions: IdeLintOptions?
 
   /** Returns the compile options for Java code.  */
   val javaCompileOptions: IdeJavaCompileOptions

@@ -17,7 +17,6 @@ package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.sdk.AndroidSdkData.getSdkData;
-import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
@@ -34,11 +33,13 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.extensions.SdkExtensions;
+import com.android.tools.idea.util.EmbeddedDistributionPaths;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.AndroidSdkPath;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -46,8 +47,10 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -82,9 +85,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -166,10 +167,10 @@ public class IdeSdks {
       }
     }
 
-    String envSdkPath = System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV);
-    if(envSdkPath != null) {
+    String envSdkPath = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    if (envSdkPath != null) {
       File candidate = new File(envSdkPath);
-      if(AndroidSdkPath.isValid(candidate)) {
+      if (AndroidSdkPath.isValid(candidate)) {
         return candidate;
       }
     }
@@ -458,7 +459,7 @@ public class IdeSdks {
 
     AnAction sdkManagerAction = actionManager.getAction("WelcomeScreen.RunAndroidSdkManager");
     if (sdkManagerAction != null) {
-      sdkManagerAction.update(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null));
+      sdkManagerAction.update(AnActionEvent.createEvent(DataContext.EMPTY_CONTEXT, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null));
     }
   }
 
@@ -488,10 +489,6 @@ public class IdeSdks {
     }
     updateWelcomeRunAndroidSdkAction();
     return sdks;
-  }
-
-  public boolean isValidAndroidSdkPath(@NotNull File path) {
-    return validateAndroidSdk(path, false).success;
   }
 
   /**

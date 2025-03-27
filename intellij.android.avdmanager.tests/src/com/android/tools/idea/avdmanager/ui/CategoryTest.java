@@ -108,6 +108,18 @@ public final class CategoryTest {
   }
 
   @Test
+  public void valueOfDefinitionXr() {
+    // Arrange
+    var definition = Definitions.mockXrDefinition();
+
+    // Act
+    var category = Category.valueOfDefinition(definition);
+
+    // Assert
+    assertEquals(Category.XR, category);
+  }
+
+  @Test
   public void valueOfDefinitionFallsBackToPhone() {
     // Arrange
     var definition = Definitions.mockDefinition("chromeos", Definitions.mockHardware(0), "Pixelbook (beta)", "Pixelbook (beta)");

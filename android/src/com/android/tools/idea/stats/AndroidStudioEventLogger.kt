@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.EDITING_METRICS_EVENT
 import com.google.wireless.android.sdk.stats.DebuggerEvent
 import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated
 import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated.FileTypeInfo
@@ -44,25 +45,30 @@ import com.intellij.internal.statistic.eventLog.EventLogConfiguration
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
 import com.intellij.internal.statistic.eventLog.events.EventFields
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
-import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.application
 import com.intellij.xdebugger.impl.XDebuggerActionsCollector
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 
-object AndroidStudioEventLogger : StatisticsEventLogger {
-
-  private val logExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("AndroidStudioEventLogger", 1)
+@Service(Service.Level.APP)
+class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : StatisticsEventLogger {
 
   override fun cleanup() {}
   override fun getActiveLogFile(): Nothing? = null
   override fun getLogFilesProvider() = EmptyEventLogFilesProvider
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
     val callbacks = mapOf("debugger.breakpoints.usage" to ::logDebuggerBreakpointsUsage,
+                          "documentation" to ::logQuickDocEvent,
                           "experimental.ui.interactions" to ::logNewUIStateChange,
                           "file.types" to ::logFileType,
                           "file.types.usage" to ::logFileTypeUsage,
@@ -73,9 +79,15 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                           "startup" to ::logStartupEvent,
                           "vfs" to ::logVfsEvent,
                           "xdebugger.actions" to ::logDebuggerEvent)
-    val c = callbacks[group.id] ?: return CompletableFuture.completedFuture(null)
-    val builder = c(eventId, data) ?: return CompletableFuture.completedFuture(null)
-    return CompletableFuture.runAsync({ UsageTracker.log(builder) }, logExecutor)
+    val builder = callbacks[group.id]?.invoke(eventId, data) ?: return CompletableFuture.completedFuture(null)
+    val job = coroutineScope.launch { UsageTracker.log(builder) }
+    // This silliness is required because "Void" does not play nicely with Kotlin at all.
+    return CompletableFuture<Void>().also {
+      job.invokeOnCompletion { cause ->
+        if (cause === null) it.complete(null)
+        else it.completeExceptionally(cause)
+      }
+    }
   }
 
   override fun logAsync(group: EventLogGroup,
@@ -224,7 +236,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         (data["plugin"] as? String?)?.let { plugin = it }
         (data["plugin_type"] as? String?)?.let { pluginType = it }
         (data["platform"] as? String?)?.let { platform = it }
-        (data["isMPP"] as? String?)?.toBoolean()?.let { isMultiplatform = it }
+        (data["isMPP"] as? Boolean?)?.let { isMultiplatform = it }
         (data["eventFlags"] as? Long?)?.let { eventFlags = it }
         eventType = when (eventId) {
           "Build" -> KotlinProjectConfiguration.EventType.BUILD
@@ -410,6 +422,28 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     return AndroidStudioEvent.newBuilder().setKind(DEBUGGER_EVENT).setDebuggerEvent(event)
   }
 
+  private fun logQuickDocEvent(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
+    if (eventId != "quick.doc.closed") return null
+    val fileTypeString = data["file_type"] as? String
+    val durationMsLong = data["duration_ms"] as? Long
+    if (fileTypeString == null) {
+      thisLogger().error("file_type was not a String, instead was $fileTypeString")
+      return null
+    }
+    if (durationMsLong == null) {
+      thisLogger().error("duration_ms was not a Long, instead was $durationMsLong")
+      return null
+    }
+    return AndroidStudioEvent.newBuilder().setKind(EDITING_METRICS_EVENT).apply {
+      editingMetricsEventBuilder.apply {
+        quickDocEventBuilder.apply {
+          fileType = getEditorFileTypeForAnalytics(fileTypeString)
+          shownDurationMs = durationMsLong
+        }
+      }
+    }
+  }
+
   /**
    * Adds the associated project from the IntelliJ anonymization project id to the builder
    */
@@ -419,5 +453,9 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     val project = ProjectManager.getInstance().openProjects
       .firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
     return this.withProjectId(project)
+  }
+
+  companion object {
+    fun getInstance() : AndroidStudioEventLogger = application.service()
   }
 }

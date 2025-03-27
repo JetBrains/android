@@ -1,3 +1,5 @@
+load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("//tools/base/bazel:utils.bzl", "flat_archive")
 
 py_binary(
@@ -35,5 +37,8 @@ java_binary(
     srcs = glob(["jps-test-runner/**"]),
     main_class = "com.google.testing.junit.runner.BazelTestRunner",
     visibility = ["//visibility:public"],
-    deps = ["@bazel_tools//tools/jdk:TestRunner"],
+    deps = [
+        "@bazel_tools//tools/jdk:TestRunner",
+        "@maven//:org.opentest4j.opentest4j",
+    ],
 )

@@ -67,6 +67,14 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
                                   callback: Consumer<SyncResult>,
                                   runOnEdt: Boolean = false,
                                   syncManager: ProjectSystemSyncManager = this.getSyncManager()) {
+
+  // Because this might run at some point in the future, we need to check if the parent disposable was already disposed to avoid
+  // causing leaks and exceptions.
+  if (Disposer.isDisposed(parentDisposable)) {
+    LOG.warn("parentDisposable was already disposed, callback will not be called.")
+    return
+  }
+
   val dumbService = DumbService.getInstance(this)
   LOG.debug { "runWhenSmartAndSynced isDumb=${dumbService.isDumb} runOnEdt=${runOnEdt} callback=${callback}" }
   if (dumbService.isDumb) {
@@ -76,13 +84,6 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
     else {
       dumbService.runWhenSmart { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
     }
-    return
-  }
-
-  // Because this might run at some point in the future, we need to check if the parent disposable was already disposed to avoid
-  // causing leaks and exceptions.
-  if (Disposer.isDisposed(parentDisposable)) {
-    LOG.warn("parentDisposable was already disposed, callback will not be called.")
     return
   }
 

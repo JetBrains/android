@@ -1,4 +1,6 @@
+load("@rules_java//java:defs.bzl", "java_binary")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
@@ -105,6 +107,7 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:org.toml.lang",
+        "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -188,14 +191,26 @@ maven_repository(
         "@maven//:com.google.firebase.firebase-common_12.0.1",
         "@maven//:com.google.guava.guava_28.2-jre",
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
-        "@maven//:commons-codec.commons-codec_1.9",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.9.24",
-        "@maven//:org.jetbrains.kotlin.plugin.parcelize.org.jetbrains.kotlin.plugin.parcelize.gradle.plugin_2.1.0-Beta1",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
+        "@maven//:org.jetbrains.kotlin.plugin.parcelize.org.jetbrains.kotlin.plugin.parcelize.gradle.plugin_2.1.20-Beta2",  # Used by com.android.tools.idea.benchmarks.tests.JetNewsBenchmarkTest
         "@maven//:org.mockito.mockito-core_5.12.0",
     ],
+)
+
+java_binary(
+    name = "ide_perf_summary_tool",
+    testonly = True,
+    main_class = "com.android.tools.idea.ideperftests.IdePerfSummaryTool",
+    runtime_deps = [":ide_perf_summary_lib"],
+)
+
+kotlin_library(
+    name = "ide_perf_summary_lib",
+    srcs = ["src/com/android/tools/idea/ideperftests/IdePerfSummaryTool.kt"],
+    deps = ["@maven//:com.google.code.gson.gson"],
 )

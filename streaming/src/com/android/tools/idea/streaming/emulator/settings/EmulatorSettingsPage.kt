@@ -21,83 +21,60 @@ import com.android.tools.idea.streaming.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.CameraVelocityControls
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
-import com.intellij.openapi.options.Configurable
-import com.intellij.openapi.options.ConfigurationException
+import com.android.tools.idea.streaming.StreamingBundle.message
+import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.SearchableConfigurable
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.EnumComboBoxModel
 import com.intellij.ui.SimpleListCellRenderer
-import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
-import org.jetbrains.annotations.Nls
-import javax.swing.JCheckBox
 
 /**
- * Implementation of Settings > Tools > Emulator preference page.
+ * Implementation of the Settings > Tools > Emulator preference page.
  */
-class EmulatorSettingsPage : SearchableConfigurable, Configurable.NoScroll {
-
-  private lateinit var launchInToolWindowCheckBox: JCheckBox
-  private lateinit var activateOnAppLaunchCheckBox: JBCheckBox
-  private lateinit var activateOnTestLaunchCheckBox: JBCheckBox
-  private lateinit var synchronizeClipboardCheckBox: JCheckBox
-  private lateinit var showCameraControlPromptsCheckBox: JCheckBox
-  private lateinit var cameraVelocityControlComboBox: ComboBox<CameraVelocityControls>
-  private val cameraVelocityControlComboBoxModel = EnumComboBoxModel(CameraVelocityControls::class.java)
-  private lateinit var snapshotAutoDeletionPolicyComboBox: ComboBox<SnapshotAutoDeletionPolicy>
-  private val snapshotAutoDeletionPolicyComboBoxModel = EnumComboBoxModel(SnapshotAutoDeletionPolicy::class.java)
+class EmulatorSettingsPage : BoundConfigurable(DISPLAY_NAME), SearchableConfigurable {
 
   private val state = EmulatorSettings.getInstance()
 
   override fun getId() = "emulator.options"
 
-  override fun createComponent() = panel {
+  override fun createPanel() = panel {
     row {
-      launchInToolWindowCheckBox =
-        checkBox("Launch in the Running Devices tool window")
-          .comment("When this setting is enabled, virtual devices launched from Device Manager or when running an app will appear in" +
-                   " the Running Devices tool window. Otherwise virtual devices will launch in a standalone Android Emulator application." +
-                   " Virtual devices launched from the Running Devices window will always appear in that window regardless of this" +
-                   " setting.")
-          .component
+      checkBox("Launch in the Running Devices tool window")
+        .bindSelected(state::launchInToolWindow)
+        .comment("When this setting is enabled, virtual devices launched from Device Manager or when running an app will appear in" +
+                 " the Running Devices tool window. Otherwise virtual devices will launch in a standalone Android Emulator application." +
+                 " Virtual devices launched from the Running Devices window will always appear in that window regardless of this" +
+                 " setting.")
+
     }
     indent {
       row {
-        activateOnAppLaunchCheckBox =
-          checkBox("Open the Running Devices tool window when launching an app")
-            .bindSelected(state::activateOnAppLaunch)
-            .component
+        checkBox("Open the Running Devices tool window when launching an app")
+          .bindSelected(state::activateOnAppLaunch)
       }.topGap(TopGap.SMALL)
       row {
-        activateOnTestLaunchCheckBox =
-          checkBox("Open the Running Devices tool window when launching a test")
-            .bindSelected(state::activateOnTestLaunch)
-            .component
+        checkBox("Open the Running Devices tool window when launching a test")
+          .bindSelected(state::activateOnTestLaunch)
       }
     }
     row {
-      synchronizeClipboardCheckBox =
-        checkBox("Synchronize clipboard")
-          .component
+      checkBox("Synchronize clipboard")
+        .bindSelected(state::synchronizeClipboard)
     }.topGap(TopGap.SMALL)
     row {
-      showCameraControlPromptsCheckBox =
-        checkBox("Show camera control prompts")
-          .component
+      checkBox("Show camera control prompts")
+        .bindSelected(state::showCameraControlPrompts)
     }.topGap(TopGap.SMALL)
     row {
       panel {
         row("Velocity control keys for virtual scene camera:") {}
         row {
-          cameraVelocityControlComboBox =
-            comboBox(cameraVelocityControlComboBoxModel,
-                     renderer = SimpleListCellRenderer.create(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it.label })
-              .bindItem(cameraVelocityControlComboBoxModel::getSelectedItem,
-                        cameraVelocityControlComboBoxModel::setSelectedItem)
-              .component
+          comboBox(EnumComboBoxModel(CameraVelocityControls::class.java),
+                   renderer = SimpleListCellRenderer.create(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it.label })
+            .bindItem({ state.cameraVelocityControls }, { state.cameraVelocityControls = it!! })
         }
       }
     }
@@ -105,48 +82,16 @@ class EmulatorSettingsPage : SearchableConfigurable, Configurable.NoScroll {
       panel {
         row("When encountering snapshots incompatible with the current configuration:") {}
         row {
-          snapshotAutoDeletionPolicyComboBox =
-            comboBox(snapshotAutoDeletionPolicyComboBoxModel,
-                     renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
-              .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem,
-                        snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
-              .component
+          comboBox(EnumComboBoxModel(SnapshotAutoDeletionPolicy::class.java),
+                   renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
+            .bindItem({ state.snapshotAutoDeletionPolicy }, { state.snapshotAutoDeletionPolicy = it!! })
         }
       }
     }.topGap(TopGap.SMALL)
   }
+}
 
-  override fun isModified(): Boolean {
-    return launchInToolWindowCheckBox.isSelected != state.launchInToolWindow ||
-           activateOnAppLaunchCheckBox.isSelected != state.activateOnAppLaunch ||
-           activateOnTestLaunchCheckBox.isSelected != state.activateOnTestLaunch ||
-           synchronizeClipboardCheckBox.isSelected != state.synchronizeClipboard ||
-           showCameraControlPromptsCheckBox.isSelected != state.showCameraControlPrompts ||
-           cameraVelocityControlComboBoxModel.selectedItem != state.cameraVelocityControls ||
-           snapshotAutoDeletionPolicyComboBoxModel.selectedItem != state.snapshotAutoDeletionPolicy
-  }
-
-  @Throws(ConfigurationException::class)
-  override fun apply() {
-    state.launchInToolWindow = launchInToolWindowCheckBox.isSelected
-    state.activateOnAppLaunch = activateOnAppLaunchCheckBox.isSelected
-    state.activateOnTestLaunch = activateOnTestLaunchCheckBox.isSelected
-    state.synchronizeClipboard = synchronizeClipboardCheckBox.isSelected
-    state.showCameraControlPrompts = showCameraControlPromptsCheckBox.isSelected
-    state.cameraVelocityControls = cameraVelocityControlComboBoxModel.selectedItem
-    state.snapshotAutoDeletionPolicy = snapshotAutoDeletionPolicyComboBoxModel.selectedItem
-  }
-
-  override fun reset() {
-    launchInToolWindowCheckBox.isSelected = state.launchInToolWindow
-    activateOnAppLaunchCheckBox.isSelected = state.activateOnAppLaunch
-    activateOnTestLaunchCheckBox.isSelected = state.activateOnTestLaunch
-    synchronizeClipboardCheckBox.isSelected = state.synchronizeClipboard
-    showCameraControlPromptsCheckBox.isSelected = state.showCameraControlPrompts
-    cameraVelocityControlComboBoxModel.setSelectedItem(state.cameraVelocityControls)
-    snapshotAutoDeletionPolicyComboBoxModel.setSelectedItem(state.snapshotAutoDeletionPolicy)
-  }
-
-  @Nls
-  override fun getDisplayName() = if (IdeInfo.getInstance().isAndroidStudio) "Emulator" else "Android Emulator"
+private val DISPLAY_NAME = when {
+  IdeInfo.getInstance().isAndroidStudio -> message("android.configurable.EmulatorConfigurable.displayName")
+  else -> "Android Emulator"
 }

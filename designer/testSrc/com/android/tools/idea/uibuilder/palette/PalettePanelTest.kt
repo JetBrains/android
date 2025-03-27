@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
-import com.android.ide.common.gradle.Dependency
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeJBPopupFactory
 import com.android.tools.adtui.swing.popup.JBPopupRule
@@ -49,7 +48,6 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.ide.CopyPasteManager
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -83,10 +81,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyCollection
-import org.mockito.ArgumentMatchers.isNull
+import org.mockito.Mockito.any
 import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.isNull
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -392,12 +389,7 @@ public class MyWebView extends android.webkit.WebView {
     assertThat(myPanel!!.itemList.selectedValue.tagName).isEqualTo(SdkConstants.AD_VIEW)
     val event: AnActionEvent = mock()
     val presentation = myPanel!!.addToDesignAction.templatePresentation.clone()
-    val gradleDependencyManager = GradleDependencyManager.getInstance(projectRule.project)
     `when`(event.presentation).thenReturn(presentation)
-    `when`(
-        gradleDependencyManager.findMissingDependencies(any(Module::class.java), anyCollection())
-      )
-      .thenReturn(listOf(Dependency.parse(SdkConstants.ADS_ARTIFACT)))
 
     // This statement would fail if the user is asked if they want to add a dependency on
     // play-services-ads:

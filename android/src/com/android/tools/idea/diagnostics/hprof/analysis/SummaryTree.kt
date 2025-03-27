@@ -25,17 +25,15 @@ class SummaryTree(val sizeThreshold: Long, val depthLimit: Int) {
   private val roots = Int2ObjectOpenHashMap<Node>()
 
   fun merge(node: GCRootPathsTree.RootNode) {
-    node.edges.forEach { id ->
-      val oldNode = node.edges[id].first
+    node.edges.forEach { id, (oldNode, edge) ->
       if (oldNode.totalSizeInBytes >= sizeThreshold) {
-        roots.getOrPut(id) { Node(node.edges[id].second, oldNode.totalSizeInBytes, oldNode.instances.size()) }.merge(oldNode, 0)
+        roots.getOrPut(id) { Node(edge, oldNode.totalSizeInBytes, oldNode.instances.size) }.merge(oldNode, 0)
       }
-      true
     }
   }
 
   private fun convertToSummary(node: GCRootPathsTree.RegularNode, edge: GCRootPathsTree.Edge, depth: Int): Node {
-    val n = Node(edge, node.totalSizeInBytes, node.instances.size())
+    val n = Node(edge, node.totalSizeInBytes, node.instances.size)
     if (node.edges == null || depth >= depthLimit) return n
     for (e in node.edges!!) {
       if (e.value.totalSizeInBytes > sizeThreshold) {
@@ -68,7 +66,7 @@ class SummaryTree(val sizeThreshold: Long, val depthLimit: Int) {
     fun merge(node: GCRootPathsTree.RegularNode, depth: Int) {
       if (node.totalSizeInBytes < sizeThreshold) return
       subtreeSize = subtreeSize.coerceAtLeast(node.totalSizeInBytes)
-      instanceCount = instanceCount.coerceAtLeast(node.instances.size())
+      instanceCount = instanceCount.coerceAtLeast(node.instances.size)
       if (depth >= depthLimit) return
       val och = node.edges?.entries?.toMutableList()
       if (och == null) return

@@ -55,6 +55,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -78,7 +80,7 @@ import org.jetbrains.annotations.TestOnly;
  * </pre>
  * In the diagram the {@link WorkBench} has 4 visible {@link ToolWindowDefinition}s: A & B on the left side and
  * C & D on the right side. The {@link ToolWindowDefinition} on the bottom are referred to as split windows.<br/><br/>
- *
+ * <p>
  * When a {@link ToolWindowDefinition} is not visible a button with its name is shown in narrow side panel. The
  * buttons will restore the tool in a visible state. In the diagram E & F represent such buttons.
  *
@@ -101,6 +103,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final MinimizedPanel<T> myRightMinimizePanel;
   private final ButtonDragListener<T> myButtonDragListener;
   private final PropertyChangeListener myMyPropertyChangeListener = this::handlePropertyEvent;
+  private final List<WorkBenchToolWindowListener<T>> myWorkBenchToolWindowListeners;
   private FileEditor myFileEditor;
   private boolean isDisposed = false;
 
@@ -109,11 +112,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   /**
    * Creates a work space with associated tool windows, which can be attached.
    *
-   * @param project the project associated with this work space.
-   * @param name a name used to identify this type of {@link WorkBench}. Also used for associating properties.
-   * @param fileEditor the file editor this work space is associated with.
+   * @param project          the project associated with this work space.
+   * @param name             a name used to identify this type of {@link WorkBench}. Also used for associating properties.
+   * @param fileEditor       the file editor this work space is associated with.
    * @param parentDisposable the parent {@link Disposable} this WorkBench will be attached to.
-   * @param delayTimeMs milliseconds to wait before switching to the loading mode of the {@link WorkBench}.
+   * @param delayTimeMs      milliseconds to wait before switching to the loading mode of the {@link WorkBench}.
    */
   public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor, @NotNull Disposable parentDisposable, int delayTimeMs) {
     this(project, name, fileEditor, InitParams.createParams(project), DetachedToolWindowManager.getInstance(project), delayTimeMs);
@@ -124,9 +127,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   /**
    * Creates a work space with associated tool windows, which can be attached.
    *
-   * @param project the project associated with this work space.
-   * @param name a name used to identify this type of {@link WorkBench}. Also used for associating properties.
-   * @param fileEditor the file editor this work space is associated with.
+   * @param project          the project associated with this work space.
+   * @param name             a name used to identify this type of {@link WorkBench}. Also used for associating properties.
+   * @param fileEditor       the file editor this work space is associated with.
    * @param parentDisposable the parent {@link Disposable} this WorkBench will be attached to.
    */
   public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor, @NotNull Disposable parentDisposable) {
@@ -136,9 +139,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   /**
    * Initializes a {@link WorkBench} with content, context and tool windows.
    *
-   * @param content the content of the main area of the {@link WorkBench}
-   * @param context an instance identifying the data the {@link WorkBench} is manipulating
-   * @param definitions a list of tool windows associated with this {@link WorkBench}
+   * @param content          the content of the main area of the {@link WorkBench}
+   * @param context          an instance identifying the data the {@link WorkBench} is manipulating
+   * @param definitions      a list of tool windows associated with this {@link WorkBench}
    * @param minimizedWindows whether the tool windows should be minimized by default.
    */
   public void init(@NotNull JComponent content,
@@ -153,8 +156,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * Initializes a {@link WorkBench} with context and tool windows.
    * The main content is not provided, so only the tool windows will be added.
    *
-   * @param context an instance identifying the data the {@link WorkBench} is manipulating
-   * @param definitions a list of tool windows associated with this {@link WorkBench}
+   * @param context          an instance identifying the data the {@link WorkBench} is manipulating
+   * @param definitions      a list of tool windows associated with this {@link WorkBench}
    * @param minimizedWindows whether the tool windows should be minimized by default.
    */
   public void init(@NotNull T context,
@@ -302,6 +305,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myDetachedToolWindowManager.unregister(myFileEditor);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
     setToolContext(null);
+    myModel.clearContextAndTools();
 
     // Clean up all the children panels to avoid accidental memory leaks.
     myMainPanel.removeAll();
@@ -348,6 +352,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     setFocusCycleRoot(true);
     setFocusTraversalPolicyProvider(true);
     setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    myWorkBenchToolWindowListeners = new CopyOnWriteArrayList<>();
   }
 
   private boolean isCurrentEditor(@NotNull FileEditor fileEditor) {
@@ -571,7 +576,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
   }
 
-  private void modelChanged(@SuppressWarnings("unused") @NotNull SideModel model, @NotNull SideModel.EventType type) {
+  private void modelChanged(@SuppressWarnings("unused") @NotNull SideModel<T> model, @NotNull SideModel.EventType type) {
     switch (type) {
       case SWAP:
         mySplitter.setFirstSize(getSideWidth(Layout.CURRENT, Side.RIGHT));
@@ -586,6 +591,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
         break;
 
       case LOCAL_UPDATE:
+        break;
+
+      case UPDATE:
+        notifyWorkBenchToolWindowListeners();
+        myWorkBenchManager.updateOtherWorkBenches(this);
         break;
 
       case UPDATE_TOOL_ORDER:
@@ -609,6 +619,19 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     setDefaultOrderIfMissing(tools);
     restoreToolOrder(tools);
     myModel.setTools(tools);
+    notifyWorkBenchToolWindowListeners();
+  }
+
+  private void notifyWorkBenchToolWindowListeners() {
+    myWorkBenchToolWindowListeners
+      .forEach(t -> t.visibleToolWindowsChanged(
+        myModel
+          .getAllTools()
+          .stream()
+          .filter(w -> !w.isMinimized())
+          .map(AttachedToolWindow::getToolName)
+          .collect(Collectors.toSet()))
+      );
   }
 
   /**
@@ -694,6 +717,29 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   /**
+   * Shows the tool window with the given name if it exists and is minimized.
+   * @param name Name of the tool window to show
+   */
+  public void showToolWindow(@NotNull String name) {
+    Optional<AttachedToolWindow<T>> toolWindow =
+      myModel
+        .getAllTools()
+        .stream()
+        .filter((t) -> t.getToolName().equals(name))
+        .findFirst();
+    if (toolWindow.isPresent() && toolWindow.get().isMinimized()) {
+      AttachedToolWindow<T> window = toolWindow.get();
+      myModel
+        .getAllTools()
+        .stream()
+        .filter((t) -> t.isLeft() == window.isLeft() && t.isSplit() == window.isSplit())
+        .forEach((t) -> t.setMinimized(true));
+      window.setMinimized(false);
+      updateModel();
+    }
+  }
+
+  /**
    * The same {@link WorkBench} can be used in different contexts. We need to store the context in order to (re)store different properties
    * accordingly. For example, in the split editor we might have a tool window being hidden in design mode but shown in split mode.
    */
@@ -706,6 +752,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  public void addWorkBenchToolWindowListener(WorkBenchToolWindowListener<T> listener) {
+    myWorkBenchToolWindowListeners.add(listener);
   }
 
   @TestOnly
@@ -724,6 +774,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   public void minimizeAllAttachedToolWindows() {
     myModel.getAllTools().forEach((window) -> window.setMinimized(true));
     updateModel();
+  }
+
+  @TestOnly
+  public T getModelContext() {
+    return myModel.getContext();
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {

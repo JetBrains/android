@@ -24,93 +24,82 @@ import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JRootPane
 
-/**
- * A simplified version of the [DialogWrapper] class from the IntelliJ platform.
- */
+/** A simplified version of the [DialogWrapper] class from the IntelliJ platform. */
 class SimpleDialog(private val options: SimpleDialogOptions) {
   companion object {
-    /**
-     * Returns the [SimpleDialog] that created the [DialogWrapper] passed as input
-     */
+    /** Returns the [SimpleDialog] that created the [DialogWrapper] passed as input */
     fun fromDialogWrapper(dialogWrapper: DialogWrapper): SimpleDialog? {
       return if (dialogWrapper is DialogWrapperInner) dialogWrapper.outerInstance else null
     }
   }
 
-  private val innerDialogWrapper: DialogWrapperInner by lazy {
-    DialogWrapperInner()
-  }
+  private val innerDialogWrapper: DialogWrapperInner by lazy { DialogWrapperInner() }
 
   /**
-   * The [Disposable] that can be used with [Disposer.register] when this dialog is closed or disposed
+   * The [Disposable] that can be used with [Disposer.register] when this dialog is closed or
+   * disposed
    */
   val disposable = Disposer.newDisposable()
 
-  /**
-   * The title of the dialog
-   */
+  /** The title of the dialog */
   var title: String
     get() = innerDialogWrapper.title
-    set(value) { innerDialogWrapper.title = value }
+    set(value) {
+      innerDialogWrapper.title = value
+    }
 
-  /**
-   * The text of the `Cancel` button (default is "Cancel")
-   */
+  /** The text of the `Cancel` button (default is "Cancel") */
   var cancelButtonText: String
     get() = innerDialogWrapper.cancelAction.getValue(Action.NAME)?.toString() ?: ""
-    set(value) { innerDialogWrapper.cancelAction.putValue(Action.NAME, value) }
+    set(value) {
+      innerDialogWrapper.cancelAction.putValue(Action.NAME, value)
+    }
 
-  /**
-   * Should the `Cancel` button be visible
-   */
+  /** Should the `Cancel` button be visible */
   var cancelButtonVisible: Boolean
     get() = innerDialogWrapper.cancelButton?.isVisible ?: false
-    set(value) { innerDialogWrapper.cancelButton?.isVisible = value }
+    set(value) {
+      innerDialogWrapper.cancelButton?.isVisible = value
+    }
 
-  /**
-   * Should the `Cancel` button be enabled
-   */
+  /** Should the `Cancel` button be enabled */
   var cancelButtonEnabled: Boolean
     get() = innerDialogWrapper.cancelButton?.isEnabled ?: false
-    set(value) { innerDialogWrapper.cancelButton?.isEnabled = value }
+    set(value) {
+      innerDialogWrapper.cancelButton?.isEnabled = value
+    }
 
-  /**
-   * The `OK` button
-   */
+  /** The `OK` button */
   val okButton: JButton?
     get() = innerDialogWrapper.okButton
 
-  /**
-   * The text of the `OK` button (default is "OK")
-   */
+  /** The text of the `OK` button (default is "OK") */
   var okButtonText: String
     get() = innerDialogWrapper.okAction.getValue(Action.NAME)?.toString() ?: ""
-    set(value) { innerDialogWrapper.okAction.putValue(Action.NAME, value) }
+    set(value) {
+      innerDialogWrapper.okAction.putValue(Action.NAME, value)
+    }
 
-  /**
-   * Should the `Ok` button be shown
-   */
+  /** Should the `Ok` button be shown */
   var okButtonVisible: Boolean
     get() = innerDialogWrapper.okButton?.isVisible ?: false
-    set(value) { innerDialogWrapper.okButton?.isVisible = value }
+    set(value) {
+      innerDialogWrapper.okButton?.isVisible = value
+    }
 
-  /**
-   * Should the `Ok` button be enabled
-   */
+  /** Should the `Ok` button be enabled */
   var okButtonEnabled: Boolean
     get() = innerDialogWrapper.okButton?.isEnabled ?: false
-    set(value) { innerDialogWrapper.okButton?.isEnabled = value }
+    set(value) {
+      innerDialogWrapper.okButton?.isEnabled = value
+    }
 
-  /**
-   * The standard [JRootPane] container of this dialog
-   */
-  val rootPane : JRootPane
+  /** The standard [JRootPane] container of this dialog */
+  val rootPane: JRootPane
     get() = innerDialogWrapper.rootPane
 
-  /**
-   * The application specific [JComponent] used for the main content of the dialog
-   */
-  val contentPanel : JComponent
+  /** The application specific [JComponent] used for the main content of the dialog */
+  val contentPanel: JComponent
     get() = innerDialogWrapper.contentPanel
 
   fun init() {
@@ -123,8 +112,8 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
     innerDialogWrapper.show()
   }
 
-  private inner class DialogWrapperInner
-    : DialogWrapper(options.project, options.canBeParent, options.ideModalityType) {
+  private inner class DialogWrapperInner :
+    DialogWrapper(options.project, options.canBeParent, options.ideModalityType) {
 
     public override fun init() {
       options.cancelButtonText?.let { setCancelButtonText(it) }
@@ -144,8 +133,7 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
     val okAction = super.getOKAction()
 
     /** Make [DialogWrapper.getCancelAction] publicly accessible */
-    @get:JvmName("getCancelAction_")
-    val cancelAction = super.getCancelAction()
+    @get:JvmName("getCancelAction_") val cancelAction = super.getCancelAction()
 
     val okButton: JButton?
       get() {
@@ -166,8 +154,7 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
       if (!options.hasOkButton) {
         return if (helpAction === myHelpAction && helpId == null) arrayOf(cancelAction)
         else arrayOf(cancelAction, helpAction)
-      }
-      else {
+      } else {
         return if (helpAction === myHelpAction && helpId == null) arrayOf(okAction, cancelAction)
         else arrayOf(okAction, cancelAction, helpAction)
       }

@@ -17,6 +17,7 @@ package com.android.tools.profilers.taskbased.common.constants.strings
 
 import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
 object TaskBasedUxStrings {
@@ -138,9 +139,13 @@ object TaskBasedUxStrings {
   const val PROFILEABLE_PREFERRED_WARNING_TOOLTIP = "The process currently selected is running in the 'debuggable' state. This will " +
                                                     "result in inconsistent readings. For more accurate data, restart the process as" +
                                                     " 'profileable'."
-  const val PROFILEABLE_PREFERRED_REBUILD_INSTRUCTION_TOOLTIP = "You can restart the process as 'profileable' by clicking " +
-                                                                "'${PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME}' in the main toolbar more " +
-                                                                "actions menu. This will trigger a rebuild."
+  // Rebuild instructions
+  const val PROFILEABLE_REBUILD_INSTRUCTION_TOOLTIP = "You can restart the process as 'profileable' by clicking " +
+                                                      "'${PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME}' in the main toolbar's more " +
+                                                      "actions menu. This will trigger a rebuild."
+  const val DEBUGGABLE_REBUILD_INSTRUCTION_TOOLTIP = "You can restart the process as 'debuggable' by clicking " +
+                                                     "'${PROFILE_WITH_COMPLETE_DATA_ACTION_NAME}' in the main toolbar's more " +
+                                                     "actions menu. This will trigger a rebuild."
 
   fun getTaskTitle(taskType: ProfilerTaskType) =
     when (taskType)  {
@@ -166,20 +171,34 @@ object TaskBasedUxStrings {
       ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.LEAKCANARY, ProfilerTaskType.UNSPECIFIED -> ""
     }
 
-  fun getStartTaskErrorMessage(taskStartError: StartTaskSelectionError) =
+  fun getStartTaskErrorMessage(taskStartError: StarTaskSelectionErrorCode) =
     when (taskStartError) {
-      StartTaskSelectionError.INVALID_DEVICE -> "No valid device is selected"
-      StartTaskSelectionError.INVALID_PROCESS -> "No valid process is selected"
-      StartTaskSelectionError.INVALID_TASK -> "No valid task is selected"
-      StartTaskSelectionError.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK -> "Tasks configured to run at process start require your " +
-                                                                                 "app's process to be selected"
-      StartTaskSelectionError.TASK_UNSUPPORTED_ON_STARTUP -> "The selected task does not support 'Start profiler task from process start'"
-      StartTaskSelectionError.STARTUP_TASK_USING_UNSUPPORTED_DEVICE -> "The currently selected device does not support tasks configured " +
-                                                                       "to run at process start"
-      StartTaskSelectionError.DEVICE_SELECTION_IS_OFFLINE -> "The selected device is offline"
-      StartTaskSelectionError.TASK_UNSUPPORTED_BY_DEVICE_OR_PROCESS -> "Task is not supported by the selected device or process"
-      StartTaskSelectionError.GENERAL_ERROR -> "This task cannot be run in this configuration"
+      StarTaskSelectionErrorCode.INVALID_DEVICE -> "No valid device is selected"
+      StarTaskSelectionErrorCode.INVALID_PROCESS -> "No valid process is selected"
+      StarTaskSelectionErrorCode.INVALID_TASK -> "No valid task is selected"
+      StarTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK -> "Tasks configured to run at process start require " +
+                                                                                    "your app's process to be selected"
+      StarTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP -> "The selected task does not support 'Start profiler task from process " +
+                                                                "start'"
+      StarTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from " +
+                                                                                "process start'"
+      StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from now'"
+      StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS -> "'Start profiler task from now' requires a running process"
+      StarTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE -> "The selected device is offline"
+      StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS -> "'Start profiler task from now' requires a running debuggable " +
+                                                                     "process"
+      StarTaskSelectionErrorCode.NO_STARTING_POINT_SELECTED -> "No task starting point selected"
+      StarTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
+
+  fun getStartTaskErrorNotificationText(taskStartError: StartTaskSelectionError): String {
+    val errorMessage = getStartTaskErrorMessage(taskStartError.starTaskSelectionErrorCode)
+    if (taskStartError.actionableInfo == null) {
+      return errorMessage
+    }
+
+    return "$errorMessage. ${taskStartError.actionableInfo}."
+  }
 
   fun getLeakStatusText(leakingStatus: LeakingStatus): String {
     return when (leakingStatus) {

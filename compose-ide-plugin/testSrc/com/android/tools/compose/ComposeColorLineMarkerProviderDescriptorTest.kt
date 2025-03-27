@@ -32,7 +32,8 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidAnnotatorUtil
-import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.addComposeRuntimeDep
+import org.jetbrains.android.compose.addComposeUiGraphicsDep
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,45 +42,15 @@ import java.awt.Color
 
 /** Tests for [ComposeColorLineMarkerProviderDescriptor] */
 class ComposeColorLineMarkerProviderDescriptorTest {
-  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().withKotlin()
 
   private val myFixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture }
 
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.addClass(
-      // language=java
-      """
-      package androidx.compose.ui.graphics;
-      class ColorSpace {
-        public static final ColorSpace TEST_SPACE = ColorSpace();
-      }
-      """
-    )
-    myFixture.addFileToProject(
-      "src/com/androidx/compose/ui/graphics/Color.kt",
-      // language=kotlin
-      """
-      package androidx.compose.ui.graphics
-      fun Color(color: Int): Long = 1L
-      fun Color(color: Long): Long = 1L
-      fun Color(
-        red: Int,
-        green: Int,
-        blue: Int,
-        alpha: Int = 0xFF
-      ): Long = 1L
-      fun Color(
-        red: Float,
-        green: Float,
-        blue: Float,
-        alpha: Float = 1f,
-        colorSpace: ColorSpace? = null
-      ): Long = 1L
-      """
-        .trimIndent(),
-    )
+    myFixture.addComposeRuntimeDep()
+    myFixture.addComposeUiGraphicsDep()
   }
 
   @Test
@@ -448,14 +419,14 @@ class ComposeColorLineMarkerProviderDescriptorTest {
         """
       package com.android.test
       import androidx.compose.ui.graphics.Color
-      import androidx.compose.ui.graphics.ColorSpace
+      import androidx.compose.ui.graphics.colorspace.ColorSpaces
       class A {
-        val other = Color(0.194f, 0f, 0.41f, 0.5f, ColorSpace.TEST_SPACE)
+        val other = Color(0.194f, 0f, 0.41f, 0.5f, ColorSpaces.LinearSrgb)
         fun () {
-          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f, ColorSpace.TEST_SPACE)
-          val primary = Color(0f, 0f, 0f, 0f, ColorSpace.TEST_SPACE)
-          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f, colorSpace = ColorSpace.TEST_SPACE)
-          val primaryVariant = Color(red = 1.0f, green = 1.0f, blue = 1.0f, alpha = 1.0f, colorSpace = ColorSpace.TEST_SPACE)
+          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f, ColorSpaces.LinearSrgb)
+          val primary = Color(0f, 0f, 0f, 0f, ColorSpaces.LinearSrgb)
+          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f, colorSpace = ColorSpaces.LinearSrgb)
+          val primaryVariant = Color(red = 1.0f, green = 1.0f, blue = 1.0f, alpha = 1.0f, colorSpace = ColorSpaces.LinearSrgb)
         }
       }
       """
@@ -523,7 +494,7 @@ class ComposeColorReferenceAnnotatorTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation()
+    myFixture.addComposeRuntimeDep()
     myFixture.testDataPath = getComposePluginTestDataPath()
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors.xml")
     myFixture.copyFileToProject(

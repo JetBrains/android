@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.testing.ui
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -38,6 +36,8 @@ import org.mockito.Mockito
 import org.mockito.Mockito.anyBoolean
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import java.util.concurrent.TimeUnit
 
 private const val TIMEOUT = 10L // seconds
@@ -105,7 +105,7 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     @Suppress("UnstableApiUsage")
     whenever(fileManager!!.openFilesWithRemotes).thenReturn(emptyList())
     whenever(fileManager!!.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    whenever(fileManager!!.getAllEditors(any(VirtualFile::class.java))).thenReturn(FileEditor.EMPTY_ARRAY)
+    whenever(fileManager!!.getAllEditors(any())).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerServiceInstance(FileEditorManager::class.java, fileManager!!)
   }
 }

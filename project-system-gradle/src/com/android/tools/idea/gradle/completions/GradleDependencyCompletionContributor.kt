@@ -238,12 +238,14 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
   }
 
   private fun generateLookup(): Collection<CoordinateLookUpElement> {
-    return MavenClassRegistryManager.getInstance()
-      .getMavenClassRegistry()
+    val mavenClassRegistry = MavenClassRegistryManager.getInstance().tryGetMavenClassRegistry() ?: return emptyList()
+    return mavenClassRegistry
       .getCoordinates()
       .asSequence()
-      .map { ProgressManager.checkCanceled(); it }
-      .map { CoordinateLookUpElement(it) }
+      .map {
+        ProgressManager.checkCanceled()
+        CoordinateLookUpElement(it)
+      }
       .toSortedSet()
   }
 

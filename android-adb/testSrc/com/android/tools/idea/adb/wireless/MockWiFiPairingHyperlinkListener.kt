@@ -21,6 +21,7 @@ import javax.swing.event.HyperlinkEvent
 
 class MockWiFiPairingHyperlinkListener : HyperlinkAdapter() {
   val hyperlinkClickTracker = FutureValuesTracker<Unit>()
+
   override fun hyperlinkActivated(e: HyperlinkEvent) {
     hyperlinkClickTracker.produce(Unit)
   }

@@ -61,6 +61,7 @@ class SceneViewHeaderTest {
       // Initial sizes
       assertEquals(scale(100), header.positionableAdapter.getContentSize(null).width)
       assertEquals(scale(26), header.positionableAdapter.getContentSize(null).height)
+      assertEquals(scale(26), header.positionableAdapter.getContentSize(null).height)
 
       val ui = FakeUi(parent)
       parent.size = Dimension(400, 400)
@@ -70,6 +71,20 @@ class SceneViewHeaderTest {
       assertEquals(scale(100), header.positionableAdapter.getContentSize(null).width)
       assertEquals(scale(26), header.positionableAdapter.getContentSize(null).height)
     }
+  }
+
+  @Test
+  fun sizeIsSameForDifferentScales() {
+    val (_, header) = setupHeaderAndParent()
+
+    assertEquals(scale(26), header.positionableAdapter.sizeForScale(1.0).height)
+    assertEquals(scale(100), header.positionableAdapter.sizeForScale(1.0).width)
+
+    assertEquals(scale(26), header.positionableAdapter.sizeForScale(3.0).height)
+    assertEquals(scale(100), header.positionableAdapter.sizeForScale(3.0).width)
+
+    assertEquals(scale(26), header.positionableAdapter.sizeForScale(0.3).height)
+    assertEquals(scale(100), header.positionableAdapter.sizeForScale(0.3).width)
   }
 
   @Test

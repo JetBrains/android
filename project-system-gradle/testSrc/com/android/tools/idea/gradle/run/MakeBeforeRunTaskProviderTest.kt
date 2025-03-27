@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
@@ -54,6 +53,7 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit

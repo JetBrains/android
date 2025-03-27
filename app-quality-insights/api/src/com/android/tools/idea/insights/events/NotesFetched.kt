@@ -16,11 +16,12 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.InsightsProviderKey
+import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 data class NotesFetched(
@@ -31,7 +32,8 @@ data class NotesFetched(
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker,
-    key: InsightsProviderKey,
+    provider: InsightsProvider,
+    cache: AppInsightsCache,
   ): StateTransition<Action> = StateTransition(state.copy(currentNotes = notes), Action.NONE)
 
   override fun toString() = "NotesFetched(issueId=$issueId)"

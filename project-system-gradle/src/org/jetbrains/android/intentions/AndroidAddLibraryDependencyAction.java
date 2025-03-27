@@ -21,8 +21,8 @@ import static com.android.SdkConstants.EXT_GRADLE_KTS;
 
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Dependency;
-import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -47,14 +47,15 @@ import com.intellij.openapi.ui.popup.PopupChooserBuilder;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IncorrectOperationException;
-import java.util.HashSet;
-import javax.swing.JList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
+
+import javax.swing.*;
+import java.util.HashSet;
 
 /**
  * Intention for gradle build files that allows adding library dependencies
@@ -139,11 +140,8 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     final ArtifactDependencySpec newDependency =
       ArtifactDependencySpec.create(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getRevision());
 
-    WriteCommandAction.runWriteCommandAction(project, () -> {
-      String compactNotation = newDependency.compactNotation();
-      DependenciesHelper.withModel(projectModel).addDependency(CommonConfigurationNames.IMPLEMENTATION, compactNotation, buildModel);
-      projectModel.applyChanges();
-    });
+    String compactNotation = newDependency.compactNotation();
+    DependenciesHelper.withModel(projectModel).addDependency(CommonConfigurationNames.IMPLEMENTATION, compactNotation, buildModel);
   }
 
   @Override
@@ -169,14 +167,23 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     }
 
     final JList list = new JBList(dependencies);
-    JBPopup popup = new PopupChooserBuilder(list).setItemChosenCallback(() -> {
-      for (Object selectedValue : list.getSelectedValues()) {
-        if (selectedValue == null) {
-          return;
+    JBPopup popup = new PopupChooserBuilder(list).setItemChoosenCallback(new Runnable() {
+      @Override
+      public void run() {
+        for (Object selectedValue : list.getSelectedValues()) {
+          if (selectedValue == null) {
+            return;
+          }
+          addDependency(project, projectModel, buildModel, (String)selectedValue);
         }
-        addDependency(project, projectModel, buildModel, (String)selectedValue);
+        WriteCommandAction.runWriteCommandAction(project, () -> { projectModel.applyChanges(); });
       }
     }).createPopup();
     popup.showInBestPositionFor(editor);
+  }
+
+  @Override
+  public boolean startInWriteAction() {
+    return false;
   }
 }

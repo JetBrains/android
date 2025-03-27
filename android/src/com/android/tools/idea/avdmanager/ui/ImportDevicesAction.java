@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager.ui;
 
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -46,7 +47,7 @@ public class ImportDevicesAction extends DeviceUiAction {
   @Override
   public void actionPerformed(ActionEvent e) {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, true)
-      .withFileFilter(file -> file.getName().toLowerCase(Locale.ROOT).endsWith(".xml"));
+      .withExtensionFilter(XmlFileType.INSTANCE);
     String homePath = System.getProperty("user.home");
     File parentPath = homePath == null ? new File("/") : new File(homePath);
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);

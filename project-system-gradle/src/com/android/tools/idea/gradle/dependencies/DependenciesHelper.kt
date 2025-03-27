@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dependencies
 
 import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.Companion.calculateAddDependencyPolicy
+import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
@@ -28,7 +30,8 @@ abstract class DependenciesHelper {
     fun withModel(projectModel: ProjectBuildModel): DependenciesInserter =
       when (calculateAddDependencyPolicy(projectModel)) {
         AddDependencyPolicy.VERSION_CATALOG -> CatalogDependenciesInserter(projectModel)
-        AddDependencyPolicy.BUILD_FILE -> DependenciesInserter(projectModel)
+        AddDependencyPolicy.BUILD_FILE -> DependenciesInserter()
+        AddDependencyPolicy.DECLARATIVE -> DeclarativeDependenciesInserter()
       }
 
     @JvmStatic
@@ -37,10 +40,14 @@ abstract class DependenciesHelper {
     }
 
     @JvmStatic
+    fun isDeclarativeModel(projectModel: GradleSettingsModel?): Boolean {
+      return projectModel is GradleDeclarativeSettingsModel
+    }
+
+    @JvmStatic
     fun getDefaultCatalogName(projectModel: ProjectBuildModel): String {
       return projectModel.projectSettingsModel?.dependencyResolutionManagement()?.catalogDefaultName()
                         ?: VersionCatalogModel.DEFAULT_CATALOG_NAME
     }
-
   }
 }

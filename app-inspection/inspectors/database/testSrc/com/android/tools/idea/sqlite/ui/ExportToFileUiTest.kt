@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.model.DatabaseFileData
@@ -64,6 +63,7 @@ import java.awt.event.MouseEvent.MOUSE_PRESSED
 import javax.swing.AbstractButton
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
+import org.mockito.kotlin.whenever
 
 private const val EXPORT_TO_FILE_ENABLED_DEFAULT = true
 private const val TABLE_ACTION_PANEL_COMPONENT_NAME = "table-actions-panel"

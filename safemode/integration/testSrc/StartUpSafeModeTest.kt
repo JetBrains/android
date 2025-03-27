@@ -34,7 +34,9 @@ class StartUpSafeModeTest {
     val install = AndroidStudioInstallation.fromZip(fileSystem)
 
     val display = Display.createDefault()
-    val studio = install.runInSafeMode(display)
+
+    install.forceSafeMode()
+    val studio = install.run(display)
 
     val version = studio.version()
     assertThat(version).startsWith("Android Studio")
@@ -81,6 +83,7 @@ class StartUpSafeModeTest {
       "HTML Tools",
       "IDEA CORE",
       "Images",
+      "JSON",
       "IntelliLang",
       "JUnit",
       "Java",
@@ -100,7 +103,6 @@ class StartUpSafeModeTest {
       "Performance Testing",
       "Plugin DevKit",
       "Properties",
-      "Relational Dataflow Analysis",
       "Shell Script",
       "Smali Support",
       "Subversion",

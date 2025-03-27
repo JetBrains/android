@@ -189,7 +189,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
         return create(skinFolder)
       }
       catch (e: NoSuchFileException) {
-        thisLogger().error("File not found: ${e.file}")
+        thisLogger().warn("File not found: ${e.file}")
       }
       catch (e: IOException) {
         thisLogger().error(e)
@@ -206,6 +206,13 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     fun create(skinFolder: Path): SkinDefinition {
       val layoutDescriptor = createLayoutDescriptor(skinFolder)
       return SkinDefinition(layoutDescriptor.createLayout())
+    }
+
+    @Slow
+    @Throws(IOException::class, InvalidSkinException::class)
+    @JvmStatic
+    fun getSkinDisplaySize(skinFolder: Path) : Dimension {
+      return createLayoutDescriptor(skinFolder).displaySize
     }
 
     @Slow

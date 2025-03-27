@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstddef>
+#include <mutex>
 #include <string>
 
 #include "common.h"
@@ -27,19 +28,29 @@ class SocketWriter {
 public:
   enum class Result { SUCCESS, SUCCESS_AFTER_BLOCKING, TIMEOUT, DISCONNECTED };
 
-  SocketWriter(int socket_fd, std::string&& socket_name);
+  static constexpr int32_t INFINITE_TIMEOUT = -1;
 
-  Result Write(const void* buf, size_t size, int timeout_micros) {
-    return Write(buf, size, nullptr, 0, timeout_micros);
+  SocketWriter(int socket_fd, std::string&& socket_name, int32_t timeout_millis = INFINITE_TIMEOUT);
+  SocketWriter(SocketWriter&&);
+
+  Result Write(const void* buf, size_t size) {
+    return Write(buf, size, nullptr, 0);
   }
 
-  Result Write(const void* buf1, size_t size1, const void* buf2, size_t size2, int timeout_micros);
+  Result Write(const void* buf1, size_t size1, const void* buf2, size_t size2);
 
   int socket_fd() const { return socket_fd_; }
 
+  void set_timeout_millis(int32_t timeout_millis) { timeout_millis_ = timeout_millis; }
+  int32_t timeout_millis() const { return timeout_millis_; }
+
 private:
-  int socket_fd_;
+  int socket_fd_ = 0;
   std::string socket_name_;
+  int32_t timeout_millis_ = INFINITE_TIMEOUT;
+  std::mutex mutex_;
+
+  DISALLOW_COPY_AND_ASSIGN(SocketWriter);
 };
 
 }  // namespace screensharing

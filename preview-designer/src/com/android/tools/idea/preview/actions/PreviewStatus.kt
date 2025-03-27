@@ -24,10 +24,14 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotifications
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import javax.swing.Icon
 
 /** Represents the Preview status to be notified to the user. */
@@ -138,11 +142,22 @@ class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnActi
   }
 }
 
-/** [AnAction] that requests a build of the file returned by [fileProvider] and its dependencies. */
-class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
+/**
+ * [AnAction] that requests a build of the file returned by [fileProvider] and its dependencies.
+ *
+ * @param [fileProvider] is lambda providing the [PsiFile] used to request the build. This lambda
+ *   will be called under a read lock.
+ */
+class BuildAndRefresh(@RequiresReadLock private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
-    val file = fileProvider() ?: return
-    file.project.requestBuildArtifactsForRendering(file.virtualFile)
+    ReadAction.nonBlocking<PsiFile?> { fileProvider() }
+      .submit(AppExecutorUtil.getAppExecutorService())
+      .onSuccess {
+        val file = it ?: return@onSuccess
+        ApplicationManager.getApplication().executeOnPooledThread {
+          file.project.requestBuildArtifactsForRendering(file.virtualFile)
+        }
+      }
   }
 }
 

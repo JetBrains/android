@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
 import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -38,6 +37,7 @@ import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.mockito.Mockito
+import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.file.Path
 

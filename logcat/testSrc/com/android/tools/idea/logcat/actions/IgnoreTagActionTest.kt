@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
@@ -42,12 +41,13 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
+import java.time.ZoneId
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
-import java.time.ZoneId
+import org.mockito.kotlin.mock
 
 /** Tests for [IgnoreTagAction] */
 @RunsInEdt
@@ -56,8 +56,15 @@ class IgnoreTagActionTest {
   private val disposableRule = DisposableRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 logcatEditorRule, EdtRule(), disposableRule)
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      WaitForIndexRule(projectRule),
+      logcatEditorRule,
+      EdtRule(),
+      disposableRule,
+    )
 
   private val editor
     get() = logcatEditorRule.editor

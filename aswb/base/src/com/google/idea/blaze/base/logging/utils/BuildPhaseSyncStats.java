@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.scope.scopes.TimingScopeListener.TimedEvent;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,11 +46,7 @@ public abstract class BuildPhaseSyncStats {
 
   public abstract ImmutableList<TimedEvent> timedEvents();
 
-  public abstract ImmutableList<String> buildIds();
-
   public abstract Duration totalTime();
-
-  public abstract long bepBytesConsumed();
 
   public abstract Optional<ShardStats> shardStats();
 
@@ -66,8 +62,6 @@ public abstract class BuildPhaseSyncStats {
         .setTargetsDerivedFromDirectories(false)
         .setBuildResult(BuildResult.FATAL_ERROR)
         .setTimedEvents(ImmutableList.of())
-        .setBepBytesConsumed(0L)
-        .setBuildIds(ImmutableList.of())
         .setTotalTime(Duration.ZERO);
   }
   /** Auto value builder for SyncStats. */
@@ -89,11 +83,7 @@ public abstract class BuildPhaseSyncStats {
 
     public abstract Builder setTimedEvents(ImmutableList<TimedEvent> timedEvents);
 
-    public abstract Builder setBuildIds(ImmutableList<String> buildIds);
-
     public abstract Builder setTotalTime(Duration totalTime);
-
-    public abstract Builder setBepBytesConsumed(long bytes);
 
     public abstract Builder setShardStats(ShardStats shardStats);
 

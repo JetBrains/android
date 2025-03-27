@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.sdklib.AndroidTargetHash
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeProductFlavor
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
 import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsInts
 import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsStrings
+import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseFile
@@ -31,7 +35,6 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseReferenceOnly
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.helpers.proGuardFileValues
 import com.android.tools.idea.gradle.structure.model.helpers.signingConfigs
-import com.android.tools.idea.gradle.structure.model.helpers.toIntOrString
 import com.android.tools.idea.gradle.structure.model.helpers.withProFileSelector
 import com.android.tools.idea.gradle.structure.model.meta.ListProperty
 import com.android.tools.idea.gradle.structure.model.meta.MapProperty
@@ -96,11 +99,12 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
   val minSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Min SDK Version",
     preferredVariableName = { "defaultMinSdkVersion" },
-    resolvedValueGetter = { minSdkVersion?.apiLevel?.toString() },
+    resolvedValueGetter = { minSdkVersion?.apiString?.let { AndroidTargetHash.getPlatformHashString(it) } },
     parsedPropertyGetter = { minSdkVersion() },
     getter = { asString() },
-    setter = { setValue(it.toIntOrString()) },
+    setter = { setValue(it.toIntOrNull() ?: it) },
     parser = ::parseString,
+    matcher = ::matchHashStrings,
     knownValuesGetter = ::installedSdksAsStrings
   )
 
@@ -129,13 +133,13 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
   val targetSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Target SDK Version",
     preferredVariableName = { "defaultTargetSdkVersion" },
-    resolvedValueGetter = { targetSdkVersion?.apiLevel?.toString() },
+    resolvedValueGetter = { targetSdkVersion?.apiString?.let { AndroidTargetHash.getPlatformHashString(it) } },
     parsedPropertyGetter = { targetSdkVersion() },
     getter = { asString() },
-    setter = { setValue(it.toIntOrString()) },
+    setter = { setValue(it.toIntOrNull() ?: it) },
     parser = ::parseString,
+    matcher = ::matchHashStrings,
     knownValuesGetter = ::installedSdksAsStrings
-
   )
 
   val testApplicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(

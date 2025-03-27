@@ -16,13 +16,8 @@
 package com.android.tools.idea.refactoring.modularize
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argThat
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.getTypedArgument
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.MockitoKt.whenever
+import com.android.mockito.kotlin.getTypedArgument
+import com.android.mockito.kotlin.mockStatic
 import com.android.tools.idea.res.getFolderConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.Application
@@ -44,6 +39,11 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.awt.Color
 import javax.swing.Icon
@@ -218,8 +218,8 @@ class UsageInfoTreeNodeTest {
 
         verify(renderer).append(eq(name), eq(attributes))
         verify(renderer).append(eq(" ($qualifierString)"), argThat {
-          it.style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
-          it.fgColor == attributes.fgColor
+          style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
+          fgColor == attributes.fgColor
         })
         verify(node).renderReferenceCount(eq(renderer), eq(attributes))
       }
@@ -255,8 +255,8 @@ class UsageInfoTreeNodeTest {
 
         verify(renderer).append(eq(name), eq(attributes))
         verify(renderer, never()).append(eq(" ($qualifierString)"), argThat {
-          it.style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
-          it.fgColor == attributes.fgColor
+          style == attributes.style or SimpleTextAttributes.STYLE_SMALLER &&
+          fgColor == attributes.fgColor
         })
         verify(node).renderReferenceCount(eq(renderer), eq(attributes))
       }

@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+message DevServicesDeprecationMetadata {
+  // The header text to display in the deprecation message.
+  optional string header = 1;
+  // The description text to display in the deprecation message.
+  optional string description = 2;
+  // The URL of the more info link in the deprecation message.
+  optional string more_info_url = 3;
+  // Shows the update action button.
+  optional bool show_update_action = 4;
+}

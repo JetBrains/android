@@ -34,7 +34,7 @@ abstract class MavenClassRegistryBase {
     val artifact: String,
     val importedItemFqName: String,
     val importedItemPackageName: String,
-    val version: String? = null
+    val version: String? = null,
   )
 
   /** Coordinate for Google Maven artifact. */
@@ -54,7 +54,7 @@ abstract class MavenClassRegistryBase {
     name: String,
     receiverType: String?,
     useAndroidX: Boolean,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<LibraryImportData>
 
   /**
@@ -69,7 +69,7 @@ abstract class MavenClassRegistryBase {
   abstract fun findLibraryDataAnyReceiver(
     name: String,
     useAndroidX: Boolean,
-    completionFileType: FileType?
+    completionFileType: FileType?,
   ): Collection<LibraryImportData>
 
   /**

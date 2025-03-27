@@ -16,7 +16,7 @@ PROJECT                       : Kotlin Multiplatform
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -59,7 +59,7 @@ PROJECT                       : Kotlin Multiplatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/androidLib
             EXCLUDE_FOLDER                : file://<PROJECT>/androidLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/androidLib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/androidLib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -188,7 +188,7 @@ PROJECT                       : Kotlin Multiplatform
         LinkedProjectPath             : <PROJECT>/androidLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/compileTypeoneModetwoDebugJavaWithJavac/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/compileTypeoneModetwoDebugJavaWithJavac/classes
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/androidLib/Kotlin_Multiplatform.androidLib.main.iml [-]
@@ -210,8 +210,10 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
+            JavaSource                    : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug
+            JavaResource                  : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/main
             JavaSource                    : file://<PROJECT>/androidLib/src/main/java
@@ -220,10 +222,6 @@ PROJECT                       : Kotlin Multiplatform
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeone [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModetwo [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModetwoDebug [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
-            Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
-            Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/debug/java [-]
@@ -744,7 +742,7 @@ PROJECT                       : Kotlin Multiplatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpFirstLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/kmpFirstLib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmpFirstLib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1186,7 +1184,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/commonMain
-            JavaSource                    : file://<PROJECT>/kmpFirstLib/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/kmpFirstLib/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1201,9 +1199,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpFirstLib.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :kmpFirstLib:assemble
-                REBUILD                       : :kmpFirstLib:assemble, :kmpFirstLib:clean
-                COMPILE_JAVA                  : :kmpFirstLib:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpFirstLib.commonTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1254,7 +1249,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/commonTest
-            JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/commonTest/kotlin
+            TestSourceKotlin (test)       : file://<PROJECT>/kmpFirstLib/src/commonTest/kotlin
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1288,9 +1283,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/build/classes/test/Kotlin_Multiplatform.kmpFirstLib.commonTest
         BUILD_TASKS
-                ASSEMBLE                      : :kmpFirstLib:assemble
-                REBUILD                       : :kmpFirstLib:assemble, :kmpFirstLib:clean
-                COMPILE_JAVA                  : :kmpFirstLib:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleVersion         : unspecified
@@ -1309,14 +1301,11 @@ PROJECT                       : Kotlin Multiplatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpJvmOnly/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/kmpJvmOnly/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmpJvmOnly/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
-                COMPILE_JAVA                  : :kmpJvmOnly:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.commonMain
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1365,7 +1354,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/commonMain
-            JavaSource                    : file://<PROJECT>/kmpJvmOnly/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/kmpJvmOnly/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpJvmOnly/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1375,9 +1364,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpJvmOnly.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
-                COMPILE_JAVA                  : :kmpJvmOnly:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.commonTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1428,7 +1414,6 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpJvmOnly/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpJvmOnly/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1442,9 +1427,6 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
-                COMPILE_JAVA                  : :kmpJvmOnly:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1505,9 +1487,6 @@ PROJECT                       : Kotlin Multiplatform
             -                             : file://<PROJECT>/kmpJvmOnly/build/classes/kotlin/jvm/main
             -                             : file://<PROJECT>/kmpJvmOnly/build/processedResources/jvm/main
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
-                COMPILE_JAVA                  : :kmpJvmOnly:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.jvmTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1574,9 +1553,6 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmpJvmOnly:assemble
-                REBUILD                       : :kmpJvmOnly:assemble, :kmpJvmOnly:clean
-                COMPILE_JAVA                  : :kmpJvmOnly:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         LINKED_ANDROID_MODULE_GROUP
             holder                        : Kotlin_Multiplatform.kmpSecondLib
@@ -1615,7 +1591,7 @@ PROJECT                       : Kotlin Multiplatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpSecondLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/kmpSecondLib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmpSecondLib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1762,7 +1738,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/commonMain
-            JavaSource                    : file://<PROJECT>/kmpSecondLib/src/commonMain/kotlin
+            SourceKotlin                  : file://<PROJECT>/kmpSecondLib/src/commonMain/kotlin
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpSecondLib/src/commonMain/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1771,9 +1747,6 @@ PROJECT                       : Kotlin Multiplatform
         Classes
             -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpSecondLib.commonMain
         BUILD_TASKS
-                ASSEMBLE                      : :kmpSecondLib:assemble
-                REBUILD                       : :kmpSecondLib:assemble, :kmpSecondLib:clean
-                COMPILE_JAVA                  : :kmpSecondLib:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpSecondLib.commonTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1820,11 +1793,10 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpSecondLib/src/commonTest [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpSecondLib/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpSecondLib/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
@@ -1838,9 +1810,6 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmpSecondLib:assemble
-                REBUILD                       : :kmpSecondLib:assemble, :kmpSecondLib:clean
-                COMPILE_JAVA                  : :kmpSecondLib:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmMain
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1884,7 +1853,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (1.8)
             - SourceSetName               : Kotlin_Multiplatform.kmpSecondLib.commonMain
             UseProjectSettings            : false
             Version                       : 5
@@ -1901,9 +1870,6 @@ PROJECT                       : Kotlin Multiplatform
             -                             : file://<PROJECT>/kmpSecondLib/build/classes/kotlin/jvm/main
             -                             : file://<PROJECT>/kmpSecondLib/build/processedResources/jvm/main
         BUILD_TASKS
-                ASSEMBLE                      : :kmpSecondLib:assemble
-                REBUILD                       : :kmpSecondLib:assemble, :kmpSecondLib:clean
-                COMPILE_JAVA                  : :kmpSecondLib:compileJava
     MODULE                        : Kotlin_Multiplatform.kmpSecondLib.jvmTest
         ExternalModuleGroup           : Kotlin Multiplatform
         ExternalModuleType            : sourceSet
@@ -1949,7 +1915,7 @@ PROJECT                       : Kotlin Multiplatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (1.8)
             - SourceSetName               : Kotlin_Multiplatform.kmpSecondLib.commonTest
             UseProjectSettings            : false
             Version                       : 5
@@ -1970,9 +1936,6 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.jvmMain
             Scope                         : Test
         BUILD_TASKS
-                ASSEMBLE                      : :kmpSecondLib:assemble
-                REBUILD                       : :kmpSecondLib:assemble, :kmpSecondLib:clean
-                COMPILE_JAVA                  : :kmpSecondLib:compileJava
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : Kotlin_Multiplatform.app
@@ -2117,9 +2080,9 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
             CLEAN                         : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:assembleAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidUnitTest, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:assembleAndroidMain
-            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:assembleAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidUnitTest, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:assembleAndroidMain, <PROJECT>::kmpSecondLib:clean
-            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::kmpFirstLib:compileAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:compileAndroidMain, <PROJECT>::kmpFirstLib:compileAndroidUnitTest, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpSecondLib:compileAndroidMain, <PROJECT>::kmpSecondLib:compileJava
+            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::kmpFirstLib:assembleAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidUnitTest, <PROJECT>::kmpSecondLib:assembleAndroidMain
+            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assembleAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:assembleAndroidMain, <PROJECT>::kmpFirstLib:assembleAndroidUnitTest, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpSecondLib:assembleAndroidMain, <PROJECT>::kmpSecondLib:clean
+            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::kmpFirstLib:compileAndroidInstrumentedTest, <PROJECT>::kmpFirstLib:compileAndroidMain, <PROJECT>::kmpFirstLib:compileAndroidUnitTest, <PROJECT>::kmpSecondLib:compileAndroidMain
             SOURCE_GEN                    : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

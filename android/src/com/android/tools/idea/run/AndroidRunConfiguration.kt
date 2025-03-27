@@ -117,7 +117,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   var ALWAYS_INSTALL_WITH_PM = false
 
   @JvmField
-  var ALLOW_ASSUME_VERIFIED = false
+  var ALLOW_ASSUME_VERIFIED = if (StudioFlags.INSTALL_WITH_ASSUME_VERIFIED_ON_DEFAULT.get())  true else false
 
   @JvmField
   var CLEAR_APP_STORAGE = false
@@ -138,6 +138,10 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
 
   @JvmField
   var RESTORE_FILE = ""
+
+  /** If true, the restore file will only be used if the app is not already installed */
+  @JvmField
+  var RESTORE_FRESH_INSTALL_ONLY = false
 
   init {
     for (option in LAUNCH_OPTIONS) {
@@ -249,7 +253,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
     }
 
     // Default Activity behavior has changed to not show the splashscreen in Tiramisu. We need to add the splashscreen back.
-    if (device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)) {
+    if (device.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)) {
       extraFlags += (if (extraFlags.isEmpty()) "" else " ") + "--splashscreen-show-icon"
     }
     val startActivityFlagsProvider = if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {

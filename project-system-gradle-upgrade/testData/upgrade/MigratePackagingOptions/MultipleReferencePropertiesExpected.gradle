@@ -7,7 +7,6 @@ ext {
   bar2So = "bar2.so"
   abcSo = "abc.so"
 }
-
 android {
   packagingOptions {
     jniLibs {

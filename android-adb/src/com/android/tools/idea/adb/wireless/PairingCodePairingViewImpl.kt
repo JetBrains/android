@@ -20,9 +20,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ValidationInfo
 
 @UiThread
-class PairingCodePairingViewImpl(project: Project,
-                                 private val notificationService: WiFiPairingNotificationService,
-                                 override val model: PairingCodePairingModel
+class PairingCodePairingViewImpl(
+  project: Project,
+  private val notificationService: WiFiPairingNotificationService,
+  override val model: PairingCodePairingModel,
 ) : PairingCodePairingView {
   private val dlg = PairingCodePairingDialog(project)
   private val listeners = ArrayList<PairingCodePairingView.Listener>()
@@ -33,8 +34,7 @@ class PairingCodePairingViewImpl(project: Project,
     dlg.validationHandler = {
       if (dlg.isPairingCodeValid) {
         null
-      }
-      else {
+      } else {
         ValidationInfo("Pairing code must be exactly 6 digits", dlg.pairingCodeComponent)
       }
     }
@@ -42,7 +42,7 @@ class PairingCodePairingViewImpl(project: Project,
       if (allowPairAction) {
         model.pairingCode = dlg.currentPairingCode
         listeners.forEach { it.onPairInvoked() }
-         true
+        true
       } else {
         false
       }

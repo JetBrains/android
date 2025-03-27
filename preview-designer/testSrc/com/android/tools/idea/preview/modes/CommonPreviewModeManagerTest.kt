@@ -1,6 +1,5 @@
 package com.android.tools.idea.preview.modes
 
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.preview.PreviewElement
@@ -10,6 +9,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class CommonPreviewModeManagerTest {
 
@@ -45,7 +45,7 @@ class CommonPreviewModeManagerTest {
     manager.setMode(
       PreviewMode.UiCheck(
         UiCheckInstance(previewElement, isWearPreview = false),
-        LIST_NO_GROUP_LAYOUT_OPTION,
+        GRID_LAYOUT_OPTION,
       )
     )
     manager.restorePrevious()
@@ -59,11 +59,11 @@ class CommonPreviewModeManagerTest {
 
     assertThat(manager.mode.value).isEqualTo(PreviewMode.Default())
 
-    manager.setMode(PreviewMode.Gallery(previewElement))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(GALLERY_LAYOUT_OPTION)
+    manager.setMode(PreviewMode.Focus(previewElement))
+    assertThat(manager.mode.value.layoutOption).isEqualTo(FOCUS_MODE_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.UiCheck(UiCheckInstance(previewElement, isWearPreview = false)))
-    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
+    assertThat(manager.mode.value.layoutOption).isEqualTo(UI_CHECK_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.AnimationInspection(previewElement))
     assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
@@ -71,10 +71,10 @@ class CommonPreviewModeManagerTest {
     manager.setMode(
       PreviewMode.UiCheck(
         UiCheckInstance(previewElement, isWearPreview = false),
-        LIST_NO_GROUP_LAYOUT_OPTION,
+        GRID_LAYOUT_OPTION,
       )
     )
-    assertThat(manager.mode.value.layoutOption).isEqualTo(LIST_NO_GROUP_LAYOUT_OPTION)
+    assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_LAYOUT_OPTION)
 
     manager.setMode(PreviewMode.Interactive(previewElement))
     assertThat(manager.mode.value.layoutOption).isEqualTo(GRID_NO_GROUP_LAYOUT_OPTION)
@@ -103,26 +103,14 @@ class CommonPreviewModeManagerTest {
   }
 
   @Test
-  fun testGalleryLayoutModeDefaultPreference_GalleryIsDefault(): Unit = runBlocking {
-    // Gallery is set as a preference
+  fun testFocusLayoutModeDefaultPreference_FocusIsDefault(): Unit = runBlocking {
+    // Focus is set as a preference
     androidEditorSettings.globalState.preferredPreviewLayoutMode =
       AndroidEditorSettings.LayoutType.GALLERY
 
     val manager = CommonPreviewModeManager()
 
-    // The default value is a gallery view mode, no option set (null)
-    assertThat(manager.mode.value).isEqualTo(PreviewMode.Gallery(null))
-  }
-
-  @Test
-  fun testListLayoutModeDefaultPreference_ListIsDefault(): Unit = runBlocking {
-    // List is set as a preference
-    androidEditorSettings.globalState.preferredPreviewLayoutMode =
-      AndroidEditorSettings.LayoutType.LIST
-
-    val manager = CommonPreviewModeManager()
-
-    // The default value is a default view mode with a list layout option
-    assertThat(manager.mode.value).isEqualTo(PreviewMode.Default(LIST_LAYOUT_OPTION))
+    // The default value is a focus view mode, no option set (null)
+    assertThat(manager.mode.value).isEqualTo(PreviewMode.Focus(null))
   }
 }

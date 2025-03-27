@@ -17,8 +17,6 @@ package com.android.tools.idea.lint
 
 import com.android.test.testutils.TestUtils
 import com.android.tools.idea.lint.common.AnnotateQuickFix
-import com.android.tools.idea.lint.common.DefaultLintQuickFix
-import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.lint.common.ModCommandLintQuickFix
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction
 import com.android.tools.idea.lint.common.toIdeFix
@@ -35,6 +33,7 @@ import com.android.tools.lint.detector.api.Location
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
+import com.intellij.openapi.application.impl.NonBlockingReadActionImpl
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorSettings
 import com.intellij.openapi.editor.impl.ImaginaryEditor
@@ -76,6 +75,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           project,
           element,
           9,
+          0,
           ExtensionSdk.ANDROID_SDK_ID,
           ApiConstraint.ALL,
         )
@@ -130,6 +130,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           project,
           element,
           9,
+          0,
           ExtensionSdk.ANDROID_SDK_ID,
           ApiConstraint.ALL,
         )
@@ -218,7 +219,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
 
     val element = myFixture.findElementByText("textSize", PsiElement::class.java)
     val fix = ModCommandLintQuickFix(ConvertToDpQuickFix(element)).rawIntention()
+
     myFixture.launchAction(fix)
+    NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
+
     myFixture.checkResult(
       """
       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
@@ -666,18 +670,6 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     val caretContextIndex = fileContent.indexOf(caretContext)
     assertTrue("Caret content $caretContext not found in file", caretContextIndex != -1)
     return caretContextIndex + caretDelta
-  }
-
-  private fun checkPreviewFix(
-    file: PsiFile,
-    caret: String,
-    createFix: (element: PsiElement) -> DefaultLintQuickFix,
-    expected: String,
-  ) {
-    val element = findElement(file, caret)
-    val fix = createFix(element)
-    val action = LintExternalAnnotator.MyFixingIntention(fix, project, file, element.textRange)
-    checkPreview(expected, action, file)
   }
 
   private fun checkPreviewAction(

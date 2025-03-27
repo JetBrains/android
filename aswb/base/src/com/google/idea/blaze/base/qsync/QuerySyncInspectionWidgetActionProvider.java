@@ -220,6 +220,11 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
     private void createGotItTooltip(ActionButtonWithText button) {
       Project project = editor.getProject();
       if (project != null) {
+        QuerySyncManager querySyncManager = QuerySyncManager.getInstance(project);
+        String learnMore =
+            querySyncManager.getQuerySyncUrl()
+            .map(l -> " To learn more about these changes: " + l)
+            .orElse("");
         GotItTooltip gotIt =
             new GotItTooltip(
                     "query.sync.got.it",
@@ -227,8 +232,8 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
                         + " to build file dependencies for advanced code editing features or not."
                         + " Without building dependencies, you can still navigate your codebase and"
                         + " make light code edits. For analysis and deeper code editing, click the"
-                        + " hammer icon to build this file's dependencies. To learn more about"
-                        + " these changes: go/query-sync",
+                        + " hammer icon to build this file's dependencies."
+                        + learnMore,
                     project)
                 .withHeader("Welcome to query sync");
         // Ideally we would attach the balloon to the button, however the balloon disappears when

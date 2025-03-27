@@ -43,6 +43,7 @@ import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
+import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
@@ -56,7 +57,6 @@ import com.google.idea.blaze.base.scope.output.StatusOutput;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.base.sync.aspects.BuildResult;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.common.experiments.BoolExperiment;
@@ -66,7 +66,6 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.CancellationException;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -246,7 +245,10 @@ public class MobileInstallBuildStep implements ApkBuildStep {
 
       AndroidDeployInfo deployInfoProto =
           deployInfoHelper.readDeployInfoProtoForTarget(
-              label, buildResultHelper, fileName -> fileName.endsWith(deployInfoSuffix));
+              label,
+              "mobile_install_INTERNAL_",
+              buildResultHelper,
+              fileName -> fileName.endsWith(deployInfoSuffix));
       deployInfo =
           deployInfoHelper.extractDeployInfoAndInvalidateManifests(
               project, new File(executionRoot), deployInfoProto);
