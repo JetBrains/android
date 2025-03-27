@@ -224,7 +224,10 @@ iml_test(
     exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
-    tags_linux = ["block-network"],
+    tags_linux = [
+        "block-network",
+        "ci:studio-linux_very_flaky",  # b/406616088
+    ],
     tags_mac = [],
     tags_windows = [
         "block-network",
