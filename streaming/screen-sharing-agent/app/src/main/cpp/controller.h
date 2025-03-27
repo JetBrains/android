@@ -121,6 +121,7 @@ private:
   void ProcessXrTranslation(const XrTranslationMessage& message);
   void ProcessXrAngularVelocity(const XrAngularVelocityMessage& message);
   void ProcessXrVelocity(const XrVelocityMessage& message);
+  void InjectXrMotionEvent(const JObject& motion_event);
 
   void RequestDeviceState(const RequestDeviceStateMessage& message);
   void OnDeviceStateChanged(int32_t device_state);

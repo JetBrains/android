@@ -26,6 +26,7 @@
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
 #include "accessors/surface_control.h"
+#include "accessors/xr_simulated_input_event_manager.h"
 #include "accessors/xr_simulated_input_manager.h"
 #include "agent.h"
 #include "flags.h"
@@ -571,7 +572,11 @@ void Controller::InjectMotionEvent(const MotionEvent& event) {
   } else if (Log::IsEnabled(Log::Level::DEBUG)) {
     Log::D("motion_event: %s", motion_event.ToString().c_str());
   }
-  InjectInputEvent(motion_event);
+  if (Agent::device_type() == DeviceType::XR) {
+    InjectXrMotionEvent(motion_event);
+  } else {
+    InjectInputEvent(motion_event);
+  }
 }
 
 void Controller::InjectKeyEvent(const KeyEvent& event) {
@@ -747,6 +752,14 @@ void Controller::ProcessXrAngularVelocity(const XrAngularVelocityMessage& messag
 void Controller::ProcessXrVelocity(const XrVelocityMessage& message) {
   float data[3] = { message.x(), message.y(), message.z() };
   XrSimulatedInputManager::InjectHeadMovementVelocity(jni_, data);
+}
+
+void Controller::InjectXrMotionEvent(const JObject& motion_event) {
+  XrSimulatedInputEventManager::InjectXrSimulatedMotionEvent(jni_, motion_event);
+  JThrowable exception = jni_.GetAndClearException();
+  if (exception.IsNotNull()) {
+    Log::E("Unable to inject an XR motion event - %s", JString::ValueOf(exception).c_str());
+  }
 }
 
 void Controller::RequestDeviceState(const RequestDeviceStateMessage& message) {
