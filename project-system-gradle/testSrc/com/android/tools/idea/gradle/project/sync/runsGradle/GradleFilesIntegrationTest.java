@@ -426,7 +426,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
     runWithDeclarativeSupport(() -> {
       loadSimpleDeclarativeApplication();
-      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder("app", FN_BUILD_GRADLE_DECLARATIVE);
       runDeclarativeFakeModificationTest((factory, file) -> file.add(factory.createBlock("coolBlock")), true,
                                          virtualFile);
     });
@@ -447,7 +447,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testNotModifiedWhenAddingWhitespaceInKotlinSettingsFile() throws Exception {
-    loadSimpleApplication();
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS);
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_KTS);
     runKtsFakeModificationTest((factory, file) -> file.add(factory.createNewLine(1)), false, virtualFile);
   }
@@ -460,7 +460,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     });
   }
 
-
   public void testNotModifiedWhenAddingWhitespaceInKotlinBuildFile() throws Exception {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS);
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_KTS);
@@ -470,7 +469,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
   public void testNotModifiedWhenAddingWhitespaceInDeclarativeBuildFile() throws Exception {
     runWithDeclarativeSupport(() -> {
       loadSimpleDeclarativeApplication();
-      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder("app", FN_BUILD_GRADLE_DECLARATIVE);
       runGroovyFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
     });
   }
