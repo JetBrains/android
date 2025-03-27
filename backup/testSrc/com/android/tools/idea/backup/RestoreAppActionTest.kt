@@ -17,6 +17,7 @@ package com.android.tools.idea.backup
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.backup.BackupManager.Source.RESTORE_APP_ACTION
+import com.android.tools.idea.backup.RestoreAppAction.Config
 import com.android.tools.idea.backup.testing.FakeActionHelper
 import com.android.tools.idea.backup.testing.FakeBackupManager
 import com.android.tools.idea.backup.testing.FakeBackupManager.RestoreModalInvocation
@@ -105,6 +106,28 @@ class RestoreAppActionTest {
   fun actionPerformed() {
     val actionHelper = FakeActionHelper("com.app", 1, "serial")
     val action = RestoreAppAction(actionHelper = actionHelper, dialogFactory = fakeDialogFactory)
+    val event = testEvent(project, "serial")
+
+    action.actionPerformed(event)
+
+    fakeBackupManager.waitForRestoreInvocations(1)
+
+    assertThat(fakeBackupManager.restoreModalInvocations)
+      .containsExactly(
+        RestoreModalInvocation("serial", Path.of("file.backup"), RESTORE_APP_ACTION, true)
+      )
+    assertThat(fakeDialogFactory.dialogs).isEmpty()
+  }
+
+  @Test
+  fun actionPerformed_browse() {
+    val actionHelper = FakeActionHelper("com.app", 1, "serial")
+    val action =
+      RestoreAppAction(
+        config = Config.Browse,
+        actionHelper = actionHelper,
+        dialogFactory = fakeDialogFactory,
+      )
     val event = testEvent(project, "serial")
 
     action.actionPerformed(event)

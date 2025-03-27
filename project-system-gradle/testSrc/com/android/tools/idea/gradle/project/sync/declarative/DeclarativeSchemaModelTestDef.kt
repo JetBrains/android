@@ -38,6 +38,9 @@ import com.android.tools.idea.gradle.dcl.lang.sync.StarGeneric
 import com.android.tools.idea.gradle.project.sync.snapshots.DeclarativeTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
@@ -56,7 +59,7 @@ import java.io.File
 
 data class DeclarativeSchemaModelTestDef(
   override val testProject: DeclarativeTestProject,
-  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+  override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
 ) : SyncedProjectTestDef {
   override val name: String = testProject.projectName
 
@@ -67,8 +70,9 @@ data class DeclarativeSchemaModelTestDef(
   }
 
   override fun isCompatible(): Boolean {
-    return agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT ||
-           agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
+    return agpVersion == AGP_DECLARATIVE_GRADLE_SNAPSHOT ||
+           agpVersion == AGP_LATEST_GRADLE_SNAPSHOT ||
+           agpVersion == AGP_CURRENT
   }
 
   override fun runTest(root: File, project: Project) {

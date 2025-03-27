@@ -35,7 +35,12 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.PlatformIcons;
+import java.awt.Dimension;
+import java.awt.Insets;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.dom.manifest.Action;
 import org.jetbrains.android.dom.manifest.*;
@@ -68,6 +73,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
 
   public NewAndroidComponentDialog(@NotNull final Module module, @NotNull PsiDirectory directory) {
     super(module.getProject());
+    setupUI();
     myKindLabel.setLabelFor(myKindCombo);
     myKindCombo.registerUpDownHint(myNameField);
     myUpDownHint.setIcon(PlatformIcons.UP_DOWN_ARROWS);
@@ -114,6 +120,71 @@ public class NewAndroidComponentDialog extends DialogWrapper {
                                 !AndroidFileTemplateProvider.FRAGMENT.equals(selected));
       }
     });
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(6, 3, new Insets(0, 0, 0, 0), -1, -1));
+    final JLabel label1 = new JLabel();
+    label1.setText("Name:");
+    label1.setDisplayedMnemonic('N');
+    label1.setDisplayedMnemonicIndex(0);
+    myPanel.add(label1,
+                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myKindLabel = new JLabel();
+    myKindLabel.setText("Kind:");
+    myKindLabel.setDisplayedMnemonic('K');
+    myKindLabel.setDisplayedMnemonicIndex(0);
+    myPanel.add(myKindLabel,
+                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myNameField = new JTextField();
+    myNameField.setColumns(30);
+    myPanel.add(myNameField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                 GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                 new Dimension(250, -1), null, 0, false));
+    myUpDownHint = new JLabel();
+    myUpDownHint.setToolTipText("Pressing Up or Down arrows while in editor changes the kind");
+    myPanel.add(myUpDownHint,
+                new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myKindCombo = new TemplateKindCombo();
+    myPanel.add(myKindCombo, new GridConstraints(1, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                 null, 0, false));
+    myMarkAsStartupActivityCheckBox = new JCheckBox();
+    myMarkAsStartupActivityCheckBox.setText("Mark as startup Activity");
+    myMarkAsStartupActivityCheckBox.setMnemonic('M');
+    myMarkAsStartupActivityCheckBox.setDisplayedMnemonicIndex(0);
+    myPanel.add(myMarkAsStartupActivityCheckBox, new GridConstraints(3, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                     GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                     null, null, null, 0, false));
+    myLabelField = new JTextField();
+    myPanel.add(myLabelField, new GridConstraints(2, 1, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                  GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                  new Dimension(150, -1), null, 0, false));
+    final JLabel label2 = new JLabel();
+    label2.setText("Label:");
+    label2.setDisplayedMnemonic('L');
+    label2.setDisplayedMnemonicIndex(0);
+    myPanel.add(label2,
+                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myCreateLayoutFile = new JBCheckBox();
+    myCreateLayoutFile.setText("Create layout file");
+    myCreateLayoutFile.setMnemonic('Y');
+    myCreateLayoutFile.setDisplayedMnemonicIndex(9);
+    myPanel.add(myCreateLayoutFile, new GridConstraints(4, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                        null, 0, false));
+    label1.setLabelFor(myNameField);
+    label2.setLabelFor(myLabelField);
   }
 
   private static boolean containsCustomApplicationClass(@NotNull final Module module) {

@@ -630,7 +630,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
       if (issueAndroidSpecific != inAndroidPluginXml) {
         error(
           "The registration for ${issue.id} is in the wrong plugin xml file; " +
-            "should be in ${if (issueAndroidSpecific) "android-" else ""}-lint-plugin.xml"
+            "should be in ${if (issueAndroidSpecific) "android-" else ""}lint-plugin.xml"
         )
       }
 

@@ -20,7 +20,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -71,7 +70,7 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
   public void testFindLintRuleJars_withOverride() throws IOException {
     LintClient client = new AndroidLintIdeClient(ideaProject, result) {
       @Nullable
-      protected Module getModule(@NonNull com.android.tools.lint.detector.api.Project project) {
+      protected Module getModule(@NotNull com.android.tools.lint.detector.api.Project project) {
         return myModule;
       }
     };
@@ -87,7 +86,7 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
   public void testFindLintRuleJars_withoutOverride() throws IOException {
     LintClient client = new AndroidLintIdeClient(ideaProject, result) {
       @Nullable
-      protected Module getModule(@NonNull com.android.tools.lint.detector.api.Project project) {
+      protected Module getModule(@NotNull com.android.tools.lint.detector.api.Project project) {
         return myModule;
       }
 
@@ -203,7 +202,7 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
     });
   }
 
-  @NonNull
+  @NotNull
   private static LocalPackage getLocalPlatformPackage(Path sdkRoot, String version, int api) {
     InMemoryFileSystems.recordExistingFile(sdkRoot.resolve("android-" + version + "/build.prop"));
     FakePackage.FakeLocalPackage local =
@@ -222,7 +221,7 @@ public class AndroidLintIdeClientTest extends AndroidTestCase {
   }
 
   @SuppressWarnings("SameParameterValue")
-  @NonNull
+  @NotNull
   private static LocalPackage getLocalAddOnPackage(
     Path sdkRoot,
     String tag,

@@ -126,10 +126,11 @@ class InlinedResource {
           if (myResourceReference.getResourceType() == ResourceType.STRING || myElement instanceof XmlAttributeValue) {
             return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
           }
-          else if (text.length() <= 1) {
+          else if (myResourceReference.getResourceType() == ResourceType.INTEGER || text.length() <= 1) {
             // Don't just inline empty or one-character replacements: they can't be expanded by a mouse click
             // so are hard to use without knowing about the folding keyboard shortcut to toggle folding.
             // This is similar to how IntelliJ 14 handles call parameters
+            // Integer resources have better context when the resource key is still included, similar to parameter hints.
             return myResourceReference.getName() + ": " + text;
           }
           else {

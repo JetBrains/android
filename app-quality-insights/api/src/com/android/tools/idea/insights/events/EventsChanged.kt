@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.DynamicEventGallery
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
@@ -32,9 +33,22 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
     provider: InsightsProvider,
     cache: AppInsightsCache,
   ): StateTransition<Action> {
+    val selectedIssue = state.selectedIssue
     if (eventPage is LoadingState.Failure) {
       Logger.getInstance(this::class.java).warn("Failed to load events: $eventPage")
-      return StateTransition(state.copy(currentEvents = eventPage), Action.NONE)
+      return StateTransition(
+        state.copy(currentEvents = eventPage),
+        if (selectedIssue == null) {
+          Action.NONE
+        } else {
+          Action.FetchInsight(
+            selectedIssue.id,
+            state.selectedVariant?.id,
+            selectedIssue.issueDetails.fatality,
+            Event.EMPTY,
+          )
+        },
+      )
     }
     val newEvents = (eventPage as LoadingState.Ready).value
     val events =
@@ -56,7 +70,6 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
           else DynamicEventGallery(newEvents.events, 0, newEvents.token)
         }
       }
-    val selectedIssue = state.selectedIssue
     val eventGallery = events.value
     val shouldFetchInsight =
       selectedIssue != null &&
@@ -67,10 +80,10 @@ class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : Chang
         action =
           if (shouldFetchInsight) {
             Action.FetchInsight(
-              selectedIssue!!.id,
+              selectedIssue.id,
               state.selectedVariant?.id,
               selectedIssue.issueDetails.fatality,
-              eventGallery!!.selected!!,
+              eventGallery.selected!!,
             )
           } else Action.NONE,
       )

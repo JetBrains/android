@@ -177,10 +177,11 @@ abstract class LintIdeSupport {
    * down by third party lint checks loaded from the project dependencies.
    */
   open fun createIsolatedClient(
-    lintResult: LintBatchResult,
+    project: Project,
+    lintResult: LintResult,
     issueRegistry: IssueRegistry,
   ): LintIdeClient {
-    return object : LintIdeClient(lintResult.project, lintResult) {
+    return object : LintIdeClient(project, lintResult) {
       override fun findGlobalRuleJars(driver: LintDriver?, warnDeprecated: Boolean): List<File> =
         emptyList()
 

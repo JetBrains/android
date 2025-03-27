@@ -223,7 +223,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
           for (clazz in classes) {
             val manifestScope = GlobalSearchScope.filesScope(myProject, facet.getManifestFiles())
 
-            ReferencesSearch.search(clazz, manifestScope).forEach { reference ->
+            ReferencesSearch.search(clazz, manifestScope).findAll().forEach { reference ->
               val tag: PsiElement = reference.element
 
               PsiTreeUtil.getParentOfType(tag, XmlTag::class.java)?.let { parentTag ->
@@ -247,7 +247,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
         globalSearchScope = globalSearchScope.intersectWith(GlobalSearchScope.notScope(visitedScope))
 
         for (clazz in classReferences) {
-          ReferencesSearch.search(clazz, globalSearchScope).forEach { reference ->
+          ReferencesSearch.search(clazz, globalSearchScope).findAll().forEach { reference ->
             myGraphBuilder.markReferencedOutsideScope(clazz)
             LOGGER.debug("$clazz referenced from ${reference.element.containingFile}")
           }
@@ -255,7 +255,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
           // as references to the class itself
           if (clazz is KtClass) {
             clazz.companionObjects.forEach { companion ->
-              ReferencesSearch.search(companion, globalSearchScope).forEach { reference ->
+              ReferencesSearch.search(companion, globalSearchScope).findAll().forEach { reference ->
                 myGraphBuilder.markReferencedOutsideScope(clazz)
                 LOGGER.debug("$clazz referenced from ${reference.element.containingFile}")
               }
@@ -277,7 +277,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
             }
 
             for (field in fields) {
-              ReferencesSearch.search(field, globalSearchScope).forEach { reference ->
+              ReferencesSearch.search(field, globalSearchScope).findAll().forEach { reference ->
                 myGraphBuilder.markReferencedOutsideScope(elm)
                 LOGGER.debug("$item referenced from ${reference.element.containingFile}")
               }

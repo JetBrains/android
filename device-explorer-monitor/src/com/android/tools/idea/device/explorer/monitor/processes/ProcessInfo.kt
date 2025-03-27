@@ -66,13 +66,13 @@ internal fun JdwpProcessInfo.toProcessInfo() =
     processName = properties.processName,
     userId = properties.userId,
     vmIdentifier = properties.vmIdentifier,
-    abi = properties.abi,
+    abi = properties.instructionSetDescription,
     debuggerStatus = toDebuggerStatus()
   )
 
 private fun JdwpProcessInfo.toDebuggerStatus(): ClientData.DebuggerStatus =  when  {
   properties.isWaitingForDebugger -> ClientData.DebuggerStatus.WAITING
-  properties.jdwpSessionProxyStatus.isExternalDebuggerAttached -> ClientData.DebuggerStatus.ATTACHED
+  properties.jdwpProxyStatus.isExternalDebuggerAttached -> ClientData.DebuggerStatus.ATTACHED
   properties.exception != null -> ClientData.DebuggerStatus.ERROR
   else -> ClientData.DebuggerStatus.DEFAULT
 }

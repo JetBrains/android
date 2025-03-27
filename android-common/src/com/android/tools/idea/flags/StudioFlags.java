@@ -134,7 +134,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_PICK_LATEST_PATCH_AGP = new BooleanFlag(
     NPW, "use.patch.releases", "Use the latest patch release of AGP",
     "When enabled Studio will pick future patch releases of AGP for new projects.",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_SHOW_AGP_VERSION_COMBO_BOX = new BooleanFlag(
     NPW, "show.agp.version.combobox", "Show AGP version combobox",
@@ -626,7 +626,7 @@ public final class StudioFlags {
     "Use the `app_info` feature if available on the device for discovering processes",
     "Check the `app_info` feature for connected devices, and use it to track processes if available. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    false);
+    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> JDWP_TRACER = new BooleanFlag(
     RUNDEBUG,
@@ -1265,10 +1265,6 @@ public final class StudioFlags {
     REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
     "If enabled, show the action in the refactoring menu", false);
 
-  public static final Flag<Boolean> MIGRATE_TO_VERSION_CATALOG_REFACTORING_ENABLED = new BooleanFlag(
-    REFACTORINGS, "migrateto.versioncatalog.enabled", "Enable the Migrate to Version Catalog refactoring",
-    "If enabled, show the action in the refactoring menu", false);
-
   //endregion
 
   //region NDK
@@ -1374,10 +1370,17 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> ENABLE_ADDITIONAL_TESTING_GRADLE_OPTIONS = new BooleanFlag(
+    TESTING, "additional.testing.gradle.options", "Show additional Gradle Options in Gradle RunConfiguration editor",
+    "If enabled, Gradle RunConfiguration shows an additional Android Studio specific options to customize Gradle task execution," +
+    "  such as showing test results in the test matrix, or use the device selector view to choose the target device.",
+    enabledUpTo(DEV)
+  );
+
   public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = new BooleanFlag(
     TESTING, "screenshot.testing", "Run screenshot tests",
     "If enabled, preview screenshot tests can be run from Studio and test results will be displayed in the test matrix",
-    false
+    enabledUpTo(DEV)
   );
 
   public static final Flag<Boolean> ENABLE_BACKUP_TESTING = new BooleanFlag(
@@ -1757,7 +1760,7 @@ public final class StudioFlags {
     NETWORK_INSPECTOR, "rule.variables",
     "Enable Rule Variables",
     "Enable Rule Variables",
-    enabledUpTo(DEV)
+    true
   );
   // endregion
 
@@ -2100,7 +2103,7 @@ public final class StudioFlags {
                     "Enable deferred multiline suggestions.",
                     "When enabled, any part of a multi-line suggestion hidden behind the autosuggest popup will be removed, and " +
                     "offered later to the user if they accept the first line of the completion.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_SYNTAX_HIGHLIGHTING_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.syntax.highlighting.enabled",
@@ -2150,8 +2153,8 @@ public final class StudioFlags {
                     "When enabled, allows the user to navigate forward and back in the transform history in the diff view.",
                     false);
 
-  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_MULTIFILE_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.transform.multifile.enabled",
+  public static final Flag<Boolean> STUDIOBOT_MULTIFILE_TRANSFORM_OUTPUT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.multifile.transform.output.enabled",
                     "Enable the transform to be able to output multiple files.",
                     "When enabled, returns all files modified by models.",
                     enabledUpTo(DEV));
@@ -2408,6 +2411,14 @@ public final class StudioFlags {
       "Display Backup action in Running Devices",
       "Display Backup action in Running Devices",
       true);
+
+  public static final Flag<Boolean> BACKUP_ALLOW_NON_PROJECT_APPS =
+    new BooleanFlag(
+      BACKUP,
+      "allow.non.project.apps",
+      "Allow Backup/Restore on Non Project Apps",
+      "Allow invocation of Backup & Restore actions on apps that are not part of the project. Unexpected results may occur.",
+      false);
   // endregion Backup
 
   // region GOOGLE_PLAY_SDK_INDEX

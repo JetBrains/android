@@ -19,6 +19,7 @@ import com.android.AndroidXConstants.PreferenceAndroidX
 import com.android.SdkConstants
 import com.android.SdkConstants.PreferenceClasses
 import com.android.tools.idea.dom.xml.PathsDomFileDescription
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.psi.TagToClassMapper
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
@@ -55,6 +56,10 @@ object AndroidXmlResourcesUtil {
     add(PathsDomFileDescription.TAG_NAME)
     add(MotionDomFileDescription.ROOT_TAG_NAME)
     add(AccessibilityServiceDomFileDescription.ROOT_TAG_NAME)
+    if (StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get()) {
+      add(SdkConstants.TAG_WATCH_FACES)
+      add(SdkConstants.TAG_WATCH_FACE_INFO)
+    }
   }
 
   @JvmStatic

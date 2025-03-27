@@ -114,6 +114,7 @@ iml_module(
         "//tools/base/lint/libs/lint-tests:studio.android.sdktools.lint.testinfrastructure",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
+        "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
     ],

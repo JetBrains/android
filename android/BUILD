@@ -9,13 +9,13 @@ load("//tools/base/bazel:proto.bzl", "studio_java_proto_library")
 
 studio_java_proto_library(
     name = "android-core-proto",
-    srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
+    srcs = glob(["proto/main/*.proto"]),
     visibility = ["//visibility:public"],
 )
 
 studio_java_proto_library(
     name = "android-core-proto-test",
-    srcs = glob(["testSrc/com/android/tools/idea/proto/*.proto"]),
+    srcs = glob(["proto/test/*.proto"]),
     visibility = ["//visibility:public"],
 )
 
@@ -133,6 +133,7 @@ iml_module(
         "//tools/base/backup:studio.android.sdktools.backup",
         "@intellij//:intellij.json.split",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
     ],
 )
 
@@ -161,7 +162,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:apks",
         "//tools/adt/idea/android/lib:sampleData",
-        "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
+        "//tools/adt/idea/android/native/diagnostics/heap:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/compose-ide-plugin/testData",

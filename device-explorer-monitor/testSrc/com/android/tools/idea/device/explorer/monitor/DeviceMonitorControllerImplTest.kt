@@ -74,7 +74,7 @@ class DeviceMonitorControllerImplTest {
   fun setup() {
     processService = DeviceProcessService { _, client, _ ->
       // TODO: Figure out if we can instead change `JdwpProcessProperties` for this process
-      //  and set the `JdwpSessionProxyStatus.isExternalDebuggerAttached` to `true`
+      //  and set the `jdwpProxySocketServerStatus.isExternalDebuggerAttached` to `true`
       debugTriggeredForPids.add(client.clientData.pid)
     }
     ApplicationManager.getApplication().registerOrReplaceServiceInstance(

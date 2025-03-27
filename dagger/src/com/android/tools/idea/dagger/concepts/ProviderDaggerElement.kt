@@ -18,12 +18,14 @@ package com.android.tools.idea.dagger.concepts
 import com.android.tools.idea.dagger.getQualifierInfo
 import com.android.tools.idea.kotlin.psiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtClass
@@ -117,6 +119,8 @@ internal data class ProviderDaggerElement(
 
   override val metricsElementType = DaggerEditorEvent.ElementType.PROVIDER
 
+  override val relatedElementsKey = RELATED_ELEMENTS_KEY
+
   override fun getIndexKeys(): List<String> {
     val project = psiElement.project
     val scope = project.projectScope()
@@ -126,4 +130,9 @@ internal data class ProviderDaggerElement(
   override fun canProvideFor(consumer: ConsumerDaggerElementBase) =
     consumer.consumedType.matchesProvidedType(providedPsiType) &&
       qualifierInfo == consumer.qualifierInfo
+
+  companion object {
+    private val RELATED_ELEMENTS_KEY =
+      Key<CachedValue<List<DaggerRelatedElement>>>("ProviderDaggerElement_RelatedElements")
+  }
 }

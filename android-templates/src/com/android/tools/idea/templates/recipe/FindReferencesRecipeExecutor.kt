@@ -147,7 +147,7 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
 
-  override fun setJavaKotlinCompileOptions(isKotlin: Boolean) {}
+  override fun setJavaKotlinCompileOptions(isKotlin: Boolean, moduleDir: File?) {}
 
   override fun addDynamicFeature(name: String, toModule: File) {}
 

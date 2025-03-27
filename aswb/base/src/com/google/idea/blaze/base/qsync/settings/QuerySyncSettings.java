@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync.settings;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.base.logging.LoggedSettingsProvider;
+import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -30,7 +31,7 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   static class State {
 
     /** Default query sync enabled settings, used when we are out of beta. */
-    public boolean enabled = true;
+    public UseQuerySyncSection.UseQuerySync enabled = UseQuerySyncSection.UseQuerySync.TRUE;
 
     public boolean showDetailedInformationInEditor = true;
 
@@ -45,12 +46,12 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
     return ApplicationManager.getApplication().getService(QuerySyncSettings.class);
   }
 
-  public void enableUseQuerySync(boolean enable) {
-    state.enabled = enable;
+  public void enableUseQuerySync(boolean enabled) {
+    state.enabled = enabled ? UseQuerySyncSection.UseQuerySync.TRUE : UseQuerySyncSection.UseQuerySync.FALSE;
   }
 
   public boolean useQuerySync() {
-    return state.enabled;
+    return state.enabled != UseQuerySyncSection.UseQuerySync.FALSE;
   }
 
   public void enableShowDetailedInformationInEditor(boolean showDetailedInformationInEditor) {

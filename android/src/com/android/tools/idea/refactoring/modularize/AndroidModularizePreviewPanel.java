@@ -33,9 +33,12 @@ import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.ui.treeStructure.treetable.TreeTableTree;
 import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ColumnInfo;
+import java.awt.Dimension;
+import java.awt.Insets;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -71,6 +74,7 @@ public class AndroidModularizePreviewPanel {
       myLookupMap.put(info.getElement(), info);
     }
     myShouldSelectAllReferences = shouldSelectAllReferences;
+    setupUI();
   }
 
   @NotNull
@@ -123,13 +127,15 @@ public class AndroidModularizePreviewPanel {
           for (PsiClass clazz : classes) {
             methodsCount += clazz.getMethods().length;
           }
-        } else if (psiElement instanceof PsiJavaFile) {
+        }
+        else if (psiElement instanceof PsiJavaFile) {
           PsiClass[] classes = ((PsiJavaFile)psiElement).getClasses();
           classesCount += classes.length;
           for (PsiClass clazz : classes) {
             methodsCount += clazz.getMethods().length;
           }
-        } else {
+        }
+        else {
           resourcesCount++;
         }
         size += ((PsiFile)psiElement).getVirtualFile().getLength();
@@ -207,6 +213,60 @@ public class AndroidModularizePreviewPanel {
     }
   }
 
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.setPreferredSize(new Dimension(640, 480));
+    myDependenciesPanel = new JPanel();
+    myDependenciesPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(myDependenciesPanel, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                         null, null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 8, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(panel1, new GridConstraints(1, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null,
+                                            0, true));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Classes:");
+    panel1.add(jBLabel1,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Resource files:");
+    panel1.add(jBLabel2,
+               new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myClassesCount = new JBLabel();
+    panel1.add(myClassesCount,
+               new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myResourcesCount = new JBLabel();
+    panel1.add(myResourcesCount,
+               new GridConstraints(0, 5, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel3 = new JBLabel();
+    jBLabel3.setText("Methods:");
+    panel1.add(jBLabel3,
+               new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myMethodsCount = new JBLabel();
+    panel1.add(myMethodsCount,
+               new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel4 = new JBLabel();
+    jBLabel4.setText("Size:");
+    panel1.add(jBLabel4,
+               new GridConstraints(0, 6, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySizeEstimate = new JBLabel();
+    panel1.add(mySizeEstimate,
+               new GridConstraints(0, 7, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+  }
+
   // TODO: Disabling a node should disable the children in its dominator tree (compute dominator tree in the handler).
   private static class PreviewRenderer extends CheckboxTree.CheckboxTreeCellRenderer {
     @Override
@@ -229,7 +289,7 @@ public class AndroidModularizePreviewPanel {
       helper.initTree(tree, this, renderer);
       tree.setSelectionRow(0);
       for (int i = 0; i < root.getChildCount(); i++) {
-        tree.expandPath(new TreePath(((DefaultMutableTreeNode) root.getChildAt(i)).getPath()));
+        tree.expandPath(new TreePath(((DefaultMutableTreeNode)root.getChildAt(i)).getPath()));
       }
     }
 

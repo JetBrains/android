@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 public class SupportNewAnnotationsTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
-  private static final String LOCATION_MANAGER_CODE = "\n((getSystemService(Context.LOCATION_SERVICE) as LocationManager).getLastKnownLocation(\"gps\")";
+  private static final String LOCATION_MANAGER_CODE = "\n((getSystemService(Context.LOCATION_SERVICE) as LocationManager).getLastKnownLocation(\"gps\"))\n";
   private  static final String IMPORT_STATEMENTS = "\n" +
                                                   "import android.content.Context\n" +
                                                   "import android.location.LocationManager\n" +
@@ -92,11 +92,12 @@ public class SupportNewAnnotationsTest {
     //Close the project panel to have extra space in editor panel to access Quick Fix balloon
     ideFrame.closeProjectPanel();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    editorFixture.open(MAIN_ACITVITY).waitUntilErrorAnalysisFinishes()
-      .moveBetween("", "import android")
-      .enterText(IMPORT_STATEMENTS)
+    editorFixture.open(MAIN_ACITVITY).waitForFileToActivate();
+    editorFixture.waitUntilErrorAnalysisFinishes()
       .moveBetween("activity_main)", "")
-      .enterText(LOCATION_MANAGER_CODE);
+      .enterText(LOCATION_MANAGER_CODE)
+      .moveBetween("", "import android")
+      .enterText(IMPORT_STATEMENTS);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     Wait.seconds(60)
@@ -130,8 +131,7 @@ public class SupportNewAnnotationsTest {
   private void selectMenuFromQuickFixAction(EditorFixture editorFixture, String label){
     editorFixture.open(MAIN_ACITVITY).waitForFileToActivate();
     editorFixture.waitUntilErrorAnalysisFinishes();
-    editorFixture.moveBetween("", "((getSystemService");
-    editorFixture.moveBetween("", "((getSystemService"); //To reduce flakiness
+    editorFixture.moveBetween("(", "(getSystemService");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     editorFixture.invokeQuickfixAction(label);
     guiTest.waitForAllBackgroundTasksToBeCompleted();

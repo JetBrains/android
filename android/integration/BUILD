@@ -702,7 +702,10 @@ iml_test(
     tags = [
         "studio-e2e-test",
     ],
-    tags_linux = ["block-network"],
+    tags_linux = [
+        "block-network",
+        "manual",  # TODO(b/403433771) Disable test temporarily until we stabilize the test
+    ],
     tags_mac = [],
     tags_windows = [
         "block-network",

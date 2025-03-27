@@ -87,8 +87,8 @@ class ComposeResizeTrackerTest {
         .studioEvent
         .resizeComposePreviewEvent
     assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_STOPPED)
-    assertThat(event.stoppedDeviceHeight).isEqualTo(y)
-    assertThat(event.stoppedDeviceWidth).isEqualTo(x)
+    assertThat(event.deviceHeightDp).isEqualTo(y)
+    assertThat(event.deviceWidthDp).isEqualTo(x)
     assertThat(event.resizeMode).isEqualTo(ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE)
   }
 }

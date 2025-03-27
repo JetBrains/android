@@ -97,8 +97,8 @@ class InferAnnotationsGradleToken : InferAnnotationsToken<GradleProjectSystem>, 
     return false
   }
 
-  // In theory, we should look up project.isAndroidX() here and pick either SUPPORT_ANNOTATIONS or ANDROIDX_SUPPORT_ANNOTATIONS
+  // In theory, we should look up project.isAndroidX() here and pick either SUPPORT_ANNOTATIONS or ANDROIDX_ANNOTATION
   // but calling project.isAndroidX is getting caught in the SlowOperations check in recent IntelliJs. And androidx is a reasonable
   // requirement now; support annotations are dying out.
-  private fun getAnnotationsMavenArtifact(project: Project) = GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS
+  private fun getAnnotationsMavenArtifact(project: Project) = GoogleMavenArtifactId.ANDROIDX_ANNOTATION
 }

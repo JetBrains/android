@@ -15,24 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.internal.avd.ConfigKey.FOLD_AT_POSTURE;
-import static com.android.sdklib.internal.avd.ConfigKey.HINGE;
-import static com.android.sdklib.internal.avd.ConfigKey.HINGE_ANGLES_POSTURE_DEFINITIONS;
-import static com.android.sdklib.internal.avd.ConfigKey.HINGE_AREAS;
-import static com.android.sdklib.internal.avd.ConfigKey.HINGE_COUNT;
-import static com.android.sdklib.internal.avd.ConfigKey.HINGE_DEFAULTS;
-import static com.android.sdklib.internal.avd.ConfigKey.HINGE_RANGES;
-import static com.android.sdklib.internal.avd.ConfigKey.HINGE_SUB_TYPE;
-import static com.android.sdklib.internal.avd.ConfigKey.HINGE_TYPE;
-import static com.android.sdklib.internal.avd.ConfigKey.POSTURE_LISTS;
-import static com.android.sdklib.internal.avd.ConfigKey.RESIZABLE_CONFIG;
-import static com.android.sdklib.internal.avd.ConfigKey.SKIN_NAME;
-import static com.android.sdklib.internal.avd.ConfigKey.SKIN_PATH;
-import static com.android.sdklib.internal.avd.UserSettingsKey.PREFERRED_ABI;
-import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_HEIGHT;
-import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_WIDTH;
-import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_X_OFFSET;
-import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_Y_OFFSET;
+import static com.android.testutils.truth.PathSubject.assertThat;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -40,14 +23,11 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage.FakeLocalPackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
-import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.internal.avd.AvdManagerException;
 import com.android.sdklib.internal.avd.OnDiskSkin;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
@@ -55,7 +35,6 @@ import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
-import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.utils.NullLogger;
@@ -63,17 +42,17 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.util.net.ProxyConfiguration;
 import com.intellij.util.net.ProxyCredentialStore;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import kotlinx.coroutines.Dispatchers;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
   private Path mSdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
@@ -116,7 +95,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     AvdManagerConnection.resetConnectionFactory();
   }
 
-  public void testWipeAvd() throws AvdManagerException {
+  public void testWipeAvd() throws Exception {
     MockLog log = new MockLog();
     // Create an AVD
     AvdInfo avd = mAvdManager.createAvd(
@@ -131,25 +110,29 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false,
       false,
       false);
+    // Create files that are present on some but not all AVDs.
+    createFile(mAvdFolder, "sdcard.img");
+    createFile(mAvdFolder, "user-settings.ini");
 
-    // Make a userdata-qemu.img so we can see if 'wipe-data' deletes it
-    Path userQemu = mAvdFolder.resolve(AvdManager.USERDATA_QEMU_IMG);
-    InMemoryFileSystems.recordExistingFile(userQemu);
-    assertTrue("Could not create " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder, Files.exists(userQemu));
-    // Also make a 'snapshots' sub-directory with a file
-    Path snapshotsDir = mAvdFolder.resolve(AvdManager.SNAPSHOTS_DIRECTORY);
-    Path snapshotFile = snapshotsDir.resolve("aSnapShotFile.txt");
-    InMemoryFileSystems.recordExistingFile(snapshotFile, "Some contents for the file");
-    assertTrue("Could not create " + snapshotFile, Files.exists(snapshotFile));
+    // Create few additional files and directories.
+    createFile(mAvdFolder, "cache.img");
+    createFile(mAvdFolder, AvdManager.USERDATA_QEMU_IMG);
+    createFile(mAvdFolder, "snapshots/default_boot/snapshot.pb");
+    createFile(mAvdFolder, "data/misc/pstore/pstore.bin");
 
     // Do the "wipe-data"
     assertTrue("Could not wipe data from AVD", mAvdManagerConnection.wipeUserData(avd));
 
-    assertFalse("Expected NO " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder + " after wipe-data", Files.exists(userQemu));
-    assertFalse("wipe-data did not remove the '" + AvdManager.SNAPSHOTS_DIRECTORY + "' directory", Files.exists(snapshotsDir));
-
-    Path userData = mAvdFolder.resolve(AvdManager.USERDATA_IMG);
-    assertTrue("Expected " + AvdManager.USERDATA_IMG + " in " + mAvdFolder + " after wipe-data", Files.exists(userData));
+    List<Path> files = new ArrayList<>();
+    try (Stream<Path> stream = Files.list(mAvdFolder)) {
+      stream.forEach(files::add);
+    }
+    assertThat(files).containsExactly(
+      mAvdFolder.resolve("config.ini"),
+      mAvdFolder.resolve("sdcard.img"),
+      mAvdFolder.resolve("user-settings.ini"),
+      mAvdFolder.resolve("userdata.img")
+    );
   }
 
   public void testDoesSystemImageSupportQemu2() {
@@ -348,5 +331,10 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
                            + "type        = diskSize\n"
                            + "default     = 2G\n"
                            + "abstract    = Ideal size of data partition\n");
+  }
+
+  private void createFile(@NotNull Path dir, @NotNull String relativePath) {
+    Path file = dir.resolve(relativePath);
+    assertThat(InMemoryFileSystems.recordExistingFile(file, "Contents of " + relativePath)).exists();
   }
 }

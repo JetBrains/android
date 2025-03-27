@@ -80,6 +80,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
@@ -456,13 +457,20 @@ internal class DeviceView(
           displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
           displayTransform.scale(xScale, yScale)
           g.drawImage(image, displayTransform, null)
-          repaintAlarm.addRequest(::requestHighQualityRepaint, 500)
+          if (isUnitTestMode) {
+            requestHighQualityRepaint()
+          }
+          else {
+            repaintAlarm.addRequest(::requestHighQualityRepaint, 500)
+          }
         }
       }
-      highQualityRenderingRequested = false
 
-      deviceDisplaySize.size = displayFrame.displaySize
-      displayOrientationQuadrants = displayFrame.orientation
+      if (deviceDisplaySize != displayFrame.displaySize || displayOrientationQuadrants != displayFrame.orientation) {
+        deviceDisplaySize.size = displayFrame.displaySize
+        displayOrientationQuadrants = displayFrame.orientation
+        ActivityTracker.getInstance().inc() // Size and orientation changes may affect enablement of zoom actions.
+      }
       displayOrientationCorrectionQuadrants = displayFrame.orientationCorrection
       frameNumber = displayFrame.frameNumber
       notifyFrameListeners(displayRect, displayFrame.image)
@@ -620,6 +628,7 @@ internal class DeviceView(
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         connected()
         if (width != 0 && height != 0) {
+          highQualityRenderingRequested = false
           repaint()
         }
       }
@@ -951,3 +960,6 @@ internal class DeviceView(
         if ((modifiers and modifierMask) != 0) metaState else 0
   }
 }
+
+private val isUnitTestMode: Boolean
+  get() = ApplicationManager.getApplication().isUnitTestMode

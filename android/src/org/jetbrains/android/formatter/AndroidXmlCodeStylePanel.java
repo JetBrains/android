@@ -10,16 +10,24 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,12 +151,14 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     private final ContextSpecificSettingsProviders.Provider<T> mySettingsProvider;
 
     protected MyFileSpecificPanel(String title, ContextSpecificSettingsProviders.Provider<T> provider) {
+      setupUI();
       myTitle = title;
       mySettingsProvider = provider;
       myInsertLineBreakBeforeFirstAttributeCheckBox.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-          UIUtil.setEnabled(myInsertLineBreakBeforeNamespaceDeclarationCheckBox, myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected(), true);
+          UIUtil.setEnabled(myInsertLineBreakBeforeNamespaceDeclarationCheckBox, myInsertLineBreakBeforeFirstAttributeCheckBox.isSelected(),
+                            true);
         }
       });
     }
@@ -220,7 +230,94 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     public String getTitle() {
       return myTitle;
     }
-  }
+
+    private void setupUI() {
+      myPanel = new JPanel();
+      myPanel.setLayout(new GridLayoutManager(6, 3, new Insets(0, 0, 0, 0), -1, -1));
+      final Spacer spacer1 = new Spacer();
+      myPanel.add(spacer1, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                               GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+      myAdditionalOptionsPanel = new JPanel();
+      myAdditionalOptionsPanel.setLayout(new BorderLayout(0, 0));
+      myPanel.add(myAdditionalOptionsPanel, new GridConstraints(4, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                null, null, null, 0, false));
+      final JBLabel jBLabel1 = new JBLabel();
+      loadLabelText(jBLabel1, getMessageFromBundle("messages/ApplicationBundle", "label.wrap.attributes"));
+      myPanel.add(jBLabel1,
+                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                      GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+      myWrapAttributesCombo = new JComboBox();
+      myPanel.add(myWrapAttributesCombo, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                             null, null, 0, false));
+      myInsertLineBreakBeforeFirstAttributeCheckBox = new JBCheckBox();
+      myInsertLineBreakBeforeFirstAttributeCheckBox.setText("Insert line break before first attribute");
+      myPanel.add(myInsertLineBreakBeforeFirstAttributeCheckBox,
+                  new GridConstraints(1, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+      final Spacer spacer2 = new Spacer();
+      myPanel.add(spacer2, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                               GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+      myInsertLineBreakAfterLastAttributeCheckbox = new JBCheckBox();
+      myInsertLineBreakAfterLastAttributeCheckbox.setText("Insert line break after last attribute");
+      myPanel.add(myInsertLineBreakAfterLastAttributeCheckbox,
+                  new GridConstraints(3, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+      myInsertLineBreakBeforeNamespaceDeclarationCheckBox = new JBCheckBox();
+      myInsertLineBreakBeforeNamespaceDeclarationCheckBox.setText("Include namespace declarations");
+      myPanel.add(myInsertLineBreakBeforeNamespaceDeclarationCheckBox,
+                  new GridConstraints(2, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
+      jBLabel1.setLabelFor(myWrapAttributesCombo);
+    }
+
+    private static Method cachedGetBundleMethod = null;
+
+    private String getMessageFromBundle(String path, String key) {
+      ResourceBundle bundle;
+      try {
+        Class<?> thisClass = this.getClass();
+        if (cachedGetBundleMethod == null) {
+          Class<?> dynamicBundleClass = thisClass.getClassLoader().loadClass("com.intellij.DynamicBundle");
+          cachedGetBundleMethod = dynamicBundleClass.getMethod("getBundle", String.class, Class.class);
+        }
+        bundle = (ResourceBundle)cachedGetBundleMethod.invoke(null, path, thisClass);
+      }
+      catch (Exception e) {
+        bundle = ResourceBundle.getBundle(path);
+      }
+      return bundle.getString(key);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    private void loadLabelText(JLabel component, String text) {
+      StringBuffer result = new StringBuffer();
+      boolean haveMnemonic = false;
+      char mnemonic = '\0';
+      int mnemonicIndex = -1;
+      for (int i = 0; i < text.length(); i++) {
+        if (text.charAt(i) == '&') {
+          i++;
+          if (i == text.length()) break;
+          if (!haveMnemonic && text.charAt(i) != '&') {
+            haveMnemonic = true;
+            mnemonic = text.charAt(i);
+            mnemonicIndex = result.length();
+          }
+        }
+        result.append(text.charAt(i));
+      }
+      component.setText(result.toString());
+      if (haveMnemonic) {
+        component.setDisplayedMnemonic(mnemonic);
+        component.setDisplayedMnemonicIndex(mnemonicIndex);
+      }
+    }
+}
 
   private static class LayoutCodeStylePanel extends MyFileSpecificPanel<AndroidXmlCodeStyleSettings.LayoutSettings> {
     private JPanel myPanel;
@@ -228,6 +325,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
 
     public LayoutCodeStylePanel() {
       super("Layout Files", ContextSpecificSettingsProviders.LAYOUT);
+      setupUI();
       init();
     }
 
@@ -255,6 +353,19 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     protected void apply(AndroidXmlCodeStyleSettings.LayoutSettings s) {
       super.apply(s);
       s.INSERT_BLANK_LINE_BEFORE_TAG = myInsertNewLineBeforeTagCheckBox.isSelected();
+    }
+
+    private void setupUI() {
+      myPanel = new JPanel();
+      myPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+      myInsertNewLineBeforeTagCheckBox = new JBCheckBox();
+      myInsertNewLineBeforeTagCheckBox.setText("Insert blank line before tag");
+      myPanel.add(myInsertNewLineBeforeTagCheckBox,
+                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+      final Spacer spacer1 = new Spacer();
+      myPanel.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                               GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     }
   }
 

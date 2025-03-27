@@ -42,7 +42,7 @@ iml_module(
                 "//prebuilts/studio/sdk:ndk",  # Needed for the C++ templates in TemplateDiffTest
                 "//tools/data-binding:data_binding_runtime.zip",  # Needed for some templates that use view binding in TemplateDiffTest
             ],
-            "test_filter": "com.android.tools.idea.templates.diff.TemplateDiffTest",
+            "test_filter": "com.android.tools.idea.templates.diff.activity.TemplateDiffTest",
         },
         "KotlinBomPlatformDependencyTest": {
             "test_filter": "com.android.tools.idea.templates.KotlinBomPlatformDependencyTest",

@@ -216,8 +216,8 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
   public void testResolveDynamicSdkDepsFuture() {
     // Regression test for b/74180487
-    String revision = myRepositoryUrlManager.getLibraryRevision(GoogleMavenArtifactId.RECYCLERVIEW_V7.getMavenGroupId(),
-                                                                GoogleMavenArtifactId.RECYCLERVIEW_V7.getMavenArtifactId(),
+    String revision = myRepositoryUrlManager.getLibraryRevision(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getMavenGroupId(),
+                                                                GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getMavenArtifactId(),
                                                                 version -> {
                                                                   return version.getMajor() == 200; // future version
                                                                 },

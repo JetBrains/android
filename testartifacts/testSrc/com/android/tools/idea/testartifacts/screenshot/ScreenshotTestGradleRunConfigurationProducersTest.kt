@@ -19,6 +19,7 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testartifacts.getPsiElement
+import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
@@ -51,6 +52,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   val projectRule = AndroidGradleProjectRule().onEdt()
 
   private val SIMPLE_SCREENSHOT = "app/src/screenshotTest/java/com/example/application/MyScreenshotTest.kt"
+  private val NO_PREVIEW_TEST = "app/src/screenshotTest/java/com/example/application/NoPreviewTest.kt"
+  private val ONLY_PREVIEW_TEST = "app/src/screenshotTest/java/com/example/application/OnlyPreviewTest.kt"
   private val MULTI_PREVIEW = "app/src/screenshotTest/java/com/example/application/MyScreenshotTestMultiPreview.kt"
   private val DIFFERENT_PACKAGE = "app/src/screenshotTest/java/com/example/package/MyScreenshotTest.kt"
   private val EMPTY_CLASS = "app/src/screenshotTest/java/com/example/application/MyEmptyClass.kt"
@@ -62,6 +65,7 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APP_WITH_SCREENSHOT_TEST)
     stubComposeAnnotation()
     stubPreviewAnnotation()
+    stubPreviewTestAnnotation()
     createProjectStructureForTest()
     val screenshotTestDir = findFileByIoFile(File(projectRule.project.basePath + "/app/src/screenshotTest"), true)
     PsiTestUtil.addSourceRoot(projectRule.fixture.module, screenshotTestDir!!, true)
@@ -74,12 +78,38 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val psiClass = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
     Assert.assertNotNull(psiClass)
     val runConfiguration = createGradleConfigurationFromPsiElement(project, psiClass as PsiElement)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
+    assertEquals(3, runConfiguration.settings.taskNames.size)
+    assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
+    assertEquals("--tests", runConfiguration.settings.taskNames[1])
+    assertEquals("\"com.example.application.MyScreenshotTest*\"", runConfiguration.settings.taskNames[2])
+  }
+
+  @Test
+  fun testConfigurationFromClassNoPreviewTest() {
+    val project = projectRule.project
+    val qualifiedName = "com.example.application.NoPreviewTest"
+    val psiClass = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
+    Assert.assertNotNull(psiClass)
+    val runConfiguration = createGradleConfigurationFromPsiElement(project, psiClass as PsiElement)
+    Assert.assertNull(runConfiguration)
+  }
+
+  @Test
+  fun testConfigurationFromClassOnlyPreviewTest() {
+    val project = projectRule.project
+    val qualifiedName = "com.example.application.OnlyPreviewTest"
+    val psiClass = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
+    Assert.assertNotNull(psiClass)
+    val runConfiguration = createGradleConfigurationFromPsiElement(project, psiClass as PsiElement)
     Assert.assertNotNull(runConfiguration)
     assertEquals(true, runConfiguration!!.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
-    assertEquals("\"com.example.application.MyScreenshotTest*\"", runConfiguration.settings.taskNames[2])
+    assertEquals("\"com.example.application.OnlyPreviewTest*\"", runConfiguration.settings.taskNames[2])
   }
 
   @Test
@@ -113,12 +143,44 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val psiMethod = psiClass!!.methods.firstOrNull{ it.name == methodName }
     Assert.assertNotNull(psiMethod)
     val runConfiguration = createGradleConfigurationFromPsiElement(project, psiMethod as PsiElement)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
+    assertEquals(3, runConfiguration.settings.taskNames.size)
+    assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
+    assertEquals("--tests", runConfiguration.settings.taskNames[1])
+    assertEquals("\"com.example.application.MyScreenshotTest.PreviewMethod\"", runConfiguration.settings.taskNames[2])
+  }
+
+  @Test
+  fun testConfigurationFromMethodNoPreviewTest() {
+    val project = projectRule.project
+    val qualifiedName = "com.example.application.NoPreviewTest"
+    val methodName = "PreviewMethod"
+    val psiClass = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
+    Assert.assertNotNull(psiClass)
+    val psiMethod = psiClass!!.methods.firstOrNull{ it.name == methodName }
+    Assert.assertNotNull(psiMethod)
+    val runConfiguration = createGradleConfigurationFromPsiElement(project, psiMethod as PsiElement)
+    Assert.assertNull(runConfiguration)
+  }
+
+  @Test
+  fun testConfigurationFromMethodOnlyPreviewTest() {
+    val project = projectRule.project
+    val qualifiedName = "com.example.application.OnlyPreviewTest"
+    val methodName = "PreviewMethod"
+    val psiClass = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
+    Assert.assertNotNull(psiClass)
+    val psiMethod = psiClass!!.methods.firstOrNull{ it.name == methodName }
+    Assert.assertNotNull(psiMethod)
+    val runConfiguration = createGradleConfigurationFromPsiElement(project, psiMethod as PsiElement)
     Assert.assertNotNull(runConfiguration)
     assertEquals(true, runConfiguration!!.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
-    assertEquals("\"com.example.application.MyScreenshotTest.PreviewMethod\"", runConfiguration.settings.taskNames[2])
+    assertEquals("\"com.example.application.OnlyPreviewTest.PreviewMethod\"", runConfiguration.settings.taskNames[2])
   }
 
   @Test
@@ -130,8 +192,9 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     Assert.assertNotNull(psiClass)
     val psiMethod = psiClass!!.methods.firstOrNull{ it.name == methodName }
     val runConfiguration = createGradleConfigurationFromPsiElement(project, psiMethod as PsiElement)
-    Assert.assertNotNull(runConfiguration)
-    assertEquals(true, runConfiguration!!.isRunAsTest)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
@@ -146,8 +209,9 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val psiClassKt = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
     val psiMethod = psiClassKt!!.allMethods.firstOrNull { it.name == methodName }
     val runConfiguration = createGradleConfigurationFromPsiElement(project, psiMethod as PsiElement)
-    Assert.assertNotNull(runConfiguration)
-    assertEquals(true, runConfiguration!!.isRunAsTest)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
+    assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertEquals("--tests", runConfiguration.settings.taskNames[1])
@@ -162,7 +226,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val context = TestConfigurationTesting.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull()  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -178,7 +243,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     val context = TestConfigurationTesting.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull()  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(3, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -197,7 +263,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(1, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -213,7 +280,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(1, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -236,7 +304,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
-    Assert.assertNotNull(runConfiguration)
+    requireNotNull(runConfiguration)
+    assertEquals(true, runConfiguration.getUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey))
     assertEquals(true, runConfiguration.isRunAsTest)
     assertEquals(1, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
@@ -287,14 +356,63 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     import androidx.compose.runtime.Composable
     import androidx.compose.ui.tooling.preview.Preview
+    import com.android.tools.screenshot.PreviewTest
 
     class MyScreenshotTest {
+      @PreviewTest
+      @Preview(showBackground = true)
+      @Composable
+      fun PreviewMethod() {
+      }
+      
+      @PreviewTest
+      @Preview(showBackground = true)
+      @Composable
+      fun AnotherPreviewMethod() {
+      }
+    }
+
+    """.trimIndent())
+
+    //without preview test annotation
+    createRelativeFileWithContent(NO_PREVIEW_TEST,
+                                  """
+    package com.example.application
+
+    import androidx.compose.runtime.Composable
+    import androidx.compose.ui.tooling.preview.Preview
+    import com.android.tools.screenshot.PreviewTest
+
+    class NoPreviewTest {
       @Preview(showBackground = true)
       @Composable
       fun PreviewMethod() {
       }
       
       @Preview(showBackground = true)
+      @Composable
+      fun AnotherPreviewMethod() {
+      }
+    }
+
+    """.trimIndent())
+
+    //only preview test annotation - no preview annotation
+    createRelativeFileWithContent(ONLY_PREVIEW_TEST,
+                                  """
+    package com.example.application
+
+    import androidx.compose.runtime.Composable
+    import androidx.compose.ui.tooling.preview.Preview
+    import com.android.tools.screenshot.PreviewTest
+
+    class OnlyPreviewTest {
+      @PreviewTest
+      @Composable
+      fun PreviewMethod() {
+      }
+      
+      @PreviewTest
       @Composable
       fun AnotherPreviewMethod() {
       }
@@ -309,13 +427,16 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     import androidx.compose.runtime.Composable
     import androidx.compose.ui.tooling.preview.Preview
+    import com.android.tools.screenshot.PreviewTest
 
     class MyScreenshotTestMultiPreview {
+      @PreviewTest
       @Preview(showBackground = true)
       @Composable
       fun PreviewMethod() {
       }
       
+      @PreviewTest
       @MultiPreview
       @Composable
       fun AnotherPreviewMethod() {
@@ -335,13 +456,16 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     import androidx.compose.runtime.Composable
     import androidx.compose.ui.tooling.preview.Preview
+    import com.android.tools.screenshot.PreviewTest
 
     class MyScreenshotTest {
+      @PreviewTest
       @Preview(showBackground = true)
       @Composable
       fun PreviewMethod() {
       }
       
+      @PreviewTest
       @Preview(showBackground = true)
       @Composable
       fun AnotherPreviewMethod() {
@@ -390,7 +514,9 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     import androidx.compose.runtime.Composable
     import androidx.compose.ui.tooling.preview.Preview
+    import com.android.tools.screenshot.PreviewTest
  
+    @PreviewTest
     @Preview(showBackground = true)
     @Composable
     fun PreviewMethod() {
@@ -398,6 +524,22 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
 
     """.trimIndent())
 
+  }
+
+  private fun stubPreviewTestAnnotation() {
+    createRelativeFileWithContent(
+      "app/src/screenshotTest/java/com/android/tools/screenshot/PreviewTest.kt", """
+    package com.android.tools.screenshot
+    
+    @MustBeDocumented
+    @Retention(AnnotationRetention.BINARY)
+    @Target(
+        AnnotationTarget.FUNCTION
+    )
+    annotation class PreviewTest {
+    }
+        
+      """.trimIndent())
   }
 
   private fun stubComposeAnnotation() {

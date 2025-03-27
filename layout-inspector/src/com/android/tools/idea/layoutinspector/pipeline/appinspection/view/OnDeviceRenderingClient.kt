@@ -144,6 +144,7 @@ private fun DrawInstruction.toProto(): LayoutInspectorViewProtocol.DrawInstructi
     .setRootId(rootViewId)
     .setBounds(boundsRect)
     .setColor(color)
+    .also { if (label != null) it.label = label }
     .build()
 }
 

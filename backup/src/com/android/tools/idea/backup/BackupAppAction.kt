@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.actions.disableRichTooltip
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Invalid
 import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Valid
@@ -51,6 +52,7 @@ internal class BackupAppAction(
       e.presentation.enableRichTooltip(this, "Selected run configuration is not an app")
       return
     }
+    e.presentation.disableRichTooltip()
     e.presentation.isEnabled = true
   }
 

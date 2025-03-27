@@ -1,0 +1,972 @@
+<!--
+  ~ Copyright (C) 2025 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<WatchFace
+    clipShape="CIRCLE" height="450" width="450">
+
+  <Metadata
+      key="CLOCK_TYPE"
+      value="ANALOG" />
+
+  <Metadata
+      key="STEP_GOAL"
+      value="10000" />
+
+  <UserConfigurations>
+    <ListConfiguration
+        defaultValue="0"
+        displayName="ID_STYLE"
+        icon="style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_0"
+        id="40fc6b01_0756_400d_8903_20a8808c8115"
+        screenReaderText="ID_STYLE">
+      <ListOption
+          displayName="ith_option_display_name"
+          icon="style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_0"
+          id="0"
+          screenReaderText="ith_option_display_name" />
+      <ListOption
+          displayName="ith_option_display_name"
+          icon="style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_1"
+          id="1"
+          screenReaderText="ith_option_display_name" />
+      <ListOption
+          displayName="ith_option_display_name"
+          icon="style_wfs_40fc6b01_0756_400d_8903_20a8808c8115_2"
+          id="2"
+          screenReaderText="ith_option_display_name" />
+    </ListConfiguration>
+    <ColorConfiguration
+        defaultValue="0"
+        displayName="color_selector_display_name"
+        id="themeColor"
+        screenReaderText="color_selector_display_name">
+      <ColorOption
+          colors="#ff577c3e #ff577c3e #ff577c3e"
+          displayName="ith_option_display_name"
+          id="0"
+          screenReaderText="ith_option_display_name" />
+      <ColorOption
+          colors="#ffe35128 #ffe35128 #ffe35128"
+          displayName="ith_option_display_name"
+          id="1"
+          screenReaderText="ith_option_display_name" />
+      <ColorOption
+          colors="#ffe6e0d4 #ffe6e0d4 #ffe6e0d4"
+          displayName="ith_option_display_name"
+          id="2"
+          screenReaderText="ith_option_display_name" />
+    </ColorConfiguration>
+  </UserConfigurations>
+
+  <BitmapFonts>
+
+    <BitmapFont name="Bitmap font 1">
+      <Character
+          name="0"
+          height="244"
+          resource="wfs_0_c779e5a8_9290_400f_a0ad_761627ba3685"
+          width="196" />
+      <Character
+          name="1"
+          height="244"
+          resource="wfs_1_330d5a9c_d816_49bb_8790_d1c2ce00957f"
+          width="164" />
+      <Character
+          name="2"
+          height="244"
+          resource="wfs_2_ba7ed4a3_6ede_41aa_b083_86ac3d5f1111"
+          width="196" />
+      <Character
+          name="3"
+          height="244"
+          resource="wfs_3_96d2b4e3_832b_4cbb_b7f8_07c0445b46e4"
+          width="200" />
+      <Character
+          name="4"
+          height="244"
+          resource="wfs_4_c60734d2_2aca_472c_9220_48c87caf7bc3"
+          width="192" />
+      <Character
+          name="5"
+          height="244"
+          resource="wfs_5_71b9582b_2cc4_485f_acc1_7784228b8d8f"
+          width="184" />
+      <Character
+          name="6"
+          height="244"
+          resource="wfs_6_a64ba971_8e2b_4668_b9fa_7c93d1588aee"
+          width="192" />
+      <Character
+          name="7"
+          height="244"
+          resource="wfs_7_ecd33710_4702_4f53_a690_d7a703be2fdd"
+          width="172" />
+      <Character
+          name="8"
+          height="244"
+          resource="wfs_8_a78d0827_81cf_49e6_b265_ebb9565c81d6"
+          width="184" />
+      <Character
+          name="9"
+          height="244"
+          resource="wfs_9_315eb258_c831_4006_ace6_cf4061b5a03b"
+          width="184" />
+      <Word
+          name="Mon"
+          height="248"
+          resource="wfs_mon_88f862ed_0718_454c_9c9e_a5496c370d49"
+          width="660" />
+      <Word
+          name="Tue"
+          height="248"
+          resource="wfs_tue_fc7b7d60_7931_42e2_9b99_c18a236e7785"
+          width="660" />
+      <Word
+          name="Wed"
+          height="248"
+          resource="wfs_wed_e3b7d440_6015_4ed1_acc3_e3cdf84b27cb"
+          width="660" />
+      <Word
+          name="Thu"
+          height="248"
+          resource="wfs_thu_07f7fe5e_296f_4a27_a989_8cebb9f74186"
+          width="660" />
+      <Word
+          name="Fri"
+          height="248"
+          resource="wfs_fri_6423c7e6_09ea_45bc_b887_e091c79de003"
+          width="660" />
+      <Word
+          name="Sat"
+          height="248"
+          resource="wfs_sat_67e3ec18_d5d5_4074_a3e0_fa0292d3688a"
+          width="660" />
+      <Word
+          name="Sun"
+          height="248"
+          resource="wfs_sun_cf6a3d79_5a09_49b5_910c_d4eb50da4cea"
+          width="660" />
+      <Word
+          name="Jan"
+          height="332"
+          resource="wfs_jan_fbf5150c_6c0d_44bb_b51f_c4c6a2cc7ba0"
+          width="624" />
+      <Word
+          name="Feb"
+          height="332"
+          resource="wfs_feb_96c19d20_7c76_4979_bff1_6410188c0ebc"
+          width="624" />
+      <Word
+          name="Mar"
+          height="332"
+          resource="wfs_mar_53b9a90d_b6a7_4199_b75d_91938a9ebe58"
+          width="624" />
+      <Word
+          name="Apr"
+          height="332"
+          resource="wfs_apr_a66646f8_2213_4c0b_af5e_c69869f74d38"
+          width="624" />
+      <Word
+          name="May"
+          height="332"
+          resource="wfs_may_38878640_9251_4e8b_bdec_298aa1d55149"
+          width="624" />
+      <Word
+          name="Jun"
+          height="332"
+          resource="wfs_jun_35260c07_623b_4f5f_a822_496b9c7cc57e"
+          width="624" />
+      <Word
+          name="Jul"
+          height="332"
+          resource="wfs_jul_bbcaa064_bb7b_4013_81ca_4086ca4786bd"
+          width="624" />
+      <Word
+          name="Aug"
+          height="332"
+          resource="wfs_aug_6f38cb74_3985_460d_876a_23490f3301c3"
+          width="624" />
+      <Word
+          name="Sep"
+          height="332"
+          resource="wfs_sep_2ac3571e_5cdc_412d_affd_f56b4603d70d"
+          width="624" />
+      <Word
+          name="Oct"
+          height="332"
+          resource="wfs_oct_40e142ed_b2b2_48ea_a225_774fa09dd639"
+          width="624" />
+      <Word
+          name="Nov"
+          height="332"
+          resource="wfs_nov_f26f03ac_a52b_49ba_be9f_1d20e9b6545c"
+          width="624" />
+      <Word
+          name="Dec"
+          height="332"
+          resource="wfs_dec_b73e239c_f197_4d2f_a4f9_9f78e7fa7281"
+          width="624" />
+    </BitmapFont>
+    <BitmapFont name="Bitmap font for Month">
+      <Character
+          name="1"
+          height="332"
+          resource="wfs_jan_6bc1d157_61df_4cba_86ac_80863087c756"
+          width="624" />
+      <Character
+          name="2"
+          height="332"
+          resource="wfs_feb_e48ae8a7_9ba7_490e_a042_66d4bbaf490c"
+          width="624" />
+      <Character
+          name="3"
+          height="332"
+          resource="wfs_mar_60d6b650_55d1_4ef8_8451_00deb9ecfdfe"
+          width="624" />
+      <Character
+          name="4"
+          height="332"
+          resource="wfs_apr_2fd8d787_f30c_4e43_b259_0a735b70c575"
+          width="624" />
+      <Character
+          name="5"
+          height="332"
+          resource="wfs_may_57cc7a4e_9584_4808_83f5_03f954d3f1ed"
+          width="624" />
+      <Character
+          name="6"
+          height="332"
+          resource="wfs_jun_850e8a6d_631c_4472_a7b1_87cbdc82fc10"
+          width="624" />
+      <Character
+          name="7"
+          height="332"
+          resource="wfs_jul_23e61e60_c937_48d5_962c_027e6dbf2651"
+          width="624" />
+      <Character
+          name="8"
+          height="332"
+          resource="wfs_aug_fdf06c36_8964_41d6_ba4b_97c142efa3c3"
+          width="624" />
+      <Character
+          name="9"
+          height="332"
+          resource="wfs_sep_bab53f6f_dee9_4f4e_b169_2ff9c48ef651"
+          width="624" />
+      <Word
+          name="10"
+          height="332"
+          resource="wfs_oct_84af4b61_b1d3_4a78_8f42_c7fe24bc30e3"
+          width="624" />
+      <Word
+          name="11"
+          height="332"
+          resource="wfs_nov_5e17d8d7_43a9_4c58_aae3_37fc21c75c95"
+          width="624" />
+      <Word
+          name="12"
+          height="332"
+          resource="wfs_dec_cb3f190a_bc84_4578_ac32_77f8e14ab04f"
+          width="624" />
+    </BitmapFont>
+  </BitmapFonts>
+  <Scene backgroundColor="#ff000000">
+    <PartImage
+        name="battery index_1a7d"
+        alpha="255"
+        height="132"
+        pivotX="0.5"
+        pivotY="0.5"
+        width="135"
+        x="31"
+        y="269">
+      <Image resource="wfs_battery_index_14255200_2541_4cfb_be12_e203e0fd2ca0" />
+    </PartImage>
+    <PartDraw
+        name="battery indicator_1e67"
+        alpha="255"
+        height="180"
+        pivotX="0.75"
+        pivotY="0.5"
+        width="4"
+        x="140"
+        y="207">
+      <Transform
+          target="angle"
+          value="0 + ([BATTERY_PERCENT])" />
+      <Rectangle
+          height="180"
+          width="4"
+          x="0"
+          y="0">
+        <Fill color="#ffe35128" />
+      </Rectangle>
+    </PartDraw>
+    <Group
+        name="optimizedGroup_f58b"
+        alpha="255"
+        height="450"
+        pivotX="0.5"
+        pivotY="0.5"
+        width="450"
+        x="0"
+        y="0">
+
+      <Group
+          name="BG_1130"
+          alpha="255"
+          height="450"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="450"
+          x="0"
+          y="0">
+        <ListConfiguration id="40fc6b01_0756_400d_8903_20a8808c8115">
+          <ListOption id="0">
+            <PartImage
+                name="BG_1130"
+                height="450"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="450"
+                x="0"
+                y="0">
+              <Image resource="wfs_basic_c6ee15b8_c624_45ad_a293_a9c89f15672a" />
+            </PartImage>
+          </ListOption>
+          <ListOption id="1">
+            <PartImage
+                name="BG_1130"
+                height="450"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="450"
+                x="0"
+                y="0">
+              <Image resource="wfs_black_0d677f1e_128d_44a3_8a22_e66b095ec084" />
+            </PartImage>
+          </ListOption>
+          <ListOption id="2">
+            <PartImage
+                name="BG_1130"
+                height="450"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="450"
+                x="0"
+                y="0">
+              <Image resource="wfs_green_e222eb72_e959_483f_931b_b28e811a2c10" />
+            </PartImage>
+          </ListOption>
+        </ListConfiguration>
+      </Group>
+      <PartImage
+          name="decoration_9118"
+          alpha="255"
+          height="56"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="56"
+          x="110"
+          y="274">
+        <Image resource="wfs_icon_bg_44edb506_23f6_4448_989e_1f4b8fca7f91" />
+      </PartImage>
+    </Group>
+    <ComplicationSlot
+        name="battery complication_0"
+        alpha="255"
+        displayName="battery complication"
+        height="24"
+        isCustomizable="FALSE"
+        pivotX="0.5"
+        pivotY="0.5"
+        slotId="0"
+        supportedTypes="MONOCHROMATIC_IMAGE"
+        width="24"
+        x="130"
+        y="285">
+      <DefaultProviderPolicy
+          defaultSystemProvider="WATCH_BATTERY"
+          defaultSystemProviderType="MONOCHROMATIC_IMAGE" />
+      <BoundingBox
+          height="24"
+          width="24"
+          x="0"
+          y="0" />
+      <Complication type="MONOCHROMATIC_IMAGE">
+        <PartImage
+            name="Icon_9968"
+            alpha="255"
+            height="24"
+            pivotX="0.5"
+            pivotY="0.5"
+            width="24"
+            x="0"
+            y="3">
+          <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+        </PartImage>
+      </Complication>
+    </ComplicationSlot>
+    <Group
+        name="Time_analog_7a0e"
+        alpha="255"
+        height="141"
+        pivotX="0.5"
+        pivotY="0.5"
+        width="140"
+        x="275"
+        y="214">
+      <Group
+          name="optimizedGroup_a45a"
+          alpha="255"
+          height="141"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="140"
+          x="0"
+          y="0">
+        <PartImage
+            name="Time_analog_70ba"
+            alpha="255"
+            height="140"
+            pivotX="0.5"
+            pivotY="0.5"
+            width="140"
+            x="0"
+            y="1">
+          <Image resource="wfs_bg_99498b2c_932a_4350_a742_69b256e36568" />
+        </PartImage>
+        <PartImage
+            name="Index_7701"
+            alpha="255"
+            height="130"
+            pivotX="0.5"
+            pivotY="0.5"
+            width="130"
+            x="5"
+            y="5">
+          <Image resource="wfs_index_79e30cb5_bd52_44af_b46e_bad4ac892343" />
+        </PartImage>
+      </Group>
+      <PartImage
+          name="Hour_4976"
+          alpha="255"
+          height="140"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="16"
+          x="62"
+          y="0">
+        <Transform
+            target="angle"
+            value="0 + (clamp([HOUR_0_23_MINUTE], 0, 24) - 0) * 30 * (1)" />
+        <Image resource="wfs_hour_615b5163_204b_4695_a233_d5bc9eef1213" />
+      </PartImage>
+      <PartImage
+          name="Minute_ee39"
+          alpha="255"
+          height="140"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="16"
+          x="62"
+          y="0">
+        <Transform
+            target="angle"
+            value="0 + (clamp([MINUTE_SECOND], 0, 60) - 0) * 6 * (1)" />
+        <Image resource="wfs_min_aead888d_657c_47b2_9db1_a2d31363359a" />
+      </PartImage>
+      <PartImage
+          name="Second_6453"
+          alpha="255"
+          height="140"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="16"
+          x="62"
+          y="0">
+        <Transform
+            target="angle"
+            value="0 + (clamp([SECOND], 0, 60) - 0) * 6 * (1)" />
+        <Image resource="wfs_sec_9884bfbf_6f2f_40fe_b2ba_35b5b2dff506" />
+      </PartImage>
+      <PartText
+          name="day in week_b414"
+          alpha="255"
+          height="38"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="65"
+          x="37"
+          y="74">
+        <Localization
+            calendar="GREGORIAN"
+            locales="en_US" />
+        <Text
+            align="CENTER"
+            ellipsis="FALSE">
+          <BitmapFont
+              color="#ffffffff"
+              family="Bitmap font 1"
+              size="20">
+            <Template>%s
+              <Parameter expression="[DAY_OF_WEEK_S]" />
+            </Template>
+          </BitmapFont>
+        </Text>
+      </PartText>
+    </Group>
+    <Group
+        name="Steps_323b"
+        alpha="255"
+        height="123"
+        pivotX="0.5"
+        pivotY="0.5"
+        width="123"
+        x="164"
+        y="317">
+      <Group
+          name="step BG_c857"
+          alpha="255"
+          height="104"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="104"
+          x="12"
+          y="9">
+        <ListConfiguration id="40fc6b01_0756_400d_8903_20a8808c8115">
+          <ListOption id="0">
+            <PartImage
+                name="step BG_c857"
+                height="104"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="104"
+                x="0"
+                y="0">
+              <Image resource="wfs_basic_ad324426_8672_492b_b738_857091acda03" />
+            </PartImage>
+          </ListOption>
+          <ListOption id="1">
+            <PartImage
+                name="step BG_c857"
+                height="104"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="104"
+                x="0"
+                y="0">
+              <Image resource="wfs_black_7c82546b_d036_45ce_9115_f4bc3939dea2" />
+            </PartImage>
+          </ListOption>
+          <ListOption id="2">
+            <PartImage
+                name="step BG_c857"
+                height="104"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="104"
+                x="0"
+                y="0">
+              <Image resource="wfs_green_ea165f78_4faa_4dc4_a826_f0e71b606794" />
+            </PartImage>
+          </ListOption>
+        </ListConfiguration>
+      </Group>
+      <PartDraw
+          name="step progress_2cdd"
+          alpha="255"
+          height="50"
+          pivotX="0.5"
+          pivotY="0.9999999999999999"
+          tintColor="[CONFIGURATION.themeColor.0]"
+          width="100"
+          x="13"
+          y="15">
+        <Arc
+            centerX="50"
+            centerY="50"
+            direction="CLOCKWISE"
+            endAngle="90"
+            height="50"
+            startAngle="270"
+            width="50">
+          <Stroke
+              cap="BUTT"
+              color="#80ffffff"
+              thickness="50" />
+        </Arc>
+        <Arc
+            centerX="50"
+            centerY="50"
+            direction="CLOCKWISE"
+            endAngle="270"
+            height="50"
+            startAngle="270"
+            width="50">
+          <Transform
+              target="endAngle"
+              value="270 + (((clamp((0 + ([STEP_COUNT] / [STEP_GOAL])), 0, 1) - 0) / (1 - 0)) * (180))" />
+          <Stroke
+              cap="BUTT"
+              color="#ffffffff"
+              thickness="50" />
+        </Arc>
+      </PartDraw>
+      <Group
+          name="step shape_6583"
+          alpha="255"
+          height="123"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="123"
+          x="0"
+          y="0">
+        <ListConfiguration id="40fc6b01_0756_400d_8903_20a8808c8115">
+          <ListOption id="0">
+            <PartImage
+                name="step shape_6583"
+                height="123"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="123"
+                x="0"
+                y="0">
+              <Image resource="wfs_basic_5e3589a2_237c_4677_ac26_4f9e4ee7670d" />
+            </PartImage>
+          </ListOption>
+          <ListOption id="1">
+            <PartImage
+                name="step shape_6583"
+                height="123"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="123"
+                x="0"
+                y="0">
+              <Image resource="wfs_black_7694bafe_58c2_4985_96ec_22dee5c27c44" />
+            </PartImage>
+          </ListOption>
+          <ListOption id="2">
+            <PartImage
+                name="step shape_6583"
+                height="123"
+                pivotX="0.5"
+                pivotY="0.5"
+                width="123"
+                x="0"
+                y="0">
+              <Image resource="wfs_green_480c4181_967c_42dc_a5f0_638786826ceb" />
+            </PartImage>
+          </ListOption>
+        </ListConfiguration>
+      </Group>
+      <PartText
+          name="step count_178a"
+          alpha="255"
+          height="38"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="100"
+          x="14"
+          y="62">
+        <Text
+            align="CENTER"
+            ellipsis="FALSE">
+          <BitmapFont
+              color="#ffffffff"
+              family="Bitmap font 1"
+              size="16">
+            <Template>%s
+              <Parameter expression="[STEP_COUNT]" />
+            </Template>
+          </BitmapFont>
+        </Text>
+      </PartText>
+      <PartImage
+          name="step icon_020b"
+          alpha="255"
+          height="14"
+          pivotX="0.858333333333333"
+          pivotY="0.8055555555555551"
+          width="24"
+          x="50"
+          y="48">
+        <Image resource="wfs_icon_08d61728_2501_4dc4_808c_194fa8a7fc1c" />
+      </PartImage>
+    </Group>
+    <Group
+        name="Time_digital_f2c7"
+        alpha="255"
+        height="450"
+        pivotX="0.5"
+        pivotY="0.5"
+        width="450"
+        x="0"
+        y="0">
+      <Group
+          name="optimizedGroup_9ba0"
+          alpha="255"
+          height="450"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="450"
+          x="0"
+          y="0">
+        <Group
+            name="Time_digital_31fc"
+            alpha="255"
+            height="212"
+            pivotX="0.5"
+            pivotY="0.5"
+            width="324"
+            x="65"
+            y="55">
+          <ListConfiguration id="40fc6b01_0756_400d_8903_20a8808c8115">
+            <ListOption id="0">
+              <PartImage
+                  name="Time_digital_31fc"
+                  height="212"
+                  pivotX="0.5"
+                  pivotY="0.5"
+                  width="324"
+                  x="0"
+                  y="0">
+                <Image resource="wfs_basic_7fbe5cca_1629_40dd_a079_b7b022a332a7" />
+              </PartImage>
+            </ListOption>
+            <ListOption id="1">
+              <PartImage
+                  name="Time_digital_31fc"
+                  height="212"
+                  pivotX="0.5"
+                  pivotY="0.5"
+                  width="324"
+                  x="0"
+                  y="0">
+                <Image resource="wfs_black_2b5432f2_4fda_4ccb_89c6_cacb0f9f8d7c" />
+              </PartImage>
+            </ListOption>
+            <ListOption id="2">
+              <PartImage
+                  name="Time_digital_31fc"
+                  height="212"
+                  pivotX="0.5"
+                  pivotY="0.5"
+                  width="324"
+                  x="0"
+                  y="0">
+                <Image resource="wfs_green_f7f15404_5856_4df1_9005_50ff1b5076e4" />
+              </PartImage>
+            </ListOption>
+          </ListConfiguration>
+        </Group>
+        <PartDraw
+            name="Black_80_fe45"
+            alpha="0"
+            height="450"
+            pivotX="0.5"
+            pivotY="0.5"
+            width="450"
+            x="0"
+            y="0">
+          <Variant
+              mode="AMBIENT"
+              target="alpha"
+              value="255" />
+          <Ellipse
+              height="450"
+              width="450"
+              x="0"
+              y="0">
+            <Fill color="#cc000000" />
+          </Ellipse>
+        </PartDraw>
+      </Group>
+      <PartText
+          name="Min_bc44"
+          alpha="255"
+          height="100"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="130"
+          x="250"
+          y="103">
+        <Text
+            align="CENTER"
+            ellipsis="FALSE">
+          <BitmapFont
+              color="#fff0f0f0"
+              family="Bitmap font 1"
+              size="64">
+            <Template>%s
+              <Parameter expression="[MINUTE_Z]" />
+            </Template>
+          </BitmapFont>
+        </Text>
+      </PartText>
+      <PartText
+          name="Hour_2abf"
+          alpha="255"
+          height="100"
+          pivotX="0.49166666666666664"
+          pivotY="0.5"
+          width="120"
+          x="125"
+          y="103">
+        <Text
+            align="CENTER"
+            ellipsis="FALSE">
+          <BitmapFont
+              color="#fff0f0f0"
+              family="Bitmap font 1"
+              size="64">
+            <Lower>
+              <Template>%s
+                <Parameter expression="[HOUR_1_12_Z]" />
+              </Template>
+            </Lower>
+          </BitmapFont>
+
+        </Text>
+      </PartText>
+      <Condition>
+        <Expressions>
+          <Expression name="conditionalLine_4fb0">
+            <![CDATA[([SECONDS_IN_DAY] >= 43200 && [SECONDS_IN_DAY] < 86400)]]></Expression>
+        </Expressions>
+        <Compare expression="conditionalLine_4fb0">
+          <PartImage
+              name="pm_a812"
+              alpha="255"
+              height="56"
+              pivotX="0.5"
+              pivotY="0.5"
+              width="28"
+              x="88"
+              y="124">
+            <Image resource="wfs_pm_9a381711_f330_4a56_8c7c_37e43e4787da" />
+          </PartImage>
+        </Compare>
+      </Condition>
+      <Condition>
+        <Expressions>
+          <Expression name="conditionalLine_1e9b">
+            <![CDATA[([SECONDS_IN_DAY] >= 0 && [SECONDS_IN_DAY] < 43200)]]></Expression>
+        </Expressions>
+        <Compare expression="conditionalLine_1e9b">
+          <PartImage
+              name="am_ccf9"
+              alpha="255"
+              height="56"
+              pivotX="0.5"
+              pivotY="0.5"
+              width="28"
+              x="88"
+              y="124">
+            <Image resource="wfs_am_b16eccef_61fb_4efe_aa1d_019d833149f6" />
+          </PartImage>
+        </Compare>
+      </Condition>
+      <PartImage
+          name="decoration_9656"
+          alpha="255"
+          height="13"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="300"
+          x="76"
+          y="146">
+        <Image resource="wfs_decoration_88630b01_e334_4816_bb2f_3b4f411eadbe" />
+      </PartImage>
+    </Group>
+    <Group
+        name="Date_ae52"
+        alpha="255"
+        height="203"
+        pivotX="0.5"
+        pivotY="0.5"
+        width="134"
+        x="111"
+        y="57">
+      <PartText
+          name="year_887b"
+          alpha="255"
+          height="38"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="86"
+          x="10"
+          y="0">
+        <Text
+            align="CENTER"
+            ellipsis="FALSE">
+          <BitmapFont
+              color="#fff0f0f0"
+              family="Bitmap font 1"
+              size="20">
+            <Template>%s
+              <Parameter expression="[YEAR]" />
+            </Template>
+          </BitmapFont>
+        </Text>
+      </PartText>
+      <PartText
+          name="month_3d3b"
+          alpha="255"
+          height="38"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="55"
+          x="0"
+          y="165">
+        <Text
+            align="CENTER"
+            ellipsis="FALSE">
+          <BitmapFont
+              color="#fff0f0f0"
+              family="Bitmap font for Month"
+              size="24">
+            <Template>%s
+              <Parameter expression="[MONTH_Z]" />
+            </Template>
+          </BitmapFont>
+        </Text>
+      </PartText>
+      <PartText
+          name="day_f1c0"
+          alpha="255"
+          height="38"
+          pivotX="0.5"
+          pivotY="0.5"
+          width="55"
+          x="79"
+          y="165">
+        <Text
+            align="CENTER"
+            ellipsis="FALSE">
+          <BitmapFont
+              color="#fff0f0f0"
+              family="Bitmap font 1"
+              size="20">
+            <Template>%s
+              <Parameter expression="[DAY_Z]" />
+            </Template>
+          </BitmapFont>
+        </Text>
+      </PartText>
+    </Group>
+  </Scene>
+</WatchFace>

@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.EnumModel
 import com.android.tools.idea.gradle.dcl.lang.sync.FullName
 import com.android.tools.idea.gradle.dcl.lang.sync.GenericTypeRef
+import com.android.tools.idea.gradle.dcl.lang.sync.ParameterizedClassModel
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
@@ -78,6 +79,8 @@ private fun getDataClassType(
       else ElementType.PROPERTY
 
     is EnumModel -> ENUM
+    // this is Gradle external class like Array or List
+    is ParameterizedClassModel -> OBJECT_VALUE
     else -> BLOCK
   }
 

@@ -33,8 +33,14 @@ import kotlinx.coroutines.flow.asStateFlow
  * @param rootViewId The drawId of the root view the [bounds] belong to.
  * @param bounds The bounds of the node being rendered.
  * @param color The color used to render these [bounds].
+ * @param label Optional label to be rendered with the [bounds].
  */
-data class DrawInstruction(val rootViewId: Long, val bounds: Rectangle, val color: Int)
+data class DrawInstruction(
+  val rootViewId: Long,
+  val bounds: Rectangle,
+  val color: Int,
+  val label: String?,
+)
 
 /**
  * Contains state that controls the rendering of the view bounds. It is different from
@@ -119,11 +125,9 @@ class OnDeviceRendererModel(
       override fun onChange(state: RenderSettings.State) {
         renderSettingsState = state
 
-        if (state.drawBorders == false) {
-          setVisibleNodes(emptyList())
-        } else {
-          setVisibleNodes(getNodes())
-        }
+        // Update draw instruction to apply new settings.
+        setSelectedNode(inspectorModel.selection)
+        setVisibleNodes(getNodes())
       }
     }
 
@@ -175,7 +179,14 @@ class OnDeviceRendererModel(
   }
 
   private fun setSelectedNode(node: ViewNode?) {
-    _selectedNode.value = node?.toDrawInstruction(color = renderSettings.selectionColor)
+    val label =
+      if (renderSettings.drawLabel) {
+        node?.unqualifiedName
+      } else {
+        null
+      }
+    _selectedNode.value =
+      node?.toDrawInstruction(color = renderSettings.selectionColor, label = label)
   }
 
   private fun setHoveredNode(node: ViewNode?) {
@@ -194,12 +205,35 @@ class OnDeviceRendererModel(
 
   private fun setRecomposingNodes(nodes: List<ViewNode>) {
     _recomposingNodes.value =
-      nodes.mapNotNull { it.toDrawInstruction(color = renderSettings.recompositionColor) }
+      nodes.mapNotNull {
+        val color = renderSettings.recompositionColor.applyRecompositionAlpha(it, inspectorModel)
+        it.toDrawInstruction(color = color)
+      }
   }
 
   /** Convert a ViewNode to [DrawInstruction]. */
-  private fun ViewNode.toDrawInstruction(color: Int): DrawInstruction? {
+  private fun ViewNode.toDrawInstruction(color: Int, label: String? = null): DrawInstruction? {
     val rootView = inspectorModel.rootFor(this) ?: return null
-    return DrawInstruction(rootViewId = rootView.drawId, bounds = layoutBounds, color = color)
+    return DrawInstruction(
+      rootViewId = rootView.drawId,
+      bounds = layoutBounds,
+      color = color,
+      label = label,
+    )
   }
+}
+
+/** Changes the alpha channel of this color based on how frequently [node] recomposed. */
+private fun Int.applyRecompositionAlpha(node: ViewNode, inspectorModel: InspectorModel): Int {
+  val maxAlpha = 160
+  val highlightCount = node.recompositions.highlightCount
+  val alpha =
+    ((highlightCount * maxAlpha) / inspectorModel.maxHighlight).toInt().coerceIn(8, maxAlpha)
+  return setColorAlpha(alpha)
+}
+
+/** Set the alpha for the int representation of a color. */
+private fun Int.setColorAlpha(alpha: Int): Int {
+  val validAlpha = alpha.coerceIn(0, 255)
+  return (validAlpha shl 24) or (this and 0x00FFFFFF)
 }

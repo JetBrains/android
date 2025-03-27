@@ -41,7 +41,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.junit.Assume.assumeTrue;
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -63,6 +63,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -83,7 +84,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.junit.Test;
 import org.toml.lang.psi.TomlLiteral;
 import org.toml.lang.psi.impl.TomlInlineTableImpl;
-import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
 
 /**
  * Tests for subclasses of {@link AbstractDependenciesModel} and {@link ArtifactDependencyModelImpl}.

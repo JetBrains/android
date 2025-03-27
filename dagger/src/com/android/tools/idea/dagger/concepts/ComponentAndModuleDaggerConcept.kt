@@ -30,6 +30,7 @@ import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiClass
@@ -38,6 +39,7 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValue
 import com.intellij.util.containers.sequenceOfNotNull
 import java.io.DataInput
 import java.io.DataOutput
@@ -265,6 +267,8 @@ internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
 
   override val metricsElementType = DaggerEditorEvent.ElementType.MODULE
 
+  override val relatedElementsKey = RELATED_ELEMENTS_KEY
+
   override fun getRelatedAnnotationForRelatedIndexElement(
     relatedType: DaggerElement
   ): Pair<DaggerAnnotation, String>? =
@@ -307,6 +311,11 @@ internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
           "navigate.to.module.that.include",
         )
       }
+  }
+
+  companion object {
+    private val RELATED_ELEMENTS_KEY =
+      Key<CachedValue<List<DaggerRelatedElement>>>("ModuleDaggerElement_RelatedElements")
   }
 }
 
@@ -401,6 +410,8 @@ internal data class ComponentDaggerElement(override val psiElement: PsiElement) 
 
   override val metricsElementType = DaggerEditorEvent.ElementType.COMPONENT
 
+  override val relatedElementsKey = RELATED_ELEMENTS_KEY
+
   override val definingAnnotation = DaggerAnnotation.COMPONENT
 
   override fun getRelatedAnnotationForRelatedIndexElement(
@@ -422,12 +433,19 @@ internal data class ComponentDaggerElement(override val psiElement: PsiElement) 
       }
     return elementsFromIndex + getIncludedModulesAndSubcomponents()
   }
+
+  companion object {
+    private val RELATED_ELEMENTS_KEY =
+      Key<CachedValue<List<DaggerRelatedElement>>>("ComponentDaggerElement_RelatedElements")
+  }
 }
 
 internal data class SubcomponentDaggerElement(override val psiElement: PsiElement) :
   ComponentDaggerElementBase() {
 
   override val metricsElementType = DaggerEditorEvent.ElementType.SUBCOMPONENT
+
+  override val relatedElementsKey = RELATED_ELEMENTS_KEY
 
   override val definingAnnotation = DaggerAnnotation.SUBCOMPONENT
 
@@ -459,5 +477,10 @@ internal data class SubcomponentDaggerElement(override val psiElement: PsiElemen
         }
 
     return containingComponents + getIncludedModulesAndSubcomponents()
+  }
+
+  companion object {
+    private val RELATED_ELEMENTS_KEY =
+      Key<CachedValue<List<DaggerRelatedElement>>>("SubcomponentDaggerElement_RelatedElements")
   }
 }

@@ -37,8 +37,9 @@ class ComposeResizeTracker : ResizeTracker {
 
   override fun reportResizeStopped(
     sceneManager: SceneManager,
-    stoppedDeviceWidthDp: Int,
-    stoppedDeviceHeightDp: Int,
+    widthDp: Int,
+    heightDp: Int,
+    dpi: Int,
   ) {
     val layoutlibSceneManager = sceneManager as? LayoutlibSceneManager ?: return
     val showDecorations = layoutlibSceneManager.sceneRenderConfiguration.showDecorations
@@ -46,8 +47,9 @@ class ComposeResizeTracker : ResizeTracker {
     ComposeResizeToolingUsageTracker.logResizeStopped(
       sceneManager.designSurface,
       mode,
-      stoppedDeviceWidthDp,
-      stoppedDeviceHeightDp,
+      widthDp,
+      heightDp,
+      dpi,
     )
   }
 }
@@ -59,32 +61,36 @@ object ComposeResizeToolingUsageTracker {
   fun logResizeStopped(
     surface: DesignSurface<*>?,
     mode: ResizeMode,
-    deviceWidthDp: Int,
-    deviceHeightDp: Int,
+    widthDp: Int,
+    heightDp: Int,
+    dpi: Int,
   ) {
     logEvent(surface) {
       eventType = EventType.RESIZE_STOPPED
       resizeMode = mode
-      stoppedDeviceWidth = deviceWidthDp
-      stoppedDeviceHeight = deviceHeightDp
+      deviceWidthDp = widthDp
+      deviceHeightDp = heightDp
+      this.dpi = dpi
     }
   }
 
   fun logResizeSaved(
     surface: DesignSurface<*>?,
     mode: ResizeMode,
-    deviceWidthDp: Int,
-    deviceHeightDp: Int,
+    widthDp: Int,
+    heightDp: Int,
+    dpi: Int,
   ) {
     logEvent(surface) {
       eventType = EventType.RESIZE_SAVED
       resizeMode = mode
-      savedDeviceWidth = deviceWidthDp
-      savedDeviceHeight = deviceHeightDp
+      deviceWidthDp = widthDp
+      deviceHeightDp = heightDp
+      this.dpi = dpi
     }
   }
 
-  fun logResizeReverted(surface: DesignSurface<*>, mode: ResizeMode) {
+  fun logResizeReverted(surface: DesignSurface<*>?, mode: ResizeMode) {
     logEvent(surface) {
       eventType = EventType.RESIZE_REVERTED
       resizeMode = mode

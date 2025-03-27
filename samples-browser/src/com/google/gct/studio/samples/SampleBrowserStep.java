@@ -41,15 +41,24 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.SwingHelper;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Optional;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import org.jetbrains.annotations.NotNull;
@@ -79,6 +88,7 @@ public class SampleBrowserStep extends ModelWizardStep<SampleModel> {
 
   public SampleBrowserStep(@NotNull SampleModel model, @NotNull SampleCollection sampleList) {
     super(model, SamplesBrowserBundle.message("sample.browser.title"));
+    setupUI();
 
     mySampleList = sampleList;
     mySampleTreeManager = new SampleImportTreeManager(mySampleTree, mySampleList);
@@ -205,5 +215,62 @@ public class SampleBrowserStep extends ModelWizardStep<SampleModel> {
   public void dispose() {
     myBindings.releaseAll();
     myListeners.releaseAll();
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    mySplitPane = new JSplitPane();
+    mySplitPane.setDividerSize(8);
+    mySplitPane.setResizeWeight(0.5);
+    myPanel.add(mySplitPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                 new Dimension(200, 200), null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    mySplitPane.setLeftComponent(panel1);
+    mySearchBox = new SearchTextField();
+    mySearchBox.setToolTipText("Search by Name or Key Word");
+    panel1.add(mySearchBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    jBScrollPane1.setEnabled(true);
+    panel1.add(jBScrollPane1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null,
+                                                  null, 0, false));
+    mySampleTree = new Tree();
+    jBScrollPane1.setViewportView(mySampleTree);
+    mySamplePreviewScrollPanel = new JBScrollPane();
+    mySamplePreviewScrollPanel.setHorizontalScrollBarPolicy(31);
+    mySamplePreviewScrollPanel.setVerticalScrollBarPolicy(20);
+    mySplitPane.setRightComponent(mySamplePreviewScrollPanel);
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridBagLayout());
+    mySamplePreviewScrollPanel.setViewportView(panel2);
+    panel2.setBorder(
+      BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                       TitledBorder.DEFAULT_POSITION, null, null));
+    myDescriptionPanel = new JPanel();
+    myDescriptionPanel.setLayout(new BorderLayout(0, 0));
+    GridBagConstraints gbc;
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.weightx = 1.0;
+    gbc.anchor = GridBagConstraints.NORTH;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    panel2.add(myDescriptionPanel, gbc);
+    mySamplePreviewPanel = new SamplePreviewPanel();
+    gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.insets = new Insets(10, 0, 0, 0);
+    panel2.add(mySamplePreviewPanel, gbc);
   }
 }

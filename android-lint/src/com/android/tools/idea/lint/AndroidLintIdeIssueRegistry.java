@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.lint.common.LintIdeIssueRegistry;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
@@ -28,6 +27,7 @@ import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Platform;
 import java.util.EnumSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Custom version of the {@link BuiltinIssueRegistry}. This
@@ -41,7 +41,7 @@ public class AndroidLintIdeIssueRegistry extends LintIdeIssueRegistry {
   }
 
   @Override
-  public boolean isRelevant(@NonNull Issue issue) {
+  public boolean isRelevant(@NotNull Issue issue) {
     EnumSet<Platform> platforms = issue.getPlatforms();
     if (platforms.contains(Platform.JDK) && !platforms.contains(Platform.ANDROID) ) {
       return false;

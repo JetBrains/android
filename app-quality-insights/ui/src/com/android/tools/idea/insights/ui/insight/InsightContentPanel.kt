@@ -229,7 +229,10 @@ class InsightContentPanel(
             }
             // Gemini plugin disabled or scope is not authorized
             is LoadingState.Unauthorized -> {
-              if (LoginFeature.getExtensionByKey("Gemini") == null) {
+              if (
+                LoginFeature.getExtensionByKey("Gemini") == null &&
+                  LoginFeature.getExtensionByKey("GiAS") == null
+              ) {
                 emptyStateText.apply {
                   clear()
                   appendText(GEMINI_NOT_AVAILABLE, EMPTY_STATE_TITLE_FORMAT)
@@ -288,7 +291,7 @@ class InsightContentPanel(
                 }
               emptyStateText.apply {
                 clear()
-                appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
+                appendText("Failed to generate insight", EMPTY_STATE_TITLE_FORMAT)
                 appendLine(message, EMPTY_STATE_TEXT_FORMAT, null)
               }
               showEmptyCard()
@@ -296,7 +299,7 @@ class InsightContentPanel(
             is LoadingState.Failure -> {
               emptyStateText.apply {
                 clear()
-                appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
+                appendText("Failed to generate insight", EMPTY_STATE_TITLE_FORMAT)
                 appendLine(aiInsight.getCauseMessageOrDefault(), EMPTY_STATE_TEXT_FORMAT, null)
               }
               showEmptyCard()

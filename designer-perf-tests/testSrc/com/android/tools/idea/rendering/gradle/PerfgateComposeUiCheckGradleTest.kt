@@ -22,6 +22,7 @@ import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
+import com.android.tools.idea.rendering.LayoutlibNativeMemoryMeasurement
 import com.android.tools.perflogger.Metric
 import com.intellij.testFramework.assertInstanceOf
 import kotlin.time.Duration.Companion.seconds
@@ -93,6 +94,7 @@ class PerfgateComposeUiCheckGradleTest : PerfgateComposeGradleTestBase() {
             "layoutlib",
             Metric("uiCheckMode_layoutlib_memory"),
           ),
+          LayoutlibNativeMemoryMeasurement(Metric("uiCheckMode_layoutlib_native_memory")),
         ),
         nSamples = 1, // run it only once as this test takes a long time
       )

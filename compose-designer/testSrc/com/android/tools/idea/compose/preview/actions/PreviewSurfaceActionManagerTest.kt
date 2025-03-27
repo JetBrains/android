@@ -20,12 +20,19 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 // SavePreviewInNewSize()
+// RevertToOriginalSize()
 // EnableUiCheckAction(),
 // AnimationInspectorAction(),
 // EnableInteractiveAction(),
 // DeployToDeviceAction()
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 5
+private const val EXPECTED_NUMBER_OF_ACTIONS = 6
+
+// EnableUiCheckAction(),
+// EnableInteractiveAction(),
+// DeployToDeviceAction()
+// in wrappers
+private const val EXPECTED_VISIBLE_ACTIONS = 3
 
 class PreviewSurfaceActionManagerTest {
 
@@ -71,8 +78,7 @@ class PreviewSurfaceActionManagerTest {
           testEvent.presentation.isVisible
         }
 
-      // All actions are visible except SaveSizeAction and AnimationInspectorAction
-      assertThat(visibleActions).hasSize(EXPECTED_NUMBER_OF_ACTIONS - 2)
+      assertThat(visibleActions).hasSize(EXPECTED_VISIBLE_ACTIONS)
 
       visibleActions.forEach { action ->
         action.update(testEvent)
@@ -145,8 +151,7 @@ class PreviewSurfaceActionManagerTest {
           testEvent.presentation.isVisible
         }
 
-      // All actions are visible except SaveSizeAction and AnimationInspectorAction
-      assertThat(visibleActions).hasSize(EXPECTED_NUMBER_OF_ACTIONS - 2)
+      assertThat(visibleActions).hasSize(EXPECTED_VISIBLE_ACTIONS)
 
       visibleActions.forEach { action ->
         action.update(testEvent)

@@ -57,7 +57,7 @@ public final class CreateMultiRootResourceFileActionTest extends AndroidTestCase
   }
 
   public void testGetDefaultRootTag_ModuleDependsOnAndroidXConstraintLayout() {
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT, myFacet.getModule(), new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT, myFacet.getModule(), new GradleVersion(1, 1));
     Mockito.when(myAction.getPossibleRoots(myFacet))
       .thenReturn(Arrays.asList(SdkConstants.LINEAR_LAYOUT, AndroidXConstants.CONSTRAINT_LAYOUT.defaultName()));
 

@@ -53,33 +53,19 @@ class ScreenshotTestRunLineMarkerContributor: RunLineMarkerContributor() {
     return declaration is KtClassOrObject &&
            declaration.isUnderKotlinSourceRootTypes() &&
            declaration is KtClass &&
-           declaration.declarations.any { it is KtNamedFunction && isPreviewMethod(it) }
+           declaration.declarations.any { it is KtNamedFunction && isPreviewTestMethod(it) }
   }
 
   private fun isValidKtMethodIdentifier(declaration: KtNamedDeclaration): Boolean {
     return declaration is KtNamedFunction &&
            declaration.isUnderKotlinSourceRootTypes() &&
-           isPreviewMethod(declaration)
+           isPreviewTestMethod(declaration)
   }
 
-  private fun isPreviewMethod(declaration: KtNamedFunction): Boolean {
+  private fun isPreviewTestMethod(declaration: KtNamedFunction): Boolean {
     return declaration.annotationEntries.any { annotation ->
-      (annotation.toUElement() as? UAnnotation)?.javaPsi?.let { isMultiPreview(it, declaration) } ?: false
+      (annotation.toUElement() as? UAnnotation)?.javaPsi?.let { it.qualifiedName == "com.android.tools.screenshot.PreviewTest" } ?: false
     }
-  }
-
-  private fun isMultiPreview(psiAnnotation: PsiAnnotation, declaration: KtNamedFunction): Boolean {
-    val annotationName = psiAnnotation.qualifiedName ?: return false
-    if (annotationName == "androidx.compose.ui.tooling.preview.Preview") return true
-    if (annotationsVisited.contains(annotationName)) return annotationsVisited[annotationName]!!
-    annotationsVisited[annotationName] = false
-    val annotationClass = JavaPsiFacade.getInstance(declaration.project)
-                            .findClass(annotationName, declaration.resolveScope) ?: return false
-    val isMultiPreviewAnnotation = annotationClass.annotations.any {
-      isMultiPreview(it, declaration)
-    }
-    annotationsVisited[annotationName] = isMultiPreviewAnnotation
-    return isMultiPreviewAnnotation
   }
 
 }

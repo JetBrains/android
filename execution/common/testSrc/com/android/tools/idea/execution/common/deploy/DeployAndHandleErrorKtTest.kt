@@ -64,6 +64,7 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
+      assertThat(e.message!!).contains("The target device's architecture is not supported")
     }
   }
 
@@ -110,7 +111,8 @@ class DeployAndHandleErrorKtTest {
   fun deployWithException_retry_automaticallyApplyResolutionAction_failTwice() {
     val env = createFakeExecutionEnvironment(projectRule.project, "test")
 
-    val exception = DeployerException.preinstallFailed("test")
+    val detailedReason = "very lengthy detailed reason that caused preinstallFailed"
+    val exception = DeployerException.preinstallFailed(detailedReason)
     assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.RETRY))
 
     var invocationCount = 0
@@ -130,6 +132,7 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
+      assertThat(e.message!!).contains(detailedReason)
     }
 
     // TODO: b/398884513: The reason of the failure is not found in the notification
@@ -157,6 +160,7 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
+      assertThat(e.message).contains("Process 'com.example' has crashed.")
     }
 
     val notificationInfo = notificationRule.notifications.find {
@@ -183,6 +187,7 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
+      assertThat(e.message).contains("Process 'com.example' has crashed.")
     }
 
     val notificationInfo = notificationRule.notifications.find {
@@ -200,7 +205,7 @@ class DeployAndHandleErrorKtTest {
 
     val env = createFakeExecutionEnvironment(projectRule.project, "test")
 
-    val exception = DeployerException.changedCrashlyticsBuildId("")
+    val exception = DeployerException.changedCrashlyticsBuildId("/my/file/path")
     assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.APPLY_CHANGES))
 
 
@@ -210,6 +215,7 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
+      assertThat(e.message!!).contains("/my/file/path")
     }
 
     val notificationInfo = notificationRule.notifications.find {
@@ -228,7 +234,7 @@ class DeployAndHandleErrorKtTest {
     // Resolutions to Apply Changes in Debug mode needs to be remapped to Rerun.
     val env = createFakeExecutionEnvironment(projectRule.project, "test", DefaultDebugExecutor.getDebugExecutorInstance())
 
-    val exception = DeployerException.changedCrashlyticsBuildId("")
+    val exception = DeployerException.changedCrashlyticsBuildId("/other/file/path")
     assumeThat(exception.error.resolution, equalTo(DeployerException.ResolutionAction.APPLY_CHANGES))
 
 
@@ -238,6 +244,7 @@ class DeployAndHandleErrorKtTest {
     }
     catch (e: AndroidExecutionException) {
       assertThat(e.errorId).isEqualTo(exception.id)
+      assertThat(e.message!!).contains("/other/file/path")
     }
 
     val notificationInfo = notificationRule.notifications.find {

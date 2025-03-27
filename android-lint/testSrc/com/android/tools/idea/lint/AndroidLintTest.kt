@@ -1008,7 +1008,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     val testProjectSystem = TestProjectSystem(project)
     testProjectSystem.useInTests()
     testProjectSystem.addDependency(
-      GoogleMavenArtifactId.APP_COMPAT_V7,
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7,
       myFixture.module,
       GradleVersion.parse("+"),
     )
@@ -2366,7 +2366,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     val testProjectSystem = TestProjectSystem(project)
     testProjectSystem.useInTests()
     testProjectSystem.addDependency(
-      GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7,
+      GoogleMavenArtifactId.ANDROIDX_APPCOMPAT,
       myFixture.module,
       GradleVersion.parse("+"),
     )

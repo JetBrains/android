@@ -22,7 +22,6 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertEquals
@@ -40,7 +39,7 @@ class ComposeHideFilterActionTest {
   fun testHideFilter() {
     val surface = mock<DesignSurface<*>>()
     val manager = TestComposePreviewManager()
-    whenever(surface.sceneManagers).thenReturn(ImmutableList.of())
+    whenever(surface.sceneManagers).thenReturn(emptyList())
     manager.isFilterEnabled = true
 
     val dataContext =
@@ -61,8 +60,8 @@ class ComposeHideFilterActionTest {
     val sceneManager = mock<SceneManager>()
     val sceneView1 = mock<SceneView>()
     val sceneView2 = mock<SceneView>()
-    whenever(sceneManager.sceneViews).thenReturn(ImmutableList.of(sceneView1, sceneView2))
-    whenever(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
+    whenever(sceneManager.sceneViews).thenReturn(listOf(sceneView1, sceneView2))
+    whenever(surface.sceneManagers).thenReturn(listOf(sceneManager))
     manager.isFilterEnabled = true
 
     val dataContext =

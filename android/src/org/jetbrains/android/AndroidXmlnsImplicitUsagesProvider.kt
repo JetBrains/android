@@ -48,6 +48,6 @@ class AndroidXmlnsImplicitUsagesProvider : ImplicitUsageProvider {
     val schemaPrefix: SchemaPrefix =
       XmlExtension.getExtensionByElement(element)?.getPrefixDeclaration(xmlTag, element.localName) ?: return false
 
-    return ReferencesSearch.search(schemaPrefix, LocalSearchScope(xmlTag)).any { it is ResourceNamespaceReference }
+    return ReferencesSearch.search(schemaPrefix, LocalSearchScope(xmlTag)).anyMatch { it is ResourceNamespaceReference }
   }
 }

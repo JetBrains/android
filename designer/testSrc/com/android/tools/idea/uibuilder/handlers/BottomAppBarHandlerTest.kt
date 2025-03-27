@@ -65,7 +65,7 @@ class BottomAppBarHandlerTest {
   fun testOnCreate() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val manager: NlDependencyManager = mock()
-    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet))
+    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.MATERIAL, facet))
       .thenReturn(Version.parse("1.4.9"))
     projectRule.replaceService(NlDependencyManager::class.java, manager)
 
@@ -99,7 +99,7 @@ class BottomAppBarHandlerTest {
   fun testOnCreateWithMaterial3() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val manager: NlDependencyManager = mock()
-    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet))
+    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.MATERIAL, facet))
       .thenReturn(Version.parse("1.5.0"))
     projectRule.replaceService(NlDependencyManager::class.java, manager)
 

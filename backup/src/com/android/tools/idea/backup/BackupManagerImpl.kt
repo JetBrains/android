@@ -151,6 +151,7 @@ internal constructor(
     return result
   }
 
+  @UiThread
   override fun chooseRestoreFile(): Path? {
     return FileChooserFactory.getInstance()
       .createFileChooser(FILE_CHOOSER_DESCRIPTOR, project, null)
@@ -188,8 +189,12 @@ internal constructor(
     return deviceType == DeviceType.HANDHELD
   }
 
-  override fun isAppSupported(applicationId: String) =
-    project.getService(ProjectAppsProvider::class.java).getApplicationIds().contains(applicationId)
+  override fun isAppSupported(applicationId: String): Boolean {
+    return when {
+      StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get() -> true
+      else -> project.service<ProjectAppsProvider>().getApplicationIds().contains(applicationId)
+    }
+  }
 
   @UiThread
   @VisibleForTesting

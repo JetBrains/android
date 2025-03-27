@@ -20,6 +20,7 @@ import com.android.tools.idea.common.surface.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneLayer
+import com.android.tools.idea.common.surface.layer.HighlightLayer
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.util.isRootComponentSelected
@@ -32,13 +33,13 @@ import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layer.BorderColor
 import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
+import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer
 import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer
 import com.android.tools.idea.uibuilder.surface.layer.UiCheckWarningLayer
 import com.android.tools.idea.uibuilder.surface.sizepolicy.ImageContentSizePolicy
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
-import com.android.tools.idea.common.surface.layer.HighlightLayer
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 
 class ComposeScreenViewProvider(private val previewManager: ComposePreviewManager) :
@@ -90,6 +91,14 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
             }
             StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled {
               add(DiagnosticsLayer(surface, surface.project))
+            }
+            StudioFlags.COMPOSE_PREVIEW_RESIZING.ifEnabled {
+              add(
+                CanvasResizeLayer(it, surface::repaint) {
+                  // Resizing is allowed only in Focus mode.
+                  previewManager.mode.value is PreviewMode.Focus
+                }
+              )
             }
           }
           .build()

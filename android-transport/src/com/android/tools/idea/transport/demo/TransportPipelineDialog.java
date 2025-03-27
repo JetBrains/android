@@ -96,6 +96,7 @@ public class TransportPipelineDialog extends DialogWrapper {
 
   public TransportPipelineDialog(@Nullable Project project) {
     super(project);
+    setupUI();
     setTitle(TITLE);
     setModal(false);
 
@@ -124,7 +125,7 @@ public class TransportPipelineDialog extends DialogWrapper {
           .build();
         // TODO(b/150503095)
         Transport.ExecuteResponse response =
-            myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build());
+          myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build());
       }
     });
 
@@ -335,7 +336,7 @@ public class TransportPipelineDialog extends DialogWrapper {
             .build();
           // TODO(b/150503095)
           Transport.ExecuteResponse response =
-              myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
+            myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
           toggleControls(false);
         });
         processActions.add(processAction);
@@ -362,6 +363,11 @@ public class TransportPipelineDialog extends DialogWrapper {
         return false;
       });
     myTransportEventPoller.registerListener(myAgentStatusListener);
+  }
+
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new BorderLayout(0, 0));
   }
 
   @NotNull

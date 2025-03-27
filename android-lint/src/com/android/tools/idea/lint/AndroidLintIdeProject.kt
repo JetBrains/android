@@ -33,17 +33,16 @@ import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getMainModule
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.ApiConstraint.Companion.get
 import com.android.tools.lint.detector.api.ExtensionSdk
-import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject
 import com.android.tools.lint.detector.api.LintModelModuleProject
 import com.android.tools.lint.detector.api.Project
 import com.android.tools.lint.model.LintModelAndroidLibrary
-import com.android.tools.lint.model.LintModelDependency
 import com.android.tools.lint.model.LintModelModule
 import com.android.tools.lint.model.LintModelModuleType
 import com.android.tools.lint.model.LintModelVariant
@@ -58,13 +57,10 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Pair
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.graph.Graph
 import java.io.File
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties
@@ -94,9 +90,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       val moduleMap = Maps.newHashMap<Module, Project>()
       val libraryMap = Maps.newHashMap<LintModelAndroidLibrary, Project>()
       val distinctModules = modules.map { it.getMainModule() }.distinct()
-      if (files != null && !files.isEmpty()) {
-        // Wrap list with a mutable list since we'll be removing the files as we see them
-        val files = files.toMutableList()
+      if (!files.isNullOrEmpty()) {
         for (module in distinctModules) {
           addProjects(client, module, files, moduleMap, libraryMap, projectMap, projects, false)
         }
@@ -113,7 +107,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         // included by other projects (e.g. because they are library projects)
         val roots = HashSet<Project>(projects)
         for (project in projects) {
-          roots.removeAll(project.getAllLibraries())
+          roots.removeAll(project.getAllLibraries().toSet())
         }
         return roots.toList()
       } else {
@@ -122,7 +116,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     }
 
     /**
-     * Creates a project for a single file. Also optionally creates a main project for the file, if
+     * Creates a project for a single file. Also, optionally creates a main project for the file, if
      * applicable.
      *
      * @param client the lint client
@@ -143,11 +137,11 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       var main: Project? = null
       val projectMap = Maps.newHashMap<Project, Module>()
       if (project != null) {
-        project.setDirectLibraries(listOf<Project>())
+        project.directLibraries = listOf<Project>()
         if (file != null) {
           project.addFile(VfsUtilCore.virtualToIoFile(file))
         }
-        projectMap.put(project, module)
+        projectMap[project] = module
 
         // Supply a main project too, such that when you for example edit a file in a Java library,
         // and lint asks for getMainProject().getMinSdk(), we return the min SDK of an application
@@ -161,24 +155,26 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
               if (path == ":") {
                 // Don't make main depend on root since parent hierarchy
                 // goes in the opposite direction
-                main.setDirectLibraries(emptyList())
+                main.directLibraries = emptyList()
                 client.setModuleMap(mapOf(main to module))
-                val file = project.subset?.firstOrNull()
-                if (file != null) {
-                  main.addFile(file)
+                val firstFile = project.subset?.firstOrNull()
+                if (firstFile != null) {
+                  main.addFile(firstFile)
                 }
-                return Pair.create<Project, Project>(main, null)
+                main.isGradleRootHolder = true
+                return Pair.create(main, null)
               } else {
-                projectMap.put(main, androidModule)
-                main.setDirectLibraries(listOf<Project>(project))
+                projectMap[main] = androidModule
+                main.directLibraries = listOf(project)
               }
             }
           }
         }
+        project.isGradleRootHolder = true
       }
       client.setModuleMap(projectMap)
 
-      return Pair.create<Project, Project>(project, main)
+      return Pair.create(project, main)
     }
 
     /**
@@ -192,8 +188,8 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       // Search for dependencies of this module
       val graph =
         ApplicationManager.getApplication()
-          .runReadAction<Graph<Module>>(
-            Computable<Graph<Module>> {
+          .runReadAction(
+            Computable {
               val project = module.project
               ModuleManager.getInstance(project).moduleGraph()
             }
@@ -255,7 +251,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     private fun addProjects(
       client: LintClient,
       module: Module,
-      files: MutableList<VirtualFile>?,
+      files: List<VirtualFile>?,
       moduleMap: MutableMap<Module, Project>,
       libraryMap: MutableMap<LintModelAndroidLibrary, Project>,
       projectMap: MutableMap<Project, Module>,
@@ -293,8 +289,8 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       project.ideaProject = module.project
 
       projects.add(project)
-      moduleMap.put(module, project)
-      projectMap.put(project, module)
+      moduleMap[module] = project
+      projectMap[project] = module
 
       if (processFileFilter(module, files, project)) {
         // No need to process dependencies when doing single file analysis
@@ -327,26 +323,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         }
       }
 
-      val facet = AndroidFacet.getInstance(module)
-      if (facet != null) {
-        val variant = project.buildVariant
-        if (variant != null) {
-          val roots = variant.artifact.dependencies.compileDependencies.roots
-          addGradleLibraryProjects(
-            client,
-            files,
-            libraryMap,
-            projects,
-            facet,
-            project,
-            projectMap,
-            dependencies,
-            roots,
-          )
-        }
-      }
-
-      project.setDirectLibraries(dependencies)
+      project.directLibraries = dependencies
     }
 
     /** Creates a new module project */
@@ -357,8 +334,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     ): Project? {
       val androidModule = module.findAndroidModule()
       val facet = AndroidFacet.getInstance(androidModule ?: module)
-      val dir: File? = getLintProjectDirectory(module, facet)
-      if (dir == null) return null
+      val dir = getLintProjectDirectory(module, facet) ?: return null
       val project: Project?
       if (facet == null) {
         val kotlinFacet = KotlinFacet.Companion.get(module)
@@ -376,6 +352,10 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         if (f != null) {
           project.gradleProject = AndroidModel.isRequired(f)
         }
+
+        if (module.isHolderModule()) {
+          project.isGradleRootHolder = module.getGradleProjectPath()?.path == ":"
+        }
       } else if (AndroidModel.isRequired(facet)) {
         val androidModel = AndroidModel.get(facet)
         if (
@@ -383,15 +363,14 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
             androidModel.androidProject.projectType !=
               IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM
         ) {
-          val model = androidModel
-          val variantName = model.selectedVariantName
+          val variantName = androidModel.selectedVariantName
 
           val lintModel = getLintModuleModel(facet, shallowModel)
           var variant = lintModel.findVariant(variantName)
           if (variant == null) {
             variant = lintModel.variants[0]
           }
-          project = LintGradleProject(client, dir, dir, variant, facet, model)
+          project = LintGradleProject(client, dir, dir, variant, facet, androidModel)
         } else if (androidModel != null) {
           project = LintAndroidModelProject(client, dir, dir, facet, androidModel)
         } else {
@@ -412,15 +391,9 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       // value providers (the lambdas) are distinct classes that do not hold
       // any state other than facet (i.e. they do not depend on shallowModel).
       return if (shallowModel) {
-        cacheValueManager.getCachedValue<LintModelModule>(
-          facet,
-          CachedValueProvider { buildModuleModel(facet, true) },
-        )
+        cacheValueManager.getCachedValue(facet) { buildModuleModel(facet, true) }
       } else {
-        cacheValueManager.getCachedValue<LintModelModule>(
-          facet,
-          CachedValueProvider { buildModuleModel(facet, false) },
-        )
+        cacheValueManager.getCachedValue(facet) { buildModuleModel(facet, false) }
       }
     }
 
@@ -441,14 +414,11 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       val module =
         LintModelFactory()
           .create(builderModelProject, model.variants, multiVariantData, dir, !shallowModel)
-      return Result.create<LintModelModule>(
-        module,
-        ProjectSyncModificationTracker.getInstance(facet.module.project),
-      )
+      return Result.create(module, ProjectSyncModificationTracker.getInstance(facet.module.project))
     }
 
     /** Returns the directory lint would use for a project wrapping the given module */
-    fun getLintProjectDirectory(module: Module, facet: AndroidFacet?): File? {
+    private fun getLintProjectDirectory(module: Module, facet: AndroidFacet?): File? {
       if (
         ExternalSystemApiUtil.isExternalSystemAwareModule(
           GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
@@ -456,22 +426,19 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         )
       ) {
         val externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module)
-        if (externalProjectPath != null && externalProjectPath.isNotBlank()) {
+        if (!externalProjectPath.isNullOrBlank()) {
           return File(externalProjectPath)
         }
       }
       val dir: File?
       if (facet != null) {
-        val mainContentRoot = AndroidRootUtil.getMainContentRoot(facet)
+        val mainContentRoot = AndroidRootUtil.getMainContentRoot(facet) ?: return null
 
-        if (mainContentRoot == null) {
-          return null
-        }
         dir = VfsUtilCore.virtualToIoFile(mainContentRoot)
       } else {
         // For Java modules we just use the first content root that is we can find
         val roots = ModuleRootManager.getInstance(module).contentRoots
-        if (roots.size == 0) {
+        if (roots.isEmpty()) {
           return null
         }
         dir = VfsUtilCore.virtualToIoFile(roots[0])
@@ -483,58 +450,8 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       project: com.intellij.openapi.project.Project
     ): AndroidFacet? {
       val androidFacetsInRandomOrder =
-        ProjectFacetManager.getInstance(project).getFacets<AndroidFacet>(AndroidFacet.ID)
+        ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
       return if (androidFacetsInRandomOrder.isEmpty()) null else androidFacetsInRandomOrder[0]
-    }
-
-    /** Adds any gradle library projects to the dependency list */
-    private fun addGradleLibraryProjects(
-      client: LintClient,
-      files: MutableList<VirtualFile>?,
-      libraryMap: MutableMap<LintModelAndroidLibrary, Project>,
-      projects: MutableList<Project>,
-      facet: AndroidFacet,
-      project: Project,
-      projectMap: MutableMap<Project, Module>,
-      dependencies: MutableList<Project>,
-      graphItems: List<LintModelDependency>,
-    ) {
-      var files = files
-      val ideaProject = facet.module.project
-      for (dependency in graphItems) {
-        val l = dependency.findLibrary()
-        if (l !is LintModelAndroidLibrary) {
-          continue
-        }
-        val library = l
-        var p = libraryMap[library]
-        if (p == null) {
-          val dir = library.folder
-          p = LintGradleLibraryProject(client, dir, dir, dependency, library)
-          p.ideaProject = ideaProject
-          libraryMap.put(library, p)
-          projectMap.put(p, facet.module.getMainModule())
-          projects.add(p)
-
-          if (files != null) {
-            val libraryDir = LocalFileSystem.getInstance().findFileByIoFile(dir)
-            if (libraryDir != null) {
-              val iterator = files.listIterator()
-              while (iterator.hasNext()) {
-                val file = iterator.next()
-                if (VfsUtilCore.isAncestor(libraryDir, file, false)) {
-                  project.addFile(VfsUtilCore.virtualToIoFile(file))
-                  iterator.remove()
-                }
-              }
-            }
-            if (files.isEmpty()) {
-              files = null // No more work in other modules
-            }
-          }
-        }
-        dependencies.add(p)
-      }
     }
   }
 
@@ -575,11 +492,12 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     override fun getManifestFiles(): List<File> {
       if (manifestFiles == null) {
         val manifestFile = AndroidRootUtil.getPrimaryManifestFile(facet)
-        if (manifestFile != null) {
-          manifestFiles = listOf<File>(VfsUtilCore.virtualToIoFile(manifestFile))
-        } else {
-          manifestFiles = emptyList()
-        }
+        manifestFiles =
+          if (manifestFile != null) {
+            listOf(VfsUtilCore.virtualToIoFile(manifestFile))
+          } else {
+            emptyList()
+          }
       }
 
       return manifestFiles
@@ -592,7 +510,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         if (properties.RUN_PROGUARD) {
           val urls = properties.myProGuardCfgFiles
 
-          if (!urls.isEmpty()) {
+          if (urls.isNotEmpty()) {
             proguardFiles = ArrayList<File>()
 
             for (osPath in AndroidUtils.urlsToOsPaths(urls, null)) {
@@ -659,7 +577,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     facet: AndroidFacet,
     private val androidModel: AndroidModel,
   ) : LintAndroidProject(client, dir, referenceDir, facet) {
-    override fun getPackage(): String? {
+    override fun getPackage(): String {
       val variant = buildVariant
       if (variant != null) {
         val pkg = variant.`package`
@@ -715,18 +633,18 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     }
 
     override fun getJavaClassFolders(): List<File> {
-      if (LintIdeClient.SUPPORT_CLASS_FILES) {
-        return super.getJavaClassFolders()
+      return if (LintIdeClient.SUPPORT_CLASS_FILES) {
+        super.getJavaClassFolders()
       } else {
-        return emptyList()
+        emptyList()
       }
     }
 
     override fun getJavaLibraries(includeProvided: Boolean): List<File> {
-      if (LintIdeClient.SUPPORT_CLASS_FILES) {
-        return super.getJavaLibraries(includeProvided)
+      return if (LintIdeClient.SUPPORT_CLASS_FILES) {
+        super.getJavaLibraries(includeProvided)
       } else {
-        return emptyList()
+        emptyList()
       }
     }
 
@@ -745,32 +663,8 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       return super.getBuildSdk()
     }
 
-    override fun getBuildTargetHash(): String? {
+    override fun getBuildTargetHash(): String {
       return gradleAndroidModel.androidProject.compileTarget
-    }
-  }
-
-  private class LintGradleLibraryProject(
-    client: LintClient,
-    dir: File,
-    referenceDir: File,
-    dependency: LintModelDependency,
-    library: LintModelAndroidLibrary,
-  ) : LintModelModuleAndroidLibraryProject(client, dir, referenceDir, dependency, library) {
-    override fun getJavaClassFolders(): List<File> {
-      if (LintIdeClient.SUPPORT_CLASS_FILES) {
-        return super.getJavaClassFolders()
-      } else {
-        return emptyList()
-      }
-    }
-
-    override fun getJavaLibraries(includeProvided: Boolean): List<File> {
-      if (LintIdeClient.SUPPORT_CLASS_FILES) {
-        return super.getJavaLibraries(includeProvided)
-      } else {
-        return emptyList()
-      }
     }
   }
 }

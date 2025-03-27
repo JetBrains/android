@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.Context;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Scope;
+import com.android.tools.res.LocalResourceRepository;
 import java.util.Collection;
 import java.util.Collections;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LintIdeViewTypeDetector extends ViewTypeDetector {
   static final Implementation IMPLEMENTATION = new Implementation(
@@ -35,7 +35,7 @@ public class LintIdeViewTypeDetector extends ViewTypeDetector {
 
   @Nullable
   @Override
-  protected Collection<String> getViewTags(@NonNull Context context, @NonNull ResourceItem item) {
+  protected Collection<String> getViewTags(@NotNull Context context, @NotNull ResourceItem item) {
     ResourceRepository projectResources = context.getClient().getResourceRepository(context.getMainProject(), true, false);
     assert projectResources instanceof LocalResourceRepository : projectResources;
     String viewTag = IdeResourcesUtil.getViewTag(item);

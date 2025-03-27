@@ -15,15 +15,25 @@
  */
 package org.jetbrains.android.dom.raw;
 
-import com.android.resources.ResourceFolderType;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.ResourceFolderTypeDomFileDescription;
-import org.jetbrains.annotations.NotNull;
+import static org.jetbrains.android.dom.WatchFaceUtilKt.isDeclarativeWatchFaceFile;
 
-public class RawDomFileDescription extends ResourceFolderTypeDomFileDescription<XmlRawResourceElement> {
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class RawDomFileDescription extends CustomLogicResourceDomFileDescription<XmlRawResourceElement> {
 
   public RawDomFileDescription() {
     super(XmlRawResourceElement.class, ResourceFolderType.RAW, "raw");
+  }
+
+  @Override
+  public boolean checkFile(@NotNull XmlFile file, @Nullable Module module) {
+    return !StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.get() || !isDeclarativeWatchFaceFile(file);
   }
 
   public static boolean isRawFile(@NotNull final XmlFile file) {

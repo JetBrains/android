@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LONG_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeArgument
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
@@ -38,7 +39,10 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleFactory
+import com.android.tools.idea.gradle.dcl.lang.sync.DataClassRefWithTypes
+
 import com.android.tools.idea.gradle.dcl.lang.sync.DataProperty
+import com.android.tools.idea.gradle.dcl.lang.sync.DataTypeReference
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.PlainFunction
 import com.android.tools.idea.gradle.dcl.lang.sync.SchemaMemberFunction
@@ -74,6 +78,7 @@ import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.prevLeafs
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
+import org.jetbrains.kotlin.idea.completion.or
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import kotlin.math.max
 
@@ -102,6 +107,13 @@ private val afterSimpleFactory = object : PatternCondition<PsiElement>(null) {
   }
 }
 
+private val factoryArgument = object : PatternCondition<PsiElement>(null) {
+  override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean {
+    val grandParent = element.parent?.parent?.parent
+    return grandParent is DeclarativeArgument
+  }
+}
+
 private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
     .with(declarativeFlag)
@@ -118,6 +130,8 @@ private val DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafP
       psiElement().whitespace(),
       psiElement().withText(".")
     ))
+    // rule does not work for function parameters
+    .andNot(psiElement().with(factoryArgument))
 
 private val DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
@@ -127,6 +141,13 @@ private val DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN: PsiElementPattern.Capture<L
       psiElement().whitespace(),
       psiElement().withText("=")
     )
+
+private val DECLARATIVE_FACTORY_ARGUMENT_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
+  psiElement(LeafPsiElement::class.java)
+    .with(declarativeFlag)
+    .with(factoryArgument)
+    // not inside property
+    .andNot(psiElement().withParents(DeclarativeIdentifier::class.java, DeclarativeQualified::class.java))
 
 private val AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN: PsiElementPattern.Capture<LeafPsiElement> =
   psiElement(LeafPsiElement::class.java)
@@ -182,6 +203,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   init {
     extend(CompletionType.BASIC, DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN, createCompletionProvider())
     extend(CompletionType.BASIC, DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN, createAssignValueCompletionProvider())
+    extend(CompletionType.BASIC, DECLARATIVE_FACTORY_ARGUMENT_SYNTAX_PATTERN, createFactoryArgumentCompletionProvider())
     extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN, createRootProjectCompletionProvider())
     extend(CompletionType.BASIC, AFTER_PROPERTY_DOT_SYNTAX_PATTERN, createPropertyCompletionProvider())
     extend(CompletionType.BASIC, AFTER_FUNCTION_DOT_SYNTAX_PATTERN, createPluginCompletionProvider())
@@ -236,10 +258,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
 
         val element = parameters.position.parent
-        result.addAllElements(getSuggestionList(element, schema).map { (entry, suggestion) ->
-          LookupElementBuilder.create(suggestion.name)
-            .withTypeText(suggestion.type.str, null, true)
-        })
+        val suggestions = getSuggestionList(element, schema).map{ it.second }
+        addSimpleSuggestions(result, suggestions)
       }
     }
   }
@@ -257,13 +277,34 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                         getRootProperties(identifier, schema). map { Suggestion (it.name, PROPERTY)}
 
         }
-        result.addAllElements(suggestions.map {
-          LookupElementBuilder.create(it.name)
-            .withTypeText(it.type.str, null, true)
-            .withInsertHandler(insertAssignmentValue(it.type))
-        })
+        addSimpleSuggestions(result, suggestions)
       }
     }
+  }
+
+  private fun createFactoryArgumentCompletionProvider(): CompletionProvider<CompletionParameters> {
+    return object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+        val project = parameters.originalFile.project
+        val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
+
+        val element = parameters.position
+        val suggestions = getRootFunctions(element, schema).map { Suggestion(it.name, FACTORY) } +
+                        getRootProperties(element, schema). map { Suggestion (it.name, PROPERTY)}
+        addSimpleSuggestions(result, suggestions)
+      }
+    }
+  }
+
+  private fun addSimpleSuggestions(
+    result: CompletionResultSet,
+    suggestions: List<Suggestion>
+  ) {
+    result.addAllElements(suggestions.map {
+      LookupElementBuilder.create(it.name)
+        .withTypeText(it.type.str, null, true)
+        .withInsertHandler(insertAssignmentValue(it.type))
+    })
   }
 
   private fun createRootProjectCompletionProvider(): CompletionProvider<CompletionParameters> {
@@ -390,7 +431,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       OBJECT_VALUE -> {
         if (element?.skipWhitespaces()?.nextLeaf(true)?.text == "=") return@InsertHandler
         val rootFunctions = getRootFunctions(parent, schemas).distinct()
-          .filter { (it.semantic as? PlainFunction)?.returnValue == (entry as? DataProperty)?.valueType }
+          .filter {
+            // reason is that function type has generic type T and data property has concrete type argument (like String)
+            (it.semantic as? PlainFunction)?.returnValue?.compareIgnoringGeneric((entry as? DataProperty)?.valueType) == true
+          }
 
         if (rootFunctions.size == 1) {
           val function = rootFunctions.first()
@@ -398,7 +442,13 @@ class DeclarativeCompletionContributor : CompletionContributor() {
             document.insertString(context.tailOffset, " = ${function.name}(\"\")")
             editor.caretModel.moveToOffset(context.tailOffset - 2)
           }
-        } else {
+          else {
+            // single function but with unknown parameter(s)
+            document.insertString(context.tailOffset, " = ${function.name}()")
+            editor.caretModel.moveToOffset(context.tailOffset - 1)
+          }
+        }
+        else {
           document.insertString(context.tailOffset, " = ")
           editor.caretModel.moveToOffset(context.tailOffset)
         }
@@ -428,6 +478,14 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       }
 
       else -> insert(suggestion.type).handleInsert(context, item)
+    }
+  }
+
+  private fun DataTypeReference.compareIgnoringGeneric(other: DataTypeReference?): Boolean {
+    if (this.javaClass != other?.javaClass) return false
+    return when (this) {
+      is DataClassRefWithTypes -> fqName == (other as? DataClassRefWithTypes)?.fqName
+      else -> this == other
     }
   }
 
@@ -525,7 +583,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 class EnableAutoPopupInDeclarativeCompletion : CompletionConfidence() {
   override fun shouldSkipAutopopup(editor: Editor, contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
     return if (DECLARATIVE_IN_BLOCK_SYNTAX_PATTERN.accepts(contextElement) ||
-               DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN.accepts(contextElement)) ThreeState.NO
+               DECLARATIVE_ASSIGN_VALUE_SYNTAX_PATTERN.accepts(contextElement) ||
+               AFTER_PROPERTY_DOT_ASSIGNABLE_SYNTAX_PATTERN.accepts(contextElement) ||
+               AFTER_PROPERTY_DOT_SYNTAX_PATTERN.accepts(contextElement) ||
+               AFTER_FUNCTION_DOT_SYNTAX_PATTERN.accepts(contextElement)) ThreeState.NO
     else ThreeState.UNSURE
   }
 }

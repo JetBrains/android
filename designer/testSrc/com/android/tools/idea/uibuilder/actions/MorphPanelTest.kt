@@ -19,7 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.application.writeAction
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.util.textCompletion.TextFieldWithCompletion
 import java.awt.Dimension
 import javax.swing.JButton
@@ -37,7 +37,7 @@ class MorphPanelTest {
   @Test
   fun testTagValidation() = runBlocking {
     @Suppress("UnstableApiUsage")
-    val morphPanel = writeAction {
+    val morphPanel = edtWriteAction {
       MorphPanel(
         projectRule.module.androidFacet!!,
         projectRule.project,

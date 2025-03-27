@@ -127,10 +127,7 @@ class ScreenshotOptionsTest {
     val displayInfo = "DisplayDeviceInfo{..., 1280 x 960, ..., density 180, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly(
-      "Automotive (1080p landscape)",
-      "Automotive Large Portrait",
-      "Generic Tablet")
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive Large Portrait", "Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
   }
 
@@ -142,7 +139,8 @@ class ScreenshotOptionsTest {
     val displayInfo = "DisplayDeviceInfo{..., 1280 x 768, ..., density 180, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive (1080p landscape)", "Generic Tablet")
+    assertThat(framingOptions.map(FramingOption::displayName))
+        .containsExactly("Automotive Large Portrait", "Automotive Ultrawide", "Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
   }
 
@@ -177,8 +175,7 @@ class ScreenshotOptionsTest {
     val displayInfo = "DisplayDeviceInfo{..., 384 x 384, ..., density 200, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Wear OS Square")
-    assertThat(screenshotOptions.getDefaultFramingOption()).isEqualTo(0)
+    assertThat(framingOptions).isEmpty()
   }
 
   private fun createImage(width: Int, height: Int, color: Color): BufferedImage {

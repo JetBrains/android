@@ -10,6 +10,7 @@ iml_module(
         "src",
     ],
     iml_files = ["intellij.android.gradle.declarative.lang.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -55,6 +56,7 @@ kotlin_library(
         "gen/**/*.java",
     ]),
     module_name = "dcl-lang",
+    resource_strip_prefix = "tools/adt/idea/gradle-declarative-lang/resources/",
     resources = glob(["resources/**"]),
     visibility = ["//tools/base/lint/cli:__pkg__"],
     deps = [

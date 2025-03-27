@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.openapi.project.Project
@@ -49,7 +51,10 @@ enum class DeclarativeTestProject(
 
   DECLARATIVE_ANDROID(
     TestProjectToSnapshotPaths.DECLARATIVE_ANDROID,
-    isCompatibleWith = { it == AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT },
+    isCompatibleWith = {
+      it == AGP_DECLARATIVE_GRADLE_SNAPSHOT ||
+      it == AGP_CURRENT
+    },
   );
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"

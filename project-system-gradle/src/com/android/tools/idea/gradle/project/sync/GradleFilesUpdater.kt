@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES
-import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dsl.utils.EXT_VERSIONS_TOML
 import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE
 import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE_DECLARATIVE
 import com.android.tools.idea.gradle.dsl.utils.FN_SETTINGS_GRADLE_KTS
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper

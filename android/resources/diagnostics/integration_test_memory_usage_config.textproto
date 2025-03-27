@@ -117,6 +117,10 @@ categories: {
     label: "liveedit"
     package_names: "com.android.tools.idea.run.deployment.liveedit"
   }
+  components: {
+    label: "appinspection"
+    package_names: "com.android.tools.idea.appinspection"
+  }
 }
 categories: {
   label: "android:lint"
@@ -211,6 +215,9 @@ categories: {
     label: "editor"
     package_names: "com.intellij.openapi.editor"
     package_names: "com.intellij.openapi.fileEditor"
+    package_names: "org.jetbrains.plugins.textmate"
+    package_names: "com.intellij.spellchecker"
+    package_names: "ai.grazie"
   }
   components: {
     label: "psi"
@@ -219,6 +226,7 @@ categories: {
   components: {
     label: "intellij_inspections"
     package_names: "com.intellij.codeInspection"
+    package_names: "com.intellij.codeInsight"
   }
   components: {
     label: "messages"
@@ -290,6 +298,15 @@ categories {
     package_names: "org.jetbrains.kotlin.findUsages"
   }
 }
+categories: {
+    label: "android:aiplugin"
+
+    components: {
+      label: "aiplugin_main"
+      package_names: "com.android.studio.ml"
+      package_names: "com.google.tools.intellij.aiplugin"
+    }
+  }
 shared_components_limit: 200
 shared_cluster_extended_report_threshold_bytes: 280000000
 uncategorized_component_extended_report_threshold_bytes: 100000000

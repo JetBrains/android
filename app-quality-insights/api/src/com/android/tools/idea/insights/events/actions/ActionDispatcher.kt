@@ -361,8 +361,15 @@ class ActionDispatcher(
             !GeminiPluginApi.getInstance().isAvailable() ->
               LoadingState.Unauthorized("Gemini is not enabled")
             state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)
-            action.event.isStackTraceEmpty() ->
-              LoadingState.UnsupportedOperation("Insights cannot be generated for empty stacktrace")
+            action.event.isStackTraceEmpty() -> {
+              if (state.selectedEvent == null) {
+                LoadingState.UnsupportedOperation("Insight requires an event to be selected.")
+              } else {
+                LoadingState.UnsupportedOperation(
+                  "Insights cannot be generated for empty stacktrace"
+                )
+              }
+            }
             else -> {
               val timeFilter =
                 state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()

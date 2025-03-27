@@ -36,7 +36,7 @@ import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFr
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
-import com.android.tools.utp.GradleAndroidProjectResolverExtension
+import com.android.tools.utp.UtpAndroidGradleTaskManagerExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.google.common.base.Joiner
@@ -284,7 +284,7 @@ class GradleConnectedAndroidTestInvoker(
       withArguments(getDeviceSpecificArguments())
 
       // Enable UTP test results reporting by embedded XML tag in stdout.
-      withArgument("-P${GradleAndroidProjectResolverExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
+      withArgument("-P${UtpAndroidGradleTaskManagerExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
 
       if (retentionConfiguration.enabled == EnableRetention.YES) {
         withArgument("-P$RETENTION_ENABLE_PROPERTY=${retentionConfiguration.maxSnapshots}")

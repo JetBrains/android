@@ -5,6 +5,8 @@ iml_module(
     name = "intellij.android.core.editing.documentation",
     srcs = ["src"],
     iml_files = ["intellij.android.core.editing.documentation.iml"],
+    # TODO: b/405445548 - Remove once flakiness on Windows has been addressed.
+    tags = ["noci:studio-win"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [

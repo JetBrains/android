@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
+<issues format="6" by="lint 8.11.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.11.0-dev">
 
     <issue
         id="StopShip"
@@ -8,7 +8,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="30"
+            line="31"
             column="7"/>
     </issue>
 
@@ -19,7 +19,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="34"
+            line="35"
             column="7"/>
     </issue>
 
@@ -30,7 +30,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="38"
+            line="39"
             column="7"/>
     </issue>
 
@@ -41,7 +41,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="42"
+            line="43"
             column="7"/>
     </issue>
 
@@ -52,7 +52,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="46"
+            line="47"
             column="7"/>
     </issue>
 
@@ -63,7 +63,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="50"
+            line="51"
             column="7"/>
     </issue>
 
@@ -74,7 +74,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="54"
+            line="55"
             column="7"/>
     </issue>
 
@@ -85,7 +85,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="60"
+            line="61"
             column="7"/>
     </issue>
 
@@ -96,7 +96,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="64"
+            line="65"
             column="7"/>
     </issue>
 
@@ -107,7 +107,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="68"
+            line="69"
             column="7"/>
     </issue>
 
@@ -118,7 +118,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="72"
+            line="73"
             column="7"/>
     </issue>
 
@@ -129,7 +129,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="76"
+            line="77"
             column="7"/>
     </issue>
 
@@ -140,7 +140,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="80"
+            line="81"
             column="7"/>
     </issue>
 
@@ -151,7 +151,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="84"
+            line="85"
             column="7"/>
     </issue>
 
@@ -162,7 +162,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="88"
+            line="89"
             column="7"/>
     </issue>
 
@@ -173,7 +173,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="92"
+            line="93"
             column="7"/>
     </issue>
 
@@ -184,7 +184,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="96"
+            line="97"
             column="7"/>
     </issue>
 
@@ -195,7 +195,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="100"
+            line="101"
             column="7"/>
     </issue>
 
@@ -206,7 +206,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="104"
+            line="105"
             column="7"/>
     </issue>
 
@@ -217,7 +217,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="108"
+            line="109"
             column="7"/>
     </issue>
 
@@ -228,7 +228,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="112"
+            line="113"
             column="7"/>
     </issue>
 
@@ -239,7 +239,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="116"
+            line="117"
             column="7"/>
     </issue>
 
@@ -250,7 +250,7 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="120"
+            line="121"
             column="7"/>
     </issue>
 
@@ -261,19 +261,8 @@
         errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="124"
+            line="125"
             column="7"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
-        errorLine1="  private val isWindows = System.getProperty(&quot;os.name&quot;).toLowerCase().startsWith(&quot;win&quot;)"
-        errorLine2="                                                        ~~~~~~~~~~~">
-        <location
-            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
-            line="128"
-            column="57"/>
     </issue>
 
 </issues>

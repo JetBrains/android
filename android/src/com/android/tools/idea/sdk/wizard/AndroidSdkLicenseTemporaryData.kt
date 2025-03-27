@@ -313,7 +313,7 @@ This is the Android SDK Preview License Agreement (the "License Agreement").
 January 16,2019."""
 
   fun getLicense(preview: Boolean): License {
-    val f = RepoManager.getCommonModule().createLatestFactory()
+    val f = RepoManager.commonModule.createLatestFactory()
     val l = f.createLicenseType()
     l.value = if (preview) HARDCODED_ANDROID_PREVIEW_SDK_LICENSE else HARDCODED_ANDROID_SDK_LICENSE
     l.id = if (preview) "Android SDK Preview License" else "Android SDK License"

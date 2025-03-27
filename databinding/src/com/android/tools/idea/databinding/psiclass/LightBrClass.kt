@@ -134,6 +134,7 @@ class LightBrClass(
           PsiMethod::class.java,
           PsiField::class.java,
         )
+        .findAll()
         // Asserting non-null as we are confident that @Bindable fields exist within a class
         .filter { element ->
           PsiUtil.getTopLevelClass(element)!!.superClass!!.qualifiedName != mode.viewDataBinding

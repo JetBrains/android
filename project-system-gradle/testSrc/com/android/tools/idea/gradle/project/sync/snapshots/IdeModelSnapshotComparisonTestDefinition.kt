@@ -41,6 +41,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_86
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_87
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_88
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_89
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT
@@ -214,6 +215,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       AGP_86 -> Unit
       AGP_87 -> Unit
       AGP_88 -> Unit
+      AGP_89 -> Unit
       AGP_LATEST -> Unit
       AGP_LATEST_GRADLE_SNAPSHOT -> Unit
       AGP_DECLARATIVE_GRADLE_SNAPSHOT -> Unit

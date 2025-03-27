@@ -173,7 +173,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           LOG.info("Disconnected from ${emulatorConfig.avdName} (${emulatorId.serialPort})")
         }
         else {
-          LOG.warn("Unable to connect ${emulatorConfig.avdName} (${emulatorId.serialPort})")
+          LOG.warn("Unable to connect to ${emulatorConfig.avdName} (${emulatorId.serialPort})")
         }
       }
       for (listener in connectionStateListeners) {

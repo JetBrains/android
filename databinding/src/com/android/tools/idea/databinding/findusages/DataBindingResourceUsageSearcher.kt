@@ -59,7 +59,10 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
               layoutGroup.mainLayout.resource.name == element.resourceReference.name
             }
           lightBindingClasses.forEach {
-            ReferencesSearch.search(it, options.searchScope).all { reference ->
+            // We don't care about the result of `allMatch`, but are rather using the API to ensure
+            // that we stop processing results as soon as `processor.process` results false.
+            @Suppress("Noop")
+            ReferencesSearch.search(it, options.searchScope).allMatch { reference ->
               processor.process(UsageInfo2UsageAdapter(UsageInfo(reference)))
             }
           }
@@ -90,7 +93,10 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
               }
 
           relevantFields.forEach {
-            ReferencesSearch.search(it, options.searchScope).all { reference ->
+            // We don't care about the result of `allMatch`, but are rather using the API to ensure
+            // that we stop processing results as soon as `processor.process` results false.
+            @Suppress("Noop")
+            ReferencesSearch.search(it, options.searchScope).allMatch { reference ->
               processor.process(UsageInfo2UsageAdapter(UsageInfo(reference)))
             }
           }

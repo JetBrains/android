@@ -48,6 +48,7 @@
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.templates" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.lint" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.wear-dwf" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.wear-pairing" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.wear-whs" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" scope="RUNTIME" />
@@ -67,6 +68,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.avd" scope="RUNTIME" />
     <orderEntry type="module" module-name="test-recorder.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="url-assistant.gradle" scope="RUNTIME" />

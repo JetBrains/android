@@ -23,6 +23,10 @@ import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.Dimension;
+import java.awt.Insets;
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -67,6 +71,10 @@ public final class SyncFieldsDemo {
     });
   }
 
+  public SyncFieldsDemo() {
+    setupUI();
+  }
+
   public void init() {
     // Wrap UI elements in properties
     final StringProperty projectText = new TextProperty(myProjectNameField);
@@ -87,6 +95,43 @@ public final class SyncFieldsDemo {
 
     // Listen to activityText - if it is changed by the user and not its binding, break syncing!
     activityText.addListener(() -> isSynced.set(activityText.get().equals(activityNameExpression.get())));
+  }
+
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(4, 6, new Insets(0, 0, 0, 0), -1, -1));
+    myProjectNameField = new JTextField();
+    myRootPanel.add(myProjectNameField, new GridConstraints(0, 2, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                            GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                            new Dimension(150, -1), null, 0, false));
+    myActivityNameField = new JTextField();
+    myRootPanel.add(myActivityNameField, new GridConstraints(1, 2, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                             new Dimension(150, -1), null, 0, false));
+    myCreateActivityCheckBox = new JCheckBox();
+    myCreateActivityCheckBox.setSelected(true);
+    myCreateActivityCheckBox.setText("Create Activity");
+    myRootPanel.add(myCreateActivityCheckBox, new GridConstraints(3, 2, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                  null, null, null, 0, false));
+    final JLabel label1 = new JLabel();
+    label1.setText("Project Name");
+    myRootPanel.add(label1, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    final JLabel label2 = new JLabel();
+    label2.setText("Activity Name");
+    myRootPanel.add(label2, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    mySyncActivityNameCheckBox = new JCheckBox();
+    mySyncActivityNameCheckBox.setSelected(true);
+    mySyncActivityNameCheckBox.setText("Sync Activity Name");
+    myRootPanel.add(mySyncActivityNameCheckBox, new GridConstraints(2, 2, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                    null, null, null, 0, false));
   }
 
   public void dispose() {

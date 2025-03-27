@@ -29,7 +29,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.utils.HtmlBuilder
-import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
@@ -69,7 +68,7 @@ class IssueNotificationActionTest {
 
     whenever(surface.visualLintIssueProvider).thenReturn(issueProvider)
 
-    whenever(surface.models).thenReturn(ImmutableList.of(model))
+    whenever(surface.models).thenReturn(listOf(model))
 
     return surface
   }

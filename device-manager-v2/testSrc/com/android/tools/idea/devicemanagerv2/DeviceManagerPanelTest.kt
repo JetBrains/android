@@ -22,6 +22,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.adtui.categorytable.CategoryTable
+import com.android.tools.adtui.categorytable.ColumnSortOrder
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
 import com.android.tools.adtui.swing.FakeUi
@@ -34,6 +35,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.EditorNotificationPanel
 import icons.StudioIcons
 import javax.swing.JPanel
+import javax.swing.SortOrder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -52,6 +54,12 @@ import org.junit.Test
 class DeviceManagerPanelTest {
 
   @get:Rule val projectRule = ProjectRule()
+
+  @Test
+  fun initialSortOrder() = runTestWithFixture {
+    assertThat(deviceTable.columnSorters)
+      .containsExactly(ColumnSortOrder(DeviceTableColumns.nameAttribute, SortOrder.ASCENDING))
+  }
 
   /**
    * When a template is activated, the resulting handle should be just above the (hidden) template,

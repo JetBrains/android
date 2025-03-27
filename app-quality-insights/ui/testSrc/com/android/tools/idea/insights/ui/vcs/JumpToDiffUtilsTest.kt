@@ -45,7 +45,7 @@ class JumpToDiffUtilsTest {
   private val projectRule = AndroidProjectRule.onDisk()
   private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
 
-  @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule()).around(vcsInsightsRule)
+  @get:Rule val rule = RuleChain.outerRule(EdtRule()).around(projectRule).around(vcsInsightsRule)
 
   @Test
   fun testCheckDiffRequests() {

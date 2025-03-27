@@ -351,7 +351,7 @@ private fun createRendererPanel(
 ): RootPanelRenderer {
   return RootPanelRenderer(
     disposable = tabComponents,
-    renderModel = layoutInspector.renderModel,
+    inspectorModel = layoutInspector.inspectorModel,
     onDeviceRendererProvider = { parentDisposable ->
       val viewInspector =
         (layoutInspector.currentClient as? AppInspectionInspectorClient)?.viewInspector

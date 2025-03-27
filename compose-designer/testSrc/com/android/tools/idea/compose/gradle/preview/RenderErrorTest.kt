@@ -86,6 +86,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+// SavePreviewInNewSize()
+// RevertToOriginalSize()
+// EnableUiCheckAction(),
+// AnimationInspectorAction(),
+// EnableInteractiveAction(),
+// DeployToDeviceAction()
+// in wrappers
+private const val EXPECTED_NUMBER_OF_ACTIONS = 6
+
 class RenderErrorTest {
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
@@ -183,8 +192,7 @@ class RenderErrorTest {
       assertFalse(visibleErrorsPanel.isVisible)
 
       val actions = sceneViewPanelWithErrors.getToolbarActions()
-      // 5 actions expected: save size, ui check, animation, interactive and deploy to device
-      assertEquals(5, actions.size)
+      assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
 
       // All actions should be invisible when there are render errors
       assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
@@ -213,8 +221,7 @@ class RenderErrorTest {
       assertTrue(visibleErrorsPanel.isVisible)
 
       val actions = sceneViewPanelWithErrors.getToolbarActions()
-      // 5 actions expected: save size, ui check, animation, interactive and deploy to device
-      assertEquals(5, actions.size)
+      assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
 
       // All actions should be invisible when there are render errors
       assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
@@ -244,8 +251,7 @@ class RenderErrorTest {
       assertFalse(invisibleErrorsPanel.isVisible)
 
       val actions = sceneViewPanelWithoutErrors.getToolbarActions()
-      // 5 actions expected: save size, ui check mode, animation, interactive and deploy to device
-      assertEquals(5, actions.size)
+      assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
 
       // The animation preview action shouldn't be visible because the preview being used doesn't
       // contain animations, but the interactive, ui check and deploy to device actions should be

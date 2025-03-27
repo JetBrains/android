@@ -27,4 +27,8 @@
   <extensions defaultExtensionNs="com.google.gct.login">
     <googleLoginFeature implementation="com.android.tools.idea.settingssync.SettingsSyncFeature"/>
   </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <settingsSync.communicatorProvider implementation="com.android.tools.idea.settingssync.GoogleCommunicatorProvider"/>
+  </extensions>
 </idea-plugin>

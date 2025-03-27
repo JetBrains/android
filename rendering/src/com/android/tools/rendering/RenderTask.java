@@ -687,8 +687,8 @@ public class RenderTask {
 
     if (modelParser instanceof LayoutRenderPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
-      boolean useSrcCompat = context.getModule().getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) ||
-                             context.getModule().getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+      boolean useSrcCompat = context.getModule().getDependencies().dependsOn(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7) ||
+                             context.getModule().getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT);
       ((LayoutRenderPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutRenderPullParser)modelParser).getAaptDeclaredAttrs());
     }

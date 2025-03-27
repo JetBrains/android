@@ -89,9 +89,9 @@ internal class RestoreAppAction(
         project.showDialog(message("error.applications.not.installed"))
         return@launch
       }
-      val file =
-        (config as? Config.File)?.path ?: backupManager.chooseRestoreFile() ?: return@launch
       withContext(Dispatchers.EDT) {
+        val file =
+          (config as? Config.File)?.path ?: backupManager.chooseRestoreFile() ?: return@withContext
         backupManager.restoreModal(serialNumber, file, RESTORE_APP_ACTION, true)
       }
     }

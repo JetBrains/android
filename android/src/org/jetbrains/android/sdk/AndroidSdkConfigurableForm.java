@@ -27,13 +27,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ArrayUtil;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +53,7 @@ class AndroidSdkConfigurableForm {
   private boolean myFreeze = false;
 
   public AndroidSdkConfigurableForm(@NotNull final SdkModificator sdkModificator) {
+    setupUI();
     myBuildTargetComboBox.setModel(myBuildTargetsModel);
 
     myBuildTargetComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
@@ -135,5 +141,22 @@ class AndroidSdkConfigurableForm {
       }
     }
     myBuildTargetComboBox.setSelectedItem(null);
+  }
+
+  private void setupUI() {
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JLabel label1 = new JLabel();
+    label1.setText("Build target:");
+    label1.setDisplayedMnemonic('B');
+    label1.setDisplayedMnemonicIndex(0);
+    myContentPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                   false));
+    myBuildTargetComboBox = new JComboBox();
+    myContentPanel.add(myBuildTargetComboBox, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                  GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                  null, null, null, 0, false));
+    label1.setLabelFor(myBuildTargetComboBox);
   }
 }

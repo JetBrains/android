@@ -53,12 +53,18 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -131,6 +137,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
    */
   public AndroidProcessChooserDialog(@NotNull Project project, boolean showDebuggerSelection) {
     super(project);
+    setupUI();
     setTitle("Choose Process");
 
     myShowDebuggerSelection = showDebuggerSelection;
@@ -403,6 +410,56 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     }
 
     return currentRunnerAndConfigurationSettings.getConfiguration();
+  }
+
+  private void setupUI() {
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Select a process to attach to:");
+    jBLabel1.setDisplayedMnemonic('S');
+    jBLabel1.setDisplayedMnemonicIndex(0);
+    myContentPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    myContentPanel.add(jBScrollPane1, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          new Dimension(250, 300), null, 0, false));
+    myProcessTree = new Tree();
+    myProcessTree.setRootVisible(false);
+    myProcessTree.setShowsRootHandles(true);
+    jBScrollPane1.setViewportView(myProcessTree);
+    myShowAllProcessesCheckBox = new JBCheckBox();
+    myShowAllProcessesCheckBox.setText("Show all processes");
+    myShowAllProcessesCheckBox.setMnemonic('A');
+    myShowAllProcessesCheckBox.setDisplayedMnemonicIndex(5);
+    myContentPanel.add(myShowAllProcessesCheckBox, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                                       null, null, null, 0, false));
+    myDebuggerRunConfigLabel = new JLabel();
+    myDebuggerRunConfigLabel.setText("Use Android Debugger Settings from:");
+    myContentPanel.add(myDebuggerRunConfigLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                                     null, null, null, 0, false));
+    myDebuggerRunConfigCombo = new JComboBox();
+    myContentPanel.add(myDebuggerRunConfigCombo,
+                       new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                           GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                           false));
+    myDebuggerLabel = new JLabel();
+    myDebuggerLabel.setText("Debug Type:");
+    myContentPanel.add(myDebuggerLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                            null, 0, false));
+    myDebuggerTypeCombo = new JComboBox();
+    myDebuggerTypeCombo.setEnabled(true);
+    myContentPanel.add(myDebuggerTypeCombo, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                                null, null, 0, false));
+    jBLabel1.setLabelFor(jBScrollPane1);
+    myDebuggerLabel.setLabelFor(myDebuggerTypeCombo);
   }
 
   @NotNull

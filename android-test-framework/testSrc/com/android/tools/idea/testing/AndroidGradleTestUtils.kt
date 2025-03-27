@@ -241,6 +241,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
 import java.util.IdentityHashMap
+import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -2182,7 +2183,7 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
       *additionalRepositories.toTypedArray()
     )
   }
-  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
+  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
     println("Test project ${testProjectAbsolutePath.name} prepared at '$projectPath'")
   }
   return projectPath
@@ -2665,7 +2666,7 @@ fun updatePluginsResolutionManagement(origContent: String, pluginDefinitions: St
 }
 
 private fun Project.maybeOutputDiagnostics() {
-  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
+  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
     // Nothing is needed right now.
   }
 }

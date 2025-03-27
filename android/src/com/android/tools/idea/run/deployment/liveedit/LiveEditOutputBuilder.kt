@@ -32,7 +32,6 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.isInline
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
-import com.android.tools.idea.run.deployment.liveedit.analysis.parseComposeGroups
 import com.android.tools.idea.run.deployment.liveedit.analysis.toStringWithLineInfo
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.diagnostic.Logger
@@ -41,8 +40,6 @@ import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPINGS_CLASS_NAME_POSTFIX
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPING_ARRAY_FIELD_PREFIX
 import org.jetbrains.kotlin.idea.base.util.module
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.TimeUnit
 
@@ -90,7 +87,7 @@ internal class LiveEditOutputBuilder {
 
     // If a Composable lambda is created in a non-Compose context, re-instantiating it requires restarting the activity. The most common
     // occurrence of this is a lambda passed to setContent() inside the onCreate() method of a Compose activity
-    for (clazz in requiresReinit.filter { it in groupTable.lambdaGroups }) {
+    for (clazz in requiresReinit.filter { it in groupTable.lambdaParents }) {
       val parent = groupTable.lambdaParents[clazz]!!
       if (groupTable.getComposeGroup(parent) == null) {
         logger.info("LiveEdit will restart activity because ${clazz.name} needs reinitialization in ${groupTable.lambdaParents[clazz]}")
@@ -107,7 +104,7 @@ internal class LiveEditOutputBuilder {
       }
 
       // If we have method changes but no group information, the best we can do is a save and load
-      if (groupTable.methodGroups.isEmpty() && groupTable.lambdaGroups.isEmpty()) {
+      if (groupTable.groups.isEmpty()) {
         outputs.invalidateMode = InvalidateMode.SAVE_AND_LOAD
         break
       }

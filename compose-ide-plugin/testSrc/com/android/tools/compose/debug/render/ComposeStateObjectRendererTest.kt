@@ -291,7 +291,6 @@ class ComposeStateObjectRendererTest {
   }
 
   @Test
-  @org.junit.Ignore("b/401279329")
   fun checkApplicable_NoValidMethod() {
     val source =
       """
@@ -308,18 +307,8 @@ class ComposeStateObjectRendererTest {
     // prepare
     val debugProcess: DebugProcessImpl =
       mockDebugProcess(project, projectRule.testRootDisposable) {
-        val vm = this@mockDebugProcess.virtualMachineProxy.virtualMachine
         classType("java.lang.Object") { method("toString", "()Ljava/lang/String;") }
-
-        val stringType = classType("java.lang.String")
-
-        classType("androidx.compose.runtime.snapshots.SnapshotStateList") {
-          // Please note: method `getDebuggerDisplayValue` is not declared.
-
-          method("toString", "()Ljava/lang/String;") {
-            value(MockStringReference("SnapshotStateList@1234", stringType, vm))
-          }
-        }
+        classType("androidx.compose.runtime.snapshots.SnapshotStateList")
       }
 
     val thisObjectType: ReferenceType =
@@ -348,7 +337,8 @@ class ComposeStateObjectRendererTest {
       // `Unable to evaluate the expression No such instance method: 'getDebuggerDisplayValue'`.
       renderer.calcLabel(thisValueDescriptor, evaluationContext, mock())
       debugProcess.managerThread.processRemaining()
-      assertThat(thisValueDescriptor.valueText).isEqualTo("SnapshotStateList@1234")
+      assertThat(thisValueDescriptor.valueText)
+        .startsWith("instance of androidx.compose.runtime.snapshots.SnapshotStateList(")
     }
   }
 }

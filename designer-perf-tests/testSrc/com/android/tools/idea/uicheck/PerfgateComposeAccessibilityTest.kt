@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForRes
 import com.android.tools.idea.rendering.ComposeRenderTestBase
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
+import com.android.tools.idea.rendering.LayoutlibNativeMemoryMeasurement
 import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
@@ -38,6 +39,7 @@ class PerfgateComposeAccessibilityTest : ComposeRenderTestBase() {
             null,
             Metric("render_memory_use_with_accessibility"),
           ),
+          LayoutlibNativeMemoryMeasurement(Metric("layoutlib_native_memory_with_accessibility")),
         ),
       samplesCount = NUMBER_OF_SAMPLES,
     ) {
@@ -52,6 +54,7 @@ class PerfgateComposeAccessibilityTest : ComposeRenderTestBase() {
             null,
             Metric("render_memory_use_without_accessibility"),
           ),
+          LayoutlibNativeMemoryMeasurement(Metric("layoutlib_native_memory_without_accessibility")),
         ),
       samplesCount = NUMBER_OF_SAMPLES,
     ) {

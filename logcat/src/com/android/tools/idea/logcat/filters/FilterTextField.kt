@@ -151,10 +151,7 @@ private const val GOT_IT_ID = "filter.tip"
 private val deleteKeyCodes = arrayOf(VK_DELETE, VK_BACK_SPACE)
 
 private val logcatFilterHelpUrl =
-  URL(
-    "https://developer.android.com/studio/preview/features" +
-      "?utm_source=android-studio-2021-3-1&utm_medium=studio-assistant-preview#logcat-search"
-  )
+  URL("https://developer.android.com/studio/debug/logcat#key-value-search")
 
 private val filterHistoryItemBorder = JBUI.Borders.empty(0, 4)
 

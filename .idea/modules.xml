@@ -290,6 +290,7 @@
       <module fileurl="file://$PROJECT_DIR$/gradle-dsl/intellij.android.gradle.dsl.tests.iml" filepath="$PROJECT_DIR$/gradle-dsl/intellij.android.gradle.dsl.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/gradle-dsl/intellij.android.gradle.dsl.testutils.iml" filepath="$PROJECT_DIR$/gradle-dsl/intellij.android.gradle.dsl.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/gradle-dsl-toml/intellij.android.gradle.dsl.toml.iml" filepath="$PROJECT_DIR$/gradle-dsl-toml/intellij.android.gradle.dsl.toml.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gradle-dsl-flags/intellij.android.gradle.dsl.flags.iml" filepath="$PROJECT_DIR$/gradle-dsl-flags/intellij.android.gradle.dsl.flags.iml" />
       <module fileurl="file://$PROJECT_DIR$/uitest-framework/intellij.android.guiTestFramework.iml" filepath="$PROJECT_DIR$/uitest-framework/intellij.android.guiTestFramework.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-uitests/intellij.android.guiTests.iml" filepath="$PROJECT_DIR$/android-uitests/intellij.android.guiTests.iml" />
       <module fileurl="file://$PROJECT_DIR$/ide-perf-tests/intellij.android.ide-perf-tests.iml" filepath="$PROJECT_DIR$/ide-perf-tests/intellij.android.ide-perf-tests.iml" />
@@ -417,6 +418,8 @@
       <module fileurl="file://$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.tests.iml" filepath="$PROJECT_DIR$/wear-pairing/intellij.android.wear-pairing.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-preview-elements/intellij.android.wear-preview-elements.iml" filepath="$PROJECT_DIR$/wear-preview-elements/intellij.android.wear-preview-elements.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-preview-elements/intellij.android.wear-preview-elements.tests.iml" filepath="$PROJECT_DIR$/wear-preview-elements/intellij.android.wear-preview-elements.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/wear-wff-schema/intellij.android.wear-wff-schema.iml" filepath="$PROJECT_DIR$/../../base/wear-wff-schema/intellij.android.wear-wff-schema.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/wear-wff-schema/intellij.android.wear-wff-schema.tests.iml" filepath="$PROJECT_DIR$/../../base/wear-wff-schema/intellij.android.wear-wff-schema.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.iml" filepath="$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.tests.iml" filepath="$PROJECT_DIR$/wear-whs/intellij.android.wear-whs.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/wizard/intellij.android.wizard.iml" filepath="$PROJECT_DIR$/wizard/intellij.android.wizard.iml" />
@@ -452,6 +455,8 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" filepath="$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" />
       <module fileurl="file://$PROJECT_DIR$/utp/utp.iml" filepath="$PROJECT_DIR$/utp/utp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wear-dwf/intellij.android.wear-dwf.iml" filepath="$PROJECT_DIR$/wear-dwf/intellij.android.wear-dwf.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wear-dwf/intellij.android.wear-dwf.tests.iml" filepath="$PROJECT_DIR$/wear-dwf/intellij.android.wear-dwf.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" />
     </modules>

@@ -775,7 +775,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(AGP_CURRENT to """
              ApplicationId: com.example.kmpfirstlib.test
              Files:
-                -> project/kmpFirstLib/build/intermediates/apk/androidTest/main/kmpFirstLib-androidTest.apk
+                -> project/kmpFirstLib/build/intermediates/apk/androidTest/kmpFirstLib-androidTest.apk
              RequiredInstallationOptions: []
           """.trimIndent())
     ),

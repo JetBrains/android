@@ -225,10 +225,12 @@ constructor(
     add(northPanel, BorderLayout.NORTH)
     deviceTable.categoryIndent = 0
 
-    val persistentState = project?.service<DeviceTablePersistentStateComponent>()
-    if (persistentState != null) {
+    if (project != null) {
+      val persistentState = project.service<DeviceTablePersistentStateComponent>()
+      // This will apply the serialized state to the table.
       persistentState.table = deviceTable
-    } else {
+    }
+    if (deviceTable.columnSorters.isEmpty()) {
       deviceTable.toggleSortOrder(DeviceTableColumns.nameAttribute)
     }
     deviceTable.addToScrollPane(scrollPane)

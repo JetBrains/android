@@ -383,8 +383,10 @@ class SavePreviewInNewSizeActionTest {
         }!!
         .studioEvent
         .resizeComposePreviewEvent
-    assertThat(eventAnalytics.savedDeviceWidth).isEqualTo(newWidth)
-    assertThat(eventAnalytics.savedDeviceHeight).isEqualTo(newHeight)
+    assertThat(eventAnalytics.deviceWidthDp).isEqualTo(newWidth)
+    assertThat(eventAnalytics.deviceHeightDp).isEqualTo(newHeight)
+    assertThat(eventAnalytics.dpi)
+      .isEqualTo(configuration.deviceState!!.hardware.screen.pixelDensity.dpiValue)
     assertThat(eventAnalytics.resizeMode)
       .isEqualTo(ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
   }

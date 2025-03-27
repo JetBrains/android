@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.pickers.preview
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.pickers.base.model.PsiPropertiesModel
+import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
@@ -34,6 +35,7 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
@@ -478,6 +480,144 @@ class PreviewPickerTests {
     assertEquals("Custom", testTracker.devicesRegistered[4]!!.displayName) // Reference Phone Device
   }
 
+  @RunsInEdt
+  @Test
+  fun `check that writeNewValue does not throw a ProhibitedAnalysisException`() = runBlocking {
+    @Language("kotlin")
+    val fileContent =
+      """
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview
+        fun PreviewWithoutParameters() {
+        }
+        """
+        .trimIndent()
+    val model = getFirstModel(fileContent)
+
+    val property =
+      model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
+
+    model.addListener(FakePropertiesRefreshListener())
+
+    // Test fails if this call throws a ProhibitedAnalysisException.
+    property.writeNewValue("true", true, PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED)
+  }
+
+  @RunsInEdt
+  @Test
+  fun `test K2 crash if analyze is called into a write action`() = runInK2Only {
+    runBlocking {
+      @Language("kotlin")
+      val fileContent =
+        """
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview
+        fun PreviewWithoutParameters() {
+        }
+        """
+          .trimIndent()
+      val model = getFirstModel(fileContent)
+
+      val property =
+        model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
+
+      model.addListener(FakePropertiesRefreshListener())
+
+      runWriteAction {
+        try {
+          property.writeNewValue("true", true, PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED)
+          fail("Expected to fail with a ProhibitedAnalysisException.")
+        } catch (e: IllegalStateException) {
+          // ProhibitedAnalysisException is private, and it is an extension of
+          // IllegalStateException.
+          // Check if the error message is the one we expect from ProhibitedAnalysisException
+          assertEquals("Analysis is not allowed: Called from a write action.", e.message)
+        }
+      }
+    }
+  }
+
+  @RunsInEdt
+  @Test
+  fun `check that deleteParameter does not throw a ProhibitedAnalysisException`() = runBlocking {
+    @Language("kotlin")
+    val fileContent =
+      """
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview(
+            name = "old-preview-name",
+            showSystemUi = true,
+            showBackground = true,
+            device = "id:medium_phone"
+        )
+        fun PreviewWithParameters() {
+        }
+        """
+        .trimIndent()
+    val model = getFirstModel(fileContent)
+
+    val property =
+      model.properties.values.find { it.name == "name" } as PsiCallParameterPropertyItem
+
+    model.addListener(FakePropertiesRefreshListener())
+
+    // Test fails if this call throws a ProhibitedAnalysisException.
+    assertEquals("old-preview-name", property.value)
+    property.deleteParameter()
+  }
+
+  @RunsInEdt
+  @Test
+  fun `test K2 crash if analyze is called into a delete parameter`() = runInK2Only {
+    runBlocking {
+      @Language("kotlin")
+      val fileContent =
+        """
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Composable
+        @Preview(
+            name = "old-preview-name",
+            showSystemUi = true,
+            showBackground = true,
+            device = "id:medium_phone"
+        )
+        fun PreviewWithParameters() {
+        }
+        """
+          .trimIndent()
+      val model = getFirstModel(fileContent)
+
+      val property =
+        model.properties.values.find { it.name == "showSystemUi" } as PsiCallParameterPropertyItem
+
+      model.addListener(FakePropertiesRefreshListener())
+
+      runWriteAction {
+        try {
+          // Test fails if this call throws a ProhibitedAnalysisException.
+          property.deleteParameter()
+          fail("Expected to fail with a ProhibitedAnalysisException.")
+        } catch (e: IllegalStateException) {
+          // ProhibitedAnalysisException is private, and it is an extension of
+          // IllegalStateException.
+          // Check if the error message is the one we expect from ProhibitedAnalysisException
+          assertEquals("Analysis is not allowed: Called from a write action.", e.message)
+        }
+      }
+    }
+  }
+
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview =
@@ -563,6 +703,13 @@ class PreviewPickerTests {
       )
     }
   }
+
+  private fun runInK2Only(block: () -> Unit) {
+    // Skip this test if not using K2
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      block()
+    }
+  }
 }
 
 private class TestTracker : ComposePickerTracker {
@@ -579,4 +726,18 @@ private class TestTracker : ComposePickerTracker {
   override fun pickerClosed() {} // Not tested
 
   override fun logUsageData() {} // Not tested
+}
+
+/**
+ * This listener is going through all the properties and reads their values. However, whenever to
+ * read a property value we call PsiCallParameterPropertyItem.value. Whenever we get
+ * [PsiCallParameterPropertyItem.value] the [analyze] function is called. Because it is forbidden to
+ * call a write action within an [analyze] a ProhibitedAnalysisException is thrown.
+ */
+private class FakePropertiesRefreshListener : PropertiesModelListener<PsiPropertyItem> {
+
+  override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
+    // We simulate a refresh of all the properties, getting their values to trigger analyze()
+    model.properties.values.forEach { it.value }
+  }
 }

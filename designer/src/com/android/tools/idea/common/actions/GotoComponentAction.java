@@ -23,16 +23,20 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,8 +44,20 @@ import org.jetbrains.annotations.Nullable;
  * Action which navigates to the primary selected XML element
  */
 public class GotoComponentAction extends DumbAwareAction {
-  public GotoComponentAction() {
+  private final Function<Project, FileEditor> mySelectedEditorProvider;
+
+  /**
+   * Creates a new {@link GotoComponentAction}.
+   * @param selectedEditorProvider Returns the selected editor for the given project.
+   */
+  @VisibleForTesting
+  GotoComponentAction(@NotNull Function<Project, FileEditor> selectedEditorProvider) {
     super("Go to XML");
+    mySelectedEditorProvider = selectedEditorProvider;
+  }
+
+  public GotoComponentAction() {
+    this((project) -> FileEditorManager.getInstance(project).getSelectedEditor());
   }
 
   @Override
@@ -58,18 +74,17 @@ public class GotoComponentAction extends DumbAwareAction {
       }
     }
 
-    FileEditor selectedEditor = FileEditorManager.getInstance(surface.getProject()).getSelectedEditor();
-    if (selectedEditor instanceof DesignToolsSplitEditor) {
-      DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
+    FileEditor selectedEditor = mySelectedEditorProvider.apply(surface.getProject());
+    if (selectedEditor instanceof DesignToolsSplitEditor splitEditor) {
       if (splitEditor.isDesignMode()) {
-        // If we're in design mode, we want to change the split editor mode to XML-only before navigating to the element.
-        splitEditor.selectTextMode(false);
+        // If we're in design mode, we want to change the split editor mode to split mode before navigating to the element.
+        splitEditor.selectSplitMode(false);
       }
     }
 
     SelectionModel selectionModel = surface.getSelectionModel();
     NlComponent primary = selectionModel.getPrimary();
-    NlModel model = surface.getModel();
+    NlModel model = Iterables.getFirst(surface.getModels(), null);
 
     NlComponent componentToNavigate = null;
     if (primary != null) {
@@ -83,7 +98,6 @@ public class GotoComponentAction extends DumbAwareAction {
       }
     }
 
-    surface.deactivate();
     if (model != null && !navigateToXml(componentToNavigate)) {
       switchTab(surface, model);
     }

@@ -85,6 +85,7 @@
   <xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>
   <xi:include href="/META-INF/gradle-dsl-declarative.xml"/>
   <xi:include href="/META-INF/gradle-dsl-toml.xml"/>
+  <xi:include href="/META-INF/gradle-dsl-flags.xml"/>
   <xi:include href="/META-INF/intellij.android.avd.xml"/>
   <xi:include href="/META-INF/logcat.xml"/>
   <xi:include href="/META-INF/intellij.android.device-explorer.xml"/>
@@ -96,6 +97,7 @@
   <xi:include href="/META-INF/device-manager-v2.xml"/>
   <xi:include href="/META-INF/wear-pairing.xml"/>
   <xi:include href="/META-INF/wear-whs.xml"/>
+  <xi:include href="/META-INF/wear-dwf.xml"/>
   <xi:include href="/META-INF/android-execution-common.xml"/>
   <xi:include href="/META-INF/android-deploy.xml"/>
   <xi:include href="/META-INF/google-login.xml"/>

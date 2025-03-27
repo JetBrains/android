@@ -36,10 +36,14 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.Function;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -76,11 +80,13 @@ public class ApkDiffPanel {
     myOldApk = oldApk;
     myNewApk = newApk;
 
+    setupUI();
     myCalculateFileByFileCheckBox.addItemListener(e -> {
       if (myCalculateFileByFileCheckBox.isSelected()) {
         myCalculateFileByFileCheckBox.setEnabled(false);
         constructFbfTree();
-      } else {
+      }
+      else {
         constructDiffTree();
       }
     });
@@ -127,7 +133,7 @@ public class ApkDiffPanel {
     dialog.showDialog(() -> future.cancel(true));
   }
 
-  private void constructDiffTree(){
+  private void constructDiffTree() {
     // construct the main tree
     ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = ourExecutorService.submit(() -> {
       try (ArchiveContext archiveContext1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
@@ -212,6 +218,26 @@ public class ApkDiffPanel {
     myTree.expandPath(new TreePath(root));
     myTree.setModel(myTreeModel);
   }
+
+  private void setupUI() {
+    createUIComponents();
+    myContainer = new JPanel();
+    myContainer.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myContainer.add(myColumnTreePane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          new Dimension(400, -1), new Dimension(400, 300), null, 0, false));
+    myCalculateFileByFileCheckBox = new JCheckBox();
+    myCalculateFileByFileCheckBox.setEnabled(false);
+    myCalculateFileByFileCheckBox.setText("Show File-By-File patch size (may take a long time)");
+    myCalculateFileByFileCheckBox.setToolTipText("This is a size estimation for the update that Play store sends to the device");
+    myContainer.add(myCalculateFileByFileCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                       GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+  }
+
+  public JComponent getRootComponent() { return myContainer; }
 
   // Duplicated from ApkViewPanel.SizeRenderer until the diff entries are unified into the ArchiveEntry data class.
   public static class SizeRenderer extends ColoredTreeCellRenderer {

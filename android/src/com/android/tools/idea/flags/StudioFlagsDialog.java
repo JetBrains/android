@@ -112,6 +112,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
 
   public StudioFlagsDialog(@Nullable Project project) {
     super(project);
+    setupUI();
     setTitle(TITLE);
 
     setPreferredBounds(project);
@@ -270,6 +271,21 @@ public final class StudioFlagsDialog extends DialogWrapper {
       myContentPanel.setLayout(new BorderLayout());
       myContentPanel.add(label, BorderLayout.CENTER);
     }
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new BorderLayout(0, 0));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new BorderLayout(0, 0));
+    myRootPanel.add(panel1, BorderLayout.NORTH);
+    mySearchTextField = new SearchTextField();
+    panel1.add(mySearchTextField, BorderLayout.CENTER);
+    myScrollPane = new JBScrollPane();
+    myScrollPane.setHorizontalScrollBarPolicy(31);
+    myRootPanel.add(myScrollPane, BorderLayout.CENTER);
+    myScrollPane.setViewportView(myContentPanel);
   }
 
   private static boolean shouldBeIncludedInIdea(Map.Entry<FlagGroup, Collection<Flag<?>>> flag) {

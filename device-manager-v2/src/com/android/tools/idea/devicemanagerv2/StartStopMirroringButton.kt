@@ -21,7 +21,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
@@ -42,6 +44,7 @@ internal class StartStopMirroringButton(private val deviceHandle: DeviceHandle, 
     deviceHandle.scope.launch {
       val mirroringHandles = project.service<MirroringManager>().mirroringHandles
       mirroringHandles.collect { handles ->
+        thisLogger().info("${this@StartStopMirroringButton.simpleId}.<init>: handles=$handles") // b/342105720
         withContext(uiThread) { updateMirroring(handles[deviceHandle]) }
       }
     }
@@ -49,6 +52,7 @@ internal class StartStopMirroringButton(private val deviceHandle: DeviceHandle, 
 
   private fun updateMirroring(mirroringHandle: MirroringHandle?) {
     this.mirroringHandle = mirroringHandle
+    thisLogger().info("$simpleId.updateMirroring($mirroringHandle)") // b/342105720
     when {
       mirroringHandle == null -> {
         isVisible = false

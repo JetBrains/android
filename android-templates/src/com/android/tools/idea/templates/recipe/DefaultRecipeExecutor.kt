@@ -649,8 +649,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
    * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in
    * kotlinOptions, based on the Gradle JDK version
    */
-  override fun setJavaKotlinCompileOptions(isKotlin: Boolean) {
-    val buildModel = moduleGradleBuildModel ?: return
+  override fun setJavaKotlinCompileOptions(isKotlin: Boolean, moduleDir: File?) {
+    val buildModel = if (moduleDir == null) {
+      moduleGradleBuildModel ?: return
+    }
+    else {
+      projectBuildModel?.getModuleBuildModel(moduleDir) ?: return
+    }
     val languageLevel = pickLanguageLevel()
 
     val agpApplied =

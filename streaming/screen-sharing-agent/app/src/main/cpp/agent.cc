@@ -215,7 +215,9 @@ void Agent::Initialize(const vector<string>& args) {
 
   feature_level_ = GetFeatureLevel();
   string build_characteristics = GetSystemProperty("ro.build.characteristics");
-  is_watch_ = HasBuildCharacteristic("watch", build_characteristics);
+  device_type_ = HasBuildCharacteristic("watch", build_characteristics) ? DeviceType::WATCH :
+                 HasBuildCharacteristic("xr", build_characteristics) ? DeviceType::XR :
+                 DeviceType::GENERIC;
 }
 
 void Agent::Run(const vector<string>& args) {
@@ -386,7 +388,7 @@ const string& Agent::device_manufacturer() {
 }
 
 int32_t Agent::feature_level_(0);
-bool Agent::is_watch_(false);
+DeviceType Agent::device_type_(DeviceType::GENERIC);
 string Agent::device_manufacturer_("<uninitialized>");
 string Agent::socket_name_("screen-sharing-agent");
 Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());

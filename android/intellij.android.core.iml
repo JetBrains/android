@@ -126,5 +126,6 @@
     <orderEntry type="module" module-name="android.sdktools.backup" />
     <orderEntry type="library" name="studio-plugin-intellij.json.split" level="project" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
   </component>
 </module>

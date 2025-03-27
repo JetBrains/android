@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
+import com.android.tools.idea.rendering.LayoutlibNativeMemoryMeasurement
 import com.android.tools.perflogger.Metric
 import kotlin.random.Random
 import org.junit.Assert
@@ -63,6 +64,9 @@ class PerfgateComposeRenderQualityGradleTest : PerfgateComposeGradleTestBase() {
             "layoutlib",
             Metric("renderQualityEnabled_5_previews_layoutlib_memory"),
           ),
+          LayoutlibNativeMemoryMeasurement(
+            Metric("renderQualityEnabled_5_previews_layoutlib_native_memory")
+          ),
         ),
         measuredRunnable = ::qualityRefresh,
       )
@@ -106,6 +110,9 @@ class PerfgateComposeRenderQualityGradleTest : PerfgateComposeGradleTestBase() {
             "layoutlib",
             Metric("renderQualityEnabled_30_previews_layoutlib_memory"),
           ),
+          LayoutlibNativeMemoryMeasurement(
+            Metric("renderQualityEnabled_30_previews_layoutlib_native_memory")
+          ),
         ),
         measuredRunnable = ::qualityRefresh,
       )
@@ -148,6 +155,9 @@ class PerfgateComposeRenderQualityGradleTest : PerfgateComposeGradleTestBase() {
             "android:designTools",
             "layoutlib",
             Metric("renderQualityEnabled_200_previews_layoutlib_memory"),
+          ),
+          LayoutlibNativeMemoryMeasurement(
+            Metric("renderQualityEnabled_200_previews_layoutlib_native_memory")
           ),
         ),
         measuredRunnable = ::qualityRefresh,

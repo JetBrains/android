@@ -41,6 +41,12 @@ constexpr char SAMSUNG[] = "samsung";
 constexpr char VIVO[] = "vivo";
 constexpr char XIAOMI[] = "Xiaomi";
 
+enum class DeviceType {
+  GENERIC,
+  WATCH,
+  XR
+};
+
 // The main class of the screen sharing agent.
 class Agent {
 public:
@@ -72,7 +78,7 @@ public:
 
   [[nodiscard]] static bool IsShuttingDown() { return shutting_down_; }
 
-  [[nodiscard]] static bool is_watch() { return is_watch_; };
+  [[nodiscard]] static DeviceType device_type() { return device_type_; }
 
   [[nodiscard]] static const std::string& device_manufacturer();
 
@@ -89,7 +95,7 @@ private:
   static void RestoreEnvironment();
 
   static int32_t feature_level_;
-  static bool is_watch_;
+  static DeviceType device_type_;
   static std::string device_manufacturer_;
   static std::string socket_name_;
   static Size max_video_resolution_;

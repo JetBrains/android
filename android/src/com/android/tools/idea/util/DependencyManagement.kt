@@ -77,7 +77,7 @@ fun Module?.mapAndroidxName(name: AndroidxName): String {
 }
 
 fun Module.dependsOnAppCompat(): Boolean =
-  this.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) || this.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+  this.dependsOn(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7) || this.dependsOn(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT)
 
 /**
  * Add Google maven projects as dependencies for this module. The maven group and artifact IDs are taken from given

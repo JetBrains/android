@@ -26,8 +26,14 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBUI;
+import java.util.Locale;
 import java.util.stream.Collectors;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.text.StyleContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,6 +68,11 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     super(project);
     mySelectedApiLevel = selectedApiLevel;
 
+        try {
+      setupUI();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     Window window = getWindow();
     // Allow creation in headless mode for tests
     if (window != null) {
@@ -81,6 +92,93 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
 
     init();
   }
+
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(3, 4, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(myChartPanel, new GridConstraints(0, 0, 2, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                  null, 0, false));
+    myScrollPane = new JBScrollPane();
+    myScrollPane.setBackground(new Color(-1118482));
+    myScrollPane.setHorizontalScrollBarPolicy(31);
+    myScrollPane.setOpaque(false);
+    myPanel.add(myScrollPane, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL, 1,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  new Dimension(500, -1), new Dimension(500, 504), new Dimension(500, -1), 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myScrollPane.setViewportView(panel1);
+    myDescriptionLeft = new JBLabel();
+    myDescriptionLeft.setForeground(new Color(-12566464));
+    myDescriptionLeft.setText(
+      "<html>The minimum SDK version determines the lowest level of Android that your app will run on. <br><br> You typically want to target as many users as possible, so you would ideally want to support everyone -- with a minimum SDK version of 1. However, that has some disadvantages, such as lack of features, and very few people use devices that old anymore. <br><br> Your choice of minimum SDK level should be a tradeoff between the distribution of users you wish to target and the features that your application will need. <br><br> <b>Click each Android Version/API level for more information.</b> </html>");
+    myDescriptionLeft.setVerticalAlignment(1);
+    myDescriptionLeft.setVerticalTextPosition(1);
+    panel1.add(myDescriptionLeft, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                      null, null, 0, false));
+    myDescriptionRight = new JBLabel();
+    myDescriptionRight.setForeground(new Color(-12566464));
+    myDescriptionRight.setHorizontalAlignment(10);
+    myDescriptionRight.setText("");
+    myDescriptionRight.setVerticalAlignment(1);
+    myDescriptionRight.setVerticalTextPosition(1);
+    panel1.add(myDescriptionRight, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                       null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                             GridConstraints.SIZEPOLICY_CAN_GROW, 1, new Dimension(50, -1), new Dimension(50, -1),
+                                             new Dimension(50, -1), 0, false));
+    myIntroducedLabel = new JBLabel();
+    Font myIntroducedLabelFont = getFont(null, -1, 20, myIntroducedLabel.getFont());
+    if (myIntroducedLabelFont != null) myIntroducedLabel.setFont(myIntroducedLabelFont);
+    myIntroducedLabel.setHorizontalAlignment(2);
+    myIntroducedLabel.setText("");
+    myPanel.add(myIntroducedLabel,
+                new GridConstraints(0, 2, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(500, -1), new Dimension(500, -1), 0, false));
+    myLearnMoreLinkLabel = new JBLabel();
+    myLearnMoreLinkLabel.setHorizontalTextPosition(0);
+    myPanel.add(myLearnMoreLinkLabel,
+                new GridConstraints(2, 2, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(308, 0), null, 0, false));
+    myLastUpdatedLabel = new JBLabel();
+    myLastUpdatedLabel.setHorizontalTextPosition(0);
+    myPanel.add(myLastUpdatedLabel,
+                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(308, 0), null, 0, false));
+  }
+
+  private Font getFont(String fontName, int style, int size, Font currentFont) {
+    if (currentFont == null) return null;
+    String resultName;
+    if (fontName == null) {
+      resultName = currentFont.getName();
+    }
+    else {
+      Font testFont = new Font(fontName, Font.PLAIN, 10);
+      if (testFont.canDisplay('a') && testFont.canDisplay('1')) {
+        resultName = fontName;
+      }
+      else {
+        resultName = currentFont.getName();
+      }
+    }
+    Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+    boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+    Font fontWithFallback = isMac
+                            ? new Font(font.getFamily(), font.getStyle(), font.getSize())
+                            : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+    return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
+  }
+
+  public JComponent getRootComponent() { return myPanel; }
 
   @Nullable
   private static String getLastUpdatedDate() {

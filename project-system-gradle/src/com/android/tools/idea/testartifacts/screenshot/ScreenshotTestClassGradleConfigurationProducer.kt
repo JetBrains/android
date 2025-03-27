@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.screenshot
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiClass
@@ -48,7 +49,7 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
     val androidModule = AndroidUtils.getAndroidModule(context) ?: return false
     val androidFacet = AndroidFacet.getInstance(androidModule) ?: return false
     if (!isScreenshotTestSourceSet(location, androidFacet)) return false
-    if (!isClassDeclarationWithPreviewAnnotatedMethods(psiClass, visitedAnnotation)) return false
+    if (!isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) return false
 
     val configurationTaskNames = configuration.settings.taskNames
     return configurationTaskNames == taskNamesWithFilter(context, psiClass)
@@ -67,8 +68,10 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
   override fun doSetupConfigurationFromContext(configuration: GradleRunConfiguration,
                                                context: ConfigurationContext,
                                                sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get())
+    if (!StudioFlags.ENABLE_SCREENSHOT_TESTING.get()) {
       return false
+    }
+    configuration.putUserData<Boolean>(SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW.userDataKey, true)
     return configure(configuration, sourceElement, context)
   }
 
@@ -96,7 +99,7 @@ class ScreenshotTestClassGradleConfigurationProducer: TestClassGradleConfigurati
       }
     }
     return candidates.any { psiClass ->
-      if (!isClassDeclarationWithPreviewAnnotatedMethods(psiClass, visitedAnnotation)) return false
+      if (!isClassDeclarationWithPreviewTestAnnotatedMethods(psiClass, visitedAnnotation)) return false
       sourceElementRef.set(psiClass)
       configuration.settings.externalProjectPath = project.basePath
       configuration.name = suggestConfigurationName(context, psiClass, emptyList())

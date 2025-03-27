@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleV
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
+import com.android.tools.idea.appinspection.inspectors.network.view.details.RuleValidator
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.RunManager
 import com.intellij.icons.AllIcons
@@ -55,6 +56,7 @@ class RulesTableView(
   private val client: NetworkInspectorClient,
   private val scope: CoroutineScope,
   private val model: NetworkInspectorModel,
+  private val ruleValidator: RuleValidator,
   private val usageTracker: NetworkInspectorTracker,
 ) {
   private val logger = thisLogger()
@@ -269,6 +271,7 @@ class RulesTableView(
 
     override fun actionPerformed(e: AnActionEvent) {
       RuleVariablesDialog(project, ruleVariables, tableModel.items) { ruleData ->
+          ruleValidator.validateRule(ruleData)
           if (ruleData.isActive) {
             scope.launch {
               client.interceptResponse(

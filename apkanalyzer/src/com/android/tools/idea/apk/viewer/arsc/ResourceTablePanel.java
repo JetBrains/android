@@ -40,8 +40,12 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.util.Collection;
 import java.util.List;
@@ -65,6 +69,7 @@ public class ResourceTablePanel {
   private SimpleColoredComponent myResourceTableHeader;
 
   public ResourceTablePanel(@NotNull BinaryResourceFile resourceFile) {
+    setupUI();
     List<Chunk> chunks = resourceFile.getChunks();
     if (chunks.isEmpty()) {
       throw new IllegalArgumentException("no chunks");
@@ -166,6 +171,28 @@ public class ResourceTablePanel {
   public JComponent getPanel() {
     return myContainer;
   }
+
+  private void setupUI() {
+    createUIComponents();
+    myContainer = new JPanel();
+    myContainer.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myHeader = new JPanel();
+    myHeader.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
+    myContainer.add(myHeader, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Package:");
+    myHeader.add(jBLabel1);
+    myPackageCombo = new ComboBox();
+    myHeader.add(myPackageCombo);
+    myContainer.add(mySplitter, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                    null, 0, false));
+  }
+
+  public JComponent getRootComponent() { return myContainer; }
 
   private static class ResourceFilter extends GeneralFilter {
 

@@ -1029,7 +1029,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         Project project = myModule.getProject();
         boolean useAndroidX = MigrateToAndroidxUtil.isAndroidx(project);
         GoogleMavenArtifactId artifact = useAndroidX ?
-                                         GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
+                                         GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT :
                                          GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
         builder.addLink("Add constraint-layout library dependency to the project",
                         myLinkManager.createAddDependencyUrl(artifact));

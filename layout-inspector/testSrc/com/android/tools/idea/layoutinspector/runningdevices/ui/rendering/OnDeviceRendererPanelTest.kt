@@ -199,6 +199,7 @@ class OnDeviceRendererPanelTest {
           bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
           color = SELECTION_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
+          label = inspectorModel[VIEW1]?.unqualifiedName,
         )
         .toByteArray()
     assertThat(receivedMessages).hasSize(1)
@@ -306,7 +307,7 @@ class OnDeviceRendererPanelTest {
       buildDrawNodeCommand(
           rootId = ROOT,
           bounds = listOf(inspectorModel[COMPOSE2]!!.layoutBounds),
-          color = RECOMPOSITION_COLOR_RED_ARGB,
+          color = RECOMPOSITION_COLOR_RED_ARGB.setColorAlpha(160),
           type = LayoutInspectorViewProtocol.DrawCommand.Type.RECOMPOSING_NODES,
         )
         .toByteArray()

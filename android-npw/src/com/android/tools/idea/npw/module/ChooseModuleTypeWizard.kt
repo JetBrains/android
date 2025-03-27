@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.cre
 import com.android.tools.idea.npw.project.TABLE_CELL_HEIGHT
 import com.android.tools.idea.npw.project.TABLE_CELL_LEFT_PADDING
 import com.android.tools.idea.npw.project.TABLE_CELL_WIDTH
+import com.android.tools.idea.npw.project.TABLE_TITLE_PADDING
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.ui.SelectedListValueProperty
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -39,24 +40,23 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.SeparatorWithText
+import com.intellij.ui.GroupHeaderSeparator
 import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.accessibility.AccessibleContextDelegate
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import java.awt.BorderLayout
-import java.awt.Container
 import java.awt.Dimension
 import java.util.Optional
-import javax.accessibility.AccessibleContext
 import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import javax.swing.SwingConstants
+import javax.swing.event.ListSelectionEvent
+import javax.swing.event.ListSelectionListener
 import org.jetbrains.android.util.AndroidBundle.message
 
 /** This step allows the user to select which type of module they want to create. */
@@ -72,7 +72,7 @@ class ChooseModuleTypeWizard(
   private val importModuleGalleryEntry =
     ImportModuleGalleryEntry() // Added to the left list bottom, and as a marker for the separator
   private val moduleGalleryEntryList: List<ModuleGalleryEntry> =
-    sortModuleEntries(moduleGalleryEntries, moduleParent) + importModuleGalleryEntry
+    sortModuleEntries(moduleGalleryEntries, moduleParent) + Separator() + importModuleGalleryEntry
   private var selectedEntry: ModuleGalleryEntry? = null
   private lateinit var currentModelWizard: ModelWizard
   private val modelWizardDialog: ModelWizardDialog by lazy {
@@ -100,7 +100,11 @@ class ChooseModuleTypeWizard(
     val leftList =
       JBList(moduleGalleryEntryList).apply {
         setCellRenderer { list, value, _, isSelected, cellHasFocus ->
-          val cellLabel =
+          if (value is Separator) {
+            GroupHeaderSeparator(JBUI.emptyInsets()).apply {
+              border = JBUI.Borders.empty(TABLE_TITLE_PADDING, 0)
+            }
+          } else {
             JBLabel(value.name, value.icon, SwingConstants.LEFT).apply {
               isOpaque = true
               background = UIUtil.getListBackground(isSelected, cellHasFocus)
@@ -114,38 +118,24 @@ class ChooseModuleTypeWizard(
                 icon = IconUtil.scale(icon, this, size.height().toFloat() * 0.7f / icon.iconHeight)
               }
             }
-
-          if (value == importModuleGalleryEntry) {
-            // Add a separator before "Import..." label
-            val separator =
-              SeparatorWithText().apply { border = JBUI.Borders.empty(TABLE_CELL_LEFT_PADDING) }
-            object : JPanel(BorderLayout()) {
-                override fun getAccessibleContext(): AccessibleContext {
-                  return object : AccessibleContextDelegate(cellLabel.accessibleContext) {
-                    override fun getDelegateParent(): Container = list
-                  }
-                }
-              }
-              .apply {
-                background = UIUtil.TRANSPARENT_COLOR
-                add(separator, BorderLayout.NORTH)
-                add(cellLabel, BorderLayout.CENTER)
-              }
-          } else {
-            cellLabel
           }
         }
         AccessibleContextUtil.setName(this, message("android.wizard.module.new.module.header"))
         selectionMode = ListSelectionModel.SINGLE_SELECTION
         selectedIndex = 0
+        selectionModel.addListSelectionListener(SeparatorSkippingListener(moduleGalleryEntryList))
       }
 
     fun setNewModelWizard(galleryEntry: Optional<ModuleGalleryEntry>) {
       if (galleryEntry.isPresent && selectedEntry != galleryEntry.get()) {
+        val entry = galleryEntry.get()
+        if (entry is Separator) {
+          return
+        }
         try {
           currentModelWizard =
             ModelWizard.Builder()
-              .addStep(galleryEntry.get().createStep(project, moduleParent, projectSyncInvoker))
+              .addStep(entry.createStep(project, moduleParent, projectSyncInvoker))
               .build()
         } catch (ex: Throwable) {
           logger.error(ex)
@@ -158,7 +148,7 @@ class ChooseModuleTypeWizard(
           modelWizardDialog.setModelWizard(currentModelWizard)
           modelWizardDialog.contentPane.revalidate()
         }
-        selectedEntry = galleryEntry.get()
+        selectedEntry = entry
 
         modelWizardListeners.listen(currentModelWizard.onFirstStep()) {
           leftPanel.isVisible = currentModelWizard.onFirstStep().get()
@@ -279,4 +269,64 @@ fun showDefaultWizard(
   val moduleDescriptions =
     ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project) }
   ChooseModuleTypeWizard(project, moduleParent, moduleDescriptions, projectSyncInvoker).show()
+}
+
+private class Separator : ModuleGalleryEntry {
+  override val icon: Icon?
+    get() = null
+
+  override val name: String
+    get() = ""
+
+  override val description: String?
+    get() = null
+
+  override fun createStep(
+    project: Project,
+    moduleParent: String,
+    projectSyncInvoker: ProjectSyncInvoker,
+  ): SkippableWizardStep<*> {
+    throw UnsupportedOperationException()
+  }
+}
+
+/** Prevents [Separator] elements from being selected. */
+private class SeparatorSkippingListener(private val list: List<*>) : ListSelectionListener {
+
+  private var settingSelection = false
+
+  override fun valueChanged(event: ListSelectionEvent) {
+    if (settingSelection) {
+      return // Recursive call.
+    }
+    val firstIndex = event.firstIndex
+    val lastIndex = event.lastIndex
+    val selectionModel = event.source as ListSelectionModel
+    if (firstIndex == lastIndex || list[selectionModel.anchorSelectionIndex] !is Separator) {
+      return // No corrective action needed.
+    }
+    val newIndex =
+      if (list[firstIndex] is Separator) {
+        if (event.valueIsAdjusting) {
+          lastIndex // Restore previous selection.
+        } else {
+          firstIndex - 1 // Selection moving up.
+        }
+      } else if (list[lastIndex] is Separator) {
+        if (event.valueIsAdjusting) {
+          firstIndex // Restore previous selection.
+        } else {
+          lastIndex + 1 // Selection moving down.
+        }
+      } else {
+        return // No corrective action needed.
+      }
+
+    settingSelection = true
+    try {
+      selectionModel.setSelectionInterval(newIndex, newIndex)
+    } finally {
+      settingSelection = false
+    }
+  }
 }

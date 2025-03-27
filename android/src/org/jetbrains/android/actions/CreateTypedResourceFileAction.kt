@@ -33,22 +33,17 @@ import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.openapi.ui.Messages
-import com.intellij.patterns.XmlPatterns.xmlFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.util.parents
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.PsiNavigateUtil
 import com.intellij.util.application
@@ -220,7 +215,7 @@ open class CreateTypedResourceFileAction(
             module == null -> AndroidUtils.TAG_LINEAR_LAYOUT
             module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT) ->
               AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
-            module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT) ->
+            module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT) ->
               AndroidXConstants.CONSTRAINT_LAYOUT.newName()
             else -> AndroidUtils.TAG_LINEAR_LAYOUT
           }

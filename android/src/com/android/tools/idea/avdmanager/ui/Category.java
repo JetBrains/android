@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 enum Category {
   PHONE("Phone", "pixel_fold", definition -> !definition.getIsDeprecated() && Device.isPhone(definition)),
   TABLET("Tablet", "pixel_tablet", definition -> !definition.getIsDeprecated() && Device.isTablet(definition)),
-  WEAR_OS("Wear OS", "wearos_square", definition -> !definition.getIsDeprecated() && Device.isWear(definition)),
+  WEAR_OS("Wear OS", "wearos_large_round", definition -> !definition.getIsDeprecated() && Device.isWear(definition)),
   DESKTOP("Desktop", "desktop_medium", definition -> !definition.getIsDeprecated() && Device.isDesktop(definition)),
   TV("TV", "tv_1080p", definition -> !definition.getIsDeprecated() && Device.isTv(definition)),
 

@@ -263,6 +263,9 @@ fun configureLayoutlibSceneManager(
       config.customContentHierarchyParser =
         if (runVisualAnalysis) accessibilityBasedHierarchyParser else null
       config.layoutScannerConfig.isLayoutScannerEnabled = runVisualAnalysis
+      // During configure of SceneManager, always clear the override render size in SceneManagers,
+      // as they are reused and may have old resize data.
+      config.clearOverrideRenderSize = true
     }
     visualLintMode =
       if (runVisualAnalysis) {

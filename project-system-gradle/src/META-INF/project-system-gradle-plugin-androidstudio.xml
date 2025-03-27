@@ -41,6 +41,9 @@
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFilesProjectActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidStudioProjectActivity" />
 
+    <externalSystemExecutionConsoleManager implementation="com.android.tools.idea.testartifacts.testsuite.temp.GradleAndroidTestsExecutionConsoleManager" id="GradleAndroidTestExecutionConsoleManager" order="before gradleTest" />
+    <externalSystem.runConfigurationEx implementation="com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension"/>
+
     <actionConfigurationCustomizer id="Startup.GradleSpecificActionCustomizer" order="after Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.GradleSpecificActionCustomizer" />
     <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectJdkUpdateService" />
@@ -59,6 +62,7 @@
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
+    <taskManager implementation="com.android.tools.idea.testartifacts.testsuite.GradleAndroidTestsTaskManager"/>
   </extensions>
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.GradleSpecificInitializer"

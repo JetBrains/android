@@ -22,7 +22,6 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.junit.Rule
 import org.junit.Test
@@ -31,7 +30,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-@Suppress("UsePropertyAccessSyntax")
 class ComposeViewSingleWordFilterTest {
 
   @Rule @JvmField val rule = AndroidProjectRule.inMemory()
@@ -117,7 +115,7 @@ class ComposeViewSingleWordFilterTest {
   private fun createTestSurface(vararg views: SceneView): DesignSurface<*> {
     val surface = mock<DesignSurface<*>>()
     val managers = views.map { it.sceneManager }
-    whenever(surface.sceneManagers).thenReturn(ImmutableList.copyOf(managers))
+    whenever(surface.sceneManagers).thenReturn(managers.toList())
     return surface
   }
 

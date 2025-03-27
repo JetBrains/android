@@ -52,7 +52,7 @@ import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.writeAction
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -223,7 +223,7 @@ private suspend fun removePointlessModules(project: Project) {
 
 private suspend fun removeModules(moduleManager: ModuleManager, modules: List<Pair<Module, Module.() -> Unit>>) {
   if (modules.isEmpty()) return
-  writeAction {
+  edtWriteAction {
     with(moduleManager.getModifiableModel()) {
       modules.forEach { (module, onRemovingModule) ->
         onRemovingModule(module)

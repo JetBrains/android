@@ -147,6 +147,73 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testListProperty() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        buildTypes{
+          buildType("debug"){
+            matching$caret
+        }
+      }
+      """, """
+      androidApp {
+        buildTypes{
+          buildType("debug"){
+            matchingFallbacks = listOf($caret)
+        }
+      }
+      """)
+  }
+
+  @Test
+  fun testForPropertyAsFunctionCallArgument() {
+    doTestOnPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layout.$caret)
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "projectDirectory", "settingsDirectory"
+      )
+    }
+    doTestOnPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layout.projectDirectory.$caret)
+      }
+      """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "dir", "file"
+      )
+    }
+  }
+
+  @Test
+  fun testCompletionLayoutFileAsArgument() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layout.projectDirectory.f$caret)
+      }
+      """, """
+      androidApp {
+        fakeFileList = listOf(layout.projectDirectory.file($caret))
+      }
+      """)
+  }
+
+  @Test
+  fun testCompletionProjectDirectoryAsArgument() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layout.p$caret)
+      }
+      """, """
+      androidApp {
+        fakeFileList = listOf(layout.projectDirectory$caret)
+      }
+      """)
+  }
+
+  @Test
   fun testAssignObjectType() {
     doTest("""
       androidApp {
@@ -238,7 +305,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "applicationIdSuffix", "buildConfigField", "isMinifyEnabled", "multiDexEnabled", "versionNameSuffix")
+        "applicationIdSuffix", "buildConfigField", "dependencies", "isMinifyEnabled", "multiDexEnabled", "versionNameSuffix")
     }
   }
 
@@ -255,7 +322,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "applicationIdSuffix", "buildConfigField", "isMinifyEnabled", "matchingFallbacks", "multiDexEnabled", "versionNameSuffix")
+        "applicationIdSuffix", "buildConfigField", "dependencies", "isMinifyEnabled", "matchingFallbacks", "multiDexEnabled", "versionNameSuffix")
     }
   }
 
@@ -573,6 +640,38 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     rootProject.$caret
     """, "settings.gradle.dcl") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly("name")
+    }
+  }
+
+  @Test
+  fun testListOfHasLayoutSuggestion() {
+    doTestOnPatchedSchema("""
+    androidApp {
+      fakeFileList = listOf($caret)
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout")
+    }
+    doTestOnPatchedSchema("""
+    androidApp {
+      fakeFileList = listOf(layout.projectDirectory.file("aaa"), $caret)
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout")
+    }
+    doTestOnPatchedSchema("""
+    androidApp {
+      fakeFileList = listOf($caret
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout")
+    }
+    doTestOnPatchedSchema("""
+    androidApp {
+      fakeFileList = listOf(layout.projectDirectory.file("aaa"), $caret
+    }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("layout")
     }
   }
 

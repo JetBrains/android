@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.cpu
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.MULTI_APP_100
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.MULTI_APP_190
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
@@ -25,12 +24,11 @@ import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_500
 import com.android.tools.idea.gradle.project.sync.BenchmarkTestRule
 import com.android.tools.idea.gradle.project.sync.DaemonIdleTimeoutRule
-import com.android.tools.idea.gradle.project.sync.FEATURE_RUNTIME_CLASSPATH_1000
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_100_NAME
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_190_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_1000_GRADLE_SNAPSHOT_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_1000_KOTLIN_LATEST_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_GRADLE_LATEST_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_KOTLIN_LATEST_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
@@ -101,16 +99,16 @@ private fun runTest(benchmarkTestRule: BenchmarkTestRule,
   }
 }
 
-class Benchmark1000CpuLatestGradleTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_1000_GRADLE_SNAPSHOT_NAME, STANDARD_1000, useLatestGradle = true)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15, projectToCompareAgainst = SUBSET_1000_NAME)
-  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
+class Benchmark2000CpuLatestGradleTest {
+  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_2000_GRADLE_LATEST_NAME, STANDARD_2000, useLatestGradle = true)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, projectToCompareAgainst = SUBSET_2000_NAME)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
-class Benchmark1000CpuLatestKotlinTest {
-  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_1000_KOTLIN_LATEST_NAME, STANDARD_1000, useLatestKotlin = true)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15, projectToCompareAgainst = SUBSET_1000_NAME)
-  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
+class Benchmark2000CpuLatestKotlinTest {
+  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_2000_KOTLIN_LATEST_NAME, STANDARD_2000, useLatestKotlin = true)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5, projectToCompareAgainst = SUBSET_2000_NAME)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }

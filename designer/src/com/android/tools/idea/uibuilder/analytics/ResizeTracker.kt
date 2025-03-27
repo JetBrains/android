@@ -43,12 +43,9 @@ interface ResizeTracker {
    * Reports when the user stops resizing the preview.
    *
    * @param sceneManager The [SceneManager] that is being resized.
-   * @param stoppedDeviceWidthDp The width when the user stopped resizing.
-   * @param stoppedDeviceHeightDp The height when the user stopped resizing.
+   * @param widthDp The width of the preview in dp.
+   * @param heightDp The height of the preview in dp.
+   * @param dpi The dpi of the preview.
    */
-  fun reportResizeStopped(
-    sceneManager: SceneManager,
-    stoppedDeviceWidthDp: Int,
-    stoppedDeviceHeightDp: Int,
-  )
+  fun reportResizeStopped(sceneManager: SceneManager, widthDp: Int, heightDp: Int, dpi: Int)
 }

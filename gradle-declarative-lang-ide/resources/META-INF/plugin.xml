@@ -26,6 +26,7 @@
   <depends>com.intellij.java</depends>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.kotlin</depends>
+  <depends>org.jetbrains.plugins.gradle</depends>
   <idea-version since-build="242"/>
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -66,6 +67,9 @@
     <applicationService
         serviceInterface="com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIconProviderService"
         serviceImplementation="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeIconProviderService"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <autoReloadSettingsCollector implementation="com.android.tools.idea.gradle.dcl.lang.ide.GradleDeclarativeScriptCollector"/>
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.gradle.dcl.ide.declarativeSchemaProvider"

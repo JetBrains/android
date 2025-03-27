@@ -374,7 +374,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   private String getSetupError() {
-    GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT;
+    GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT;
     NlDependencyManager dep = NlDependencyManager.getInstance();
     if (dep == null) return null;
     if (myMotionLayout == null) return null;

@@ -21,6 +21,9 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.Insets;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -47,6 +50,45 @@ public final class AnyCheckedDemo {
   private JCheckBox myCheckBox4;
 
   private BindingsManager myBindings = new BindingsManager();
+
+  public AnyCheckedDemo() {
+    setupUI();
+  }
+
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(1, 6, new Insets(0, 0, 0, 0), -1, -1));
+    final JLabel label1 = new JLabel();
+    label1.setText("Any?");
+    myRootPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    myYesNoLabel = new JLabel();
+    myYesNoLabel.setText("Label");
+    myRootPanel.add(myYesNoLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                      0, false));
+    myCheckBox1 = new JCheckBox();
+    myCheckBox1.setText("1");
+    myRootPanel.add(myCheckBox1, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myCheckBox2 = new JCheckBox();
+    myCheckBox2.setText("4");
+    myRootPanel.add(myCheckBox2, new GridConstraints(0, 5, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myCheckBox3 = new JCheckBox();
+    myCheckBox3.setText("3");
+    myRootPanel.add(myCheckBox3, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myCheckBox4 = new JCheckBox();
+    myCheckBox4.setText("2");
+    myRootPanel.add(myCheckBox4, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+  }
 
   public static void main(String[] args) {
     //noinspection SSBasedInspection

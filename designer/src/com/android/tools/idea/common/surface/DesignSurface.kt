@@ -46,7 +46,6 @@ import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.common.surface.DesignSurface.ZoomMaskConstants.Companion.INITIAL_STATE_INT_MASK
 import com.android.tools.idea.common.surface.DesignSurfaceScrollPane.Companion.createDefaultScrollPane
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
@@ -59,11 +58,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
-import com.google.common.base.Predicate
-import com.google.common.collect.Collections2
-import com.google.common.collect.ImmutableCollection
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.Sets
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataSink
@@ -125,8 +119,7 @@ private val LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 10
 private val LAYER_MOUSE_CLICK = LAYER_PROGRESS + 10
 
 /** Filter got [DesignSurface.models] to avoid returning disposed elements */
-val FILTER_DISPOSED_MODELS =
-  Predicate<NlModel> { input: NlModel? -> input != null && !input.module.isDisposed }
+val FILTER_DISPOSED_MODELS = { input: NlModel? -> input != null && !input.module.isDisposed }
 
 /**
  * A generic design surface for use in a graphical editor.
@@ -553,9 +546,9 @@ abstract class DesignSurface<T : SceneManager>(
    * Gets a copy of [listeners] under a lock. Use this method instead of accessing the listeners
    * directly.
    */
-  private fun getSurfaceListeners(): ImmutableList<DesignSurfaceListener> {
+  private fun getSurfaceListeners(): List<DesignSurfaceListener> {
     listenersLock.withLock {
-      return ImmutableList.copyOf(listeners)
+      return listeners.toList()
     }
   }
 
@@ -618,7 +611,7 @@ abstract class DesignSurface<T : SceneManager>(
         // If we want to perform a zoom-to-fit, but we don't need that [DesignSurface] notifies that
         // has been resized we reset the mask adding [NOTIFY_COMPONENT_RESIZED_INT_MASK] already.
         ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
-      } else INITIAL_STATE_INT_MASK
+      } else ZoomMaskConstants.INITIAL_STATE_INT_MASK
 
     // If we want to perform a zoom-to-fit, and we need to wait for the creation of a layout and
     // the resize of design surface we set the mask to its initial bitwise number
@@ -850,8 +843,9 @@ abstract class DesignSurface<T : SceneManager>(
   private val modelToSceneManagers = LinkedHashMap<NlModel, T>()
 
   /** Filter got [sceneManagers] to avoid returning disposed elements */
-  private val filterDisposedSceneManagers =
-    Predicate<T> { input: T? -> input != null && FILTER_DISPOSED_MODELS.apply(input.model) }
+  private val filterDisposedSceneManagers = { input: T? ->
+    input != null && FILTER_DISPOSED_MODELS.invoke(input.model)
+  }
 
   @Slow
   /** Some implementations might be slow */
@@ -866,20 +860,18 @@ abstract class DesignSurface<T : SceneManager>(
     get() = models.firstOrNull()
 
   /** @return the list of added non-disposed [NlModel]s. */
-  val models: ImmutableList<NlModel>
+  val models: List<NlModel>
     get() {
       modelToSceneManagersLock.readLock().withLock {
-        return ImmutableList.copyOf(Sets.filter(modelToSceneManagers.keys, FILTER_DISPOSED_MODELS))
+        return modelToSceneManagers.keys.filter(FILTER_DISPOSED_MODELS)
       }
     }
 
   /** @return the list of all non-disposed [SceneManager]s */
-  val sceneManagers: ImmutableList<T>
+  val sceneManagers: List<T>
     get() {
       modelToSceneManagersLock.readLock().withLock {
-        return ImmutableList.copyOf(
-          Collections2.filter(modelToSceneManagers.values, filterDisposedSceneManagers)
-        )
+        return modelToSceneManagers.values.filter(filterDisposedSceneManagers)
       }
     }
 
@@ -1053,8 +1045,8 @@ abstract class DesignSurface<T : SceneManager>(
   val isEditable: Boolean
     get() = layoutType.isEditable()
 
-  override val configurations: ImmutableCollection<Configuration>
-    get() = models.stream().map(NlModel::configuration).collect(ImmutableList.toImmutableList())
+  override val configurations: List<Configuration>
+    get() = models.map { it.configuration }
 
   /**
    * Update the status of [GuiInputHandler]. It will start or stop listening depending on the

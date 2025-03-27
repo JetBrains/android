@@ -23,10 +23,10 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
-const val GRADLE_SNAPSHOT_VERSION = "8.14-20250310135852+0000"
+const val GRADLE_SNAPSHOT_VERSION = "8.14-20250320055103+0000"
 const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "8.14-milestone-4"
 // For available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
-const val KOTLIN_SNAPSHOT_VERSION = "2.2.0-dev-5532"
+const val KOTLIN_SNAPSHOT_VERSION = "2.2.0-dev-11824"
 
 /**
  * An AGP Version definition to be used in AGP integration tests.
@@ -95,6 +95,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_86(agpVersion = "8.6.0", gradleVersion = "8.7", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_87(agpVersion = "8.7.0", gradleVersion = "8.9", jdkVersion = JDK_17, compileSdk = "35"),
   AGP_88(agpVersion = "8.8.0", gradleVersion = "8.10.2", jdkVersion = JDK_17, compileSdk = "35"),
+  AGP_89(agpVersion = "8.9.0", gradleVersion = "8.11.1", jdkVersion = JDK_17, compileSdk = "35"),
 
 
   AGP_LATEST_KOTLIN_SNAPSHOT(agpVersion = null, gradleVersion = null, kotlinVersion = KOTLIN_SNAPSHOT_VERSION, compileSdk = "34"),
@@ -181,7 +182,7 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (
   AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT,
   AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT,
   AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT -> "_"
-
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_89 -> "_Agp_8.9_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_88 -> "_Agp_8.8_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_87 -> "_Agp_8.7_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_86 -> "_Agp_8.6_"

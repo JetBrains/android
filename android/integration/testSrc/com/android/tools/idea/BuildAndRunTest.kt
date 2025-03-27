@@ -68,6 +68,11 @@ class BuildAndRunTest {
           studio.executeAction("Run")
           studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.minapp", 60, TimeUnit.SECONDS)
           emulator.logCat.waitForMatchingLine(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS)
+
+          val path = project.targetProject.resolve("src/main/java/com/example/minapp/MainActivity.kt")
+          studio.editFile(project.targetProject.fileName.toString(), path.toString(), "Hello Minimal", "Hey Minimal")
+          studio.executeAction("Run")
+          emulator.logCat.waitForMatchingLine(".*Hey Minimal World!.*", 30, TimeUnit.SECONDS)
         }
       }
     }

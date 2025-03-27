@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetContext
@@ -49,6 +50,9 @@ class ActionHelperImpl : ActionHelper {
   }
 
   override suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean {
+    if (StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get()) {
+      return true
+    }
     val backupManager = BackupManager.getInstance(project)
     val applicationIds = project.service<ProjectAppsProvider>().getApplicationIds()
     return applicationIds.any { backupManager.isInstalled(serialNumber, it) }

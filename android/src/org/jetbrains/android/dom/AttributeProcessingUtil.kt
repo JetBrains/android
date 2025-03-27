@@ -831,8 +831,8 @@ object AttributeProcessingUtil {
       // depends on appcompat. See com.android.tools.lint.checks.AppCompatResourceDetector.
       if (name == ATTR_SHOW_AS_ACTION) {
         val hasAppCompat =
-          facet.module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) ||
-            facet.module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+          facet.module.dependsOn(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7) ||
+            facet.module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT)
         if (hasAppCompat) {
           // TODO(namespaces): Replace AUTO_URI with the URI of the correct namespace.
           val xmlName = XmlName(name, AUTO_URI)

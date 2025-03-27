@@ -69,21 +69,21 @@ class SearchItemHandlerTest(
         ),
         arrayOf(
           10,
-          listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7),
+          listOf<Any>(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7),
           SdkConstants.AUTO_URI,
           "android.support.v7.widget.SearchView",
         ),
         arrayOf(
           10,
-          listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7),
+          listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT),
           SdkConstants.AUTO_URI,
           "android.support.v7.widget.SearchView",
         ),
         arrayOf(
           10,
           listOf<Any>(
-            GoogleMavenArtifactId.APP_COMPAT_V7,
-            GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7,
+            GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7,
+            GoogleMavenArtifactId.ANDROIDX_APPCOMPAT,
           ),
           SdkConstants.AUTO_URI,
           "android.support.v7.widget.SearchView",
@@ -91,21 +91,21 @@ class SearchItemHandlerTest(
         arrayOf(11, listOf<Any>(), SdkConstants.ANDROID_URI, "android.widget.SearchView"),
         arrayOf(
           11,
-          listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7),
+          listOf<Any>(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7),
           SdkConstants.AUTO_URI,
           "android.widget.SearchView",
         ),
         arrayOf(
           11,
-          listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7),
+          listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT),
           SdkConstants.AUTO_URI,
           "android.widget.SearchView",
         ),
         arrayOf(
           11,
           listOf<Any>(
-            GoogleMavenArtifactId.APP_COMPAT_V7,
-            GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7,
+            GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7,
+            GoogleMavenArtifactId.ANDROIDX_APPCOMPAT,
           ),
           SdkConstants.AUTO_URI,
           "android.widget.SearchView",

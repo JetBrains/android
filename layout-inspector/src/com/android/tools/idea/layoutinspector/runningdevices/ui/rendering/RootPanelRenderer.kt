@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -39,7 +39,7 @@ abstract class LayoutInspectorRenderer : BorderLayoutPanel(), Disposable {
  */
 class RootPanelRenderer(
   disposable: Disposable,
-  private val renderModel: RenderModel,
+  private val inspectorModel: InspectorModel,
   private val onDeviceRendererProvider: (Disposable) -> OnDeviceRendererPanel,
   private val studioRendererProvider: (Disposable) -> StudioRendererPanel,
 ) : LayoutInspectorRenderer() {
@@ -54,7 +54,8 @@ class RootPanelRenderer(
       if (!value) {
         // Clear selection to avoid keeping a selected rectangle in the ui, that would be
         // un-selectable since clicks are not being intercepted.
-        renderModel.clearSelection()
+        inspectorModel.setSelection(null, SelectionOrigin.INTERNAL)
+        inspectorModel.hoveredNode = null
       }
     }
     get() = currentRenderer?.interceptClicks == true
@@ -65,6 +66,7 @@ class RootPanelRenderer(
         // No need to replace if it's the same instance.
         return
       }
+      logger.info("Setting up renderer: ${value?.javaClass?.name}")
 
       field?.let {
         // Remove and dispose the old renderer
@@ -106,12 +108,11 @@ class RootPanelRenderer(
         // TODO(b/398195142) it would be good to refactor this class to have a ViewModel, and move
         // this logic inside the view model.
         val isXr =
-          renderModel.model.isXr || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
+          inspectorModel.isXr || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
         if (isXr) {
           when (currentRenderer) {
             is StudioRendererPanel,
             null -> {
-              logger.info("Setting up on-device renderer.")
               currentRenderer = onDeviceRendererProvider(this@RootPanelRenderer)
             }
             is OnDeviceRendererPanel -> {}
@@ -122,7 +123,6 @@ class RootPanelRenderer(
             is StudioRendererPanel -> {}
             is OnDeviceRendererPanel,
             null -> {
-              logger.info("Setting up studio-side renderer.")
               currentRenderer = studioRendererProvider(this@RootPanelRenderer)
             }
             else -> throw IllegalArgumentException("Unknown renderer: $currentRenderer")
@@ -143,13 +143,13 @@ class RootPanelRenderer(
       addMouseWheelListener(it)
     }
 
-    renderModel.model.addModificationListener(modificationListener)
-    renderModel.model.addConnectionListener(connectionListener)
+    inspectorModel.addModificationListener(modificationListener)
+    inspectorModel.addConnectionListener(connectionListener)
   }
 
   override fun dispose() {
-    renderModel.model.removeModificationListener(modificationListener)
-    renderModel.model.removeConnectionListener(connectionListener)
+    inspectorModel.removeModificationListener(modificationListener)
+    inspectorModel.removeConnectionListener(connectionListener)
   }
 
   override fun refresh() {

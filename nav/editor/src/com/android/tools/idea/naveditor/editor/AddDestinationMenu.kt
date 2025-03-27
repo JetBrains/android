@@ -89,7 +89,6 @@ import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
-import java.util.TreeSet
 import java.util.stream.Collectors
 import javax.swing.BorderFactory
 import javax.swing.JPanel
@@ -104,6 +103,7 @@ import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.util.AndroidUtils
+import java.util.*
 
 const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
 
@@ -354,7 +354,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
             maxIconWidth = dests.maxOfOrNull { it.iconWidth } ?: 0
             val listModel = FilteringListModel(CollectionListModel(dests))
             listModel.setFilter { destination ->
-              destination.label.toLowerCase().contains(searchField.text.lowercase())
+              destination.label.lowercase(Locale.getDefault()).contains(searchField.text.lowercase())
             }
             searchField.addDocumentListener(
               object : DocumentAdapter() {

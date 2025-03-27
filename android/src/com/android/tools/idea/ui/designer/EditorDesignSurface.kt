@@ -18,9 +18,7 @@ package com.android.tools.idea.ui.designer
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration
-import com.google.common.collect.ImmutableCollection
 import java.awt.LayoutManager
-import java.util.concurrent.CompletableFuture
 
 /**
  * A layout editor design surface.
@@ -35,7 +33,7 @@ abstract class EditorDesignSurface(layout: LayoutManager) : AdtPrimaryPanel(layo
    * All the configurations represented in the surface. Since there are multiple models, there can be multiple configurations
    * being rendered.
    */
-  abstract val configurations: ImmutableCollection<Configuration>
+  abstract val configurations: List<Configuration>
 
   /**
    * When called, this will trigger a re-inflate and refresh of the layout.

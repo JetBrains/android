@@ -397,7 +397,11 @@ private abstract class Observer(parentDisposable: Disposable) : Disposable {
   @Volatile private var isDisposed = false
 
   init {
-    Disposer.register(parentDisposable, this)
+    // TODO(b/405340706): replace tryRegister with register once the root cause of the early facet
+    // disposal is fixed
+    if (!Disposer.tryRegister(parentDisposable, this)) {
+      Disposer.dispose(this)
+    }
   }
 
   /**
@@ -475,12 +479,17 @@ private class ListenerMap<TKey, TObserver : ObserverWithListeners> {
   }
 
   private fun TObserver.removeOnDisposal(key: TKey) {
-    Disposer.register(this@removeOnDisposal) {
+    val disposable = Disposable {
       // The observer is being disposed. If it's still in the map, go ahead and remove it.
       synchronized(map) {
         val storedObserver = map[key]
         if (storedObserver === this@removeOnDisposal) map.remove(key)
       }
+    }
+    // TODO(b/405340706): replace tryRegister with register once the root cause of the early facet
+    // disposal is fixed
+    if (!Disposer.tryRegister(this@removeOnDisposal, disposable)) {
+      Disposer.dispose(disposable)
     }
   }
 

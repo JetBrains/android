@@ -52,6 +52,7 @@ import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection
 import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
 import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
+import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
 import com.google.idea.blaze.base.sync.BlazeSyncPlugin;
 import com.google.idea.common.experiments.ExperimentService;
@@ -81,7 +82,8 @@ public class ProjectViewSetTest extends BlazeTestCase {
                     .add(
                         ListSection.builder(DirectorySection.KEY)
                             .add(DirectoryEntry.include(new WorkspacePath("test"))))
-                    .add(ScalarSection.builder(UseQuerySyncSection.KEY).set(true))
+                    .add(ScalarSection.builder(UseQuerySyncSection.KEY).set(UseQuerySyncSection.UseQuerySync.TRUE))
+                    .add(ScalarSection.builder(WorkspaceLocationSection.KEY).set("/file/path"))
                     .add(
                         ListSection.builder(TargetSection.KEY)
                             .add(TargetExpression.fromStringSafe("//test:all")))

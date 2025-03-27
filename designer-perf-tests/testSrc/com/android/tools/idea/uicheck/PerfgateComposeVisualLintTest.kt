@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.ComposeRenderTestBase
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
+import com.android.tools.idea.rendering.LayoutlibNativeMemoryMeasurement
 import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -168,6 +169,7 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
             null,
             Metric("compose_linting_memory_use"),
           ),
+          LayoutlibNativeMemoryMeasurement(Metric("compose_linting_layoutlib_native_memory_use")),
         ),
       samplesCount = NUMBER_OF_SAMPLES,
     ) {

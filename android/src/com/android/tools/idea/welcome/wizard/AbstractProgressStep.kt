@@ -155,6 +155,7 @@ abstract class AbstractProgressStep<T : WizardModel>(model: T, name: String) :
     }
 
     override fun setIndeterminate(indeterminate: Boolean) {
+      super.setIndeterminate(indeterminate)
       invokeLater(ModalityState.stateForComponent(form.progressBar)) {
         form.progressBar.isIndeterminate = indeterminate
       }

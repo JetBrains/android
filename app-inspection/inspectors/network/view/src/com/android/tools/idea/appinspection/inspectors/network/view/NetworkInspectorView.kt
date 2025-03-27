@@ -127,12 +127,20 @@ internal class NetworkInspectorView(
 
   @VisibleForTesting val connectionsView = ConnectionsView(project, model)
 
-  val rulesView =
-    RulesTableView(project, inspectorServices.client, scope, model, inspectorServices.usageTracker)
-
   @VisibleForTesting
   val detailsPanel =
     NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }
+
+  val rulesView =
+    RulesTableView(
+      project,
+      inspectorServices.client,
+      scope,
+      model,
+      detailsPanel.ruleDetailsView,
+      inspectorServices.usageTracker,
+    )
+
   private val mainPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
   private val tooltipBinder = ViewBinder<NetworkInspectorView, TooltipModel, TooltipView>()
 

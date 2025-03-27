@@ -133,6 +133,9 @@ class ScreenshotOptions(
     val aspectRatio = h / w
     val matches = mutableListOf<MatchingSkin>()
     for (device in devices) {
+      if (device.isDeprecated) {
+        continue
+      }
       if (device.isAutomotive() != isAutomotive) {
         continue
       }

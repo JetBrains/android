@@ -51,6 +51,13 @@ private val DEFAULT_MAX_QUEUED_TASKS_HARD =
   Integer.getInteger("layoutlib.thread.max.queued.hard", 300)
 
 /**
+ * If true, it collects profile data and outputs to idea.log when the rendering takes longer than
+ * the threshold value defined in [ThreadProfileSettings].
+ */
+private val PROFILE_SLOW_RENDERING_THREAD =
+  System.getProperty("layoutlib.thread.profile.slow-rendering.enable", "true").toBoolean()
+
+/**
  * Intended to be used for executing render tasks of layoutlib [RenderSession]. Currently, all calls
  * to the layoutlib should be done from the same thread. This executor guarantees that unit of work
  * passed to [runAction] or [runAsyncAction] will be executed sequentially from the same thread.
@@ -289,10 +296,14 @@ private constructor(
         renderingExecutorService =
           SingleThreadExecutorService.create(
             "Layoutlib Render Thread",
-            ThreadProfileSettings(
-              scheduledExecutorService = scheduledExecutorService,
-              onSlowThread = { Logger.getInstance(RenderExecutor::class.java).warn(it) },
-            ),
+            if (PROFILE_SLOW_RENDERING_THREAD) {
+              ThreadProfileSettings(
+                scheduledExecutorService = scheduledExecutorService,
+                onSlowThread = { Logger.getInstance(RenderExecutor::class.java).warn(it) },
+              )
+            } else {
+              ThreadProfileSettings.disabled
+            },
           ),
         scheduledExecutorService = scheduledExecutorService,
       )

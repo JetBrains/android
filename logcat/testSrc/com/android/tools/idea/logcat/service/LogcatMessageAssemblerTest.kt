@@ -56,8 +56,7 @@ class LogcatMessageAssemblerTest {
   private val disposableRule = DisposableRule()
 
   private val projectRule = ProjectRule()
-  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule),
-                                 disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), disposableRule)
 
   private val processNameMonitor = FakeProcessNameMonitor()
 
@@ -676,10 +675,9 @@ class LogcatMessageAssemblerTest {
             "Message 6",
           )
         )
-      channel.close()
       advanceUntilIdle()
-      // TODO(b/347771901) Uncomment and fix
-      // assertThat(channel.isEmpty).isTrue()
+      assertThat(channel.isEmpty).isTrue()
+      channel.close()
     }
 
   @Test

@@ -20,6 +20,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +51,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
   public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message, @Nullable Disposable parentDisposable) {
     super(parentDisposable);
+    setupUI();
     myTitle = title;
     myMessage = message;
     int fontHeight = myMessageLabel.getFont().getSize();
@@ -125,6 +129,28 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     return getStepHeader().stepIcon;
   }
 
+  private void setupUI() {
+    myHeaderPane = new JPanel();
+    myHeaderPane.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myTitleLabel = new JBLabel();
+    myTitleLabel.setHorizontalAlignment(10);
+    myTitleLabel.setText("Wizard Step Title");
+    myHeaderPane.add(myTitleLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                       null, 0, false));
+    myMessageLabel = new JBLabel();
+    myMessageLabel.setText("Wizard step description message");
+    myHeaderPane.add(myMessageLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myHeaderPane.add(spacer1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                  GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myHeaderPane.add(spacer2, new GridConstraints(0, 1, 3, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_NONE, 1,
+                                                  GridConstraints.SIZEPOLICY_WANT_GROW, new Dimension(-1, 100), new Dimension(-1, 100),
+                                                  new Dimension(-1, 100), 0, false));
+  }
+
   public static final class WizardStepHeaderSettings {
     public static final String PRODUCT_DESCRIPTION = "Android Studio";
 
@@ -133,7 +159,10 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     @Nullable public final Icon stepIcon;
     @Nullable public final JBColor color;
 
-    private WizardStepHeaderSettings(@NotNull String title, @Nullable String description, @Nullable Icon stepIcon, @Nullable JBColor color) {
+    private WizardStepHeaderSettings(@NotNull String title,
+                                     @Nullable String description,
+                                     @Nullable Icon stepIcon,
+                                     @Nullable JBColor color) {
       this.title = title;
       this.description = description;
       this.stepIcon = stepIcon;
@@ -141,23 +170,8 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     }
 
     @NotNull
-    public static WizardStepHeaderSettings createCustomColorHeader(@NotNull JBColor color, @NotNull String title) {
-      return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, color);
-    }
-
-    @NotNull
     public static WizardStepHeaderSettings createProductHeader(@NotNull String title) {
       return new WizardStepHeaderSettings(title, PRODUCT_DESCRIPTION, null, null);
-    }
-
-    @NotNull
-    public static WizardStepHeaderSettings createTitleOnlyHeader(@NotNull String title) {
-      return new WizardStepHeaderSettings(title, null, null, null);
-    }
-
-    @NotNull
-    public static WizardStepHeaderSettings createTitleAndIconHeader(@NotNull String title, @NotNull Icon icon) {
-      return new WizardStepHeaderSettings(title, null, icon, null);
     }
   }
 }

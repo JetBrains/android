@@ -17,6 +17,7 @@
 package com.android.tools.idea.backup
 
 import com.android.backup.BackupType
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -53,8 +54,13 @@ private val DEFAULT_BACKUP_FILENAME = "application.${BackupFileType.defaultExten
 
 internal class BackupDialog(private val project: Project, initialApplicationId: String) :
   DialogWrapper(project) {
-  private val applicationIds =
-    project.getService(ProjectAppsProvider::class.java).getApplicationIds()
+  private val applicationIds = buildList {
+    if (StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get()) {
+      add(initialApplicationId)
+    }
+    addAll(project.getService(ProjectAppsProvider::class.java).getApplicationIds())
+  }
+
   private val applicationIdComboBox =
     ComboBox(DefaultComboBoxModel(applicationIds.sorted().toTypedArray())).apply {
       name = "applicationIdComboBox"

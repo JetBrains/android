@@ -65,7 +65,7 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
     )
     val jdwpSessionInfo = createJdwpProxySession(pid = 11)
     val jdwpProcess = jdwpSessionInfo.process
-    val debuggerSocketAddress = jdwpProcess.properties.jdwpSessionProxyStatus.socketAddress
+    val debuggerSocketAddress = jdwpProcess.properties.jdwpProxyStatus.socketAddress
 
     // Act
     val jdwpSession1 = jdwpSessionInfo.debuggerJdwpSession
@@ -74,16 +74,16 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
     // Close JDWP session and wait for process to reflect new status
     jdwpSession1.close()
     CoroutineTestUtils.yieldUntil {
-      !jdwpProcess.properties.jdwpSessionProxyStatus.isExternalDebuggerAttached
+      !jdwpProcess.properties.jdwpProxyStatus.isExternalDebuggerAttached
     }
-    val debuggerSocketAddress2 = jdwpProcess.properties.jdwpSessionProxyStatus.socketAddress
+    val debuggerSocketAddress2 = jdwpProcess.properties.jdwpProxyStatus.socketAddress
 
     // Open 2nd session
     val jdwpSession2 = attachDebuggerSession(jdwpProcess)
     val reply2 = sendVmVersionPacket(jdwpSession2)
 
     // Assert
-    assertTrue(jdwpProcess.properties.jdwpSessionProxyStatus.isExternalDebuggerAttached)
+    assertTrue(jdwpProcess.properties.jdwpProxyStatus.isExternalDebuggerAttached)
     assertEquals(debuggerSocketAddress, debuggerSocketAddress2)
     assertTrue(reply1.isReply)
     assertTrue(reply2.isReply)

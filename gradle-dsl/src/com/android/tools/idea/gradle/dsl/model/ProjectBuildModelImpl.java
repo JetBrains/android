@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.dsl.model.GradleModelFactory.createG
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeSettingsModel;
@@ -30,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;

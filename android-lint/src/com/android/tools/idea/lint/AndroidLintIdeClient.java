@@ -21,7 +21,6 @@ import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOG
 import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
 import static com.android.tools.lint.checks.GradleDetector.KEY_IDE_AGP_VERSION;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.util.PathString;
@@ -42,8 +41,8 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndexKt;
-import com.android.tools.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.client.api.PlatformLookup;
@@ -53,7 +52,7 @@ import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
-import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager;
+import com.android.tools.res.FileResourceReader;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
@@ -81,8 +80,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -94,9 +93,9 @@ import org.xmlpull.v1.XmlPullParser;
  * Android specific implementation of {@linkplain LintIdeClient}
  */
 public class AndroidLintIdeClient extends LintIdeClient {
-  @NonNull protected Project myProject;
+  @NotNull protected Project myProject;
 
-  public AndroidLintIdeClient(@NonNull Project project, @NotNull LintResult lintResult) {
+  public AndroidLintIdeClient(@NotNull Project project, @NotNull LintResult lintResult) {
     super(project, lintResult);
     myProject = project;
   }
@@ -263,7 +262,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @Nullable
   @Override
-  public org.w3c.dom.Document getMergedManifest(@NonNull com.android.tools.lint.detector.api.Project project) {
+  public org.w3c.dom.Document getMergedManifest(@NotNull com.android.tools.lint.detector.api.Project project) {
     final Module module = findModuleForLintProject(myProject, project);
     if (module != null) {
       MergedManifestSnapshot mergedManifest = MergedManifestManager.getFreshSnapshot(module);
@@ -283,7 +282,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @Override
   @Nullable
-  public Pair<File, ? extends Node> findManifestSourceNode(@NonNull Node mergedNode) {
+  public Pair<File, ? extends Node> findManifestSourceNode(@NotNull Node mergedNode) {
     Map<Node, Pair<File, ? extends Node>> sourceNodeCache = getSourceNodeCache();
     Pair<File, ? extends Node> source = sourceNodeCache.get(mergedNode);
     if (source != null) {
@@ -366,7 +365,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
     return model.getDesugaring();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public Iterable<File> findRuleJars(@NotNull com.android.tools.lint.detector.api.Project project) {
     Module module = getModule(project);
@@ -382,9 +381,9 @@ public class AndroidLintIdeClient extends LintIdeClient {
     return super.findRuleJars(project);
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public List<File> getResourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
+  public List<File> getResourceFolders(@NotNull com.android.tools.lint.detector.api.Project project) {
     Module module = getModule(project);
     if (module == null) {
       return super.getResourceFolders(project);
@@ -412,10 +411,10 @@ public class AndroidLintIdeClient extends LintIdeClient {
   }
 
 
-  @NonNull
+  @NotNull
   @Override
-  public ResourceRepository getResources(@NonNull com.android.tools.lint.detector.api.Project project,
-                                         @NonNull ResourceRepositoryScope scope) {
+  public ResourceRepository getResources(@NotNull com.android.tools.lint.detector.api.Project project,
+                                         @NotNull ResourceRepositoryScope scope) {
     final Module module = findModuleForLintProject(myProject, project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -446,8 +445,8 @@ public class AndroidLintIdeClient extends LintIdeClient {
   }
 
   @Override
-  @NonNull
-  public Location.ResourceItemHandle createResourceItemHandle(@NonNull ResourceItem item, boolean nameOnly, boolean valueOnly) {
+  @NotNull
+  public Location.ResourceItemHandle createResourceItemHandle(@NotNull ResourceItem item, boolean nameOnly, boolean valueOnly) {
     Supplier<Location> defaultHandleProvider =
       () -> AndroidLintIdeClient.super.createResourceItemHandle(item, nameOnly, valueOnly).resolve();
 
@@ -471,7 +470,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
       myDefaultLocationProvider = defaultLocationProvider;
     }
 
-    @NonNull
+    @NotNull
     @Override
     public Location resolve() {
       if (!ApplicationManager.getApplication().isReadAccessAllowed()) {

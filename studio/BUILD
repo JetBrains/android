@@ -222,6 +222,7 @@ studio_plugin(
             "//tools/adt/idea/gradle-dsl-groovy:intellij.android.gradle.dsl.groovy",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
             "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+            "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
             "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding",
             "//tools/adt/idea/android-lang:intellij.android.lang",
             "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector",
@@ -258,6 +259,8 @@ studio_plugin(
             "//tools/adt/idea/android-transport:intellij.android.transport",
             "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing",
             "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements",
+            "//tools/adt/idea/wear-dwf:intellij.android.wear-dwf",
+            "//tools/base/wear-wff-schema:studio.intellij.android.wear-wff-schema",
             "//tools/adt/idea/wear-whs:intellij.android.wear-whs",
             "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
             "//tools/adt/idea/wizard:intellij.android.wizard",
@@ -397,7 +400,7 @@ studio_plugin(
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/annotations:androidAnnotations",
             "//tools/adt/idea/streaming/native:native_lib",
-            "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:native_lib",
+            "//tools/adt/idea/android/native/diagnostics/heap:native_lib",
             "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
             "//tools/base/app-inspection/inspectors/backgroundtask:bundle",
             "//tools/base/app-inspection/inspectors/network:bundle",
@@ -721,6 +724,7 @@ studio_plugin(
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
         "@intellij//:org.jetbrains.kotlin",
+        "@intellij//:org.jetbrains.plugins.gradle",
     ],
 )
 

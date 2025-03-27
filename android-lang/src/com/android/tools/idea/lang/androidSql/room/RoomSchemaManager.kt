@@ -123,7 +123,7 @@ class RoomSchemaManager(val module: Module) {
   ): Set<T> {
     val result = HashSet<T>()
     annotation.bothNames { name ->
-      psiFacade.findClass(name, scope)?.let { searchPsiClasses(it, scope).mapNotNullTo(result, processor) }
+      psiFacade.findClass(name, scope)?.let { searchPsiClasses(it, scope).findAll().mapNotNullTo(result, processor) }
     }
     return result
   }

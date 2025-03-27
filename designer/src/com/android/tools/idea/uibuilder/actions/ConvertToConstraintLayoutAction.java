@@ -210,7 +210,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     boolean includeCustomViews = dialog.getIncludeCustomViews();
     boolean isAndroidx = MigrateToAndroidxUtil.isAndroidx(project);
     GoogleMavenArtifactId artifact = isAndroidx ?
-                                     GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
+                                     GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT :
                                      GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
 
     // Step #2: Ensure ConstraintLayout is available in the project

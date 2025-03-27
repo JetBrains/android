@@ -34,8 +34,13 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeUtil;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Insets;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -76,13 +81,15 @@ class ExtractStyleDialog extends DialogWrapper {
                             @NotNull List<String> dirNames,
                             @NotNull List<XmlAttribute> attributes) {
     super(module.getProject());
+    setupUI();
     myFileName = fileName;
     myDirNames = dirNames;
 
     if (parentStyleName != null && !parentStyleName.isEmpty()) {
       myStyleNameField.setText(parentStyleName + ".");
       myStyleNameField.selectAll();
-    } else {
+    }
+    else {
       String prefix = IdeResourcesUtil.prependResourcePrefix(module, null, ResourceFolderType.VALUES);
       if (prefix != null) {
         myStyleNameField.setText(prefix);
@@ -176,6 +183,7 @@ class ExtractStyleDialog extends DialogWrapper {
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
       }
+
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(false);
@@ -279,5 +287,54 @@ class ExtractStyleDialog extends DialogWrapper {
 
   public boolean isToSearchStyleApplications() {
     return mySearchForStyleApplicationsAfter.isSelected();
+  }
+
+  private void setupUI() {
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Style name:");
+    jBLabel1.setDisplayedMnemonic('S');
+    jBLabel1.setDisplayedMnemonicIndex(0);
+    myPanel.add(jBLabel1,
+                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myStyleNameField = new JTextField();
+    myPanel.add(myStyleNameField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                      new Dimension(150, -1), null, 0, false));
+    myAttributeListWrapper = new JPanel();
+    myAttributeListWrapper.setLayout(new BorderLayout(0, 0));
+    myPanel.add(myAttributeListWrapper, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                            null, new Dimension(-1, 200), null, 0, false));
+    myAttributesLabel = new JBLabel();
+    myAttributesLabel.setText("Attributes:");
+    myAttributesLabel.setDisplayedMnemonic('A');
+    myAttributesLabel.setDisplayedMnemonicIndex(0);
+    myPanel.add(myAttributesLabel,
+                new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myModuleLabel = new JBLabel();
+    myModuleLabel.setText("Module:");
+    myModuleLabel.setDisplayedMnemonic('M');
+    myModuleLabel.setDisplayedMnemonicIndex(0);
+    myPanel.add(myModuleLabel,
+                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myModuleCombo = new ModulesComboBox();
+    myPanel.add(myModuleCombo, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                   GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                   0, false));
+    mySearchForStyleApplicationsAfter = new JBCheckBox();
+    mySearchForStyleApplicationsAfter.setText("Launch 'Use Style Where Possible' refactoring after the style is extracted");
+    mySearchForStyleApplicationsAfter.setMnemonic('L');
+    mySearchForStyleApplicationsAfter.setDisplayedMnemonicIndex(0);
+    myPanel.add(mySearchForStyleApplicationsAfter,
+                new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    jBLabel1.setLabelFor(myStyleNameField);
+    myModuleLabel.setLabelFor(myModuleCombo);
   }
 }

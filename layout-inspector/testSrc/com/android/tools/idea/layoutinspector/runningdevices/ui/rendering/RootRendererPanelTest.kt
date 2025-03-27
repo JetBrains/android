@@ -55,7 +55,6 @@ class RootRendererPanelTest {
   @get:Rule val edtRule = EdtRule()
 
   private lateinit var inspectorModel: InspectorModel
-  private lateinit var renderModel: RenderModel
   private lateinit var onDeviceRenderModel: OnDeviceRendererModel
   private lateinit var onDeviceRendererPanel: OnDeviceRendererPanel
   private lateinit var studioRendererPanel: StudioRendererPanel
@@ -78,7 +77,7 @@ class RootRendererPanelTest {
         FakeRenderSettings(),
       )
 
-    renderModel =
+    val renderModel =
       RenderModel(
         model = inspectorModel,
         notificationModel = mock(),
@@ -100,7 +99,7 @@ class RootRendererPanelTest {
     val rootPanelRenderer =
       RootPanelRenderer(
         disposable = disposableRule.disposable,
-        renderModel = renderModel,
+        inspectorModel = inspectorModel,
         onDeviceRendererProvider = { onDeviceRendererPanel },
         studioRendererProvider = { studioRendererPanel },
       )
@@ -132,7 +131,7 @@ class RootRendererPanelTest {
     val rootPanelRenderer =
       RootPanelRenderer(
         disposable = disposableRule.disposable,
-        renderModel = renderModel,
+        inspectorModel = inspectorModel,
         onDeviceRendererProvider = { onDeviceRendererPanel },
         studioRendererProvider = { studioRendererPanel },
       )
@@ -152,7 +151,7 @@ class RootRendererPanelTest {
     val rootPanelRenderer =
       RootPanelRenderer(
         disposable = disposableRule.disposable,
-        renderModel = renderModel,
+        inspectorModel = inspectorModel,
         onDeviceRendererProvider = { onDeviceRendererPanel },
         studioRendererProvider = { studioRendererPanel },
       )
@@ -160,7 +159,7 @@ class RootRendererPanelTest {
     rootPanelRenderer.size = Dimension(200, 250)
     rootPanelRenderer.interceptClicks = true
 
-    assertThat(renderModel.model.selection).isNull()
+    assertThat(inspectorModel.selection).isNull()
 
     val fakeUi = FakeUi(rootPanelRenderer)
 
@@ -172,7 +171,7 @@ class RootRendererPanelTest {
     fakeUi.render()
     fakeUi.layoutAndDispatchEvents()
 
-    assertThat(renderModel.model.selection).isEqualTo(renderModel.model[ROOT])
+    assertThat(inspectorModel.selection).isEqualTo(inspectorModel[ROOT])
   }
 
   @Test
@@ -180,7 +179,7 @@ class RootRendererPanelTest {
     val rootPanelRenderer =
       RootPanelRenderer(
         disposable = disposableRule.disposable,
-        renderModel = renderModel,
+        inspectorModel = inspectorModel,
         onDeviceRendererProvider = { onDeviceRendererPanel },
         studioRendererProvider = { studioRendererPanel },
       )
@@ -212,7 +211,7 @@ class RootRendererPanelTest {
     val rootPanelRenderer =
       RootPanelRenderer(
         disposable = disposableRule.disposable,
-        renderModel = renderModel,
+        inspectorModel = inspectorModel,
         onDeviceRendererProvider = { onDeviceRendererPanel },
         studioRendererProvider = { studioRendererPanel },
       )

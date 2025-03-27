@@ -133,7 +133,7 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE,
-                        min(codec_info.max_frame_rate, Agent::is_watch() ? REDUCED_FRAME_RATE : MAX_FRAME_RATE));
+                        min(codec_info.max_frame_rate, Agent::device_type() == DeviceType::WATCH ? REDUCED_FRAME_RATE : MAX_FRAME_RATE));
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, bit_rate);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
   if (status != AMEDIA_OK) {
@@ -245,7 +245,7 @@ void DisplayStreamer::Run() {
       }
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
-      if (display_info.rotation == 2 && rotation_correction == 0 && !Agent::is_watch()) {
+      if (display_info.rotation == 2 && rotation_correction == 0 && Agent::device_type() != DeviceType::WATCH) {
         // Simulated rotation is not capable of distinguishing between regular and upside down
         // display orientation. Compensate for that using rotation_correction.
         display_info.rotation = 0;

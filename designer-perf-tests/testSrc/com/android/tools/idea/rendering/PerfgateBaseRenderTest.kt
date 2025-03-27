@@ -97,7 +97,12 @@ class PerfgateBaseRenderTest : AndroidTestCase() {
         }
         metric!!
       }
-    computeAndRecordMetric("inflate_time_base", "inflate_memory_base", computable)
+    computeAndRecordMetric(
+      "inflate_time_base",
+      "inflate_memory_base",
+      "inflate_layoutlib_native_memory_base",
+      computable,
+    )
   }
 
   @Throws(Exception::class)
@@ -110,6 +115,11 @@ class PerfgateBaseRenderTest : AndroidTestCase() {
         }
         metric!!
       }
-    computeAndRecordMetric("render_time_base", "render_memory_base", computable)
+    computeAndRecordMetric(
+      "render_time_base",
+      "render_memory_base",
+      "render_layoutlib_native_memory_base",
+      computable,
+    )
   }
 }

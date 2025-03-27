@@ -1136,8 +1136,8 @@ class FakeScreenSharingAgent(
       return message.type !in messageTypesToIgnore
     }
 
-    fun or(vararg moreMethodNamesToIgnore: Int): ControlMessageFilter {
-      return ControlMessageFilter(*messageTypesToIgnore + intArrayOf(*moreMethodNamesToIgnore))
+    fun or(vararg moreMethodTypesToIgnore: Int): ControlMessageFilter {
+      return ControlMessageFilter(*messageTypesToIgnore + intArrayOf(*moreMethodTypesToIgnore))
     }
   }
 
