@@ -800,6 +800,10 @@ class DeviceFileExplorerControllerImpl(
           return
         } catch (e: Exception) {
           showErrorMessage(errorMessage(newFileName), e)
+          if (e.message?.endsWith("Permission denied") == true) {
+            // If permission is denied, just exit, since user won't be able to make a file here anyway.
+            break
+          }
           initialName = newFileName
         }
       }
