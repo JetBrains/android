@@ -560,7 +560,7 @@ iml_module(
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
-    test_resources = ["testSrc/resources"],
+    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = ["block-network"],
     test_timeout = "long",
