@@ -36,7 +36,6 @@ import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENT
 import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 
-import com.android.annotations.NonNull;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
@@ -492,7 +491,7 @@ public class AndroidSdksImpl implements AndroidSdks {
   }
 
   @Override
-  public boolean isInAndroidSdk(@NonNull PsiElement element) {
+  public boolean isInAndroidSdk(@NotNull PsiElement element) {
     VirtualFile file = getVirtualFile(element);
     if (file == null) {
       return false;
@@ -501,7 +500,7 @@ public class AndroidSdksImpl implements AndroidSdks {
   }
 
   @Override
-  public boolean isInAndroidSdk(@NonNull Project project, @NonNull VirtualFile file) {
+  public boolean isInAndroidSdk(@NotNull Project project, @NotNull VirtualFile file) {
     ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
     List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(file);
     for (OrderEntry entry : entries) {

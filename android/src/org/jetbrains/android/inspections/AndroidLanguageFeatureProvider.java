@@ -1,7 +1,6 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
-import com.android.annotations.Nullable;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.module.AndroidModuleInfo;
 import com.intellij.pom.java.JavaFeature;
@@ -10,6 +9,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.ThreeState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLanguageFeatureProvider implements LanguageFeatureProvider {
   @NotNull

@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBLabel;
@@ -28,7 +26,6 @@ import java.awt.Insets;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import kotlin.sequences.SequencesKt;
@@ -69,7 +66,7 @@ public class AndroidTestExtraParamsDialog extends DialogWrapper {
    */
   public AndroidTestExtraParamsDialog(@NotNull Project project,
                                       @Nullable AndroidFacet androidFacet,
-                                      @NonNull String instrumentationExtraParams) {
+                                      @NotNull String instrumentationExtraParams) {
     super(project);
     setupUI();
     init();

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.annotations.NonNull;
 import com.android.tools.concurrency.AndroidIoManager;
 import com.android.utils.concurrency.CachedAsyncSupplier;
 import com.google.common.collect.Maps;
@@ -97,7 +96,7 @@ public class OpenProjectFileChooserDescriptorWithAsyncIcon extends OpenProjectFi
       return getIcon().getIconHeight();
     }
 
-    @NonNull
+    @NotNull
     private final Icon getIcon() {
       Icon icon = myIconAsyncSupplier.getNow();
       return icon != null ? icon : myPlaceholderIcon;

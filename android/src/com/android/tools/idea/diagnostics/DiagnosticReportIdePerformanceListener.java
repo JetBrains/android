@@ -17,7 +17,6 @@ package com.android.tools.idea.diagnostics;
 
 import static java.nio.file.Files.newDirectoryStream;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.ThreadDump;
@@ -26,7 +25,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.messages.MessageBusConnection;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.DirectoryStream;
@@ -156,7 +154,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
       return new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date(timeMs));
   }
 
-  @NonNull
+  @NotNull
   private static Path tryFixReportPath(@NotNull Path path) {
     Path reportDirectory = path.getParent();
     if (Files.isDirectory(reportDirectory)) {

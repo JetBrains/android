@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import com.android.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class HeapTraverseNode {
 

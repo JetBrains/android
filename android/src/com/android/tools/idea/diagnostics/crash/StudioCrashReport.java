@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.diagnostics.crash;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.android.tools.idea.diagnostics.crash.exception.JvmCrashException;
 import com.android.tools.idea.diagnostics.crash.exception.NonGracefulExitException;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StudioCrashReport extends BaseStudioReport {
   private final List<String> descriptions;
@@ -39,14 +38,14 @@ public class StudioCrashReport extends BaseStudioReport {
   private final String nativeStack;
 
   private StudioCrashReport(@Nullable String version,
-                            @NonNull List<String> descriptions,
+                            @NotNull List<String> descriptions,
                             @Nullable Map<String, String> productData,
                             boolean isJvmCrash,
                             long uptimeInMs,
-                            @NonNull String errorSignal,
-                            @NonNull String errorFrame,
-                            @NonNull String errorThread,
-                            @NonNull String nativeStack) {
+                            @NotNull String errorSignal,
+                            @NotNull String errorFrame,
+                            @NotNull String errorThread,
+                            @NotNull String nativeStack) {
     super(version, productData, "Crash");
     this.descriptions = descriptions;
     this.isJvmCrash = isJvmCrash;
@@ -58,7 +57,7 @@ public class StudioCrashReport extends BaseStudioReport {
   }
 
   @Override
-  protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+  protected void serializeTo(@NotNull MultipartEntityBuilder builder) {
     super.serializeTo(builder);
 
     builder.addTextBody("numCrashes", Integer.toString(descriptions.size()));
@@ -100,43 +99,43 @@ public class StudioCrashReport extends BaseStudioReport {
       return this;
     }
 
-    @NonNull
-    public Builder setDescriptions(@NonNull List<String> descriptions) {
+    @NotNull
+    public Builder setDescriptions(@NotNull List<String> descriptions) {
       this.descriptions = descriptions;
       return this;
     }
 
-    @NonNull
+    @NotNull
     public Builder setIsJvmCrash(boolean isJvmCrash) {
       this.isJvmCrash = isJvmCrash;
       return this;
     }
 
-    @NonNull
+    @NotNull
     public Builder setUptimeInMs(long uptimeInMs) {
       this.uptimeInMs = uptimeInMs;
       return this;
     }
 
-    @NonNull
+    @NotNull
     public Builder setErrorSignal(String errorSignal) {
       this.errorSignal = errorSignal;
       return this;
     }
 
-    @NonNull
+    @NotNull
     public Builder setErrorFrame(String errorFrame) {
       this.errorFrame = errorFrame;
       return this;
     }
 
-    @NonNull
+    @NotNull
     public Builder setErrorThread(String errorThread) {
       this.errorThread = errorThread;
       return this;
     }
 
-    @NonNull
+    @NotNull
     public Builder setNativeStack(String nativeStack) {
       this.nativeStack = nativeStack;
       return this;

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.io.CancellableFileIo;
 import com.android.repository.api.Checksum;
 import com.android.repository.api.Downloader;
@@ -49,6 +47,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link Downloader} that uses Studio's {@link HttpRequests} to download files. Saves the file to a temp location and returns a
@@ -118,7 +117,7 @@ public class StudioDownloader implements Downloader {
 
   @NotNull private final SettingsController mySettingsController;
 
-  @NonNull private final RepositoryAddonsListVersionUrlFilter myUrlFilter = new RiscVUrlFilter();
+  @NotNull private final RepositoryAddonsListVersionUrlFilter myUrlFilter = new RiscVUrlFilter();
 
 
   public StudioDownloader() {
@@ -274,8 +273,8 @@ public class StudioDownloader implements Downloader {
     });
   }
 
-  @NonNull
-  private Path getInterimDownloadLocationForTarget(@NonNull Path target) {
+  @NotNull
+  private Path getInterimDownloadLocationForTarget(@NotNull Path target) {
     if (mDownloadIntermediatesLocation != null) {
       return mDownloadIntermediatesLocation.resolve(target.getFileName().toString() + DOWNLOAD_SUFFIX_FN);
     }

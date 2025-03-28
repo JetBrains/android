@@ -23,7 +23,6 @@ import static com.intellij.testFramework.UsefulTestCase.assertSize;
 import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static org.junit.Assert.assertThat;
 
-import com.android.annotations.NonNull;
 import com.android.testutils.TestUtils;
 import com.android.testutils.classloader.SingleClassLoader;
 import com.android.tools.analytics.crash.CrashReport;
@@ -35,7 +34,6 @@ import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.testFramework.ApplicationRule;
@@ -534,8 +532,8 @@ public class HeapAnalyzerTest {
     List<CrashReport> crashReports = Lists.newArrayList();
 
     @Override
-    @NonNull
-    public CompletableFuture<String> submit(@NonNull CrashReport report, boolean userReported) {
+    @NotNull
+    public CompletableFuture<String> submit(@NotNull CrashReport report, boolean userReported) {
       crashReports.add(report);
       return super.submit(report, userReported);
     }
@@ -981,7 +979,7 @@ public class HeapAnalyzerTest {
 
     private final Pattern myPattern;
 
-    public RegexMatcher(@NonNull String patternString) {
+    public RegexMatcher(@NotNull String patternString) {
       super(patternString);
       myPattern = Pattern.compile(patternString);
     }

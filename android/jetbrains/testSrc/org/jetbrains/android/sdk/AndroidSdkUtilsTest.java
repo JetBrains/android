@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.mockito.Mockito.when;
 
-import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
@@ -33,6 +32,7 @@ import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.EnvironmentUtil;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -72,7 +72,7 @@ public class AndroidSdkUtilsTest extends HeavyPlatformTestCase {
     assertEquals("API 100.0", AndroidSdkUtils.getTargetLabel(anotherUnknownTarget));
 
     IAndroidTarget platformPreviewTarget = new MockPlatformTarget(100, 1) {
-      @NonNull
+      @NotNull
       @Override
       public AndroidVersion getVersion() {
         return new AndroidVersion(100, "Z");

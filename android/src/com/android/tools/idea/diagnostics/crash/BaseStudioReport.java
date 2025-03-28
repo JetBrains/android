@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.diagnostics.crash;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.crash.CrashReport;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ui.NewUI;
 import java.util.Map;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 
 /** Crash report that uses Android Studio product id. */
 public abstract class BaseStudioReport extends CrashReport {
   public BaseStudioReport(@Nullable String version,
                           @Nullable Map<String, String> productData,
-                          @NonNull String type) {
+                          @NotNull String type) {
     super(StudioCrashReporter.PRODUCT_ANDROID_STUDIO, version, productData, type);
   }
 
   @Override
-  protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+  protected void serializeTo(@NotNull MultipartEntityBuilder builder) {
     AndroidStudioEvent.IdeBrand ideBrand = UsageTracker.getIdeBrand();
     builder.addTextBody("ideBrand", ideBrand.getValueDescriptor().getName());
 

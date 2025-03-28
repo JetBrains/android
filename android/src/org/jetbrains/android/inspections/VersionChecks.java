@@ -2,8 +2,6 @@ package org.jetbrains.android.inspections;
 
 import static com.android.tools.lint.detector.api.VersionChecks.SDK_INT;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.sdklib.SdkVersionInfo;
 import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiBinaryExpression;
@@ -34,6 +32,8 @@ import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for checking whether a given element is surrounded (or preceded!) by
@@ -44,7 +44,7 @@ import com.intellij.psi.util.PsiUtil;
  */
 public class VersionChecks {
   private interface ApiLevelLookup {
-    int getApiLevel(@NonNull PsiElement element);
+    int getApiLevel(@NotNull PsiElement element);
   }
 
   public static boolean isPrecededByVersionCheckExit(PsiElement element, int api) {
@@ -127,7 +127,7 @@ public class VersionChecks {
     return prevStatement instanceof PsiStatement ? (PsiStatement)prevStatement : null;
   }
 
-  public static boolean isWithinVersionCheckConditional(@NonNull PsiElement element, int api) {
+  public static boolean isWithinVersionCheckConditional(@NotNull PsiElement element, int api) {
     PsiElement current = PsiUtil.skipParenthesizedExprUp(element.getParent());
     PsiElement prev = element;
     while (current != null) {
@@ -170,7 +170,7 @@ public class VersionChecks {
 
   @Nullable
   private static Boolean isVersionCheckConditional(int api,
-                                                   @NonNull PsiElement element, boolean and, @Nullable PsiElement prev,
+                                                   @NotNull PsiElement element, boolean and, @Nullable PsiElement prev,
                                                    @Nullable ApiLevelLookup apiLookup) {
     if (element instanceof PsiPolyadicExpression) {
       if (element instanceof PsiBinaryExpression) {
@@ -296,7 +296,7 @@ public class VersionChecks {
     return null;
   }
 
-  private static boolean isSdkInt(@NonNull PsiElement element) {
+  private static boolean isSdkInt(@NotNull PsiElement element) {
     if (element instanceof PsiReferenceExpression) {
       PsiReferenceExpression ref = (PsiReferenceExpression) element;
       if (SDK_INT.equals(ref.getReferenceName())) {
@@ -322,7 +322,7 @@ public class VersionChecks {
   @Nullable
   private static Boolean isVersionCheckConditional(int api,
                                                    boolean fromThen,
-                                                   @NonNull PsiBinaryExpression binary,
+                                                   @NotNull PsiBinaryExpression binary,
                                                    @Nullable ApiLevelLookup apiLevelLookup) {
     IElementType tokenType = binary.getOperationTokenType();
     if (tokenType == JavaTokenType.GT || tokenType == JavaTokenType.GE ||

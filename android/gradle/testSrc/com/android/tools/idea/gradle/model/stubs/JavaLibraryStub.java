@@ -15,50 +15,50 @@
  */
 package com.android.tools.idea.gradle.model.stubs;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class JavaLibraryStub extends LibraryStub implements JavaLibrary {
-    @NonNull private final File myJarFile;
-    @NonNull private final List<JavaLibrary> myDependencies;
+    @NotNull private final File myJarFile;
+    @NotNull private final List<JavaLibrary> myDependencies;
 
     public JavaLibraryStub() {
         this(new File("jarFile"), new ArrayList<>());
     }
 
-    public JavaLibraryStub(@NonNull File jarFile, @NonNull List<JavaLibrary> dependencies) {
+    public JavaLibraryStub(@NotNull File jarFile, @NotNull List<JavaLibrary> dependencies) {
         myJarFile = jarFile;
         myDependencies = dependencies;
     }
 
     public JavaLibraryStub(
-            @NonNull MavenCoordinates coordinates,
+            @NotNull MavenCoordinates coordinates,
             @Nullable String buildId,
             @Nullable String project,
             @Nullable String name,
             boolean provided,
             boolean isSkipped,
-            @NonNull File jarFile,
-            @NonNull List<JavaLibrary> dependencies) {
+            @NotNull File jarFile,
+            @NotNull List<JavaLibrary> dependencies) {
         super(coordinates, buildId, project, name, provided, isSkipped);
         myJarFile = jarFile;
         myDependencies = dependencies;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getJarFile() {
         return myJarFile;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public List<? extends JavaLibrary> getDependencies() {
         return myDependencies;
     }

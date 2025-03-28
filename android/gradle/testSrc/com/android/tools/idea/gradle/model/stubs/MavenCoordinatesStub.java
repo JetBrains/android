@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.gradle.model.stubs;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.builder.model.MavenCoordinates;
 import com.android.tools.idea.gradle.model.UnusedModelMethodException;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MavenCoordinatesStub extends BaseStub implements MavenCoordinates {
-    @NonNull private final String myGroupId;
-    @NonNull private final String myArtifactId;
-    @NonNull private final String myVersion;
-    @NonNull private final String myPackaging;
+    @NotNull private final String myGroupId;
+    @NotNull private final String myArtifactId;
+    @NotNull private final String myVersion;
+    @NotNull private final String myPackaging;
 
     public MavenCoordinatesStub() {
         this("com.android.tools", "test", "2.1", "aar");
     }
 
     public MavenCoordinatesStub(
-            @NonNull String groupId,
-            @NonNull String artifactId,
-            @NonNull String version,
-            @NonNull String packaging) {
+            @NotNull String groupId,
+            @NotNull String artifactId,
+            @NotNull String version,
+            @NotNull String packaging) {
         myGroupId = groupId;
         myArtifactId = artifactId;
         myVersion = version;
@@ -43,25 +43,25 @@ public class MavenCoordinatesStub extends BaseStub implements MavenCoordinates {
     }
 
     @Override
-    @NonNull
+    @NotNull
     public String getGroupId() {
         return myGroupId;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public String getArtifactId() {
         return myArtifactId;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public String getVersion() {
         return myVersion;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public String getPackaging() {
         return myPackaging;
     }
@@ -73,7 +73,7 @@ public class MavenCoordinatesStub extends BaseStub implements MavenCoordinates {
     }
 
     @Override
-    @NonNull
+    @NotNull
     public String getVersionlessId() {
         throw new UnusedModelMethodException("getVersionlessId");
     }

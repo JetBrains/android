@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.crash;
 
-import com.android.annotations.NonNull;
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,13 +23,14 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiInvalidElementAccessException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.jetbrains.annotations.NotNull;
 
 public class StudioPsiInvalidationTraceReport extends BaseStudioReport {
   private final String invalidationReason;
   private final Throwable currentStack;
   private final String threadDump;
 
-  public StudioPsiInvalidationTraceReport(@NonNull PsiFile psiFile, @NonNull String threadDump) {
+  public StudioPsiInvalidationTraceReport(@NotNull PsiFile psiFile, @NotNull String threadDump) {
     super(null, null, "PsiInvalidationTrace");
     this.invalidationReason = getInvalidationReason(psiFile);
     this.currentStack = new Throwable();
@@ -38,7 +38,7 @@ public class StudioPsiInvalidationTraceReport extends BaseStudioReport {
   }
 
   @Override
-  protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+  protected void serializeTo(@NotNull MultipartEntityBuilder builder) {
     super.serializeTo(builder);
 
     builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, Throwables.getStackTraceAsString(currentStack));

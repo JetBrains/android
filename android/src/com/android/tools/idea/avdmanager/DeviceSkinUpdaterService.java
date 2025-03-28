@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.repository.api.ProgressIndicator;
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -34,7 +32,6 @@ import com.intellij.openapi.components.Service;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -43,6 +40,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @Service
 public final class DeviceSkinUpdaterService {

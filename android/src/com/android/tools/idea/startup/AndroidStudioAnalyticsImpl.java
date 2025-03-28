@@ -189,8 +189,8 @@ public class AndroidStudioAnalyticsImpl extends AndroidStudioAnalytics {
       // Create logger & scheduler based on IntelliJ/ADT helpers.
       androidLogger = new ILogger() {
         @Override
-        public void error(@com.android.annotations.Nullable Throwable t,
-                          @com.android.annotations.Nullable String msgFormat,
+        public void error(@Nullable Throwable t,
+                          @Nullable String msgFormat,
                           Object... args) {
           intelliJLogger.error(String.format(msgFormat, args), t);
         }

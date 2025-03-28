@@ -17,7 +17,6 @@ package com.android.tools.idea.sdk.install;
 
 import static com.android.tools.idea.sdk.SdksCleanupUtil.updateSdkIfNeeded;
 
-import com.android.annotations.NonNull;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -34,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class VfsInstallListener implements PackageOperation.StatusChangeListener {
   @Override
-  public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress) {
+  public void statusChanged(@NotNull PackageOperation op, @NotNull ProgressIndicator progress) {
     if (op.getInstallStatus().equals(PackageOperation.InstallStatus.COMPLETE)) {
       new Task.Backgroundable(null, "Refreshing...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
         @Override
@@ -46,8 +45,8 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
     }
   }
 
-  private static void doRefresh(@NonNull PackageOperation op,
-                                @NonNull ProgressIndicator progress) {
+  private static void doRefresh(@NotNull PackageOperation op,
+                                @NotNull ProgressIndicator progress) {
     // We must refreshIfNeeded otherwise directories that are added will never be refreshed
     VirtualFile file = VfsUtil.findFile(op.getLocation(progress), true);
     if (file != null) {

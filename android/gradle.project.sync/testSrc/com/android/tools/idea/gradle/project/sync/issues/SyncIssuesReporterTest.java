@@ -47,8 +47,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -71,6 +69,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -267,7 +266,7 @@ public class SyncIssuesReporterTest {
         return "";
       }
 
-      @NonNull
+      @NotNull
       @Override
       public String getMessage() {
         return "";
@@ -285,7 +284,7 @@ public class SyncIssuesReporterTest {
       }
 
       @Override
-      public boolean equals(@NonNull Object o) {
+      public boolean equals(@NotNull Object o) {
         return o instanceof IdeSyncIssue;
       }
     };

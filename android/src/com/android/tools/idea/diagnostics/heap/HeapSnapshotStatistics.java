@@ -18,7 +18,6 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
-import com.android.annotations.NonNull;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.android.tools.idea.diagnostics.report.DiagnosticCrashReport;
@@ -201,7 +200,7 @@ public final class HeapSnapshotStatistics {
     }
     return new DiagnosticCrashReport("Extended Memory Report", new DiagnosticReportProperties()) {
       @Override
-      public void serialize(@NonNull final MultipartEntityBuilder builder) {
+      public void serialize(@NotNull final MultipartEntityBuilder builder) {
         super.serialize(builder);
         String exceededComponentsPresentation = exceededComponents.stream().map(
           ComponentsSet.Component::getLabel).collect(Collectors.joining(","));

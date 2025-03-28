@@ -16,8 +16,8 @@
 
 package com.example.google.lint;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Detector;
 import com.android.tools.lint.detector.api.Implementation;
@@ -51,7 +51,7 @@ public class MyDetector extends Detector implements SourceCodeScanner {
     }
 
     @Override
-    public void visitClass(@NonNull JavaContext context, @NonNull UClass declaration) {
+    public void visitClass(@NotNull JavaContext context, @NotNull UClass declaration) {
         context.report(
                 ISSUE,
                 declaration,

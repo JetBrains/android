@@ -16,16 +16,15 @@
 package com.android.tools.idea.sdk.install;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.repository.api.*;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.PackageOperation;
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.adb.AdbService;
 import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Installer for platform-tools that stops ADB before installing or uninstalling.
@@ -37,7 +36,7 @@ public class PlatformToolsInstallListener implements PackageOperation.StatusChan
     mySdkHandler = sdkHandler;
   }
 
-  private void stopAdb(@NonNull ProgressIndicator progress) {
+  private void stopAdb(@NotNull ProgressIndicator progress) {
     AdbService adbService = AdbService.getInstance();
     progress.logInfo("Stopping ADB...");
     Path adb = getAdb(progress);
@@ -68,7 +67,7 @@ public class PlatformToolsInstallListener implements PackageOperation.StatusChan
   }
 
   @Override
-  public void statusChanged(@NonNull PackageOperation installer, @NonNull final ProgressIndicator progress) {
+  public void statusChanged(@NotNull PackageOperation installer, @NotNull final ProgressIndicator progress) {
     if (installer.getInstallStatus() == PackageOperation.InstallStatus.RUNNING) {
       stopAdb(progress);
     }

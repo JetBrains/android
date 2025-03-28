@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.annotations.Nullable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProjectLibraries {
   @NotNull private final Project myProject;

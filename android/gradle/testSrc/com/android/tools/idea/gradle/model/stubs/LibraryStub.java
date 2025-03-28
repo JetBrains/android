@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.model.stubs;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.builder.model.Library;
 import com.android.builder.model.MavenCoordinates;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LibraryStub extends BaseStub implements Library {
-    @NonNull private final MavenCoordinates myResolvedCoordinates;
+    @NotNull private final MavenCoordinates myResolvedCoordinates;
     @Nullable private final MavenCoordinates myRequestedCoordinates;
     @Nullable private final String myBuildId;
     @Nullable private final String myProject;
@@ -34,7 +34,7 @@ public class LibraryStub extends BaseStub implements Library {
     }
 
     public LibraryStub(
-            @NonNull MavenCoordinates coordinates,
+            @NotNull MavenCoordinates coordinates,
             @Nullable String buildId,
             @Nullable String project,
             @Nullable String name,
@@ -45,7 +45,7 @@ public class LibraryStub extends BaseStub implements Library {
 
     public LibraryStub(
       @Nullable MavenCoordinates resolvedCoordinates,
-      @NonNull MavenCoordinates requestedCoordinates,
+      @NotNull MavenCoordinates requestedCoordinates,
       @Nullable String buildId,
       @Nullable String project,
       @Nullable String name,
@@ -67,7 +67,7 @@ public class LibraryStub extends BaseStub implements Library {
     }
 
     @Override
-    @NonNull
+    @NotNull
     public MavenCoordinates getResolvedCoordinates() {
         return myResolvedCoordinates;
     }

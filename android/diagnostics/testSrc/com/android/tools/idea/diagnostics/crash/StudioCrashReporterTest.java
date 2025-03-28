@@ -24,8 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.analytics.NullUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.UsageTrackerWriter;
@@ -63,6 +61,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.core.SubstringMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -334,7 +333,7 @@ public class StudioCrashReporterTest {
       "threadDump"));
   }
 
-  private static void submit(@NonNull GoogleCrashReporter reporter, @NonNull CrashReport report) {
+  private static void submit(@NotNull GoogleCrashReporter reporter, @NotNull CrashReport report) {
     CompletableFuture<String> response = reporter.submit(report, true);
     try {
       String reportId = response.get(20, TimeUnit.SECONDS);
@@ -440,8 +439,8 @@ public class StudioCrashReporterTest {
     return throwable;
   }
 
-  @NonNull
-  private static String getStackTrace(@NonNull Throwable t) {
+  @NotNull
+  private static String getStackTrace(@NotNull Throwable t) {
     final StringWriter stringWriter = new StringWriter();
     try (PrintWriter writer = new PrintWriter(stringWriter)) {
       t.printStackTrace(writer);
@@ -454,7 +453,7 @@ public class StudioCrashReporterTest {
 
     private final Pattern myPattern;
 
-    public RegexMatcher(@NonNull String patternString) {
+    public RegexMatcher(@NotNull String patternString) {
       super(patternString);
       myPattern = Pattern.compile(patternString);
     }

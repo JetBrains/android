@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -32,6 +30,7 @@ import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The {@linkplain FlagManager} provides access to flags for regions known
@@ -102,7 +101,7 @@ public class FlagManager {
    * @return a suitable flag icon, or null
    */
   @Nullable
-  public Icon getFlag(@NonNull FolderConfiguration configuration) {
+  public Icon getFlag(@NotNull FolderConfiguration configuration) {
     return getFlag(configuration.getLocaleQualifier());
   }
 

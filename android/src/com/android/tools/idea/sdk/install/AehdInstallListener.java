@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import com.android.annotations.NonNull;
 import com.android.repository.api.Installer;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
@@ -26,13 +25,14 @@ import com.android.tools.idea.welcome.install.AehdSdkComponentTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link PackageOperation.StatusChangeListener} for installing AEHD. Runs the {@link AehdWizard} instead of the normal quickfix wizard.
  */
 public class AehdInstallListener implements PackageOperation.StatusChangeListener {
   @Override
-  public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress)
+  public void statusChanged(@NotNull PackageOperation op, @NotNull ProgressIndicator progress)
     throws PackageOperation.StatusChangeListenerException {
 
     if ((op instanceof Uninstaller && op.getInstallStatus() == PackageOperation.InstallStatus.RUNNING) ||

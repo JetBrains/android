@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.model.stubs;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.gradle.model.UnusedModelMethodException;
 import java.util.Objects;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
 
 public class BaseStub {
-    protected <T> boolean equals(@NonNull T other, @NonNull Function<T, Object> function) {
+    protected <T> boolean equals(@NotNull T other, @NotNull Function<T, Object> function) {
         try {
             //noinspection unchecked
             return Objects.equals(function.apply((T) this), function.apply(other));

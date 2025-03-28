@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.model.stubs;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
@@ -26,14 +24,16 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLibraryStub extends AndroidBundleStub implements AndroidLibrary {
-    @NonNull private final Collection<File> myLocalJars;
-    @NonNull private final File myProguardRules;
-    @NonNull private final File myLintJar;
-    @NonNull private final File myPublicResources;
-    @NonNull private final File mySymbolFile;
-    @NonNull private final File myExternalAnnotations;
+    @NotNull private final Collection<File> myLocalJars;
+    @NotNull private final File myProguardRules;
+    @NotNull private final File myLintJar;
+    @NotNull private final File myPublicResources;
+    @NotNull private final File mySymbolFile;
+    @NotNull private final File myExternalAnnotations;
 
     public AndroidLibraryStub() {
         this(
@@ -46,12 +46,12 @@ public class AndroidLibraryStub extends AndroidBundleStub implements AndroidLibr
     }
 
     public AndroidLibraryStub(
-            @NonNull Collection<File> jars,
-            @NonNull File proguardRules,
-            @NonNull File lintJar,
-            @NonNull File publicResources,
-            @NonNull File symbolFile,
-            @NonNull File externalAnnotations) {
+            @NotNull Collection<File> jars,
+            @NotNull File proguardRules,
+            @NotNull File lintJar,
+            @NotNull File publicResources,
+            @NotNull File symbolFile,
+            @NotNull File externalAnnotations) {
         myLocalJars = jars;
         myProguardRules = proguardRules;
         myLintJar = lintJar;
@@ -61,29 +61,29 @@ public class AndroidLibraryStub extends AndroidBundleStub implements AndroidLibr
     }
 
     public AndroidLibraryStub(
-            @NonNull MavenCoordinates coordinates,
+            @NotNull MavenCoordinates coordinates,
             @Nullable String buildId,
             @Nullable String project,
             @Nullable String name,
             boolean provided,
             boolean isSkipped,
-            @NonNull File bundle,
-            @NonNull File folder,
-            @NonNull List<AndroidLibrary> dependencies,
-            @NonNull Collection<JavaLibrary> javaDependencies,
-            @NonNull File manifest,
-            @NonNull File jarFile,
-            @NonNull File compileJarFile,
-            @NonNull File resFolder,
+            @NotNull File bundle,
+            @NotNull File folder,
+            @NotNull List<AndroidLibrary> dependencies,
+            @NotNull Collection<JavaLibrary> javaDependencies,
+            @NotNull File manifest,
+            @NotNull File jarFile,
+            @NotNull File compileJarFile,
+            @NotNull File resFolder,
             @Nullable File resStaticLibrary,
-            @NonNull File assetsFolder,
+            @NotNull File assetsFolder,
             @Nullable String variant,
-            @NonNull Collection<File> jars,
-            @NonNull File proguardRules,
-            @NonNull File lintJar,
-            @NonNull File publicResources,
-            @NonNull File symbolFile,
-            @NonNull File externalAnnotations) {
+            @NotNull Collection<File> jars,
+            @NotNull File proguardRules,
+            @NotNull File lintJar,
+            @NotNull File publicResources,
+            @NotNull File symbolFile,
+            @NotNull File externalAnnotations) {
         super(
                 coordinates,
                 buildId,
@@ -111,55 +111,55 @@ public class AndroidLibraryStub extends AndroidBundleStub implements AndroidLibr
     }
 
     @Override
-    @NonNull
+    @NotNull
     public Collection<File> getLocalJars() {
         return myLocalJars;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getJniFolder() {
         throw new UnusedModelMethodException("getJniFolder");
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getAidlFolder() {
         throw new UnusedModelMethodException("getRenderscriptFolder");
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getRenderscriptFolder() {
         throw new UnusedModelMethodException("getRenderscriptFolder");
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getProguardRules() {
         return myProguardRules;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getLintJar() {
         return myLintJar;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getExternalAnnotations() {
         return myExternalAnnotations;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getPublicResources() {
         return myPublicResources;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getSymbolFile() {
         return mySymbolFile;
     }

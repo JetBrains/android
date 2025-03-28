@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.google.common.truth.Truth.assertThat;
-
-import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Library;
 import com.android.builder.model.MavenCoordinates;
@@ -29,6 +26,7 @@ import com.android.tools.idea.gradle.model.stubs.MavenCoordinatesStub;
 import com.android.tools.idea.gradle.project.sync.ModelCacheV1ImplKt;
 import com.google.common.truth.Truth;
 import java.io.File;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 

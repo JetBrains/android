@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.diagnostics.crash.exception;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
-
 import java.io.PrintWriter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class should be used with caution. Any exceptions reported by this class will return the full exception message back
@@ -27,10 +26,10 @@ import java.io.PrintWriter;
  */
 public class NoPiiException extends Exception {
 
-  @NonNull
+  @NotNull
   private final Throwable myRootException;
 
-  public NoPiiException(@NonNull Throwable t) {
+  public NoPiiException(@NotNull Throwable t) {
     super(t);
     myRootException = StudioExceptionReport.getRootCause(t);
   }

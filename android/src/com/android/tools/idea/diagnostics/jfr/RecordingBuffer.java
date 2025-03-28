@@ -17,7 +17,6 @@ package com.android.tools.idea.diagnostics.jfr;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.Slow;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -31,6 +30,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import jdk.jfr.Recording;
+import org.jetbrains.annotations.Nullable;
 
 public class RecordingBuffer {
   private static final Logger LOG = Logger.getInstance(RecordingBuffer.class);

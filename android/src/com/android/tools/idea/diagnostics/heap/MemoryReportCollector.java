@@ -24,7 +24,6 @@ import static com.google.common.math.LongMath.isPowerOfTwo;
 import static com.google.common.math.LongMath.log2;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
-import com.android.annotations.Nullable;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.Lists;
@@ -47,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public final class MemoryReportCollector implements Disposable {

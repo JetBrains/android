@@ -16,8 +16,6 @@
 
 package com.android.tools.idea.diagnostics.crash;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
@@ -29,19 +27,20 @@ import java.util.Map;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StudioExceptionReport extends BaseStudioReport {
 
   public static final String KEY_EXCEPTION_INFO = "exception_info";
 
-  @NonNull private final String exceptionInfo;
+  @NotNull private final String exceptionInfo;
   private final boolean userReported;
   @Nullable private final String fullStack;
-  @NonNull private final Map<String,String> logs;
+  @NotNull private final Map<String,String> logs;
   @Nullable private final PluginId pluginId;
 
   private StudioExceptionReport(@Nullable String version,
-                                @NonNull String exceptionInfo,
+                                @NotNull String exceptionInfo,
                                 boolean userReported,
                                 @Nullable String fullStack,
                                 @NotNull Map<String,String> logs,
@@ -56,7 +55,7 @@ public class StudioExceptionReport extends BaseStudioReport {
   }
 
   @Override
-  protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
+  protected void serializeTo(@NotNull MultipartEntityBuilder builder) {
     super.serializeTo(builder);
 
     // Capture kotlin version for kotlin exceptions.
@@ -94,7 +93,7 @@ public class StudioExceptionReport extends BaseStudioReport {
   }
 
   @VisibleForTesting
-  @NonNull
+  @NotNull
   protected String getKotlinPluginVersionDescription() {
     try {
       IdeaPluginDescriptor[] pluginDescriptors = PluginManagerCore.getPlugins();
@@ -123,8 +122,8 @@ public class StudioExceptionReport extends BaseStudioReport {
       return this;
     }
 
-    @NonNull
-    public Builder setThrowable(@NonNull Throwable throwable, boolean userReported, boolean includeLogs) {
+    @NotNull
+    public Builder setThrowable(@NotNull Throwable throwable, boolean userReported, boolean includeLogs) {
       Throwable cause = getRootCause(throwable);
       ExceptionDataCollection service = ExceptionDataCollection.getInstance();
       UploadFields uploadFields = service.getExceptionUploadFields(throwable, userReported, includeLogs);
@@ -142,8 +141,8 @@ public class StudioExceptionReport extends BaseStudioReport {
   }
 
   // Similar to ExceptionUtil.getRootCause, but attempts to avoid infinite recursion
-  @NonNull
-  public static Throwable getRootCause(@NonNull Throwable t) {
+  @NotNull
+  public static Throwable getRootCause(@NotNull Throwable t) {
     int depth = 0;
     while (depth++ < 20) {
       if (t.getCause() == null) return t;
@@ -152,8 +151,8 @@ public class StudioExceptionReport extends BaseStudioReport {
     return t;
   }
 
-  @NonNull
-  public static String getDescription(@NonNull Throwable t) {
+  @NotNull
+  public static String getDescription(@NotNull Throwable t) {
     return ExceptionDataCollection.getInstance().getDescription(t, true, false);
   }
 }

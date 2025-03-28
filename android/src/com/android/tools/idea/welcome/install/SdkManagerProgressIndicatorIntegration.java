@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.annotations.NonNull;
 import com.android.repository.api.ProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -66,12 +65,12 @@ public class SdkManagerProgressIndicatorIntegration extends ProgressIndicatorAda
   }
 
   @Override
-  public void logInfo(@NonNull String s) {
+  public void logInfo(@NotNull String s) {
     myContext.print(s, ConsoleViewContentType.SYSTEM_OUTPUT);
   }
 
   @Override
-  public void logError(@NonNull String s, @Nullable Throwable e) {
+  public void logError(@NotNull String s, @Nullable Throwable e) {
     if (e != null) {
       String message = String.format("%s: %s\n", e.getClass().getName(), e.getMessage());
       myErrors.append(message);
@@ -82,7 +81,7 @@ public class SdkManagerProgressIndicatorIntegration extends ProgressIndicatorAda
   }
 
   @Override
-  public void logWarning(@NonNull String s, @Nullable Throwable e) {
+  public void logWarning(@NotNull String s, @Nullable Throwable e) {
     if (e != null) {
       String message = String.format("%s: %s\n", e.getClass().getName(), e.getMessage());
       myContext.print(message, ConsoleViewContentType.LOG_WARNING_OUTPUT);

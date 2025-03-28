@@ -1,7 +1,7 @@
 package org.jetbrains.android.dom.converters;
 
-import com.android.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface AttributeValueDocumentationProvider {
   @Nullable

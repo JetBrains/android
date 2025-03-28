@@ -16,14 +16,13 @@
 
 package com.android.tools.idea.diagnostics.error;
 
-import com.android.annotations.Nullable;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.diagnostics.StudioCrashDetails;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReport;
-import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.SystemHealthEvent;
@@ -55,7 +54,10 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
+import java.awt.Component;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -64,10 +66,7 @@ import org.jetbrains.android.diagnostics.error.ErrorBean;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.util.List;
-import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
   private static final Logger LOG = Logger.getInstance(AndroidStudioErrorReportSubmitter.class);

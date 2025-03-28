@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.NonNull;
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceUrl;
@@ -35,12 +38,9 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.SdkConstants.*;
 
 /**
  * A studio-specific PSI and VFS backed implementation of {@link IncludeReference}.
@@ -55,7 +55,7 @@ public class PsiIncludeReference implements IncludeReference {
   /**
    * Creates a new include reference.
    */
-  PsiIncludeReference(@NonNull VirtualFile fromFile) {
+  PsiIncludeReference(@NotNull VirtualFile fromFile) {
     myFromFile = fromFile;
   }
 

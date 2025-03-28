@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.model.stubs;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidBundle;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
@@ -26,18 +24,20 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
-    @NonNull private final File myBundle;
-    @NonNull private final File myFolder;
-    @NonNull private final List<AndroidLibrary> myLibraryDependencies;
-    @NonNull private final Collection<JavaLibrary> myJavaDependencies;
-    @NonNull private final File myManifest;
-    @NonNull private final File myJarFile;
-    @NonNull private final File myCompileJarFile;
-    @NonNull private final File myResFolder;
+    @NotNull private final File myBundle;
+    @NotNull private final File myFolder;
+    @NotNull private final List<AndroidLibrary> myLibraryDependencies;
+    @NotNull private final Collection<JavaLibrary> myJavaDependencies;
+    @NotNull private final File myManifest;
+    @NotNull private final File myJarFile;
+    @NotNull private final File myCompileJarFile;
+    @NotNull private final File myResFolder;
     @Nullable private final File myResStaticLibrary;
-    @NonNull private final File myAssetsFolder;
+    @NotNull private final File myAssetsFolder;
     @Nullable private final String myProjectVariant;
 
     public AndroidBundleStub() {
@@ -56,16 +56,16 @@ public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
     }
 
     public AndroidBundleStub(
-            @NonNull File bundle,
-            @NonNull File folder,
-            @NonNull List<AndroidLibrary> dependencies,
-            @NonNull Collection<JavaLibrary> javaDependencies,
-            @NonNull File manifest,
-            @NonNull File jarFile,
-            @NonNull File compileJarFile,
-            @NonNull File resFolder,
+            @NotNull File bundle,
+            @NotNull File folder,
+            @NotNull List<AndroidLibrary> dependencies,
+            @NotNull Collection<JavaLibrary> javaDependencies,
+            @NotNull File manifest,
+            @NotNull File jarFile,
+            @NotNull File compileJarFile,
+            @NotNull File resFolder,
             @Nullable File resStaticLibrary,
-            @NonNull File assetsFolder,
+            @NotNull File assetsFolder,
             @Nullable String variant) {
         myBundle = bundle;
         myFolder = folder;
@@ -81,22 +81,22 @@ public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
     }
 
     public AndroidBundleStub(
-            @NonNull MavenCoordinates coordinates,
+            @NotNull MavenCoordinates coordinates,
             @Nullable String buildId,
             @Nullable String project,
             @Nullable String name,
             boolean provided,
             boolean isSkipped,
-            @NonNull File bundle,
-            @NonNull File folder,
-            @NonNull List<AndroidLibrary> dependencies,
-            @NonNull Collection<JavaLibrary> javaDependencies,
-            @NonNull File manifest,
-            @NonNull File jarFile,
-            @NonNull File compileJarFile,
-            @NonNull File resFolder,
+            @NotNull File bundle,
+            @NotNull File folder,
+            @NotNull List<AndroidLibrary> dependencies,
+            @NotNull Collection<JavaLibrary> javaDependencies,
+            @NotNull File manifest,
+            @NotNull File jarFile,
+            @NotNull File compileJarFile,
+            @NotNull File resFolder,
             @Nullable File resStaticLibrary,
-            @NonNull File assetsFolder,
+            @NotNull File assetsFolder,
             @Nullable String variant) {
         super(coordinates, buildId, project, name, provided, isSkipped);
         myBundle = bundle;
@@ -113,49 +113,49 @@ public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getBundle() {
         return myBundle;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getFolder() {
         return myFolder;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public List<? extends AndroidLibrary> getLibraryDependencies() {
         return myLibraryDependencies;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public Collection<? extends JavaLibrary> getJavaDependencies() {
         return myJavaDependencies;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getManifest() {
         return myManifest;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getJarFile() {
         return myJarFile;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getCompileJarFile() {
         return myCompileJarFile;
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getResFolder() {
         return myResFolder;
     }
@@ -167,7 +167,7 @@ public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
     }
 
     @Override
-    @NonNull
+    @NotNull
     public File getAssetsFolder() {
         return myAssetsFolder;
     }
