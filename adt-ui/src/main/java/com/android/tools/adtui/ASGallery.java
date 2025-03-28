@@ -165,6 +165,8 @@ public class ASGallery<E> extends JBList {
         // the last column on the right and the list border.
         Dimension cellSize = computeCellSize();
         setFixedCellWidth(cellSize.width);
+        invalidate();
+        repaint();
       }
     });
     addMouseListener(new MouseAdapter() {
