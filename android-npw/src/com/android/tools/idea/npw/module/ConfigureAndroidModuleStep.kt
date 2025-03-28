@@ -55,7 +55,7 @@ class ConfigureAndroidModuleStep(
 
   override fun createMainPanel(): DialogPanel = panel {
     if (!model.isLibrary) {
-      row("Application/Library name") {
+      row("Application name") {
         cell(appName).align(AlignX.FILL)
       }
     }

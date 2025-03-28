@@ -39,16 +39,16 @@ class ConfigureLibraryModuleStep(
   private val className: JTextField = JBTextField()
 
   override fun createMainPanel(): DialogPanel = panel {
-    row(contextLabel("Library name:", AndroidBundle.message("android.wizard.module.help.name"))) {
+    row(contextLabel("Library name", AndroidBundle.message("android.wizard.module.help.name"))) {
       cell(moduleName).align(AlignX.FILL)
     }
-    row("Package name:") {
+    row("Package name") {
       cell(packageName).align(AlignX.FILL)
     }
-    row("Class name:") {
+    row("Class name") {
       cell(className).align(AlignX.FILL)
     }
-    row("Language:") {
+    row("Language") {
       cell(languageCombo).align(AlignX.FILL)
     }
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {

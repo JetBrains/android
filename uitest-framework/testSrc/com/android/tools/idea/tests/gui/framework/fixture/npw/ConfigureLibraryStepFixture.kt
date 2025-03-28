@@ -27,18 +27,18 @@ class ConfigureLibraryStepFixture<W : AbstractWizardFixture<*>>(
   wizard: W, target: JRootPane
 ) : AbstractWizardStepFixture<ConfigureLibraryStepFixture<*>, W>(ConfigureLibraryStepFixture::class.java, wizard, target) {
   fun enterLibraryName(name: String): ConfigureLibraryStepFixture<W> {
-    val textField = robot().finder().findByLabel(target(), "Library name:", JTextField::class.java, true)
+    val textField = robot().finder().findByLabel(target(), "Library name", JTextField::class.java, true)
     replaceText(textField, name)
     return this
   }
 
   fun enterPackageName(name: String): ConfigureLibraryStepFixture<W> {
-    replaceText(findTextFieldWithLabel("Package name:"), name)
+    replaceText(findTextFieldWithLabel("Package name"), name)
     return this
   }
 
   fun enterClassName(name: String): ConfigureLibraryStepFixture<W> {
-    val textField = robot().finder().findByLabel(target(), "Class name:", JTextField::class.java, true)
+    val textField = robot().finder().findByLabel(target(), "Class name", JTextField::class.java, true)
     replaceText(textField, name)
     return this
   }
