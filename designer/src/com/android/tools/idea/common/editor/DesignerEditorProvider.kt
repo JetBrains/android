@@ -72,7 +72,7 @@ protected constructor(
     // accept must be quick so we do not load PSI objects here, we just look at the extension and
     // directory structure.
     if (virtualFile.extension != SdkConstants.EXT_XML) return false
-    val parentFolder = virtualFile.parent
+    val parentFolder = virtualFile.parent ?: return false
     val resourceFolderType = ResourceFolderType.getFolderType(parentFolder.name)
 
     return acceptedXmlTypes.any { type -> type.resourceFolderType == resourceFolderType }
