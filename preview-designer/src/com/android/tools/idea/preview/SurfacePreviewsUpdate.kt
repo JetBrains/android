@@ -253,7 +253,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     elementsToReusableModels
       .map { (previewElement, model) ->
         val newModel: NlModel =
-          getNewModel(
+          createOrReuseModelForPreviewElement(
             model,
             debugLogger,
             previewElementModelAdapter,
@@ -360,7 +360,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
  *
  * @return the [NlModel] to use for rendering.
  */
-private suspend fun <T : PsiPreviewElement> NlDesignSurface.getNewModel(
+private suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelForPreviewElement(
   modelToReuse: NlModel?,
   debugLogger: PreviewElementDebugLogger?,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
