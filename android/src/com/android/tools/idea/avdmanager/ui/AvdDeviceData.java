@@ -197,14 +197,12 @@ public final class AvdDeviceData {
     return DeviceManagerConnection.getDefaultDeviceManagerConnection().getUniqueId(id);
   }
 
-  public void setUniqueName(@NotNull String name) {
-    myName.set(getUniqueId(name));
+  public void prepareForClone(@NotNull String name) {
+    String uniqueId = getUniqueId(name);
+    myName.set(uniqueId);
+    myDeviceId.set(uniqueId);
   }
 
-  /**
-   * Consider using {@link #setUniqueName(String)} instead of modifying this value directly, if you
-   * need to ensure that an initial name is unique across devices.
-   */
   @NotNull
   public StringProperty name() {
     return myName;

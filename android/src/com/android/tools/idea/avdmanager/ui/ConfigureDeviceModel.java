@@ -57,7 +57,7 @@ public final class ConfigureDeviceModel extends WizardModel {
       if (device == null) {
         throw new IllegalArgumentException("Can't clone a device without specifying a device.");
       }
-      myDeviceData.setUniqueName(String.format("%s (Edited)", device.getDisplayName()));
+      myDeviceData.prepareForClone(String.format("%s (Edited)", device.getDisplayName()));
     }
 
     if (device != null) {
@@ -123,8 +123,10 @@ public final class ConfigureDeviceModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    Device device = buildDevice();
-    DeviceManagerConnection.getDefaultDeviceManagerConnection().createOrEditDevice(device);
+    DeviceManagerConnection connection = DeviceManagerConnection.getDefaultDeviceManagerConnection();
+    String uniqueId = connection.getUniqueId(myDeviceData.name().get());
+    Device device = buildDevice(uniqueId);
+    connection.createOrEditDevice(device);
     myProvider.refreshDevices();
     myProvider.setDevice(device);
   }
@@ -133,13 +135,13 @@ public final class ConfigureDeviceModel extends WizardModel {
    * Once we finish editing the device, we set it to its final configuration
    */
   @NotNull
-  private Device buildDevice() {
+  private Device buildDevice(String uniqueId) {
     String deviceName = myDeviceData.name().get();
     String deviceId = myDeviceData.deviceId().get();
     if (deviceId.isEmpty()) {
-      // empty deviceId == new device creation, use deviceName as deviceId
+      // empty deviceId == new device creation, use uniqueId as deviceId
       // non-empty deviceId == edit existing device, use existing deviceId
-      deviceId = deviceName;
+      deviceId = uniqueId;
     }
     myBuilder.setName(deviceName);
     myBuilder.setId(deviceId);
