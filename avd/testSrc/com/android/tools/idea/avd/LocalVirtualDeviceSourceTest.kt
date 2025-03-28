@@ -53,6 +53,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -368,6 +369,7 @@ class LocalVirtualDeviceSourceTest {
   }
 
   @Test
+  @Ignore("IDEA-369982")
   fun systemImageLoading_remoteError() {
     with(SdkFixture()) {
       val api34Image = api34()
