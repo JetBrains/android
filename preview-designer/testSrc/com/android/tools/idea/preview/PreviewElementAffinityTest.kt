@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,11 @@ import com.android.tools.idea.common.model.NlDataProvider
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 import kotlin.test.assertEquals
+import org.junit.Assert
 import org.junit.Test
 
 private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElement?>) :
   PreviewElementModelAdapter<TestPreviewElement, Any> {
-  override fun calcAffinity(el1: TestPreviewElement, el2: TestPreviewElement?): Int {
-    if (el1 == el2) {
-      return 0
-    }
-    if (el1.displaySettings == el2?.displaySettings) {
-      return 1
-    }
-    return 2
-  }
 
   override fun modelToElement(model: Any) = modelsToElements[model]
 
@@ -51,7 +43,21 @@ private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElem
     LightVirtualFile()
 }
 
-class MatchElementsToModelTest {
+class PreviewElementAffinityTest {
+
+  @Test
+  fun testCalcAffinityPriority() {
+    val pe1 = TestMethodPreviewElement(methodFqn = "foo")
+    val pe2 = TestMethodPreviewElement(methodFqn = "foo")
+    val pe3 = TestMethodPreviewElement(methodFqn = "foo", someDisplaySettings(name = "foo"))
+    val pe4 = TestMethodPreviewElement(methodFqn = "bar")
+
+    Assert.assertTrue(calcAffinity(pe1, pe1) < calcAffinity(pe1, pe2))
+    Assert.assertTrue(calcAffinity(pe1, pe2) < calcAffinity(pe1, pe3))
+    Assert.assertTrue(calcAffinity(pe1, pe3) < calcAffinity(pe1, null))
+    Assert.assertTrue(calcAffinity(pe1, null) == calcAffinity(pe1, pe4))
+  }
+
   @Test
   fun testMatchElementsToModels() {
     val model1 = Any()
@@ -135,5 +141,23 @@ class MatchElementsToModelTest {
 
       assertEquals(listOf(-1), result)
     }
+  }
+
+  @Test
+  fun testMatchElementsToModels_stress() {
+    val nModels = 10_000
+    val nElements = 20_000
+
+    val models = List(nModels) { Any() }
+    val elements = List(nElements) { TestPreviewElement("$it") }
+    val modelsToElements = models.zip(elements.shuffled()).toMap()
+    val adapter = TextAdapter(modelsToElements)
+
+    val result = matchElementsToModels(models, elements, adapter)
+
+    val expectedResult = List(nModels) { it } + List(nElements - nModels) { -1 }
+
+    // Compare them as multisets
+    assertEquals(result.sorted(), expectedResult.sorted())
   }
 }

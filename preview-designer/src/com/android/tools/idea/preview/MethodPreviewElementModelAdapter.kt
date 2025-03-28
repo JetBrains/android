@@ -28,25 +28,10 @@ abstract class MethodPreviewElementModelAdapter<
   T : MethodPreviewElement<*>,
   M : NlDataProviderHolder,
 >(private val elementKey: DataKey<T>) : PreviewElementModelAdapter<T, M> {
-  override fun calcAffinity(el1: T, el2: T?): Int {
-    return when {
-      // These are the same
-      el1 == el2 -> 0
-
-      // The method and display settings are the same
-      el1.methodFqn == el2?.methodFqn && el1.displaySettings == el2?.displaySettings -> 1
-
-      // The name of the method matches but other settings might be different
-      el1.methodFqn == el2?.methodFqn -> 2
-
-      // No match
-      else -> 3
-    }
-  }
 
   override fun modelToElement(model: M): T? =
     if (!Disposer.isDisposed(model)) {
-      model.dataProvider?.getData(elementKey) as? T
+      model.dataProvider?.getData(elementKey)
     } else null
 
   /**

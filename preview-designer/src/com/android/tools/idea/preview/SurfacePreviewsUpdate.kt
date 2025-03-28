@@ -47,74 +47,10 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
-import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.jetbrains.rd.util.getOrCreate
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.util.projectStructure.module
-
-private fun <T : PreviewElement<*>, M> calcAffinityMatrix(
-  elements: List<T>,
-  models: List<M>,
-  previewElementModelAdapter: PreviewElementModelAdapter<T, M>,
-): List<List<Int>> {
-  val modelElements = models.map { previewElementModelAdapter.modelToElement(it) }
-  return elements.map { element ->
-    modelElements.map { previewElementModelAdapter.calcAffinity(element, it) }
-  }
-}
-
-/**
- * Matches [PreviewElement]s with the most similar models. For a [List] of [PreviewElement]
- * ([elements]) returns a [List] of the same size with the indices of the best matched models. The
- * indices are for the input [models] [List]. If there are less [models] than [elements] then
- * indices for some [PreviewElement]s will be set to -1.
- */
-@VisibleForTesting
-@RequiresBackgroundThread
-fun <T : PreviewElement<*>, M> matchElementsToModels(
-  models: List<M>,
-  elements: List<T>,
-  previewElementModelAdapter: PreviewElementModelAdapter<T, M>,
-): List<Int> {
-  val affinityMatrix = calcAffinityMatrix(elements, models, previewElementModelAdapter)
-  if (affinityMatrix.isEmpty()) {
-    return emptyList()
-  }
-  val sortedPairs =
-    affinityMatrix
-      .first()
-      .indices
-      .flatMap { modelIdx -> affinityMatrix.indices.map { it to modelIdx } }
-      .sortedByDescending {
-        affinityMatrix[it.first][it.second]
-      } // sort in the reverse order to pop from back (quickly)
-      .toMutableList()
-  val matchedElements = mutableSetOf<Int>()
-  val matchedModels = mutableSetOf<Int>()
-  val matches = MutableList(affinityMatrix.size) { -1 }
-
-  while (sortedPairs.isNotEmpty()) {
-    val (elementIdx, modelIdx) = sortedPairs.pop()
-    if (elementIdx in matchedElements || modelIdx in matchedModels) {
-      continue
-    }
-    matches[elementIdx] = modelIdx
-    matchedElements.add(elementIdx)
-    matchedModels.add(modelIdx)
-    // If we either matched all preview elements or all models we have nothing else to do and can
-    // finish early
-    if (
-      matchedElements.size == affinityMatrix.size ||
-        matchedModels.size == affinityMatrix.first().size
-    ) {
-      break
-    }
-  }
-  return matches
-}
 
 /**
  * Refresh the preview with the existing [PreviewElement]s.
@@ -378,10 +314,7 @@ private suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelFo
     var invalidatePreviousRender = false
     debugLogger?.log("Re-using model ${modelToReuse.virtualFile.name}")
     val affinity =
-      previewElementModelAdapter.calcAffinity(
-        previewElement,
-        previewElementModelAdapter.modelToElement(modelToReuse),
-      )
+      calcAffinity(previewElement, previewElementModelAdapter.modelToElement(modelToReuse))
     // If the model is for the same element (affinity=0) and we know that it is not spoiled by
     // previous actions (reinflate=false) we can skip reinflate and therefore refresh much
     // quicker

@@ -26,7 +26,6 @@ import com.intellij.testFramework.LightVirtualFile
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -60,21 +59,6 @@ class GlancePreviewElementModelAdapterTest {
   private val rootDisposable = Disposer.newDisposable()
 
   @get:Rule val applicationRule = ApplicationRule()
-
-  @Test
-  fun testCalcAffinityPriority() {
-    val pe1 = glancePreviewElement(methodFqn = "foo")
-    val pe2 = glancePreviewElement(methodFqn = "foo")
-    val pe3 = glancePreviewElement(methodFqn = "foo", simplestDisplaySettings(name = "foo"))
-    val pe4 = glancePreviewElement(methodFqn = "bar")
-
-    val adapter = TestAdapter()
-
-    assertTrue(adapter.calcAffinity(pe1, pe1) == adapter.calcAffinity(pe1, pe2))
-    assertTrue(adapter.calcAffinity(pe1, pe2) < adapter.calcAffinity(pe1, pe3))
-    assertTrue(adapter.calcAffinity(pe1, pe3) < adapter.calcAffinity(pe1, null))
-    assertTrue(adapter.calcAffinity(pe1, null) == adapter.calcAffinity(pe1, pe4))
-  }
 
   @Test
   fun testModelAndPreviewElementConnection() {

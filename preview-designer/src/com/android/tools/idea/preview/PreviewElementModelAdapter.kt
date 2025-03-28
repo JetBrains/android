@@ -30,15 +30,6 @@ import com.intellij.testFramework.LightVirtualFile
  * [PreviewElement].
  */
 interface PreviewElementModelAdapter<T : PreviewElement<*>, M> {
-  /**
-   * Returns a number indicating how [el1] [PreviewElement] is to the [el2] [PreviewElement]. 0
-   * meaning they are equal and higher the number the more dissimilar they are. This allows for,
-   * when re-using models, the model with the most similar [PreviewElement] is re-used. When the
-   * user is just switching groups or selecting a specific model, this allows switching to the
-   * existing preview faster.
-   */
-  fun calcAffinity(el1: T, el2: T?): Int
-
   fun toXml(previewElement: T): String
 
   /**

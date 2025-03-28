@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview
 
 import com.android.tools.idea.preview.animation.AnimationTracker
+import com.android.tools.preview.PreviewDisplaySettings
 
 val NoopAnimationTracker =
   object : AnimationTracker {
@@ -76,3 +77,14 @@ val NoopAnimationTracker =
 internal suspend fun PreviewRefreshManager.requestRefreshSync(request: PreviewRefreshRequest) {
   this.requestRefreshForTest(request).join()
 }
+
+internal fun someDisplaySettings(name: String = "") =
+  PreviewDisplaySettings(
+    name = name,
+    baseName = name,
+    parameterName = null,
+    group = null,
+    showDecoration = false,
+    showBackground = false,
+    backgroundColor = null,
+  )

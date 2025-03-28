@@ -18,8 +18,6 @@ package com.android.tools.idea.preview
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlDataProviderHolder
-import com.android.tools.preview.MethodPreviewElement
-import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -30,14 +28,6 @@ import kotlin.test.assertEquals
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-
-private class TestMethodPreviewElement(
-  override val methodFqn: String,
-  override val displaySettings: PreviewDisplaySettings = someDisplaySettings(),
-  override val previewElementDefinition: Unit? = null,
-  override val previewBody: Unit? = null,
-  override val hasAnimations: Boolean = false,
-) : MethodPreviewElement<Unit>
 
 private class TestModel(override var dataProvider: NlDataProvider?) : NlDataProviderHolder {
   override fun dispose() {}
@@ -59,35 +49,11 @@ private class TestAdapter :
     LightVirtualFile()
 }
 
-private fun someDisplaySettings(name: String = "") =
-  PreviewDisplaySettings(
-    name = name,
-    baseName = name,
-    parameterName = null,
-    group = null,
-    showDecoration = false,
-    showBackground = false,
-    backgroundColor = null,
-  )
-
 class MethodPreviewElementModelAdapterTest {
   @get:Rule val disposableRule = DisposableRule()
   @get:Rule val applicationRule = ApplicationRule()
 
   private val adapter = TestAdapter()
-
-  @Test
-  fun testCalcAffinityPriority() {
-    val pe1 = TestMethodPreviewElement(methodFqn = "foo")
-    val pe2 = TestMethodPreviewElement(methodFqn = "foo")
-    val pe3 = TestMethodPreviewElement(methodFqn = "foo", someDisplaySettings(name = "foo"))
-    val pe4 = TestMethodPreviewElement(methodFqn = "bar")
-
-    Assert.assertTrue(adapter.calcAffinity(pe1, pe1) < adapter.calcAffinity(pe1, pe2))
-    Assert.assertTrue(adapter.calcAffinity(pe1, pe2) < adapter.calcAffinity(pe1, pe3))
-    Assert.assertTrue(adapter.calcAffinity(pe1, pe3) < adapter.calcAffinity(pe1, null))
-    Assert.assertTrue(adapter.calcAffinity(pe1, null) == adapter.calcAffinity(pe1, pe4))
-  }
 
   @Test
   fun testModelAndPreviewElementConnection() {

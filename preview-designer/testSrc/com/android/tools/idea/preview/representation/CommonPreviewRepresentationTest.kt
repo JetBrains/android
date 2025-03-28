@@ -132,7 +132,6 @@ private val TEST_PREVIEW_ELEMENT_KEY =
 
 private class TestPreviewElementModelAdapter :
   PreviewElementModelAdapter<PsiTestPreviewElement, NlModel> {
-  override fun calcAffinity(el1: PsiTestPreviewElement, el2: PsiTestPreviewElement?): Int = 0
 
   override fun toXml(previewElement: PsiTestPreviewElement): String = ""
 

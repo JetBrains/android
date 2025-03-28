@@ -72,6 +72,14 @@ class TestBasePreviewElement<T>(
     )
 }
 
+internal class TestMethodPreviewElement(
+  override val methodFqn: String,
+  override val displaySettings: PreviewDisplaySettings = someDisplaySettings(),
+  override val previewElementDefinition: Unit? = null,
+  override val previewBody: Unit? = null,
+  override val hasAnimations: Boolean = false,
+) : MethodPreviewElement<Unit>
+
 typealias PsiTestPreviewElement = TestBasePreviewElement<SmartPsiElementPointer<PsiElement>>
 
 typealias TestPreviewElement = TestBasePreviewElement<Unit>
