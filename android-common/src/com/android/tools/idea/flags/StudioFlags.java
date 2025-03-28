@@ -2189,6 +2189,12 @@ public final class StudioFlags {
                     "When enabled, @file can be used to attach text files as context. Also enables the context drawer for context management.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_FOLDER_CONTEXT_SELECTION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.enable.folder.context.selection",
+                    "Enable @folder attachment.",
+                    "When enabled, @folder can be used to attach folders as context.",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_DEPENDENCY_SUGGESTION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.suggest.dependencies.on.insert",
                     "Suggest missing dependencies when inserting/pasting code snippets",
