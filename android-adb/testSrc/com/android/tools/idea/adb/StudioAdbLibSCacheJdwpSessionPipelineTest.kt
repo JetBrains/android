@@ -17,7 +17,8 @@ package com.android.tools.idea.adb
 
 import com.android.adblib.testingutils.CoroutineTestUtils
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
-import com.android.adblib.tools.debugging.properties
+import com.android.adblib.tools.debugging.jdwpProxySocketServer
+import com.android.adblib.tools.debugging.proxyStatus
 import com.android.adblib.tools.testutils.AdbLibToolsJdwpTestBase
 import com.android.jdwptracer.JDWPTracer
 import org.junit.Assert.assertEquals
@@ -65,7 +66,7 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
     )
     val jdwpSessionInfo = createJdwpProxySession(pid = 11)
     val jdwpProcess = jdwpSessionInfo.process
-    val debuggerSocketAddress = jdwpProcess.properties.jdwpProxyStatus.socketAddress
+    val debuggerSocketAddress = jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress
 
     // Act
     val jdwpSession1 = jdwpSessionInfo.debuggerJdwpSession
@@ -74,16 +75,16 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
     // Close JDWP session and wait for process to reflect new status
     jdwpSession1.close()
     CoroutineTestUtils.yieldUntil {
-      !jdwpProcess.properties.jdwpProxyStatus.isExternalDebuggerAttached
+      !jdwpProcess.jdwpProxySocketServer.proxyStatus.isExternalDebuggerAttached
     }
-    val debuggerSocketAddress2 = jdwpProcess.properties.jdwpProxyStatus.socketAddress
+    val debuggerSocketAddress2 = jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress
 
     // Open 2nd session
     val jdwpSession2 = attachDebuggerSession(jdwpProcess)
     val reply2 = sendVmVersionPacket(jdwpSession2)
 
     // Assert
-    assertTrue(jdwpProcess.properties.jdwpProxyStatus.isExternalDebuggerAttached)
+    assertTrue(jdwpProcess.jdwpProxySocketServer.proxyStatus.isExternalDebuggerAttached)
     assertEquals(debuggerSocketAddress, debuggerSocketAddress2)
     assertTrue(reply1.isReply)
     assertTrue(reply2.isReply)
