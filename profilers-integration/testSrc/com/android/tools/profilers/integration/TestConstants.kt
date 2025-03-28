@@ -18,7 +18,7 @@ package com.android.tools.profilers.integration
 import com.android.tools.asdriver.tests.Emulator
 
 object TestConstants {
-  val SYSTEM_IMAGE = Emulator.SystemImage.API_35
+  val SYSTEM_IMAGE = Emulator.SystemImage.API_33
   const val MIN_APP_PROJECT_PATH = "tools/adt/idea/profilers-integration/testData/minapp"
   const val MIN_APP_REPO_MANIFEST = "tools/adt/idea/profilers-integration/minapp_deps.manifest"
   const val APK_PROJECT_PATH = "tools/adt/idea/profilers-integration/testData/helloworldapk"

@@ -30,7 +30,6 @@ profilers_test_common_data = [
     "//prebuilts/studio/sdk:platform-tools",
     INTEGRATION_TEST_GRADLE_VERSION,
     "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    "@system_image_android-35_default_x86_64//:x86_64-android-35-images",
 ]
 
 iml_test(
