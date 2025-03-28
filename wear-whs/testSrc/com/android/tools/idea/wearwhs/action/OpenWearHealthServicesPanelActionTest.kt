@@ -73,18 +73,7 @@ class OpenWearHealthServicesPanelActionTest {
     emulatorController =
       spy(
         EmulatorController(
-          EmulatorId(
-            0,
-            null,
-            null,
-            "avdId",
-            "avdFolder",
-            Paths.get("avdPath"),
-            0,
-            0,
-            emptyList(),
-            "",
-          ),
+          EmulatorId(12345L, 0, null, null, "My AVD", Paths.get("avdPath"), 0, 0, emptyList()),
           projectRule.testRootDisposable,
         )
       )

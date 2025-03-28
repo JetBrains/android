@@ -20,15 +20,24 @@ import java.nio.file.Path
 /**
  * Identifying information for a running Emulator.
  */
-data class EmulatorId(val grpcPort: Int, val grpcCertificate: String?, val grpcToken: String?,
-                      val avdId: String, val avdName: String, val avdFolder: Path,
-                      val serialPort: Int, val adbPort: Int, val commandLine: List<String>,
-                      val registrationFileName: String) {
+data class EmulatorId(
+  val pid: Long,
+  val grpcPort: Int,
+  val grpcCertificate: String?,
+  val grpcToken: String?,
+  val avdName: String,
+  val avdFolder: Path,
+  val serialPort: Int,
+  val adbPort: Int,
+  val commandLine: List<String>,
+) {
 
-  override fun toString(): String = "$avdId @ $grpcPort"
+  val avdId = avdFolder.toString()
 
   val serialNumber = "emulator-$serialPort"
 
   val isEmbedded: Boolean
     get() = commandLine.contains("-qt-hide-window")
+
+  override fun toString(): String = "$avdId @ $grpcPort"
 }

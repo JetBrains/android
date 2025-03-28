@@ -25,5 +25,5 @@ import kotlinx.coroutines.flow.MutableStateFlow
  */
 @Service(Service.Level.PROJECT)
 class MirroringManager {
-  val mirroringHandles = MutableStateFlow(mapOf<DeviceHandle, MirroringHandle>())
+  val mirroringHandles: MutableStateFlow<Map<DeviceHandle, MirroringHandle>> = MutableStateFlow(mapOf())
 }

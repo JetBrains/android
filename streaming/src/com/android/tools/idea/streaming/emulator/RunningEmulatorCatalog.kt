@@ -17,8 +17,10 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
+import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.tools.concurrency.AndroidIoManager
-import com.android.tools.idea.avdmanager.LaunchedAvdTracker
+import com.android.tools.idea.avdmanager.RunningAvd
+import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
@@ -81,7 +83,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private var pendingUpdateResults: MutableList<CompletableDeferred<Set<EmulatorController>>> = mutableListOf()
   @GuardedBy("dataLock")
   private var registrationDirectory: Path? = computeRegistrationDirectory()
-  private val launchedAvdTracker = service<LaunchedAvdTracker>()
+  private val runningAvdTracker
+    get() = service<RunningAvdTracker>()
 
   /**
    * Adds a listener that will be notified when new emulators start and running emulators shut down.
@@ -250,6 +253,11 @@ class RunningEmulatorCatalog : Disposable.Parent {
           }
         }
         for (emulator in addedEmulators) {
+          val processHandle = ProcessHandleProvider.getProcessHandle(emulator.emulatorId.pid)
+          if (processHandle?.isAlive == true) {
+            runningAvdTracker.started(emulator.emulatorId.avdId, processHandle,
+                                      if (emulator.emulatorId.isEmbedded) RunningAvd.RunType.EMBEDDED else RunningAvd.RunType.STANDALONE)
+          }
           for (listener in listenersSnapshot) {
             if (isDisposing) break
             listener.emulatorAdded(emulator)
@@ -280,32 +288,38 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun readDirectoryContents(directory: Path): List<Path> {
     return try {
       Files.list(directory).use { stream ->
-        stream.filter { isValidPidIni(it) }.toList()
+        stream.filter { getProcessHandle(it) != null }.toList()
       }
     }
-    catch (e: NoSuchFileException) {
+    catch (_: NoSuchFileException) {
       emptyList() // The registration directory hasn't been created yet.
     }
   }
 
-  private fun isValidPidIni(file: Path): Boolean {
+  /**
+   * Extracts pid from the file name and returns the corresponding [ProcessHandle] if the emulator
+   * is still running, otherwise returns null.
+   */
+  private fun getProcessHandle(file: Path): ProcessHandle? {
     val matcher = fileNamePattern.matcher(file.fileName.toString())
     if (!matcher.matches()) {
-      return false
+      return null
     }
-    return try {
-      // It is not possible to mock ProcessHandle.of because Mockito.mockStatic doesn't work across threads.
-      ProcessHandle.of(matcher.group(1).toLong()).orElse(null)?.isAlive ?: ApplicationManager.getApplication().isUnitTestMode
+    val pid = try {
+      matcher.group(1).toLong()
     }
-    catch (e: NumberFormatException) {
-      false
+    catch (_: NumberFormatException) {
+      return null
     }
+    val processHandle = ProcessHandleProvider.getProcessHandle(pid)
+    return if (processHandle?.isAlive == true) processHandle else null
   }
 
   /**
    * Reads and interprets the registration file of an Emulator (pid_NNNN.ini).
    */
   private fun readEmulatorInfo(file: Path): EmulatorId? {
+    val pid = getProcessHandle(file)?.pid() ?: return null
     var grpcPort = 0
     var grpcCertificate: String? = null
     var grpcToken: String? = null
@@ -351,7 +365,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
         }
       }
     }
-    catch (ignore: IOException) {
+    catch (_: IOException) {
     }
 
     if (grpcPort <= 0 || avdId == null || avdName == null || avdFolder == null ||
@@ -359,10 +373,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
       return null
     }
 
-    return EmulatorId(grpcPort = grpcPort, grpcCertificate = grpcCertificate, grpcToken = grpcToken,
-                      avdId = avdId, avdName = avdName, avdFolder = avdFolder,
-                      serialPort = serialPort, adbPort = adbPort, commandLine = commandLine,
-                      registrationFileName = file.fileName.toString())
+    return EmulatorId(pid = pid, grpcPort = grpcPort, grpcCertificate = grpcCertificate, grpcToken = grpcToken, avdName = avdName,
+                      avdFolder = avdFolder, serialPort = serialPort, adbPort = adbPort, commandLine = commandLine)
   }
 
   override fun beforeTreeDispose() {
@@ -370,11 +382,12 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
     // Shut down all embedded Emulators.
     synchronized(dataLock) {
-      val launchedAvds = launchedAvdTracker.launchedAvds
+      val runningAvds = runningAvdTracker.runningAvds
       for (emulator in emulators) {
-        if (emulator.emulatorId.isEmbedded && launchedAvds.containsKey(emulator.emulatorId.avdFolder.toString())) {
+        val avdId = emulator.emulatorId.avdFolder.toString()
+        if (emulator.emulatorId.isEmbedded && runningAvds[avdId]?.isLaunchedByThisProcess == true) {
           emulator.shutdown()
-          registrationDirectory?.resolve(emulator.emulatorId.registrationFileName)?.deleteIfExists()
+          registrationDirectory?.resolve("pid_${emulator.emulatorId.pid}.ini")?.deleteIfExists()
         }
       }
     }
@@ -512,7 +525,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
           return result
         }
       }
-      catch (e: IOException) {
+      catch (_: IOException) {
         return null
       }
     }

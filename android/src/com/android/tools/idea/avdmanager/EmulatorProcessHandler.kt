@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.idea.avdmanager.RunningAvd.RunType
 import com.intellij.execution.process.BaseOSProcessHandler
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessListener
@@ -74,9 +75,9 @@ class EmulatorProcessHandler(
    */
   private val verboseMessagePattern = Regex("""^$TIMESTAMP $THREAD\s+$NOTIFY_USER$SEVERITY\s+$LOCATION\s+\| $MESSAGE""")
 
-  private val isEmbedded = commandLine.contains(" -qt-hide-window ")
+  private val runType = if (commandLine.contains(" -qt-hide-window ")) RunType.EMBEDDED else RunType.STANDALONE
   private val messageBus = ApplicationManager.getApplication().messageBus
-  private val ownedRunningEmulators = service<LaunchedAvdTracker>()
+  private val ownedRunningEmulators = service<RunningAvdTracker>()
 
   init {
     addProcessListener(EmulatorProcessListener())
@@ -97,11 +98,7 @@ class EmulatorProcessHandler(
   private inner class EmulatorProcessListener : ProcessListener {
 
     override fun startNotified(event: ProcessEvent) {
-      ownedRunningEmulators.started(avd.id, process.toHandle())
-    }
-
-    override fun processTerminated(event: ProcessEvent) {
-      ownedRunningEmulators.terminated(avd.id, process.toHandle())
+      ownedRunningEmulators.started(avd.id, process.toHandle(), runType, isLaunchedByThisProcess = true)
     }
 
     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
@@ -161,7 +158,7 @@ class EmulatorProcessHandler(
     }
 
     private fun notify(title: String, content: String, @Suppress("SameParameterValue") notificationType: NotificationType) {
-      val notificationGroup = if (isEmbedded) "Running Devices Messages" else "Device Manager Messages"
+      val notificationGroup = if (runType == RunType.EMBEDDED) "Running Devices Messages" else "Device Manager Messages"
       NotificationGroup.findRegisteredGroup(notificationGroup)
         ?.createNotification(title, content, notificationType)
         ?.notify(null)

@@ -24,6 +24,7 @@ import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoPackage
 import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException
 import com.android.sdklib.deviceprovisioner.DeviceActionException
+import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
@@ -61,6 +62,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.progress.util.ProgressWindow
@@ -88,7 +90,6 @@ import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.listDirectoryEntries
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
@@ -143,11 +144,19 @@ constructor(
     avdManager ?: return
     val pid = avdManager.getPid(avd)
     if (pid != 0L) {
-      ProcessHandle.of(pid).getOrNull()?.let {
+      ProcessHandleProvider.getProcessHandle(pid)?.let {
         // Kill the emulator process if it is running.
         val termination = it.onExit()
-        if (!termination.isDone && (if (forcibly) it.destroyForcibly() else it.destroy())) {
-          try { termination.get() } catch (_: Exception) {} // Wait for the emulator process to terminate.
+        if (!termination.isDone) {
+          val success = if (forcibly) it.destroyForcibly() else it.destroy()
+          if (success) {
+            service<RunningAvdTracker>().shuttingDown(avd.id)
+            try {
+              termination.get()
+            }
+            catch (_: Exception) {
+            } // Wait for the emulator process to terminate.
+          }
         }
       }
     }
@@ -287,7 +296,7 @@ constructor(
 
     val pid = avdManager.getPid(avd)
     if (pid != 0L) {
-      if (ProcessHandle.of(pid).getOrNull()?.isAlive == true) {
+      if (ProcessHandleProvider.getProcessHandle(pid)?.isAlive == true) {
         // TODO: Bring the running emulator's window to the front.
         throw AvdIsAlreadyRunningException(avd.displayName, pid)
       }

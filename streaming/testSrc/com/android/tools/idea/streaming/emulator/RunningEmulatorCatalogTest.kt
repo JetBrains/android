@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.testutils.ProcessHandleProviderRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -31,7 +32,7 @@ class RunningEmulatorCatalogTest {
 
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
-  @get:Rule val ruleChain = RuleChain(projectRule, emulatorRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, emulatorRule, ProcessHandleProviderRule())
 
   @Test
   fun testCatalogUpdates() {

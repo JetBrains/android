@@ -54,7 +54,7 @@ val COMMAND_PARAMETERS_EMBEDDED = listOf("-qt-hide-window", "-grpc-use-token", "
 class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBEDDED) : TestRule {
   lateinit var avdId: String
   private var emulatorProcess: Process? = null
-  private var processId = 0
+  private var processId = 0L
   private lateinit var avdFolder: Path
   private var nullableController: EmulatorController? = null
   private val tempDirectory = TemporaryDirectory()
@@ -88,7 +88,7 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
       }
       val process = command.createProcess()
       emulatorProcess = process
-      processId = UnixProcessManager.getProcessId(process)
+      processId = UnixProcessManager.getProcessId(process).toLong()
     }
 
     override fun after() {
@@ -122,7 +122,7 @@ class EmulatorRule(val commandParameters: List<String> = COMMAND_PARAMETERS_EMBE
       while (true) {
         val catalog = RunningEmulatorCatalog.getInstance()
         val controllers = runBlocking { catalog.updateNow().await() }
-        controller = controllers.find { it.emulatorId.registrationFileName == "pid_$processId.ini" }
+        controller = controllers.find { it.emulatorId.pid == processId }
         if (controller != null) {
           nullableController = controller
           return controller

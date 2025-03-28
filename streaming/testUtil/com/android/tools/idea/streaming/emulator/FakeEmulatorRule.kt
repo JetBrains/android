@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.android.ddmlib.IDevice
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.ProcessHandleProviderRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder
@@ -104,7 +105,7 @@ class FakeEmulatorRule : TestRule {
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    return tempDirectory.apply(emulatorResource.apply(base, description), description)
+    return tempDirectory.apply(emulatorResource.apply(ProcessHandleProviderRule().apply(base, description), description), description)
   }
 
   fun newPath(): Path = tempDirectory.newPath()

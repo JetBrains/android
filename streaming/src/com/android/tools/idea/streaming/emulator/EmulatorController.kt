@@ -46,6 +46,7 @@ import com.android.emulator.control.XrOptions
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinDefinitionCache
+import com.android.tools.idea.avdmanager.RunningAvdTracker
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.io.grpc.CallCredentials
@@ -110,6 +111,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private val connectionStateReference = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val emulatorState = AtomicReference(EmulatorState.RUNNING)
   private val connectionStateListeners = DisposableWrapperList<ConnectionStateListener>()
+  private val runningAvdTracker = service<RunningAvdTracker>()
   @GuardedBy("this")
   private var inputEventSender: StreamObserver<InputEvent>? = null
 
@@ -338,6 +340,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       alarm.cancelAllRequests()
       val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
       setVmState(vmRunState)
+      runningAvdTracker.shuttingDown(emulatorId.avdFolder.toString())
     }
   }
 

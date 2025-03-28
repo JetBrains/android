@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager
 
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
+import com.android.testutils.FakeProcessHandle
 import com.android.tools.idea.avdmanager.EmulatorLogListener.Severity
 import com.android.tools.idea.testing.executeCapturingLoggedErrorsAndWarnings
 import com.google.common.truth.Truth.assertThat
@@ -30,7 +31,6 @@ import java.nio.file.Paths
 import java.util.concurrent.CountDownLatch
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 
 /** Tests for [EmulatorProcessHandler]. */
 class EmulatorProcessHandlerTest {
@@ -114,10 +114,10 @@ class EmulatorProcessHandlerTest {
     private val stdin = ByteArrayOutputStream()
     private val stdout = CountDownByteArrayInputStream(output.joinToString("\n").toByteArray())
     private val stderr = ByteArray(0).inputStream()
-    private val handle = mock<ProcessHandle>()
+    private val handle = FakeProcessHandle(12345)
 
     override fun destroy() {
-      TODO("Not yet implemented")
+      handle.destroy()
     }
 
     override fun getOutputStream(): OutputStream = stdin
