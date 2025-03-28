@@ -34,6 +34,22 @@ class DeclarativeEditingExperienceTest : BasePlatformTestCase() {
     """.trimIndent())
   }
 
+  fun testTripleQuotes() {
+    myFixture.configureByText("build.gradle.dcl", """
+    androidApplication {
+        namespace = <caret>
+    }
+    """.trimIndent())
+    val tripleQuote = "\"\"\""
+    myFixture.type(tripleQuote)
+
+    myFixture.checkResult("""
+        androidApplication {
+            namespace = ${tripleQuote}<caret>${tripleQuote}
+        }
+    """.trimIndent())
+  }
+
   fun testBlockIntentOnEnter() {
     myFixture.configureByText("build.gradle.dcl", """
     androidApplication {<caret>
@@ -46,6 +62,18 @@ class DeclarativeEditingExperienceTest : BasePlatformTestCase() {
     androidApplication {
         <caret>
     }
+    """.trimIndent())
+  }
+
+  fun testBraces() {
+    myFixture.configureByText("build.gradle.dcl", """
+    androidApplication <caret>
+    """.trimIndent())
+
+    myFixture.type('{')
+
+    myFixture.checkResult("""
+    androidApplication {<caret>}
     """.trimIndent())
   }
 }
