@@ -22,7 +22,8 @@ import com.android.adblib.AdbServerController
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
 import com.android.adblib.ddmlibcompatibility.AdbLibAndroidDebugBridge
-import com.android.adblib.tools.debugging.processinventory.ProcessInventoryJdwpProcessPropertiesCollectorFactory
+import com.android.adblib.tools.debugging.processinventory.ProcessInventoryServerConnection
+import com.android.adblib.tools.debugging.processinventory.installProcessInventoryJdwpProcessPropertiesCollectorFactory
 import com.android.adblib.tools.debugging.processinventory.server.ProcessInventoryServerConfiguration
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
@@ -97,19 +98,19 @@ class AdbLibApplicationService : Disposable {
       )
       .also { session ->
         // Note: We need to install a ProcessInventoryServerJdwpPropertiesCollectorFactory instance
-        // on
-        //   the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
-        //   are delegated to this AdbSession.
-
-        val enabled = {
+        // on the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
+        // are delegated to this AdbSession.
+        val inventoryServerEnabled = {
           StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
             StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
         }
 
-        ProcessInventoryJdwpProcessPropertiesCollectorFactory.installForSession(
-          session,
-          enabled = enabled,
-          config = StudioProcessInventoryServerConfiguration(),
+        val inventoryServerConfig = StudioProcessInventoryServerConfiguration()
+        val inventoryServerConnection =
+          ProcessInventoryServerConnection.create(session, inventoryServerConfig)
+        session.installProcessInventoryJdwpProcessPropertiesCollectorFactory(
+          inventoryServerConnection,
+          inventoryServerEnabled,
         )
       }
 
