@@ -565,10 +565,12 @@ class InspectorModel(
       var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
       // TODO: should changes below cause modified to be set to true?
       // Maybe each view should have its own modification listener that can listen for such changes?
-      oldNode.layoutBounds = newNode.layoutBounds
       oldNode.qualifiedName = newNode.qualifiedName
       oldNode.layout = newNode.layout
+      oldNode.layoutBounds = newNode.layoutBounds
       oldNode.renderBounds = newNode.renderBounds
+      oldNode.viewId = newNode.viewId
+      oldNode.textValue = newNode.textValue
       oldNode.layoutFlags = newNode.layoutFlags
       oldNode.parent = parent
       if (oldNode is ComposeViewNode && newNode is ComposeViewNode) {

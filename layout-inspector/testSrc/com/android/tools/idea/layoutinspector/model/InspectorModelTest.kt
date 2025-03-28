@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.io.readImage
+import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -59,13 +62,15 @@ class InspectorModelTest {
 
   @Test
   fun testUpdatePropertiesOnly() {
+    val id1A = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "v1A")
+    val id1B = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "v1B")
     val model =
       model(disposable) {
-        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
-          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
-            view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
+        view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType", textValue = "rootA") {
+          view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type", textValue = "v1A", viewId = id1A) {
+            view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type", textValue = "v3A")
           }
-          view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
+          view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type", textValue = "v2A")
         }
       }
     val origRoot = model[ROOT]
@@ -77,11 +82,11 @@ class InspectorModelTest {
     }
 
     val newWindow =
-      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
-        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType", textValue = "rootB") {
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type", textValue = "v1B", viewId = id1B) {
           view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
         }
-        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
+        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type", textValue = "v2B")
       }
 
     val origNodes = model.root.flattenedList().associateBy { it.drawId }
@@ -95,7 +100,12 @@ class InspectorModelTest {
       assertThat(model[id]).isSameAs(orig)
     }
     assertThat(model[ROOT]?.layoutBounds?.x).isEqualTo(2)
+    assertThat(model[ROOT]?.textValue).isEqualTo("rootB")
+    assertThat(model[VIEW1]?.textValue).isEqualTo("v1B")
+    assertThat(model[VIEW1]?.viewId).isEqualTo(id1B)
+    assertThat(model[VIEW2]?.textValue).isEqualTo("v2B")
     assertThat(model[VIEW3]?.layoutBounds?.height).isEqualTo(6)
+    assertThat(model[VIEW3]?.textValue).isEqualTo("")
     assertThat(newRootReported).isSameAs(origRoot)
     assertSingleRoot(model, FakeTreeSettings())
   }
