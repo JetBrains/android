@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.npw.template
 
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.npw.hasComposeMinAgpVersion
@@ -44,40 +44,54 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Icon
 import javax.swing.JComponent
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.util.AndroidBundle.message
 
 /**
- * This step allows the user to select which type of component (Activity, Service, etc.) they want to create.
+ * This step allows the user to select which type of component (Activity, Service, etc.) they want
+ * to create.
+ *
  * TODO: This class and ChooseModuleTypeStep looks to have a lot in common.
  *
  * Should we have something more specific than a ASGallery, that renders "Gallery items"?
  */
-
-class BlankModel: WizardModel() {
+class BlankModel : WizardModel() {
   override fun handleFinished() {
     // Nothing to do
   }
 }
+
 abstract class ChooseGalleryItemStep(
   private val renderModel: RenderTemplateModel,
   formFactor: FormFactor,
   private val moduleTemplates: List<NamedModuleTemplate>,
   private val messageKeys: WizardGalleryItemsStepMessageKeys,
   private val emptyItemLabel: String,
-  private val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
-) : SkippableWizardStep<WizardModel>(BlankModel(), message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
+  private val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem> =
+    OptionalValueProperty.absent(),
+) :
+  SkippableWizardStep<WizardModel>(
+    BlankModel(),
+    message(messageKeys.addMessage, formFactor.id),
+    formFactor.icon,
+  ) {
 
   abstract val templateRenderers: List<TemplateRenderer>
-  private val itemGallery = WizardGallery(title, { t: NewTemplateRenderer? -> t!!.icon }, { t: NewTemplateRenderer? -> t!!.label })
-  private val validatorPanel = ValidatorPanel(this, JBScrollPane(itemGallery)).also {
-    FormScalingUtil.scaleComponentTree(this.javaClass, it)
-  }
+  private val itemGallery =
+    WizardGallery(
+      title,
+      { t: NewTemplateRenderer? -> t!!.icon },
+      { t: NewTemplateRenderer? -> t!!.label },
+    )
+  private val validatorPanel =
+    ValidatorPanel(this, JBScrollPane(itemGallery)).also {
+      FormScalingUtil.scaleComponentTree(this.javaClass, it)
+    }
 
   private val invalidParameterMessage = StringValueProperty()
   private val listeners = ListenerManager()
@@ -90,26 +104,36 @@ abstract class ChooseGalleryItemStep(
     formFactor: FormFactor,
     targetDirectory: VirtualFile,
     messageKeys: WizardGalleryItemsStepMessageKeys,
-    emptyItemLabel: String
-  ) : this(renderModel, formFactor, renderModel.androidFacet!!.getModuleTemplates(targetDirectory), messageKeys, emptyItemLabel)
+    emptyItemLabel: String,
+  ) : this(
+    renderModel,
+    formFactor,
+    renderModel.androidFacet!!.getModuleTemplates(targetDirectory),
+    messageKeys,
+    emptyItemLabel,
+  )
 
   override fun getComponent(): JComponent = validatorPanel
 
   override fun getPreferredFocusComponent(): JComponent? = itemGallery
 
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> =
-    listOf(ConfigureTemplateParametersStep(renderModel, message(messageKeys.stepTitle), moduleTemplates))
+    listOf(
+      ConfigureTemplateParametersStep(renderModel, message(messageKeys.stepTitle), moduleTemplates)
+    )
 
   override fun dispose() = listeners.releaseAll()
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
     validatorPanel.registerMessageSource(invalidParameterMessage)
 
-    itemGallery.setDefaultAction(object : AbstractAction() {
-      override fun actionPerformed(actionEvent: ActionEvent) {
-        wizard.goForward()
+    itemGallery.setDefaultAction(
+      object : AbstractAction() {
+        override fun actionPerformed(actionEvent: ActionEvent) {
+          wizard.goForward()
+        }
       }
-    })
+    )
 
     itemGallery.addListSelectionListener {
       itemGallery.selectedElement?.run {
@@ -129,34 +153,48 @@ abstract class ChooseGalleryItemStep(
 
   override fun onEntering() = validateTemplate()
 
-  /**
-   * See also [com.android.tools.idea.actions.NewAndroidComponentAction.update]
-   */
+  /** See also [com.android.tools.idea.actions.NewAndroidComponentAction.update] */
   private fun validateTemplate() {
     val sdkInfo = androidSdkInfo.valueOrNull
     val facet = renderModel.androidFacet
 
     fun AndroidFacet.getModuleInfo() = StudioAndroidModuleInfo.getInstance(this)
 
-    val moduleApiLevel = sdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
+    val moduleApiLevel =
+      sdkInfo?.minApiLevel
+        ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel
+        ?: Integer.MAX_VALUE
 
     val project = renderModel.project
     val isAndroidxProject = project.isAndroidx()
 
     invalidParameterMessage.set(
-      renderModel.newTemplate.validate(moduleApiLevel, isNewModule, isAndroidxProject, renderModel.language.value, messageKeys)
+      renderModel.newTemplate.validate(
+        moduleApiLevel,
+        isNewModule,
+        isAndroidxProject,
+        renderModel.language.value,
+        messageKeys,
+      )
     )
 
-    if (invalidParameterMessage.get() == "" &&
+    if (
+      invalidParameterMessage.get() == "" &&
         renderModel.newTemplate.constraints.contains(TemplateConstraint.Compose) &&
-        !hasComposeMinAgpVersion(project)) {
-      invalidParameterMessage.set(message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION))
+        !hasComposeMinAgpVersion(project)
+    ) {
+      invalidParameterMessage.set(
+        message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION)
+      )
     }
   }
 
   interface TemplateRenderer {
     val label: String
-    /** Return the image associated with the current template, if it specifies one, or null otherwise. */
+    /**
+     * Return the image associated with the current template, if it specifies one, or null
+     * otherwise.
+     */
     val icon: Icon?
     val exists: Boolean
   }
@@ -176,27 +214,34 @@ abstract class ChooseGalleryItemStep(
 
 fun getDefaultSelectedTemplateIndex(
   templateRenderers: List<ChooseGalleryItemStep.TemplateRenderer>,
-  emptyItemLabel: String = "Empty Activity"
-): Int = templateRenderers.indices.run {
-  val defaultTemplateIndex = firstOrNull { templateRenderers[it].label == emptyItemLabel }
-  val firstValidTemplateIndex = firstOrNull { templateRenderers[it].exists }
+  emptyItemLabel: String = "Empty Activity",
+): Int =
+  templateRenderers.indices.run {
+    val defaultTemplateIndex = firstOrNull { templateRenderers[it].label == emptyItemLabel }
+    val firstValidTemplateIndex = firstOrNull { templateRenderers[it].exists }
 
-  defaultTemplateIndex ?: firstValidTemplateIndex ?: throw IllegalArgumentException("No valid Template found")
-}
+    defaultTemplateIndex
+      ?: firstValidTemplateIndex
+      ?: throw IllegalArgumentException("No valid Template found")
+  }
 
 @VisibleForTesting
-fun Template.validate(moduleApiLevel: Int,
-                      isNewModule: Boolean,
-                      isAndroidxProject: Boolean,
-                      language: Language,
-                      messageKeys: WizardGalleryItemsStepMessageKeys
-): String = when {
-  this == Template.NoActivity -> if (isNewModule) "" else message(messageKeys.itemNotFound)
-  moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
-  constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
-  constraints.contains(TemplateConstraint.Kotlin) && language != Language.Kotlin && isNewModule -> message(messageKeys.invalidNeedsKotlin)
-  else -> ""
-}
+fun Template.validate(
+  moduleApiLevel: Int,
+  isNewModule: Boolean,
+  isAndroidxProject: Boolean,
+  language: Language,
+  messageKeys: WizardGalleryItemsStepMessageKeys,
+): String =
+  when {
+    this == Template.NoActivity -> if (isNewModule) "" else message(messageKeys.itemNotFound)
+    moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
+    constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject ->
+      message(messageKeys.invalidAndroidX)
+    constraints.contains(TemplateConstraint.Kotlin) && language != Language.Kotlin && isNewModule ->
+      message(messageKeys.invalidNeedsKotlin)
+    else -> ""
+  }
 
 data class WizardGalleryItemsStepMessageKeys(
   val addMessage: String,
@@ -204,5 +249,5 @@ data class WizardGalleryItemsStepMessageKeys(
   val itemNotFound: String,
   val invalidMinSdk: String,
   val invalidAndroidX: String,
-  val invalidNeedsKotlin: String
+  val invalidNeedsKotlin: String,
 )
