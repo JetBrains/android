@@ -65,7 +65,7 @@ public class ModifyMinSdkAndSyncTest {
    * <pre>
    *   Steps:
    *   1. Import a project.
-   *   2. Open build.gradle file for the project and update the min sdk value to 23.
+   *   2. Open build.gradle file for the project and update the min sdk value to 26.
    *   3. Sync the project.
    *   Verify:
    *   Project syncs and minSdk version is updated.
