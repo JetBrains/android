@@ -76,8 +76,6 @@ public class DeviceDefinitionPreview extends JPanel {
   }
 
   private static final String NO_DEVICE_SELECTED = "No Device Selected";
-  double myMaxOutlineWidth;
-  double myMinOutlineWidthIn;
 
   private static int padding() {
     return JBUI.scale(20);
@@ -440,29 +438,17 @@ public class DeviceDefinitionPreview extends JPanel {
   /**
    * @return A scaled dimension of the given device's screen that will fit within this component's bounds.
    */
-  @NotNull
   private Dimension getScaledDimension() {
     Dimension pixelSize = myDeviceData.getDeviceScreenDimension();
-    double diagonalIn = myDeviceData.diagonalScreenSize().get();
+    double diagonal = myDeviceData.diagonalScreenSize().get();
     double sideRatio = pixelSize.getWidth() / pixelSize.getHeight();
-    double heightIn = diagonalIn / Math.sqrt(1 + sideRatio * sideRatio);
+    double heightIn = diagonal / Math.sqrt(1 + sideRatio);
     double widthIn = sideRatio * heightIn;
-
-    double maxWidthIn = myMaxOutlineWidth == 0 ? widthIn : myMaxOutlineWidth;
-    double desiredMaxWidthPx = getWidth() * 0.40;
-    double desiredMinWidthPx = getWidth() * 0.10;
-
-    // This is the scaled width we want to use.
-    double widthPixels = widthIn * desiredMaxWidthPx / maxWidthIn;
-
-    // However a search result can contain both very small devices (wear) and very
-    // large devices (TV). When this is the case use this alternate scaling
-    // algorithm to avoid the wear devices to show up as a dot.
-    if (myMinOutlineWidthIn * desiredMaxWidthPx / maxWidthIn < desiredMinWidthPx) {
-      widthPixels =
-        desiredMinWidthPx + (widthIn - myMinOutlineWidthIn) * (desiredMaxWidthPx - desiredMinWidthPx) / (maxWidthIn - myMinOutlineWidthIn);
-    }
-    double heightPixels = widthPixels / widthIn * heightIn;
-    return new Dimension((int)widthPixels, (int)heightPixels);
+    double maxDimIn = Math.max(widthIn, heightIn);
+    double desiredMaxWidthPx = getWidth() / 2.0;
+    double desiredMaxHeightPx = getHeight() / 2.0;
+    double desiredMaxPx = Math.min(desiredMaxHeightPx, desiredMaxWidthPx);
+    double scalingFactorPxToIn = maxDimIn / desiredMaxPx;
+    return new Dimension((int)(widthIn / scalingFactorPxToIn), (int)(heightIn / scalingFactorPxToIn));
   }
 }
