@@ -492,7 +492,7 @@ internal class ComposePreviewViewImpl(
           } else {
             val generatePreviewsActionData =
               withContext(workerThread) {
-                if (StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.get())
+                if (StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get())
                   createGeneratePreviewsActionData()
                 else null
               }

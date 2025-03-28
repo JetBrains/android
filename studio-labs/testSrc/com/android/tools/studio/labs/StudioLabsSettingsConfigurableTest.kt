@@ -67,12 +67,13 @@ class StudioLabsSettingsConfigurableTest {
   }
 
   @Test
-  fun configurable_whenFakeFeatureEnabled_onlyHasTestFeaturePanels() {
+  fun configurable_whenFakeFeatureEnabled_hasTestFeaturePanel() {
     STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.override(true)
 
-    StudioLabsSettingsConfigurable().panelList.forEach {
-      assertThat(it).isInstanceOf(FakeStudioLabsFeaturePanelUi::class.java)
-    }
+    assertThat(
+        StudioLabsSettingsConfigurable().panelList.any { it is FakeStudioLabsFeaturePanelUi }
+      )
+      .isTrue()
   }
 
   @Test

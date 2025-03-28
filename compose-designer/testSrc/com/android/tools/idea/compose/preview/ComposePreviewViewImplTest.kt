@@ -136,7 +136,7 @@ private fun InstructionsPanel.toDisplayText(): String =
 class ComposePreviewViewImplTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE)
+  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW)
 
   private val project: Project
     get() = projectRule.project
@@ -347,7 +347,7 @@ class ComposePreviewViewImplTest {
 
   @Test
   fun `empty preview state when generate all previews is disabled`() = runBlocking {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(false)
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
     previewView.hasRendered = true
     previewView.hasContent = false
     runBlocking { previewView.updateVisibilityAndNotifications() }
@@ -382,7 +382,7 @@ class ComposePreviewViewImplTest {
   }
 
   private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) = runBlocking {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE.override(true)
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = contextSharingEnabled
 
     previewView.hasRendered = true

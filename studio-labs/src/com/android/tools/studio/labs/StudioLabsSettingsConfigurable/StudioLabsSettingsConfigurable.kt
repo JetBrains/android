@@ -130,28 +130,51 @@ class StudioLabsSettingsConfigurable :
           //      imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
           //      imageDescription = "Prompt Library settings",
           //    )
+          StudioLabsFeaturePanelUi(
+            flag = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW,
+            heading = "Generate Compose Preview",
+            description =
+              """
+                Allows the generation of new Compose Previews for existing Composables.
+              """
+                .trimIndent(),
+            imageSourceDefault = "images/studio_labs/generate-compose-preview.png",
+            imageSourceDark = "images/studio_labs/generate-compose-preview_dark.png",
+            imageDescription = "Generate Compose Preview menu",
+          ),
+          StudioLabsFeaturePanelUi(
+            flag = StudioFlags.STUDIOBOT_ATTACHMENTS,
+            heading = "Attach Images",
+            description =
+              """
+                Allows attaching images to the Gemini queries.
+              """
+                .trimIndent(),
+            imageSourceDefault = "images/studio_labs/attach-image.png",
+            imageSourceDark = "images/studio_labs/attach-image_dark.png",
+            imageDescription = "Image attaching menu",
+          ),
         )
-      if (labsFeatures.isNotEmpty()) {
-        return labsFeatures
+
+      if (StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.get()) {
+        // Add a fake feature so that QA can test out Studio Labs in scenarios
+        // where there are no real features available under Labs.
+        return labsFeatures +
+          listOf(
+            FakeStudioLabsFeaturePanelUi(
+              flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
+              heading = "(Test only) Prompt Library",
+              description =
+                "Allows to store frequently used prompts for quick access." +
+                  " Optionally share prompts with other people working on a same project.",
+              imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
+              imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
+              imageDescription = "Prompt Library settings",
+            )
+          )
       }
 
-      if (!StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.get()) {
-        return emptyList()
-      }
-      // Add a fake feature so that QA can test out Studio Labs in scenarios
-      // where there are no real features available under Labs.
-      return listOf(
-        FakeStudioLabsFeaturePanelUi(
-          flag = StudioFlags.STUDIOBOT_PROMPT_LIBRARY_ENABLED,
-          heading = "(Test only) Prompt Library",
-          description =
-            "Allows to store frequently used prompts for quick access." +
-              " Optionally share prompts with other people working on a same project.",
-          imageSourceDefault = "images/studio_labs/prompt-library-settings.png",
-          imageSourceDark = "images/studio_labs/prompt-library-settings_dark.png",
-          imageDescription = "Prompt Library settings",
-        )
-      )
+      return labsFeatures
     }
   }
 }

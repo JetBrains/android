@@ -1618,12 +1618,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action", "Enable editor action for generating Compose Previews",
-    "Enable a context-menu action that can generate a Compose Preview corresponding to the selected @Composable",
-    enabledUpTo(CANARY));
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE = new BooleanFlag(
-    COMPOSE, "preview.generate.previews.file.action", "Enable editor action for generating all Compose Previews for a file",
-    "Enable a context-menu action that can generate Compose Previews corresponding to the @Composable functions of a file",
+    "Enable context-menu actions that can generate a Compose Preview corresponding to the selected @Composable",
     enabledUpTo(CANARY));
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_EXTRA_PARAMETER_CONTEXT = new BooleanFlag(
