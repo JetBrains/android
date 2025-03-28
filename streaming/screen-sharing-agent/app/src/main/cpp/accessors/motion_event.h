@@ -45,7 +45,7 @@ public:
   jint button_state = 0;
   jfloat x_precision = 1;
   jfloat y_precision = 1;
-  jint device_id = 0;
+  jint device_id = -1;
   jint edge_flags = 0;
   jint source = 0;
   jint display_id = 0;
