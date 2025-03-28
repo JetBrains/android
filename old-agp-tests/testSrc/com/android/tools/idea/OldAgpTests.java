@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_86Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_87Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_88Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_89Test;
+import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_8_10_Test;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.MavenRepoRule;
@@ -75,6 +76,7 @@ import org.junit.runner.RunWith;
   SyncProject_AGP_87Test.class,
   SyncProject_AGP_88Test.class,
   SyncProject_AGP_89Test.class,
+  SyncProject_AGP_8_10_Test.class,
 })
 public class OldAgpTests extends IdeaTestSuiteBase {
 

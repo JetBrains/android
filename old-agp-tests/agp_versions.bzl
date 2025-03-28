@@ -46,6 +46,7 @@ AGP_8_6 = "8.6.0"
 AGP_8_7 = "8.7.0"
 AGP_8_8 = "8.8.0"
 AGP_8_9 = "8.9.0"
+AGP_8_10 = "8.10.0-beta01"
 
 AGP_MAVEN_REPOS = {
     AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],
@@ -69,6 +70,7 @@ AGP_MAVEN_REPOS = {
     AGP_8_7: ["//tools/base/build-system/previous-versions:8.7.0"],
     AGP_8_8: ["//tools/base/build-system/previous-versions:8.8.0"],
     AGP_8_9: ["//tools/base/build-system/previous-versions:8.9.0"],
+    AGP_8_10: ["//tools/base/build-system/previous-versions:8.10.0"],
 }
 
 AGP_DATA = {
@@ -154,6 +156,10 @@ AGP_DATA = {
         "//prebuilts/studio/sdk:platforms/android-35",
     ],
     AGP_8_9: [
+        "//prebuilts/studio/sdk:build-tools/35.0.0",
+        "//prebuilts/studio/sdk:platforms/android-35",
+    ],
+    AGP_8_10: [
         "//prebuilts/studio/sdk:build-tools/35.0.0",
         "//prebuilts/studio/sdk:platforms/android-35",
     ],

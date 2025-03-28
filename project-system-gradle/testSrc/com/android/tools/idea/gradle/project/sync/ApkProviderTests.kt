@@ -647,7 +647,10 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
             """,
         )
-      }.toMap()
+      }.toMap(),
+      IGNORE = {
+        if(agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_8_10) TODO("b/407713905")
+      }
     ),
     def(
       stackMarker = { it() },
