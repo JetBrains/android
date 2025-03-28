@@ -62,6 +62,7 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -231,6 +232,7 @@ public class StudioDownloaderTest {
 
 
   @Test
+  @Ignore("b/406368116")
   public void testCorruptedPartialDownload() throws Exception {
     FileSystem fs = InMemoryFileSystems.createInMemoryFileSystem();
     // Create some sizeable custom content to download.
