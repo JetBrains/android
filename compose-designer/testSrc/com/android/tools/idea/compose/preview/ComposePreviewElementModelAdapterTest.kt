@@ -164,7 +164,7 @@ class ComposePreviewElementModelAdapterTest {
       adapter.calcAffinity(composable0, composable1) < adapter.calcAffinity(composable0, null)
     )
     Assert.assertTrue(
-      adapter.calcAffinity(composable0, null) < adapter.calcAffinity(composable0, composable2)
+      adapter.calcAffinity(composable0, null) == adapter.calcAffinity(composable0, composable2)
     )
   }
 }

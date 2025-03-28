@@ -86,7 +86,7 @@ class MethodPreviewElementModelAdapterTest {
     Assert.assertTrue(adapter.calcAffinity(pe1, pe1) < adapter.calcAffinity(pe1, pe2))
     Assert.assertTrue(adapter.calcAffinity(pe1, pe2) < adapter.calcAffinity(pe1, pe3))
     Assert.assertTrue(adapter.calcAffinity(pe1, pe3) < adapter.calcAffinity(pe1, null))
-    Assert.assertTrue(adapter.calcAffinity(pe1, null) < adapter.calcAffinity(pe1, pe4))
+    Assert.assertTrue(adapter.calcAffinity(pe1, null) == adapter.calcAffinity(pe1, pe4))
   }
 
   @Test

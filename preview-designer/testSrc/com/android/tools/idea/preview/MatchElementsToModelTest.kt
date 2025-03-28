@@ -31,10 +31,7 @@ private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElem
     if (el1.displaySettings == el2?.displaySettings) {
       return 1
     }
-    if (el2 == null) {
-      return 2
-    }
-    return 3
+    return 2
   }
 
   override fun modelToElement(model: Any) = modelsToElements[model]
