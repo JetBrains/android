@@ -46,7 +46,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.jetbrains.rd.util.getOrCreate
@@ -228,10 +227,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
   existingModels.removeAll(elementsToReusableModels.mapNotNull { it.second })
   debugLogger?.log("Removing ${existingModels.size} model(s)")
-  existingModels.forEach {
-    removeModel(it)
-    Disposer.dispose(it)
-  }
+  removeModels(existingModels)
 
   refreshEventBuilder?.withPreviewsCount(elementsToReusableModels.size)
   refreshEventBuilder?.withPreviewsToRefresh(elementsToReusableModels.size)

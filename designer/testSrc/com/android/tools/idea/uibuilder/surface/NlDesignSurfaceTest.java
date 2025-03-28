@@ -35,12 +35,12 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import java.awt.Point;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -514,7 +514,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.doLayout();
     surface.getZoomController().zoomToFit();
     double fitScale = surface.getZoomController().getScale();
-    surface.removeModel(model);
+    surface.removeModels(List.of(model));
 
     // Create another surface which the minimum scale is larger than fitScale.
     surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable()).build();
@@ -526,7 +526,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.getZoomController().zoomToFit();
     assertEquals(fitScale * 2, surface.getZoomController().getScale(), 0.01);
     assertFalse(surface.getZoomController().canZoomToFit());
-    surface.removeModel(model);
+    surface.removeModels(List.of(model));
 
     // Create another surface which the maximum scale is lower than fitScale.
     surface = NlSurfaceBuilder.Companion.builder(getProject(), getTestRootDisposable()).build();
@@ -538,7 +538,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.getZoomController().zoomToFit();
     assertEquals(fitScale / 2 , surface.getZoomController().getScale(), 0.01);
     assertFalse(surface.getZoomController().canZoomToFit());
-    surface.removeModel(model);
+    surface.removeModels(List.of(model));
   }
 
   /**

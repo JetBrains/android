@@ -73,11 +73,11 @@ class DesignSurfaceTest : LayoutTestCase() {
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model2))
     assertEquals(2, surface.models.size)
 
-    surface.removeModel(model2)
+    surface.removeModels(listOf(model2))
     surface.zoomController.zoomToFit()
     assertEquals(1, surface.models.size)
 
-    surface.removeModel(model1)
+    surface.removeModels(listOf(model1))
     surface.zoomController.zoomToFit()
     assertEquals(0, surface.models.size)
   }
@@ -130,7 +130,7 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     assertEquals(0, surface.models.size)
 
-    surface.removeModel(model1)
+    surface.removeModels(listOf(model1))
     surface.zoomController.zoomToFit()
     // do nothing and the callback should not be triggered.
     assertEquals(0, surface.models.size)
@@ -138,7 +138,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
     assertEquals(1, surface.models.size)
 
-    surface.removeModel(model2)
+    surface.removeModels(listOf(model2))
     surface.zoomController.zoomToFit()
     assertEquals(1, surface.models.size)
   }

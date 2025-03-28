@@ -932,38 +932,35 @@ abstract class DesignSurface<T : SceneManager>(
   }
 
   /**
-   * Remove an [NlModel] from DesignSurface. If it isn't added before then nothing happens.
+   * Remove the [NlModel]s in [models] from DesignSurface.
    *
-   * @param model the [NlModel] to remove
+   * Any model not present in the surface is ignored.
    */
-  fun removeModel(model: NlModel) {
-    if (!removeModelImpl(model)) {
-      return
-    }
-
+  fun removeModels(models: List<NlModel>) {
+    removeModelsImpl(models)
     reactivateGuiInputHandler()
   }
 
   /**
-   * Remove an [NlModel] from DesignSurface. If it had not been added before then nothing happens.
+   * Remove the [NlModel]s in [models] from DesignSurface.
    *
-   * @param model the [NlModel] to remove
-   * @return true if the model existed and was removed
+   * Any model not present in the surface is ignored.
    */
-  private fun removeModelImpl(model: NlModel): Boolean {
-    val manager: SceneManager?
-    modelToSceneManagersLock.writeLock().withLock { manager = modelToSceneManagers.remove(model) }
-    // Mark the scene view panel as invalid to force the scene views to be updated
-
-    if (manager == null) {
-      return false
+  private fun removeModelsImpl(models: List<NlModel>) {
+    val modelsToManagers =
+      modelToSceneManagersLock.writeLock().withLock {
+        models.map { it to modelToSceneManagers.remove(it) }
+      }
+    modelsToManagers.forEach { (model, manager) ->
+      // Ignore model if not manager associated with it (i.e. model not present in this surface)
+      if (manager == null) return@forEach
+      model.deactivate(this)
+      model.removeListener(modelListener)
+      Disposer.dispose(model)
+      Disposer.dispose(manager)
     }
-
-    model.deactivate(this)
-    model.removeListener(modelListener)
-    Disposer.dispose(manager)
+    // Mark the scene view panel as invalid to force the scene views to be updated
     UIUtil.invokeLaterIfNeeded { this.revalidateScrollArea() }
-    return true
   }
 
   override val focusedSceneView: SceneView?
@@ -1113,7 +1110,7 @@ abstract class DesignSurface<T : SceneManager>(
   /**
    * Sets the current [NlModel] to [DesignSurface].
    *
-   * @see [removeModel]
+   * @see [removeModels]
    */
   open fun setModel(newModel: NlModel?) {
     val oldModel = model
@@ -1122,7 +1119,7 @@ abstract class DesignSurface<T : SceneManager>(
     }
 
     if (oldModel != null) {
-      removeModelImpl(oldModel)
+      removeModelsImpl(listOf(oldModel))
     }
 
     if (newModel == null) {
@@ -1275,7 +1272,7 @@ abstract class DesignSurface<T : SceneManager>(
     if (repaintTimer.isRunning) {
       repaintTimer.stop()
     }
-    models.forEach { removeModelImpl(it) }
+    removeModelsImpl(models)
   }
 
   init {

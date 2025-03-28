@@ -284,16 +284,13 @@ class VisualizationForm(
     for (file in registeredFiles) {
       scope.launch(workerThread) { unregisterResourceNotification(file) }
     }
-    removeAndDisposeModels(surface.models)
+    removeModels(surface.models)
     surface.removeIssueListener(issueListener)
   }
 
-  private fun removeAndDisposeModels(models: List<NlModel>) {
+  private fun removeModels(models: List<NlModel>) {
     visualLintHandler.clearIssueProvider()
-    for (model in models) {
-      surface.removeModel(model)
-      Disposer.dispose(model)
-    }
+    surface.removeModels(models)
   }
 
   /**
@@ -415,7 +412,7 @@ class VisualizationForm(
       if (!isRequestCancelled.get() && facet?.isDisposed == false) {
         withContext(uiThread) { activateEditor(models.isNotEmpty()) }
       } else {
-        removeAndDisposeModels(models)
+        removeModels(models)
       }
     }
   }
@@ -448,7 +445,7 @@ class VisualizationForm(
     myCancelPendingModelLoad.set(true)
     editor = null
     myWorkBench.setFileEditor(null)
-    removeAndDisposeModels(surface.models)
+    removeModels(surface.models)
   }
 
   private suspend fun activateEditor(hasModel: Boolean) {

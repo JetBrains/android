@@ -433,7 +433,8 @@ class CustomViewPreviewRepresentation(
         )
       }
 
-      surface.models.forEach { surface.removeModel(it) }
+      surface.removeModels(surface.models)
+
       val newSceneManager = surface.addModelWithoutRender(model).await()
       newSceneManager.requestRenderAndWait()
       surface.activate()
