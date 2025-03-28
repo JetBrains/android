@@ -38,12 +38,12 @@ public class ValidatorPanelTest {
   @Rule
   public BatchInvokerStrategyRule myStrategyRule = new BatchInvokerStrategyRule(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
 
-  private static void createPanel(@NotNull Consumer<ValidatorPanel> panelConsumer) {
+  private static void createPanel(boolean hideOnSuccess, @NotNull Consumer<ValidatorPanel> panelConsumer) {
     Disposable disposable = Disposer.newDisposable();
 
     try {
       JPanel stubPanel = new JPanel();
-      ValidatorPanel validatorPanel = new ValidatorPanel(disposable, stubPanel);
+      ValidatorPanel validatorPanel = new ValidatorPanel(disposable, stubPanel, hideOnSuccess);
       panelConsumer.accept(validatorPanel);
     }
     finally {
@@ -66,7 +66,7 @@ public class ValidatorPanelTest {
 
   @Test
   public void newPanelHasNoErrors() {
-    createPanel(panel -> {
+    createPanel(false, panel -> {
       assertThat(panel.hasErrors().get()).isFalse();
       assertThat(panel.getValidationResult().get()).isEqualTo(Validator.Result.OK);
       assertThatNoMessageIsVisible(panel);
@@ -75,7 +75,7 @@ public class ValidatorPanelTest {
 
   @Test
   public void registerValidatorWorks() {
-    createPanel(panel -> {
+    createPanel(false, panel -> {
       IntProperty shouldBePositive = new IntValueProperty(0);
 
       panel.registerValidator(shouldBePositive, new Validator<Integer>() {
@@ -114,7 +114,7 @@ public class ValidatorPanelTest {
     IntProperty shouldBePositive = new IntValueProperty(0);
     BoolProperty toggleSign = new BoolValueProperty(false);
     BoolProperty forceAbsolute = new BoolValueProperty(false);
-    createPanel(panel -> {
+    createPanel(false, panel -> {
       panel.registerValidator(shouldBePositive, new Validator<Integer>() {
         @NotNull
         @Override
@@ -163,7 +163,7 @@ public class ValidatorPanelTest {
 
   @Test
   public void registerTestWorks() {
-    createPanel(panel -> {
+    createPanel(false, panel -> {
       BoolProperty shouldBeTrue = new BoolValueProperty(true);
 
       panel.registerTest(shouldBeTrue, "Value is false");
@@ -182,7 +182,7 @@ public class ValidatorPanelTest {
 
   @Test
   public void registerMessageSourceWorks() {
-    createPanel(panel -> {
+    createPanel(false, panel -> {
       StringProperty message = new StringValueProperty("");
 
       panel.registerMessageSource(message);
@@ -205,7 +205,7 @@ public class ValidatorPanelTest {
 
   @Test
   public void hasErrorsOnlyTrueIfErrorIsFound() {
-    createPanel(panel -> {
+    createPanel(false, panel -> {
       BoolProperty errorIfFalse = new BoolValueProperty(true);
       BoolProperty warningIfFalse = new BoolValueProperty(true);
       BoolProperty infoIfFalse = new BoolValueProperty(true);
@@ -239,7 +239,7 @@ public class ValidatorPanelTest {
 
   @Test
   public void errorsWarningsInfoOrderIsPrioritized() {
-    createPanel(panel -> {
+    createPanel(false, panel -> {
       BoolProperty errorIfFalse = new BoolValueProperty(true);
       BoolProperty warningIfFalse = new BoolValueProperty(true);
       BoolProperty infoIfFalse = new BoolValueProperty(true);
@@ -270,4 +270,39 @@ public class ValidatorPanelTest {
       assertThat(getValidationText(panel)).isEqualTo("Error");
     });
   }
+
+  @Test
+  public void whenHideOnSuccessFalseErrorPanelAlwaysVisible() {
+    createPanel(false, panel -> {
+      BoolProperty errorIfFalse = new BoolValueProperty(true);
+      panel.registerTest(errorIfFalse, Validator.Severity.ERROR, "Error");
+
+      assertThat(panel.hasErrors().get()).isFalse();
+      assertThat(panel.getRootComponent().getComponentCount()).isEqualTo(2);
+
+      errorIfFalse.set(false);
+      assertThat(panel.hasErrors().get()).isTrue();
+      assertThat(panel.getRootComponent().getComponentCount()).isEqualTo(2);
+    });
+  }
+
+  @Test
+  public void whenHideOnSuccessTrueErrorPanelHiddenWhenNoErrors() {
+    createPanel(true, panel -> {
+      BoolProperty errorIfFalse = new BoolValueProperty(true);
+      panel.registerTest(errorIfFalse, Validator.Severity.ERROR, "Error");
+
+      assertThat(panel.hasErrors().get()).isFalse();
+      assertThat(panel.getRootComponent().getComponentCount()).isEqualTo(1);
+
+      errorIfFalse.set(false);
+      assertThat(panel.hasErrors().get()).isTrue();
+      assertThat(panel.getRootComponent().getComponentCount()).isEqualTo(2);
+
+      errorIfFalse.set(true);
+      assertThat(panel.hasErrors().get()).isFalse();
+      assertThat(panel.getRootComponent().getComponentCount()).isEqualTo(1);
+    });
+  }
+
 }

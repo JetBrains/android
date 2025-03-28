@@ -89,7 +89,7 @@ abstract class ChooseGalleryItemStep(
       { t: NewTemplateRenderer? -> t!!.label },
     )
   private val validatorPanel =
-    ValidatorPanel(this, JBScrollPane(itemGallery)).also {
+    ValidatorPanel(this, JBScrollPane(itemGallery), /* hideOnSuccess */ true).also {
       FormScalingUtil.scaleComponentTree(this.javaClass, it)
     }
 

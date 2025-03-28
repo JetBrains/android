@@ -71,7 +71,8 @@ public final class ValidatorPanel extends JPanel implements Disposable {
       return myValidationResult.get().getSeverity() == Validator.Severity.ERROR;
     }
   };
-
+  // Whether the panel should be hidden when there are no warning/error messages.
+  private final boolean myHideOnSuccess;
 
   private JPanel myRootPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
@@ -87,10 +88,19 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    * @param innerPanel             the panel that will be wrapped by the validator panel
    * @param errorDetailDialogTitle the title for the error detail dialog
    * @param errorDetailHeader      the header label for the error detail dialog
+   * @param hideOnSuccess          the panel which shows the warning/error message will be
+   *                               hidden when there are no errors
    */
-  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel,
-                        @NotNull String errorDetailDialogTitle, @NotNull String errorDetailHeader) {
+  public ValidatorPanel(
+    @NotNull Disposable parentDisposable,
+    @NotNull JComponent innerPanel,
+    boolean hideOnSuccess,
+    @NotNull String errorDetailDialogTitle,
+    @NotNull String errorDetailHeader
+  ) {
     super(new BorderLayout());
+
+    myHideOnSuccess = hideOnSuccess;
     setupUI();
 
     add(myRootPanel);
@@ -121,8 +131,12 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     Disposer.register(parentDisposable, this);
   }
 
+  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel, boolean hideOnSuccess) {
+    this(parentDisposable, innerPanel, hideOnSuccess, "Errors", "Error Details:");
+  }
+
   public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel) {
-    this(parentDisposable, innerPanel, "Errors", "Error Details:");
+    this(parentDisposable, innerPanel, false);
   }
 
   /**
@@ -234,6 +248,11 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     if (activeResult.getSeverity() == Validator.Severity.OK) {
       mySeverityIcon.setIcon(null);
       myValidationText.setText(BLANK_HTML);
+
+      if (myHideOnSuccess) {
+        myRootPanel.remove(mySouthPanel);
+        myRootPanel.revalidate();
+      }
     }
     else {
       mySeverityIcon.setIcon(activeResult.getSeverity().getIcon());
@@ -248,6 +267,11 @@ public final class ValidatorPanel extends JPanel implements Disposable {
         }
       }
       myValidationText.setText(message);
+
+      if (myHideOnSuccess) {
+        myRootPanel.add(mySouthPanel, BorderLayout.SOUTH);
+        myRootPanel.revalidate();
+      }
     }
 
     myValidationResult.set(activeResult);
@@ -261,7 +285,9 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     mySouthPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
     mySouthPanel.setMinimumSize(new Dimension(154, 32));
     mySouthPanel.setPreferredSize(new Dimension(154, 32));
-    myRootPanel.add(mySouthPanel, BorderLayout.SOUTH);
+    if (!myHideOnSuccess) {
+      myRootPanel.add(mySouthPanel, BorderLayout.SOUTH);
+    }
     mySeverityIcon = new JBLabel();
     mySeverityIcon.setFocusable(false);
     mySeverityIcon.setIconTextGap(0);

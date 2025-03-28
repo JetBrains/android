@@ -205,7 +205,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myOpacityPercent = new SliderValueProperty(myOpacitySlider);
     myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
 
-    myValidatorPanel = new ValidatorPanel(this, myPanel, "Conversion Issues", "Encountered Issues:");
+    myValidatorPanel = new ValidatorPanel(this, myPanel, /* hideOnSuccess */ false, "Conversion Issues", "Encountered Issues:");
 
     ActionListener assetListener = actionEvent -> renderPreviews();
     myClipartAssetButton.addAssetListener(assetListener);
