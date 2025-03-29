@@ -20,11 +20,11 @@ import com.android.SdkConstants.FQCN_SUPPRESS_LINT
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
 import com.android.tools.lint.detector.api.ClassContext
+import com.android.tools.lint.detector.api.firstLabelableParent
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
-import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.codeInspection.SuppressionUtilCore
@@ -57,6 +57,7 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtModifierListOwner
@@ -399,7 +400,9 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     }
 
     private fun findKotlinSuppressElement(element: PsiElement): PsiElement? {
-      return PsiTreeUtil.findFirstParent(element, true) { it.isSuppressLintTarget() }
+      return PsiTreeUtil.findFirstParent(element, true) { parent ->
+        parent.isSuppressLintTarget() && (parent as? KtElement)?.firstLabelableParent() == null
+      }
     }
 
     private fun PsiElement.isSuppressLintTarget(): Boolean {

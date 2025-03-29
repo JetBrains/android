@@ -677,6 +677,32 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  @Test
+  fun testSuppressLintAnonymousObject() {
+    check(
+      """
+      open class Foo(val path: String)
+
+      fun test(): Foo {
+        return object : Foo("/*caret*//sdcard") {
+        }
+      }
+      """,
+      inspection = AndroidLintSdCardPathInspection(),
+      fixPrefix = "Suppress SdCardPath with an annotation",
+      expectedDiff =
+        """
+    @@ -1 +1
+    + import android.annotation.SuppressLint
+    +
+      open class Foo(val path: String)
+
+    + @SuppressLint("SdCardPath")
+      fun test(): Foo {
+      """,
+    )
+  }
+
   // Quickfixes for add target api annotation
 
   @Suppress("RemoveEmptyClassBody")
