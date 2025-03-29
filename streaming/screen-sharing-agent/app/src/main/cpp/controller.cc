@@ -758,7 +758,7 @@ void Controller::InjectXrMotionEvent(const JObject& motion_event) {
   XrSimulatedInputEventManager::InjectXrSimulatedMotionEvent(jni_, motion_event);
   JThrowable exception = jni_.GetAndClearException();
   if (exception.IsNotNull()) {
-    Log::E("Unable to inject an XR motion event - %s", JString::ValueOf(exception).c_str());
+    Log::E("Unable to inject an XR motion event - %s", exception.Describe().c_str());
   }
 }
 
