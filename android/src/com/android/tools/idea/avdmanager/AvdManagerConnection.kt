@@ -53,8 +53,6 @@ import com.android.utils.PathUtils
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.credentialStore.isFulfilled
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -78,10 +76,8 @@ import com.intellij.util.net.ProxySettings
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -200,20 +196,6 @@ constructor(
     requestType: AvdLaunchListener.RequestType,
   ): IDevice {
     return startAvd(project, info, requestType, DefaultEmulatorCommandBuilderFactory())
-  }
-
-  /** Boots the AVD, using its .ini file to determine the booting method. */
-  @Deprecated("Use suspend version")
-  @VisibleForTesting
-  fun asyncStartAvd(
-    project: Project?,
-    info: AvdInfo,
-    requestType: AvdLaunchListener.RequestType,
-  ): ListenableFuture<IDevice> {
-    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<IDevice> {
-      // This is only used by the old Device Manager.
-      runBlocking { startAvd(project, info, requestType, DefaultEmulatorCommandBuilderFactory()) }
-    }
   }
 
   suspend fun startAvd(

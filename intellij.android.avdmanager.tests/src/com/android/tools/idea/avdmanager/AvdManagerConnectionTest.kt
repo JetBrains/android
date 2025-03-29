@@ -43,14 +43,14 @@ import com.intellij.util.net.ProxyConfiguration
 import com.intellij.util.net.ProxyConfiguration.ProxyProtocol
 import com.intellij.util.net.ProxyCredentialStore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.AndroidTestCase
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
 
 /** Tests for [AvdManagerConnection]. */
 class AvdManagerConnectionTest : AndroidTestCase() {
+
   private val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
   private val prefsRoot: Path = sdkRoot.root.resolve("android-home")
 
@@ -216,10 +216,12 @@ class AvdManagerConnectionTest : AndroidTestCase() {
 
     try {
       checkNotNull(skinnyAvd)
-      avdManagerConnection.asyncStartAvd(null, skinnyAvd, AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER).get(4, TimeUnit.SECONDS)
+      runBlocking {
+        avdManagerConnection.startAvd(null, skinnyAvd, AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER)
+      }
       fail()
-    } catch (expected: ExecutionException) {
-      assertThat(expected.cause?.message).contains("No emulator installed")
+    } catch (expected: RuntimeException) {
+      assertThat(expected.message).startsWith("No emulator installed")
     }
   }
 
@@ -245,10 +247,12 @@ class AvdManagerConnectionTest : AndroidTestCase() {
 
     try {
       checkNotNull(skinlessAvd)
-      avdManagerConnection.asyncStartAvd(null, skinlessAvd, AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER).get(4, TimeUnit.SECONDS)
+      runBlocking {
+        avdManagerConnection.startAvd(null, skinlessAvd, AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER)
+      }
       fail()
-    } catch (expected: ExecutionException) {
-      assertThat(expected.cause?.message).contains("No emulator installed")
+    } catch (expected: RuntimeException) {
+      assertThat(expected.message).startsWith("No emulator installed")
     }
   }
 
