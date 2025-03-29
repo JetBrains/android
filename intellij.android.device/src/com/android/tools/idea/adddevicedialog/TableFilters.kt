@@ -53,13 +53,14 @@ fun <V> SetFilter(
   values: List<V>,
   selection: MutableMap<V, Boolean>,
   modifier: Modifier = Modifier,
+  renderer: @Composable (V) -> Unit,
 ) {
   if (values.size > 1) {
     HideablePanel(header, modifier.padding(6.dp)) {
       Column {
         for (item in values) {
-          CheckboxRow(selection[item] ?: true, onCheckedChange = { selection[item] = it }) {
-            Text(item.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+          CheckboxRow(selection[item] != false, onCheckedChange = { selection[item] = it }) {
+            renderer(item)
           }
         }
       }
@@ -68,8 +69,15 @@ fun <V> SetFilter(
 }
 
 @Composable
-fun <V> SetFilter(values: List<V>, state: SetFilterState<*, V>, modifier: Modifier = Modifier) {
-  SetFilter(state.attribute.name, values, state.selection, modifier)
+fun <V> SetFilter(
+  values: List<V>,
+  state: SetFilterState<*, V>,
+  modifier: Modifier = Modifier,
+  renderer: @Composable (V) -> Unit = {
+    Text(it.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+  },
+) {
+  SetFilter(state.attribute.name, values, state.selection, modifier, renderer)
 }
 
 interface RowFilter<in T> {
