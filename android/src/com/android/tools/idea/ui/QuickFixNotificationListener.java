@@ -19,9 +19,8 @@ import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class QuickFixNotificationListener extends NotificationListener.Adapter {
   @NotNull private Project myProject;

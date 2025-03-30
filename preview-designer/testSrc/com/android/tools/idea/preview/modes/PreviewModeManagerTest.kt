@@ -16,10 +16,10 @@
 package com.android.tools.idea.preview.modes
 
 import com.android.tools.idea.preview.TestPreviewElement
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import org.junit.Test
 
 class PreviewModeManagerTest {
 

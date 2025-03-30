@@ -22,8 +22,6 @@ import com.android.tools.idea.gradle.model.IdeFilterData;
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import junit.framework.TestCase;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import junit.framework.TestCase;
 
 public class SplitOutputMatcherTest extends TestCase {
 

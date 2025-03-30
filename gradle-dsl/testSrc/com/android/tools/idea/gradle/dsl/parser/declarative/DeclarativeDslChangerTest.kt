@@ -34,7 +34,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
-import com.jetbrains.rd.util.first
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,7 +56,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       }
     """.trimIndent()
     doTest(file, expected) {
-      val literal = (elements.first().value as GradleDslBlockElement).elements.first().value as GradleDslLiteral
+      val literal = (elements.values.first() as GradleDslBlockElement).elements.values.first() as GradleDslLiteral
       literal.setValue(34)
     }
   }
@@ -75,7 +74,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       }
     """.trimIndent()
     doTest(file, expected) {
-      val literal = (elements.first().value as GradleDslBlockElement).elements.first().value as GradleDslLiteral
+      val literal = (elements.values.first() as GradleDslBlockElement).elements.values.first() as GradleDslLiteral
       literal.setValue("bcd")
     }
   }
@@ -94,7 +93,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       }
     """.trimIndent()
     doTest(file, expected) {
-      val call = (elements.first().value as DependenciesDslElement).elements.first().value as GradleDslMethodCall
+      val call = (elements.values.first() as DependenciesDslElement).elements.values.first() as GradleDslMethodCall
       (call.argumentsElement.expressions[0] as GradleDslLiteral).setValue("bcd")
     }
   }
@@ -113,7 +112,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       }
     """.trimIndent()
     doTest(file, expected) {
-      val call = (elements.first().value as DependenciesDslElement).elements.first().value as GradleDslMethodCall
+      val call = (elements.values.first() as DependenciesDslElement).elements.values.first() as GradleDslMethodCall
       call.nameElement.rename("api")
     }
   }
@@ -132,7 +131,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       }
     """.trimIndent()
     doTest(file, expected) {
-      val block = (elements.first().value as GradleDslBlockElement)
+      val block = (elements.values.first() as GradleDslBlockElement)
       block.removeProperty("mNamespace")
     }
   }
@@ -150,8 +149,8 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       }
     """.trimIndent()
     doSettingsTest(file, expected) {
-      val plugins = (elements.first().value as PluginsDslElement)
-      val pluginDeclaration = (plugins.elements.first().value as GradleDslInfixExpression)
+      val plugins = (elements.values.first() as PluginsDslElement)
+      val pluginDeclaration = (plugins.elements.values.first() as GradleDslInfixExpression)
       val elements = pluginDeclaration.elements.values
       assertThat(elements).hasSize(2)
       val version = (elements.toList()[1] as? GradleDslLiteral)
@@ -177,9 +176,9 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       }
     """.trimIndent()
     doTest(file, expected) {
-      val android = (elements.first().value as AndroidDslElement)
-      val dependencies = (android.elements.first().value as DependenciesDslElement)
-      val compile =  (dependencies.elements.first().value as GradleDslMethodCall)
+      val android = (elements.values.first() as AndroidDslElement)
+      val dependencies = (android.elements.values.first() as DependenciesDslElement)
+      val compile =  (dependencies.elements.values.first() as GradleDslMethodCall)
       assertThat(compile.arguments).hasSize(1)
       compile.arguments[0].delete()
     }
@@ -201,7 +200,7 @@ class DeclarativeDslChangerTest : LightPlatformTestCase() {
       }
     """.trimIndent()
     doTest(file, expected) {
-      val block = (elements.first().value as DependenciesDslElement)
+      val block = (elements.values.first() as DependenciesDslElement)
       // new literal has externalSyntax = METHOD by default
       block.setNewLiteral("implementation", "newDependency")
     }

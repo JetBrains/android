@@ -17,12 +17,15 @@ package com.android.tools.adtui.instructions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.UIUtilities;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.font.FontRenderContext;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Instruction for rendering text.

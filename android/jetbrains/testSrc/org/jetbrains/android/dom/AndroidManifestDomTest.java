@@ -6,6 +6,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.idea.IgnoreJUnit3;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -606,6 +607,8 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
   */
 
+  @IgnoreJUnit3(reason = "This test is run with Android SDK platform 33 which as no android.intent.action.LAUNCH_CAPTURE_CONTENT_ACTIVITY_FOR_NOTE." +
+                         "Upgrade Android SDK platform in tests to version 34 and unmute the test.")
   public void testIntentActionCompletion1() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml",
                              "android.intent.action.CALL",

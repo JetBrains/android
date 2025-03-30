@@ -30,7 +30,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ModuleResourceManagers {
+public final class ModuleResourceManagers {
   private final Module myModule;
 
   private FrameworkResourceManager myPublicFrameworkResourceManager;

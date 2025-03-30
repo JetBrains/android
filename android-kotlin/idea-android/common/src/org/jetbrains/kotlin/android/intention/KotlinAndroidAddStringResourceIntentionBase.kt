@@ -44,7 +44,6 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -56,6 +55,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
@@ -101,6 +101,7 @@ abstract class KotlinAndroidAddStringResourceIntentionBase : SelfTargetingIntent
     }
 
     override fun isApplicableTo(element: KtStringTemplateExpression, caretOffset: Int): Boolean {
+        if(suppressAndroidPlugin()) return false
         val facet = AndroidFacet.getInstance(element.containingFile) ?: return false
         return ProjectSystemService.getInstance(element.project)
           .projectSystem
@@ -241,12 +242,12 @@ abstract class KotlinAndroidAddStringResourceIntentionBase : SelfTargetingIntent
         TemplateManager.getInstance(module.project).startTemplate(editor, template, false, null, object : TemplateEditingAdapter() {
             override fun waitingForInput(template: Template?) {
                 // TODO(273768010): K2 reference shortener does not work here. Check this line later with the up-to-date KT compiler.
-                ShortenReferencesFacility.getInstance().shorten(file, TextRange(marker.startOffset, marker.endOffset))
+                ShortenReferencesFacility.getInstance().shorten(file, marker.textRange)
             }
 
             override fun beforeTemplateFinished(state: TemplateState, template: Template?) {
                 // TODO(273768010): K2 reference shortener does not work here. Check this line later with the up-to-date KT compiler.
-                ShortenReferencesFacility.getInstance().shorten(file, TextRange(marker.startOffset, marker.endOffset))
+                ShortenReferencesFacility.getInstance().shorten(file, marker.textRange)
             }
         })
     }

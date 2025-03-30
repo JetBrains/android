@@ -20,8 +20,8 @@ import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_JDK_INVALID
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_JDK_CONFIGURATION
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_JDK_INVALID
 import com.google.wireless.android.sdk.stats.GradleJdkConfigurationEvent
 import com.google.wireless.android.sdk.stats.GradleJdkConfigurationEvent.GradleJdkConfiguration
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent

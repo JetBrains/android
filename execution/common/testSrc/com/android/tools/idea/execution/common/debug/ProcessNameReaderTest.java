@@ -16,17 +16,12 @@
 package com.android.tools.idea.execution.common.debug;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.execution.common.debug.utils.ProcessNameReader;
-import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.LightIdeaTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.annotations.Nullable;
 
 public class ProcessNameReaderTest extends LightIdeaTestCase {
 

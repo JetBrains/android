@@ -43,7 +43,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectForFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.jetbrains.cef.remote.thrift_codegen.Server
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths

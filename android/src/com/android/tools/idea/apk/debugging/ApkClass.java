@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.apk.debugging;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 public final class ApkClass {
   @NotNull private final String myName;

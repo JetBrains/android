@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.AndroidXConstants;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import icons.StudioIcons;

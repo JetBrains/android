@@ -30,14 +30,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
-import java.io.File
-import javax.imageio.ImageIO
 import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
+import javax.imageio.ImageIO
 
 class ViewInfoParserTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)

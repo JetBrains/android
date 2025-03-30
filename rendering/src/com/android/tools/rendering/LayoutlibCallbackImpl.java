@@ -15,13 +15,13 @@
  */
 package com.android.tools.rendering;
 
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static com.android.SdkConstants.CALENDAR_VIEW;
-import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
-import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
 import static com.android.SdkConstants.EXPLODED_AAR;
@@ -70,10 +70,10 @@ import com.android.tools.rendering.parsers.AaptAttrParser;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.rendering.parsers.LayoutRenderPullParser;
+import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.FileResourceReader;
-import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.res.ResourceNamespacing;
 import com.android.tools.res.ids.ResourceIdManagerHelper;
 import com.android.utils.HtmlBuilder;

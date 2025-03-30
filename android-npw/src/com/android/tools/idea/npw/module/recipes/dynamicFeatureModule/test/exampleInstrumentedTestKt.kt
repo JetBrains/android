@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.test
 
-import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.escapeKotlinIdentifier
+import com.android.tools.idea.wizard.template.getMaterialComponentName
 
 fun exampleInstrumentedTestKt(
   packageName: String,

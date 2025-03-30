@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.test.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient
@@ -330,7 +330,7 @@ class LintIdeTest : UsefulTestCase() {
     // Make sure that we include the lint implementation checks themselves outside of Android
     // contexts
     val issues = LintIdeIssueRegistry()
-    val issue = issues.getIssue("LintImplDollarEscapes")!!
+    val issue = issues.issues.find { it.id == "LintImplDollarEscapes" }!!
     val support = object : LintIdeSupport() {}
     assertEquals(support.getPlatforms(), issue.platforms)
   }

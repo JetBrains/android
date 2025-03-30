@@ -15,14 +15,17 @@
  */
 package com.android.tools.adtui.common;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import java.awt.Container;
+import java.awt.Dimension;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTree;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * A wrapper object that holds info related to testing a {@link ColumnTreeBuilder}.

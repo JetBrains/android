@@ -16,10 +16,10 @@
 package com.android.tools.rendering.classloading
 
 import com.google.common.base.Ticker
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import org.junit.Test
 
 class ClassBinaryCacheManagerTest {
   private class ManualTicker : Ticker() {

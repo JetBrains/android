@@ -18,10 +18,10 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.application.runReadAction
 import org.junit.AssumptionViolatedException
 
 fun Project.findAppModule(): Module = findModule("app")

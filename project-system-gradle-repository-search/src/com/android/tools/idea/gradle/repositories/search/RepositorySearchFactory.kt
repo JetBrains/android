@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
-
 interface RepositorySearchFactory {
   fun create(repositories: Collection<ArtifactRepositorySearchService>): ArtifactRepositorySearchService
 }

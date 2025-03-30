@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NonNls
 
 class DeclarativeLanguage : Language(ID) {
   override fun getDisplayName(): String {
-    return "Gradle Declarative Configuration Language"
+    return "Gradle Declarative Configuration"
   }
 
   companion object {

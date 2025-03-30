@@ -16,14 +16,13 @@
 
 package com.android.tools.idea.ddms;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
 
 public class DevicePropertyUtil {
   private static final Set<String> ourManufacturerNameIsAcronym =

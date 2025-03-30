@@ -68,11 +68,11 @@ object MaterialColors {
     override fun toString() = displayName
   }
 
-  private val table: Table<Color?, Category?, java.awt.Color?>
-    = ArrayTable.create(Color.values().asIterable(), Category.values().asIterable())
+  private val table
+  = ArrayTable.create<MaterialColors.Color, Category, java.awt.Color>(MaterialColors.Color.entries.asIterable(), Category.entries.asIterable())
 
   // Helper extension to allow using assignment to put value to the table
-  operator fun <R, C, V> Table<R, C, V>.set(r: R, c: C, v: V) = put(r, c, v)
+  operator fun <R, C, V> Table<R, C, V>.set(r: R, c: C, v: V): V? = put(r, c, v)
 
   init {
     table[Color.RED, Category.MATERIAL_50] = Color(0xFFEBEE)
@@ -362,7 +362,7 @@ object MaterialColors {
    * Get the set of [java.awt.Color] by the given [Category].
    */
   @JvmStatic
-  fun getColorSet(category: Category): Map<Color?, java.awt.Color?> = table.column(category)
+  fun getColorSet(category: Category): Map<Color, java.awt.Color?> = table.column(category)
 
   // Keep these constants for back compatibility
 

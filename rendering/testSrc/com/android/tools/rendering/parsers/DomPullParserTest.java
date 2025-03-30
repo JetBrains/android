@@ -15,9 +15,18 @@
  */
 package com.android.tools.rendering.parsers;
 
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.util.text.StringUtil;
+import java.io.StringReader;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.kxml2.io.KXmlParser;
@@ -25,16 +34,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.StringReader;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import static com.android.SdkConstants.VALUE_FILL_PARENT;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the parser by constructing a DOM from an XML file, and then it runs an XmlPullParser

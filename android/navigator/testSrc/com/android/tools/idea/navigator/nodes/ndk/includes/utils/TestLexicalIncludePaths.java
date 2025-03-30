@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class TestLexicalIncludePaths {
 

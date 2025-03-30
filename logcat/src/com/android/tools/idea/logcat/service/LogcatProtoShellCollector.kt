@@ -24,11 +24,11 @@ import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.LOGGER
 import com.google.protobuf.ByteString
+import kotlinx.coroutines.flow.FlowCollector
 import java.nio.ByteBuffer
 import java.nio.ByteOrder.LITTLE_ENDIAN
 import java.nio.charset.Charset
 import java.time.Instant
-import kotlinx.coroutines.flow.FlowCollector
 
 /**
  * A [ShellV2Collector] implementation that collects `stdout` as a sequence of lists of

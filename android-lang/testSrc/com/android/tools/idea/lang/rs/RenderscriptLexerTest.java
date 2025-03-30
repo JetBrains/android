@@ -21,12 +21,11 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
-import junit.framework.TestCase;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import junit.framework.TestCase;
 
 public class RenderscriptLexerTest extends TestCase {
   private void validateLexer(String input, IElementType... tokens) {

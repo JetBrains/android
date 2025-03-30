@@ -50,13 +50,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
@@ -68,7 +68,7 @@ import javax.swing.KeyStroke
 import org.jetbrains.annotations.TestOnly
 
 private const val WORKBENCH_NAME = "Layout Inspector"
-private const val UI_CONFIGURATION_KEY =
+const val UI_CONFIGURATION_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.ui.uiconfigkey"
 
 private val logger = Logger.getInstance(SelectedTabState::class.java)
@@ -129,7 +129,7 @@ data class SelectedTabState(
   }
 
   fun enableLayoutInspector() {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     wrapUi(uiConfig)
     tabComponents.displayView.add(layoutInspectorRenderer)
@@ -301,7 +301,7 @@ data class SelectedTabState(
   }
 
   private fun disableLayoutInspector() {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     unwrapUi()
 
@@ -333,7 +333,7 @@ data class SelectedTabState(
     uiConfig: UiConfig,
     centerPanel: JComponent?,
   ): WorkBench<LayoutInspector> {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
     val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
 
     val toolsDefinition = createToolsDefinitions(uiConfig)

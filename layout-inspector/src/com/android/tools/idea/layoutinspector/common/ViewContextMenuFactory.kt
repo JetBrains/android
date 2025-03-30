@@ -35,10 +35,10 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.text.nullize
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import javax.swing.event.PopupMenuEvent
-import org.jetbrains.annotations.VisibleForTesting
 
 fun showViewContextMenu(
   views: List<ViewNode>,

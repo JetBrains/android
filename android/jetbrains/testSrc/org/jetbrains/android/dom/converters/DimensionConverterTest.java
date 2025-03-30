@@ -27,12 +27,11 @@ import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.impl.ConvertContextFactory;
 import com.intellij.util.xml.impl.DomInvocationHandler;
 import com.intellij.util.xml.impl.DomManagerImpl;
-import org.jetbrains.android.dom.resources.StyleItem;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.android.dom.resources.StyleItem;
 
 public class DimensionConverterTest extends LightIdeaTestCase {
   public void test() {

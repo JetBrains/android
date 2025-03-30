@@ -1,0 +1,3 @@
+myTestDslElement {
+  stringVal("two")
+}

@@ -16,10 +16,9 @@
 package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.tools.idea.common.scene.SceneComponent;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link NavSceneLayoutAlgorithm} that lays out one component at a time

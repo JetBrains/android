@@ -50,10 +50,12 @@ import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
@@ -73,16 +75,19 @@ import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidStartupManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
@@ -101,8 +106,13 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
   @Service(Service.Level.PROJECT)
   class StartupService(private val project: Project) : AndroidGradleProjectStartupService<Unit>() {
 
-    suspend fun performStartupActivity() {
+    suspend fun performStartupActivity(isJpsProjectLoaded: Boolean = false) {
+      LOG.debug { "AndroidGradleProjectStartupActivity.performStartupActivity(isJpsProjectLoaded = $isJpsProjectLoaded)" }
+      if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
+
       runInitialization {
+        LOG.debug { "AndroidGradleProjectStartupActivity.performStartupActivity runInitialization" }
+
         // Need to wait for both JpsProjectLoadingManager and ExternalProjectsManager, as well as the completion of
         // AndroidNewProjectInitializationStartupActivity.  In old-skool thread
         // programming I'd probably use an atomic integer and wait for the count to reach 3.
@@ -113,8 +123,9 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
           val newProjectStartupJob = async { project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().awaitInitialization() }
 
           ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
-          whenAllModulesLoaded(project) { jpsProjectJob.complete(Unit) }
+          whenAllModulesLoaded(project, isJpsProjectLoaded) { jpsProjectJob.complete(Unit) }
           awaitAll(newProjectStartupJob, externalProjectsJob, jpsProjectJob)
+          LOG.debug { "AndroidGradleProjectStartupActivity.performStartupActivity awaited all" }
         }
 
         performActivity(project)
@@ -163,8 +174,8 @@ private fun subscribeToGradleSettingChanges(project: Project) {
   })
 }
 
-private fun whenAllModulesLoaded(project: Project, callback: () -> Unit) {
-  if (project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
+private fun whenAllModulesLoaded(project: Project, isJpsProjectLoaded: Boolean, callback: () -> Unit) {
+  if (isJpsProjectLoaded || project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
     // All modules are loaded at this point and JpsProjectLoadingManager.jpsProjectLoaded is not triggered, so invoke callback directly.
     callback()
   } else {

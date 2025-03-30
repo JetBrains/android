@@ -19,10 +19,10 @@ import com.android.tools.sdk.isValid
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.RoamingType
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import org.jetbrains.annotations.NonNls
 import java.nio.file.Path

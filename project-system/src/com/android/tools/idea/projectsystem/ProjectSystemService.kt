@@ -165,8 +165,11 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
   fun replaceProjectSystemForTests(projectSystem: AndroidProjectSystem) {
     projectSystemForTests = projectSystem
     if (cachedProjectSystemDelegate.isInitialized()) {
-      runWriteAction {
-        sendRootsChangedEvents(project)
+      // require EDT explicitly, due to issue with TransactionGuard IJPL-150392
+      ApplicationManager.getApplication().invokeAndWait {
+        runWriteAction {
+          sendRootsChangedEvents(project)
+        }
       }
     }
   }

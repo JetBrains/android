@@ -73,7 +73,7 @@ class AndroidTestExtraParamsTable(
         override fun isEnabled(): Boolean {
           return selection.any { selectedParam ->
             selectedParam.ORIGINAL_VALUE_SOURCE != AndroidTestExtraParamSource.NONE
-              && selectedParam.VALUE != selectedParam.ORIGINAL_VALUE
+            && selectedParam.VALUE != selectedParam.ORIGINAL_VALUE
           }
         }
       }

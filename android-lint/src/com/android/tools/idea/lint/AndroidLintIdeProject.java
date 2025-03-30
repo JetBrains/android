@@ -35,6 +35,7 @@ import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
 import com.android.tools.idea.res.AndroidDependenciesCache;
+import com.android.tools.idea.util.ModuleExtensionsKt;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.ApiConstraint;
 import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject;
@@ -315,7 +316,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
    */
   @Nullable
   private static Project createModuleProject(@NonNull LintClient client, @NonNull Module module, boolean shallowModel) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
+    Module androidModule = ModuleExtensionsKt.findAndroidModule(module);
+    AndroidFacet facet = AndroidFacet.getInstance(androidModule != null ? androidModule : module);
     File dir = getLintProjectDirectory(module, facet);
     if (dir == null) return null;
     Project project;
@@ -397,7 +399,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
   @Nullable
   public static File getLintProjectDirectory(@NonNull Module module, @Nullable AndroidFacet facet) {
 
-    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, module)) {
+    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, module)
+        && LinkedAndroidModuleGroupUtilsKt.isLinkedAndroidModule(module)) {
       String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
       if (!Strings.isNullOrEmpty(externalProjectPath)) {
         return new File(externalProjectPath);
@@ -483,6 +486,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   protected void initialize() {
     // NOT calling super: super performs ADT/ant initialization. Here we want to use
     // the gradle data instead
+    super.initialize();
   }
 
   /**

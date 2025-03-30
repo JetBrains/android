@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.smali.psi.impl;
 
+import static com.android.tools.idea.smali.parser.SmaliParserUtil.getJavaClassFqn;
+
 import com.android.tools.idea.smali.psi.JavaClassRef;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.smali.parser.SmaliParserUtil.getJavaClassFqn;
 
 public abstract class JavaClassRefImpl extends ASTWrapperPsiElement implements JavaClassRef {
   public JavaClassRefImpl(@NotNull ASTNode node) {

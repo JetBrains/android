@@ -18,13 +18,13 @@ package com.android.tools.idea.templates
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.lang.JavaVersion
-import java.io.File
 import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.io.File
 
 // TODO(qumeric): cover more functions
 

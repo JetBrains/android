@@ -33,8 +33,6 @@ import java.awt.Point;
 import java.awt.event.FocusEvent;
 import java.awt.event.PaintEvent;
 import java.awt.image.ColorModel;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.awt.image.VolatileImage;
 import java.awt.peer.ComponentPeer;
 import java.awt.peer.ContainerPeer;
@@ -158,21 +156,6 @@ class FakeWindowPeer implements WindowPeer {
   @Override
   public VolatileImage createVolatileImage(int width, int height) {
     throw new UnsupportedOperationException();
-  }
-
-  //TODO Remove after fully switching to Java 17. Method was removed from java.awt.peer.ContainerPeer
-  public Image createImage(ImageProducer producer) {
-    throw new UnsupportedOperationException();
-  }
-
-  //TODO Remove after fully switching to Java 17. Method was removed from java.awt.peer.ContainerPeer
-  public boolean prepareImage(Image img, int w, int h, ImageObserver o) {
-    return false;
-  }
-
-  //TODO Remove after fully switching to Java 17. Method was removed from java.awt.peer.ContainerPeer
-  public int checkImage(Image img, int w, int h, ImageObserver o) {
-    return 0;
   }
 
   @Override

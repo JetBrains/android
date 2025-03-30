@@ -17,7 +17,6 @@ package com.android.tools.idea.adb;
 
 import com.android.annotations.NonNull;
 import com.android.ddmlib.DDMLibJdwpTracer;
-
 import com.android.jdwptracer.JDWPTracer;
 import java.nio.ByteBuffer;
 

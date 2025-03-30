@@ -48,7 +48,7 @@ internal class DeployToDeviceAction :
     e.dataContext.previewElement()?.let {
       val psiElement = it.previewElementDefinition?.element
       val project = psiElement?.project ?: return@actionPerformed
-      val module = psiElement.module ?: return@actionPerformed
+      val module = psiElement.module?.findAndroidModule() ?: return@actionPerformed
 
       runPreviewConfiguration(project, module, it)
     }

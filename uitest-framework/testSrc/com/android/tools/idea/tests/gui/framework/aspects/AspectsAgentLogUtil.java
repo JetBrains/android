@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.aspects;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;

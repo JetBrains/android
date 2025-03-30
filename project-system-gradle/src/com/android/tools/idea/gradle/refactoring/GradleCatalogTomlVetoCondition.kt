@@ -18,8 +18,6 @@ package com.android.tools.idea.gradle.refactoring
 import com.intellij.openapi.util.Condition
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlKeySegment
-import org.toml.lang.psi.TomlKeyValue
-import org.toml.lang.psi.TomlTable
 
 /**
  * Only allow to rename declaration aliases.

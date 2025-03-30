@@ -15,10 +15,9 @@
  */
 package com.android.tools.rendering.imagepool;
 
+import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.image.BufferedImage;
 
 /**
  * Factory to create new instances of {@link ImagePool}. The factory currently offers another

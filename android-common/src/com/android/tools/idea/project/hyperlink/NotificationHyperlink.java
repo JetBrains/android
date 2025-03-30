@@ -17,9 +17,8 @@ package com.android.tools.idea.project.hyperlink;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Base hyperlink class for notification purposes.

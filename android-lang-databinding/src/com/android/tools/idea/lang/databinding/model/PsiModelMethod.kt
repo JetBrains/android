@@ -17,7 +17,6 @@ package com.android.tools.idea.lang.databinding.model
 
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
-import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypes
 import java.lang.Integer.min
 

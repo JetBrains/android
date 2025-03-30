@@ -45,7 +45,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
 import javax.swing.JPanel
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

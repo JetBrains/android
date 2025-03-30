@@ -35,7 +35,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Key
-import com.intellij.ui.NewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Font
@@ -113,7 +113,7 @@ internal constructor(
     @Suppress("UnstableApiUsage")
     override fun getFont(): Font =
       when {
-        NewUI.isEnabled() -> UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
+        ExperimentalUI.isNewUI() -> UIUtil.getLabelFont(UIUtil.FontSize.NORMAL)
         else -> super.getFont()
       }
   }

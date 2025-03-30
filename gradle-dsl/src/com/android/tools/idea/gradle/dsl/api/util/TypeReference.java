@@ -13,10 +13,9 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.api.util;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class TypeReference<T> {
 

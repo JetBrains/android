@@ -39,9 +39,9 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.sdk.wizard.SetupSdkApplicationService;
 import com.android.tools.idea.ui.ApplicationUtils;
-import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.install.SdkComponentInstaller;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.sdk.AndroidPlatform;
@@ -229,8 +229,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
                                @Nullable SettingsController settings,
                                @NotNull SdkUpdaterConfigurable configurable) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.SDK_MANAGER)
-                                     .setKind(EventKind.SDK_MANAGER_LOADED));
+                       .setCategory(EventCategory.SDK_MANAGER)
+                       .setKind(EventKind.SDK_MANAGER_LOADED));
 
     myConfigurable = configurable;
     myUpdateSitesPanel.setConfigurable(configurable);
@@ -546,13 +546,13 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-                          progressRunner, myDownloader, mySettings);
+        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+              progressRunner, myDownloader, mySettings);
     }
     else {
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), null, null,
-                          progressRunner, null, mySettings);
+        .load(0, ImmutableList.of(myLocalUpdater), null, null,
+              progressRunner, null, mySettings);
     }
   }
 

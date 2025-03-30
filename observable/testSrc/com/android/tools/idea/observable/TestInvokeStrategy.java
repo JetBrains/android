@@ -16,9 +16,8 @@
 package com.android.tools.idea.observable;
 
 import com.google.common.collect.Queues;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Queue;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link BatchInvoker.Strategy} useful for tests, where a {@link Runnable} given to a {@link BatchInvoker}

@@ -1,0 +1,22 @@
+### auto-generated section `build intellij.android.nav.safeargs` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_resources")
+
+jvm_resources(
+  name = "android-nav-safeargs_resources",
+  files = glob(["src/**/*"]),
+  strip_prefix = "src"
+)
+
+java_library(
+  name = "android-nav-safeargs",
+  visibility = ["//visibility:public"],
+  runtime_deps = [
+    ":android-nav-safeargs_resources",
+    "//android/nav/safeargs/common:android-nav-safeargs-common",
+    "//android/nav/safeargs/k1:android-nav-safeargs-k1",
+    "//android/nav/safeargs/k2:android-nav-safeargs-k2",
+    "//android/nav/safeargs/common/gradle:android-nav-safeargs-common-gradle",
+  ]
+)
+### auto-generated section `build intellij.android.nav.safeargs` end

@@ -1,0 +1,17 @@
+### auto-generated section `build intellij.android.studio.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "android-studio-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-core",
+    "//android/intellij.android.testutils:testutils_test_lib",
+  ]
+)
+### auto-generated section `build intellij.android.studio.tests` end

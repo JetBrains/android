@@ -1,0 +1,325 @@
+<!--
+  ~ Copyright (C) 2020 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationConfigurable groupId="tools.android" id="emulator"
+                             provider="com.android.tools.idea.streaming.emulator.settings.EmulatorConfigurableProvider"
+                             bundle="messages.StreamingBundle"
+                             key="android.configurable.EmulatorConfigurable.displayName"/>
+    <applicationConfigurable groupId="tools.android" id="device.mirroring"
+                             provider="com.android.tools.idea.streaming.device.settings.DeviceMirroringConfigurableProvider"
+                             bundle="messages.StreamingBundle"
+                             key="android.configurable.DeviceMirroringConfigurable.displayName"/>
+
+    <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.device.actions.DeviceCustomizableActionGroupProvider"/>
+    <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
+
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <android.toolWindow id="Running Devices"
+                        anchor="right"
+                        secondary="true"
+                        canCloseContents="true"
+                        icon="StudioIcons.Shell.ToolWindows.EMULATOR"
+                        factoryClass="com.android.tools.idea.streaming.core.StreamingToolWindowFactory"/>
+    <notificationGroup id="Running Devices Messages"
+                       displayType="BALLOON"
+                       toolWindowId="Running Devices"
+                       bundle="messages.StreamingBundle"
+                       key="streaming.notification.title"/>
+
+    <keymapExtension implementation="com.android.tools.idea.streaming.actions.StreamingKeymapExtension"/>
+    <notificationGroup id="Android Emulator" displayType="BALLOON"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.streaming.device.AudioSystemService"/>
+    <applicationService serviceInterface="com.android.tools.idea.streaming.emulator.GrpcChannelBuilderFactory"
+                        serviceImplementation="com.android.tools.idea.streaming.emulator.GrpcChannelBuilderFactoryImpl"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.diagnostics.report">
+    <logsProvider implementation="com.android.tools.idea.streaming.device.MirroringDiagnosticsSummaryFileProvider" />
+  </extensions>
+
+  <actions>
+    <group id="Streaming">
+      <action id="android.device.power.button" class="com.android.tools.idea.streaming.actions.StreamingPowerButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.POWER" text="Power" description="Press the Power button of the device">
+        <keyboard-shortcut first-keystroke="control shift P" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift P" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift P" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.power.and.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingPowerAndVolumeUpButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.POWER_MENU" text="Power + Volume Up (Power Menu)"
+              description="Press the Power and Volume Up buttons together of the device">
+        <keyboard-shortcut first-keystroke="alt shift P" keymap="$default"/>
+      </action>
+      <action id="android.device.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeUpButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_UP" text="Volume Up" description="Press the Volume Up button of the device">
+        <keyboard-shortcut first-keystroke="control shift U" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift U" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift U" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.volume.down.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeDownButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.VOLUME_DOWN" text="Volume Down" description="Press the Volume Down button of the device">
+        <keyboard-shortcut first-keystroke="control shift D" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift D" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift D" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.rotate.left" class="com.android.tools.idea.streaming.actions.StreamingRotateAction$Left"
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate the device counterclockwise by 90 degrees">
+        <keyboard-shortcut first-keystroke="control l" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta l" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta l" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.rotate.right" class="com.android.tools.idea.streaming.actions.StreamingRotateAction$Right"
+              icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate the device clockwise by 90 degrees">
+        <keyboard-shortcut first-keystroke="control r" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta r" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta r" keymap="Mac OS X 10.5+"/>
+      </action>
+      <group id="android.device.postures" class="com.android.tools.idea.streaming.actions.StreamingFoldingActionGroup"
+              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold"
+              description="Select from the states defined by the device to test how your app responds to them" popup="true"/>
+      <action id="android.emulator.virtual.sensors" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction"
+              text="Virtual Sensors" description="Show virtual sensors controls for the device"/>
+      <action id="android.device.wear1.button" class="com.android.tools.idea.streaming.actions.StreamingWear1ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button of the device">
+        <keyboard-shortcut first-keystroke="control shift 1" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift 1" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.wear2.button" class="com.android.tools.idea.streaming.actions.StreamingWear2ButtonAction"
+              icon="StudioIcons.Emulator.Wear.BUTTON_2" text="Button 2" description="Press the second button of the device">
+        <keyboard-shortcut first-keystroke="control shift 2" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift 2" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.sleep" class="com.android.tools.idea.streaming.actions.StreamingPalmAction"
+              icon="StudioIcons.Emulator.Wear.PALM" text="Palm" description="Simulate the Palm gesture for the device">
+        <keyboard-shortcut first-keystroke="control shift M" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift M" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift M" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.tilt" class="com.android.tools.idea.streaming.emulator.actions.EmulatorTiltAction"
+              icon="StudioIcons.Emulator.Wear.TILT" text="Tilt" description="Simulate the Tilt gesture for the device">
+        <keyboard-shortcut first-keystroke="control shift L" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift L" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift L" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.back.button" class="com.android.tools.idea.streaming.actions.StreamingBackButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button of the device">
+        <keyboard-shortcut first-keystroke="control shift B" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">
+        <keyboard-shortcut first-keystroke="control shift H" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift H" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift H" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.overview.button" class="com.android.tools.idea.streaming.actions.StreamingOverviewButtonAction"
+              icon="StudioIcons.Emulator.Toolbar.OVERVIEW" text="Overview" description="Press the Overview button of the device">
+        <keyboard-shortcut first-keystroke="control shift W" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.hand.tracking"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$HandTracking"
+              icon="StudioIcons.Emulator.XR.HAND_TRACKING"
+              text="Hand Tracking"
+              description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control H" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.eye.tracking"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$EyeTracking"
+              icon="StudioIcons.Emulator.XR.EYE_GAZE"
+              text="Eye Tracking"
+              description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control Y" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.view.direction"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$ViewDirection"
+              icon="StudioIcons.Emulator.XR.ROTATE"
+              text="View Direction"
+              description="Dragging mouse and arrow keys controls the view direction. The WASDQE keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control D" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control D" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.location.in.space.xy"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpaceXY"
+              icon="StudioIcons.Emulator.XR.PAN"
+              text="Move Right/Left and Up/Down"
+              description="Dragging mouse moves left/right and up/down in the virtual space. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control L" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control L" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.location.in.space.z"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrInputModeAction$LocationInSpaceZ"
+              icon="StudioIcons.Emulator.XR.DOLLY"
+              text="Move Forward/Backward"
+              description="Dragging mouse vertically moves forward/backward in the virtual space. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
+        <keyboard-shortcut first-keystroke="control F" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control F" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.xr.recenter"
+              class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrRecenterAction"
+              icon="StudioIcons.Emulator.XR.RESET_POSITION"
+              text="Reset View" description="Reset the view to the default">
+        <keyboard-shortcut first-keystroke="control R" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control R" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.screenshot" class="com.android.tools.idea.streaming.actions.StreamingScreenshotAction"
+              icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Obtain a screenshot from the device">
+        <keyboard-shortcut first-keystroke="control shift S" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift S" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift S" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.device.screen.record" class="com.android.tools.idea.ui.screenrecording.ScreenRecorderAction"
+              icon="StudioIcons.Common.VIDEO_CAPTURE" text="Record Screen" description="Record a video of the device display">
+        <keyboard-shortcut first-keystroke="control shift V" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="meta shift V" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="meta shift V" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.display.mode.phone" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Phone"
+              icon="StudioIcons.Emulator.Menu.MODE_PHONE" text="Phone" description="Change display size to match a typical phone">
+        <keyboard-shortcut first-keystroke="alt shift 0" keymap="$default"/>
+      </action>
+      <action id="android.emulator.display.mode.foldable" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Foldable"
+              icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Foldable" description="Change display size to match a typical foldable">
+        <keyboard-shortcut first-keystroke="alt shift 1" keymap="$default"/>
+      </action>
+      <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Tablet"
+              icon="StudioIcons.Emulator.Menu.MODE_TABLET" text="Tablet" description="Change display size to match a typical tablet">
+        <keyboard-shortcut first-keystroke="alt shift 2" keymap="$default"/>
+      </action>
+      <action id="android.emulator.snapshots" class="com.android.tools.idea.streaming.emulator.actions.EmulatorManageSnapshotsAction"
+              icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete emulator snapshots"/>
+      <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
+              icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT"
+              text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the device">
+        <keyboard-shortcut first-keystroke="control W" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
+              icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
+      <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
+              icon="StudioIcons.Emulator.Toolbar.DEVICE_SETTINGS" text="Device UI Shortcuts" description="Shortcuts to common Android settings"/>
+    </group>
+    <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
+            icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"
+            description="Benchmark embedded emulator or mirroring of physical device" internal="true">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+
+    <!-- Placeholder group for placing the Backup App button registered in a separate module. -->
+    <group id="android.streaming.backup" class="com.android.tools.idea.streaming.actions.BackupActionGroup"/>
+
+    <group id="StreamingToolbarVirtualDevice">
+      <group id="android.emulator.display.mode" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeActionGroup"
+             text="Display Mode" description="Select display mode" popup="true">
+        <reference ref="android.emulator.display.mode.phone"/>
+        <reference ref="android.emulator.display.mode.foldable"/>
+        <reference ref="android.emulator.display.mode.tablet"/>
+      </group>
+      <separator/>
+      <reference ref="android.device.power.button"/>
+      <reference ref="android.device.volume.up.button"/>
+      <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.device.wear1.button"/>
+      <reference ref="android.device.wear2.button"/>
+      <separator/>
+      <reference ref="android.device.rotate.left"/>
+      <reference ref="android.device.rotate.right"/>
+      <reference ref="android.device.postures"/>
+      <separator/>
+      <reference ref="android.device.sleep"/>
+      <reference ref="android.emulator.tilt"/>
+      <reference ref="android.device.back.button"/>
+      <reference ref="android.device.home.button"/>
+      <reference ref="android.device.overview.button"/>
+      <separator/>
+      <group id="android.emulator.xr.navigation.group" class="com.android.tools.idea.streaming.emulator.actions.XrMainToolbarGroup">
+        <group id="android.emulator.xr.input.mode.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
+          <reference ref="android.emulator.xr.hand.tracking"/>
+          <reference ref="android.emulator.xr.eye.tracking"/>
+          <reference ref="android.streaming.hardware.input"/>
+          <reference ref="android.emulator.xr.view.direction"/>
+          <reference ref="android.emulator.xr.location.in.space.xy"/>
+          <reference ref="android.emulator.xr.location.in.space.z"/>
+          <separator/>
+        </group>
+        <group id="android.emulator.xr.recenter.group" class="com.android.tools.idea.streaming.emulator.actions.EmulatorXrOnlyGroup">
+          <reference ref="android.emulator.xr.recenter"/>
+          <separator/>
+        </group>
+      </group>
+      <group id="android.emulator.input.mode" class="com.android.tools.idea.streaming.emulator.actions.EmulatorInputModeGroup">
+        <reference ref="android.streaming.hardware.input"/>
+        <separator/>
+      </group>
+      <reference ref="android.streaming.ui.settings"/>
+      <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
+      <group id="android.emulator.wear.health.services"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
+      <reference ref="android.streaming.backup"/>
+      <separator/>
+      <reference ref="android.emulator.snapshots"/>
+      <reference ref="android.emulator.extended.controls"/>
+    </group>
+
+    <group id="StreamingToolbarPhysicalDevice">
+      <reference ref="android.device.power.button"/>
+      <reference ref="android.device.volume.up.button"/>
+      <reference ref="android.device.volume.down.button"/>
+      <reference ref="android.device.wear1.button"/>
+      <reference ref="android.device.wear2.button"/>
+      <separator/>
+      <reference ref="android.device.rotate.left"/>
+      <reference ref="android.device.rotate.right"/>
+      <reference ref="android.device.postures"/>
+      <separator/>
+      <reference ref="android.device.sleep"/>
+      <reference ref="android.device.back.button"/>
+      <reference ref="android.device.home.button"/>
+      <reference ref="android.device.overview.button"/>
+      <separator/>
+      <reference ref="android.streaming.hardware.input"/>
+      <separator/>
+      <reference ref="android.streaming.ui.settings"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
+      <reference ref="android.streaming.backup"/>
+      <separator/>
+      <reference ref="android.device.reservation.extend"/>
+    </group>
+
+    <!-- This action group and the corresponding toolbar are intended for external contributions -->
+    <group id="StreamingToolbarSecondary"/>
+  </actions>
+</idea-plugin>

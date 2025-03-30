@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.device.explorer.files.adbimpl;
 
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.util.Arrays;
 import java.util.Collections;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class AdbPathUtilTest  {
   @Test

@@ -156,14 +156,11 @@ abstract class SplitEditor<P : FileEditor>(
 
   fun isDesignMode() = previewViewAction.isSelected(getFakeActionEvent())
 
-  fun selectTextMode(userExplicitlyTriggered: Boolean) =
-    selectAction(showEditorAction, userExplicitlyTriggered)
+  fun selectTextMode(userExplicitlyTriggered: Boolean) = selectAction(showEditorAction, userExplicitlyTriggered)
 
-  fun selectSplitMode(userExplicitlyTriggered: Boolean) =
-    selectAction(showEditorAndPreviewAction, userExplicitlyTriggered)
+  fun selectSplitMode(userExplicitlyTriggered: Boolean) = selectAction(showEditorAndPreviewAction, userExplicitlyTriggered)
 
-  fun selectDesignMode(userExplicitlyTriggered: Boolean) =
-    selectAction(showPreviewAction, userExplicitlyTriggered)
+  fun selectDesignMode(userExplicitlyTriggered: Boolean) = selectAction(showPreviewAction, userExplicitlyTriggered)
 
   protected fun selectAction(action: SplitEditorAction, userExplicitlyTriggered: Boolean) {
     action.setSelected(getFakeActionEvent(), true, userExplicitlyTriggered)

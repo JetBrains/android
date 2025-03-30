@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 enum class IrAccessFlag(val bitmask: Int) {
   PUBLIC(Opcodes.ACC_PUBLIC),

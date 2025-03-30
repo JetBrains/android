@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.testing.AndroidGradleTestCase.fail
 import com.google.common.truth.Truth.assertThat

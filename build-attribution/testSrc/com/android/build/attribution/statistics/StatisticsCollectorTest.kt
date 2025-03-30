@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.statistics
 
-import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalyzerSettings
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.HistoricBuildAnalysisResults

@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
@@ -26,11 +27,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class PluginsBlockTest extends GradleFileModelTestCase {
+
+  @Before
+  public void before() throws Exception {
+    DeclarativeIdeSupport.INSTANCE.override(true);
+    super.before();
+  }
+
+  @After
+  public void onAfter() {
+    DeclarativeIdeSupport.INSTANCE.clearOverride();
+  }
 
   @Test
   public void testPluginsBlockWithRepeatedPlugins() throws Exception {

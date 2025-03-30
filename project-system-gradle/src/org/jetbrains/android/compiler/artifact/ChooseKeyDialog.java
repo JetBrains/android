@@ -8,15 +8,17 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.exportSignedPackage.NewKeyForm;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.android.exportSignedPackage.NewKeyForm;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ChooseKeyDialog extends DialogWrapper {
   private JPanel myNewKeyPanel;
@@ -31,6 +33,7 @@ public class ChooseKeyDialog extends DialogWrapper {
   private final char[] myKeyStorePassword;
   private final List<String> myExistingKeys;
 
+  @Contract(mutates = "param4")
   public ChooseKeyDialog(@NotNull Project project,
                          @NotNull String keyStorePath,
                          @NotNull char[] password,

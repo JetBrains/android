@@ -113,7 +113,7 @@ interface BackupManager {
   fun isAppSupported(applicationId: String): Boolean
 
   companion object {
-    const val NOTIFICATION_GROUP = "Backup"
+    const val NOTIFICATION_GROUP: String = "Backup"
 
     @JvmStatic
     fun getInstance(project: Project): BackupManager = project.getService(BackupManager::class.java)

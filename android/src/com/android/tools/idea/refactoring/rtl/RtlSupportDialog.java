@@ -39,7 +39,7 @@ public class RtlSupportDialog extends DialogWrapper {
 
     myProperties = new RtlSupportProperties();
 
-    setTitle(AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.title"));
+    setTitle(AndroidBundle.message("android.refactoring.rtl.addsupport.title"));
     setOKButtonText(AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.ok.button.text"));
 
     myLayoutsCheckBox.addItemListener(itemEvent -> {

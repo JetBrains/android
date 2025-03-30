@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.instantapp.provision;
 
-import com.android.ddmlib.*;
-import com.android.sdklib.AndroidVersion;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.nio.charset.Charset;
-
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.notNull;
 import static org.mockito.Mockito.when;
+
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+import com.android.sdklib.AndroidVersion;
+import com.google.common.collect.Lists;
+import java.io.File;
+import java.nio.charset.Charset;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utils for creating mocks for testing {@link ProvisionPackage}s.

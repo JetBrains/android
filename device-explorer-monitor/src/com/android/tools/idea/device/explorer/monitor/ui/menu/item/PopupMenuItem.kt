@@ -17,7 +17,6 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Shortcut
-import java.lang.Runnable
 import javax.swing.Icon
 
 /**

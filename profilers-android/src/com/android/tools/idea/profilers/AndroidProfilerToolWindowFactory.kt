@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
@@ -22,6 +23,7 @@ import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
 import com.android.tools.profilers.taskbased.task.CreateProfilerTaskTabListener
 import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -34,8 +36,15 @@ import icons.StudioIcons
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.annotations.Nls
 
 class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
+
+  override val icon = if (IdeInfo.getInstance().isAndroidStudio) {
+    StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+  } else {
+    AllIcons.Toolwindows.ToolWindowProfilerAndroid
+  }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
@@ -131,10 +140,10 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
 
   companion object {
     const val ID = "Android Profiler"
-    private const val PROFILER_TOOL_WINDOW_TITLE = "Profiler"
+    @Nls
+    private val PROFILER_TOOL_WINDOW_TITLE = if (IdeInfo.getInstance().isAndroidStudio) "Profiler" else AndroidProfilerBundle.message("android.profiler.tool.window.title")
     @VisibleForTesting
     val PROJECT_PROFILER_MAP: MutableMap<Project, AndroidProfilerToolWindow> = HashMap()
-
     private fun createContent(project: Project, toolWindow: ToolWindow) {
       val view = createProfilerToolWindow(project, toolWindow)
       val contentFactory = ContentFactory.getInstance()
@@ -153,7 +162,12 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
     ): AndroidProfilerToolWindow {
       val wrapper = ToolWindowWrapperImpl(project, toolWindow)
       val profilerToolWindow = AndroidProfilerToolWindow(wrapper, project)
-      toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
+      val icon = if (IdeInfo.getInstance().isAndroidStudio) {
+        StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+      } else {
+        AllIcons.Toolwindows.ToolWindowProfilerAndroid
+      }
+      toolWindow.setIcon(icon)
       PROJECT_PROFILER_MAP[project] = profilerToolWindow
       Disposer.register(profilerToolWindow) {
         PROJECT_PROFILER_MAP.remove(project)

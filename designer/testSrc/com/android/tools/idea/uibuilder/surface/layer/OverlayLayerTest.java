@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.surface.layer;
 
 import static com.android.tools.idea.uibuilder.surface.layer.OverlayLayerKt.PLACEHOLDER_ALPHA;
 import static com.android.tools.idea.uibuilder.surface.layer.OverlayLayerKt.PLACEHOLDER_TEXT;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

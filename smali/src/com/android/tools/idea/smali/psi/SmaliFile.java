@@ -21,9 +21,8 @@ import com.android.tools.idea.smali.SmaliLanguage;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class SmaliFile extends PsiFileBase {
   public SmaliFile(@NotNull FileViewProvider viewProvider) {

@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.options.NlOptionConfigurableSearchableOp
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
-import com.jetbrains.rd.util.getOrCreate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertFalse
@@ -79,7 +78,7 @@ private class TestSearchableOptionProcessor : SearchableOptionProcessor() {
       return
     }
     for (keyword in text.split(" ")) {
-      val hitSet: MutableSet<String> = hitMap.getOrCreate(keyword) { mutableSetOf() }
+      val hitSet: MutableSet<String> = hitMap.computeIfAbsent(keyword) { mutableSetOf() }
       hitSet.add(hit)
     }
   }

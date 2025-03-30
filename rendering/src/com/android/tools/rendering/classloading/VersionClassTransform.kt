@@ -15,8 +15,8 @@
  */
 package com.android.tools.rendering.classloading
 
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 /**
  * [ClassVisitor] that ensures that every class version number is between [minVersion] and

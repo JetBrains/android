@@ -19,7 +19,9 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.util.PatternUtil
+import org.jetbrains.annotations.Nls
 import java.io.File
 import kotlin.reflect.KProperty
 
@@ -43,8 +45,8 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   ResolvedT,
   ParsedT,
   PropertyT : Any> T.property(
-  description: String,
-  preferredVariableName: ModelT.() -> String = { "myValue" },
+  @Nls description: String,
+  @NlsSafe preferredVariableName: ModelT.() -> String = { "myValue" },
   canExtractVariable: ModelT.() -> Boolean = { true },
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   variableScope: (ModelT.() -> PsVariablesScope)? = null,

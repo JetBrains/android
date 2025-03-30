@@ -415,7 +415,9 @@ class DeviceAdapterTest {
       spikiness = spikiness,
       timeSource = testTimeSource,
       installer = fakeInstaller,
-      coroutineScope = testScope,
+      // we use fqns to suppress deprecation on import level
+      coroutineScope = @Suppress("DEPRECATION_ERROR") kotlinx.coroutines.test.TestCoroutineScope(
+        kotlinx.coroutines.test.TestCoroutineDispatcher()),
     )
     .apply { setCallbacks(callbacks) }
   }

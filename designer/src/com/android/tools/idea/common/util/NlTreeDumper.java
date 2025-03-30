@@ -18,15 +18,12 @@ package com.android.tools.idea.common.util;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.base.MoreObjects;
-import com.intellij.psi.xml.XmlTag;
 import java.util.Collections;
-import java.util.HashSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class NlTreeDumper {
   private final Map<NlComponent, Integer> myComponentIds;

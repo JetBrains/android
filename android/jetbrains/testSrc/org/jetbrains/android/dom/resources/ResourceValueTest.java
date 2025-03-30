@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.dom.resources;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import com.android.resources.ResourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class ResourceValueTest {
   private static void assertValue(@NotNull String resName, @Nullable ResourceValue value) {

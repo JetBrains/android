@@ -16,12 +16,11 @@
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
 package com.android.tools.idea.gradle.project.sync.memory
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.gradle.CaptureType
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
-import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.EDivisiveAnalyzer
 import com.android.tools.perflogger.UTestAnalyzer

@@ -19,12 +19,11 @@ import com.android.annotations.Nullable;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import java.awt.Component;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.KeyListener;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Specifies the content of {@link ToolWindowDefinition}.

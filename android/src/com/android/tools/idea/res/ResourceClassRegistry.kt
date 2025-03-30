@@ -26,11 +26,11 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TimeoutCachedValue
+import org.jetbrains.annotations.TestOnly
 import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import org.jetbrains.annotations.TestOnly
 
 private val PACKAGE_TIMEOUT = 5.minutes
 

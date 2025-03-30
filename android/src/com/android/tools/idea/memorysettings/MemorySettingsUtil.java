@@ -30,9 +30,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.util.system.CpuArch;
 import com.sun.management.OperatingSystemMXBean;
+import java.awt.Window;
 import java.io.IOException;
 import java.util.Locale;
-import java.awt.Window;
 import org.jetbrains.annotations.Nullable;
 
 public class MemorySettingsUtil {
@@ -40,7 +40,7 @@ public class MemorySettingsUtil {
 
   // Show memory settings configuration only for machines with at least this much RAM.
   private static final int MIN_RAM_IN_GB_FOR_CONFIG = 5;
-  static final int NO_XMX_IN_VM_ARGS = -1;
+  public static final int NO_XMX_IN_VM_ARGS = -1;
 
   public static boolean memorySettingsEnabled() {
     return !CpuArch.is32Bit() && getMachineMem() >= MIN_RAM_IN_GB_FOR_CONFIG << 10;

@@ -15,24 +15,28 @@
  */
 package com.android.tools.adtui;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JLabel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A component that draws an axis based on data from a {@link Range} object.
@@ -53,7 +57,7 @@ public final class AxisComponent extends AnimatedComponent {
   private static final int DEFAULT_MINOR_MARKER_LENGTH = 4;
 
   @VisibleForTesting
-  static final float REMOVE_MAJOR_TICK_DENSITY = 1.1f; // A value that is close to, but doesn't, overlap.
+  public static final float REMOVE_MAJOR_TICK_DENSITY = 1.1f; // A value that is close to, but doesn't, overlap.
 
   private static final JBColor DEFAULT_VERT_AXIS_TICK_COLOR = new JBColor(new Color(0, 0, 0, 64), new Color(255, 255, 255, 102));
   private static final JBColor DEFAULT_HORIZ_AXIS_TICK_COLOR = new JBColor(new Color(0xB9B9B9), new Color(0x656464));

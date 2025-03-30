@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.targets;
 
 import com.android.sdklib.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
@@ -119,16 +118,10 @@ public abstract class MotionLayoutResizeBaseTarget extends ResizeBaseTarget {
    */
   @Override
   public void mouseCancel() {
-    myComponent.setPosition(myStartX1, myStartY1);
 
     // rollback the transaction. The value may be temporarily changed by live rendering.
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
-    AttributesTransaction transaction = component.startAttributeTransaction();
-    transaction.rollback();
-    component.fireLiveChangeEvent();
 
-    myComponent.setDragging(false);
-    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
+    super.mouseCancel();
   }
 
   //endregion

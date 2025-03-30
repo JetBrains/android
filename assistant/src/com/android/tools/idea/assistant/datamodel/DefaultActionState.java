@@ -19,11 +19,10 @@ import com.android.tools.idea.assistant.AssistActionState;
 import com.android.tools.idea.assistant.view.UIUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
+import java.awt.Color;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Default set of action states for StatefulButtons that offers enough states for a loading button

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
-import org.objectweb.asm.tree.AnnotationNode
+import org.jetbrains.org.objectweb.asm.tree.AnnotationNode
 
 class IrAnnotation(annotation: AnnotationNode) {
   val desc: String = annotation.desc ?: throw IllegalArgumentException("Annotation with null type descriptor")

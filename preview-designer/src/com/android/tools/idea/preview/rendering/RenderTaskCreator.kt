@@ -30,8 +30,8 @@ import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
-import java.util.concurrent.CompletableFuture
 import org.jetbrains.android.facet.AndroidFacet
+import java.util.concurrent.CompletableFuture
 
 /**
  * Returns a [CompletableFuture] that creates a [RenderTask] for a single [VirtualFile]. It is the

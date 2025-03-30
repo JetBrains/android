@@ -52,16 +52,16 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
   override fun getComponent(parentDisposable: Disposable): Component {
     return panel {
       group(message("restore.run.config.group")) {
-          row { checkBox(message("restore.run.config.checkbox")).bindSelected(restoreApp) }
-          indent {
-              row { backupFileChooser(PATH_FIELD_WIDTH).bindText(backupFile) }
-              row {
-                checkBox(message("restore.run.config.fresh.install.checkbox"))
-                  .bindSelected(freshInstall)
-              }
-            }
-            .enabledIf(restoreApp)
+        row { checkBox(message("restore.run.config.checkbox")).bindSelected(restoreApp) }
+        indent {
+          row { backupFileChooser(PATH_FIELD_WIDTH).bindText(backupFile) }
+          row {
+            checkBox(message("restore.run.config.fresh.install.checkbox"))
+              .bindSelected(freshInstall)
+          }
         }
+          .enabledIf(restoreApp)
+      }
         .enabledIf(restoreSupported)
     }
   }

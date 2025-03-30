@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.findAndroidModule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -36,7 +37,7 @@ fun resourceChangedFlow(
 ): Flow<Set<ResourceNotificationManager.Reason>> =
   disposableCallbackFlow("ResourceChangedFlow", logger, parentDisposable) {
     val facet =
-      readAction { module.androidFacet }
+      readAction { module.findAndroidModule()?.androidFacet }
         ?: run {
           logger?.warn("AndroidFacet not found for $module. Notifications will be ignored")
           return@disposableCallbackFlow

@@ -275,36 +275,33 @@ class EntryDetailsViewTest {
 
   @Test
   fun alarmEntrySelected() = runBlocking {
-    val event =
-      client.sendBackgroundTaskEvent(0) {
-        taskId = 1
-        alarmSetBuilder.apply {
-          type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
-          intervalMs = 5000
-          windowMs = 0
-          operationBuilder.apply {
-            creatorPackage = "creator.package"
-            creatorUid = 100
-            type = BROADCAST
-            flags = 0xc000000
-            requestCode = 12
-            intentBuilder.apply {
-              action = "action"
-              data = "data"
-              addAllCategories(listOf("c1", "c2"))
-              componentNameBuilder.apply {
-                packageName = "component-package"
-                className = "component-class"
-              }
-              type = "type"
-              flags = 0x8000
-              extras = "extras"
-            }
-          }
-        }
-        stacktrace =
-          "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
+    val event = client.sendBackgroundTaskEvent(0) {
+      taskId = 1
+      alarmSetBuilder.apply {
+        type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
+        intervalMs = 5000
+        windowMs = 0
       }
+      alarmSetBuilder.operationBuilder.apply {
+        creatorPackage = "creator.package"
+        creatorUid = 100
+        type = BROADCAST
+        flags = 0xc000000
+        requestCode = 12
+      }
+      alarmSetBuilder.operationBuilder.intentBuilder.apply {
+        action = "action"
+        data = "data"
+        addAllCategories(listOf("c1", "c2"))
+        componentNameBuilder.packageName = "component-package"
+        componentNameBuilder.className = "component-class"
+        type = "type"
+        flags = 0x8000
+        extras = "extras"
+      }
+
+      stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
+    }
     val alarmSet = event.backgroundTaskEvent.alarmSet
 
     withContext(uiDispatcher) {

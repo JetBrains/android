@@ -17,11 +17,10 @@ package com.android.tools.idea.observable.ui;
 
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.text.JTextComponent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.swing.text.JTextComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link AbstractProperty} that wraps a Swing component and exposes its editable state.

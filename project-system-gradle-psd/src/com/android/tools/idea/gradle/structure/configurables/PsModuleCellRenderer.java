@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
+import static com.intellij.util.ui.UIUtil.getTreeFont;
+
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -22,15 +28,10 @@ import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
-import static com.intellij.ui.SimpleTextAttributes.*;
-import static com.intellij.util.ui.UIUtil.getTreeFont;
+import javax.swing.JTree;
+import org.jetbrains.annotations.NotNull;
 
 public class PsModuleCellRenderer extends ColoredTreeCellRenderer {
   @NotNull private final PsContext myContext;

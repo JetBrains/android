@@ -28,12 +28,11 @@ import com.intellij.util.text.DateFormatUtil
 /**
  * Opens window with a list of previous Build Analyses results
  */
-class OpenBuildAnalyzerResultsAction : AnAction("Show Results Analysis of Previous Builds") {
+class OpenBuildAnalyzerResultsAction : AnAction() {
 
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT
   }
-
   override fun update(e: AnActionEvent) {
     val project = e.project
     if (!StudioFlags.BUILD_ANALYZER_HISTORY.get() || project == null) {

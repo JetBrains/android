@@ -17,11 +17,14 @@ package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
 import com.intellij.ui.ColorUtil;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.RoundRectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 public class ExpandingEventRenderer<E> implements EventRenderer<E> {
   private static final int LINE_WIDTH = 12;

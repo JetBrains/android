@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.tools.idea.apk.debugging.ApkClass;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.intellij.ide.projectView.PresentationData;
@@ -22,6 +25,7 @@ import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -33,16 +37,11 @@ import com.intellij.ui.IconManager;
 import com.intellij.ui.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.smali.SmaliIcons.SmaliFile;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import javax.swing.Icon;
 
 class ClassNode extends ProjectViewNode<ApkClass> {
   @NotNull private final ApkClass myClass;
@@ -63,7 +62,7 @@ class ClassNode extends ProjectViewNode<ApkClass> {
 
   @Override
   protected void update(@NotNull PresentationData presentation) {
-    Icon icon = SmaliFile;
+    Icon icon = FileTypeManager.getInstance().getFileTypeByExtension("smali").getIcon();
     if (myDexSourceFiles.findJavaPsiClass(myClass.getFqn()) != null) {
       icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class);
     }

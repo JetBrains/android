@@ -36,12 +36,6 @@ public abstract class AndroidProfilerCaptureFileType implements INativeFileType 
   }
 
   @Override
-  public boolean isReadOnly() {
-    return false;
-  }
-
-  @Nullable
-  @Override
   public Icon getIcon() {
     return StudioIcons.Profiler.Sessions.ALLOCATIONS;
   }

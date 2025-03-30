@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.ANDROID_URI;
 
 /**
  * Interface for elements dealing with {@link NlComponent} attributes.

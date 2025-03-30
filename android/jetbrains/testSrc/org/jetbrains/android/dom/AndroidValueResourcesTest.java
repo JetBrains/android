@@ -12,7 +12,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
@@ -37,6 +37,7 @@ import com.intellij.openapi.editor.impl.ImaginaryEditor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -60,6 +61,7 @@ import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.containers.ContainerUtil;
+import io.vavr.collection.Array;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -630,7 +632,7 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(virtualFile);
 
     myFixture.doHighlighting();
-    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    CodeInsightTestFixtureImpl.waitForLazyQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
 
     IntentionAction action = myFixture.findSingleIntention("Create drawable value resource");
     WriteCommandAction.runWriteCommandAction(myProject, () -> action.invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
@@ -686,9 +688,12 @@ public class AndroidValueResourcesTest {
   @Test
   public void translatableAttributeCompletionDumbMode() {
     DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
+      if (!Registry.is("ide.dumb.mode.check.awareness")) {
+        toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
+        return;
+      }
       toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
     });
-    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 
   @Test
@@ -728,7 +733,7 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(virtualFile);
 
     myFixture.doHighlighting();
-    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    CodeInsightTestFixtureImpl.waitForLazyQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
 
     IntentionAction action = myFixture.findSingleIntention("Create drawable value resource");
     WriteCommandAction.runWriteCommandAction(myProject, () -> action.invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
@@ -747,7 +752,7 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(virtualFile);
 
     myFixture.doHighlighting();
-    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    CodeInsightTestFixtureImpl.waitForLazyQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
 
     IntentionAction action = myFixture.findSingleIntention("Create bool value resource");
     WriteCommandAction.runWriteCommandAction(myProject, () -> action.invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
@@ -770,7 +775,7 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(virtualFile);
 
     myFixture.doHighlighting();
-    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    CodeInsightTestFixtureImpl.waitForLazyQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
 
     IntentionAction action = myFixture.findSingleIntention("Create string value resource");
     WriteCommandAction.runWriteCommandAction(myProject, () -> action.invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
@@ -1161,7 +1166,7 @@ public class AndroidValueResourcesTest {
 
   private List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
     List<HighlightInfo> infos = myFixture.doHighlighting();
-    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    CodeInsightTestFixtureImpl.waitForLazyQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
     List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {

@@ -18,12 +18,11 @@ package com.android.tools.idea.observable.ui;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.intellij.ui.ColorPanel;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 
 /**

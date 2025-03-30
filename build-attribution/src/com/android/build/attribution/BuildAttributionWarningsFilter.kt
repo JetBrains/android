@@ -16,7 +16,6 @@
 package com.android.build.attribution
 
 import com.android.build.attribution.data.SuppressedWarnings
-import com.android.build.attribution.data.TaskData
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.project.Project

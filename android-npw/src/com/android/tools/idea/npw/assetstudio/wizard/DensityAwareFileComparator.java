@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.resources.Density;
-import org.jetbrains.annotations.NotNull;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 
+import com.android.resources.Density;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Set;
-
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Orders files by "directory vs file" first, then by density, then by name.

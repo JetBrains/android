@@ -20,7 +20,7 @@ import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.DUMP
 
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.asdriver.tests.base.IdeInstallation;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.PathManager;
@@ -28,6 +28,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.EarlyAccessRegistryManager;
 import com.intellij.util.system.CpuArch;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -39,7 +40,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 

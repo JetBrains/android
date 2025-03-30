@@ -21,6 +21,7 @@ import static com.android.tools.idea.stats.StudioStatsLocalFileDumper.STUDIO_EVE
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.HistogramUtil;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.diagnostics.crash.ExceptionDataCollection;
 import com.android.tools.idea.diagnostics.crash.ExceptionRateLimiter;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
@@ -57,7 +58,6 @@ import com.google.wireless.android.sdk.stats.StudioExceptionDetails;
 import com.google.wireless.android.sdk.stats.StudioPerformanceStats;
 import com.google.wireless.android.sdk.stats.UIActionStats;
 import com.google.wireless.android.sdk.stats.UIActionStats.InvocationKind;
-import com.intellij.ExtensionPoints;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.diagnostic.EventWatcher;
 import com.intellij.diagnostic.IdePerformanceListener;
@@ -66,7 +66,6 @@ import com.intellij.diagnostic.MessagePool;
 import com.intellij.diagnostic.ThreadDump;
 import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.diagnostic.VMOptions;
-import com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.CopyAction;
@@ -255,8 +254,12 @@ public final class AndroidStudioSystemHealthMonitor {
     Disposer.register(parentDisposable, () -> myOomListeners.remove(runnable));
   }
 
-  public static @NotNull AndroidStudioSystemHealthMonitor getInstance() {
-    return ApplicationManager.getApplication().getService(AndroidStudioSystemHealthMonitor.class);
+  public static @Nullable AndroidStudioSystemHealthMonitor getInstance() {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      return ApplicationManager.getApplication().getService(AndroidStudioSystemHealthMonitor.class);
+    } else  {
+      return null;
+    }
   }
 
   public static Integer getMaxHistogramReportsCount() {
@@ -622,16 +625,20 @@ public final class AndroidStudioSystemHealthMonitor {
     }
   }
 
-  public static class MyEventsListener implements AndroidStudioSystemHealthMonitorAdapter.EventsListener {
-    @Override
-    public void countActionInvocation(AnAction anAction, Presentation presentation, AnActionEvent event) {
-      AndroidStudioSystemHealthMonitor.countActionInvocation(anAction, presentation, event);
-    }
-
-    @Override
-    public boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind memoryKind) {
-      return AndroidStudioSystemHealthMonitor.getInstance().handleExceptionEvent(event, memoryKind);
-    }
+  protected void registerPlatformEventsListener() {
+    //AndroidStudioSystemHealthMonitorAdapter.EventsListener listener = new AndroidStudioSystemHealthMonitorAdapter.EventsListener() {
+    //
+    //  @Override
+    //  public void countActionInvocation(AnAction anAction, Presentation presentation, AnActionEvent event) {
+    //    AndroidStudioSystemHealthMonitor.countActionInvocation(anAction, presentation, event);
+    //  }
+    //
+    //  @Override
+    //  public boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind memoryKind) {
+    //    return AndroidStudioSystemHealthMonitor.this.handleExceptionEvent(event, memoryKind);
+    //  }
+    //};
+    //AndroidStudioSystemHealthMonitorAdapter.registerEventsListener(listener);
   }
 
   private AtomicBoolean ourOomOccurred = new AtomicBoolean(false);
@@ -651,9 +658,7 @@ public final class AndroidStudioSystemHealthMonitor {
         attachment.setIncluded(true);
         attachments.add(attachment);
       });
-      MessagePool.getInstance().addIdeFatalMessage(
-        LogMessage.createEvent(event.getThrowable(), event.getMessage(), attachments.toArray(new Attachment[0]))
-      );
+      MessagePool.getInstance().addIdeFatalMessage(new LogMessage(event.getThrowable(), event.getMessage(), attachments));
       return true;
     }
 
@@ -682,7 +687,7 @@ public final class AndroidStudioSystemHealthMonitor {
 
   private void reportThrowableToCrash(Throwable t) {
     incrementAndSaveExceptionCount(t);
-    ErrorReportSubmitter reporter = ExtensionPoints.ERROR_HANDLER_EP.findExtension(AndroidStudioErrorReportSubmitter.class);
+    AndroidStudioErrorReportSubmitter reporter = ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class);
     if (reporter != null) {
       StackTrace stackTrace = ExceptionRegistry.INSTANCE.register(t);
       String signature = ExceptionDataCollection.Companion.calculateSignature(t);
@@ -1178,11 +1183,10 @@ public final class AndroidStudioSystemHealthMonitor {
       return;
     }
 
-    ErrorReportSubmitter reporter = ExtensionPoints.ERROR_HANDLER_EP.findExtension(AndroidStudioErrorReportSubmitter.class);
+    AndroidStudioErrorReportSubmitter reporter = ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class);
     if (reporter != null) {
       IdeaLoggingEvent e = new AndroidStudioCrashEvents(descriptions);
-      reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
-      });
+      reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> { });
     }
   }
 

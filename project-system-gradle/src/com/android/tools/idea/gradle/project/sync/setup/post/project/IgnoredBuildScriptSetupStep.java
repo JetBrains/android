@@ -23,9 +23,7 @@ import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
@@ -74,11 +72,6 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
         checkIsNotIgnored("Build script for module " + module.getName(), buildPath, project);
       }
     }
-  }
-
-  @Override
-  public boolean invokeOnFailedSync() {
-    return false;
   }
 
   public static String getIgnoredFileTypesPathInSettings() {

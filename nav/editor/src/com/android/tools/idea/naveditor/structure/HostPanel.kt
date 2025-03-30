@@ -59,6 +59,9 @@ import com.intellij.util.Query
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import kotlinx.coroutines.launch
+import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
+import org.jetbrains.android.dom.navigation.isNavHostFragment
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Component
@@ -75,9 +78,6 @@ import java.awt.event.MouseEvent
 import javax.swing.DefaultListModel
 import javax.swing.DefaultListSelectionModel
 import javax.swing.JList
-import kotlinx.coroutines.launch
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
-import org.jetbrains.android.dom.navigation.isNavHostFragment
 
 private const val NO_HOST_TEXT1 = "No NavHostFragments found"
 private const val NO_HOST_TEXT2 = "This nav graph must be"
@@ -288,7 +288,7 @@ internal fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
   ProgressManager.checkCanceled()
   val result = mutableListOf<XmlTag>()
   val query: Query<PsiReference> = ReferencesSearch.search(psi)
-  for (ref: PsiReference in query) {
+  for (ref: PsiReference in query.asIterable()) {
     ProgressManager.checkCanceled()
     val element = ref.element as? XmlAttributeValue ?: continue
     val file = element.containingFile as? XmlFile ?: continue

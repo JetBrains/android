@@ -17,15 +17,11 @@ package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
-import com.android.build.attribution.ui.controllers.BuildAnalyzerPropertiesAction
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.WarningsDataPageModelImpl
 import com.android.tools.adtui.TreeWalker
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -35,7 +31,6 @@ import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.UndisposedAndroidObjectsCheckerRule
 import org.jetbrains.kotlin.utils.keysToMap
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito

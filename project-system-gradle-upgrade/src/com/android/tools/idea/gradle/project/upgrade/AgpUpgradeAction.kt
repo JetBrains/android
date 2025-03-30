@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
-import com.intellij.ide.impl.isTrusted
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -34,7 +34,7 @@ class AgpUpgradeAction: AnAction() {
     super.update(e)
     val project = e.project
     @Suppress("UnstableApiUsage")
-    if (project == null || !project.isTrusted() || project.getProjectSystem() !is GradleProjectSystem) {
+    if (project == null || !TrustedProjects.isProjectTrusted(project) || project.getProjectSystem() !is GradleProjectSystem) {
       e.presentation.isEnabled = false
     }
   }

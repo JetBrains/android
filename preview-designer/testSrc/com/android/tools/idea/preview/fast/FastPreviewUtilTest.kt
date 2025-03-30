@@ -26,9 +26,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import java.util.concurrent.CancellationException
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -38,6 +35,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 class FastPreviewUtilTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

@@ -16,17 +16,16 @@
 package com.android.layoutlib;
 
 import com.google.common.io.CharSource;
-import org.jetbrains.org.objectweb.asm.ClassReader;
-import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class LayoutlibClassLoaderTest {
 

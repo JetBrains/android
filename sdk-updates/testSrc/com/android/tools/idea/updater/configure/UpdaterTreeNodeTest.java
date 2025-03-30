@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import static com.android.SdkConstants.FD_NDK;
+import static com.android.tools.idea.updater.configure.PackageNodeModel.SelectedState.INSTALLED;
+import static com.android.tools.idea.updater.configure.PackageNodeModel.SelectedState.MIXED;
+import static com.android.tools.idea.updater.configure.PackageNodeModel.SelectedState.NOT_INSTALLED;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.annotations.Nullable;
 import com.android.repository.Revision;
 import com.android.repository.api.UpdatablePackage;
@@ -28,7 +37,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.tree.TreeNode;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -37,17 +52,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import static com.android.SdkConstants.FD_NDK;
-import static com.android.tools.idea.updater.configure.PackageNodeModel.SelectedState.*;
-import static org.junit.Assert.*;
 
 /**
  * Tests for {@link UpdaterTreeNode} and subclasses.

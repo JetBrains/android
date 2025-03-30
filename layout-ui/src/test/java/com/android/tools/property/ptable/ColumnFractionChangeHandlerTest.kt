@@ -20,9 +20,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.scale.JBUIScale.scale
 import com.intellij.util.ui.JBDimension
+import org.junit.Test
 import java.awt.BorderLayout
 import javax.swing.JPanel
-import org.junit.Test
 
 class ColumnFractionChangeHandlerTest {
 

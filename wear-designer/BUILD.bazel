@@ -1,0 +1,114 @@
+### auto-generated section `build intellij.android.wear-designer` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "wear-designer_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "wear-designer",
+  module_name = "intellij.android.wear-designer",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "//android/adt-ui",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/designer",
+    "//android/preview-designer",
+    "//android/preview-elements",
+    "//android/render-resources",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/analysis-api:analysis",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/lang-core",
+    "//uast/uast-common:uast",
+    "//platform/util",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//platform/util/jdom",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+    "//android/rendering",
+    "//android/project-system:projectSystem",
+    "@lib//:kotlinc-analysis-api-provided",
+    "//java/java-analysis-api:analysis",
+    "//platform/util-ex",
+    "//plugins/kotlin/base/psi:kotlin-base-psi",
+    "//platform/util:util-ui",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+  ],
+  runtime_deps = [":wear-designer_resources"]
+)
+### auto-generated section `build intellij.android.wear-designer` end
+
+### auto-generated section `build intellij.android.wear-designer.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "wear-designer-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/wear-designer"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:truth",
+    "@lib//:kotlinx-collections-immutable",
+    "@lib//:kotlin-test",
+    "@lib//:guava",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android:core",
+    "//android/designer",
+    "//android/designer:designer_test_lib",
+    "//android/preview-designer",
+    "//android/preview-elements",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//uast/uast-common:uast",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//android/project-system:projectSystem",
+    "//java/java-impl:impl",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
+    "//plugins/kotlin/idea",
+    "//android/android-kotlin/idea-android/k2:android-kotlin-idea-k2",
+    "//plugins/kotlin/code-insight/inspections-k2:kotlin-code-insight-inspections-k2",
+    "//android/android-common:common",
+    "//android/android:core-tests_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/rendering",
+    "//android/designer:designer-tests_test_lib",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+    "//xml/xml-psi-impl:psi-impl",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:protobuf",
+    "//android/preview-designer:preview-designer-tests_test_lib",
+    "@lib//:kotlinx-coroutines-test",
+  ]
+)
+### auto-generated section `build intellij.android.wear-designer.tests` end

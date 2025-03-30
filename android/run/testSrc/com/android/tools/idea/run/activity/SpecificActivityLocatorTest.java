@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.run.activity;
 
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_UNDECLARED;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.SdkConstants;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
-
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
-import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_UNDECLARED;
-import static com.google.common.truth.Truth.assertThat;
 
 public class SpecificActivityLocatorTest extends AndroidTestCase {
 

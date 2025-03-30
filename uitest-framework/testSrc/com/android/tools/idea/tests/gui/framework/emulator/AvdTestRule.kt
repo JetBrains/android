@@ -33,9 +33,9 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.TestUtils.getSdk
-import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.testutils.TestUtils.runningFromBazel
+import com.android.test.testutils.TestUtils.getSdk
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.runningFromBazel
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.utils.FileUtils
@@ -179,8 +179,8 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
    * Pre-condition: running within Bazel
    */
   private fun copyEmuAndImages(sdkLocation: File) {
-    val sysImg = resolveWorkspacePath("external/externsdk/system-images")
-    val emu = resolveWorkspacePath("external/externsdk/emulator")
+    val sysImg = resolveWorkspacePath(TestUtils.getRelativeSdk())
+    val emu = resolveWorkspacePath(sysImg.resolve(SdkConstants.FD_EMULATOR).toString())
 
     Assert.assertTrue(Files.isDirectory(sysImg))
     Assert.assertTrue(Files.isDirectory(emu))

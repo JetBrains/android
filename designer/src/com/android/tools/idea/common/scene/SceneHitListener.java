@@ -22,12 +22,12 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.scene.target.TargetHelper;
 import com.google.common.collect.ImmutableList;
 import java.awt.event.InputEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Hit listener implementation (used for hover / click detection)

@@ -25,10 +25,10 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
-import java.util.concurrent.TimeUnit.SECONDS
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit.SECONDS
 
 /** Tests for [RestartOrReloadLogcatAction] */
 class RestartOrReloadLogcatActionTest {

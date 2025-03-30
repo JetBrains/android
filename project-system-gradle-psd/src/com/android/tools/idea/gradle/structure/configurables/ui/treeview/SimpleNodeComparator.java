@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.intellij.ui.treeStructure.SimpleNode;
-
 import java.util.Comparator;
 
 public class SimpleNodeComparator<T extends SimpleNode> implements Comparator<T> {

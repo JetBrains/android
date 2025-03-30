@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import static com.android.tools.idea.apk.debugging.ApkDebugging.APK_DEBUGGING_PROPERTY;
+
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-
-import static com.android.tools.idea.apk.debugging.ApkDebugging.APK_DEBUGGING_PROPERTY;
 
 /**
  * Tests for {@link ApkDebugging}.

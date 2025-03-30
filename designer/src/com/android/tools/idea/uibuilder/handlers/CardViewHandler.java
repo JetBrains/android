@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;

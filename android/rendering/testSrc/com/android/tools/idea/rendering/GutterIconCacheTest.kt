@@ -20,18 +20,20 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons.Common.ANDROID_HEAD
 import icons.StudioIcons.Common.WARNING
-import java.nio.file.FileSystems
-import java.nio.file.Path
-import javax.swing.Icon
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.nio.file.FileSystems
+import java.nio.file.Path
+import javax.swing.Icon
 
 @RunWith(JUnit4::class)
 class GutterIconCacheTest {
@@ -89,7 +91,7 @@ class GutterIconCacheTest {
     assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(ANDROID_HEAD)
 
     // "Modify" Document by rewriting its contents
-    val document = checkNotNull(FileDocumentManager.getInstance().getDocument(sampleSvgFile))
+    val document = ReadAction.compute<Document, Throwable> {  checkNotNull(FileDocumentManager.getInstance().getDocument(sampleSvgFile))}
     with(ApplicationManager.getApplication()) {
       invokeAndWait { runWriteAction { document.setText(document.text) } }
     }

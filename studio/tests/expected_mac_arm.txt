@@ -2958,7 +2958,6 @@ Android Studio Preview.app/Contents/plugins/java/lib/jps-builders-6.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jps-builders.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jps-javac-extension.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jps-launcher.jar
-Android Studio Preview.app/Contents/plugins/java/lib/jps/java-compiler-charts-jps.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jshell-frontend.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jshell-protocol.jar
 Android Studio Preview.app/Contents/plugins/java/lib/maven-resolver-connector-basic.jar

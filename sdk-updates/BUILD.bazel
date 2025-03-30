@@ -1,0 +1,102 @@
+### auto-generated section `build intellij.android.sdkUpdates` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "sdkUpdates_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "sdkUpdates",
+  module_name = "intellij.android.sdkUpdates",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/adt-ui",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/observable",
+    "//android/observable-ui",
+    "//android/render-resources",
+    "//android/wizard",
+    "//android/wizard-model",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/remote-core",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = [":sdkUpdates_resources"]
+)
+### auto-generated section `build intellij.android.sdkUpdates` end
+
+### auto-generated section `build intellij.android.sdkUpdates.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "sdkUpdates-tests_test_resources",
+  files = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
+
+jvm_test(
+  name = "sdkUpdates-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:jimfs",
+    "@lib//:kotlin-test",
+    "@lib//:mockito",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/sdk-updates:sdkUpdates",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "@lib//:mockito-kotlin",
+  ],
+  runtime_deps = [":sdkUpdates-tests_test_resources"]
+)
+### auto-generated section `build intellij.android.sdkUpdates.tests` end

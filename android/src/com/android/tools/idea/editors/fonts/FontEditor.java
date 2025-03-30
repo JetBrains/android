@@ -16,14 +16,11 @@
 
 package com.android.tools.idea.editors.fonts;
 
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -196,12 +193,6 @@ class FontEditor implements FileEditor {
     return NAME;
   }
 
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
-  }
-
   @Override
   public void setState(@NotNull FileEditorState state) {
   }
@@ -230,18 +221,6 @@ class FontEditor implements FileEditor {
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
-  }
-
-  @Nullable
-  @Override
-  public BackgroundEditorHighlighter getBackgroundHighlighter() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
   }
 
   @Nullable

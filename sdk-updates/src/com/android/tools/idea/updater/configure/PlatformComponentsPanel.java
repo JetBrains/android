@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
+import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -64,9 +65,9 @@ public class PlatformComponentsPanel {
   private boolean myModified;
 
   @VisibleForTesting
-  UpdaterTreeNode myPlatformDetailsRootNode;
+  public UpdaterTreeNode myPlatformDetailsRootNode;
   @VisibleForTesting
-  UpdaterTreeNode myPlatformSummaryRootNode;
+  public UpdaterTreeNode myPlatformSummaryRootNode;
 
   Set<PackageNodeModel> myStates = Sets.newHashSet();
 
@@ -161,7 +162,7 @@ public class PlatformComponentsPanel {
   private void createUIComponents() {
     UpdaterTreeNode.Renderer renderer = new SummaryTreeNode.Renderer();
 
-    myPlatformLoadingIcon = new AsyncProcessIcon("Loading...");
+    myPlatformLoadingIcon = new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText());
     myPlatformSummaryRootNode = new RootNode();
     myPlatformDetailsRootNode = new RootNode();
     ColumnInfo[] platformSummaryColumns =

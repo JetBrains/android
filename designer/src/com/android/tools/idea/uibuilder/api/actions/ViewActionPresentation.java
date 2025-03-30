@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.api.actions;
 
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * The actual presentation of an action in the designer.

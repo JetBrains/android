@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.ide.common.gradle.Version
+import com.android.tools.idea.gradle.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsLibraryKey
-import com.android.tools.idea.gradle.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State

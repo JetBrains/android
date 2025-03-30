@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** Represents a file to be converted to WEBP by the {@link ConvertToWebpAction} */
-class WebpConvertedFile {
+public class WebpConvertedFile {
   public final VirtualFile sourceFile;
   public final long sourceFileSize;
   public byte[] encoded;

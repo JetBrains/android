@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +24,7 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.BeginSessionRequest;
 import com.android.tools.profiler.proto.Profiler.BeginSessionResponse;
@@ -36,7 +37,6 @@ import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
 import com.android.tools.profiler.proto.Profiler.ImportSessionRequest;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.InteractionInformation;

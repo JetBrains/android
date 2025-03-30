@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.npw;
 
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.ALREADY_EXISTS;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.DUPLICATE_MODULE_NAME;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.INVALID_NAME;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.OK;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.REQUIRED;
+
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.npw.importing.ModuleListModel;
 import com.google.common.base.Supplier;
@@ -27,12 +33,9 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.io.IOException;
 import java.util.Collection;
-
-import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.*;
+import org.jetbrains.android.AndroidTestCase;
 
 public final class ModulesListModelTest extends AndroidTestCase {
   public static final String NEW_NAME = "a new name";

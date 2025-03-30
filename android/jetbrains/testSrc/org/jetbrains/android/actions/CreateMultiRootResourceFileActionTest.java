@@ -17,8 +17,8 @@ package org.jetbrains.android.actions;
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import java.util.Arrays;

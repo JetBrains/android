@@ -15,7 +15,7 @@
  */
 package com.intellij.testGuiFramework.launcher
 
-import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
+import com.android.test.testutils.TestUtils.resolveWorkspacePathUnchecked
 import java.io.File
 
 enum class RestartPolicy {

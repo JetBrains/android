@@ -81,7 +81,7 @@ public class DbParserDefinition implements ParserDefinition {
 
   @NotNull
   @Override
-  public PsiFile createFile(FileViewProvider viewProvider) {
+  public PsiFile createFile(@NotNull FileViewProvider viewProvider) {
     return new DbFile(viewProvider);
   }
 

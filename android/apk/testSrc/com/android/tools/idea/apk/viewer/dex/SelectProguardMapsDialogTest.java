@@ -17,9 +17,8 @@ package com.android.tools.idea.apk.viewer.dex;
 
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.io.File;
+import org.jetbrains.android.AndroidTestCase;
 
 public class SelectProguardMapsDialogTest extends AndroidTestCase {
 

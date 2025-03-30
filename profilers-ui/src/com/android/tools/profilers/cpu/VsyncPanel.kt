@@ -34,7 +34,6 @@ import java.awt.geom.Rectangle2D
 import java.util.function.BooleanSupplier
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.border.Border
 import kotlin.math.max
 import kotlin.math.min
 

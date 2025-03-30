@@ -50,15 +50,11 @@ class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JLi
   }
 
   override fun setItemChosenCallback(callback: Consumer<in T>) {
-    builder.setItemChoosenCallback {
-      list.selectedValue?.let { callback.consume(it) }
-    }
+    builder.setItemChosenCallback(callback)
   }
 
-  override fun setItemsChosenCallback(callback: Consumer<in MutableSet<T>>) {
-    builder.setItemChoosenCallback {
-      callback.consume(list.selectedValuesList?.toMutableSet() ?: mutableSetOf())
-    }
+  override fun setItemsChosenCallback(callback: Consumer<in MutableSet<out T>>) {
+    builder.setItemsChosenCallback(callback)
   }
 
   override fun createScrollPane(): JScrollPane {
@@ -72,8 +68,10 @@ class FakePopupListAdapter<T>(val builder: PopupChooserBuilder<T>, val list: JLi
   }
 
   override fun buildFinalComponent(): JComponent {
-    @Suppress("UNCHECKED_CAST") listWithFilter = ListWithFilter.wrap(list, ListWrapper(builder, list),
-                                                                     builder.itemsNamer) as ListWithFilter<T>
+    @Suppress("UNCHECKED_CAST")
+    listWithFilter = ListWithFilter.wrap(
+      list, ListWrapper(builder, list), builder.itemsNamer
+    ) as ListWithFilter<T>
     listWithFilter.setAutoPackHeight(builder.isAutoPackHeightOnFiltering)
     return listWithFilter
   }

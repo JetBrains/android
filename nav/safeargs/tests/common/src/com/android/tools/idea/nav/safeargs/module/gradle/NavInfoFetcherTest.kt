@@ -22,13 +22,13 @@ import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import java.util.EnumSet
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.util.EnumSet
 
 @RunsInEdt
 class NavInfoFetcherTest {

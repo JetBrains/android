@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.apk;
 
-import com.intellij.openapi.module.Module;
-import org.jetbrains.android.AndroidTestCase;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.intellij.openapi.module.Module;
+import org.jetbrains.android.AndroidTestCase;
 
 public class ApkFacetTest extends AndroidTestCase {
 

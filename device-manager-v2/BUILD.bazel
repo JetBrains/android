@@ -1,0 +1,110 @@
+### auto-generated section `build intellij.android.device-manager-v2` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "device-manager-v2_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "device-manager-v2",
+  module_name = "intellij.android.device-manager-v2",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-collections-immutable",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:guava",
+    "@lib//:icu4j",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/device-explorer",
+    "//android/project-system:projectSystem",
+    "//android/wear-pairing",
+    "//android/wizard",
+    "//android/wizard-model",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/jdom",
+    "//platform/util:util-ui",
+    "//android/android-adb:adb",
+    "//android/avd",
+    "//android/intellij.android.device:device",
+  ],
+  runtime_deps = [":device-manager-v2_resources"]
+)
+
+jvm_library(
+  name = "device-manager-v2_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":device-manager-v2"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-collections-immutable",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-test",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:guava",
+    "@lib//:icu4j",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/device-explorer",
+    "//android/project-system:projectSystem",
+    "//android/wear-pairing",
+    "//android/wear-pairing:wear-pairing_test_lib",
+    "//android/wizard",
+    "//android/wizard-model",
+    "//android/wizard-model:wizard-model_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/jdom",
+    "//platform/util:util-ui",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//android/android-adb:adb",
+    "//android/avd",
+    "//android/avd:avd_test_lib",
+    "//android/intellij.android.device:device",
+  ],
+  runtime_deps = [":device-manager-v2_resources"]
+)
+
+jvm_test(
+  name = "device-manager-v2_test",
+  runtime_deps = [":device-manager-v2_test_lib"]
+)
+### auto-generated section `build intellij.android.device-manager-v2` end

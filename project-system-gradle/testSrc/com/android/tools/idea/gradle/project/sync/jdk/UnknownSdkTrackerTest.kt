@@ -36,6 +36,6 @@ class UnknownSdkTrackerTest: LightPlatformTestCase() {
 
     NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
     UIUtil.dispatchAllInvocationEvents()
-    assertEmpty(UnknownSdkEditorNotification.getInstance(project).notifications)
+    assertEmpty(UnknownSdkEditorNotification.getInstance(project).getNotifications())
   }
 }

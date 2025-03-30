@@ -8,13 +8,19 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class AndroidStudioUpdateStrategyCustomizationTest {
+  @Rule
+  public EdtRule edtRule = new EdtRule();
+
   private Disposable disposable;
   private AndroidStudioUpdateStrategyCustomization updateStrategyCustomization = new AndroidStudioUpdateStrategyCustomization();
 
@@ -59,6 +65,7 @@ public class AndroidStudioUpdateStrategyCustomizationTest {
    * Please delete if this is causing any flakiness.
    */
   @Test
+  @RunsInEdt // MockApplication with no ideEventQueueDispatcher EP: make sure no other activity can use EDT via Application.invokeLater
   public void testChangeDefaultChannel() {
     setupApplication("Android Studio Bumblebee | 2021.1.1 Patch 3");
     assertThat(updateStrategyCustomization.changeDefaultChannel(ChannelStatus.RELEASE)).isEqualTo(ChannelStatus.RELEASE);

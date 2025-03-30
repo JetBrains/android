@@ -1,0 +1,70 @@
+### auto-generated section `build intellij.android.lint.common` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+create_kotlinc_options(
+  name = "custom",
+  opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
+)
+
+jvm_resources(
+  name = "lint-common_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "lint-common",
+  module_name = "intellij.android.lint.common",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/android-common:common",
+    "//plugins/gradle/java",
+    "//plugins/groovy/groovy-psi:psi",
+    "//java/java-analysis-impl:analysis-impl",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//uast/uast-common:uast",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-class-loader:util-classLoader",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//plugins/properties/properties-psi-api:psi",
+    "//plugins/toml/core",
+    "//xml/xml-parser:parser",
+    "//xml/xml-psi-api:psi",
+    "//xml/xml-psi-impl:psi-impl",
+    "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
+    "//plugins/kotlin/base/fe10/code-insight:kotlin-base-fe10-code-insight",
+    "//plugins/kotlin/base/obsolete-compat:kotlin-base-obsolete-compat",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//android/gradle-declarative-lang",
+  ],
+  runtime_deps = [":lint-common_resources"]
+)
+### auto-generated section `build intellij.android.lint.common` end

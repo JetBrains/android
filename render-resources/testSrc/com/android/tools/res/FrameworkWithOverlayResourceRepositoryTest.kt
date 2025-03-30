@@ -21,7 +21,7 @@ import com.android.ide.common.resources.getConfiguredResources
 import com.android.resources.ResourceType.DIMEN
 import com.android.resources.ResourceType.STRING
 import com.android.resources.aar.FrameworkResourceRepository
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

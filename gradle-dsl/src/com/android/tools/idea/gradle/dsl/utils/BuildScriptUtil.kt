@@ -21,15 +21,18 @@
  */
 package com.android.tools.idea.gradle.dsl.utils
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.intellij.openapi.util.registry.Registry
 import java.io.File
 
-internal fun findGradleBuildFile(dirPath: File) : File {
+internal fun findGradleBuildFile(dirPath: File): File {
   val groovyBuildFile = File(dirPath, FN_BUILD_GRADLE)
   if (groovyBuildFile.isFile) return groovyBuildFile
   val kotlinBuildFile = File(dirPath, FN_BUILD_GRADLE_KTS)
   if (kotlinBuildFile.isFile) return kotlinBuildFile
-  if (DeclarativeStudioSupport.isEnabled()) {
+  // Registry is used for a reason because 'StudioDeclarativeFlags' can't be used from 'gradle-dsl' main classloader
+  // since it's declared in the content module 'intellij.android.gradle.dsl.flags'
+  val isEnabled = Registry.`is`("gradle.declarative.studio.support", false)
+  if (isEnabled) {
     val gradleDeclarativeBuildFile = File(dirPath, FN_BUILD_GRADLE_DECLARATIVE)
     if (gradleDeclarativeBuildFile.isFile) return gradleDeclarativeBuildFile
   }
@@ -38,12 +41,15 @@ internal fun findGradleBuildFile(dirPath: File) : File {
   return groovyBuildFile
 }
 
-internal fun findGradleSettingsFile(dirPath: File) : File {
+internal fun findGradleSettingsFile(dirPath: File): File {
   val groovySettingsFile = File(dirPath, FN_SETTINGS_GRADLE)
   if (groovySettingsFile.isFile) return groovySettingsFile
   val kotlinSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_KTS)
   if (kotlinSettingsFile.isFile) return kotlinSettingsFile
-  if (DeclarativeStudioSupport.isEnabled()) {
+  // Registry is used for a reason because 'StudioDeclarativeFlags' can't be used from 'gradle-dsl' main classloader
+  // since it's declared in the content module 'intellij.android.gradle.dsl.flags'
+  val isEnabled = Registry.`is`("gradle.declarative.studio.support", false)
+  if (isEnabled) {
     val gradleDeclarativeSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_DECLARATIVE)
     if (gradleDeclarativeSettingsFile.isFile) return gradleDeclarativeSettingsFile
   }

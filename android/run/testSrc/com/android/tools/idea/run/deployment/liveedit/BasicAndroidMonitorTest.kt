@@ -40,6 +40,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.ThreeState
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -125,6 +126,7 @@ class BasicAndroidMonitorTest {
   }
 
   @Test
+  @Ignore("Test hangs in IntelliJ Idea environment because syncProject never returns result.")
   fun userSyncTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
 

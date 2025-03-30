@@ -42,6 +42,11 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
             fileType instanceof HeapProfdMemoryCaptureFileType);
   }
 
+  @Override
+  public boolean acceptRequiresReadAction() {
+    return true;
+  }
+
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {

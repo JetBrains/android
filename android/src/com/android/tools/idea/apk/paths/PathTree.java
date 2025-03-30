@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.apk.paths;
 
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
+
 import com.google.common.base.Splitter;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.List;
-
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 /**
  * Takes full paths and organized them in a hierarchical structure.

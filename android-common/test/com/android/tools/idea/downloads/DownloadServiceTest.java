@@ -34,7 +34,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public class DownloadServiceTest extends LightPlatformTestCase {
@@ -73,7 +72,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Semaphore s = new Semaphore();
     s.down();
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(invocation -> {
+    Mockito.when(downloader.download(Mockito.any(File.class))).thenAnswer(invocation -> {
       assertThat(s.waitFor(5000)).isTrue();
       return ImmutableList.of(Pair.create(myDownloadFile, myDescription));
     });
@@ -83,7 +82,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
       assertThat(service.getLastLoadUrl()).isNotEqualTo(myFallbackFileUrl);
 
       try {
-        Mockito.verify(downloader).download(ArgumentMatchers.any(File.class));
+        Mockito.verify(downloader).download(Mockito.any(File.class));
       }
       catch (IOException e) {
         throw new RuntimeException(e);
@@ -103,7 +102,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     s.down();
     Semaphore s2 = new Semaphore();
     s2.down();
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(invocation -> {
+    Mockito.when(downloader.download(Mockito.any(File.class))).thenAnswer(invocation -> {
       assertThat(s.waitFor(5000)).isTrue();
       return ImmutableList.of(Pair.create(myDownloadFile, myDescription));
     });
@@ -122,7 +121,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     assertThat(service.getLastLoadUrl()).isNotEqualTo(myFallbackFileUrl);
 
     try {
-      Mockito.verify(downloader).download(ArgumentMatchers.any(File.class));
+      Mockito.verify(downloader).download(Mockito.any(File.class));
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -134,7 +133,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
    */
   public void testFailure() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
+    Mockito.when(downloader.download(Mockito.any(File.class))).thenThrow(new RuntimeException("expected exception"));
 
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
     final CompletableFuture<Boolean> result = new CompletableFuture<>();
@@ -165,7 +164,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     }
 
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
+    Mockito.when(downloader.download(Mockito.any(File.class))).thenThrow(new RuntimeException("expected exception"));
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
     CompletableFuture<Boolean> result = new CompletableFuture<>();
     service.refresh(() -> result.complete(true), () -> {

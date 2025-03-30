@@ -37,7 +37,7 @@ import java.time.Instant
  * An entry point for Android Gradle sync.
  *
  * This is a serializable class instantiated by `AndroidGradleProjectResolver` in the IDE process, which is later deserialized in the Gradle
- * process and its [populateBuildModels] and [populateProjectModels] are invoked by the framework in order to fetch any required models.
+ * process and its [populateModels] method is invoked by the framework in order to fetch any required models.
  *
  * To avoid interference with Java serialization this class redirects calls to its methods to a non-serializable
  * [AndroidExtraModelProviderImpl], which is instantiated on demand and the reference is stored in a Java-serialization-transitive property.
@@ -49,17 +49,18 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
 
   private val impl: AndroidExtraModelProviderImpl get() = _impl ?: AndroidExtraModelProviderImpl(syncOptions).also { _impl = it }
 
-  override fun populateBuildModels(
+  override fun populateModels(
     controller: BuildController,
-    buildModel: GradleBuild,
-    modelConsumer: GradleModelConsumer
-  ) = impl.populateBuildModels(controller, buildModel, modelConsumer)
-
-  override fun populateProjectModels(
-    controller: BuildController,
-    projectModel: BasicGradleProject,
-    modelConsumer: GradleModelConsumer
-  ) = impl.populateProjectModels(controller, projectModel, modelConsumer)
+    buildModels: Collection<GradleBuild>,
+    modelConsumer: GradleModelConsumer,
+  ) {
+    for (buildModel in buildModels) {
+      for (projectModel in buildModel.projects) {
+        impl.populateProjectModels(controller, projectModel, modelConsumer)
+      }
+      impl.populateBuildModels(controller, buildModel, modelConsumer)
+    }
+  }
 }
 
 private class BuildModelsAndMap(val models: Set<GradleBuild>, val map: IdeCompositeBuildMapImpl)
@@ -150,7 +151,7 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
 
   private fun populateDebugInfo(buildModel: GradleBuild, consumer: GradleModelConsumer) {
     val classLoader = javaClass.classLoader
-    if (classLoader is URLClassLoader) {
+    if(classLoader is URLClassLoader) {
       val classpath = classLoader.urLs.joinToString { url -> url.toURI()?.let { File(it).absolutePath }.orEmpty() }
       val debugInfo = IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath))
       consumer.consumeBuildModel(buildModel, debugInfo, IdeDebugInfo::class.java)

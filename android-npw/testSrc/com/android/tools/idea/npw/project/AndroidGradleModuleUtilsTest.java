@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-
-import java.io.File;
-
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule;
 import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
 import static com.intellij.openapi.util.io.FileUtil.join;
+
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import java.io.File;
 
 public class AndroidGradleModuleUtilsTest extends AndroidGradleTestCase {
 

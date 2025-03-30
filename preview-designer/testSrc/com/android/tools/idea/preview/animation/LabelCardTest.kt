@@ -17,9 +17,9 @@ package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.application.ApplicationManager
-import java.awt.Dimension
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.awt.Dimension
 
 class LabelCardTest {
 

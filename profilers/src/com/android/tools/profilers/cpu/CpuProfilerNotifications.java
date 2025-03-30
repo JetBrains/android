@@ -24,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * CPU related notification constants.
  */
-final class CpuProfilerNotifications {
+public final class CpuProfilerNotifications {
   @NotNull
-  static final Notification CAPTURE_START_FAILURE = createError(
+  public static final Notification CAPTURE_START_FAILURE = createError(
     "Recording failed to start",
     "Try recording again, or "
   );
@@ -38,21 +38,21 @@ final class CpuProfilerNotifications {
   }
 
   @NotNull
-  static final Notification PARSING_FAILURE = createError(
+  public static final Notification PARSING_FAILURE = createError(
     "Trace data was not recorded",
     "The profiler was unable to parse the method trace data. " +
     "Try recording another method trace, or "
   );
 
   @NotNull
-  static final Notification PREPROCESS_FAILURE = createError(
+  public static final Notification PREPROCESS_FAILURE = createError(
     "Trace data was not recorded",
     "The profiler was unable to pre-process the method trace data. " +
     "Try recording another method trace, or "
   );
 
   @NotNull
-  static final Notification PARSING_ABORTED = createWarning(
+  public static final Notification PARSING_ABORTED = createWarning(
     "Parsing trace file aborted",
     "Please record another trace."
   );

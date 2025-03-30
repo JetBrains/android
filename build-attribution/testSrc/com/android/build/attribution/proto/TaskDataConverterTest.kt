@@ -15,12 +15,12 @@
  */
 package com.android.build.attribution.proto
 
-import org.junit.Test
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.proto.converters.TaskDataMessageConverter
 import com.android.buildanalyzer.common.TaskCategory
 import com.google.common.truth.Truth
+import org.junit.Test
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 

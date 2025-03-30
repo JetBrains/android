@@ -154,18 +154,18 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   previewProviderConstructor: (SmartPsiElementPointer<PsiFile>) -> PreviewElementProvider<T>,
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>,
   viewConstructor:
-    (
-      project: Project, surfaceBuilder: NlSurfaceBuilder, parentDisposable: Disposable,
-    ) -> CommonNlDesignSurfacePreviewView,
+  (
+    project: Project, surfaceBuilder: NlSurfaceBuilder, parentDisposable: Disposable,
+  ) -> CommonNlDesignSurfacePreviewView,
   viewModelConstructor:
-    (
-      previewView: PreviewView,
-      renderingBuildStatusManager: RenderingBuildStatusManager,
-      refreshManager: PreviewRefreshManager,
-      project: Project,
-      psiFilePointer: SmartPsiElementPointer<PsiFile>,
-      hasRenderErrors: () -> Boolean,
-    ) -> CommonPreviewViewModel,
+  (
+    previewView: PreviewView,
+    renderingBuildStatusManager: RenderingBuildStatusManager,
+    refreshManager: PreviewRefreshManager,
+    project: Project,
+    psiFilePointer: SmartPsiElementPointer<PsiFile>,
+    hasRenderErrors: () -> Boolean,
+  ) -> CommonPreviewViewModel,
   configureDesignSurface: NlSurfaceBuilder.(NavigationHandler) -> Unit,
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
@@ -218,50 +218,50 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   @VisibleForTesting
   val navigationHandler =
     DefaultNavigationHandler { sceneView, _, _, _, _, _ ->
-        val model = sceneView.sceneManager.model
-        val previewElement = model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)
-        val navigatableElement =
-          previewElement?.previewElementDefinition?.element?.navigationElement
-            as? NavigatablePsiElement
-        listOf(navigatableElement)
-      }
+      val model = sceneView.sceneManager.model
+      val previewElement = model.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE)
+      val navigatableElement =
+        previewElement?.previewElementDefinition?.element?.navigationElement
+          as? NavigatablePsiElement
+      listOf(navigatableElement)
+    }
       .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
 
   @VisibleForTesting
   val previewView = invokeAndWaitIfNeeded {
     viewConstructor(
-        project,
-        NlSurfaceBuilder.builder(project, this) { surface, model ->
-            defaultSceneManagerProvider(surface, model).apply {
-              sceneRenderConfiguration.let { config ->
-                config.useCustomInflater = useCustomInflater
-                config.useShrinkRendering = true
-                config.renderingTopic = renderingTopic
-              }
-              listenResourceChange = false // don't re-render on resource changes
-              updateAndRenderWhenActivated = false // don't re-render on activation
-            }
+      project,
+      NlSurfaceBuilder.builder(project, this) { surface, model ->
+        defaultSceneManagerProvider(surface, model).apply {
+          sceneRenderConfiguration.let { config ->
+            config.useCustomInflater = useCustomInflater
+            config.useShrinkRendering = true
+            config.renderingTopic = renderingTopic
           }
-          .setInteractionHandlerProvider {
-            delegateInteractionHandler.apply {
-              delegate = NavigatingInteractionHandler(it, navigationHandler)
-            }
+          listenResourceChange = false // don't re-render on resource changes
+          updateAndRenderWhenActivated = false // don't re-render on activation
+        }
+      }
+        .setInteractionHandlerProvider {
+          delegateInteractionHandler.apply {
+            delegate = NavigatingInteractionHandler(it, navigationHandler)
           }
-          .waitForRenderBeforeRestoringZoom(true)
-          .setDelegateDataProvider {
-            when (it) {
-              PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
-              PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
-              PreviewGroupManager.KEY.name,
-              PreviewFlowManager.KEY.name -> previewFlowManager
-              FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
-              PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
-              else -> null
-            }
+        }
+        .waitForRenderBeforeRestoringZoom(true)
+        .setDelegateDataProvider {
+          when (it) {
+            PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
+            PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+            PreviewGroupManager.KEY.name,
+            PreviewFlowManager.KEY.name -> previewFlowManager
+            FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
+            PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
+            else -> null
           }
-          .apply { configureDesignSurface(navigationHandler) },
-        this,
-      )
+        }
+        .apply { configureDesignSurface(navigationHandler) },
+      this,
+    )
       .also {
         it.mainSurface.analyticsManager.setEditorFileTypeWithoutTracking(
           psiFilePointer.virtualFile,
@@ -380,23 +380,23 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   @VisibleForTesting
   val interactiveManager =
     InteractivePreviewManager(
-        surface,
-        fpsLimitFlow.value,
-        { surface.sceneManagers },
-        { InteractivePreviewUsageTracker.getInstance(surface) },
-        delegateInteractionHandler,
-      )
+      surface,
+      fpsLimitFlow.value,
+      { surface.sceneManagers },
+      { InteractivePreviewUsageTracker.getInstance(surface) },
+      delegateInteractionHandler,
+    )
       .also { Disposer.register(this@CommonPreviewRepresentation, it) }
 
   private val focusEssentialsModeManager =
     CommonFocusEssentialsModeManager(
-        project = psiFile.project,
-        lifecycleManager = lifecycleManager,
-        previewFlowManager = previewFlowManager,
-        previewModeManager = previewModeManager,
-        onUpdatedFromPreviewEssentialsMode = {},
-        requestRefresh = ::requestRefresh,
-      )
+      project = psiFile.project,
+      lifecycleManager = lifecycleManager,
+      previewFlowManager = previewFlowManager,
+      previewModeManager = previewModeManager,
+      onUpdatedFromPreviewEssentialsMode = {},
+      requestRefresh = ::requestRefresh,
+    )
       .also { Disposer.register(this@CommonPreviewRepresentation, it) }
 
   private val delegateFastPreviewSurface =
@@ -574,7 +574,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               // For quality change requests, only re-render those that need a quality change.
               // For other types of requests, re-render every preview.
               request.refreshType != CommonPreviewRefreshType.QUALITY ||
-                qualityManager.needsQualityChange(sceneManager)
+              qualityManager.needsQualityChange(sceneManager)
             },
             refreshOrder = { sceneManager ->
               // decreasing quality before increasing
@@ -630,7 +630,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     // Return early when quality refresh won't actually refresh anything
     if (
       request.refreshType == CommonPreviewRefreshType.QUALITY &&
-        !qualityManager.needsQualityChange(surface)
+      !qualityManager.needsQualityChange(surface)
     ) {
       return CompletableDeferred(Unit)
     }
@@ -926,7 +926,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
    */
   private fun isFastPreviewAvailable() =
     FastPreviewManager.getInstance(project).isAvailable &&
-      !PreviewEssentialsModeManager.isEssentialsModeEnabled
+    !PreviewEssentialsModeManager.isEssentialsModeEnabled
 
   /**
    * Returns the list of [PreviewFlowManager.filteredPreviewElementsFlow] that has been rendered.

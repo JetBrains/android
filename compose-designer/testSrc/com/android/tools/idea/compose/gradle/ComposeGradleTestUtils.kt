@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.gradle
 
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.SyncNlModel.*
+import com.android.tools.idea.common.SyncNlModel.create
 import com.android.tools.idea.common.layout.positionable.scaledContentSize
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.NlModel
@@ -39,11 +39,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.runInEdtAndWait
-import java.awt.event.KeyEvent.VK_SHIFT
-import java.util.concurrent.TimeoutException
-import javax.swing.JLabel
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -51,6 +46,11 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.event.KeyEvent.VK_SHIFT
+import java.util.concurrent.TimeoutException
+import javax.swing.JLabel
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Find the [PsiFile] corresponding to a file that is part of the given [project], whose location is

@@ -17,6 +17,7 @@ package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.RangeScrollBarUI;
 import com.intellij.ui.components.JBScrollBar;
+import java.awt.Adjustable;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -28,7 +29,10 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import javax.swing.*;
+import javax.swing.JMenu;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollBar;
+import javax.swing.JSeparator;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -54,7 +58,7 @@ public class CommonPopupMenu extends JPopupMenu {
   public CommonPopupMenu() {
     setLayout(new ScrollablePopupLayout());
 
-    myScrollBar = new JBScrollBar(JScrollBar.VERTICAL);
+    myScrollBar = new JBScrollBar(Adjustable.VERTICAL);
     myScrollBar.setUI(new RangeScrollBarUI());
     myScrollBar.addAdjustmentListener(new AdjustmentListener() {
       @Override

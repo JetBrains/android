@@ -16,15 +16,14 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.io.FilenameUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Methods for dealing with file paths in a lexical (string-oriented) manner for display of compact

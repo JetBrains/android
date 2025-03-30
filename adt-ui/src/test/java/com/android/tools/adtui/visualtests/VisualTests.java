@@ -18,8 +18,7 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.visualtests.flamegraph.FlameGraphVisualTest;
 import com.android.tools.adtui.visualtests.threadgraph.ThreadCallsVisualTest;
-
-import javax.swing.*;
+import javax.swing.SwingUtilities;
 
 public class VisualTests {
 

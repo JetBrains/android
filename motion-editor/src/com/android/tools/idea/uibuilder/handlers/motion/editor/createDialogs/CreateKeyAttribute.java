@@ -187,7 +187,7 @@ public class CreateKeyAttribute extends BaseCreateKey {
       toCommit = keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
     }
     String pos = mPosition.getText();
-    if (pos.trim().length() == 0 || pos.equals(POS_PROMPT)) {
+    if (pos.trim().isEmpty() || pos.equals(POS_PROMPT)) {
       showErrorDialog("Must define the position of the view");
       return null;
     }

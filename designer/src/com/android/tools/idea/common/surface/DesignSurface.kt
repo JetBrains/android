@@ -1107,13 +1107,13 @@ abstract class DesignSurface<T : SceneManager>(
       override var scrollPosition: Point
         get() = viewport.viewPosition
         set(value) {
-          value.setLocation(max(0.0, value.x.toDouble()), max(0.0, value.y.toDouble()))
+          value.setLocation(max(0, value.x), max(0, value.y))
 
           val extent: Dimension = viewport.extentSize
           val view: Dimension = viewport.viewSize
 
-          val minX = min(value.x.toDouble(), (view.width - extent.width).toDouble()).toInt()
-          val minY = min(value.y.toDouble(), (view.height - extent.height).toDouble()).toInt()
+          val minX = min(value.x, view.width - extent.width)
+          val minY = min(value.y, view.height - extent.height)
 
           value.setLocation(minX, minY)
 

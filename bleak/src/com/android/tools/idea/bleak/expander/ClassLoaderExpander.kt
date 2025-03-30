@@ -16,7 +16,6 @@
 package com.android.tools.idea.bleak.expander
 
 import com.android.tools.idea.bleak.BleakHelper
-import java.util.Vector
 
 object BootstrapClassloaderPlaceholder
 

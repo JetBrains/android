@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea
 
+import com.android.tools.idea.IdeChannel.Channel.DEV
+import com.android.tools.idea.IdeChannel.Channel.STABLE
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
@@ -64,7 +66,7 @@ object IdeChannel {
    */
   private fun computeChannel(): Channel {
     val versionName = when {
-      ApplicationManager.getApplication() == null || ApplicationInfo.getInstance() == null -> "dev"
+      ApplicationManager.getApplication() == null || ApplicationManager.getApplication().getServiceIfCreated(ApplicationInfo::class.java) == null -> "dev"
       else -> ApplicationInfo.getInstance().fullVersion
     }
     return getChannelFromVersionName(versionName)

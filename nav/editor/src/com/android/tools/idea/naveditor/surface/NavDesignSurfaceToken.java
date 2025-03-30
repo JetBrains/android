@@ -17,8 +17,8 @@ package com.android.tools.idea.naveditor.surface;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.projectsystem.Token;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.Token;
 import com.intellij.openapi.extensions.ExtensionPointName;
 
 public interface NavDesignSurfaceToken<P extends AndroidProjectSystem> extends Token {

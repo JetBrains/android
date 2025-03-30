@@ -18,13 +18,12 @@ package com.android.tools.idea.uibuilder.api.actions;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /** A separator between actions */
 public final class ViewActionSeparator extends AbstractViewAction {

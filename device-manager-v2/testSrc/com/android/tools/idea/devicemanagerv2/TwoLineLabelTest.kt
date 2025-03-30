@@ -24,11 +24,11 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
-import javax.swing.UIManager
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
+import javax.swing.UIManager
 
 @RunsInEdt
 class TwoLineLabelTest {

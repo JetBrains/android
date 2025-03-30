@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.util.List;
 import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServicesKt;

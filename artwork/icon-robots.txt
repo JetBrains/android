@@ -1,0 +1,23 @@
+skip: resources/device-art-resources/**/*
+# include flag_empty.png
+skip: resources/icons/flags/a*.png
+skip: resources/icons/flags/b*.png
+skip: resources/icons/flags/c*.png
+skip: resources/icons/flags/d*.png
+skip: resources/icons/flags/e*.png
+skip: resources/icons/flags/g*.png
+skip: resources/icons/flags/i*.png
+skip: resources/icons/flags/m*.png
+skip: resources/icons/flags/l*.png
+skip: resources/icons/flags/n*.png
+skip: resources/icons/flags/r*.png
+skip: resources/icons/flags/p*.png
+skip: resources/icons/flags/s*.png
+skip: resources/icons/flags/t*.png
+skip: resources/icons/flags/u*.png
+skip: resources/icons/flags/v*.png
+skip: resources/icons/flags/z*.png
+skip: resources/icons/flags/w*.png
+skip: resources/icons/flags/y*.png
+skip: resources/icons/flags/q*.png
+skip: resources/icons/flags/o*.png

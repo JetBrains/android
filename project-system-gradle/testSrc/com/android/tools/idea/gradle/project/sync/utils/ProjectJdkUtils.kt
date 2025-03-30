@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 package com.android.tools.idea.gradle.project.sync.utils
-import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElement
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElementName
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
+import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.util.GradleProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project

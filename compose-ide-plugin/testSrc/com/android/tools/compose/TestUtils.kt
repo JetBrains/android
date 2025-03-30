@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter
 import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.psi.PsiFile

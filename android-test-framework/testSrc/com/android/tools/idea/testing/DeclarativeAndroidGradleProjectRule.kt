@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.command.WriteCommandAction

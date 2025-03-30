@@ -18,7 +18,7 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 import com.android.annotations.Trace
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrInstruction
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrInstructionList
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 private const val kComposerClass = "androidx/compose/runtime/ComposerKt"
 

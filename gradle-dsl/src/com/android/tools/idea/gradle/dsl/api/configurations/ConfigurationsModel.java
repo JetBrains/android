@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.dsl.api.configurations;
 
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Model for the configurations given within Gradle build files. This DOES NOT include configurations pulled in by other plugins

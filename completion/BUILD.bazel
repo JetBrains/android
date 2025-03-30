@@ -1,0 +1,23 @@
+### auto-generated section `build intellij.android.completion` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "completion",
+  module_name = "intellij.android.completion",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//platform/core-api:core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/extensions",
+    "//platform/util",
+    "//platform/analysis-api:analysis",
+    "//platform/platform-api:ide",
+    "//platform/analysis-impl",
+    "//platform/lang-impl",
+    "//platform/core-ui",
+  ]
+)
+### auto-generated section `build intellij.android.completion` end

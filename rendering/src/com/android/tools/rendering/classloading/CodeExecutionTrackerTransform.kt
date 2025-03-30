@@ -16,9 +16,9 @@
 
 package com.android.tools.rendering.classloading
 
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 /**
  * Transform that detects and records code execution. Currently, its level of granularity is Class,

@@ -20,10 +20,10 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.hookExecuteTasks
 import com.google.common.truth.Expect
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
@@ -41,14 +41,27 @@ class AndroidGradleTaskManagerTest {
     preparedProject.open { project ->
       val path = preparedProject.root
       val capturedRequests = project.hookExecuteTasks()
-      val facade = ApplicationManager.getApplication().getService(ExternalSystemFacadeManager::class.java)
-        .getFacade(project, path.absolutePath, GradleConstants.SYSTEM_ID)
+      val facadeManager = ExternalSystemFacadeManager.getInstance()
+      val facade = facadeManager.getFacade(project, path.absolutePath, GradleConstants.SYSTEM_ID)
+      val taskManager = facade.taskManager
 
       val externalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
-      // 1) This is a common form used by Android Studio etc.
-      facade.taskManager.executeTasks(externalSystemTaskId, listOf(":app:assembleDebug"), path.absolutePath, null, null)
-      // 2) This is a way in which tasks are invoked from the Gradle tool window and from Gradle run configurations, if configured this way.
-      facade.taskManager.executeTasks(externalSystemTaskId, listOf("assembleDebug"), path.resolve("app").absolutePath, null, null)
+      run {
+        // 1) This is a common form used by Android Studio etc.
+        val projectPath = path.absolutePath
+        val settings = GradleExecutionSettings().apply {
+          tasks = listOf(":app:assembleDebug")
+        }
+        taskManager.executeTasks(projectPath, externalSystemTaskId, settings)
+      }
+      run {
+        // 2) This is a way in which tasks are invoked from the Gradle tool window and from Gradle run configurations, if configured this way.
+        val projectPath = path.resolve("app").absolutePath
+        val settings = GradleExecutionSettings().apply {
+          tasks = listOf("assembleDebug")
+        }
+        taskManager.executeTasks(projectPath, externalSystemTaskId, settings)
+      }
 
       expect.that(capturedRequests).hasSize(2)
 

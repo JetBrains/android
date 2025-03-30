@@ -19,7 +19,7 @@ import com.android.adblib.DeviceSelector
 import com.android.flags.junit.FlagRule
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.Resolution
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
@@ -54,7 +54,6 @@ import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBScrollPane
-import com.jetbrains.rd.util.forEachReversed
 import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.sdk.AndroidSdkUtils
@@ -115,7 +114,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)
-    rules.forEachReversed { statement = it.apply(statement, description) }
+    rules.reversed().forEach { statement = it.apply(statement, description) }
     return statement
   }
 

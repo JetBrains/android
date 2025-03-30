@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.SketchLibrary;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.builders.ResourceFileGenerator;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.builders.SketchToStudioConverter;
@@ -24,7 +25,6 @@ import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchArtboard;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile;
-import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.testFramework.ProjectRule;
 import java.awt.Color;

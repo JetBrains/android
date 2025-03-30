@@ -40,6 +40,8 @@ import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -57,6 +59,8 @@ private val wearConfigurationProducers = listOf(
   AndroidWatchFaceRunConfigurationProducer()
 )
 
+private val LOG: Logger by lazy { Logger.getInstance(AndroidRunConfigurations::class.java) }
+
 class AndroidRunConfigurations {
 
   suspend fun createRunConfigurations(project: Project) {
@@ -73,18 +77,19 @@ class AndroidRunConfigurations {
   }
 
   private fun createAndroidRunConfiguration(facet: AndroidFacet) {
+    LOG.debug { "createAndroidRunConfiguration($facet)" }
     // Android run configuration should always be created with the holder module
     val module = facet.module
     val configurationFactory = AndroidRunConfigurationType.getInstance().factory
     val configurations = RunManager.getInstance(module.project).getConfigurationsList(configurationFactory.type)
     for (configuration in configurations) {
       if (configuration is AndroidRunConfiguration && configuration.configurationModule.module == module) {
-        // There is already a run configuration for this module.
+        LOG.debug { "There is already a run configuration for module $module: $configuration" }
         return
       }
     }
     if (LaunchUtils.isWatchFeatureRequired(facet) && !hasDefaultLauncherActivity(facet)) {
-      // Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter
+      LOG.debug { "Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter" }
       return
     }
     addAndroidRunConfiguration(facet)
@@ -127,20 +132,27 @@ class AndroidRunConfigurations {
   }
 
   private fun addAndroidRunConfiguration(facet: AndroidFacet) {
+    LOG.debug { "addAndroidRunConfiguration($facet)" }
     val module = facet.module
     val project = module.project
     val runManager = runReadAction {
       if (project.isDisposed) return@runReadAction null
       RunManager.getInstance(project)
-    } ?: return
+    } ?: return LOG.debug { "addAndroidRunConfiguration: Get RunManager for module $module and project $project - project s already disposed." }
 
     val projectNameInExternalSystemStyle = PathUtil.suggestFileName(project.name, true, false)
     val moduleName = module.getModuleSystem().getDisplayNameForModuleGroup()
     val configurationName = moduleName.removePrefix("$projectNameInExternalSystemStyle.")
+    LOG.debug {
+      "addAndroidRunConfiguration: project.name = ${project.name}, " +
+      "projectNameInExternalSystemStyle = $projectNameInExternalSystemStyle, " +
+      "moduleName = ${moduleName}, " +
+      "configurationName = $configurationName"
+    }
     val settings = runReadAction {
       if (project.isDisposed) return@runReadAction null
       runManager.createConfiguration(configurationName, AndroidRunConfigurationType::class.java)
-    } ?: return
+    } ?: return LOG.debug { "addAndroidRunConfiguration: Create run configuration $configurationName - project s already disposed." }
     val configuration = settings.configuration as AndroidRunConfiguration
     configuration.setModule(module)
     if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
@@ -156,6 +168,9 @@ class AndroidRunConfigurations {
       if (!project.isDisposed) {
         runManager.addConfiguration(settings)
         runManager.selectedConfiguration = settings
+      }
+      else {
+        LOG.debug { "addAndroidRunConfiguration: Add run configuration $settings - project s already disposed." }
       }
     }
   }

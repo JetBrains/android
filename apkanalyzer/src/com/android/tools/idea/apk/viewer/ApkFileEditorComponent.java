@@ -16,9 +16,8 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.intellij.openapi.Disposable;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public interface ApkFileEditorComponent extends Disposable {
   @NotNull

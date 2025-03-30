@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import java.io.File
-
 class IndexedModels(
   val dynamicFeatureToBaseFeatureMap: Map<ModuleId, ModuleId>
 )

@@ -18,11 +18,12 @@ package com.android.tools.idea.apk.viewer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
 import java.text.DecimalFormat;
+import javax.swing.JTree;
+import org.jetbrains.annotations.NotNull;
 
 class PercentRenderer extends ColoredTreeCellRenderer {
   private static final JBColor BAR_COLOR = new JBColor(new Color(0xfd8d3c), new Color(0xe6550d));

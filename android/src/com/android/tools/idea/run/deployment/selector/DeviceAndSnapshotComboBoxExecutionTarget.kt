@@ -32,7 +32,7 @@ import javax.swing.Icon
  * The combo box generates these [ExecutionTargets.][ExecutionTarget] ExecutionTargets determine the
  * state of the run, debug, and stop (but *not* the apply changes) toolbar buttons.
  */
-internal class DeviceAndSnapshotComboBoxExecutionTarget(
+open class DeviceAndSnapshotComboBoxExecutionTarget(
   targets: Collection<DeploymentTarget>,
   private val devicesService: DeploymentTargetDevicesService,
   private val deploymentApplicationService: () -> DeploymentApplicationService =
@@ -60,7 +60,7 @@ internal class DeviceAndSnapshotComboBoxExecutionTarget(
     return devices().mapNotNull { it.ddmlibDevice }
   }
 
-  private fun devices(): List<DeploymentTargetDevice> {
+  protected fun devices(): List<DeploymentTargetDevice> {
     return devicesService.loadedDevicesOrNull()?.filter { it.id in ids } ?: emptyList()
   }
 

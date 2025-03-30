@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix;
 import com.android.tools.lint.checks.HardcodedValuesDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.psi.PsiElement;
-import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintHardcodedTextInspection extends AndroidLintInspectionBase {

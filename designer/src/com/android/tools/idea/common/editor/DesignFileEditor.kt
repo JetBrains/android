@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.ide.structureView.StructureViewBuilder
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
@@ -56,10 +54,6 @@ open class DesignFileEditor(private val virtualFile: VirtualFile) :
   override fun addPropertyChangeListener(listener: PropertyChangeListener) {}
 
   override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
-
-  override fun getBackgroundHighlighter(): BackgroundEditorHighlighter? = null
-
-  override fun getCurrentLocation(): FileEditorLocation? = null
 
   override fun getStructureViewBuilder(): StructureViewBuilder? = null
 

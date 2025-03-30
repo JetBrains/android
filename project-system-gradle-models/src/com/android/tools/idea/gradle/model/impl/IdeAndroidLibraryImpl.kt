@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.ide.common.gradle.Component
-import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.model.IdeUnresolvedAndroidLibrary
 import com.google.common.annotations.VisibleForTesting
 import java.io.File

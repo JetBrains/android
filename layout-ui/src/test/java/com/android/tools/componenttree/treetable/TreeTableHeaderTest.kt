@@ -35,6 +35,10 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.AWTEvent
 import java.awt.AWTKeyStroke
 import java.awt.BorderLayout
@@ -50,10 +54,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.table.TableCellRenderer
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 
 class TreeTableHeaderTest {
   private val disposableRule = DisposableRule()

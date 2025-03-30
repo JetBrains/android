@@ -1,0 +1,23 @@
+### auto-generated section `build intellij.android.projectSystem.gradle.sync.testUtils` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "projectSystem-gradle-sync-testUtils_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "projectSystem-gradle-sync-testUtils",
+  module_name = "intellij.android.projectSystem.gradle.sync.testUtils",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:gradle",
+    "@lib//:kotlin-stdlib",
+    "//plugins/gradle/tooling-extension-api:toolingExtension",
+  ],
+  runtime_deps = [":projectSystem-gradle-sync-testUtils_resources"]
+)
+### auto-generated section `build intellij.android.projectSystem.gradle.sync.testUtils` end

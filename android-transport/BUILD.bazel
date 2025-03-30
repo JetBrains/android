@@ -1,0 +1,106 @@
+### auto-generated section `build intellij.android.transport` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "transport_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "transport",
+  module_name = "intellij.android.transport",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:fastutil-min",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/adt-ui-model",
+    "//android/analytics",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/execution/common:android-execution-common",
+    "//android/transport-database:transportDatabase",
+    "//java/execution/openapi:java-execution",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/util",
+    "//platform/util/jdom",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//platform/projectModel-impl",
+  ],
+  runtime_deps = [":transport_resources"]
+)
+
+jvm_library(
+  name = "transport_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":transport"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:fastutil-min",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//android/analytics",
+    "//android/analytics:analytics_test_lib",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/execution/common:android-execution-common",
+    "//android/transport-database:transportDatabase",
+    "//android/transport-database:transportDatabase_test_lib",
+    "//java/execution/openapi:java-execution",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/util",
+    "//platform/util/jdom",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/util:util-ui",
+    "//platform/projectModel-impl",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//platform/core-ui",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+  ],
+  runtime_deps = [":transport_resources"]
+)
+
+jvm_test(
+  name = "transport_test",
+  runtime_deps = [":transport_test_lib"]
+)
+### auto-generated section `build intellij.android.transport` end

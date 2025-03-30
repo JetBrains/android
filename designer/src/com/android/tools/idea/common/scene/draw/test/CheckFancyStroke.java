@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.common.scene.draw.test;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import com.android.tools.idea.common.scene.draw.FancyStroke;
-
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.GeneralPath;
 import java.util.Random;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 public class CheckFancyStroke extends JPanel {
   public static final Color BLUEPRINT_BG_COLOR = new Color(0x112572);
@@ -41,11 +46,6 @@ public class CheckFancyStroke extends JPanel {
       public void mousePressed(MouseEvent e) {
         fill();
         repaint();
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-
       }
     });
   }

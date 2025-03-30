@@ -15,7 +15,7 @@
  */
 package com.android.tools.asdriver.tests
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 
 import com.google.devtools.build.runfiles.Runfiles
 

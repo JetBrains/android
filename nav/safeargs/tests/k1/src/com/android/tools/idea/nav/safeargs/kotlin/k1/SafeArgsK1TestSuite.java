@@ -2,7 +2,6 @@
 package com.android.tools.idea.nav.safeargs.kotlin.k1;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.idea.nav.safeargs.SafeArgsTestSuite;
 import com.android.tools.idea.nav.safeargs.SafeArgsTestSuiteBase;
 import org.junit.runner.RunWith;
 

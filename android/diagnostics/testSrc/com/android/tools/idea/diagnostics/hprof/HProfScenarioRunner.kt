@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisConfig
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisContext
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisReport

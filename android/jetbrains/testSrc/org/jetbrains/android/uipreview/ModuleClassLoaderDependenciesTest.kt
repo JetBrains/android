@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
+import com.android.tools.idea.testing.JavacUtil.getJavac
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.rendering.classloading.useWithClassLoader
 import com.intellij.openapi.application.ApplicationManager
@@ -31,7 +32,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestCase
-import com.android.tools.idea.testing.JavacUtil.getJavac
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager.Companion.get
 import org.junit.Test
 import java.io.File

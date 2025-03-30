@@ -23,7 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.beans.PropertyChangeListener
-import java.util.*
+import java.util.Arrays
 
 @RunWith(JUnit4::class)
 class CommonDropDownButtonTest {

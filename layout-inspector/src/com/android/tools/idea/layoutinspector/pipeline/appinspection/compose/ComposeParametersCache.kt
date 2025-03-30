@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCac
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.property.ptable.PTableGroupModification
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -131,7 +132,7 @@ class ComposeParametersCache(
    * [ParameterReference.indices] to navigate in a nested composite parameter value.
    */
   private fun lookupInCache(rootId: Long, reference: ParameterReference): ParameterGroupItem? {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
     val data = getCachedDataFor(rootId, reference.nodeId) ?: return null
     val parameters = data.parametersOfKind(reference.kind)
     if (reference.parameterIndex !in parameters.indices) {

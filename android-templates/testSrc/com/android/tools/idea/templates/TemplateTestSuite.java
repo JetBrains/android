@@ -16,7 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 

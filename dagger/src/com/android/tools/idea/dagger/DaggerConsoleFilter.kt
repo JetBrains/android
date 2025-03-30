@@ -27,6 +27,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.PsiNavigateUtil
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 
 /**
  * Creates links to PsiElements from strings that matches [FQCN_WITH_METHOD] in build output for
@@ -128,6 +129,8 @@ private fun createLinkToMethod(fqcn: String, methodName: String): HyperlinkInfo 
  */
 class DaggerConsoleFilterProvider : ConsoleFilterProvider {
   override fun getDefaultFilters(project: Project): Array<Filter> {
+    if (suppressAndroidPlugin()) return emptyArray()
+
     return arrayOf(DaggerConsoleFilter())
   }
 }

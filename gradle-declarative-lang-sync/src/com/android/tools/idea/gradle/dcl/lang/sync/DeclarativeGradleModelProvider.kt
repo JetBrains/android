@@ -36,21 +36,23 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 class DeclarativeGradleModelProvider : ProjectImportModelProvider {
 
-  override fun populateBuildModels(
+  override fun populateModels(
     controller: BuildController,
-    buildModel: GradleBuild,
-    consumer: ProjectImportModelProvider.GradleModelConsumer
+    buildModels: Collection<out GradleBuild>,
+    consumer: ProjectImportModelProvider.GradleModelConsumer,
   ) {
-    try {
-      controller.findModel(DeclarativeSchemaModel::class.java)
-        ?.also { schemaModel ->
-          consumer.consumeBuildModel(buildModel, schemaModel.convertProject(), ProjectSchemas::class.java)
-          consumer.consumeBuildModel(buildModel, schemaModel.convertSettings(), SettingsSchemas::class.java)
-        }
-      ?: LOG.debug(ExternalSystemException("Incompatible (too old?) version of Gradle: Cannot import DeclarativeSchemaModel"))
-    }
-    catch (e: Exception) {
-      LOG.warn(ExternalSystemException("Caught exception from requesting DeclarativeSchemaModel", e))
+    for (buildModel in buildModels) {
+      try {
+        controller.findModel(DeclarativeSchemaModel::class.java)
+          ?.also { schemaModel ->
+            consumer.consumeBuildModel(buildModel, schemaModel.convertProject(), ProjectSchemas::class.java)
+            consumer.consumeBuildModel(buildModel, schemaModel.convertSettings(), SettingsSchemas::class.java)
+          }
+        ?: LOG.debug(ExternalSystemException("Incompatible (too old?) version of Gradle: Cannot import DeclarativeSchemaModel"))
+      }
+      catch (e: Exception) {
+        LOG.warn(ExternalSystemException("Caught exception from requesting DeclarativeSchemaModel", e))
+      }
     }
   }
 }

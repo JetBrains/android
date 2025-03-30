@@ -19,7 +19,6 @@ import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Extension point to provide custom action handling.

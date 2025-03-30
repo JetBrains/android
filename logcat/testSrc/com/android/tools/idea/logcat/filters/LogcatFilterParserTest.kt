@@ -42,12 +42,12 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import java.time.Clock
-import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.time.Clock
+import kotlin.test.fail
 
 private val keys = mapOf("tag" to TAG, "package" to APP, "message" to MESSAGE, "line" to LINE)
 

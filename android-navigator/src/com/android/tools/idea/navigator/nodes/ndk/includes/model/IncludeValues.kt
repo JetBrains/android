@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model
 
-import java.util.*
+import com.intellij.util.containers.ContainerUtil
+import java.util.Collections
 
 /**
  * Methods for rearranging IncludeExpressions into logical groupings for presentation to the user.
@@ -60,8 +61,7 @@ object IncludeValues {
     // Lastly, all the include folders that weren't captured in packages are now grouped into a single shadowing folder. Shadowing just
     // means that the include folders are kept in order and the earlier includes may hide later includes.
     val result = groupTopLevelIncludesIntoShadowExpression(simplifiedFamilies)
-    Collections.sort(result, COMPARE_NATIVE_DEPENDENCY)
-    return result
+    return ContainerUtil.sorted(result, COMPARE_NATIVE_DEPENDENCY)
   }
 
   /**

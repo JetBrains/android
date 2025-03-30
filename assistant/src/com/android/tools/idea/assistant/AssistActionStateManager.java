@@ -17,24 +17,17 @@ package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Extension point to add state to action buttons. State should generally be based off of data available from a from an independent source.
  */
 public abstract class AssistActionStateManager {
-  public static ExtensionPointName<AssistActionStateManager> EP_NAME =
-    ExtensionPointName.create("com.android.tools.idea.assistant.actionStateManager");
+  public static final ExtensionPointName<AssistActionStateManager> EP_NAME =
+    new ExtensionPointName<>("com.android.tools.idea.assistant.actionStateManager");
 
   /**
    * Gets the opaque id for a state manager. Corresponds to the stateManager field in {@code TutorialBundle.Action} and is used to identify

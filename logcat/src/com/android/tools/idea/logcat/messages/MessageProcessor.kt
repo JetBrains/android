@@ -25,13 +25,13 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.Document
-import com.jetbrains.rd.util.AtomicReference
-import java.time.Clock
-import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
+import java.time.Clock
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.system.measureTimeMillis
 
 const val CHANNEL_CAPACITY = 10
 const val MAX_TIME_PER_BATCH_MS = 100

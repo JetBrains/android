@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.jdk
 
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.InvalidEnvironmentVariableJavaHomeException
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.InvalidEnvironmentVariableStudioGradleJdkException
-import com.android.tools.idea.gradle.project.sync.jdk.exceptions.InvalidGradlePropertiesJavaHomeException
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.InvalidGradleLocalJavaHomeException
+import com.android.tools.idea.gradle.project.sync.jdk.exceptions.InvalidGradlePropertiesJavaHomeException
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.InvalidTableEntryJdkException
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.base.GradleJdkException
 import com.android.tools.idea.sdk.IdeSdks

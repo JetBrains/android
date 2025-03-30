@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.diagnostics.heap.HeapSnapshotStatistics
 import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService
-import com.android.tools.rendering.imagepool.ImagePool
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark
@@ -25,6 +24,7 @@ import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
+import com.android.tools.rendering.imagepool.ImagePool
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.math.Quantiles
 import com.google.common.util.concurrent.Futures
@@ -33,7 +33,6 @@ import junit.framework.TestCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
-import java.util.ArrayList
 import kotlin.math.pow
 import kotlin.math.sqrt
 

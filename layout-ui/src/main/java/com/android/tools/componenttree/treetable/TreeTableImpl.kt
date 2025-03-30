@@ -39,6 +39,7 @@ import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Point
@@ -62,7 +63,6 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.tree.ExpandVetoException
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
-import org.jetbrains.annotations.TestOnly
 
 private const val HOVER_CELL = "component.tree.hover.cell"
 

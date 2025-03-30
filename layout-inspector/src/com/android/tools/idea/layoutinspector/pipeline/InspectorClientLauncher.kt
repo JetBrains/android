@@ -31,16 +31,15 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.jetbrains.rd.util.threadLocalWithInitial
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import org.jetbrains.annotations.TestOnly
 
 fun interface ClientFactory {
   fun createClient(params: InspectorClientLauncher.Params): InspectorClient?
@@ -138,7 +137,7 @@ class InspectorClientLauncher(
 
   private val sequenceNumberLock = Any()
   private var sequenceNumber = 0
-  private val threadSequenceNumber = threadLocalWithInitial { -1 }
+  private val threadSequenceNumber = ThreadLocal.withInitial { -1 }
   private val workerExecutor = AndroidExecutors.getInstance().workerThreadExecutor
 
   init {

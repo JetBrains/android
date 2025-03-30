@@ -16,10 +16,9 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.ide.wizard.Step;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Interface for the wizard paths

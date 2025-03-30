@@ -17,16 +17,15 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-
-final class ActionBar {
+public final class ActionBar {
   private final List<SceneComponent> myItems;
   private final List<SceneComponent> myOverflowItems;
 

@@ -15,11 +15,11 @@
  */
 package org.jetbrains.android.sdk;
 
-import com.intellij.openapi.module.Module;
-import org.jetbrains.android.AndroidTestCase;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.intellij.openapi.module.Module;
+import org.jetbrains.android.AndroidTestCase;
 
 public class AndroidPlatformTest extends AndroidTestCase {
 

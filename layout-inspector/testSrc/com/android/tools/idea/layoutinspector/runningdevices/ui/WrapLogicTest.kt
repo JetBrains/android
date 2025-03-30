@@ -18,10 +18,10 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
-import javax.swing.JPanel
-import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
+import kotlin.test.fail
 
 class WrapLogicTest {
 

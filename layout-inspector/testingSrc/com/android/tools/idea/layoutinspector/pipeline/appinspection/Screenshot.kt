@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.io.readImage
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
 import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.toBytes

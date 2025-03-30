@@ -20,8 +20,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.testFramework.UsefulTestCase.assertThrows
-import java.awt.Color
 import org.junit.Test
+import java.awt.Color
 
 private val blue = TextAttributes().apply { foregroundColor = Color.blue }
 private val red = TextAttributes().apply { foregroundColor = Color.red }

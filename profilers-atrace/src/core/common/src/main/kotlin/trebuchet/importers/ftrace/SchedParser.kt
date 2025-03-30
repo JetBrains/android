@@ -17,9 +17,7 @@
 package trebuchet.importers.ftrace
 
 import trebuchet.model.SchedulingState
-import trebuchet.model.fragments.ThreadModelFragment
 import trebuchet.util.PreviewReader
-import java.util.regex.Pattern
 
 object SchedParser : FunctionHandlerRegistry() {
     init {

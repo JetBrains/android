@@ -48,6 +48,7 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ActionEvent
 import java.time.Instant
 import java.time.ZoneId
@@ -57,7 +58,6 @@ import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.ScrollPaneConstants
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val MIN_TAG_LENGTH = 10
 private const val MAX_TAG_LENGTH = 120

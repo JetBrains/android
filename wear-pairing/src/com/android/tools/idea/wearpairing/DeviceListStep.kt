@@ -31,8 +31,8 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.CollectionListModel
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.IdeBorderFactory
-import com.intellij.ui.NewUI
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLabel
@@ -375,7 +375,7 @@ class DeviceListStep(
 
   private fun getIcon(icon: Icon, isSelected: Boolean): Icon =
     when {
-      isSelected && !NewUI.isEnabled() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
+      isSelected && !ExperimentalUI.isNewUI() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
       else -> icon
     }
 

@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.create
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.summarizeLocales

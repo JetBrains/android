@@ -18,7 +18,7 @@ package com.android.tools.res.ids.apk
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.res.apk.TEST_DATA_DIR
 import org.junit.Assert.assertEquals
 import org.junit.Test

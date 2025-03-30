@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.apk.analyzer.dex.tree.*;
+import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
+import com.android.tools.apk.analyzer.dex.tree.DexFieldNode;
+import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
+import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
+import com.android.tools.apk.analyzer.dex.tree.DexReferencesNode;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.PlatformIcons;
+import javax.swing.Icon;
 
-import javax.swing.*;
-
-public class DexNodeIcons {
+public final class DexNodeIcons {
   @SuppressWarnings("UnstableApiUsage")
   public static Icon forNode(DexElementNode node) {
     IconManager iconManager = IconManager.getInstance();

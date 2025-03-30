@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver
 
-import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue
-import java.io.File
-
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType.NdkComponent
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType.NdkSxsComponent
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue
+import java.io.File
 
 /**
  * Resolver that matches various well-known NDK folder patterns.

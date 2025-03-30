@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+import static com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API;
+import static org.jetbrains.android.facet.AndroidRootUtil.getPrimaryManifestFile;
+
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlink;
 import com.google.common.collect.ImmutableList;
@@ -28,18 +32,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import static com.android.sdklib.SdkVersionInfo.*;
-import static org.jetbrains.android.facet.AndroidRootUtil.getPrimaryManifestFile;
 
 /**
  * Handles the sync issue when min sdk version is defined in manifest files.

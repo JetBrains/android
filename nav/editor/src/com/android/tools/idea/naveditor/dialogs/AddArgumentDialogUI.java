@@ -26,13 +26,13 @@ import javax.swing.JTextField;
 @VisibleForTesting
 public class AddArgumentDialogUI {
   JPanel myContentPanel;
-  JCheckBox myNullableCheckBox;
-  JTextField myNameTextField;
+  public JCheckBox myNullableCheckBox;
+  public JTextField myNameTextField;
   JPanel myDefaultValuePanel;
-  JComboBox<String> myDefaultValueComboBox;
-  JTextField myDefaultValueTextField;
+  public JComboBox<String> myDefaultValueComboBox;
+  public JTextField myDefaultValueTextField;
   JBLabel myNullableLabel;
-  JComboBox<AddArgumentDialog.Type> myTypeComboBox;
+  public JComboBox<AddArgumentDialog.Type> myTypeComboBox;
   JLabel myArrayLabel;
-  JCheckBox myArrayCheckBox;
+  public JCheckBox myArrayCheckBox;
 }

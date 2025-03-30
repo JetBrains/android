@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editing.documentation
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo

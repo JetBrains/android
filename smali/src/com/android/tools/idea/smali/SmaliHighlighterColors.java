@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.smali;
 
-import com.intellij.openapi.editor.colors.TextAttributesKey;
-
-import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.*;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.BRACES;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.CLASS_NAME;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.CONSTANT;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.INSTANCE_FIELD;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.KEYWORD;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.LINE_COMMENT;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.NUMBER;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.PARENTHESES;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.STATIC_FIELD;
+import static com.intellij.openapi.editor.DefaultLanguageHighlighterColors.STRING;
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
+
+import com.intellij.openapi.editor.colors.TextAttributesKey;
 
 public final class SmaliHighlighterColors {
   public static final TextAttributesKey COMMENT_ATTR_KEY = createTextAttributesKey("SMALI_COMMENT", LINE_COMMENT);

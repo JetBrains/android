@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.ui.components.JBLabel;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;

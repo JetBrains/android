@@ -37,8 +37,13 @@
       <module name="android-ndk.tests" options="--add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
       <module name="aswb.third_party.intellij.bazel.plugin.java" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" />
       <module name="intellij.android.adt.swingp" options="--add-exports java.desktop/sun.java2d=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED" />
-      <module name="intellij.android.adt.ui" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/java.awt.peer=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d.pipe=ALL-UNNAMED" />
-      <module name="intellij.android.core" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED --add-exports jdk.attach/sun.tools.attach=ALL-UNNAMED" />
+      <module name="intellij.android.adt.ui" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/java.awt.peer=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d.pipe=ALL-UNNAMED --add-modules java.desktop" />
+      <module name="intellij.android.core" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED --add-exports jdk.attach/sun.tools.attach=ALL-UNNAMED --add-modules java.desktop" />
+      <module name="intellij.android.core.rendering" options="--add-modules java.desktop" />
+      <module name="intellij.android.core.run" options="--add-modules java.desktop" />
+      <module name="intellij.android.designer" options="--add-modules java.desktop" />
+      <module name="intellij.android.newProjectWizard" options="--add-modules java.desktop" />
+      <module name="intellij.android.sdkUpdates" options="--add-modules java.desktop" />
       <module name="intellij.android.testFramework" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED" />
     </option>
   </component>

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessorServiceGrpc
 import com.android.tools.profilers.analytics.FeatureTracker
@@ -23,8 +25,6 @@ import com.google.common.base.Ticker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
-import com.android.tools.idea.io.grpc.ManagedChannel
-import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 
 /**
  * gRPC client used to communicate with the daemon (which runs a gRPC server).

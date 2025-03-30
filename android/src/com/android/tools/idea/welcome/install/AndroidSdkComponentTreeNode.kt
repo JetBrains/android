@@ -19,6 +19,8 @@ import com.android.SdkConstants
 import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
+import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.ui.ApplicationUtils
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.SetupWizardEvent
 
@@ -72,4 +74,5 @@ class AndroidSdkComponentTreeNode(installUpdates: Boolean) :
   }
 
   override fun isOptionalForSdkLocation(): Boolean = false
+
 }

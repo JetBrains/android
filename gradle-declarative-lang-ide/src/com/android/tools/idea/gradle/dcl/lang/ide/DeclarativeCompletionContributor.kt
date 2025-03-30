@@ -56,8 +56,10 @@ import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.application.ReadAction
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.vfs.findPsiFile
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
@@ -72,10 +74,8 @@ import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.findParentOfType
 import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.prevLeafs
-import com.intellij.psi.util.siblings
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import kotlin.math.max
 
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
@@ -315,7 +315,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   private fun insert(type: ElementType): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, _: LookupElement ->
     val editor = context.editor
     val document = editor.document
-    val file = editor.virtualFile.toPsiFile(context.project)
+    val file = ReadAction.compute<PsiFile?, Throwable> { editor.virtualFile.findPsiFile(context.project) }
     val offset = editor.caretModel.offset
     val element = file?.findElementAt(offset)
     context.commitDocument()
@@ -366,7 +366,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                           schemas: BuildDeclarativeSchemas): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, item: LookupElement ->
     val editor = context.editor
     val document = editor.document
-    val file = editor.virtualFile.toPsiFile(context.project)
+    val file = ReadAction.compute<PsiFile?, Throwable> { editor.virtualFile.findPsiFile(context.project) }
     val offset = editor.caretModel.offset
     val element = file?.findElementAt(offset)
     context.commitDocument()

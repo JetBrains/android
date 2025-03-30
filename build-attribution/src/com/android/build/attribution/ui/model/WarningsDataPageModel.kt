@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.ui.model
 
-import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.AGPUpdateRequired
 import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
@@ -43,6 +42,7 @@ import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningsCountString
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.google.common.annotations.VisibleForTesting

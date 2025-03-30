@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph
 
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.JarDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.LibraryDependencyNode
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
-import java.util.Comparator
 import java.util.function.Consumer
 
 sealed class DependencyKey

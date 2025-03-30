@@ -23,8 +23,6 @@ import com.android.tools.res.ids.ResourceIdManagerModelModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import java.nio.ByteBuffer
-import kotlin.time.Duration.Companion.days
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -33,6 +31,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import java.nio.ByteBuffer
+import kotlin.time.Duration.Companion.days
 
 private const val PKG_1 = "come.on.fhqwhgads"
 private const val PKG_2 = "everybody.to.the.limit"

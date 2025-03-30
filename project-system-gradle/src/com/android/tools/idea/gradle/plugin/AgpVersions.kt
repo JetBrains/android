@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.MavenRepositories
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
@@ -52,7 +53,7 @@ object AgpVersions {
     get() {
       val override = StudioFlags.AGP_VERSION_TO_USE.get()
       if (override.isEmpty()) return null
-      if (override.equals("stable", true)) {
+      if (override.equals("stable", true) || !IdeInfo.getInstance().isAndroidStudio) {
         LOG.info(
           "Android Gradle Plugin version overridden to latest stable version $LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION by Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}=stable")
         return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION

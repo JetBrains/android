@@ -76,7 +76,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     foo2Bar2Entry = foo2DirEntry.addFile("bar2")
 
     fooBar1LocalPath = Paths.get(
-      FileUtil.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
+      FileUtilRt.toSystemDependentName(FileUtilRt.getTempDirectory() + "/fileManagerTest/fileSystem/foo/bar1")
     )
 
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()

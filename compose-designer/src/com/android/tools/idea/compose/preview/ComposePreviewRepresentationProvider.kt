@@ -215,10 +215,13 @@ private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
   if (!module.isAndroidModule() && !module.isCommonWithAndroidModule()) {
     return false
   }
-  val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(/* includeTests= */ true)
-  val foundClasses =
-    KotlinFullClassNameIndex[COMPOSABLE_ANNOTATION_FQ_NAME, module.project, moduleScope]
-  return foundClasses.isNotEmpty()
+  return if (!DumbService.getInstance(module.project).isDumb) {
+    val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(/*includeTests = */true)
+    val foundClasses = KotlinFullClassNameIndex[COMPOSABLE_ANNOTATION_FQ_NAME, module.project, moduleScope]
+    foundClasses.isNotEmpty()
+  } else {
+    false
+  }
 }
 
 private const val PREFIX = "ComposePreview"

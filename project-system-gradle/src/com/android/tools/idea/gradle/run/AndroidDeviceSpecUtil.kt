@@ -16,7 +16,6 @@
 @file:JvmName("AndroidDeviceSpecUtil")
 package com.android.tools.idea.gradle.run
 
-import com.android.ddmlib.IDevice
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density

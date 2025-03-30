@@ -15,6 +15,12 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager;
 import com.android.tools.adtui.workbench.AttachedToolWindow.AttachedToolWindowPanel;
 import com.intellij.openapi.util.Disposer;
@@ -22,9 +28,9 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ProjectRule;
-import com.intellij.ui.NewUI;
 import java.awt.Component;
 import javax.swing.JPanel;
+import com.intellij.ui.ExperimentalUI;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -34,9 +40,6 @@ import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import sun.awt.AWTAccessor;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
 
 @RunWith(JUnit4.class)
 public class WorkBenchManagerTest {
@@ -52,7 +55,7 @@ public class WorkBenchManagerTest {
 
   @Before
   public void before() {
-    initialUI = NewUI.isEnabled();
+    initialUI = ExperimentalUI.isNewUI();
     Registry.get("ide.experimental.ui").setValue(true);
     myFocusManager = new FakeKeyboardFocusManager(disposableRule.getDisposable());
     myManager = new WorkBenchManager();

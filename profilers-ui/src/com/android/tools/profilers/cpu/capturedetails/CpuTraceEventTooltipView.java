@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tooltip view for the Trace Event chart in Systrace.
  */
-class CpuTraceEventTooltipView extends ChartTooltipViewBase<CaptureNode> {
+public class CpuTraceEventTooltipView extends ChartTooltipViewBase<CaptureNode> {
   @NotNull private final TraceEventTooltipLegends myLegends;
   @NotNull private final Color myRunningColor;
   @NotNull private final Color myIdleColor;

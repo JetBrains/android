@@ -47,14 +47,13 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.time.Duration
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Instant
+import java.nio.file.Paths
+import java.time.Duration
+import kotlin.coroutines.EmptyCoroutineContext
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -113,7 +112,7 @@ internal class FakeDeviceHandle(
         override suspend fun activate(snapshot: Snapshot) {}
 
         override suspend fun snapshots(): List<Snapshot> =
-          listOf(LocalEmulatorSnapshot("snap-1", Path.of("/tmp/snap-1")))
+          listOf(LocalEmulatorSnapshot("snap-1", Paths.get("/tmp/snap-1")))
 
         override val presentation =
           MutableStateFlow(StudioDefaultDeviceActionPresentation.fromContext())

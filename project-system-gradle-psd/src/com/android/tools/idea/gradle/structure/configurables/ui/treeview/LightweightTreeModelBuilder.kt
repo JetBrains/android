@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview
 
-import com.android.tools.idea.gradle.structure.model.PsProject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import javax.swing.tree.DefaultTreeModel

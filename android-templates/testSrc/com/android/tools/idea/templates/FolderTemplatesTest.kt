@@ -28,14 +28,14 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction
 import groovy.json.StringEscapeUtils
+import org.junit.Rule
+import org.junit.Test
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.assertContains
 import kotlin.test.assertTrue
-import org.junit.Rule
-import org.junit.Test
 
 class FolderTemplatesTest {
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModels()

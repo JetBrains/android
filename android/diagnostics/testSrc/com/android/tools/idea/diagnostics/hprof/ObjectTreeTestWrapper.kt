@@ -17,6 +17,8 @@ package com.android.tools.idea.diagnostics.hprof
 
 import com.intellij.openapi.Disposable
 import java.lang.Boolean
+import kotlin.Any
+import kotlin.apply
 
 class ObjectTreeTestWrapper {
 

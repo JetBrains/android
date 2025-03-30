@@ -16,13 +16,15 @@
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.EventListener;
+import org.jetbrains.annotations.NotNull;
 
 @State(
   name = "PsdUISettings",

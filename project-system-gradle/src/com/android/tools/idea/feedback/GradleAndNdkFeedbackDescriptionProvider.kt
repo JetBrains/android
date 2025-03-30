@@ -24,7 +24,6 @@ import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.actions.SubmitBugReportAction
 import com.android.tools.idea.actions.SubmitBugReportAction.safeCall
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet.Companion.getInstance
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.gradle.util.LocalProperties
@@ -47,6 +46,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.EnvironmentUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -281,7 +281,7 @@ private fun getDefaultJdkDetails(): String {
 
 private fun getProjectJdkDetails(project: Project): String {
   val basePath = project.basePath ?: return "(cannot find project base path)"
-  return getJdkVersion(AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, basePath))
+  return getJdkVersion(GradleInstallationManager.getInstance().getGradleJvmPath(project, basePath))
 }
 
 private fun getJdkVersion(jdkPath: String?): String {

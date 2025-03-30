@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
 import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_PARAMS;
 import static com.android.AndroidXConstants.CLASS_COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
 import static com.android.resources.ResourceType.ID;
 import static java.util.Arrays.stream;
 
@@ -26,8 +26,8 @@ import android.widget.LinearLayout;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.FloatResources;
 import com.android.tools.idea.res.StudioResourceIdManager;
@@ -539,15 +539,15 @@ public class LayoutParamsManager {
    * Class that contains a field name and its associated data type
    */
   @VisibleForTesting
-  static class MappedField {
+  public static class MappedField {
     @VisibleForTesting
     @NotNull
     final String name;
     @VisibleForTesting
     @NotNull
-    final EnumSet<AttributeFormat> type;
+    public final EnumSet<AttributeFormat> type;
 
-    MappedField(@NotNull String fieldName, @Nullable AttributeFormat type) {
+    public MappedField(@NotNull String fieldName, @Nullable AttributeFormat type) {
       this.name = fieldName;
       this.type = type != null ? EnumSet.of(type) : EnumSet.noneOf(AttributeFormat.class);
     }

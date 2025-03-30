@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.model.formatter
 
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

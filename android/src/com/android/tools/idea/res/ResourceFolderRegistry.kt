@@ -53,14 +53,14 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.Consumer
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
 import java.util.function.BiConsumer
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A project service that manages [ResourceFolderRepository] instances, creating them as necessary

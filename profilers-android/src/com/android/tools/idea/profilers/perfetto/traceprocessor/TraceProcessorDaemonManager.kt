@@ -27,7 +27,6 @@ import com.intellij.openapi.util.SystemInfo
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.lang.RuntimeException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -39,13 +38,16 @@ import java.util.regex.Pattern
  * spawning a new one if necessary and properly shutting it down at the end of Studio execution.
  */
 class TraceProcessorDaemonManager(
-    private val ticker: Ticker,
-    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()): Disposable {
+  private val ticker: Ticker,
+  private val executorService: ExecutorService = Executors.newSingleThreadExecutor(),
+) : Disposable {
 
   // All access paths to process should be synchronized.
   private var process: Process? = null
+
   // Controls if we started the dispose process for this manager, to prevent new instances of daemon to be spawned.
   private var disposed = false
+
   // The port in which the daemon is listening to, available to the Client to build the channel.
   var daemonPort = 0
     private set
@@ -55,8 +57,10 @@ class TraceProcessorDaemonManager(
 
     // Timeout in milliseconds to wait for the TPD to start: 1 minute
     private val TPD_SPAWN_TIMEOUT = TimeUnit.MINUTES.toMillis(1)
+
     // TPD is hardcoded to output these strings on stdout:
     private val SERVER_STARTED = Pattern.compile("^Server listening on (?:127.0.0.1|localhost):(?<port>\\d+)\n*$")
+
     // TPD write the following message to stdout when it cannot find a port to bind.
     private const val SERVER_PORT_BIND_FAILED = "Server failed to start. A port number wasn't bound."
 
@@ -77,7 +81,19 @@ class TraceProcessorDaemonManager(
         }
       }
     }
-    private val TPD_RELEASE_PATH = "plugins/android/resources/trace_processor_daemon"
+    private val TPD_RELEASE_PATH by lazy {
+      val os = when {
+        SystemInfo.isWindows -> "windows"
+        SystemInfo.isMac -> "darwin"
+        SystemInfo.isLinux -> "linux"
+        else -> {
+          LOGGER.warn("Unsupported platform for TPD. Using linux binary.")
+          "linux"
+        }
+      }
+
+      "plugins/android/resources/trace_processor_daemon/$os"
+    }
     private val TPD_EXECUTABLE: String by lazy {
       when {
         SystemInfo.isWindows -> {
@@ -96,7 +112,12 @@ class TraceProcessorDaemonManager(
       .build()
 
     private fun getExecutablePath(): String {
-      return File(TPD_BINARY.dir, TPD_BINARY.fileName).absolutePath
+      val executable = File(TPD_BINARY.dir, TPD_BINARY.fileName)
+      if (!(executable.setExecutable(true))) {
+        LOGGER.warn("Unable to make trace_processor_daemon executable.")
+      }
+
+      return executable.absolutePath
     }
   }
 
@@ -128,7 +149,8 @@ class TraceProcessorDaemonManager(
         daemonPort = stdoutListener.selectedPort
         process = newProcess
         LOGGER.info("TPD Manager: TPD instance ready on port $daemonPort.")
-      } else {
+      }
+      else {
         tracker.trackTraceProcessorDaemonSpawnAttempt(false, timeToSpawnMs)
         LOGGER.info("TPD Manager: Unable to start TPD instance.")
         // Make sure we clean up our instance to not leave a zombie process
@@ -177,7 +199,8 @@ class TraceProcessorDaemonManager(
         if (serverOkMatcher.matches()) {
           selectedPort = serverOkMatcher.group("port").toInt()
           status = DaemonStatus.RUNNING
-        } else if (line.startsWith(SERVER_PORT_BIND_FAILED)) {
+        }
+        else if (line.startsWith(SERVER_PORT_BIND_FAILED)) {
           status = DaemonStatus.FAILED
           break
         }
@@ -186,15 +209,15 @@ class TraceProcessorDaemonManager(
 
     @VisibleForTesting
     fun waitUntilTerminated(timeout: Long) {
-      while(!terminated()) {
+      while (!terminated()) {
         waitForStatusChangeOrTerminated(timeout)
       }
     }
 
-    fun waitForStatusChangeOrTerminated(timeout:Long) {
+    fun waitForStatusChangeOrTerminated(timeout: Long) {
       synchronized(statusLock) {
         // We do a check to avoid the timeout wait unnecessarily if the status isn't expected status already.
-        if ( !terminated() ) statusLock.wait(timeout)
+        if (!terminated()) statusLock.wait(timeout)
       }
     }
 

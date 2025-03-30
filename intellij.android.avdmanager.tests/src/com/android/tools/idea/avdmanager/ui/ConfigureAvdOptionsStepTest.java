@@ -208,6 +208,7 @@ public final class ConfigureAvdOptionsStepTest {
   public void tearDown() {
     BatchInvoker.clearOverrideStrategy();
     IconLoader.deactivate();
+    IconLoader.INSTANCE.clearCacheInTests();
   }
 
   @Test

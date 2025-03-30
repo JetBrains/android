@@ -15,7 +15,7 @@
  */
 package com.android.tools.asdriver.tests;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation.AndroidStudioFlavor;
 import com.android.tools.perflogger.Benchmark;
 import com.android.utils.PathUtils;

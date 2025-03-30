@@ -1,0 +1,77 @@
+### auto-generated section `build intellij.android.device-explorer-monitor` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "device-explorer-monitor",
+  module_name = "intellij.android.device-explorer-monitor",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-guava",
+    "@lib//:protobuf",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/device-explorer-common",
+    "//android/execution/common:android-execution-common",
+    "//android/project-system:projectSystem",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//android/backup:backup-api",
+  ]
+)
+### auto-generated section `build intellij.android.device-explorer-monitor` end
+
+### auto-generated section `build intellij.android.device-explorer-monitor.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "device-explorer-monitor-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/android-adb:adb",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android-common:common-tests_test_lib",
+    "//android/android:core",
+    "//android/device-explorer-common",
+    "//android/device-explorer-monitor",
+    "//android/execution/common:android-execution-common",
+    "//android/project-system:projectSystem",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
+    "//platform/execution",
+    "//platform/extensions",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+  ]
+)
+### auto-generated section `build intellij.android.device-explorer-monitor.tests` end

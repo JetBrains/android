@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.project.messages.SyncMessageWithContext;
 import com.intellij.openapi.module.Module;
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
  * Base class for issue reporters, defines base behaviour for classes to report different types of notifications that are obtained from
  * syncing a Gradle project with Android Studio.
  */
-abstract class BaseSyncIssuesReporter {
+public abstract class BaseSyncIssuesReporter {
   /**
    * @return the type of messages this reporter should be run against. This reporter will only be invoked for sync issues of this type.
    */

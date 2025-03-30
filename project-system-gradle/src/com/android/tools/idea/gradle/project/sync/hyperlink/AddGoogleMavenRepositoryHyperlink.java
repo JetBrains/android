@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
-import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor;
-import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
 import static com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor.Repository.GOOGLE;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
+
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Hyperlink to add {@code google()} to the repositories in buildscript block of project build.gradle file.

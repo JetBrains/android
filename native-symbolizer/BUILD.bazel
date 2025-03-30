@@ -1,0 +1,68 @@
+### auto-generated section `build intellij.android.native-symbolizer` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "native-symbolizer_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "native-symbolizer",
+  module_name = "intellij.android.native-symbolizer",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/project-system:projectSystem",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+  ],
+  runtime_deps = [":native-symbolizer_resources"]
+)
+### auto-generated section `build intellij.android.native-symbolizer` end
+
+### auto-generated section `build intellij.android.native-symbolizer.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "native-symbolizer-tests_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
+
+jvm_test(
+  name = "native-symbolizer-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/native-symbolizer",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/jps-model",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/testFramework",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+  ],
+  runtime_deps = [":native-symbolizer-tests_test_resources"]
+)
+### auto-generated section `build intellij.android.native-symbolizer.tests` end

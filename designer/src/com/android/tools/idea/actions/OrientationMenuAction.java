@@ -102,7 +102,7 @@ public class OrientationMenuAction extends DropDownAction {
   }
 
   @VisibleForTesting
-  static class SetDeviceStateAction extends ConfigurationAction {
+  public static class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
 
     private SetDeviceStateAction(@NotNull String title,

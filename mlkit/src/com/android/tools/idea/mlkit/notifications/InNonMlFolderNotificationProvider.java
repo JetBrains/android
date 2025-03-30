@@ -119,10 +119,10 @@ public class InNonMlFolderNotificationProvider implements EditorNotificationProv
   }
 
   private static class MoveModelFileDialog extends DialogWrapper {
-    private final List<NamedModuleTemplate> myNamedModuleTemplateList;
+    private final List<? extends NamedModuleTemplate> myNamedModuleTemplateList;
     private ComboBox<NamedModuleTemplate> myComboBox;
 
-    private MoveModelFileDialog(@NotNull List<NamedModuleTemplate> namedModuleTemplateList) {
+    private MoveModelFileDialog(@NotNull List<? extends NamedModuleTemplate> namedModuleTemplateList) {
       super(true);
       myNamedModuleTemplateList = namedModuleTemplateList;
       init();
@@ -138,7 +138,7 @@ public class InNonMlFolderNotificationProvider implements EditorNotificationProv
       dialogPanel.setBorder(JBUI.Borders.empty(10));
       dialogPanel.add(new JBLabel("Move the model file to the ml directory in "));
 
-      myComboBox = new ModuleTemplateComboProvider(myNamedModuleTemplateList).createComponent();
+      myComboBox = new ModuleTemplateComboProvider((List<NamedModuleTemplate>)myNamedModuleTemplateList).createComponent();
       dialogPanel.add(myComboBox);
 
       return dialogPanel;

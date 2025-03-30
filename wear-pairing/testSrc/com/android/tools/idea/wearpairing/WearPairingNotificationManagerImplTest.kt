@@ -4,7 +4,9 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.notification.ActionCenter
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 

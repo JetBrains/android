@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import static com.android.sdklib.devices.Abi.ARM64_V8A;
+import static com.android.sdklib.devices.Abi.ARMEABI;
+import static com.android.sdklib.devices.Abi.X86;
+import static com.android.tools.idea.apk.debugging.SharedObjectFiles.createSharedObjectFiles;
+import static com.android.tools.idea.testing.ProjectFiles.createFile;
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
+import static com.android.utils.FileUtils.toSystemIndependentPath;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static org.mockito.Mockito.mock;
+
 import com.android.sdklib.devices.Abi;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -23,20 +34,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.sdklib.devices.Abi.*;
-import static com.android.tools.idea.apk.debugging.SharedObjectFiles.createSharedObjectFiles;
-import static com.android.tools.idea.testing.ProjectFiles.createFile;
-import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
-import static com.android.utils.FileUtils.toSystemIndependentPath;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.mockito.Mockito.mock;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link NativeLibrary}.
@@ -123,7 +127,7 @@ public class NativeLibraryTest extends HeavyPlatformTestCase {
 
   @NotNull
   private static List<String> getPaths(@NotNull Collection<VirtualFile> files) {
-    return ContainerUtil.map(files, VirtualFile::getPath);
+    return new ArrayList<>(ContainerUtil.map(files, VirtualFile::getPath));
   }
 
   public void testIsMissingPathMappingsWithLocalPaths() {

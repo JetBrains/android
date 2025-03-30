@@ -43,5 +43,4 @@ public class ConstraintSceneInteraction extends SceneInteraction {
     super.commit(event);
     ConstraintReferenceManagement.updateConstraints(myPrimary, mySceneView.getScene());
   }
-
 }

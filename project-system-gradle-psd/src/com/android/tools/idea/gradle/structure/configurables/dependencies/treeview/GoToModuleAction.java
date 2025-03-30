@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview;
 
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_GOTO_DECLARATION;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_GOTO_DECLARATION;
 
 public class GoToModuleAction extends DumbAwareAction {
   @NotNull private final String myModuleName;

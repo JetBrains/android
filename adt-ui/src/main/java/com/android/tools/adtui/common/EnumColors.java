@@ -16,13 +16,12 @@
 package com.android.tools.adtui.common;
 
 import com.google.common.collect.Maps;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A color group is a mapping of enum types to one (or more) corresponding colors each. This is

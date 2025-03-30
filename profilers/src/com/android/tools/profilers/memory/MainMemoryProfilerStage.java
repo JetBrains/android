@@ -33,12 +33,12 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.SupportLevel;
-import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
@@ -47,11 +47,9 @@ import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
 import com.android.tools.profilers.tasks.TaskEventTrackerUtils;
-import com.android.tools.profilers.tasks.TaskMetadataStatus;
 import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.TaskFailedMetadata;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -70,8 +68,10 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   private static final String CAPTURE_HEAP_DUMP_TEXT = "Capture heap dump";
   private static final String RECORD_JAVA_TEXT = "Record Java / Kotlin allocations";
   private static final String RECORD_JAVA_TOOLTIP = "View how each Java / Kotlin object was allocated over a period of time";
-  @VisibleForTesting static final String RECORD_NATIVE_TEXT = "Record native allocations";
-  @VisibleForTesting static final String X86_RECORD_NATIVE_TOOLTIP = "Native memory recording is unavailable on x86 or x86_64 devices";
+  @VisibleForTesting
+  public static final String RECORD_NATIVE_TEXT = "Record native allocations";
+  @VisibleForTesting
+  public static final String X86_RECORD_NATIVE_TOOLTIP = "Native memory recording is unavailable on x86 or x86_64 devices";
   private static final String RECORD_NATIVE_DESC = "View how each C / C++ object was allocated over a period of time";
 
 
@@ -89,7 +89,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   private final DurationDataModel<CaptureDurationData<? extends CaptureObject>> myNativeAllocationDurations;
   private long myPendingLegacyAllocationStartTimeNs = BaseMemoryProfilerStage.INVALID_START_TIME;
 
-  @VisibleForTesting boolean myNativeAllocationTracking = false;
+  @VisibleForTesting
+  public boolean myNativeAllocationTracking = false;
 
   private final RecordingOptionsModel myRecordingOptionsModel;
 

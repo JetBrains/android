@@ -15,24 +15,29 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import static com.intellij.openapi.wm.ToolWindowAnchor.BOTTOM;
+import static com.intellij.openapi.wm.ToolWindowAnchor.LEFT;
+import static com.intellij.openapi.wm.ToolWindowAnchor.RIGHT;
+import static com.intellij.util.ui.UIUtil.FontSize;
+import static com.intellij.util.ui.UIUtil.getLabelFont;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.EventDispatcher;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.util.EventListener;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.EventListener;
-
-import static com.intellij.openapi.wm.ToolWindowAnchor.*;
-import static com.intellij.util.ui.UIUtil.FontSize;
-import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 public abstract class ToolWindowPanel extends JPanel implements Disposable {
   @NotNull private final ToolWindowHeader myHeader;
@@ -41,7 +46,7 @@ public abstract class ToolWindowPanel extends JPanel implements Disposable {
   private JPanel myMinimizedPanel;
   private AnchoredToolWindowButton myAnchoredButton;
 
-  protected ToolWindowPanel(@NotNull String title, @NotNull Icon icon, @Nullable ToolWindowAnchor anchor) {
+  protected ToolWindowPanel(@NotNull @NlsContexts.TabTitle String title, @NotNull Icon icon, @Nullable ToolWindowAnchor anchor) {
     super(new BorderLayout());
     myHeader = ToolWindowHeader.createAndAdd(title, icon, this, anchor);
 

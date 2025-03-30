@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.intellij.openapi.project.Project;
 

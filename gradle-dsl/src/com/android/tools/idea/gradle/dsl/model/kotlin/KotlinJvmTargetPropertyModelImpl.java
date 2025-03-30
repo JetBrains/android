@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.kotlin;
 
-import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.convertToGradleString;
 import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString;
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;

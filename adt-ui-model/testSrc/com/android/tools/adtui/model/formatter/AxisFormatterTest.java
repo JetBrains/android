@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.model.formatter;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import org.junit.Before;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class AxisFormatterTest {
 

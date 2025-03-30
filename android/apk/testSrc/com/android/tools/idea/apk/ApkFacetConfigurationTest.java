@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.apk;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.apk.debugging.DebuggableSharedObjectFile;
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.android.tools.idea.apk.debugging.SetupIssue;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Tests for {@link ApkFacetConfiguration}.

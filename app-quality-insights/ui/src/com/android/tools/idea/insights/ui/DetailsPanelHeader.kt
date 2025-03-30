@@ -40,6 +40,7 @@ import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.border.CompoundBorder
 import org.jetbrains.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 
 @VisibleForTesting val KEY = Key.create<Pair<String, String>>("android.aqi.details.header")
 

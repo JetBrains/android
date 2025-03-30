@@ -19,9 +19,9 @@
 // Do not edit it manually.
 package com.android.tools.idea.preview.util.device.parser;
 
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
+import org.jetbrains.annotations.NotNull;
 
 public class DeviceSpecVisitor extends PsiElementVisitor {
 

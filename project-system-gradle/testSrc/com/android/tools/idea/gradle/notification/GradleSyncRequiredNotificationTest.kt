@@ -26,10 +26,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.ui.EditorNotificationPanel
-import org.jetbrains.kotlin.konan.file.File
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 class GradleSyncRequiredNotificationTest {
 

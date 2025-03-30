@@ -25,9 +25,9 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.util.ui.UIUtil
-import javax.swing.JLabel
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JLabel
 
 class InspectorBannerTest {
 

@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.res.ids.apk.ApkResourceIdManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

@@ -89,9 +89,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Override
-  protected void onProfilersCreated(StudioProfilers profilers) {}
-
-  @Override
   protected FakeGrpcChannel getGrpcChannel() {
     return myGrpcChannel;
   }

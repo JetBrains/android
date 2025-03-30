@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
+import org.intellij.lang.annotations.JdkConstants.InputEventMask
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.dnd.DropTargetDropEvent
@@ -25,7 +26,6 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.util.EventObject
-import org.intellij.lang.annotations.JdkConstants.InputEventMask
 
 /**
  * An interaction is a mouse or keyboard driven user operation, such as a swipe-select or a resize.

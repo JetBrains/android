@@ -23,12 +23,12 @@ import com.google.common.truth.Truth
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
-import com.intellij.facet.FacetManager
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.TestPasswordSafeImpl
-import com.intellij.mock.MockModule
-import com.intellij.openapi.Disposable
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.workspaceModel.ide.legacyBridge.ModuleBridge
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_STORE_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
@@ -107,7 +107,12 @@ class KeystoreStepTest : LightPlatformTestCase() {
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     val unsortedModulesOrder = listOf("appB", "app1", "appD", "xappC", "appA")
     unsortedModulesOrder.forEach { name ->
-      facets.add(FakeAndroidFacet(name, testRootDisposable))
+      val nModule = object : ModuleBridge by module {
+        override fun getName(): String = name
+        override fun dispose() {}
+      }
+      Disposer.register(testRootDisposable, nModule)
+      facets.add(FakeAndroidFacet(nModule))
     }
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
@@ -438,15 +443,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
   }
 
   private class FakeAndroidFacet(
-    moduleName: String,
-    disposable: Disposable
-  ) : AndroidFacet(MockModule(disposable), NAME, AndroidFacetConfiguration()) {
-    init {
-      val module = module as MockModule
-      module.name = moduleName
-      module.addComponent(FacetManager::class.java, mock(FacetManager::class.java))
-    }
-  }
+    module: Module,
+  ) : AndroidFacet(module, NAME, AndroidFacetConfiguration())
 
   private fun setupWizardHelper(): ExportSignedPackageWizard {
     val testKeyStorePath = "/test/path/to/keystore"

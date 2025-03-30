@@ -33,7 +33,6 @@ import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.android.tools.idea.util.ReformatUtil;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;

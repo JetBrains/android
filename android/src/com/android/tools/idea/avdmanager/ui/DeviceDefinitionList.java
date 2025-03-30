@@ -30,7 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.ui.NewUI;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
@@ -307,7 +307,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       throw new IllegalArgumentException(name.getClass().toString());
     }
 
-    var definitions = List.copyOf(myCategoryToDefinitionMultimap.get(category));
+    var definitions = new ArrayList<>(myCategoryToDefinitionMultimap.get(category));
 
     if (myModel.getItems().equals(definitions)) {
       return;
@@ -536,7 +536,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
     var items = myDevices.stream()
       .filter(device -> device.getDisplayName().toLowerCase(locale).contains(lowercaseSearchString))
-      .collect(Collectors.toList());
+      .collect(Collectors.toCollection(ArrayList::new));
 
     myModel.setItems(items);
     notifyCategoryListeners(null, items);
@@ -639,7 +639,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       var name = icon.equals(EmptyIcon.ICON_16) ? "Doesn't support Google Play system images" : "Supports Google Play system images";
       component.getAccessibleContext().setAccessibleName(name);
 
-      if (selected && !NewUI.isEnabled()) {
+      if (selected && !ExperimentalUI.isNewUI()) {
         setIcon(ColoredIconGenerator.generateWhiteIcon((Icon)icon));
       }
 

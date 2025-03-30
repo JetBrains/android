@@ -29,8 +29,9 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class HeapProfdSessionArtifact extends MemorySessionArtifact<Trace.TraceInfo> {
   public HeapProfdSessionArtifact(@NotNull StudioProfilers profilers,
@@ -76,6 +77,7 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Trace.TraceI
     return "heapprofd";
   }
 
+  @Unmodifiable
   public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,
                                                           @NotNull Common.Session session,
                                                           @NotNull Common.SessionMetaData sessionMetaData) {

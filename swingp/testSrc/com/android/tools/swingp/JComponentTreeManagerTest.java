@@ -15,13 +15,16 @@
  */
 package com.android.tools.swingp;
 
+import static com.android.tools.swingp.JComponentTreeManager.clear;
+import static com.android.tools.swingp.JComponentTreeManager.popJComponent;
+import static com.android.tools.swingp.JComponentTreeManager.pushJComponent;
+import static com.android.tools.swingp.JComponentTreeManager.setEnabled;
+
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.swing.*;
-
-import static com.android.tools.swingp.JComponentTreeManager.*;
 
 public class JComponentTreeManagerTest {
   @Before

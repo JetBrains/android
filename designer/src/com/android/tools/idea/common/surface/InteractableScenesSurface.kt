@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface
 
+
 /**
  * This defines an interface of the [LayoutlibInteractionHandler] downstream client.
  *

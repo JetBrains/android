@@ -16,7 +16,12 @@
 package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 
 import com.android.tools.idea.wizard.template.ApiVersion
-import com.android.tools.idea.wizard.template.MaterialColor.*
+import com.android.tools.idea.wizard.template.MaterialColor.BLACK
+import com.android.tools.idea.wizard.template.MaterialColor.PURPLE_500
+import com.android.tools.idea.wizard.template.MaterialColor.PURPLE_700
+import com.android.tools.idea.wizard.template.MaterialColor.TEAL_200
+import com.android.tools.idea.wizard.template.MaterialColor.TEAL_700
+import com.android.tools.idea.wizard.template.MaterialColor.WHITE
 
 const val DARK_ACTION_BAR_MATERIAL_COMPONENTS = "Theme.MaterialComponents.DayNight.DarkActionBar"
 const val DARK_ACTION_BAR_APPCOMPAT = "Theme.AppCompat.Light.DarkActionBar"

@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.common.model;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface implemented by listeners on selection changes

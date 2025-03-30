@@ -24,6 +24,9 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.intellij.testFramework.junit5.TestApplication;
+
+@TestApplication
 public class RangeTimeScrollBarTest {
   private static final double EPSILON = 1e-4;
 

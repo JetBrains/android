@@ -7,8 +7,15 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>2023.1.1 Canary 6</version>
   <vendor>JetBrains, Google</vendor>
+
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Meerkat Feature Drop Canary 5.
+
+    For detailed information, please refer to the release notes available at:
+    <a href="https://androidstudio.googleblog.com/2025/02/android-studio-meerkat-feature-drop_13.html">Android Studio Meerkat Feature Drop Canary 5</a>.]]>
+  </change-notes>
+
   <dependencies>
     <plugin id="com.intellij.platform.images"/>
     <plugin id="com.intellij.modules.java"/>
@@ -16,6 +23,7 @@
     <module name="intellij.platform.lvcs.impl"/>
     <module name="intellij.platform.vcs.impl"/>
     <module name="intellij.platform.vcs.dvcs.impl"/>
+    <module name="intellij.platform.vcs.dvcs.impl.shared"/>
     <module name="intellij.platform.vcs.log.impl"/>
     <module name="intellij.libraries.grpc"/>
     <module name="intellij.libraries.grpc.netty.shaded"/>
@@ -44,8 +52,8 @@
   <xi:include href="/META-INF/apkanalyzer.xml" />
   <xi:include href="/META-INF/apkanalyzer-gradle.xml" />
   <xi:include href="/META-INF/apkanalyzer-apk.xml" />
-  <xi:include href="/META-INF/app-insights-api.xml"/>
-  <xi:include href="/META-INF/app-insights.xml"/>
+<!--  <xi:include href="/META-INF/app-insights-api.xml"/>-->
+<!--  <xi:include href="/META-INF/app-insights.xml"/>-->
   <xi:include href="/META-INF/databinding.xml"/>
   <xi:include href="/META-INF/databinding-gradle.xml"/>
   <xi:include href="/META-INF/mlkit.xml"/>
@@ -54,7 +62,7 @@
   <xi:include href="/META-INF/backup.xml"/>
   <xi:include href="/META-INF/safeargs.xml"/>
   <xi:include href="/META-INF/pipeline.xml"/>
-  <xi:include href="/META-INF/play-vitals.xml"/>
+  <!-- <xi:include href="/META-INF/play-vitals.xml"/> -->
   <xi:include href="/META-INF/profilers.xml"/>
   <xi:include href="/META-INF/profilers-gradle.xml"/>
   <xi:include href="/META-INF/project-system-plugin.xml"/>
@@ -62,9 +70,9 @@
   <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml"/>
   <xi:include href="/META-INF/project-system-gradle-upgrade.xml"/>
-  <xi:include href="/META-INF/assistant.xml"/>
-  <xi:include href="/META-INF/connection-assistant.xml"/>
-  <xi:include href="/META-INF/whats-new-assistant.xml"/>
+  <!--<xi:include href="/META-INF/assistant.xml"/>-->
+  <!--<xi:include href="/META-INF/connection-assistant.xml"/>-->
+  <!--<xi:include href="/META-INF/whats-new-assistant.xml"/>-->
   <xi:include href="/META-INF/layout-inspector.xml"/>
   <xi:include href="/META-INF/layout-inspector-gradle.xml"/>
   <xi:include href="/META-INF/app-inspection.xml"/>
@@ -77,11 +85,12 @@
   <xi:include href="/META-INF/utp.xml"/>
   <xi:include href="/META-INF/backgroundtask-inspector.xml"/>
   <xi:include href="/META-INF/android-debuggers.xml"/>
-  <xi:include href="/META-INF/gradle-dsl.xml"/>
-  <xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>
-  <xi:include href="/META-INF/gradle-dsl-declarative.xml"/>
-  <xi:include href="/META-INF/gradle-dsl-toml.xml"/>
-  <xi:include href="/META-INF/intellij.android.avd.xml"/>
+  <!--<xi:include href="/META-INF/gradle-dsl.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-declarative.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-declarative-lang.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-toml.xml"/>-->
+  <xi:include href="/META-INF/android-avd.xml"/>
   <xi:include href="/META-INF/logcat.xml"/>
   <xi:include href="/META-INF/intellij.android.device-explorer.xml"/>
   <xi:include href="/META-INF/android-npw.xml"/>
@@ -94,13 +103,13 @@
   <xi:include href="/META-INF/wear-whs.xml"/>
   <xi:include href="/META-INF/android-execution-common.xml"/>
   <xi:include href="/META-INF/android-deploy.xml"/>
-  <xi:include href="/META-INF/google-login.xml"/>
-  <xi:include href="/META-INF/samples-browser.xml"/>
+  <!--<xi:include href="/META-INF/google-login.xml"/>-->
+  <!--<xi:include href="/META-INF/samples-browser.xml"/>-->
   <xi:include href="/META-INF/native-symbolizer.xml"/>
   <xi:include href="/META-INF/native-symbolizer-gradle.xml"/>
   <xi:include href="/META-INF/aiplugin-api.xml"/>
   <xi:include href="/META-INF/server-flags.xml"/>
-  <xi:include href="/META-INF/studio-labs.xml" />
-  <xi:include href="/META-INF/settings-sync.xml" />
+<!--  <xi:include href="/META-INF/studio-labs.xml" />-->
+<!--  <xi:include href="/META-INF/settings-sync.xml" />-->
   <xi:include href="/META-INF/screenshot-testing.xml" />
 </idea-plugin>

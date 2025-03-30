@@ -28,7 +28,6 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -86,7 +85,7 @@ public class UserEventDataSeries implements DataSeries<EventAction<UserEvent>> {
           break;
       }
     }
-    Collections.sort(series, Comparator.comparingLong(data -> data.x));
+    series.sort(Comparator.comparingLong(data -> data.x));
     return series;
   }
 }

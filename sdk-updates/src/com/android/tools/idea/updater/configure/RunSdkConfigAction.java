@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
+
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -28,23 +32,34 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.ConfigurableExtensionPointUtil;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Action to open the Android SDK pane in Settings.
  */
 public class RunSdkConfigAction extends DumbAwareAction {
   protected RunSdkConfigAction() {
-    super(AndroidBundle.message("android.run.sdk.manager.action.text"));
+    super(IdeInfo.getInstance().isAndroidStudio()
+          ? AndroidBundle.messagePointer("android.run.sdk.manager.action.text")
+          : AndroidBundle.messagePointer("action.Android.RunAndroidSdkManager.text"));
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
+
+    if (IdeInfo.getInstance().isAndroidStudio()) return;
+
+    if (e.getPlace().equals(ActionPlaces.MAIN_TOOLBAR) || e.getPlace().equals(ActionPlaces.POPUP)) {
+      @Nullable Project project = e.getProject();
+      boolean hasAndroidFacets = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
+      presentation.setVisible(hasAndroidFacets);
+    }
   }
 
   @Override

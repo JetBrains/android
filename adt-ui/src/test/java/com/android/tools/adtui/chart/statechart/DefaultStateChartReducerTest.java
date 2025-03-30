@@ -15,15 +15,14 @@
  */
 package com.android.tools.adtui.chart.statechart;
 
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class DefaultStateChartReducerTest {
   private enum ColorState {

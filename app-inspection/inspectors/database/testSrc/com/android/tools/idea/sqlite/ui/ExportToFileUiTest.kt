@@ -46,6 +46,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.treeStructure.Tree
+import org.mockito.AdditionalAnswers.answer
+import org.mockito.AdditionalAnswers.delegatesTo
+import org.mockito.Mockito
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.MouseEvent
@@ -55,14 +63,6 @@ import java.awt.event.MouseEvent.MOUSE_PRESSED
 import javax.swing.AbstractButton
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
-import org.mockito.AdditionalAnswers.answer
-import org.mockito.AdditionalAnswers.delegatesTo
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 
 private const val EXPORT_TO_FILE_ENABLED_DEFAULT = true

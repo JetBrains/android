@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.ui.JBColor.GRAY;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
+import static org.mockito.Mockito.mock;
+
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.ui.JBColor.GRAY;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
-import static org.mockito.Mockito.mock;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link LibraryFileNode}.

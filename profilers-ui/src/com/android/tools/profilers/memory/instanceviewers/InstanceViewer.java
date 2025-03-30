@@ -18,10 +18,9 @@ package com.android.tools.profilers.memory.instanceviewers;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public interface InstanceViewer {
   @NotNull

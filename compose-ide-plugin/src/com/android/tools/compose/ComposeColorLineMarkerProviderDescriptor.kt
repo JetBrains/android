@@ -31,10 +31,6 @@ import com.intellij.ui.colorpicker.ColorPickerBuilder
 import com.intellij.ui.colorpicker.MaterialGraphicalColorPipetteProvider
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.ColorIcon
-import java.awt.Color
-import java.awt.MouseInfo
-import java.awt.event.MouseEvent
-import java.util.Locale
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -48,6 +44,10 @@ import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UastCallKind
 import org.jetbrains.uast.toUElement
+import java.awt.Color
+import java.awt.MouseInfo
+import java.awt.event.MouseEvent
+import java.util.Locale
 
 private const val ICON_SIZE = 8
 

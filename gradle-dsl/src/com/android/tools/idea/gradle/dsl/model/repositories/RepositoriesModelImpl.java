@@ -182,6 +182,24 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   }
 
   /**
+   *  removes repository by URL
+   * @param repositoryUrl the URL of the repository to be removed.
+   * @return {@code true} if there is a repository using {@code repositoryUrl} as URL, {@code false} otherwise.
+   */
+  @Override
+  public boolean removeRepositoryByUrl(@NotNull String repositoryUrl) {
+    List<MavenRepositoryDslElement> elements = myDslElement.getPropertyElements(MavenRepositoryDslElement.class);
+    for (MavenRepositoryDslElement element : elements) {
+      String urlElement = element.getLiteral(URL, String.class);
+      if (repositoryUrl.equalsIgnoreCase(urlElement)) {
+        myDslElement.removeProperty(element);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Look for Google Maven repository. If Gradle version is 4 or newer, look for it by method call and url.
    * If it is lower than 4, look only by url.  (But as of Arctic Fox we only support Gradle 4 or newer.)
    *

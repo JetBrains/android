@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
+import java.util.List;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.List;
 
 /**
  * A tutorial consists of a relatively small number of instructions to

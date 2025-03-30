@@ -16,13 +16,13 @@
 package com.android.tools.rendering
 
 import com.android.testutils.VirtualTimeScheduler
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class SingleThreadExecutorServiceTest {
   @Test

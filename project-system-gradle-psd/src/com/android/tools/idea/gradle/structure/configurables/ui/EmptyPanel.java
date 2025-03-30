@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.NamedColorUtil;
+import java.awt.BorderLayout;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class EmptyPanel extends JPanel {
   public EmptyPanel(@NotNull String text) {

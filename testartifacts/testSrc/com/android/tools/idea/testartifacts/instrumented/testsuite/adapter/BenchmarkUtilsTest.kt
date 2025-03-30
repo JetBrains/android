@@ -21,7 +21,6 @@ import com.google.testing.platform.proto.api.core.LabelProto
 import com.google.testing.platform.proto.api.core.PathProto
 import com.google.testing.platform.proto.api.core.TestArtifactProto
 import com.google.testing.platform.proto.api.core.TestResultProto
-import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Rule
 import org.junit.Test

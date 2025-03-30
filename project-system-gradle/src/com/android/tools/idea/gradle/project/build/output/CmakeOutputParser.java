@@ -43,8 +43,8 @@ public class CmakeOutputParser implements BuildOutputParser {
   @NonNull private static final String CMAKE_ERROR = CMAKE + " " + ERROR;
 
   private final Pattern cmakeErrorOrWarning = Pattern.compile("^\\s*CMake (Error|Warning).+");
-  static final Pattern fileAndLineNumber = Pattern.compile("^(([A-Za-z]:)?.*):([0-9]+)? *:([0-9]+)?(.+)?");
-  static final Pattern errorFileAndLineNumber =
+  public static final Pattern fileAndLineNumber = Pattern.compile("^(([A-Za-z]:)?.*):([0-9]+)? *:([0-9]+)?(.+)?");
+  public static final Pattern errorFileAndLineNumber =
     Pattern.compile("CMake (Error|Warning).*at (([A-Za-z]:)?[^:]+):([0-9]+)?.*(\\([^:]*\\))?:([0-9]+)?(.+)?");
 
   private static final int SOURCE_POSITION_OFFSET = -1;
@@ -190,7 +190,7 @@ public class CmakeOutputParser implements BuildOutputParser {
   }
 
   @VisibleForTesting
-  static ErrorFields matchErrorFileAndLineNumberErrorParts(
+  public static ErrorFields matchErrorFileAndLineNumberErrorParts(
     @NonNull Matcher matcher, @NonNull String line) {
     ErrorFields
       fields = new ErrorFields();
@@ -217,10 +217,10 @@ public class CmakeOutputParser implements BuildOutputParser {
     return fields;
   }
 
-  static class ErrorFields {
+  public static class ErrorFields {
     MessageEvent.Kind kind;
-    int lineNumber;
-    int columnNumber;
+    public int lineNumber;
+    public int columnNumber;
     String errorMessage;
   }
 }

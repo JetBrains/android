@@ -34,7 +34,8 @@ import org.mockito.Mockito.verify
 
 @RunWith(JUnit4::class)
 class AndroidProjectRootListenerTest {
-  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.inMemory()
 
   private val project by lazy { androidProjectRule.project }
   private val module by lazy { androidProjectRule.fixture.module }

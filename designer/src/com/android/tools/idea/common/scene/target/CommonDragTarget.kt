@@ -41,6 +41,7 @@ import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Graphics2D
@@ -48,7 +49,6 @@ import java.awt.Point
 import java.awt.Stroke
 import java.awt.event.InputEvent
 import kotlin.math.abs
-import org.intellij.lang.annotations.JdkConstants
 
 private const val DEBUG_RENDERER = false
 

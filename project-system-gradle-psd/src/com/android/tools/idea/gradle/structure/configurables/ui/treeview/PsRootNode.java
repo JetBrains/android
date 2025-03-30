@@ -17,10 +17,9 @@ package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.intellij.ui.treeStructure.SimpleNode;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class PsRootNode extends AbstractPsNode {
   @NotNull private List<? extends AbstractPsNode> myChildren = Collections.emptyList();

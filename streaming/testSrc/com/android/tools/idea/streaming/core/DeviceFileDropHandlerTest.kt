@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.streaming.emulator.EmulatorController

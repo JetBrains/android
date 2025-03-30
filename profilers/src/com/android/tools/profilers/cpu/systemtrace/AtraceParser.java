@@ -16,8 +16,6 @@
 package com.android.tools.profilers.cpu.systemtrace;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
-import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.MainProcessSelector;
 import com.android.tools.profilers.cpu.TraceParser;

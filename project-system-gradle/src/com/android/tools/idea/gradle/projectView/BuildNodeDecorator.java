@@ -30,11 +30,10 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.packageDependencies.ui.PackageDependenciesNode;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This node, in addition to displaying a directory in the "Project" view, changes the default text of the node (the path of the folder)
@@ -48,12 +47,11 @@ import java.io.File;
  */
 public class BuildNodeDecorator implements ProjectViewNodeDecorator {
   @Override
-  public void decorate(ProjectViewNode node, PresentationData data) {
-    if (!(node instanceof PsiDirectoryNode)) {
+  public void decorate(@NotNull ProjectViewNode node, @NotNull PresentationData data) {
+    if (!(node instanceof PsiDirectoryNode psiDirectoryNode)) {
       return;
     }
 
-    final PsiDirectoryNode psiDirectoryNode = (PsiDirectoryNode)node;
     PsiDirectory directory = psiDirectoryNode.getValue();
     if (directory == null || !directory.isValid()) {
       return;

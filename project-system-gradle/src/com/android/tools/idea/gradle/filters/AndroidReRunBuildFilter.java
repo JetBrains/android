@@ -2,11 +2,10 @@ package com.android.tools.idea.gradle.filters;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.intellij.execution.filters.HyperlinkInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.execution.filters.GradleReRunBuildFilter;
-
 import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.execution.filters.GradleReRunBuildFilter;
 
 public class AndroidReRunBuildFilter extends GradleReRunBuildFilter {
 

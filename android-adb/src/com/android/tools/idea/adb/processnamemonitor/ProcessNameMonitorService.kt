@@ -35,9 +35,9 @@ import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.flow.Flow
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlinx.coroutines.flow.Flow
 
 private const val LOGCAT_PROTO_SUPPORT_SDK = 35
 

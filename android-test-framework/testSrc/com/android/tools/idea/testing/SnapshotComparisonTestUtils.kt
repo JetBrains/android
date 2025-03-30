@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.testutils.TestUtils
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.google.common.truth.Truth
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase

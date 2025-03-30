@@ -42,6 +42,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
 import javax.swing.Icon
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -61,6 +62,8 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
   override fun getIcon(): Icon = StudioIcons.GutterIcons.PREVIEW_SETTINGS
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+    if (suppressAndroidPlugin()) return null
+
     if (element !is LeafPsiElement) return null
     if (element.tokenType != KtTokens.IDENTIFIER) return null
     if (!element.isValid) return null

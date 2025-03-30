@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
@@ -554,7 +555,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     FlatDirRepositoryModel flatDirRepositoryModel = (FlatDirRepositoryModel)repos.get(0);
 
     List<GradlePropertyModel> dirs = flatDirRepositoryModel.dirs().toList();
-    dirs.sort(Comparator.comparing(e -> e.resolve().toString()));
+    dirs = ContainerUtil.sorted(dirs, Comparator.comparing(e -> e.resolve().toString()));
 
     assertEquals(OTHER_TEST_DIR, dirs.get(0).toString());
     assertEquals(TEST_DIR, dirs.get(1).toString());

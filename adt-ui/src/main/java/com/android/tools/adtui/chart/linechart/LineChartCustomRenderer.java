@@ -16,11 +16,10 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A interface to support adding custom renderers to {@link LineChart} to modify how line series are drawn.

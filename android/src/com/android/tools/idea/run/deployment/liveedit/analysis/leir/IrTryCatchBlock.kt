@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
-import org.objectweb.asm.tree.TryCatchBlockNode
+import org.jetbrains.org.objectweb.asm.tree.TryCatchBlockNode
 
 class IrTryCatchBlock(node: TryCatchBlockNode, labels: IrLabels) {
   val start = labels.get(node.start.label)

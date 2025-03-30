@@ -15,11 +15,14 @@
  */
 package com.android.tools.adtui.common;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.*;
 
 @Retention(RetentionPolicy.SOURCE)
 @Target({METHOD, PARAMETER, LOCAL_VARIABLE, FIELD})

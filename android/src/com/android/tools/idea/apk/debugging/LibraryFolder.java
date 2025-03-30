@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.android.tools.idea.Projects;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public final class LibraryFolder {
   private LibraryFolder() {

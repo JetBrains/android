@@ -2,7 +2,7 @@ package org.jetbrains.android.intentions
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat

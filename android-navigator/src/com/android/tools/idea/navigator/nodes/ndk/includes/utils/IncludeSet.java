@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * Represents a set of include folders in order with duplicates removed.
@@ -80,6 +82,7 @@ public class IncludeSet {
    * @return the list of includes in the order they were seen on the command-line.
    */
   @NotNull
+  @Unmodifiable
   public List<File> getIncludesInOrder() {
     return ContainerUtil.map(myIncludes, File::new);
   }
@@ -110,7 +113,7 @@ public class IncludeSet {
       for (IncludeFlags test : IncludeFlags.values()) {
         String analysis = analyzeFlagPattern(compilerFlag, test);
         // Intentionally comparing instances instead of value because it is a sentinel value returned by analyzeFlagPattern
-        if (analysis == TAKE_NEXT_SENTINEL) {
+        if (Strings.areSameInstance(analysis, TAKE_NEXT_SENTINEL)) {
           useNextFlagAsInclude = true;
           appendUsrInclude = test.myAppendUsrInclude;
           break;

@@ -6,12 +6,12 @@ import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.google.common.truth.Truth.assertThat
-import java.util.EnumSet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.util.EnumSet
 
 class NavStatusCacheTest {
   @get:Rule val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)

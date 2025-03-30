@@ -1,0 +1,127 @@
+### auto-generated section `build intellij.android.execution.common` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-execution-common_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-execution-common",
+  module_name = "intellij.android.execution.common",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "//android/android-adb:adb",
+    "//android/backup:backup-api",
+    "//android/analytics",
+    "//android/artwork",
+    "//android/build-common:buildCommon",
+    "//android/android-common:common",
+    "//android/deploy",
+    "//android/jps-model",
+    "//android/project-system:projectSystem",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl:java-debugger-impl",
+    "//java/execution/openapi:java-execution",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/xdebugger-impl:debugger-impl",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/jdom",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-api:psi",
+    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core",
+  ],
+  runtime_deps = [":android-execution-common_resources"]
+)
+### auto-generated section `build intellij.android.execution.common` end
+
+### auto-generated section `build intellij.android.execution.common.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "android-execution-common-tests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "android-execution-common-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:truth",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-test",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "//android/execution/common:android-execution-common",
+    "//android/android-test-framework:testFramework",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/android-adb:adb",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/deploy",
+    "//android/deploy:deploy_test_lib",
+    "//android/jps-model",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//java/debugger/openapi:java-debugger",
+    "//java/debugger/impl:java-debugger-impl",
+    "//java/execution/impl:java-execution-impl",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/xdebugger-impl:debugger-impl",
+    "//platform/xdebugger-impl:debugger-impl_test_lib",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/execution-impl",
+    "//platform/extensions",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "android-execution-common-tests_test",
+  runtime_deps = [":android-execution-common-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.execution.common.tests` end

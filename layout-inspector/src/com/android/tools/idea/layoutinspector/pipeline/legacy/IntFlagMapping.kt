@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
-import java.util.ArrayList
-
 /** Loose adoption of android.view.inspector.IntFlagMapping */
 class IntFlagMapping {
   private val flags = ArrayList<Flag>()

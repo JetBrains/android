@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
-import org.assertj.core.api.Assertions.assertThat
 
 class DeclarativeFileTest : LightPlatformTestCase() {
   fun testGetEntries() {

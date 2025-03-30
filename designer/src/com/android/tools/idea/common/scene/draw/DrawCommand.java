@@ -16,9 +16,8 @@
 package com.android.tools.idea.common.scene.draw;
 
 import com.android.tools.idea.common.scene.SceneContext;
+import java.awt.Graphics2D;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Paint interface for draw commands

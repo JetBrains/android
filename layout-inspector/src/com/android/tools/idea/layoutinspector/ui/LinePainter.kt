@@ -23,11 +23,11 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Graphics
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreePath
-import org.jetbrains.annotations.VisibleForTesting
 
 val LINES = LinePainter(Control.Painter.DEFAULT)
 

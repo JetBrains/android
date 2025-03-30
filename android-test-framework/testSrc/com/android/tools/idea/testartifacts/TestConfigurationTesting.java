@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.testartifacts;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
+import static org.junit.Assert.assertNotNull;
+
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.truth.Truth;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
@@ -43,9 +46,6 @@ import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Collection of utility methods for testing {@link AndroidTestRunConfiguration}s.

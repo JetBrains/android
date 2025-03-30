@@ -275,7 +275,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     // So the new session should have one event, while completed sessions have two events. The order of completed
     // sessions usually doesn't matter, but when a new project is loaded, every session is perceived as new and we
     // want to select the last imported one.
-    Collections.sort(sortedGroups, Comparator.comparing(EventGroup::getEventsCount, Comparator.reverseOrder())
+    sortedGroups.sort(Comparator.comparing(EventGroup::getEventsCount, Comparator.reverseOrder())
       .thenComparingLong(g -> g.getEventsCount() > 0 ? g.getEvents(0).getSession().getSessionStarted().getStartTimestampEpochMs() : 0));
     sortedGroups.forEach(group -> {
       SessionItem sessionItem = mySessionItems.get(group.getGroupId());
@@ -327,7 +327,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       if (item.getSessionMetaData().getType() == Common.SessionMetaData.SessionType.FULL) {
         sessionArtifacts.addAll(artifacts);
       }
-      Collections.sort(sessionArtifacts, ARTIFACT_COMPARATOR);
+      sessionArtifacts.sort(ARTIFACT_COMPARATOR);
     });
 
     // Trigger artifact updates.
@@ -744,7 +744,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         sessionArtifacts.addAll(artifacts);
       }
     }
-    Collections.sort(sessionArtifacts, ARTIFACT_COMPARATOR);
+    sessionArtifacts.sort(ARTIFACT_COMPARATOR);
 
     List newProtos = ContainerUtil.map(sessionArtifacts, artifact -> artifact.getArtifactProto());
     if (!previousProtos.equals(newProtos)) {

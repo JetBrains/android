@@ -20,12 +20,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.util.indexing.FileContentImpl
 import com.intellij.util.io.DataExternalizer
+import org.junit.Rule
+import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import org.junit.Rule
-import org.junit.Test
 
 class NavXmlIndexTest {
   @get:Rule val projectRule = AndroidProjectRule.onDisk()

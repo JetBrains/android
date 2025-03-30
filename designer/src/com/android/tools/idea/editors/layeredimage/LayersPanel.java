@@ -16,16 +16,15 @@
 
 package com.android.tools.idea.editors.layeredimage;
 
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 import com.android.tools.pixelprobe.Image;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.ui.ScrollPaneFactory;
+import java.awt.BorderLayout;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 class LayersPanel extends JPanel implements LightToolWindowContent {
 

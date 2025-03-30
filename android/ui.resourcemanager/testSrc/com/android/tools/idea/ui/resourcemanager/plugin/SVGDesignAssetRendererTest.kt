@@ -16,9 +16,9 @@
 package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.testutils.ImageDiffUtil
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getPluginsResourcesDirectory
 import com.android.tools.idea.ui.resourcemanager.pathToVirtualFile
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.registerServiceInstance
 import org.junit.Assert.assertNotNull

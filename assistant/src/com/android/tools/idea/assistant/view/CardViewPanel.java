@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for all tutorial views.

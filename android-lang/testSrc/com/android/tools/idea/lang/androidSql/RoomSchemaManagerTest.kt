@@ -19,8 +19,8 @@ import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_F
 import com.android.tools.idea.lang.androidSql.room.Dao
 import com.android.tools.idea.lang.androidSql.room.PsiElementForFakeColumn
 import com.android.tools.idea.lang.androidSql.room.RoomDatabase
-import com.android.tools.idea.lang.androidSql.room.RoomMemberColumn
 import com.android.tools.idea.lang.androidSql.room.RoomFtsTableColumn
+import com.android.tools.idea.lang.androidSql.room.RoomMemberColumn
 import com.android.tools.idea.lang.androidSql.room.RoomRowidColumn
 import com.android.tools.idea.lang.androidSql.room.RoomSchema
 import com.android.tools.idea.lang.androidSql.room.RoomSchemaManager

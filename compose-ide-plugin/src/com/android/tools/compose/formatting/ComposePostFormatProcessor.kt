@@ -116,7 +116,7 @@ private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
   // expression, not only `Modifier.adjust1()`.
   return element is KtDotQualifiedExpression &&
     element.parent !is KtDotQualifiedExpression &&
-    allowAnalysisFromWriteAction { isModifierChainLongerThanTwo(element) }
+         @Suppress("OPT_IN_USAGE_ERROR") allowAnalysisFromWriteAction { isModifierChainLongerThanTwo(element) }
 }
 
 /** Splits KtDotQualifiedExpression it one call per line. */

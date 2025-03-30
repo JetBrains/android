@@ -17,9 +17,9 @@ package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.common.canvasTooltipBackground
 import com.intellij.ui.ColorUtil
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
-import com.intellij.ui.NewUI
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -28,7 +28,7 @@ object InspectorColors {
 
   @Suppress("UnstableApiUsage")
   private val isNewUI
-    get() = NewUI.isEnabled()
+    get() = ExperimentalUI.isNewUI()
 
   /** Color of the line. */
   val LINE_COLOR = ColorUtil.withAlpha(JBColor(0xa6bcc9, 0x8da9ba), 0.7)

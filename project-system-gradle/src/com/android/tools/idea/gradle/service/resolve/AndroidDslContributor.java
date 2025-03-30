@@ -63,12 +63,10 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
-import org.jetbrains.plugins.groovy.lang.psi.impl.GroovyPsiManager;
 import org.jetbrains.plugins.groovy.lang.psi.impl.statements.expressions.TypesUtil;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightParameter;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightVariable;
-import org.jetbrains.plugins.groovy.lang.psi.patterns.GroovyClosurePattern;
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyPropertyUtils;
 import org.jetbrains.plugins.groovy.lang.resolve.ResolveUtilKt;
 import org.jetbrains.plugins.groovy.lang.resolve.delegatesTo.DelegatesToInfo;
@@ -300,6 +298,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
         builder.addParameter(new GrLightParameter("param", type, builder));
         PsiClassType retType = factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope());
         builder.setReturnType(retType);
+        builder.setContainingClass(contributorClass);
         processor.execute(builder, state);
 
         builder.setNavigationElement(method);
@@ -482,7 +481,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
    * such as {@code Action<NamedDomainObject<X>>}.
    */
   @VisibleForTesting
-  static class ParametrizedTypeExtractor {
+  public static class ParametrizedTypeExtractor {
     private static final String GRADLE_ACTION = "org.gradle.api.Action";
     private static final Pattern GRADLE_ACTION_PATTERN = Pattern.compile(Pattern.quote(GRADLE_ACTION) + "<([^<>]+)(?:<([^<>]+)>)?>");
     private static final String KOTLIN_FUNCTION1 = "kotlin.jvm.functions.Function1";

@@ -21,17 +21,12 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.getTextFor
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.RunsInEdt;

@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 
@@ -28,7 +29,8 @@ class TestResourcesTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.TEST_RESOURCES)
     myFixture.enableInspections(AndroidDomInspection())
 
-    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/AndroidManifest.xml")!!)
+    val projectBaseDir = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project)
+    myFixture.openFileInEditor(projectBaseDir.findFileByRelativePath("app/src/androidTest/AndroidManifest.xml")!!)
     val manifestHighlightErrors = myFixture.doHighlighting(HighlightSeverity.ERROR)
     assertThat(manifestHighlightErrors).hasSize(1)
     assertThat(manifestHighlightErrors.single().description).isEqualTo("Cannot resolve symbol '@string/made_up'")
@@ -42,7 +44,8 @@ class TestResourcesTest : AndroidGradleTestCase() {
   fun testGoToDefinition_referenceInsideSameFile() {
     loadProject(TestProjectPaths.TEST_RESOURCES)
 
-    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
+    val projectBaseDir = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project)
+    myFixture.openFileInEditor(projectBaseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
     myFixture.moveCaret("@string/androidTest|AppString")
 
     CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)

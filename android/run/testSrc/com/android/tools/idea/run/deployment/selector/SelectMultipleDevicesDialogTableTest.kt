@@ -17,8 +17,8 @@ package com.android.tools.idea.run.deployment.selector
 
 import com.android.tools.idea.run.LaunchCompatibility
 import com.google.common.truth.Truth.assertThat
-import java.util.Arrays
 import org.junit.Test
+import java.util.Arrays
 
 class SelectMultipleDevicesDialogTableTest {
   private var table: SelectMultipleDevicesDialogTable = SelectMultipleDevicesDialogTable()

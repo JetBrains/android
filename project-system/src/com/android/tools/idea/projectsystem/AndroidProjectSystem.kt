@@ -34,6 +34,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
+import com.intellij.util.SlowOperations
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -257,8 +258,10 @@ fun Project.requiresAndroidModel(): Boolean {
 }
 
 fun isAndroidTestFile(project: Project, file: VirtualFile?): Boolean = ReadAction.nonBlocking<Boolean> {
-  val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
-  module?.let { TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file) } ?: false
+  val module = SlowOperations.knownIssue("IDEA-359567").use {
+    file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
+  }
+  module?.let { TestArtifactSearchScopes.getInstance(module)?.isAndroidTestSource(file!!) } ?: false
 }.executeSynchronously()
 
 fun isUnitTestFile(project: Project, file: VirtualFile?): Boolean = ReadAction.nonBlocking<Boolean> {
@@ -267,8 +270,10 @@ fun isUnitTestFile(project: Project, file: VirtualFile?): Boolean = ReadAction.n
 }.executeSynchronously()
 
 fun isScreenshotTestFile(project: Project, file: VirtualFile?): Boolean = ReadAction.nonBlocking<Boolean> {
-  val module = file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
-  module?.let { TestArtifactSearchScopes.getInstance(module)?.isScreenshotTestSource(file) } ?: false
+  val module = SlowOperations.knownIssue("IDEA-359569").use {
+    file?.let { ProjectFileIndex.getInstance(project).getModuleForFile(file) }
+  }
+  module?.let { TestArtifactSearchScopes.getInstance(module)?.isScreenshotTestSource(file!!) } ?: false
 }.executeSynchronously()
 
 fun isTestFile(project: Project, file: VirtualFile?) =

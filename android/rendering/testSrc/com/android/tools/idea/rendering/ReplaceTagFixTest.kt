@@ -18,8 +18,6 @@ package com.android.tools.idea.rendering
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.application.Result
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.xml.XmlFile
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals

@@ -669,7 +669,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
           // (2 parameter method where our target is the second parameter and
           // the name begins with put) we ignore it.
           if (PsiTypes.intType() != parameter.type ||
-            parameter.parameterIndex() == 1 && parameters.size == 2 && method.name.startsWith("put")
+              parameter.parameterIndex() == 1 && parameters.size == 2 && method.name.startsWith("put")
           ) {
             continue
           }

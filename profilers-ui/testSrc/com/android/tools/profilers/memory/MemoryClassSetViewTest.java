@@ -51,7 +51,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.DisposableRule;
-import com.intellij.util.containers.ImmutableList;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -140,7 +140,7 @@ public class MemoryClassSetViewTest {
   public void testSelectClassSetToShowInClassSetView() {
     assertThat(myClassSetRootNode.getChildCount()).isEqualTo(3);
     //noinspection unchecked
-    ImmutableList<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
+    List<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
     // Verify the ordering is based on retain size.
     assertThat(children.get(0).getAdapter()).isEqualTo(myInstanceObjects.get(2));
     assertThat(children.get(1).getAdapter()).isEqualTo(myInstanceObjects.get(1));

@@ -25,6 +25,7 @@ import static com.android.tools.idea.gradle.project.sync.snapshots.TemplateBased
 import static com.android.tools.idea.gradle.util.LastBuildOrSyncServiceKt.emulateStartupActivityForTest;
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
+import static com.android.tools.idea.testing.AndroidGradleTests.shouldUseRemoteRepositories;
 import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -36,7 +37,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -48,7 +49,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -83,6 +83,7 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import junit.framework.AssertionFailedError;
@@ -238,6 +239,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       try {
         assertEquals(0, ProjectManager.getInstance().getOpenProjects().length);
       }
+      catch (Throwable e) {
+        addSuppressedException(e);
+      }
       finally {
         //noinspection ThrowFromFinallyBlock
         // Added more logging because of http://b/184293946
@@ -266,6 +270,18 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected File loadSimpleApplication() throws Exception {
     return loadProject(SIMPLE_APPLICATION);
+  }
+
+  protected File loadSimpleApplicationWithNoSync() throws Exception {
+    return loadProjectNoSync(SIMPLE_APPLICATION);
+  }
+
+  protected File loadProjectNoSync(@NotNull String relativePath) throws Exception {
+    File projectRoot = prepareProjectForImport(relativePath);
+
+    importProjectNoSync();
+
+    return projectRoot;
   }
 
   protected final File loadProject(@NotNull String relativePath) throws Exception {
@@ -397,7 +413,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     return invokeGradle(project, gradleInvoker ->
       gradleInvoker.executeTasks(
         GradleBuildInvoker.Request.builder(project, projectDir, tasks)
-          .setCommandLineArguments(Lists.newArrayList("--offline"))
+          .setCommandLineArguments(shouldUseRemoteRepositories() ? Collections.emptyList() : Collections.singletonList("--offline"))
           .build()
       ), timeoutMillis);
   }
@@ -446,6 +462,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected final void importProject(@NotNull JavaSdkVersion jdkVersion) {
     Project project = getProject();
     AgpIntegrationTestUtil.importProject(project, jdkVersion);
+  }
+
+  private void importProjectNoSync() {
+    importProjectNoSync(resolveAgpVersionSoftwareEnvironment(AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT).getJdkVersion());
+  }
+
+  private void importProjectNoSync(@NotNull JavaSdkVersion version) {
+    Project project = getProject();
+    AgpIntegrationTestUtil.importProjectNoSync(project, version);
   }
 
   @NotNull

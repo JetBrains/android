@@ -21,8 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 
-import java.util.Comparator
-
 class PsDependencyComparator(private val myUiSettings: PsUISettings) : Comparator<PsBaseDependency> {
 
   private fun PsBaseDependency.getTypePriority() = when (this) {

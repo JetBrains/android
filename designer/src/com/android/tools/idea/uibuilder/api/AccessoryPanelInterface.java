@@ -17,11 +17,9 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This is the interface to Accessory Panels they are returned by ViewGroupHandlers if they want to have a panel on the bottom of the design

@@ -45,11 +45,11 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -860,7 +860,7 @@ public class TimeLinePanel extends JPanel {
       return;
     }
 
-    if ((e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
+    if ((e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0) {
 
       if (progress >= 0.0f && progress <= 1.0f) {
         mMotionProgress = progress;
@@ -1030,14 +1030,6 @@ public class TimeLinePanel extends JPanel {
               break;
             }
           }
-        }
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-        }
-
-        @Override
-        public void mouseDragged(MouseEvent e) {
         }
       };
       addMouseListener(mouseAdapter);

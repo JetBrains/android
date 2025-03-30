@@ -61,7 +61,7 @@ import javax.swing.TransferHandler
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -186,7 +186,7 @@ class DeclaredAttributesInspectorBuilderTest {
     declared.addListener(listener)
 
     util.inspector.refresh()
-    verify(listener).itemsUpdated(ArgumentMatchers.eq(false), ArgumentMatchers.any())
+    verify(listener).itemsUpdated(Mockito.eq(false), Mockito.any())
   }
 
   @Test
@@ -206,7 +206,7 @@ class DeclaredAttributesInspectorBuilderTest {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     util.inspector.refresh()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    verify(listener).itemsUpdated(ArgumentMatchers.eq(true), ArgumentMatchers.any())
+    verify(listener).itemsUpdated(Mockito.eq(true), Mockito.any())
   }
 
   @Test

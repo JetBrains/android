@@ -32,6 +32,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,7 +44,9 @@ import org.jetbrains.annotations.NotNull;
  */
 @Deprecated
 public class FirstRunWizard extends DynamicWizard {
-  private static final String WIZARD_TITLE = "Android Studio Setup Wizard";
+  private static String getWizardTitle() {
+    return ApplicationNamesInfo.getInstance().getFullProductName() + " Setup Wizard";
+  }
   public static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
@@ -58,11 +61,11 @@ public class FirstRunWizard extends DynamicWizard {
                         @NotNull FirstRunWizardMode mode,
                         @NotNull SdkComponentInstaller sdkComponentInstaller,
                         @NotNull FirstRunWizardTracker tracker) {
-    super(null, null, WIZARD_TITLE, host);
+    super(null, null, getWizardTitle(), host);
     myMode = mode;
     mySdkComponentInstaller = sdkComponentInstaller;
     myTracker = tracker;
-    setTitle(WIZARD_TITLE);
+    setTitle(getWizardTitle());
   }
 
   @Override
@@ -165,7 +168,7 @@ public class FirstRunWizard extends DynamicWizard {
 
   @Override
   protected String getWizardActionDescription() {
-    return "Android Studio Setup Wizard";
+    return ApplicationNamesInfo.getInstance().getFullProductName() + " Setup Wizard";
   }
 
   private class FirstRunProgressStep extends ConsolidatedProgressStep {

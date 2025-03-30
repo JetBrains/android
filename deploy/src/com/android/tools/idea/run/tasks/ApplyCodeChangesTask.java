@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 
 public class ApplyCodeChangesTask extends AbstractDeployTask {

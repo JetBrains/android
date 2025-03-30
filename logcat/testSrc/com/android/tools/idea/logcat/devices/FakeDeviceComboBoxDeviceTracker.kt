@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import java.io.Closeable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.runBlocking
+import java.io.Closeable
 
 /** A fake implementation of [IDeviceComboBoxDeviceTracker] for tests */
 internal class FakeDeviceComboBoxDeviceTracker : IDeviceComboBoxDeviceTracker, Closeable {

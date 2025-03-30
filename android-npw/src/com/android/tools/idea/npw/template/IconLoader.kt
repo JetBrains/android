@@ -20,8 +20,8 @@ import com.google.common.cache.CacheLoader
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.IconLoader.findIcon
 import java.net.URL
-import javax.swing.Icon
 import java.util.Optional
+import javax.swing.Icon
 
 private val log get() = logger<IconLoader>()
 

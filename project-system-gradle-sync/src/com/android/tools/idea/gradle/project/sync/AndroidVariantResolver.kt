@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import java.io.File
-
 fun interface AndroidProjectPathResolver {
   /**
    * Resolves a pair of [buildId] and [projectPath] into an Android project represented by [AndroidVariantResolver] or returns `null` if the

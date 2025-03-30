@@ -17,7 +17,10 @@ package com.android.tools.idea.naveditor.scene.layout
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.naveditor.model.*
+import com.android.tools.idea.naveditor.model.effectiveDestination
+import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.model.isStartDestination
 import org.eclipse.elk.alg.layered.options.LayerConstraint
 import org.eclipse.elk.alg.layered.options.LayeredMetaDataProvider
 import org.eclipse.elk.core.RecursiveGraphLayoutEngine

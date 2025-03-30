@@ -24,10 +24,12 @@ import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey.DEVICE_NAME
 import com.android.sdklib.internal.avd.HardwareProperties
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidDevice
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
@@ -43,8 +45,14 @@ class AndroidDeviceSpecUtilTest {
 
   private var myFile: File? = null
 
+  @Before
+  fun setUp() {
+    StudioFlags.RISC_V.override(true)
+  }
+
   @After
   fun cleanUp() {
+    StudioFlags.RISC_V.clearOverride()
     myFile?.delete()
   }
 
@@ -251,6 +259,7 @@ class AndroidDeviceSpecUtilTest {
   ): AvdInfo {
     val avdInfo = mock(AvdInfo::class.java)
     whenever(avdInfo.androidVersion).thenReturn(version)
+    whenever(avdInfo.id).thenReturn("id")
     whenever(avdInfo.name).thenReturn(name)
     whenever(avdInfo.displayName).thenReturn(displayName)
     whenever(avdInfo.properties).thenReturn(

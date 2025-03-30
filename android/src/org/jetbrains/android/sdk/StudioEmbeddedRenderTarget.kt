@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk
 
 import com.android.sdklib.IAndroidTarget
+import com.android.tools.idea.downloads.AndroidLayoutlibDownloader
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.android.tools.sdk.EmbeddedRenderTarget

@@ -47,7 +47,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.NewUI;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -501,7 +501,7 @@ public final class MemoryClassSetView extends AspectObserver {
         if (myIsLeaked) {
           int width = getWidth();
           int height = getHeight();
-          Icon i = mySelected && isFocused() && !NewUI.isEnabled()
+          Icon i = mySelected && isFocused() && !ExperimentalUI.isNewUI()
                    ? ColoredIconGenerator.generateWhiteIcon(StudioIcons.Common.WARNING)
                    : StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();

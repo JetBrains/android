@@ -56,10 +56,10 @@ import kotlinx.datetime.Instant
  * devices are *not* persisted in SelectedTargetStateService -- only user selections are stored.
  */
 @Service(Service.Level.PROJECT)
-internal class DevicesSelectedService
+class DevicesSelectedService
 @VisibleForTesting
 @NonInjectable
-constructor(
+internal constructor(
   private val runConfigurationFlow: Flow<RunnerAndConfigurationSettings?>,
   private val selectedTargetStateService: SelectedTargetStateService,
   private val devicesFlow: Flow<List<DeploymentTargetDevice>>,
@@ -106,7 +106,7 @@ constructor(
    * The primary output of this class, which is the result of combining the current set of devices
    * and the persisted selection to determine a set of selected targets.
    */
-  val devicesAndTargetsFlow =
+  internal val devicesAndTargetsFlow =
     devicesFlow
       .combine(selectionStateFlow, ::updateState)
       .stateIn(
@@ -125,8 +125,8 @@ constructor(
     }
   }
 
-  val devicesAndTargets: DevicesAndTargets
-    get() = devicesAndTargetsFlow.value
+  internal val devicesAndTargets: DevicesAndTargets
+    get() = devicesAndTargetsFlow.firstValue()
 
   private fun updateSelectionState(selectionState: SelectionState) {
     selectedTargetStateService.updateState(selectionState)

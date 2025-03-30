@@ -19,13 +19,15 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionPlaces.TOOLWINDOW_GRADLE
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.externalSystem.action.task.RunExternalSystemTaskAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.TaskData
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager
 import com.intellij.openapi.project.Project
@@ -38,6 +40,8 @@ import org.jetbrains.plugins.gradle.service.resolve.GradleCommonClassNames.GRADL
 import org.jetbrains.plugins.gradle.util.GradleTaskClassifier
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JComponent
+import javax.swing.JPanel
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -71,10 +75,10 @@ class GradleRunTaskActionIntegrationTest {
     }
   }
 
-  private class TestGradleTaskListener: ExternalSystemTaskNotificationListenerAdapter() {
+  private class TestGradleTaskListener: ExternalSystemTaskNotificationListener {
     var capturedException: Exception? = null
 
-    override fun onFailure(id: ExternalSystemTaskId, exception: Exception) {
+    override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
       capturedException = exception
     }
   }
@@ -90,12 +94,7 @@ class GradleRunTaskActionIntegrationTest {
       fixture.openFileInEditor(buildGradleFile!!)
 
       val gradleTaskActionEvent = mock<AnActionEvent>().apply {
-        whenever(dataContext).thenReturn(
-          SimpleDataContext.builder()
-            .add(CommonDataKeys.EDITOR, fixture.editor)
-            .add(CommonDataKeys.PROJECT, project)
-            .build()
-        )
+        whenever(dataContext).thenReturn(IdeUiService.getInstance().createUiDataContext(createContextComponent(project, fixture)))
         whenever(place).thenReturn(TOOLWINDOW_GRADLE)
       }
       val gradleTaskData = TaskData(GRADLE_SYSTEM_ID, taskName, linkedExternalProjectPath, "Test run task from Gradle tool window").apply {
@@ -103,6 +102,18 @@ class GradleRunTaskActionIntegrationTest {
         type = GRADLE_API_DEFAULT_TASK
       }
       perform(project, GRADLE_SYSTEM_ID, gradleTaskData, gradleTaskActionEvent)
+    }
+
+    private fun createContextComponent(project: Project, fixture: CodeInsightTestFixture): JComponent {
+      val buildGradleFile = VfsUtil.findRelativeFile(project.guessProjectDir(), "build.gradle")
+      fixture.openFileInEditor(buildGradleFile!!)
+      val panel = object : JPanel(), UiDataProvider {
+        override fun uiDataSnapshot(sink: DataSink) {
+          sink[CommonDataKeys.PROJECT] = project
+        }
+      }
+      panel.add(fixture.editor.component)
+      return fixture.editor.contentComponent
     }
   }
 }

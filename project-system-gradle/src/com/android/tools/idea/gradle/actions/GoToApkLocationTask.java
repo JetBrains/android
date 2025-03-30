@@ -41,8 +41,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -161,12 +159,12 @@ public class GoToApkLocationTask {
   }
 
   @VisibleForTesting
-  boolean isShowFilePathActionSupported() {
+  public boolean isShowFilePathActionSupported() {
     return RevealFileAction.isSupported();
   }
 
   @VisibleForTesting
-  static class FileOrDirOpener {
+  public static class FileOrDirOpener {
     @NotNull private final Consumer<File> myOpenFile;
     @NotNull private final Consumer<File> myOpenDir;
 
@@ -174,7 +172,7 @@ public class GoToApkLocationTask {
       this(RevealFileAction::openFile, RevealFileAction::openDirectory);
     }
 
-    FileOrDirOpener(@NotNull Consumer<File> openFile, @NotNull Consumer<File> openDir) {
+    public FileOrDirOpener(@NotNull Consumer<File> openFile, @NotNull Consumer<File> openDir) {
       myOpenFile = openFile;
       myOpenDir = openDir;
     }
@@ -189,17 +187,17 @@ public class GoToApkLocationTask {
   }
 
   @VisibleForTesting
-  static class OpenFolderNotificationListener extends NotificationListener.Adapter {
+  public static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Map<String, File> myApkPathsPerModule;
     @NotNull private final Project myProject;
     @NotNull private final FileOrDirOpener myLocationOpener;
 
-    OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule, @NotNull Project project) {
+    public OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule, @NotNull Project project) {
       this(apkPathsPerModule, project, new FileOrDirOpener());
     }
 
     @VisibleForTesting
-    OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule,
+    public OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule,
                                    @NotNull Project project,
                                    @NotNull FileOrDirOpener fileOpener) {
       myApkPathsPerModule = apkPathsPerModule;
@@ -253,17 +251,14 @@ public class GoToApkLocationTask {
   }
 
   @VisibleForTesting
-  static class OpenEventLogHyperlink extends NotificationHyperlink {
-    OpenEventLogHyperlink() {
+  public static class OpenEventLogHyperlink extends NotificationHyperlink {
+    public OpenEventLogHyperlink() {
       super("open.event.log", "Show APK path(s) in the '" + ActionCenter.getToolwindowName() + "' view");
     }
 
     @Override
     protected void execute(@NotNull Project project) {
-      ToolWindow tw = ActionCenter.getToolWindow(project);
-      if (tw != null) {
-        tw.activate(null, false);
-      }
+      ActionCenter.activateLog(project, false);
     }
 
     @Override

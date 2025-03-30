@@ -19,8 +19,8 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlDataProvider
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
-import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElement?>) :
   PreviewElementModelAdapter<TestPreviewElement, Any> {

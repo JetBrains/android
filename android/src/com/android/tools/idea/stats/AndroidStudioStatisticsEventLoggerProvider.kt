@@ -19,11 +19,9 @@ import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
 import com.intellij.internal.statistic.eventLog.StatisticsEventLoggerProvider
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant
 import com.intellij.openapi.application.ApplicationManager
-import java.util.concurrent.TimeUnit
 
 @Suppress("UnstableApiUsage")
-class AndroidStudioStatisticsEventLoggerProvider : StatisticsEventLoggerProvider("FUS", 1, TimeUnit.HOURS.toMillis(1), 200 * 1024, false) {
-
+class AndroidStudioStatisticsEventLoggerProvider : StatisticsEventLoggerProvider("FUS", 1, DEFAULT_SEND_FREQUENCY_MS, DEFAULT_MAX_FILE_SIZE_BYTES) {
   override val logger: StatisticsEventLogger by lazy { createLogger() }
 
   override fun isRecordEnabled(): Boolean {

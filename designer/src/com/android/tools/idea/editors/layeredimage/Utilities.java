@@ -21,11 +21,10 @@ import com.android.tools.pixelprobe.PixelProbe;
 import com.android.tools.pixelprobe.decoder.Decoder;
 import com.android.tools.pixelprobe.util.Images;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import org.jetbrains.annotations.NotNull;
 
 class Utilities {
   private Utilities() {

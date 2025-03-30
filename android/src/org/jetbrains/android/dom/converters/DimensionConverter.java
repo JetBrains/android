@@ -57,11 +57,10 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
   @Nullable
   @Override
   public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
-    return fromString(s);
+    return doFromString(s);
   }
 
-  @Nullable
-  public String fromString(@Nullable @NonNls String s) {
+  public static @NonNls @Nullable String doFromString(@NonNls @Nullable String s) {
     final String unit = getUnitFromValue(s);
 
     if (unit == null || unit.isEmpty()) {

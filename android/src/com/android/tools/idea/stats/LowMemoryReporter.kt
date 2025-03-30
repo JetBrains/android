@@ -50,7 +50,7 @@ class LowMemoryReporter : Disposable {
                          .setJavaProcessStats(CommonMetricsData.javaProcessStats))
       if (limiter.tryAcquire()) {
         try {
-          AndroidStudioSystemHealthMonitor.getInstance().lowMemoryDetected(MemoryReportReason.FrequentLowMemoryNotification)
+          AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.FrequentLowMemoryNotification)
         } finally {
           limiter.reset()
         }
@@ -63,7 +63,7 @@ class LowMemoryReporter : Disposable {
           return@register
         }
         try {
-          AndroidStudioSystemHealthMonitor.getInstance().lowMemoryDetected(MemoryReportReason.LowMemory)
+          AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.LowMemory)
         } finally {
           limiter.reset()
         }

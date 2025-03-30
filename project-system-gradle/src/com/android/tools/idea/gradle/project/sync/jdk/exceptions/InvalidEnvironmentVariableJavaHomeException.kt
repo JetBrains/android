@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk.exceptions
 
+import com.android.tools.idea.gradle.project.sync.jdk.exceptions.base.GradleJdkException
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidEnvironmentVariableJavaHome
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.UndefinedEnvironmentVariableJavaHome
-import com.android.tools.idea.gradle.project.sync.jdk.exceptions.base.GradleJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.openapi.project.Project

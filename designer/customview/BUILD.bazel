@@ -1,0 +1,100 @@
+### auto-generated section `build intellij.android.designer.customview` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-designer-customview_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-designer-customview",
+  module_name = "intellij.android.designer.customview",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/designer",
+    "//android/jps-model",
+    "//android/layout-ui",
+    "//android/preview-designer",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/render-resources",
+    "//android/rendering",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-api:psi",
+  ],
+  runtime_deps = [":android-designer-customview_resources"]
+)
+### auto-generated section `build intellij.android.designer.customview` end
+
+### auto-generated section `build intellij.android.designer.customview.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "android-designer-customview-tests_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
+
+jvm_test(
+  name = "android-designer-customview-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:layoutlib",
+    "@lib//:mockito",
+    "//android/android:core-tests",
+    "//android/android:core-tests_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/designer",
+    "//android/designer:designer_test_lib",
+    "//android/designer/customview:android-designer-customview",
+    "//android/preview-designer",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/rendering",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//java/testFramework",
+    "//platform/core-api:core",
+    "//platform/ide-core",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+  ],
+  runtime_deps = [":android-designer-customview-tests_test_resources"]
+)
+### auto-generated section `build intellij.android.designer.customview.tests` end

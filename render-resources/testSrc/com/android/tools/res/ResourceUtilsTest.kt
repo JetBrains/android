@@ -15,7 +15,6 @@
  */
 package com.android.tools.res
 
-import com.android.tools.res.getStyleResourceUrl
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

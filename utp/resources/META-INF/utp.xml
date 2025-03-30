@@ -19,4 +19,5 @@
     <projectResolve implementation="com.android.tools.utp.GradleAndroidProjectResolverExtension" />
   </extensions>
 
+  <depends>com.intellij.gradle</depends>
 </idea-plugin>

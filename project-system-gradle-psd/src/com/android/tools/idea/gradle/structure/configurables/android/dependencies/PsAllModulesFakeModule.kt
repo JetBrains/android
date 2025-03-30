@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies
 
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.ModuleKind
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
+import com.android.tools.idea.gradle.structure.model.PsModelDescriptor
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsModuleType
+import com.android.tools.idea.gradle.structure.model.PsProject
 import java.io.File
 
 open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<All Modules>", ModuleKind.FAKE, parent) {

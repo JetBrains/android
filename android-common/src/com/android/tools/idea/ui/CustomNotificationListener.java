@@ -19,9 +19,8 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Gets notified when users click on hyperlinks in a notification balloon.

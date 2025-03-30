@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.BatchInvokerStrategyRule;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -30,16 +32,14 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.RunsInEdt;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunsInEdt
 public class IdeaWizardAdapterTest {

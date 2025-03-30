@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class RealWorldExamples {
 

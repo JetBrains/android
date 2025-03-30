@@ -16,11 +16,10 @@
 
 package org.jetbrains.kotlin.android;
 
+import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
-import com.android.ide.common.blame.Message;
 import com.android.utils.ILogger;
-
 import java.util.List;
 
 public class KotlinOutputParser implements PatternAwareOutputParser {

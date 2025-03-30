@@ -20,7 +20,6 @@ import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlTable
 import com.android.tools.idea.lang.androidSql.resolution.BindParameter
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.util.Processor
-import kotlin.streams.asSequence
 
 /**
  * Describes context in which a query ([com.android.tools.idea.lang.androidSql.psi.AndroidSqlFile]) will execute.

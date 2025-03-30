@@ -21,8 +21,8 @@ import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.ui.HideablePanel
-import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StringFormattingUtils.formatLongValueWithCommas
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeAveragePowerInRange
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativeEnergyInRange

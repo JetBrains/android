@@ -21,11 +21,9 @@ import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiLiteralExpression
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
-import org.jetbrains.kotlin.nj2k.getContainingClass
 
 class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {

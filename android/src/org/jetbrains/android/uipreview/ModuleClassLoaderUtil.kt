@@ -50,7 +50,7 @@ import com.intellij.util.lang.UrlClassLoader
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import org.jetbrains.annotations.VisibleForTesting
-import org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.File
 import java.lang.ref.WeakReference
 import java.net.URL

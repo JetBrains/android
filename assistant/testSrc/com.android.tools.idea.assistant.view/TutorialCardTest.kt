@@ -25,6 +25,8 @@ import com.android.tools.idea.assistant.datamodel.TutorialData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.components.JBScrollPane
+import org.junit.Rule
+import org.junit.Test
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.BorderFactory
@@ -32,8 +34,6 @@ import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.border.Border
-import org.junit.Rule
-import org.junit.Test
 
 internal class TutorialCardTest {
   @get:Rule val projectRule = ProjectRule()

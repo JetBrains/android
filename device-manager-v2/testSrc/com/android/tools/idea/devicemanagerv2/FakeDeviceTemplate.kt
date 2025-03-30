@@ -24,8 +24,8 @@ import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.TestDefaultDeviceActionPresentation
 import icons.StudioIcons
-import java.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.Duration
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 

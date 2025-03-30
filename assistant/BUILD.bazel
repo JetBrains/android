@@ -1,0 +1,83 @@
+### auto-generated section `build intellij.android.assistant` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "assistant_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "assistant",
+  module_name = "intellij.android.assistant",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:http-client",
+    "@lib//:jaxb-api",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/android-npw:newProjectWizard",
+    "//android/android-templates:templates",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//plugins/groovy/groovy-psi:psi",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-impl:psi-impl",
+  ],
+  runtime_deps = [":assistant_resources"]
+)
+### auto-generated section `build intellij.android.assistant` end
+
+### auto-generated section `build intellij.android.assistant-test` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "assistant-test_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:guava",
+    "//android/artwork",
+    "//android/android:core",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/assistant",
+    "//android/observable",
+    "//android/observable:observable_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/platform-api:ide",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/android-templates:templates",
+    "//android/android-templates:templates_test_lib",
+  ]
+)
+### auto-generated section `build intellij.android.assistant-test` end

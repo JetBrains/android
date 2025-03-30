@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
@@ -24,6 +25,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 import java.io.IOException
+import kotlin.io.path.pathString
 
 abstract class DeclarativeSchemaTestBase {
 
@@ -32,7 +34,7 @@ abstract class DeclarativeSchemaTestBase {
   // Keep this method here for now as schema files suppose to go away soon
   @Throws(IOException::class)
   fun writeToSchemaFile(filename: TestFile) {
-    val myTestDataRelativePath = "tools/adt/idea/project-system-gradle/testData/declarative"
+    val myTestDataRelativePath = TestUtils.resolveWorkspacePath("tools/adt/idea/project-system-gradle/testData/declarative").pathString
     val folder = filename.toFile(myTestDataRelativePath, "")
     val children = folder.list()
     val projectDir = projectRule.project.guessProjectDir()!!

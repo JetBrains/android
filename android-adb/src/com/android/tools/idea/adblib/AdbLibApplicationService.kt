@@ -42,8 +42,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.StartupActivity
-import java.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.Duration
 
 /**
  * Application service that provides access to the implementation of [AdbSession] and

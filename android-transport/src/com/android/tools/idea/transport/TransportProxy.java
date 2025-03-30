@@ -17,13 +17,13 @@ package com.android.tools.idea.transport;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.io.grpc.ManagedChannel;
+import com.android.tools.idea.io.grpc.Server;
+import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
-import com.android.tools.idea.io.grpc.ManagedChannel;
-import com.android.tools.idea.io.grpc.Server;
-import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;

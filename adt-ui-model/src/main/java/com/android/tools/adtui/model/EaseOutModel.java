@@ -15,11 +15,11 @@
  */
 package com.android.tools.adtui.model;
 
+import static com.android.tools.adtui.model.updater.Updater.DEFAULT_LERP_FRACTION;
+
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.adtui.model.updater.Updater.DEFAULT_LERP_FRACTION;
 
 /**
  * Controls an ease-out value based on elasped time. The easing starts at a user-specified time after an instance is created, after which

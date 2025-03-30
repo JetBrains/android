@@ -21,7 +21,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerServiceInstance
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -38,7 +37,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class CoroutinesUtilsTest {
   private val projectRule = ProjectRule()
 
@@ -78,6 +76,7 @@ class CoroutinesUtilsTest {
   fun androidCoroutineScopeAllowsOverridingDispatcher() {
     val disposable = Disposer.newDisposable()
     try {
+      @Suppress("DEPRECATION_ERROR")
       runBlockingTest {
         // Prepare
         val scope = AndroidCoroutineScope(disposable, coroutineContext)
@@ -110,6 +109,7 @@ class CoroutinesUtilsTest {
   @Test
   @Ignore("b/303086924")
   fun androidCoroutineScopeIsCancelledOnDisposeInRunBlockingTest() {
+    @Suppress("DEPRECATION_ERROR")
     runBlockingTest {
       // Prepare
       val disposable = Disposer.newDisposable()
@@ -131,6 +131,7 @@ class CoroutinesUtilsTest {
 
   @Test
   fun childScopeIsCancelledOnDispose() {
+    @Suppress("DEPRECATION_ERROR")
     runBlockingTest {
       // Prepare
       val disposable = Disposer.newDisposable()
@@ -154,6 +155,7 @@ class CoroutinesUtilsTest {
   fun childScopeIsNotDisposedOnCancel() {
     val disposable = Disposer.newCheckedDisposable()
     try {
+      @Suppress("DEPRECATION_ERROR")
       runBlockingTest {
         // Prepare
         val scope = this.createChildScope(parentDisposable = disposable)

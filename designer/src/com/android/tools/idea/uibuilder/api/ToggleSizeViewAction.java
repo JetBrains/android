@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
-import com.android.tools.idea.common.model.NlComponent;
+import java.util.List;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 public class ToggleSizeViewAction extends ToggleViewAction {
   private final String myAttribute;

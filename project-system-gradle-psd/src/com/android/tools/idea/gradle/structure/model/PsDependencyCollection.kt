@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.google.common.collect.LinkedListMultimap
 import java.io.File
-import java.lang.IllegalStateException
 
 interface PsDependencyCollection<out ModuleT, out LibraryDependencyT, out JarDependencyT, out ModuleDependencyT>
   where ModuleT : PsModule,

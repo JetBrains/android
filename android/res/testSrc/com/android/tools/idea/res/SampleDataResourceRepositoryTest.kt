@@ -46,7 +46,6 @@ import java.io.File
 import java.io.IOException
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

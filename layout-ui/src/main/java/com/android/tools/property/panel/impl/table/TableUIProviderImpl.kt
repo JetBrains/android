@@ -15,7 +15,11 @@
  */
 package com.android.tools.property.panel.impl.table
 
-import com.android.tools.property.panel.api.*
+import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.NewPropertyItem
+import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableUIProvider
 
 class TableUIProviderImpl<P : PropertyItem, N : NewPropertyItem>(
   nameType: Class<N>,

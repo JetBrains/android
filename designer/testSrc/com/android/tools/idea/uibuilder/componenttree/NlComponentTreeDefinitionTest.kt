@@ -24,7 +24,7 @@ import com.android.SdkConstants.MAP_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -83,6 +83,15 @@ import com.intellij.ui.UiInterceptors.UiInterceptor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 import java.awt.Rectangle
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -94,15 +103,6 @@ import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.verify
-import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_PATH = "tools/adt/idea/designer/testData/componenttree"
 private const val DIFF_THRESHOLD = 0.01

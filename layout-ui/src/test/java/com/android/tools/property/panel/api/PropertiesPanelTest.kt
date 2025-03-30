@@ -23,13 +23,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import javax.swing.JPanel
-import javax.swing.JTabbedPane
 import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
+import javax.swing.JTabbedPane
 
 class PropertiesPanelTest {
 

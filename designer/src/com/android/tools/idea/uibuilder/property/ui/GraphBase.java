@@ -41,6 +41,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 public class GraphBase extends JPanel {
   int myInsTop = 30;
@@ -380,7 +381,7 @@ public class GraphBase extends JPanel {
 
     JFrame f = new JFrame(title);
     f.setBounds(new Rectangle(200, 200));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     JPanel base = new JPanel(new BorderLayout());
     JPanel ctl = new JPanel();
     base.add(ctl, BorderLayout.SOUTH);

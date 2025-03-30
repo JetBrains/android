@@ -25,7 +25,6 @@ import com.android.tools.idea.model.MergedManifestException.MissingAttribute
 import com.android.tools.idea.model.MergedManifestException.MissingElement
 import com.android.tools.idea.model.MergedManifestException.ParsingError
 import com.android.tools.idea.model.MergedManifestManager.Companion.LOG
-import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.TraceUtils

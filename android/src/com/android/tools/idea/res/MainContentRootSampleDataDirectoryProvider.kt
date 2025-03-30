@@ -21,9 +21,9 @@ import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
-import java.io.IOException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
+import java.io.IOException
 
 /**
  * An implementation of [SampleDataDirectoryProvider] which houses a module's sample data directory

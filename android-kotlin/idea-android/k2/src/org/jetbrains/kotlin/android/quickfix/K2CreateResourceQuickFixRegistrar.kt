@@ -29,7 +29,7 @@ class K2CreateResourceQuickFixRegistrar : KotlinQuickFixRegistrar() {
     }
 
     companion object {
-        private val FACTORY = KotlinQuickFixFactory.IntentionBased<UnresolvedReference> { diagnostic ->
+        private val FACTORY = KotlinQuickFixFactory.IntentionBased { diagnostic: UnresolvedReference ->
             val ref = diagnostic.psi as? KtSimpleNameExpression
                       ?: return@IntentionBased emptyList<IntentionAction>()
 

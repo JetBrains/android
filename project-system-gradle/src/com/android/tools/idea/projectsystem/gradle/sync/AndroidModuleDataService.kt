@@ -71,7 +71,7 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtension
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
-import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
+import com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
@@ -98,14 +98,14 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     toImport: Collection<DataNode<GradleAndroidModelData>>,
     project: Project,
     modelsProvider: IdeModifiableModelsProvider,
-    modelsByModuleName: Map<String, DataNode<GradleAndroidModelData>>
+    modelsByModuleName: Map<String, DataNode<GradleAndroidModelData>>,
   ) {
     val moduleValidator = myModuleValidatorFactory.create(project)
 
     fun importAndroidModel(
       nodeToImport: DataNode<GradleAndroidModelData>,
       mainModuleDataNode: DataNode<ModuleData>,
-      modelFactory: (GradleAndroidModelData) -> GradleAndroidModel
+      modelFactory: (GradleAndroidModelData) -> GradleAndroidModel,
     ) {
       val mainModuleData = mainModuleDataNode.data
       val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: return
@@ -119,7 +119,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         val facetModel = modelsProvider.getModifiableFacetModel(module)
 
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
-          ?: createAndroidFacet(module, facetModel)
+                           ?: createAndroidFacet(module, facetModel)
         // Configure that Android facet from the information in the GradleAndroidModel.
         val gradleAndroidModel = modelFactory(androidModel)
         configureFacet(androidFacet, module, gradleAndroidModel)
@@ -159,7 +159,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
   private fun Module.setupSdkAndLanguageLevel(
     modelsProvider: IdeModifiableModelsProvider,
     languageLevel: LanguageLevel?,
-    sdkToUse: Sdk?
+    sdkToUse: Sdk?,
   ) {
     val rootModel = modelsProvider.getModifiableRootModel(this)
     if (languageLevel != null) {
@@ -177,7 +177,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     toIgnore: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData,
     project: Project,
-    modelsProvider: IdeModifiableModelsProvider
+    modelsProvider: IdeModifiableModelsProvider,
   ) {
     for (module in toRemoveComputable.get()) {
       val facetModel = modelsProvider.getModifiableFacetModel(module)
@@ -193,9 +193,15 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     imported: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData?,
     project: Project,
-    modelsProvider: IdeModelsProvider
+    modelsProvider: IdeModelsProvider,
   ) {
     GradleProjectInfo.getInstance(project).isNewProject = false
+
+    if (imported.isEmpty() && !IdeInfo.getInstance().isAndroidStudio){
+      // IDEA Android Plugin should not do anything, if there are no Android Modules in the project.
+      // not sure why Android Studio wants to do something (maybe it's OK to skip the remaining in Android Studio as well).
+      return
+    }
 
     // TODO(b/200268010): this only triggers when we have actually run sync, as opposed to having loaded models from cache.  That means
     //  that we should be able to move this to some kind of sync listener.
@@ -216,9 +222,9 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     if (IdeInfo.getInstance().isAndroidStudio) {
       MemorySettingsPostSyncChecker
         .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
-    }
 
-    SupportedModuleChecker.getInstance().checkForSupportedModules(project)
+      SupportedModuleChecker.getInstance().checkForSupportedModules(project)
+    }
 
     ProjectSetup(project).setUpProject(false /* sync successful */)
 
@@ -241,7 +247,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     toImport: Collection<DataNode<GradleAndroidModelData>>,
     projectData: ProjectData?,
     project: Project,
-    modelsProvider: IdeModifiableModelsProvider
+    modelsProvider: IdeModifiableModelsProvider,
   ) {
     super.postProcess(toImport, projectData, project, modelsProvider)
     // We need to set the SDK in postProcess since we need to ensure that this is run after the code in

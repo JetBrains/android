@@ -21,6 +21,7 @@ import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurab
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle;
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurableKt;
@@ -34,7 +35,6 @@ import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
-import com.intellij.ide.projectView.impl.ModuleGroup;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -116,7 +116,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
     if (isGradleProjectInAndroidStudio()) {
       showNewPsd(
         new Place()
-          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.getModulesPerspectiveDisplayName())
           .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
       );
     }
@@ -129,7 +129,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   public void openSdkSettings() {
     showNewPsd(
       new Place()
-        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, "SDK Location")
+        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, AndroidGradlePsdBundle.message("android.sdk.location"))
     );
   }
 
@@ -148,7 +148,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   public void openAndSelectDependency(@NotNull Module module, @NotNull String dependencyString) {
     showNewPsd(
       new Place()
-        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
+        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.getDependenciesPerspectiveDisplayName())
         .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
         .putPath(DeclaredDependenciesPanelKt.MODULE_DEPENDENCIES_PLACE_NAME, dependencyString)
     );
@@ -157,7 +157,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   public void openAndSelectBuildTypesEditor(@NotNull Module module) {
     showNewPsd(
       new Place()
-        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
+        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.getBuildVariantsPerspectiveDisplayName())
         .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
         .putPath(BuildVariantsPanelKt.BUILD_VARIANTS_PLACE_NAME, BuildTypesPanelKt.BUILD_TYPES_DISPLAY_NAME)
     );
@@ -166,7 +166,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   public void openAndSelectFlavorsEditor(@NotNull Module module) {
     showNewPsd(
       new Place()
-        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME)
+        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, BuildVariantsPerspectiveConfigurableKt.getBuildVariantsPerspectiveDisplayName())
         .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
         .putPath(BuildVariantsPanelKt.BUILD_VARIANTS_PLACE_NAME, ProductFlavorsPanelKt.PRODUCT_FLAVORS_DISPLAY_NAME)
     );
@@ -176,7 +176,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   public void openAndSelectDependenciesEditor(@NotNull Module module) {
     showNewPsd(
       new Place()
-        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
+        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.getDependenciesPerspectiveDisplayName())
         .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
     );
   }
@@ -274,13 +274,13 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   }
 
   @Override
-  public boolean processModulesMoved(Module[] modules, @Nullable ModuleGroup targetGroup) {
+  public boolean processModulesMoved(Module[] modules, @Nullable String targetGroupName) {
     if (!canShowPsd(myProject)) return false;
     if (isGradleProjectInAndroidStudio()) {
       return false;
     }
     else {
-      return myDelegate.processModulesMoved(modules, targetGroup);
+      return myDelegate.processModulesMoved(modules, targetGroupName);
     }
   }
 
@@ -292,7 +292,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
       assert module != null;
       showNewPsd(
         new Place()
-          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.getModulesPerspectiveDisplayName())
           .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
       );
     }

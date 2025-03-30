@@ -20,9 +20,11 @@ import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 public interface PluginModel extends PsiElementHolder {
   @NotNull
+  @Unmodifiable
   static List<String> extractNames(@NotNull List<PluginModel> plugins) {
     return ContainerUtil.map(plugins, plugin -> plugin.name().forceString());
   }

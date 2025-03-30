@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.callgraph
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.lint.checks.searchForInterproceduralThreadAnnotationViolations
 import com.android.tools.lint.detector.api.interprocedural.shortName
 import com.android.tools.tests.AdtTestProjectDescriptors

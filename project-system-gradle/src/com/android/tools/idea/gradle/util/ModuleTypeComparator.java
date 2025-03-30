@@ -18,11 +18,10 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.text.Collator;
 import java.util.Comparator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ModuleTypeComparator implements Comparator<Module> {
   public static final ModuleTypeComparator INSTANCE = new ModuleTypeComparator();

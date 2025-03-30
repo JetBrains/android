@@ -16,11 +16,9 @@
 package com.android.tools.idea.mlkit.viewer;
 
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents the file type of TFLite model file.
@@ -47,7 +45,6 @@ public class TfliteModelFileType implements FileType {
     return TFLITE_EXTENSION;
   }
 
-  @NotNull
   @Override
   public Icon getIcon() {
     return StudioIcons.Shell.Filetree.TFLITE_FILE;

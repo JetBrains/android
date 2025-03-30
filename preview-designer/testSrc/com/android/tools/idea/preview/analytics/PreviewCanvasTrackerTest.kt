@@ -18,9 +18,9 @@ package com.android.tools.idea.preview.analytics
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewCanvasEvent
-import java.util.LinkedList
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.util.LinkedList
 
 class PreviewCanvasTrackerTest {
   private val trackedEvents = LinkedList<AndroidStudioEvent>()

@@ -29,7 +29,6 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
@@ -37,6 +36,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
+import java.time.Duration
 
 /** Maximum amount of time to wait for a fast compilation to happen. */
 private val FAST_PREVIEW_COMPILE_TIMEOUT =

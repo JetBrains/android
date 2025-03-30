@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 
 /** Constants for safe args test project paths. */
 object TestDataPaths {

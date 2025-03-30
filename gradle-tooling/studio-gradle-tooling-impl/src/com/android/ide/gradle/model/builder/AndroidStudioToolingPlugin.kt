@@ -36,7 +36,11 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
     // AdditionalArtifactsModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
     if (GradleVersion.current() >= minGradleVersion) {
       LegacyAndroidGradlePluginPropertiesModelBuilder.maybeRegister(project, registry)
-      registry.register(AdditionalClassifierArtifactsModelBuilder())
+      val isJetBrains = "JetBrains" == System.getProperty("idea.vendor.name")
+      val isDownloadSources = System.getProperty("idea.gradle.download.sources", "true").toBoolean()
+      if ((isJetBrains && isDownloadSources) || !isJetBrains) {
+        registry.register(AdditionalClassifierArtifactsModelBuilder())
+      }
     }
   }
 }

@@ -24,7 +24,6 @@ import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper

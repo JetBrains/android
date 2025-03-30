@@ -16,18 +16,18 @@
 package com.android.tools.idea.log
 
 import com.intellij.openapi.diagnostic.DefaultLogger
-import com.jetbrains.rd.util.getThrowableText
+import com.intellij.util.ExceptionUtil
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-private class StringLogger: DefaultLogger("") {
+private class StringLogger : DefaultLogger("") {
   private val _content = StringBuilder()
   val contents: String get() = _content.toString().trim()
 
   private fun log(message: String, t: Throwable?) {
     _content.append(message).appendLine()
 
-    t?.getThrowableText()?.let {
+    t?.let { ExceptionUtil.getThrowableText(it) }?.let {
       _content.append(it).appendLine()
     }
   }

@@ -73,7 +73,7 @@ import org.xml.sax.SAXParseException;
  * the {@link #isUpToDate} method.
  */
 @Immutable
-final class MergedManifestInfo {
+public final class MergedManifestInfo {
   private static final Logger LOG = Logger.getInstance(MergedManifestInfo.class);
 
   @NotNull private final AndroidFacet myFacet;

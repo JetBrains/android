@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.assistant.view
 
-import java.net.URL
 import junit.framework.TestCase
+import java.net.URL
 
 class LocalHTMLTest : TestCase() {
   var html =

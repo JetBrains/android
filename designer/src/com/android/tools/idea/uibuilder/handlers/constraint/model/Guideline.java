@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.model;
 
-import java.util.ArrayList;
-
 /**
  * Guideline
  */
@@ -111,10 +109,5 @@ public class Guideline extends ConstraintWidget {
                 return null;
         }
         throw new AssertionError(anchorType.name());
-    }
-
-    @Override
-    public ArrayList<ConstraintAnchor> getAnchors() {
-        return mAnchors;
     }
 }

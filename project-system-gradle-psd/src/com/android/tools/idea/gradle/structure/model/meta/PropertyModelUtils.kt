@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
@@ -99,7 +100,7 @@ fun ResolvedPropertyModel.dslText(effectiveValueIsNull: Boolean): Annotated<DslT
 
     // TODO(solodkyy): Do we want to continue allowing this ?
     unresolvedModel.valueType == ValueType.REFERENCE && (dependencies.isEmpty() && effectiveValueIsNull) ->
-      DslText.Reference(text).annotateWithError("Unresolved reference: $text")
+      DslText.Reference(text).annotateWithError(AndroidGradlePsdBundle.message("android.error.unresolved.reference", text))
 
     unresolvedModel.valueType == ValueType.REFERENCE ->
       DslText.Reference(text).annotated()

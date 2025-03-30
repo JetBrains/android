@@ -29,6 +29,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import javax.swing.JComponent;
 import org.intellij.images.editor.ImageDocument;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
@@ -38,12 +43,6 @@ import org.intellij.images.options.OptionsManager;
 import org.intellij.images.options.ZoomOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeListener;
-import java.io.IOException;
 
 class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
   private final VirtualFile myFile;

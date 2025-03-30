@@ -17,8 +17,8 @@ package com.android.tools.idea.device.explorer
 
 import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.analytics.UsageTracker.log
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener

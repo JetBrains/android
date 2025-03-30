@@ -16,7 +16,7 @@
 package com.android.tools.idea.diagnostics.util;
 
 import java.lang.management.ThreadInfo;
-import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 import java.util.function.Predicate;
 

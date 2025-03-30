@@ -25,7 +25,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaIdeApi
-import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtCompilerPluginDiagnostic0
+import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -130,7 +130,7 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
   }
 
   companion object {
-    val k2DiagnosticFixFactory = KotlinQuickFixFactory.IntentionBased<KtCompilerPluginDiagnostic0> { diagnostic ->
+    val k2DiagnosticFixFactory = KotlinQuickFixFactory.IntentionBased { diagnostic: KaFirDiagnostic.UnresolvedReference ->
       val psiElement = diagnostic.psi
       listOfNotNull(
         when (diagnostic.factoryName) {

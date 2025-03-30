@@ -132,7 +132,10 @@ class DownloadsAnalyzerUnitTest {
         url = "https://bad.repo.one/snapshot/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
         parent = sampleTaskDescriptor
       ),
-      downloadFailureStub(200, 220, 0, listOf(failureStub("Failed request 1", listOf(failureStub("Caused by 1", emptyList()))))) // time: 20, totalRepoTime: 20, totalRepoBytes: 0
+      downloadFailureStub(200, 220, 0, listOf(failureStub(
+        "Failed request 1",
+        listOf(failureStub("Caused by 1", emptyList()))
+      ))) // time: 20, totalRepoTime: 20, totalRepoBytes: 0
     ))
     // 2.2) Request another badly configured repo, download fails.
     wrapper.receiveEvent(downloadFinishEventStub(
@@ -140,8 +143,9 @@ class DownloadsAnalyzerUnitTest {
         url = "https://bad.repo.two/snapshot/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom",
         parent = sampleTaskDescriptor
       ),
-      downloadFailureStub(230, 240, 0, listOf(failureStub("Failed request 2", emptyList()))) // time: 10, totalRepoTime: 10, totalRepoBytes: 0
-    ))
+      downloadFailureStub(230, 240, 0, listOf(
+        failureStub("Failed request 2", emptyList())))
+    )) // time: 10, totalRepoTime: 10, totalRepoBytes: 0
     // 2.3) Request maven central, but it could not be found there.
     wrapper.receiveEvent(downloadFinishEventStub(
       downloadOperationDescriptorStub(

@@ -10,12 +10,15 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.xml.XmlAttribute
 import org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutXmlFileManager
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.base.projectStructure.moduleInfoOrNull
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
     override fun getGotoDeclarationTargets(sourceElement: PsiElement?, offset: Int, editor: Editor?): Array<PsiElement>? {
+        if (suppressAndroidPlugin()) return null
+
         if (sourceElement is LeafPsiElement && sourceElement.parent is KtSimpleNameExpression) {
             val simpleNameExpression = sourceElement.parent as? KtSimpleNameExpression ?: return null
             val layoutManager = getLayoutManager(sourceElement) ?: return null

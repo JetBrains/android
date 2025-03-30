@@ -95,7 +95,7 @@ fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionI
     SelectableLazyColumn (
       state = listState,
       selectionMode = SelectionMode.Single,
-      onSelectedIndexesChange = {
+      onSelectedIndexesChanged = {
         // The - 1 is to account for the sticky header.
         if (it.isNotEmpty() && recordingList[it.first() - 1] != selectedRecording) {
           val newSelectedDeviceProcess = recordingList[it.first() - 1]

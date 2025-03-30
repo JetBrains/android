@@ -19,8 +19,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import java.util.stream.Collectors
-import kotlin.streams.asSequence
-import kotlin.streams.toList
 
 data class CaptureNodeAnalysisModel constructor(
   val node: CaptureNode,

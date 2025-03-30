@@ -226,8 +226,10 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
         @NotNull Project[] projects = ProjectManager.getInstance().getOpenProjects();
         for (Project project : projects) {
-          project.getMessageBus().syncPublisher(SdkInstallListener.TOPIC)
-            .installCompleted(myInstallRequests, myUninstallRequests);
+          if (!project.isDisposed()) {
+            project.getMessageBus().syncPublisher(SdkInstallListener.TOPIC)
+              .installCompleted(myInstallRequests, myUninstallRequests);
+          }
         }
 
         if (!failures.isEmpty()) {

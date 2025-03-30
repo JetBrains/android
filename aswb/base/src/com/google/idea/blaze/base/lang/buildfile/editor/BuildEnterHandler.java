@@ -28,7 +28,7 @@ import com.google.idea.blaze.base.lang.buildfile.psi.ReturnStatement;
 import com.google.idea.blaze.base.lang.buildfile.psi.StatementListContainer;
 import com.google.idea.blaze.base.lang.buildfile.psi.util.PsiUtils;
 import com.intellij.application.options.CodeStyle;
-import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegateAdapter;
+import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegate;
 import com.intellij.ide.DataManager;
 import com.intellij.injected.editor.EditorWindow;
 import com.intellij.lang.injection.InjectedLanguageManager;
@@ -62,7 +62,7 @@ import javax.annotation.Nullable;
  * com.intellij.psi.codeStyle.lineIndent.LineIndentProvider}. If we need to rework this class in the
  * future, we should switch to this other API.
  */
-public class BuildEnterHandler extends EnterHandlerDelegateAdapter {
+public class BuildEnterHandler implements EnterHandlerDelegate {
 
   @Override
   public Result preprocessEnter(

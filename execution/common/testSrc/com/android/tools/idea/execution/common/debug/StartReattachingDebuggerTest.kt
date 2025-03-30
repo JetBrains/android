@@ -41,6 +41,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -51,7 +52,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
 
-
+@Ignore("FakeAdbTestRule hangs")
 class StartReattachingDebuggerTest {
 
   private val APP_ID = FakeAdbTestRule.CLIENT_PACKAGE_NAME

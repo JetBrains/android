@@ -83,7 +83,7 @@ class ComposeCreateComposableFunctionQuickFix(
   companion object {
 
     val factory =
-      KotlinQuickFixFactory.IntentionBased<KaFirDiagnostic.UnresolvedReference> { diagnostic ->
+      KotlinQuickFixFactory.IntentionBased { diagnostic: KaFirDiagnostic.UnresolvedReference ->
         listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
       }
 

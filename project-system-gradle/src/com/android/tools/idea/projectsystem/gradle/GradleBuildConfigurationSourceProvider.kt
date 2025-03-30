@@ -30,7 +30,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.utils.yieldIfNotNull
-import java.util.Comparator
 
 private const val BUILD_ORDER_BASE = 1_000_000
 private const val MODULE_ORDER_BASE = 2_000_000

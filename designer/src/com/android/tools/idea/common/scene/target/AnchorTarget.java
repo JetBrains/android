@@ -17,8 +17,8 @@ package com.android.tools.idea.common.scene.target;
 
 import static com.intellij.util.ui.JBUI.scale;
 
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -32,12 +32,11 @@ import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
 import java.awt.Color;
 import java.awt.Point;
+import java.util.List;
+import java.util.Optional;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Implements a target anchor for the ConstraintLayout.

@@ -7,13 +7,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.rendering" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="layoutlib" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
+    <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
   </component>
 </module>

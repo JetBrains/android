@@ -15,9 +15,8 @@
  */
 package com.android.tools.adtui.instructions;
 
+import java.awt.Dimension;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Instruction to skip a bit of horizontal space, useful for margins between elements.

@@ -1,0 +1,136 @@
+### auto-generated section `build intellij.android.app-inspection.inspectors.database` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-app-inspection-inspectors-database_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-app-inspection-inspectors-database",
+  module_name = "intellij.android.app-inspection.inspectors.database",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:jgoodies-common",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-guava",
+    "@lib//:protobuf",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/device-explorer-files",
+    "//android/android-lang:lang",
+    "//android/project-system:projectSystem",
+    "//android/android-transport:transport",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/openapi:java",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/indexing-api:indexing",
+    "//platform/lang-api:lang",
+    "//platform/projectModel-api:projectModel",
+    "//platform/usageView",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = [":android-app-inspection-inspectors-database_resources"]
+)
+### auto-generated section `build intellij.android.app-inspection.inspectors.database` end
+
+### auto-generated section `build intellij.android.app-inspection.inspectors.database.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "android-app-inspection-inspectors-database-tests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "android-app-inspection-inspectors-database-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-guava",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "@lib//:kotlin-test",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
+    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
+    "//android/artwork",
+    "//android/android-lang:lang",
+    "//android/android-transport:transport",
+    "//android/android-transport:transport_test_lib",
+    "//android/android-adb:adb",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/app-inspection/inspectors/database:android-app-inspection-inspectors-database",
+    "//android/android-common:common",
+    "//android/device-explorer-files",
+    "//android/project-system:projectSystem",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = ["@lib//:sqlite"]
+)
+
+jvm_test(
+  name = "android-app-inspection-inspectors-database-tests_test",
+  runtime_deps = [":android-app-inspection-inspectors-database-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.app-inspection.inspectors.database.tests` end

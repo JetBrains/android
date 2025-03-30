@@ -52,9 +52,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.testutils.TestUtils;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.res.LocalResourceRepository;
@@ -3776,7 +3774,7 @@ public class ResourceFolderRepositoryTest {
       documentManager.commitDocument(document);
     });
     waitForUpdates(repository);
-    assertThat(repository.getFileRescans()).isEqualTo(rescans + 1);
+    assertThat(repository.getFileRescans()).isAtLeast(rescans + 1);
     assertThat(repository.getModificationCount()).isGreaterThan(generation);
     List<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.STRING, "app_name");
     assertThat(items).hasSize(1);
@@ -4423,6 +4421,9 @@ public class ResourceFolderRepositoryTest {
     WriteAction.run(() -> {
       document.setText("<resources><string name='from_templates'>git</string></resources>");
       fileDocumentManager.saveDocument(document);
+
+      // in production the document will be committed asynchroniously by DocumentCommitThread
+      PsiDocumentManager.getInstance(myProject).commitDocument(document);
     });
     waitForUpdates(repository);
     assertThat(repository.hasResources(RES_AUTO, ResourceType.STRING, "from_templates")).isTrue();

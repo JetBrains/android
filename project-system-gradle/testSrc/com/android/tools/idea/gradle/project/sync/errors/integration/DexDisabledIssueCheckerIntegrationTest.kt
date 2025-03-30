@@ -27,9 +27,10 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.pom.java.LanguageLevel
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 
@@ -55,19 +56,17 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     addJarDependency(dependency)
 
     val generatedExceptions = mutableListOf<Exception>()
-    val taskNotificationListener = object : ExternalSystemTaskNotificationListenerAdapter() {
-      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
-        generatedExceptions.add(e)
+    val taskNotificationListener = object : ExternalSystemTaskNotificationListener {
+      override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
+        generatedExceptions.add(exception)
       }
     }
-    AndroidGradleTaskManager().executeTasks(
-      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-      listOf(":app:assembleDebug"),
-      project.basePath.orEmpty(),
-      null,
-      null,
-      taskNotificationListener
-    )
+    val projectPath = project.basePath.orEmpty()
+    val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
+    val settings = GradleExecutionSettings().apply {
+      tasks = listOf(":app:assembleDebug")
+    }
+    AndroidGradleTaskManager().executeTasks(projectPath, id, settings, taskNotificationListener)
     assertThat(generatedExceptions).hasSize(1)
     assertThat(generatedExceptions[0]).isInstanceOf(BuildIssueException::class.java)
     val buildIssue = (generatedExceptions[0] as BuildIssueException).buildIssue

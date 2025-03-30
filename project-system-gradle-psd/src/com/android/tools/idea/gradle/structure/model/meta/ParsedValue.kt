@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import org.jetbrains.annotations.Nls
+
 /**
  * An outcome of parsing of a text or DSL expression representation of type [T].
  *
@@ -137,5 +139,5 @@ private val notSetAnnotated = Annotated(ParsedValue.NotSet)
 fun ParsedValue.NotSet.annotated() = notSetAnnotated
 fun <T> T.annotated() = annotateWith(null)
 fun <T> T.annotateWith(annotation: ValueAnnotation?) = Annotated(this, annotation)
-fun <T> T.annotateWithError(error: String) = Annotated(this, ValueAnnotation.Error(error))
+fun <T> T.annotateWithError(@Nls error: String) = Annotated(this, ValueAnnotation.Error(error))
 

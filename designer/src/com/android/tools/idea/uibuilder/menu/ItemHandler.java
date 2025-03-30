@@ -15,19 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
-import com.android.tools.idea.uibuilder.api.DragHandler;
+import static com.android.SdkConstants.ATTR_CHECKABLE;
+import static com.android.SdkConstants.ATTR_ENABLED;
+import static com.android.SdkConstants.ATTR_ICON;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.ATTR_VISIBLE;
+import static com.android.SdkConstants.TAG_MENU;
+
 import com.android.tools.idea.common.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 public final class ItemHandler extends MenuHandler {
   static boolean handles(@NotNull NlComponent item) {

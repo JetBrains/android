@@ -17,7 +17,6 @@
 package org.jetbrains.android.dom.resources;
 
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.resources.ResourceUrl;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.converters.StyleItemConverter;

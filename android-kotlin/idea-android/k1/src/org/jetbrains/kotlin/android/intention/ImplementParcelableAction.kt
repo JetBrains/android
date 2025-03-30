@@ -16,17 +16,18 @@
 
 package org.jetbrains.kotlin.android.intention
 
+import com.android.tools.idea.kotlin.insideBody
 import com.intellij.codeInsight.intention.HighPriorityAction
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canAddParcelable
 import org.jetbrains.kotlin.android.implementParcelable
-import com.android.tools.idea.kotlin.insideBody
-import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.android.isParcelize
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -35,6 +36,7 @@ class ImplementParcelableAction :
         SelfTargetingIntention<KtClass>(KtClass::class.java, { AndroidBundle.message("implement.parcelable.intention.text") }),
         HighPriorityAction {
     override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean =
+            !suppressAndroidPlugin() &&
             AndroidFacet.getInstance(element) != null &&
             !element.insideBody(caretOffset) &&
             !element.isParcelize() &&

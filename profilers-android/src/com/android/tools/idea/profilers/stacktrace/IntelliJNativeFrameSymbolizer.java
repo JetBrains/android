@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class IntelliJNativeFrameSymbolizer implements NativeFrameSymbolizer {
 
-  static final int PREVIOUS_INSTRUCTION_OFFSET = -1;
+  public static final int PREVIOUS_INSTRUCTION_OFFSET = -1;
 
   private static Logger getLogger() {
     return Logger.getInstance(IntelliJNativeFrameSymbolizer.class);

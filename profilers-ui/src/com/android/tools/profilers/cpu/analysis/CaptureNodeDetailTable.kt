@@ -27,7 +27,6 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.table.AbstractTableModel
 import com.android.tools.adtui.common.border as BorderColor
 
 /**

@@ -96,8 +96,7 @@ public class DebugLoggerRule extends ExternalResource {
         }
 
         @Override
-        public void trace(String message) {
-        }
+        public void trace(String message) { }
 
         @Override
         public void debug(String message, @Nullable Throwable t) {

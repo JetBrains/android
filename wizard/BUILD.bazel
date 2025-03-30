@@ -1,0 +1,84 @@
+### auto-generated section `build intellij.android.wizard` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "wizard",
+  module_name = "intellij.android.wizard",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/observable",
+    "//android/observable-ui",
+    "//android/wizard-model",
+    "//platform/forms_rt:java-guiForms-rt",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+  ]
+)
+### auto-generated section `build intellij.android.wizard` end
+
+### auto-generated section `build intellij.android.wizard.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "wizard-tests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "wizard-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/wizard",
+    "//java/testFramework",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/wizard-model",
+    "//android/wizard-model:wizard-model_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "wizard-tests_test",
+  runtime_deps = [":wizard-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.wizard.tests` end

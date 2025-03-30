@@ -15,9 +15,6 @@
  */
 package com.android.ide.gradle.model;
 
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-
 /** Returns artifacts information of a module. */
 public interface GradlePluginModel {
   Boolean hasSafeArgsJava();

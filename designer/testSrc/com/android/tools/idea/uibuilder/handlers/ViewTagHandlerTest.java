@@ -35,8 +35,6 @@ import org.mockito.Mockito;
 
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 /**

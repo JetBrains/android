@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.observable.ui;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.CountListener;
 import com.intellij.ui.ColorPanel;
+import java.awt.Color;
 import org.junit.Test;
-
-import java.awt.*;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class ColorPropertyTest {
   @Test

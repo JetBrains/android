@@ -19,12 +19,17 @@ import com.android.tools.adtui.stdui.GraphicsUtilKt;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.StandardDimensions;
 import com.intellij.util.ui.UIUtilities;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.geom.Path2D;
+import javax.swing.ButtonModel;
+import javax.swing.Icon;
+import javax.swing.JMenu;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.MenuItemLayoutHelper;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Path2D;
 
 /**
  * The paint methods here are extract from the private method equivalents inside {@link javax.swing.plaf.basic.BasicMenuUI} and

@@ -21,7 +21,7 @@ import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -30,27 +30,27 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.BundleBase
 import com.intellij.ide.IdeBundle
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
-import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import javax.swing.JButton
-import javax.swing.JCheckBox
-import kotlin.coroutines.resume
-import kotlin.test.assertFailsWith
-import kotlin.test.fail
-import kotlin.time.Duration.Companion.seconds
+import com.intellij.util.application
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
@@ -61,6 +61,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoRule
+import javax.swing.JButton
+import javax.swing.JCheckBox
+import kotlin.coroutines.resume
+import kotlin.test.assertFailsWith
+import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests the [StringResourceWriter].
@@ -630,11 +636,20 @@ class StringResourceWriterTest {
   private fun dumbSafeDelete(item: ResourceItem) = dumbSafeDelete(listOf(item))
 
   private fun dumbSafeDelete(items: List<ResourceItem>) {
-    DumbModeTestUtils.runInDumbModeSynchronously(project) {
-      runBlocking {
-        withTimeout(2.seconds) {
-          suspendCancellableCoroutine<Unit> { cont ->
-            stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+    fun runBlockingOrBlockingModalIfEdt(block: suspend CoroutineScope.() -> Unit) {
+      if (application.isDispatchThread)
+        runWithModalProgressBlocking(project, "test", block)
+      else
+        runBlocking(block = block)
+    }
+
+    runBlockingOrBlockingModalIfEdt {
+      withTimeout(2.seconds) {
+        (DumbService.getInstance(project) as DumbServiceImpl).runInDumbMode {
+          withContext(Dispatchers.EDT) {
+            suspendCancellableCoroutine<Unit> { cont ->
+              stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+            }
           }
         }
       }

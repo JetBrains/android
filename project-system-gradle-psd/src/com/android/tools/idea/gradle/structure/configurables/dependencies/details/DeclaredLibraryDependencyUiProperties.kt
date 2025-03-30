@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorFactory
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyUiModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyUiModelImpl
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
-import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.noExtractButtonPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderEmptyTo
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -30,7 +31,6 @@ import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import javax.swing.table.TableCellEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderEmptyTo
 
 object DeclaredLibraryDependencyUiProperties {
   fun makeVersionUiProperty(dependency: PsDeclaredLibraryDependency): PropertyUiModel<Unit, *> =

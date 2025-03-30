@@ -19,7 +19,7 @@ import static org.jetbrains.android.UndisposedAndroidObjectsCheckerRule.checkUnd
 
 import com.android.sdklib.AndroidVersion;
 import com.android.testutils.MockitoThreadLocalsCleaner;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -67,8 +67,6 @@ import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
-import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
-import org.jetbrains.kotlin.idea.highlighting.KotlinSemanticHighlightingVisitor;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
@@ -124,10 +122,13 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   private static boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
     // K1: a subtype of [AbstractKotlinHighlightVisitor]
+    if (visitor instanceof AbstractKotlinHighlightVisitor) {
+      return true;
+    }
+
     // K2: [KotlinDiagnosticHighlightVisitor] and [KotlinSemanticHighlightingVisitor]
-    return visitor instanceof AbstractKotlinHighlightVisitor
-           || visitor instanceof KotlinDiagnosticHighlightVisitor
-           || visitor instanceof KotlinSemanticHighlightingVisitor;
+    String visitorClassName = visitor.getClass().getName();
+    return visitorClassName.startsWith("Kotlin") && visitorClassName.endsWith("HighlightVisitor");
   }
 
   public static void refreshProjectFiles() {

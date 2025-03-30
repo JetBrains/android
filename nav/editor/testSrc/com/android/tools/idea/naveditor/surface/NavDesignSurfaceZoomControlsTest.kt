@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.test.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction

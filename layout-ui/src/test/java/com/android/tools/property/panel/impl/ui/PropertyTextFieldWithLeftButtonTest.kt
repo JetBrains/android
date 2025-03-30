@@ -23,13 +23,13 @@ import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditor
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import org.junit.ClassRule
+import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JTextField
-import org.junit.ClassRule
-import org.junit.Test
 
 class PropertyTextFieldWithLeftButtonTest {
 

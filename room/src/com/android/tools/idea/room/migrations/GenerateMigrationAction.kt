@@ -18,8 +18,6 @@ package com.android.tools.idea.room.migrations
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.room.migrations.generators.JavaMigrationClassGenerator
 import com.android.tools.idea.room.migrations.generators.JavaMigrationTestGenerator
-import com.android.tools.idea.room.migrations.generators.KotlinMigrationClassGenerator
-import com.android.tools.idea.room.migrations.generators.KotlinMigrationTestGenerator
 import com.android.tools.idea.room.migrations.json.SchemaBundle
 import com.android.tools.idea.room.migrations.ui.GenerateMigrationWizard
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate

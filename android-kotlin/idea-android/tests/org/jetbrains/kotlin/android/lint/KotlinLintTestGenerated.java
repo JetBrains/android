@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.android.lint;
 
 import com.intellij.testFramework.TestDataPath;
-import org.junit.runner.RunWith;
 
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")

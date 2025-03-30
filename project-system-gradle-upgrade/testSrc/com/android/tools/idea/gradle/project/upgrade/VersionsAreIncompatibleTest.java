@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.android.ide.common.repository.AgpVersion;
+import java.util.Arrays;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.util.Arrays;
-import java.util.Collection;
-
-import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link GradlePluginUpgrade#versionsAreIncompatible(AgpVersion, AgpVersion)}.

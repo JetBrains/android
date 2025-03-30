@@ -16,8 +16,8 @@
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
 import org.jetbrains.annotations.VisibleForTesting
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.tree.ClassNode
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.tree.ClassNode
 
 class IrClass(node: ClassNode) {
   constructor(classBytes: ByteArray) : this(classBytes.toClassNode())

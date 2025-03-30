@@ -16,14 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.StringPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ListPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.MapPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.stringVariablePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.StringPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.stringVariablePropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope

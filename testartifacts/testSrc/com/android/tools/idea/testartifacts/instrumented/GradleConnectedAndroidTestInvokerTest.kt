@@ -47,13 +47,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.anyList
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.never
-import org.mockito.Mockito.nullable
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
@@ -145,11 +143,9 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
       any(),
-      nullable(String::class.java),
+      any(),
       any()
     )
   }
@@ -165,9 +161,8 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           @Suppress("DEPRECATION")
@@ -176,7 +171,6 @@ class GradleConnectedAndroidTestInvokerTest {
           getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -191,9 +185,8 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           @Suppress("DEPRECATION")
@@ -202,7 +195,6 @@ class GradleConnectedAndroidTestInvokerTest {
           getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -218,16 +210,14 @@ class GradleConnectedAndroidTestInvokerTest {
 
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName") &&
           env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -242,15 +232,13 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName#testMethodName")
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -265,15 +253,13 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.debug=true")
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -288,15 +274,13 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "-e name1 true")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           arguments.contains("-Pandroid.testInstrumentationRunnerArguments.name1=true")
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -311,16 +295,14 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "-e name1 true -e name2 false")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           arguments.containsAll(listOf("-Pandroid.testInstrumentationRunnerArguments.name1=true",
                                 "-Pandroid.testInstrumentationRunnerArguments.name2=false"))
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -336,16 +318,14 @@ class GradleConnectedAndroidTestInvokerTest {
       retentionConfiguration, extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures=5") &&
           arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.compressSnapshots=true")
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -361,15 +341,13 @@ class GradleConnectedAndroidTestInvokerTest {
       retentionConfiguration, extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           !arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures")
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -384,15 +362,13 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           arguments.contains("-Pcom.android.tools.utp.GradleAndroidProjectResolverExtension.enable=true")
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -409,11 +385,11 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      eq(listOf(":app:connectedNonDefaultBuildVariantAndroidTest")),
       anyString(),
       any(),
-      nullable(String::class.java),
+      argThat {
+        this.tasks == listOf(":app:connectedNonDefaultBuildVariantAndroidTest")
+      },
       any()
     )
   }
@@ -430,11 +406,11 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      eq(listOf(":app:testModule:connectedDebugAndroidTest")),
       anyString(),
       any(),
-      nullable(String::class.java),
+      argThat {
+        this.tasks == listOf(":app:testModule:connectedDebugAndroidTest")
+      },
       any()
     )
   }
@@ -453,11 +429,11 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      eq(listOf(":connectedDebugAndroidTest")),
       anyString(),
       any(),
-      nullable(String::class.java),
+      argThat {
+        this.tasks == listOf(":connectedDebugAndroidTest")
+      },
       any()
     )
   }
@@ -475,11 +451,11 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      eq(listOf(":ModulesSDK:includedModule:connectedDebugAndroidTest")),
       anyString(),
       any(),
-      nullable(String::class.java),
+      argThat {
+        this.tasks == listOf(":ModulesSDK:includedModule:connectedDebugAndroidTest")
+      },
       any()
     )
   }
@@ -487,16 +463,15 @@ class GradleConnectedAndroidTestInvokerTest {
   @Test
   fun retryExecuteTaskAfterInstallationFailure() {
     whenever(mockGradleTaskManager.executeTasks(
-      any(),
-      anyList(),
       anyString(),
       any(),
-      nullable(String::class.java),
+      any(),
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
-      listener.onEnd(externalTaskId)
+      listener.onEnd(projectPath, externalTaskId)
       null
     }
 
@@ -520,30 +495,26 @@ class GradleConnectedAndroidTestInvokerTest {
 
     inOrder(mockGradleTaskManager, mockAndroidTestSuiteView).apply {
       verify(mockGradleTaskManager).executeTasks(
-        any(),
-        anyList(),
         anyString(),
+        any(),
         argThat {
           run {
             !arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
             env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
           }
         },
-        nullable(String::class.java),
         any()
       )
       verify(mockAndroidTestSuiteView).onRerunScheduled(argThat { id == "DEVICE_SERIAL_NUMBER_2" })
       verify(mockGradleTaskManager).executeTasks(
-        any(),
-        anyList(),
         anyString(),
+        any(),
         argThat {
           run {
             arguments.contains("-Pandroid.experimental.testOptions.uninstallIncompatibleApks=true") &&
             env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_2"
           }
         },
-        nullable(String::class.java),
         any()
       )
       verifyNoMoreInteractions()
@@ -567,16 +538,14 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           arguments.contains("-Pandroid.injected.build.api=30") &&
           arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
         }
       },
-      nullable(String::class.java),
       any()
     )
   }
@@ -599,16 +568,14 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      any(),
-      anyList(),
       anyString(),
+      any(),
       argThat {
         run {
           !arguments.contains("-Pandroid.injected.build.api=30") &&
           arguments.contains("-Pandroid.injected.build.abi=x86,x86_64")
         }
       },
-      nullable(String::class.java),
       any()
     )
     StudioFlags.API_OPTIMIZATION_ENABLE.clearOverride()
@@ -624,13 +591,11 @@ class GradleConnectedAndroidTestInvokerTest {
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
     verify(mockGradleTaskManager).executeTasks(
-      argThat { externalSystemTaskId ->
-        externalSystemTaskId.projectSystemId == GradleConstants.SYSTEM_ID
-      },
-      anyList(),
       anyString(),
+      argThat {
+        this.projectSystemId == GradleConstants.SYSTEM_ID
+      },
       any(),
-      nullable(String::class.java),
       any()
     )
   }
@@ -638,16 +603,15 @@ class GradleConnectedAndroidTestInvokerTest {
   @Test
   fun buildToolWindowShouldBeDisplayedWhenTaskFailedBeforeTestSuiteStarted() {
     whenever(mockGradleTaskManager.executeTasks(
-      any(),
-      anyList(),
       anyString(),
       any(),
-      nullable(String::class.java),
+      any(),
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
-      listener.onEnd(externalTaskId)
+      listener.onEnd(projectPath, externalTaskId)
       null
     }
 
@@ -668,16 +632,15 @@ class GradleConnectedAndroidTestInvokerTest {
   @Test
   fun buildToolWindowShouldNotBeDisplayedWhenTaskFailedAfterTestSuiteStarted() {
     whenever(mockGradleTaskManager.executeTasks(
-      any(),
-      anyList(),
       anyString(),
       any(),
-      nullable(String::class.java),
+      any(),
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
+      val projectPath: String = it.getArgument(2)
       val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
-      listener.onEnd(externalTaskId)
+      listener.onEnd(projectPath, externalTaskId)
       null
     }
 
@@ -700,17 +663,16 @@ class GradleConnectedAndroidTestInvokerTest {
   @Test
   fun buildToolWindowShouldNotBeDisplayedWhenTaskIsCancelled() {
     whenever(mockGradleTaskManager.executeTasks(
-      any(),
-      anyList(),
       anyString(),
       any(),
-      nullable(String::class.java),
+      any(),
       any()
     )).then {
-      val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
-      val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
-      listener.onCancel(externalTaskId)
-      listener.onEnd(externalTaskId)
+      val projectPath: String = it.getArgument(0)
+      val externalTaskId: ExternalSystemTaskId = it.getArgument(1)
+      val listener: ExternalSystemTaskNotificationListener = it.getArgument(3)
+      listener.onCancel(projectPath, externalTaskId)
+      listener.onEnd(projectPath, externalTaskId)
       null
     }
 

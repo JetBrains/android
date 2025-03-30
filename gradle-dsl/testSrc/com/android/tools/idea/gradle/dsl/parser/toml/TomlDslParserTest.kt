@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -26,9 +27,20 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
 import org.junit.Assume.assumeTrue
 import org.junit.Test
+import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
 
 class TomlDslParserTest : LightPlatformTestCase() {
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "For file: {0}")
+    fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
+  }
+
+  override fun setUp() {
+    DeclarativeIdeSupport.override(true)
+    super.setUp()
+  }
 
   @Test
   fun testSingleLibraryLiteralString() {
@@ -79,7 +91,9 @@ class TomlDslParserTest : LightPlatformTestCase() {
   }
 
   fun _testSingleLibraryMultiLineLiteralStringInitialNewline() {
-    assumeTrue("Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4", false)
+    assumeTrue(
+      "Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4",
+      false)
     val toml = """
       [libraries]
       junit = '''
@@ -90,7 +104,9 @@ class TomlDslParserTest : LightPlatformTestCase() {
   }
 
   fun _testSingleLibraryMultiLineBasicStringInitialNewline() {
-    assumeTrue("Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4", false)
+    assumeTrue(
+      "Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4",
+      false)
     val tripleQuote = "\"\"\""
     val junitWithEscapes = "junit:junit:4.13"
       .mapIndexed { i, c -> if ((i % 2) == 1) c.toString() else String.format("\\u%04x", c.code) }
@@ -128,7 +144,9 @@ class TomlDslParserTest : LightPlatformTestCase() {
   }
 
   fun _testBasicStringEscapesKey() {
-    assumeTrue("Toml does not unescape names from quoted keys: https://github.com/JetBrains/intellij-community/pull/1754/commits/d97f0e1cc4fd6fede790f39ac3e9d3c4cef57ed4", false)
+    assumeTrue(
+      "Toml does not unescape names from quoted keys: https://github.com/JetBrains/intellij-community/pull/1754/commits/d97f0e1cc4fd6fede790f39ac3e9d3c4cef57ed4",
+      false)
     val toml = """
       [libraries]
       "\u006au\u006ei\u0074" = "junit:junit:4.13"
@@ -209,7 +227,8 @@ class TomlDslParserTest : LightPlatformTestCase() {
       [libraries.guava]
       module = "com.google.guava:guava"
     """.trimIndent()
-    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to "junit:junit"), "guava" to mapOf( "module" to "com.google.guava:guava")))
+    val expected = mapOf(
+      "libraries" to mapOf("junit" to mapOf("module" to "junit:junit"), "guava" to mapOf("module" to "com.google.guava:guava")))
     doTest(toml, expected)
   }
 
@@ -309,7 +328,8 @@ class TomlDslParserTest : LightPlatformTestCase() {
       [bundles]
       groovy = ["groovy-core", "groovy-json", { name = "groovy-nio", version = "3.14" } ]
     """.trimIndent()
-    val expected = mapOf("bundles" to mapOf("groovy" to listOf("groovy-core", "groovy-json", mapOf("name" to "groovy-nio", "version" to "3.14"))))
+    val expected = mapOf(
+      "bundles" to mapOf("groovy" to listOf("groovy-core", "groovy-json", mapOf("name" to "groovy-nio", "version" to "3.14"))))
     doTest(toml, expected)
   }
 
@@ -333,7 +353,7 @@ class TomlDslParserTest : LightPlatformTestCase() {
     doTest(toml, expected)
   }
 
-  private fun doTest(text: String, expected: Map<String,Any>) {
+  private fun doTest(text: String, expected: Map<String, Any>) {
     val libsTomlFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
       "gradle/libs.versions.toml",
@@ -362,7 +382,8 @@ class TomlDslParserTest : LightPlatformTestCase() {
       }
       setter(key, value)
     }
-    val map = LinkedHashMap<String,Any>()
+
+    val map = LinkedHashMap<String, Any>()
     dslFile.properties.forEach { populate(it, dslFile.getElement(it)) { key, value -> map[key] = value } }
     return map
   }

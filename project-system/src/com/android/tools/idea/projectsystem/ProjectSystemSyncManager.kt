@@ -129,6 +129,6 @@ interface ProjectSystemSyncManager {
 }
 
 /** Endpoint for broadcasting changes in global sync status */
-@JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic<SyncResultListener>("Project sync", SyncResultListener::class.java)
+@JvmField val PROJECT_SYSTEM_SYNC_TOPIC = Topic(SyncResultListener::class.java)
 
 fun Trigger.toReason(): ProjectSystemSyncManager.SyncReason = ProjectSystemSyncManager.SyncReason(this)

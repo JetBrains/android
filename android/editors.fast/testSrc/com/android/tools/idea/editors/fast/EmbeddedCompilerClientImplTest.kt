@@ -34,7 +34,6 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.io.delete
-import com.jetbrains.rd.util.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -47,6 +46,7 @@ import org.junit.Test
 import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class EmbeddedCompilerClientImplTest {
   @get:Rule
@@ -395,11 +395,11 @@ internal class EmbeddedCompilerClientImplTest {
         log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
         isKotlinPluginBundled = true
       ) {
-        beforeCompileCallCount.incrementAndGet()
-        compilationHasStarted.complete(Unit)
-        while (!countDownLatch.await(1, TimeUnit.SECONDS)) {
-          ProgressManager.checkCanceled()
-        }
+          beforeCompileCallCount.incrementAndGet()
+          compilationHasStarted.complete(Unit)
+          while (!countDownLatch.await(1, TimeUnit.SECONDS)) {
+            ProgressManager.checkCanceled()
+          }
       }
       launch(workerThread) {
         compilationHasStarted.await()

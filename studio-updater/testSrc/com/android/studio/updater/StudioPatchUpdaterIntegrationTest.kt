@@ -16,7 +16,7 @@
 package com.android.studio.updater
 
 import com.android.prefs.AbstractAndroidLocations
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.google.common.collect.MoreCollectors
 import com.google.wireless.android.play.playlog.proto.ClientAnalytics
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

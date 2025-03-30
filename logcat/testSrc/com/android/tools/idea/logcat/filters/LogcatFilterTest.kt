@@ -44,13 +44,13 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.testFramework.replaceService
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 
 private val TIMESTAMP = Instant.ofEpochMilli(1000)
 private val ZONE_ID = ZoneId.of("UTC")

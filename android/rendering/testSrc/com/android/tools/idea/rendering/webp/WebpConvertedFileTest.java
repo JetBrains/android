@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.rendering.webp;
 
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
-
 import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.google.common.truth.Truth.assertThat;
+
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.AndroidTestCase;
 
 public class WebpConvertedFileTest extends AndroidTestCase {
   public void testLossless() throws Exception {

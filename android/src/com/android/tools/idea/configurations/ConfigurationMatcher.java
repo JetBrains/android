@@ -637,7 +637,7 @@ public class ConfigurationMatcher {
       comparator = new PhoneConfigComparator(idRank);
     }
 
-    Collections.sort(matches, comparator);
+    matches.sort(comparator);
 
     // Look at the currently active editor to see if it's a layout editor, and if so,
     // look up its configuration and if the configuration is in our match list,

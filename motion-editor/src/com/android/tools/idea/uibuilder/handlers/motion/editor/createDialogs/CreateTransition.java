@@ -148,15 +148,15 @@ public class CreateTransition extends BaseCreatePanel {
     String sid = (String) mStartId.getSelectedItem();
     String eid = (String) mEndId.getSelectedItem();
 
-    if (sid.length() == 0 && eid.length() == 0) {
+    if (sid.isEmpty() && eid.isEmpty()) {
       showErrorDialog("Transition must have a start and end id");
       return null;
     }
-    if (sid.length() == 0) {
+    if (sid.isEmpty()) {
       showErrorDialog("Transition must have a start id");
       return null;
     }
-    if (eid.length() == 0) {
+    if (eid.isEmpty()) {
       showErrorDialog("Transition must have an end id");
       return null;
     }

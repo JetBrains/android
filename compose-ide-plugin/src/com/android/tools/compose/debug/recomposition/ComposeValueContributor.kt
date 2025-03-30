@@ -36,7 +36,6 @@ import com.intellij.psi.util.startOffset
 import com.intellij.xdebugger.frame.XNamedValue
 import com.sun.jdi.IntegerValue
 import com.sun.jdi.Location
-import java.util.concurrent.CancellationException
 import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrame
 import org.jetbrains.kotlin.idea.debugger.core.stackFrame.KotlinStackFrameValueContributor
@@ -44,6 +43,7 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import java.util.concurrent.CancellationException
 
 private const val COMPOSER_VAR = "\$composer"
 private const val CHANGED_VAR = "\$changed"

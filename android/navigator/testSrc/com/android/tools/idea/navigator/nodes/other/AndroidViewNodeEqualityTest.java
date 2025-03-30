@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.navigator.nodes.other;
 
+import static org.mockito.Mockito.mock;
+
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import org.jetbrains.android.AndroidTestCase;
-
-import static org.mockito.Mockito.mock;
 
 /**
  * Equality relationship tests for Android-specific subclasses of

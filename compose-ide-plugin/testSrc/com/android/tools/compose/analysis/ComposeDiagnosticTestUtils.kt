@@ -28,10 +28,10 @@ private val composeCompilerPluginPath by lazy {
 
 private val suppressKotlinVersionCheckOption =
   "plugin:${
-  ComposeCommandLineProcessor.PLUGIN_ID
-}:${
-  ComposeCommandLineProcessor.SUPPRESS_KOTLIN_VERSION_CHECK_ENABLED_OPTION.optionName
-}=true"
+    ComposeCommandLineProcessor.PLUGIN_ID
+  }:${
+    ComposeCommandLineProcessor.SUPPRESS_KOTLIN_VERSION_CHECK_ENABLED_OPTION.optionName
+  }=true"
 
 internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
   if (KotlinPluginModeProvider.isK2Mode()) {

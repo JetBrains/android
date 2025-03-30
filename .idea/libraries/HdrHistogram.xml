@@ -1,11 +1,18 @@
 <component name="libraryTable">
-  <library name="HdrHistogram">
+  <library name="HdrHistogram" type="repository">
+    <properties include-transitive-deps="false" maven-id="org.hdrhistogram:HdrHistogram:2.1.12">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12.jar">
+          <sha256sum>400ee93b75bf4d23f161d02be8644ee77814f1310447ac551c387e87e68b106c</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/hdrhistogram/HdrHistogram/2.1.12/HdrHistogram-2.1.12-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

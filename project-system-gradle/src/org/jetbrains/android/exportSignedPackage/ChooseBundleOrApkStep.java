@@ -15,20 +15,21 @@
  */
 package org.jetbrains.android.exportSignedPackage;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.HyperlinkLabel;
-
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
 public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
   public static final String DOC_URL = "https://d.android.com/r/studio-ui/dynamic-delivery/overview.html";
   private final ExportSignedPackageWizard myWizard;
   private JPanel myContentPanel;
   @VisibleForTesting
-  JRadioButton myBundleButton;
+  public JRadioButton myBundleButton;
   @VisibleForTesting
-  JRadioButton myApkButton;
+  public JRadioButton myApkButton;
   private JPanel myBundlePanel;
   private JPanel myApkPanel;
   private HyperlinkLabel myLearnMoreLink;

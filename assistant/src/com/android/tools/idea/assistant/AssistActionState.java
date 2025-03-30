@@ -17,11 +17,10 @@ package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.assistant.datamodel.DefaultActionState;
 import com.android.tools.idea.assistant.view.StatefulButton;
+import java.awt.Color;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Defines an interface for ActionStates (example {@link DefaultActionState} used by Actions

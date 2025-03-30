@@ -30,7 +30,7 @@ import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.ui.NewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.AnActionLink
 import com.intellij.ui.scale.JBUIScale
@@ -269,8 +269,8 @@ class InformationPopupImpl(
     val content = JPanel(GridBagLayout()).also {
       it.isOpaque = true
       // See b/267198091#comment4 for the motivation of this change.
-      // TODO: Checking for NewUI.isEnabled() should be removed when the new UI becomes stable.
-      it.background = if (NewUI.isEnabled()) JBUI.CurrentTheme.Editor.Tooltip.BACKGROUND else UIUtil.getToolTipBackground()
+      // TODO: Checking for ExperimentalUI.isNewUI() should be removed when the new UI becomes stable.
+      it.background = if (ExperimentalUI.isNewUI()) JBUI.CurrentTheme.Editor.Tooltip.BACKGROUND else UIUtil.getToolTipBackground()
     }
     val gc = GridBag()
 

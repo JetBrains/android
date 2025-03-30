@@ -32,8 +32,8 @@ import icons.StudioIcons.LayoutEditor.Palette.TAB_ITEM
 import icons.StudioIcons.LayoutEditor.Palette.TEXT_VIEW
 import icons.StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 import icons.StudioIcons.LayoutEditor.Palette.VIEW
-import javax.swing.Icon
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import javax.swing.Icon
 
 const val ROOT_NAME = "root"
 

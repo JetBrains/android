@@ -35,7 +35,6 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -44,6 +43,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
@@ -634,7 +634,7 @@ public class MoreFontsDialog extends DialogWrapper {
     }
 
     private void repopulateModelEDT() {
-      ApplicationManager.getApplication().assertIsDispatchThread();
+      ThreadingAssertions.assertEventDispatchThread();
       boolean startLoad;
       startLoad = myLoadedFontIndex < 0;
       populateModel();
@@ -677,7 +677,7 @@ public class MoreFontsDialog extends DialogWrapper {
     }
 
     private void loadRemainingFonts() {
-      ApplicationManager.getApplication().assertIsDispatchThread();
+      ThreadingAssertions.assertEventDispatchThread();
       List<FontFamily> fontsToDownload;
       int size = super.getSize();
       if (myLoadedFontIndex >= size) {
@@ -701,7 +701,7 @@ public class MoreFontsDialog extends DialogWrapper {
     }
 
     private void loadDoneEDT() {
-      ApplicationManager.getApplication().assertIsDispatchThread();
+      ThreadingAssertions.assertEventDispatchThread();
       fireContentsChanged(this, myFirstLoadedFontIndex, myLoadedFontIndex);
       loadRemainingFonts();
     }

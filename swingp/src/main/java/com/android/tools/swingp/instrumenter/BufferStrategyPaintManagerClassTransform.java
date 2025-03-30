@@ -16,13 +16,17 @@
 package com.android.tools.swingp.instrumenter;
 
 import com.android.tools.swingp.BufferStrategyPaintMethodStat;
-import org.jetbrains.org.objectweb.asm.*;
-import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter;
-import org.jetbrains.org.objectweb.asm.commons.Method;
-
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.Type;
+import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter;
+import org.jetbrains.org.objectweb.asm.commons.Method;
 
 public class BufferStrategyPaintManagerClassTransform implements ClassFileTransformer {
   private static final String BUFFER_STRATEGY_PAINT_MANAGER_NAME = "javax/swing/BufferStrategyPaintManager";

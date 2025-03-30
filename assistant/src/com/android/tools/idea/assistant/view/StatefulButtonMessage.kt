@@ -17,6 +17,7 @@ package com.android.tools.idea.assistant.view
 
 import com.android.tools.idea.assistant.AssistActionState
 import com.intellij.ui.components.JBLabel
+import org.jetbrains.annotations.TestOnly
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.util.Objects
@@ -24,7 +25,6 @@ import javax.swing.BorderFactory
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.text.DefaultCaret
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Displays a message in lieu of a button when an action may not be completed. Note, this is not an

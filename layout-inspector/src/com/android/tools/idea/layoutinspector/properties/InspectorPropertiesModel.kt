@@ -30,9 +30,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.annotations.VisibleForTesting
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Layout Inspector Properties Model

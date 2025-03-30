@@ -1,6 +1,0 @@
-<idea-plugin>
-  <depends>com.android.tools.gradle.dcl</depends>
-  <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
-    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.declarative.DeclarativeDslTransformerFactory"/>
-  </extensions>
-</idea-plugin>

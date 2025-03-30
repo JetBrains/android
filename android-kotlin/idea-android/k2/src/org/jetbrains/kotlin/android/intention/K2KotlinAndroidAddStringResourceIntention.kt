@@ -36,7 +36,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
             allowAnalysisFromWriteAction {
                 analyze(this) {
                     val functionSymbol = symbol as? KaFunctionSymbol ?: return false
-                    val receiverType = functionSymbol.receiverParameter?.type ?: return false
+                    val receiverType = functionSymbol.receiverParameter?.returnType ?: return false
                     return baseClassIds.any { isSubclassOf(receiverType, it, strict = false) }
                 }
             }

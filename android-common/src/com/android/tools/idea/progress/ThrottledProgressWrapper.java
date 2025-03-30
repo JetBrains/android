@@ -19,7 +19,6 @@ import com.android.annotations.Nullable;
 import com.android.repository.api.DelegatingProgressIndicator;
 import com.android.repository.api.ProgressIndicator;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
-
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicReference;

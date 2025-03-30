@@ -18,8 +18,8 @@ package com.android.tools.rendering.classloading
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Functions
 import com.google.common.hash.Hashing
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 private object EmptyClassVisitor : ClassVisitor(Opcodes.ASM9)
 

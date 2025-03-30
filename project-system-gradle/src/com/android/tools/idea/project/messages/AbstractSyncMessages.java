@@ -139,12 +139,12 @@ public abstract class AbstractSyncMessages implements Disposable {
     for (final var handler : quickFixes) {
       String html = handler.toHtml();
       if (html.isEmpty()) continue;
-      if (b.length() > 0) {
+      if (!b.isEmpty()) {
         b.append("\n");
       }
       b.append(html);
     }
-    if (b.length() > 0) {
+    if (!b.isEmpty()) {
       message += ("\n" + b.toString());
     }
     notification.setMessage(message);

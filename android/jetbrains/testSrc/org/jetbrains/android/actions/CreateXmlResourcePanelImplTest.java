@@ -37,7 +37,6 @@ import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.CheckBoxList;
-import java.util.function.Predicate;
 import javax.swing.JComponent;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;

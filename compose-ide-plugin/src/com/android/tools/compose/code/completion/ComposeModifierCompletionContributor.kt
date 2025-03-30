@@ -133,7 +133,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val isNewModifier =
       !isMethodCalledOnImportedModifier &&
-        originalPosition.parentOfType<KtDotQualifiedExpression>() == null
+      originalPosition.parentOfType<KtDotQualifiedExpression>() == null
     // Prioritise functions that return Modifier over other extension function.
     for (symbol in returnsModifier) {
       resultSet.addElement(
@@ -274,7 +274,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // https://youtrack.jetbrains.com/issue/KTIJ-23360 is resolved.
     val isOnInvisibleObject =
       suggestedKtFunction?.containingClassOrObject?.hasModifier(KtTokens.INTERNAL_KEYWORD) ==
-        true && !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
+      true && !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
 
     if (!alreadyAddedResult && !isOnInvisibleObject) {
       resultSet.passResult(completionResult)
@@ -425,7 +425,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.symbol
 
-    return KtSymbolFromIndexProvider.createForElement(file)
+    return KtSymbolFromIndexProvider(file)
       .getExtensionCallableSymbolsByNameFilter(
         { name -> prefixMatcher.prefixMatches(name.asString()) },
         listOf(receiverType),
@@ -488,7 +488,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       val callExpression = argument.parentOfType<KtCallElement>() ?: return false
       val callee =
         callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction
-          ?: return false
+        ?: return false
 
       val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
 
@@ -506,9 +506,9 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     // Case Modifier.align().%this%, modifier.%this%
     val fqName =
       elementOnWhichMethodCalled.callReturnTypeFqName()
-        ?:
-        // Case Modifier.%this%
-        ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
+      ?:
+      // Case Modifier.%this%
+      ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
     return fqName?.asString() == COMPOSE_MODIFIER_FQN
   }
 

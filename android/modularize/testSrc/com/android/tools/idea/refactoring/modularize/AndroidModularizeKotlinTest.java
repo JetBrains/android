@@ -31,7 +31,6 @@ import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.asJava.classes.KtLightClass;
-import org.jetbrains.kotlin.psi.KtClass;
 
 public class AndroidModularizeKotlinTest extends AndroidTestCase {
 

@@ -15,8 +15,22 @@
  */
 package com.android.tools.res.ids;
 
+import static com.android.tools.log.LogAnonymizer.anonymizeClassName;
+import static com.android.tools.log.LogAnonymizer.isPublicClass;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.jetbrains.org.objectweb.asm.Opcodes.BIPUSH;
+import static org.jetbrains.org.objectweb.asm.Opcodes.DUP;
+import static org.jetbrains.org.objectweb.asm.Opcodes.IASTORE;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_0;
+import static org.jetbrains.org.objectweb.asm.Opcodes.NEWARRAY;
+import static org.jetbrains.org.objectweb.asm.Opcodes.PUTSTATIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.SIPUSH;
+import static org.jetbrains.org.objectweb.asm.Opcodes.T_INT;
+import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
+
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -30,15 +44,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Type;
 
-import java.util.*;
-
-import static com.android.tools.log.LogAnonymizer.anonymizeClassName;
-import static com.android.tools.log.LogAnonymizer.isPublicClass;
-import static org.objectweb.asm.Opcodes.*;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.jetbrains.org.objectweb.asm.Opcodes.ALOAD;
+import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.jetbrains.org.objectweb.asm.Opcodes.RETURN;
 
 /**
  * The {@linkplain ResourceClassGenerator} can generate R classes on the fly for a given resource repository.
@@ -77,12 +96,15 @@ public class ResourceClassGenerator {
      * the generation changes.
      */
     long getGeneration();
+
     int getOrGenerateId(@NonNull ResourceReference resourceReference);
   }
 
   private long myIdGeneratorGeneration = -1L;
   private Map<ResourceType, Object2IntOpenHashMap<String>> myCache;
-  /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
+  /**
+   * For int[] in styleables. The ints in styleables are stored in {@link #myCache}.
+   */
   private Map<String, IntArrayList> myStyleableCache;
   @NonNull private final ResourceRepository myResources;
   @NonNull private final NumericIdProvider myIdProvider;
@@ -149,7 +171,8 @@ public class ResourceClassGenerator {
           generateFields(cw, indexFieldsCache);
           generateIntArraysFromCache(cw, className);
         }
-      } else {
+      }
+      else {
         Object2IntOpenHashMap<String> typeCache = myCache.get(type);
         if (typeCache == null) {
           typeCache = new Object2IntOpenHashMap<>();
@@ -160,7 +183,8 @@ public class ResourceClassGenerator {
           generateFields(cw, typeCache);
         }
       }
-    } else {
+    }
+    else {
       // Default R class.
       for (ResourceType t : myResources.getResourceTypes(myNamespace)) {
         if (t.getHasInnerClass()) {
@@ -290,17 +314,21 @@ public class ResourceClassGenerator {
   private static void pushIntValue(@NonNull MethodVisitor mv, int value) {
     if (value >= -1 && value <= 5) {
       mv.visitInsn(ICONST_0 + value);
-    } else if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
+    }
+    else if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
       mv.visitIntInsn(BIPUSH, value);
-    } else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
+    }
+    else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
       mv.visitIntInsn(SIPUSH, value);
-    } else {
+    }
+    else {
       mv.visitLdcInsn(value);
     }
   }
 
   /**
    * Generate code to put set the initial values of an array field (for styleables).
+   *
    * @param mv the class initializer's MethodVisitor (&lt;clinit&gt;)
    */
   private static void generateArrayInitialization(@NonNull MethodVisitor mv, String className, String fieldName,
@@ -319,7 +347,9 @@ public class ResourceClassGenerator {
     mv.visitFieldInsn(PUTSTATIC, className, fieldName, "[I");
   }
 
-  /** Generate an empty constructor. */
+  /**
+   * Generate an empty constructor.
+   */
   private static void generateConstructor(@NonNull ClassWriter cw) {
     MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     mv.visitCode();
@@ -351,7 +381,8 @@ public class ResourceClassGenerator {
       char c = v.charAt(i);
       if (c == '.' || c == ':' || c == '-') {
         sb.append('_');
-      } else {
+      }
+      else {
         sb.append(c);
       }
     }

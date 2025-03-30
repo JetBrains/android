@@ -191,6 +191,7 @@ class ComposeModifierCompletionContributorTest {
   @Test
   fun modifierAsArgument() {
     fun checkArgumentCompletion() {
+      myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString.contains("extensionFunction") }
       myFixture.lookup.currentItem =
         myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
       myFixture.finishLookup('\n')

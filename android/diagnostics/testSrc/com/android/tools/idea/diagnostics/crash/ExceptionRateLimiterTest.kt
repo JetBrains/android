@@ -1,14 +1,9 @@
 package com.android.tools.idea.diagnostics.crash
 
 import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.analytics.UsageTrackerWriter
-import com.intellij.testFramework.ApplicationRule
-import org.junit.Assert.*
-
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 

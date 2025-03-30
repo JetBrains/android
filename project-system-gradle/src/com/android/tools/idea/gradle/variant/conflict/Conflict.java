@@ -16,22 +16,12 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.containers.ContainerUtil;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import org.bouncycastle.math.raw.Mod;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class Conflict {
   @NotNull private final Module mySource;

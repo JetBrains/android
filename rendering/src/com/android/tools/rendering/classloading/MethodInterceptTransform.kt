@@ -15,11 +15,11 @@
  */
 package com.android.tools.rendering.classloading
 
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
-import org.objectweb.asm.commons.GeneratorAdapter
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
 
 private const val VIRTUAL_METHOD_DESCRIPTOR =
   "(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)V"
@@ -52,9 +52,9 @@ private class MethodInterceptorVisitor(
   name: String?,
   descriptor: String?,
   private val staticTrampolineClassType: Type,
-  private val staticTrampolineMethodType: org.objectweb.asm.commons.Method,
+  private val staticTrampolineMethodType: org.jetbrains.org.objectweb.asm.commons.Method,
   private val virtualTrampolineClassType: Type,
-  private val virtualTrampolineMethodType: org.objectweb.asm.commons.Method,
+  private val virtualTrampolineMethodType: org.jetbrains.org.objectweb.asm.commons.Method,
   private val shouldIntercept: (String, String) -> Boolean,
 ) : GeneratorAdapter(Opcodes.ASM9, delegate, access, name, descriptor) {
   /**

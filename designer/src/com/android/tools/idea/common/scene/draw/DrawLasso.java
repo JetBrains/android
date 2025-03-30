@@ -18,8 +18,7 @@ package com.android.tools.idea.common.scene.draw;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
-
-import java.awt.*;
+import java.awt.Graphics2D;
 
 /**
  * Generic Drawing of a selection Lasso

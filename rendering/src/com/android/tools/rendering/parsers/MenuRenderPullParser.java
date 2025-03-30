@@ -15,14 +15,18 @@
  */
 package com.android.tools.rendering.parsers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.FD_RES_MENU;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.rendering.RenderTask;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.*;
 
 /**
  * An extension of {@link LayoutRenderPullParser} specific for Menu xml files.

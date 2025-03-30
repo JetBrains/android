@@ -15,10 +15,9 @@
  */
 package com.android.tools.adtui.model;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> {
 

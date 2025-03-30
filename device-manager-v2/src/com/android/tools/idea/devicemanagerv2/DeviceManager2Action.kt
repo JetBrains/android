@@ -23,7 +23,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import icons.StudioIcons
 import org.jetbrains.android.sdk.AndroidSdkUtils
 
-internal class DeviceManager2Action : DumbAwareAction() {
+open class DeviceManager2Action : DumbAwareAction() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {

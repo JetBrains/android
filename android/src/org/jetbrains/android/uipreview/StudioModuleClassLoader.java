@@ -406,7 +406,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader {
   public void dispose() {
     isDisposed.set(true);
     myImpl.dispose();
-    ourDisposeService.submit(() -> {
+    ourDisposeService.execute(() -> {
       waitForCoroutineThreadToStop();
 
       Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);

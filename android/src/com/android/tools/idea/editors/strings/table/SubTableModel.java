@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A view into a range of the delegate table's columns.
  */
-final class SubTableModel implements TableModel {
+public final class SubTableModel implements TableModel {
   private final TableModel myDelegate;
 
   private final IntSupplier myStartColumnSupplier;

@@ -46,6 +46,7 @@ import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -105,15 +106,15 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
     RepoManager sdkManager = localHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-                    new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
-                    new StudioDownloader(), StudioSettingsController.getInstance());
+                                 new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
+                                 new StudioDownloader(), StudioSettingsController.getInstance());
 
     Collection<RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages().values();
     components.add(AndroidPlatformSdkComponentTreeNode.Companion.createSubtree(remotePackages, myInstallUpdates));
 
     AehdSdkComponentTreeNode.InstallationIntention installationIntention =
       myInstallUpdates ? AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES
-                                                    : AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES;
+                       : AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES;
     if (reason == FirstRunWizardMode.NEW_INSTALL && AehdSdkComponentTreeNode.InstallerInfo.canRun()) {
       components.add(new AehdSdkComponentTreeNode(installationIntention));
     }
@@ -175,7 +176,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull
   @Override
   public String getPathName() {
-    return "Setup Android Studio Components";
+    return "Setup " + ApplicationNamesInfo.getInstance().getFullProductName() + " Components";
   }
 
   @Override

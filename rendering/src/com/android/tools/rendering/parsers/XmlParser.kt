@@ -17,9 +17,9 @@
 
 package com.android.tools.rendering.parsers
 
-import java.io.StringReader
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
+import java.io.StringReader
 
 /** Parses xml from [xmlString] into a [RenderXmlTag] hierarchy returning root tag. */
 fun parseRootTag(xmlString: String): RenderXmlTag {

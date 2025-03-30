@@ -119,9 +119,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   private fun setUpLocalProperties(projectFolderPath: File) {
     try {
       val localProperties = LocalProperties(projectFolderPath)
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
-      }
+      mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
     }
     catch (e: Exception) {
       logger.info("Failed to sync SDKs", e)

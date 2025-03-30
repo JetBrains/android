@@ -20,6 +20,8 @@ package com.android.tools.idea.nav.safeargs.index
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.resources.ResourceUrl
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAccessType
 import javax.xml.bind.annotation.XmlAccessorType
@@ -30,8 +32,6 @@ import javax.xml.bind.annotation.XmlRootElement
 import javax.xml.bind.annotation.adapters.XmlAdapter
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter
 import javax.xml.transform.dom.DOMResult
-import org.w3c.dom.Document
-import org.w3c.dom.Element
 
 // NOTE: If you change any class in this file, you should also increment NavXmlIndex#getVersion()
 

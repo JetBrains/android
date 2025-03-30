@@ -106,7 +106,7 @@ internal class MessagesFile(private val name: String, private val maxSizeBytes: 
 }
 
 private fun Path.readMessages(): List<LogcatMessage> {
-  ObjectInputStream(inputStream()).use {
+  ObjectInputStream(this.inputStream()).use {
     val messages = buildList {
       while (true) {
         val item = it.readLogcatMessage()

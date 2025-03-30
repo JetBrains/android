@@ -1,11 +1,15 @@
 package com.android.tools.idea.util;
 
+import com.android.tools.idea.IdeInfo;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -58,6 +62,20 @@ public class StudioPathManager {
    */
   @NotNull
   public static Path resolvePathFromSourcesRoot(@NotNull String relativePath) {
+    relativePath = FileUtil.normalize(relativePath);
+    Map<String, String> pathMappings = new HashMap<>();
+    pathMappings.put("tools/adt/idea", PathManager.getCommunityHomePath() + "/android");
+    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", PathManager.getHomePath() + "/out/artifacts/KotlinPlugin");
+
+    for (Map.Entry<String, String> entry : pathMappings.entrySet()) {
+      String aospPathPrefix = entry.getKey();
+      String ijPathPrefix = entry.getValue();
+      if (relativePath.startsWith(aospPathPrefix)){
+        String ijFile = ijPathPrefix + relativePath.substring(aospPathPrefix.length());
+        return Paths.get(ijFile).normalize();
+      }
+    }
+
     return Paths.get(getSourcesRootInternal()).resolve(relativePath).normalize();
   }
 
@@ -108,7 +126,7 @@ public class StudioPathManager {
    * Returns true if running inside a Bazel test environment.
    */
   private static boolean isRunningInBazelTest() {
-    return System.getenv().containsKey("TEST_WORKSPACE");
+    return IdeInfo.getInstance().isAndroidStudio() && System.getenv().containsKey("TEST_WORKSPACE");
   }
 
   /**

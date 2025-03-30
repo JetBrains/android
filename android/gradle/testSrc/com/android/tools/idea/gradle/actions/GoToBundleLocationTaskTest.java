@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.actions;
 
 import static com.intellij.notification.NotificationType.INFORMATION;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

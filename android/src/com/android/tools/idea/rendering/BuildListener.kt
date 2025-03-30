@@ -30,11 +30,11 @@ import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.ThreadingAssertions
 import java.util.WeakHashMap
 import java.util.concurrent.CancellationException
 import java.util.concurrent.locks.ReentrantLock
@@ -169,7 +169,7 @@ fun setupBuildListener(
    * dispatcher thread.
    */
   fun setupListenerWhenSmartAndSynced() {
-    ApplicationManager.getApplication().assertIsDispatchThread() // To verify parentDisposable is not disposed during the method execution
+    ThreadingAssertions.assertEventDispatchThread() // To verify parentDisposable is not disposed during the method execution
     if (Disposer.isDisposed(parentDisposable)) return
 
     val buildServices = buildTargetReference.getBuildSystemFilePreviewServices().buildServices

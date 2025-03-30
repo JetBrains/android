@@ -37,10 +37,10 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
+import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Rectangle
 import javax.swing.Icon
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Utility for looking up resources in a project.

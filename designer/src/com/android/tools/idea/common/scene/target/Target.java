@@ -18,17 +18,15 @@ package com.android.tools.idea.common.scene.target;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-
 import com.android.tools.idea.common.scene.draw.DrawCommand;
+import java.awt.Cursor;
+import java.util.List;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.List;
 
 /**
  * {@link Target} are associated with s {@link SceneComponent} and are used to handle

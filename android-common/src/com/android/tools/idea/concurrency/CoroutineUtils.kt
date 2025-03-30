@@ -113,7 +113,7 @@ object AndroidDispatchers {
   val diskIoThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
 }
 
-private val LOG: Logger get() = Logger.getInstance("CoroutinesUtils.kt")
+private val LOG: Logger get() = Logger.getInstance("com.android.tools.idea.concurrency.CoroutinesUtils.kt")
 
 /**
  * Exception handler similar to IDEA's default behavior (see [com.intellij.idea.StartupUtil.installExceptionHandler]) that additionally

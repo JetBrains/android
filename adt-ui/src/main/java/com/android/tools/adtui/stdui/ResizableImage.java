@@ -77,11 +77,6 @@ public class ResizableImage extends JComponent {
     return true;
   }
 
-  @Override
-  public void setBounds(int x, int y, int width, int height) {
-    super.setBounds(x, y, width, height);
-  }
-
   @NotNull
   private Insets getPadding() {
     Insets insets = getInsets();

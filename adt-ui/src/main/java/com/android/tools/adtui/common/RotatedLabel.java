@@ -15,12 +15,16 @@
  */
 package com.android.tools.adtui.common;
 
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import javax.accessibility.Accessible;
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.LabelUI;
-import java.awt.*;
-import java.awt.geom.AffineTransform;
 
 /**
  * RotatedLabel is a {@link JLabel} that draws its text sideways.

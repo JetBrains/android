@@ -1,0 +1,4 @@
+myval="three"
+myTestDslElement {
+  stringVal "${myval}"
+}

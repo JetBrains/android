@@ -38,9 +38,9 @@ import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import junit.framework.TestCase.assertTrue
 import java.nio.file.Files
 import java.nio.file.Path
-import junit.framework.TestCase.assertTrue
 
 internal const val SDK_VERSION_FOR_TEMPLATE_TESTS = 35
 

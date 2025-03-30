@@ -1,0 +1,58 @@
+### auto-generated section `build intellij.android.app-inspection.api` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "android-app-inspection-api",
+  module_name = "intellij.android.app-inspection.api",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:grpc-core",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:guava",
+    "//android/android-common:common",
+    "//android/android-transport:transport",
+    "//platform/util",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+  ]
+)
+
+jvm_library(
+  name = "android-app-inspection-api_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":android-app-inspection-api"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:grpc-core",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:guava",
+    "//android/android-common:common",
+    "//android/android-transport:transport",
+    "//android/android-transport:transport_test_lib",
+    "//platform/util",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "android-app-inspection-api_test",
+  runtime_deps = [":android-app-inspection-api_test_lib"]
+)
+### auto-generated section `build intellij.android.app-inspection.api` end

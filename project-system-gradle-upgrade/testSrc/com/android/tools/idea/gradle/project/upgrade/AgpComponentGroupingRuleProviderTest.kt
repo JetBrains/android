@@ -27,7 +27,6 @@ import com.intellij.usages.impl.rules.UsageTypeGroupingRule
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
 import org.jetbrains.android.AndroidTestCase
-import java.util.ArrayList
 
 class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   fun testRuleIsActive() {

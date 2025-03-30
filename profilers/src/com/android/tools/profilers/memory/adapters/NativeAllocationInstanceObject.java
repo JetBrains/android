@@ -115,11 +115,6 @@ public class NativeAllocationInstanceObject implements InstanceObject {
     return callStack.getFullStack().getFramesCount();
   }
 
-  @Override
-  public boolean getIsRoot() {
-    return false;
-  }
-
   @NotNull
   @Override
   public ValueType getValueType() {

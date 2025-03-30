@@ -25,8 +25,6 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
 /**
  * Installer for platform-tools that stops ADB before installing or uninstalling.
  */

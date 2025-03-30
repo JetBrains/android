@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import static com.intellij.icons.AllIcons.General.HideToolWindow;
+import static javax.swing.SwingUtilities.isDescendingFrom;
+
 import com.android.tools.idea.gradle.util.ui.Header;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -22,20 +25,22 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ChildFocusWatcher;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.LayoutManager;
 import java.awt.event.FocusEvent;
 import java.util.EventListener;
 import java.util.List;
-
-import static com.intellij.icons.AllIcons.General.HideToolWindow;
-import static javax.swing.SwingUtilities.isDescendingFrom;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ToolWindowHeader extends Header implements Disposable {
   @NotNull private final Icon myIcon;
@@ -48,7 +53,7 @@ public class ToolWindowHeader extends Header implements Disposable {
   private final EventDispatcher<MinimizeListener> myEventDispatcher = EventDispatcher.create(MinimizeListener.class);
 
   @NotNull
-  public static ToolWindowHeader createAndAdd(@NotNull String title,
+  public static ToolWindowHeader createAndAdd(@NotNull @NlsContexts.TabTitle String title,
                                               @NotNull Icon icon,
                                               @NotNull JComponent parent,
                                               @Nullable ToolWindowAnchor anchor) {
@@ -81,7 +86,8 @@ public class ToolWindowHeader extends Header implements Disposable {
     myIcon = icon;
     myAnchor = anchor;
     if (myAnchor != null) {
-      myMinimizeAction = new DumbAwareAction("Hide", "", HideToolWindow) {
+      myMinimizeAction =
+        new DumbAwareAction(AndroidBundle.messagePointer("action.DumbAware.ToolWindowHeader.text.hide"), () -> "", HideToolWindow) {
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
           myEventDispatcher.getMulticaster().minimized();

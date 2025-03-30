@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 import com.android.repository.api.Checksum
 import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicator
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPaths
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService

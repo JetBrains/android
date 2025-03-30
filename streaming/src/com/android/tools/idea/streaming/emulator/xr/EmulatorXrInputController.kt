@@ -31,7 +31,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import io.ktor.util.collections.ConcurrentMap
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.KeyEvent
@@ -50,6 +49,7 @@ import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.PI
 import kotlin.math.min
 
@@ -474,7 +474,7 @@ internal enum class XrInputMode {
 @Service(Service.Level.PROJECT)
 internal class EmulatorXrInputControllerService(project: Project): Disposable {
 
-  private val xrControllers = ConcurrentMap<EmulatorController, EmulatorXrInputController>()
+  private val xrControllers = ConcurrentHashMap<EmulatorController, EmulatorXrInputController>()
   private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
 
   fun getXrInputController(emulator: EmulatorController): EmulatorXrInputController {

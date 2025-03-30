@@ -15,26 +15,27 @@
  */
 package com.android.tools.idea.naveditor.dialogs;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBTextField;
-
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
 
 /**
  * This is just a container for the fields in the add action dialog form. The logic is all in {@link AddActionDialog}
  */
 @VisibleForTesting
 public class AddActionDialogUI {
-  JComboBox<NlComponent> myFromComboBox;
-  JComboBox<AddActionDialog.DestinationListEntry> myDestinationComboBox;
-  JComboBox<ValueWithDisplayString> myEnterComboBox;
-  JComboBox<ValueWithDisplayString> myExitComboBox;
-  JComboBox<AddActionDialog.DestinationListEntry> myPopToComboBox;
-  JCheckBox myInclusiveCheckBox;
-  JComboBox<ValueWithDisplayString> myPopEnterComboBox;
-  JComboBox<ValueWithDisplayString> myPopExitComboBox;
-  JCheckBox mySingleTopCheckBox;
+  public JComboBox<NlComponent> myFromComboBox;
+  public JComboBox<AddActionDialog.DestinationListEntry> myDestinationComboBox;
+  public JComboBox<ValueWithDisplayString> myEnterComboBox;
+  public JComboBox<ValueWithDisplayString> myExitComboBox;
+  public JComboBox<AddActionDialog.DestinationListEntry> myPopToComboBox;
+  public JCheckBox myInclusiveCheckBox;
+  public JComboBox<ValueWithDisplayString> myPopEnterComboBox;
+  public JComboBox<ValueWithDisplayString> myPopExitComboBox;
+  public JCheckBox mySingleTopCheckBox;
   JPanel myContentPanel;
-  JBTextField myIdTextField;
+  public JBTextField myIdTextField;
 }

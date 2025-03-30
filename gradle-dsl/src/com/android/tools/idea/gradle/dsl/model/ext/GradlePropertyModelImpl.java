@@ -44,6 +44,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   private static final Logger LOG = Logger.getInstance(GradlePropertyModelImpl.class);
@@ -224,6 +225,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @NotNull
+  @Unmodifiable
   private List<GradlePropertyModel> getList(boolean resolved) {
     GradleDslElement element = getElement();
     if (element == null) {
@@ -635,6 +637,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Nullable
   @Override
+  @Unmodifiable
   public List<GradlePropertyModel> toList() {
     return getValue(LIST_TYPE);
   }

@@ -20,10 +20,9 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.FontPreferences;
 import com.intellij.openapi.editor.impl.ComplementaryFontsRegistry;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Font;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 public class FontUtil {
   @NotNull

@@ -35,10 +35,10 @@ import javax.swing.*;
 
 public final class AndroidTestRunConfigurationType implements ConfigurationType {
   private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = NotNullLazyValue.lazy(() -> {
-      LayeredIcon icon = new LayeredIcon(2);
-      icon.setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT, 0);
-      icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
-      return icon;
+    LayeredIcon icon = new LayeredIcon(2);
+    icon.setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT, 0);
+    icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
+    return icon;
   });
 
   private final ConfigurationFactory myFactory = new AndroidRunConfigurationFactoryBase(this) {

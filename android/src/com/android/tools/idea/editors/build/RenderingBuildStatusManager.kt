@@ -54,7 +54,13 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.asJava.KotlinAsJavaSupport
+import org.jetbrains.kotlin.fileClasses.isJvmMultifileClassFile
 import org.jetbrains.kotlin.idea.util.projectStructure.module
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.analysisContext
+import kotlin.collections.plus
 
 /**
  * This represents the build status of the project artifacts used to render previews without taking
@@ -319,11 +325,34 @@ private class RenderingBuildStatusManagerImpl(parentDisposable: Disposable, psiF
   override fun getResourcesListenerForTest(): ResourceChangeListener = resourceChangeListener
 
   fun editorHasExistingClassFile(): Boolean {
-    val psiClassOwner = editorFile as? PsiClassOwner ?: return false
+    val classesFqNames = editorFile?.findClassesFqNames().orEmpty()
     val classFileFinder by lazy {
       buildSystemFilePreviewServices.getRenderingServices(buildTargetReference).classFileFinder
     }
-    return runReadAction { psiClassOwner.classes.mapNotNull { it.qualifiedName } }
-      .firstNotNullOfOrNull { classFileFinder?.findClassFile(it) } != null
+    return runReadAction {
+      classesFqNames.any { classFileFinder?.findClassFile(it) != null }
+    }
+  }
+}
+
+private fun PsiFile.findClassesFqNames(): List<String> {
+  return when (this) {
+    is KtFile -> kotlinClassDeclarations()
+    is PsiClassOwner -> classes.mapNotNull { it.qualifiedName }
+    else -> listOf()
+  }
+}
+
+private fun KtFile.kotlinClassDeclarations(): List<String> =
+  declarations.filterIsInstance<KtClassOrObject>().mapNotNull { ktClass -> ktClass.fqName?.asString() } + fetchTopLevelClasses(this)
+
+private fun fetchTopLevelClasses(file: KtFile): List<String> = buildList {
+  if (!file.isJvmMultifileClassFile && !file.hasTopLevelCallables()) return@buildList
+
+  val kotlinAsJavaSupport = KotlinAsJavaSupport.getInstance(file.project)
+  if (file.analysisContext == null) {
+    kotlinAsJavaSupport.getLightFacade(file)?.qualifiedName?.let(this::add)
+  } else {
+    kotlinAsJavaSupport.createFacadeForSyntheticFile(file).qualifiedName?.let(this::add)
   }
 }

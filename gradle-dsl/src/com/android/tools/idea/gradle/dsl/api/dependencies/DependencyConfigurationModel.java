@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public interface DependencyConfigurationModel {
   @NotNull

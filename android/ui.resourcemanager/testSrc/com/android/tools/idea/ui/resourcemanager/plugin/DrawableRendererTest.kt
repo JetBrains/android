@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPluginsResourcesDirectory
 import com.android.tools.idea.ui.resourcemanager.getStateList
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory

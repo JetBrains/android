@@ -70,7 +70,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
-import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
   private AndroidBuildTargetReference myBuildTarget;
@@ -87,7 +87,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       mock.getArgument(0, Runnable.class).run();
       return null;
     }).when(myFontCacheServiceMock).refresh(any(), any());
-    when(myFontCacheServiceMock.download(ArgumentMatchers.any(FontFamily.class))).thenAnswer(mock -> {
+    when(myFontCacheServiceMock.download(Mockito.any(FontFamily.class))).thenAnswer(mock -> {
       FontDetail fontDetail = mock.getArgument(0, FontFamily.class).getFonts().get(0);
       File fileMock = mock(File.class);
       when(fileMock.exists()).thenReturn(true);

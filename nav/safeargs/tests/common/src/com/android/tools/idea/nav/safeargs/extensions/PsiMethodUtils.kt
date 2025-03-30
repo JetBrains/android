@@ -23,7 +23,6 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
-import com.intellij.psi.PsiTypes
 
 /** A simple sanity check helper for [PsiMethod] instances using String checks. */
 fun PsiMethod.checkSignaturesAndReturnType(
@@ -34,7 +33,7 @@ fun PsiMethod.checkSignaturesAndReturnType(
 ) {
   assertThat(this.name).isEqualTo(name)
 
-  if (returnType == PsiTypes.nullType().presentableText) {
+  if (returnType == "null") {
     assertThat(getTypeName(this.returnType)).isNull()
   } else {
     assertThat(getTypeName(this.returnType)).isEqualTo(returnType)

@@ -117,11 +117,6 @@ public class RemovedApiField extends ProvidedDocumentationPsiElement implements 
   }
 
   @Override
-  protected boolean isVisibilitySupported() {
-    return false;
-  }
-
-  @Override
   public Icon getElementIcon(int flags) {
     return null;
   }

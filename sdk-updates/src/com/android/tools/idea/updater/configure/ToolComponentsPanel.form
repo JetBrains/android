@@ -13,7 +13,7 @@
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="&lt;html&gt;Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool.&lt;/html&gt;"/>
+          <text resource-bundle="messages/AndroidBundle" key="label.below.are.the.available.sdk"/>
         </properties>
       </component>
       <grid id="a254e" binding="myToolsPanel" layout-manager="CardLayout" hgap="0" vgap="0">
@@ -64,7 +64,7 @@
               <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Show Package Details"/>
+              <text resource-bundle="messages/AndroidBundle" key="checkbox.show.package.details"/>
             </properties>
           </component>
           <grid id="65b31" binding="myToolsLoadingPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -80,7 +80,7 @@
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="Looking for updates..."/>
+                  <text resource-bundle="messages/AndroidBundle" key="label.looking.for.updates"/>
                 </properties>
               </component>
               <component id="c7c65" class="com.intellij.util.ui.AsyncProcessIcon" binding="myToolsLoadingIcon" custom-create="true">
@@ -97,7 +97,7 @@
             </constraints>
             <properties>
               <selected value="true"/>
-              <text value="Hide Obsolete Packages"/>
+              <text resource-bundle="messages/AndroidBundle" key="checkbox.hide.obsolete.packages"/>
             </properties>
           </component>
           <hspacer id="c6366">

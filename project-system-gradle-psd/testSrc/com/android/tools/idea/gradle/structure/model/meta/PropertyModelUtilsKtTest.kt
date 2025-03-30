@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_AS_FILE
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_AS_LANGUAGE_LEVEL
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_DSL_TEXT
+import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo

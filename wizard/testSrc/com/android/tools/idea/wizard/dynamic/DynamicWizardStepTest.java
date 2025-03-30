@@ -17,14 +17,17 @@ package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.util.ui.JBUI;
 import icons.StudioIllustrations;
+import java.awt.BorderLayout;
+import java.util.HashSet;
+import java.util.Set;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Tests for {@link DynamicWizardStep}

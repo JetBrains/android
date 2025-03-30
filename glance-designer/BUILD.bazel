@@ -1,0 +1,98 @@
+### auto-generated section `build intellij.android.glance-designer` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "glance-designer_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "glance-designer",
+  module_name = "intellij.android.glance-designer",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/adt-ui",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/designer",
+    "//android/layout-ui",
+    "//android/preview-designer",
+    "//android/preview-elements",
+    "//android/project-system:projectSystem",
+    "//android/render-resources",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-core",
+    "//uast/uast-common:uast",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//platform/analysis-api:analysis",
+    "//android/rendering",
+    "//android/intellij.android.compose-common:compose-common",
+    "@lib//:kotlinc-analysis-api-provided",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+  ],
+  runtime_deps = [":glance-designer_resources"]
+)
+### auto-generated section `build intellij.android.glance-designer` end
+
+### auto-generated section `build intellij.android.glance-designer.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "glance-designer-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/glance-designer"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:mockito",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/editor-ui-ex:editor-ex",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/designer",
+    "//android/designer:designer_test_lib",
+    "//android/layout-ui",
+    "//android/layout-ui:layout-ui_test_lib",
+    "//android/preview-designer",
+    "//android/preview-elements",
+    "//android/project-system:projectSystem",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/lang-impl",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//android/intellij.android.compose-common:compose-common",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+  ]
+)
+### auto-generated section `build intellij.android.glance-designer.tests` end

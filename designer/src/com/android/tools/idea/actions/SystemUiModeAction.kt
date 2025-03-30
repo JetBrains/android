@@ -45,6 +45,7 @@ import com.intellij.util.ui.JBValue
 import com.intellij.util.ui.LafIconLookup.getIcon
 import com.intellij.util.ui.LafIconLookup.getSelectedIcon
 import icons.StudioIcons
+import org.jetbrains.annotations.TestOnly
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -56,7 +57,6 @@ import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
 import javax.swing.plaf.basic.BasicMenuItemUI
-import org.jetbrains.annotations.TestOnly
 
 private const val POPUP_VERTICAL_BORDER = 6
 private const val TITLE_VERTICAL_BORDER = 2

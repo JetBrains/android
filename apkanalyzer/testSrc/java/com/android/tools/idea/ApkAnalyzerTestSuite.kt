@@ -17,7 +17,7 @@
 package com.android.tools.idea
 
 import com.android.testutils.JarTestSuiteRunner
-import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
+import com.android.tools.tests.IdeaTestSuiteBase
 @RunWith(JarTestSuiteRunner::class) class ApkAnalyzerTestSuite : IdeaTestSuiteBase()

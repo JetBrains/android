@@ -37,7 +37,6 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageTy
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.awt.Color
-import java.lang.IllegalArgumentException
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 

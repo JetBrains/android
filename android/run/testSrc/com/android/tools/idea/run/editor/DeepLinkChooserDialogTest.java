@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.run.editor;
 
-import static com.android.testutils.TestUtils.resolveWorkspacePath;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.psi.PsiFile;
@@ -40,7 +40,7 @@ public class DeepLinkChooserDialogTest {
 
   @Before
   public void setUp() throws Exception {
-    myProjectRule.getFixture().setTestDataPath(resolveWorkspacePath("tools/adt/idea/android/testData/deeplink/launch").toString());
+    myProjectRule.getFixture().setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/deeplink/launch").toString());
     TemplateManagerImpl.setTemplateTesting(myProjectRule.getTestRootDisposable());
   }
 

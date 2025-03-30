@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.common.model;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import org.jetbrains.annotations.NotNull;
 
 public class ItemTransferable implements Transferable {
   public static final DataFlavor DESIGNER_FLAVOR = new DataFlavor(DnDTransferComponent.class, "Designer Item");

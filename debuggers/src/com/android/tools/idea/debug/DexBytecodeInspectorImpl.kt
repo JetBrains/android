@@ -280,7 +280,7 @@ private suspend fun KotlinSmartStepTargetFilterer.visitMethodUntilLocation(
       if (insn is InvokeInstruction) {
         val methodInfo = dex.retrieveMethod(insn.methodIndex())
         if (methodInfo != null) {
-          visitOrdinaryFunction(methodInfo.owner, methodInfo.name, methodInfo.signature)
+          visitOrdinaryFunction(methodInfo.owner, methodInfo.name, methodInfo.signature, isStatic = false)
         }
       }
     }

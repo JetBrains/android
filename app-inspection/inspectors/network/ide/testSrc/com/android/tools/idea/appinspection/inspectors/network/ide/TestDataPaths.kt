@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.ide
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 
 internal val TEST_DATA_ROOT =
   TestUtils.resolveWorkspacePath("tools/adt/idea/app-inspection/inspectors/network/ide/testData")

@@ -16,9 +16,9 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project

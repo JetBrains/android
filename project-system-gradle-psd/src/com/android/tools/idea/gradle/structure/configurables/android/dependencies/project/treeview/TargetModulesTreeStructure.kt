@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDepe
 import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
-import java.util.Comparator
 import java.util.function.Function
 
 class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTreeStructure() {

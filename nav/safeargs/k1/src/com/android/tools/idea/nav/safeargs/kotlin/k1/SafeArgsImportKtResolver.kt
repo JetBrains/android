@@ -146,7 +146,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       .asSequence()
       .flatMap { descriptor ->
         descriptor.findVisibleClassesBySimpleName(nameIdentifier) +
-          descriptor.findVisibleFunctionsBySimpleName(nameIdentifier)
+        descriptor.findVisibleFunctionsBySimpleName(nameIdentifier)
       }
       .map { AutoImportVariant(it) }
       .filter { it.importFqName != null }
@@ -158,14 +158,14 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
     name: Name
   ): Sequence<DeclarationDescriptor> {
     return getMemberScope()
-      .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { it == name }
-      .asSequence() +
-      getMemberScope()
-        .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS)
-        .asSequence()
-        .filterIsInstance<ClassDescriptor>()
-        .mapNotNull { it.companionObjectDescriptor }
-        .filter { it.name == name }
+             .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { it == name }
+             .asSequence() +
+           getMemberScope()
+             .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS)
+             .asSequence()
+             .filterIsInstance<ClassDescriptor>()
+             .mapNotNull { it.companionObjectDescriptor }
+             .filter { it.name == name }
   }
 
   private fun PackageFragmentDescriptor.findVisibleFunctionsBySimpleName(

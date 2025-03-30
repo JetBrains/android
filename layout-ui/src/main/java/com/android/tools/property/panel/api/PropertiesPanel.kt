@@ -25,13 +25,13 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.escapeProperty
+import org.jetbrains.concurrency.AsyncPromise
+import org.jetbrains.concurrency.Promise
 import java.awt.BorderLayout
 import java.util.IdentityHashMap
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.properties.Delegates
-import org.jetbrains.concurrency.AsyncPromise
-import org.jetbrains.concurrency.Promise
 
 const val PROPERTIES_PANEL_NAME = "properties.panel"
 

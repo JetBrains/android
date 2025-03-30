@@ -161,7 +161,7 @@ public class AndroidPermissionConverter extends Converter<String> implements Cus
 
       Map<String, ApiMember> removedFieldMap;
       if (removedFields == null || removedFields.isEmpty()) {
-        removedFieldMap = Collections.emptyMap();
+        removedFieldMap = new HashMap<>();
       } else {
         removedFieldMap = new HashMap<>();
         for (ApiMember field : removedFields) {

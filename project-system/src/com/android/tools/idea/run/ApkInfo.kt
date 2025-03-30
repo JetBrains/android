@@ -16,11 +16,9 @@
 package com.android.tools.idea.run
 
 import com.android.ide.common.build.BaselineProfileDetails
-import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.sdklib.AndroidVersion
 import com.google.common.base.Preconditions
 import java.io.File
-import java.nio.file.Path
 
 /**
  * The list of files to install for a given application ID.

@@ -1,0 +1,272 @@
+<!--
+  ~ Copyright (C) 2024 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <depends optional="true" config-file="designer-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
+    <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />
+  </extensions>
+
+  <!-- Extension points -->
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.handlers.viewHandlerProvider"
+                    area="IDEA_PROJECT"
+                    interface="com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editorNotificationProvider"
+                    interface="com.intellij.ui.EditorNotificationProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.troubleshooting.infoCollector"
+                    interface="com.intellij.troubleshooting.TroubleInfoCollector"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesModelProvider"
+                    interface="com.android.tools.idea.uibuilder.property.NlPropertiesModelProvider"
+                    dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesViewProvider"
+                    interface="com.android.tools.idea.uibuilder.property.NlPropertiesViewProvider"
+                    dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.handlers.constraint.constraintLayoutExtension"
+                    interface="com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities$ConstraintLayoutExtension"
+                    dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.scene.decorator.nlDecoratorProvider"
+                    interface="com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory$Provider"
+                    dynamic="true" />
+  </extensionPoints>
+
+  <!-- New layout editor -->
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider" />
+    <editorNotificationProvider implementation="com.android.tools.idea.common.editor.SplitEditorPreviewNotificationForwarder" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <android.toolWindow factoryClass="com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory"
+                        id="Layout Validation"
+                        anchor="right"
+                        icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
+                        canCloseContents="false" />
+
+    <projectService serviceInterface="com.android.tools.idea.common.error.DesignerCommonIssuePanelModelProvider"
+                    serviceImplementation="com.android.tools.idea.common.error.AsyncDesignerCommonIssuePanelModelProvider"/>
+    <postStartupActivity implementation="com.android.tools.idea.common.error.IssuePanelProjectActivity"/>
+  </extensions>
+  <!-- Collects all the providers for source code preview representations -->
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
+                    interface="com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider" />
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.DesignFilesPreviewEditorProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
+                             instance="com.android.tools.idea.uibuilder.options.NlOptionsConfigurable"
+                             bundle="messages.AndroidDesignerActionsBundle"
+                             key="android.uibuilder.nloptionsconfigurable.displayName"/>
+    <search.optionContributor
+        implementation="com.android.tools.idea.uibuilder.options.NlOptionConfigurableSearchableOptionContributor"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <keymapExtension implementation="com.android.tools.idea.DesignerKeymapExtension"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <trafficLightRendererContributor implementation="com.android.tools.idea.uibuilder.editor.ResourceFileTrafficLightRendererContributor"/>
+    <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />
+  </extensions>
+
+  <!-- The design tool actions which the shortcuts are configurable. -->
+  <!-- The action ids should be listed in com.android.tools.idea.actions.DesignerActions.kt file  -->
+  <actions resource-bundle="messages.AndroidDesignerActionsBundle">
+    <!-- Shared actions across all design tools-->
+    <group id="Android.Designer.CommonActions"> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -->
+      <action id="Android.Designer.ForceRefreshPreview"
+              class="com.android.tools.idea.common.actions.RefreshRenderAction"
+              text="Force Refresh Layout"
+              description="Refresh preview(s)">
+        <keyboard-shortcut keymap="$default" first-keystroke="R"/>
+      </action>
+      <action id="Android.Designer.IssueNotificationAction"
+              icon="StudioIcons.Common.ERROR"
+              class="com.android.tools.idea.common.actions.IssueNotificationAction"
+              text="Toggle Issue Panel"
+              description="Toggle the visibility of Issue Panel">
+        <keyboard-shortcut keymap="$default" first-keystroke="E"/>
+      </action>
+
+      <reference ref="Adtui.ZoomInAction"/>
+      <reference ref="Adtui.ZoomOutAction"/>
+      <reference ref="Adtui.ZoomToActualAction"/>
+      <reference ref="Adtui.ZoomToFitAction"/>
+      <reference ref="Adtui.ZoomResetAction"/>
+    </group>
+
+    <group id="Android.Designer.ToolsActions"/> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -> [Tool_Name] -->
+
+    <!-- Layout Editor specific actions -->
+    <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
+      <group id="Android.Designer.SwitchLayoutQualifier"
+             class="com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu"
+             text="Switch Layout Qualifier"
+             description="Switch or create the new qualifier for current layout">
+      </group>
+      <action id="Android.Designer.SwitchDesignMode"
+              icon="StudioIcons.LayoutEditor.Toolbar.VIEW_MODE"
+              class="com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction"
+              text="Switch Design Mode"
+              description="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint">
+        <keyboard-shortcut keymap="$default" first-keystroke="B"/>
+      </action>
+      <action id="Android.Designer.ToggleDeviceOrientation"
+              icon="StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON"
+              class="com.android.tools.idea.common.actions.ToggleDeviceOrientationAction"
+              text="Toggle Device Orientation"
+              description="Toggle the preview orientation between portrait and landscape">
+        <keyboard-shortcut keymap="$default" first-keystroke="O"/>
+      </action>
+      <action id="Android.Designer.ToggleDeviceNightMode"
+              icon="StudioIcons.DeviceConfiguration.NIGHT_MODE"
+              class="com.android.tools.idea.common.actions.ToggleDeviceNightModeAction"
+              text="Toggle Device Night Mode"
+              description="Enable or disable the Night mode of preview">
+        <keyboard-shortcut keymap="$default" first-keystroke="N"/>
+      </action>
+      <action id="Android.Designer.NextDevice"
+              class="com.android.tools.idea.common.actions.NextDeviceAction"
+              text="Preview Next Device"
+              description="Change to next device in the device menu">
+        <keyboard-shortcut keymap="$default" first-keystroke="D"/>
+      </action>
+      <action id="Android.Designer.PreviousDevice"
+              class="com.android.tools.idea.common.actions.PreviousDeviceAction"
+              text="Preview Previous Device"
+              description="Change to previous device in the device menu">
+        <keyboard-shortcut keymap="$default" first-keystroke="shift D"/>
+      </action>
+      <!-- TODO (b/149212539): Migrate other shortcuts of Layout Editor -->
+
+      <add-to-group group-id="Android.Designer.ToolsActions"/>
+    </group>
+
+    <group id="Android.Designer.IssuePanel.ToolbarActions">
+      <group id="Android.Designer.IssuePanel.SeverityFilter"
+             class="com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup"
+             text="View Options" icon="AllIcons.Actions.Show" popup="true"/>
+      <action id="Android.Designer.IssuePanel.ToggleIssueDetailAction"
+              text="Show Issue Detail"
+              icon="AllIcons.Actions.PreviewDetails"
+              class="com.android.tools.idea.common.error.ToggleIssueDetailAction"/>
+      <action id="Android.Designer.IssuePanel.QuickFixes"
+              text="Show Quick Fixes"
+              icon="AllIcons.Actions.IntentionBulb"
+              use-shortcut-of="ShowIntentionActions"
+              class="com.android.tools.idea.common.error.ShowQuickFixesAction"/>
+    </group>
+    <group id="Android.Designer.IssuePanel.TreePopup">
+      <reference ref="Android.Designer.IssuePanel.QuickFixes"/>
+      <action id="Android.Designer.IssuePanel.CopyIssueDescription"
+              text="Copy Problem Description"
+              icon="AllIcons.Actions.Copy"
+              use-shortcut-of="$Copy"
+              class="com.android.tools.idea.common.error.CopyIssueDescriptionAction"/>
+      <reference ref="EditSource"/>
+    </group>
+
+    <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourceDirectory"/>
+    </action>
+    <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true">
+      <synonym key="action.StoreDefaultLayout.synonym" />
+    </action>
+    <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
+    <action id="android.designer.paste.with.new.ids" class="com.android.tools.idea.common.actions.PasteWithNewIdsAction"
+            icon="AllIcons.Actions.MenuPaste">
+      <keyboard-shortcut first-keystroke="control V" keymap="$default"/>
+      <keyboard-shortcut first-keystroke="meta V" keymap="Mac OS X"/>
+      <keyboard-shortcut first-keystroke="meta V" keymap="Mac OS X 10.5+"/>
+    </action>
+    <action id="android.designer.paste.with.existing.ids" class="com.android.tools.idea.common.actions.PasteWithExistingIdsAction"
+            icon="AllIcons.Actions.MenuPaste"/>
+
+    <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction">
+        <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.TerminateAdbAction"/>
+    </action>
+  </actions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
+    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.MotionLayoutPanelAssistantBundleCreator"/>
+    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.ConstraintLayoutPanelAssistantBundleCreator"/>
+    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorPanelAssistantBundleCreator"/>
+    <navlistener implementation="com.android.tools.idea.uibuilder.actions.analytics.AssistantPanelNavListener" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <notificationGroup displayType="BALLOON" id="Motion Editor" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bounds" shortName="Bounds" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.BoundsAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bottom nav" shortName="BottomNav" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.BottomNavAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bottom app bar" shortName="BottomAppBar" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.BottomAppBarAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Overlap" shortName="Overlap" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.OverlapAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Long text" shortName="LongText" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.LongTextAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Accessibility" shortName="AccessibilityTestFramework" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.AtfAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Locale text" shortName="LocaleText" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.LocaleAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Button size" shortName="ButtonSize" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.ButtonSizeAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Text field size" shortName="TextFieldSize" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.TextFieldSizeAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.WearMarginAnalyzerInspection" language=""/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.rendering">
+    <renderErrorContributor implementation="com.android.tools.idea.rendering.RenderErrorContributorImpl$Provider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.troubleshooting">
+    <infoCollector implementation="com.android.tools.idea.common.surface.DesignSurfaceTroubleInfoCollector" />
+    <infoCollector implementation="com.android.tools.idea.common.error.IssuePanelServiceTroubleInfoCollector" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.diagnostics.report">
+    <logsProvider implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsDiagnosticsSummaryFileProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <problemsViewPanelProvider implementation="com.android.tools.idea.common.error.SharedIssuePanelProvider" />
+  </extensions>
+</idea-plugin>

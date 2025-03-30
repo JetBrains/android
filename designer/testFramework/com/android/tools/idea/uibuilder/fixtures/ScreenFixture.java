@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.tools.idea.common.LayoutTestUtilities.createScreen;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentFixture;
@@ -23,17 +29,10 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
-
-import java.util.List;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.tools.idea.common.LayoutTestUtilities.createScreen;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 public class ScreenFixture {
   private final SyncNlModel myModel;

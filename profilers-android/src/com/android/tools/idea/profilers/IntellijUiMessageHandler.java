@@ -21,10 +21,10 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.OkCancelDialogBuilder;
 import com.intellij.util.Consumer;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class IntellijUiMessageHandler implements UiMessageHandler {
   private static final String DO_NOT_SHOW_TEXT = "Do not ask me again";

@@ -31,7 +31,6 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.android.refactoring.ENABLE_JETIFIER_PROPERTY
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.refactoring.isEnableJetifier
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import java.util.Properties

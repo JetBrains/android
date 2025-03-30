@@ -18,8 +18,6 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker.MemorySettingsNotification;
-import com.android.tools.idea.memorysettings.MemorySettingsRecommendation;
-import com.intellij.diagnostic.VMOptions;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationsManager;
 import com.intellij.testFramework.HeavyPlatformTestCase;

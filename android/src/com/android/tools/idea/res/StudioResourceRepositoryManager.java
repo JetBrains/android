@@ -885,7 +885,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Service
   @VisibleForTesting
-  final static class DisposeAndRefreshService implements Disposable {
+  public final static class DisposeAndRefreshService implements Disposable {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 

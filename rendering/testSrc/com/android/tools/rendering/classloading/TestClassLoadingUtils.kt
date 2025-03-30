@@ -17,13 +17,13 @@ package com.android.tools.rendering.classloading
 
 import java.io.PrintWriter
 import java.io.StringWriter
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Type
-import org.objectweb.asm.commons.ClassRemapper
-import org.objectweb.asm.commons.SimpleRemapper
-import org.objectweb.asm.util.TraceClassVisitor
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.commons.ClassRemapper
+import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper
+import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 
 private object TestClassLoadingUtils
 

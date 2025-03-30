@@ -15,15 +15,14 @@
  */
 package com.android.tools.adtui.model;
 
-import org.jetbrains.annotations.Nullable;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 public class AspectModelTest {
 

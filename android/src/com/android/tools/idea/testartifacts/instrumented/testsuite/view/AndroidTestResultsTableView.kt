@@ -658,7 +658,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
             return
           }
           if (model.mySortKeyColumn == clickedColumnIndex) {
-            mySortOrder = when (mySortOrder) {
+            mySortOrder = when(mySortOrder) {
               SortOrder.ASCENDING -> SortOrder.DESCENDING
               SortOrder.DESCENDING -> SortOrder.UNSORTED
               else -> SortOrder.ASCENDING
@@ -830,12 +830,7 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
 
   private fun updateFilteredColumns() {
     // Store current sortKeyColumn in case it gets filtered out
-    val sortColumn = if (mySortKeyColumn != -1) {
-      columns[mySortKeyColumn].name
-    }
-    else {
-      null
-    }
+    val sortColumn = if (mySortKeyColumn != -1) { columns[mySortKeyColumn].name } else { null }
 
     // We always display test name and test duration columns.
     val filteredColumns = mutableListOf(
@@ -913,7 +908,7 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
    */
   fun setRowFilter(filter: (AndroidTestResults) -> Boolean) {
     myRowFilter = {
-      when (it) {
+      when(it) {
         is AndroidTestResultsRow -> filter(it)
         is AggregationRow -> it.childCount > 0
         else -> true

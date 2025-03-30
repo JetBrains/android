@@ -16,23 +16,24 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.execution.common.DeployableToDevice
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 
 class AndroidTileConfigurationTest {
 
   @get:Rule
-  val projectRule = ProjectRule()
+  var androidProjectRule = AndroidProjectRule.inMemory().onEdt()
 
   val project: Project
-    get() = projectRule.project
+    get() = androidProjectRule.project
 
   @Test
   fun testProgramRunnerAvailable() {

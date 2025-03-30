@@ -30,9 +30,9 @@ import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.impl.PTableModelImpl
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
-import javax.swing.JPanel
 import org.junit.ClassRule
 import org.junit.Test
+import javax.swing.JPanel
 
 class TableEditorTest {
 

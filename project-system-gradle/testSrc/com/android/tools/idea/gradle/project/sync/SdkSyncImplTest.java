@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
@@ -122,14 +123,18 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     if (IdeInfo.getInstance().isAndroidStudio()) {
       assertProjectSdkSet();
       assertDefaultSdkSet();
+    } else {
+      assertNoLocalPropertiesExists();
     }
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenLocalPropertiesExistsAndUserSelectsValidSdkPath() throws Exception {
+    Ref<Boolean> selectSdkDialogShown = new Ref<>(false);
     SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
       @Nullable
       @Override
       File selectValidSdkPath() {
+        selectSdkDialogShown.set(true);
         return myAndroidSdkPath;
       }
     };
@@ -137,8 +142,16 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     createEmptyLocalPropertiesFile();
     mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, getProject());
 
-    assertProjectSdkSet();
-    assertDefaultSdkSet();
+    assertEquals("IDEA should not ask users to configure Android SDK in KMPP projects with no android modules (https://youtrack.jetbrains.com/issue/IDEA-265504). " +
+                 "Android Studio asks users to do so.",
+                 IdeInfo.getInstance().isAndroidStudio(), selectSdkDialogShown.get().booleanValue());
+
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      assertProjectSdkSet();
+      assertDefaultSdkSet();
+    } else {
+      assertNull(myLocalProperties.getAndroidSdkPath());
+    }
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenUserDoesNotSelectValidSdkPath() throws Exception {

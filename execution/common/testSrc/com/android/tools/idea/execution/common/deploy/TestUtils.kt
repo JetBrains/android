@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.execution.common.deploy
 
-import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.Apk
 import com.android.tools.deployer.model.App
 import com.android.tools.manifest.parser.XmlNode
 import com.android.tools.manifest.parser.components.ManifestActivityInfo
 import com.android.tools.manifest.parser.components.ManifestServiceInfo
-import com.android.utils.NullLogger
 
 fun createApp(appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
 ): App {

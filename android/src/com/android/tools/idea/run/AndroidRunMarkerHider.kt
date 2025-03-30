@@ -16,10 +16,7 @@
 package com.android.tools.idea.run
 
 import com.intellij.execution.ApplicationRunLineMarkerHider
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.util.PsiMethodUtil
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import org.jetbrains.kotlin.idea.base.util.module
 

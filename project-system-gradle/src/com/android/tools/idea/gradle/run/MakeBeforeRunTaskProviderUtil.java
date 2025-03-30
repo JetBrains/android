@@ -15,21 +15,12 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import static java.util.stream.Collectors.toList;
-
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.google.common.collect.Lists;
-import com.intellij.execution.BeforeRunTask;
-import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class MakeBeforeRunTaskProviderUtil {

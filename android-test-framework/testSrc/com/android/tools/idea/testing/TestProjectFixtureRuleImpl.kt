@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.testing
 
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdkPathStore
@@ -119,7 +120,7 @@ private fun setupJdk(path: Path, testRootDisposable: Disposable): Sdk? {
 }
 
 private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposable: Disposable, body: () -> Unit) {
-  val jdkPath = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
+  val jdkPath = TestUtils.getEmbeddedJdk17Path()
   WriteAction.runAndWait<Throwable> {
     // drop any discovered SDKs to not leak them
     cleanJdkTable()

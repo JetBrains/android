@@ -59,10 +59,6 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.text.nullize
-import java.nio.file.Paths
-import java.util.EnumSet
-import kotlin.io.path.name
-import kotlin.io.path.pathString
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
@@ -77,6 +73,10 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsResponse
+import java.nio.file.Paths
+import java.util.EnumSet
+import kotlin.io.path.name
+import kotlin.io.path.pathString
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 

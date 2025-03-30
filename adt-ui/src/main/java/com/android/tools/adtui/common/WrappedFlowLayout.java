@@ -15,12 +15,16 @@
  */
 package com.android.tools.adtui.common;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.function.Function;
+import javax.swing.SwingUtilities;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.function.Function;
 
 /**
  * A {@link FlowLayout} that supports wrapping of its components when contained in a container too small

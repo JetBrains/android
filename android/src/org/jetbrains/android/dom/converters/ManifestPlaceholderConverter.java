@@ -18,7 +18,6 @@ package org.jetbrains.android.dom.converters;
 import static com.android.SdkConstants.MANIFEST_PLACEHOLDER_PREFIX;
 
 import com.android.tools.idea.model.ManifestPlaceholderResolver;
-import com.google.common.collect.*;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;

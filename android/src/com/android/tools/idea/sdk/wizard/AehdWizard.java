@@ -147,7 +147,7 @@ public class AehdWizard extends DynamicWizard {
           if (this.isCanceled()) {
             myTracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.CANCELED);
           }
-            else if (myIsSuccessfullyCompleted.get()) {
+          else if (myIsSuccessfullyCompleted.get()) {
             myTracker.trackInstallingComponentsFinished(SetupWizardEvent.SdkInstallationMetrics.SdkInstallationResult.SUCCESS);
           }
           else {

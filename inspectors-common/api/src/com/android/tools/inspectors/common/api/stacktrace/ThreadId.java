@@ -20,7 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class ThreadId {
   public static final ThreadId INVALID_THREAD_ID = new ThreadId(-1);
-  @VisibleForTesting static final String DISPLAY_FORMAT = "<Thread %s>";
+  @VisibleForTesting
+  public static final String DISPLAY_FORMAT = "<Thread %s>";
   private static final String UNKNOWN_THREAD_NAME = "Unknown";
 
   private final String myThreadName;

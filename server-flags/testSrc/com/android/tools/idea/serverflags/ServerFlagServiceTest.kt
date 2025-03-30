@@ -43,4 +43,10 @@ class ServerFlagServiceEmptyTest {
   private fun checkProto(service: ServerFlagService) {
     assertThat(service.getProto("missing", TEST_PROTO).content).isEqualTo(TEST_PROTO.content)
   }
+
+  companion object {
+    private val TEST_PROTO = ServerFlagTest.newBuilder().apply {
+      content = "default"
+    }.build()
+  }
 }

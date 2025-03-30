@@ -1,0 +1,29 @@
+### auto-generated section `build intellij.android.projectStructureTests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "projectStructureTests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "projectStructureTests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "//jps/model-api:model",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util/jdom",
+    "//jps/model-serialization",
+  ]
+)
+
+jvm_test(
+  name = "projectStructureTests_test",
+  runtime_deps = [":projectStructureTests_test_lib"]
+)
+### auto-generated section `build intellij.android.projectStructureTests` end

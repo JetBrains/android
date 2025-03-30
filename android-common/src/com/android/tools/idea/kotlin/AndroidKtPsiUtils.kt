@@ -370,14 +370,14 @@ fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
     mapOnDeclarationSymbol { classId in it.annotations } == true ||
       (findAnnotationEntryByClassId(classId) != null)
   } else {
-    findAnnotationK1(classId.asSingleFqName()) != null
+    findAnnotationK1(classId) != null
   }
 
 fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     findAnnotationK2(classId)
   } else {
-    findAnnotationK1(classId.asSingleFqName())
+    findAnnotationK1(classId)
   }
 
 private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =

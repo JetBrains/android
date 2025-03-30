@@ -22,7 +22,6 @@ import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StageView;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.intellij.util.ui.JBUI;
 import java.util.List;
 import javax.swing.JComponent;
@@ -35,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tooltip view for {@link CpuCaptureStageCpuUsageTooltip}.
  */
-class CpuProfilerStageCpuUsageTooltipView extends TooltipView {
+public class CpuProfilerStageCpuUsageTooltipView extends TooltipView {
   @NotNull private final CpuProfilerStageCpuUsageTooltip myTooltip;
   @NotNull private final JLabel mySelectionLabel;
 

@@ -83,4 +83,5 @@ public class AndroidActionGroupRemover extends ActionGroup {
     destination.setText(source.getTextWithMnemonic());
     destination.setIcon(source.getIcon());
   }
+
 }

@@ -16,13 +16,13 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.intellij.openapi.util.IconLoader;
-import java.awt.Component;
+
 import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;

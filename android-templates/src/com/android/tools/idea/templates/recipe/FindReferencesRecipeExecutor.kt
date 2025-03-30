@@ -18,10 +18,8 @@ package com.android.tools.idea.templates.recipe
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
-import com.android.tools.idea.wizard.template.findResource
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
 /** [RecipeExecutor] that collects references as a result of executing instructions in a recipe. */
@@ -45,11 +43,8 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
   }
 
   override fun copy(from: File, to: File) {
-    val sourceUrl = findResource(context.templateData.javaClass, from)
-    val sourceFile = VfsUtil.findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
-    if (sourceFile.isDirectory) {
-      return
-    }
+    if (from.extension.isBlank() && !from.name.equals("gradlew") && !from.name.equals("project_ignore")) return
+
     addTargetFile(to)
   }
 

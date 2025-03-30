@@ -371,7 +371,7 @@ public class DrawMotionPath implements DrawCommand {
         g2.setColor(Color.BLACK);
         g2.fillPolygon(xpath, ypath, 4);
 
-        if (mSelectedKey == i / 2 && mPercent.length() > 0) {
+        if (mSelectedKey == i / 2 && !mPercent.isEmpty()) {
           FontMetrics fm = g2.getFontMetrics();
           Rectangle2D bounds = fm.getStringBounds(mPercent, g2);
           g2.setColor(myPointLabelShadow);

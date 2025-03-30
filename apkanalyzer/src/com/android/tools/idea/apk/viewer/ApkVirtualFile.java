@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Implementation of an in-memory {@link VirtualFile} that correctly implements the {#getParent()} method.
  */
-class ApkVirtualFile {
+public class ApkVirtualFile {
   private ApkVirtualFile() {
   }
 

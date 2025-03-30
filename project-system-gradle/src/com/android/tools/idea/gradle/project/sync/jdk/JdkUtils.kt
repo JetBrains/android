@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.jdk
 
 import com.android.tools.idea.gradle.util.GradleConfigProperties
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks
@@ -28,8 +27,8 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.ex.JavaSdkUtil
 import com.intellij.openapi.roots.ProjectRootManager
-import com.jetbrains.rd.util.firstOrNull
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
@@ -50,11 +49,11 @@ object JdkUtils {
    */
   fun getMaxVersionJdkPathFromAllGradleRoots(project: Project): String? {
     val maxVersionJdkPaths = GradleSettings.getInstance(project).linkedProjectsSettings
-      .mapNotNull { AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, it.externalProjectPath) }
+      .mapNotNull { GradleInstallationManager.getInstance().getGradleJvmPath(project, it.externalProjectPath) }
       .groupBy { Jdks.getInstance().findVersion(Path(it)) }
       .mapValues { it.value.toSet() }
       .toSortedMap(compareByDescending { it?.ordinal })
-      .firstOrNull()
+      .entries.firstOrNull()
       ?.value ?: return null
 
     return maxVersionJdkPaths

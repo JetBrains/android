@@ -17,9 +17,8 @@ package com.android.tools.idea.npw
 
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.observable.core.StringValueProperty
-import org.junit.Test
-
 import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class DomainToPackageExpressionTest {
   @Test

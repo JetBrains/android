@@ -1,0 +1,93 @@
+### auto-generated section `build intellij.android.kotlin.extensions` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "android-kotlin-extensions_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-kotlin-extensions",
+  module_name = "intellij.android.kotlin.extensions",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-android-extensions-compiler-plugin-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-tests-provided",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/android-kotlin/android-extensions-idea-common:android-kotlin-extensions-common",
+    "//platform/projectModel-api:projectModel",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/util",
+    "//platform/util/base",
+  ],
+  exports = ["//android/android-kotlin/android-extensions-idea-common:android-kotlin-extensions-common"],
+  runtime_deps = [":android-kotlin-extensions_resources"]
+)
+
+jvm_library(
+  name = "android-kotlin-extensions_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["tests/**/*.kt", "tests/**/*.java"], allow_empty = True),
+  associates = [":android-kotlin-extensions"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:kotlinc-android-extensions-compiler-plugin-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-tests-provided",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/android-kotlin/android-extensions-idea-common:android-kotlin-extensions-common",
+    "//platform/projectModel-api:projectModel",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/util",
+    "//platform/util/base",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-kotlin/idea-android:android-kotlin-tests_test_lib",
+    "//java/java-psi-api:psi",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-impl",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "//platform/refactoring",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util/jdom",
+    "//xml/xml-psi-api:psi",
+    "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
+    "//plugins/kotlin/base/psi:kotlin-base-psi",
+    "//plugins/kotlin/idea",
+    "//plugins/kotlin/refactorings/kotlin.refactorings.common:kotlin-refactorings-common",
+  ],
+  runtime_deps = [":android-kotlin-extensions_resources"]
+)
+
+jvm_test(
+  name = "android-kotlin-extensions_test",
+  runtime_deps = [":android-kotlin-extensions_test_lib"]
+)
+### auto-generated section `build intellij.android.kotlin.extensions` end

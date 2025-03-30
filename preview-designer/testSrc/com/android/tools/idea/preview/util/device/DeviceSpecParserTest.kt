@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview.util.device
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.preview.util.device.parser.DeviceSpecParserDefinition
 import com.intellij.testFramework.ParsingTestCase
 

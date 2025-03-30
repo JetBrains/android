@@ -56,6 +56,7 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.io.URLUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -414,7 +415,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       }
     }
 
-    VirtualFile file = JarFileSystem.getInstance().findFileByPath(archive.getPath().toString());
+    String jarRootPath = archive.getPath().toString();
+    if (!jarRootPath.contains(URLUtil.JAR_SEPARATOR)) jarRootPath += URLUtil.JAR_SEPARATOR;
+    VirtualFile file = JarFileSystem.getInstance().findFileByPath(jarRootPath);
     if (file != null) {
       return file.findFileByRelativePath(p.toString());
     }

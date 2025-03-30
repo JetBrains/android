@@ -17,15 +17,14 @@ package com.android.tools.idea.transport
 
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import java.io.File
 import java.nio.file.Paths
-import java.util.HashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 /**

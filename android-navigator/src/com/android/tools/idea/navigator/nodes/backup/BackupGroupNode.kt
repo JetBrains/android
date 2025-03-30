@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.collections.immutable.toImmutableList
-import org.jetbrains.kotlin.konan.file.File
+import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.pathString

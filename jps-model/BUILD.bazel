@@ -1,0 +1,16 @@
+### auto-generated section `build intellij.android.jps.model` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "jps-model",
+  module_name = "intellij.android.jps.model",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:jetbrains-annotations",
+    "//platform/util",
+  ]
+)
+### auto-generated section `build intellij.android.jps.model` end

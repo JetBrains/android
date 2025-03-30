@@ -16,14 +16,13 @@
 package com.android.tools.idea.smali;
 
 import com.intellij.openapi.util.IconLoader;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
-public class SmaliIcons {
+public final class SmaliIcons {
   private static Icon load(@NotNull String path) {
-    return IconLoader.getIcon(path, SmaliIcons.class);
+    return IconLoader.getIcon(path, SmaliIcons.class.getClassLoader());
   }
 
-  public static final Icon SmaliFile = load("/icons/smali.png");
+  public static final Icon SmaliFile = load("icons/smali.png");
 }

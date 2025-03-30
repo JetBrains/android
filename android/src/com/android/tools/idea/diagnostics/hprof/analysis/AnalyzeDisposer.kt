@@ -138,11 +138,12 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       val childId = nav.getInstanceFieldObjectId(null, "myObject")
       nav.goTo(objectNodeParentId)
 
-      val parentId =
-        if (nav.isNull())
+        val parentId = if (nav.isNull()) {
           0L
-        else
+        }
+        else {
           nav.getInstanceFieldObjectId(null, "myObject")
+        }
 
       result.getOrPut(parentId.toInt()) { IntArrayList() }.add(childId.toInt())
     }

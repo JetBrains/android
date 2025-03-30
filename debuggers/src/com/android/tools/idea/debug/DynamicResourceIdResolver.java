@@ -15,21 +15,25 @@
  */
 package com.android.tools.idea.debug;
 
+import static com.android.SdkConstants.CLASS_RESOURCES;
+
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebuggerUtils;
+import com.intellij.debugger.engine.SuspendContextImpl;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContext;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
 import com.intellij.openapi.diagnostic.Logger;
-import com.sun.jdi.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.sun.jdi.Method;
+import com.sun.jdi.ObjectReference;
+import com.sun.jdi.ReferenceType;
+import com.sun.jdi.StringReference;
+import com.sun.jdi.Value;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.SdkConstants.CLASS_RESOURCES;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link DynamicResourceIdResolver} can resolve a resource id to its name by invoking Resources.getResourceName()
@@ -55,7 +59,7 @@ public class DynamicResourceIdResolver implements ResourceIdResolver {
     }
 
     DebugProcess debugProcess = myContext.getDebugProcess();
-    VirtualMachineProxyImpl vmProxy = (VirtualMachineProxyImpl)debugProcess.getVirtualMachineProxy();
+    VirtualMachineProxyImpl vmProxy = ((SuspendContextImpl)myContext.getSuspendContext()).getVirtualMachineProxy();
     List<ReferenceType> classes = vmProxy.classesByName(CLASS_RESOURCES);
     if (classes.isEmpty()) {
       LOG.warn(CLASS_RESOURCES + " class not loaded?");

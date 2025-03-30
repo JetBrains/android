@@ -17,6 +17,7 @@ package com.android.tools.idea.flags;
 
 import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 import static com.android.tools.idea.IdeChannel.Channel.DEV;
+import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 import static com.android.tools.idea.IdeChannel.Channel.NIGHTLY;
 import static com.android.tools.idea.IdeChannel.Channel.STABLE;
 import static com.android.tools.idea.flags.ChannelDefault.enabledUpTo;
@@ -33,13 +34,13 @@ import com.android.flags.MendelFlag;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -288,8 +289,8 @@ public final class StudioFlags {
     true);
 
   public static final Flag<Boolean> PROFILER_TASK_BASED_UX = new BooleanFlag(PROFILER, "task.based.ux", "Task-based UX",
-    "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
-    true);
+                                                                             "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
+                                                                             true);
 
   public static final Flag<Boolean> PROFILER_LEAKCANARY = new BooleanFlag(PROFILER, "leakcanary", "LeakCanary",
                                                                           "Enables the integration of leakCanary and display of leaks",
@@ -406,10 +407,9 @@ public final class StudioFlags {
     false);
 
   public static final Flag<Boolean> GENERATE_BASELINE_PROFILE_GUTTER_ICON = new BooleanFlag(
-    RUNDEBUG,
-    "baselineprofile.guttericon.enabled",
-    "Enables generating baseline profiles from gutter icon",
-    "When opening a UI test with applied BaselineProfileRule, an option to generate baseline profiles is shown in the gutter popup.",
+    RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
+    "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
+    "Changing the value of this flag requires restarting Android Studio.",
     true);
 
   public static final Flag<Boolean> DELTA_INSTALL = new BooleanFlag(
@@ -832,7 +832,7 @@ public final class StudioFlags {
     "(which can come from STUDIO_CUSTOM_REPO or from a local build of AGP when running studio from IDEA) " +
     "in the new project templates and for determining which versions of AGP are available for the upgrade assistant.\n" +
     "Note: repositories set in gradle.ide.development.offline.repo.location are always respected, even if this flag is disabled.",
-    StudioPathManager.isRunningFromSources());
+    isAndroidStudio() && StudioPathManager.isRunningFromSources());
 
   public static final Flag<String> DEVELOPMENT_OFFLINE_REPO_LOCATION = new StringFlag(
     GRADLE_IDE, "development.offline.repo.location", "Development offline repository location",
@@ -873,7 +873,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = new BooleanFlag(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
-    "This option is only respected when running Android Studio internally.", false);
+    "This option is only respected when running " +
+    "Android Studio internally.", false);
 
   public static final Flag<Boolean> RECOMMEND_AGP_PATCH_RELEASES = new BooleanFlag(
     GRADLE_IDE, "recommend.patch.releases", "Recommend upgrading to the latest patch release of AGP",
@@ -1060,7 +1061,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.throw.unexpected.error", "Throw exception when encountering an unexpected error",
     "When this flag is enabled, LayoutInspector will throw an exception when an unexpected error is being logged to the metrics.",
-    StudioPathManager.isRunningFromSources());
+    isAndroidStudio() && StudioPathManager.isRunningFromSources());
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.ignore.framework.recompositions", "Ignore recompositions in compose framework",
@@ -1216,10 +1217,10 @@ public final class StudioFlags {
   @NotNull
   public static final Flag<String> DEVICE_DEFINITION_DOWNLOAD_SERVICE_URL =
     new StringFlag(DEVICE_DEFINITION_DOWNLOAD_SERVICE,
-                "url",
-                "URL",
-                "The URL to download the device definitions from",
-                "");
+                   "url",
+                   "URL",
+                   "The URL to download the device definitions from",
+                   "");
   // endregion
 
   //region Refactorings
@@ -1304,9 +1305,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> ESSENTIALS_HIGHLIGHTING_MODE = new BooleanFlag(
     ESSENTIALS_MODE, "essential.highlighting.in.essentials.mode",
     "Essential Highlighting mode on in Essentials mode",
-   "When enabled turns on Essential Highlighting mode when in Essentials Mode. Essential Highlighting mode enables " +
-   "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
-   false);
+    "When enabled turns on Essential Highlighting mode when in Essentials Mode. Essential Highlighting mode enables " +
+    "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
+    false);
 
   public static final Flag<Boolean> ESSENTIALS_MODE_GETS_RECOMMENDED = new BooleanFlag(
     ESSENTIALS_MODE, "essentials.mode.gets.recommend",
@@ -1452,7 +1453,7 @@ public final class StudioFlags {
     COMPOSE, "deploy.live.edit.deploy.confined.analysis",
     "LiveEdit: Limit compilation error analysis to only the current file",
     "If enabled, Live Edit will aggressively live update even if there are analysis errors " +
-      "provided that the current file is error-free.",
+    "provided that the current file is error-free.",
     false
   );
 
@@ -1475,7 +1476,7 @@ public final class StudioFlags {
     COMPOSE, "deploy.live.edit.allow.multiple.min.api.dex.markers.in.apk",
     "LiveEdit: Allow multiple min api dex markers in apk",
     "If enabled, apk may contain multiple min api dex markers and LiveEdit picks the lowest among them",
-   false
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING = new BooleanFlag(
@@ -1786,7 +1787,7 @@ public final class StudioFlags {
       "direct.access.settings.page",
       "Device Streaming Settings Page",
       "Show Device Streaming Settings Page",
-      true);
+      false);
 
   public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
     new StringFlag(
@@ -1918,14 +1919,14 @@ public final class StudioFlags {
   private static final FlagGroup APP_LINKS_ASSISTANT = new FlagGroup(FLAGS, "app.links.assistant", "App Links Assistant");
   public static final Flag<Boolean> WEBSITE_ASSOCIATION_GENERATOR_V2 =
     new BooleanFlag(APP_LINKS_ASSISTANT, "website.association.generator.v2", "Website Association Generator V2",
-                "Improvements to Website Association Generator.", enabledUpTo(CANARY));
+                    "Improvements to Website Association Generator.", false);
   public static final Flag<String> DEEPLINKS_GRPC_SERVER =
     new StringFlag(APP_LINKS_ASSISTANT, "deeplinks.grpc.server", "Deep links gRPC server address",
-                "Deep links gRPC server address. Use a non-default value for testing purposes.",
-                "deeplinkassistant-pa.googleapis.com");
+                   "Deep links gRPC server address. Use a non-default value for testing purposes.",
+                   "deeplinkassistant-pa.googleapis.com");
   public static final Flag<Boolean> CREATE_APP_LINKS_V2 =
     new BooleanFlag(APP_LINKS_ASSISTANT, "create.app.links.v2", "Create App Links V2",
-                "Improvements to the Create App Links functionalities.", false);
+                    "Improvements to the Create App Links functionalities.", false);
   public static final Flag<Boolean> IMPACT_TRACKING =
     new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.impact.tracking", "App Links Assistant impact tracking",
                 "Impact tracking for the App Links Assistant", false);
@@ -1996,12 +1997,12 @@ public final class StudioFlags {
   // region STUDIO_BOT
   private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
   public static final Flag<Boolean> STUDIOBOT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "enabled", "Enable Gemini", "Enable Gemini Tool Window", true);
+    new BooleanFlag(STUDIOBOT, "enabled", "Enable Gemini", "Enable Gemini Tool Window", false);
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
                     "Enable sending inline code completion metrics to the AIDA CES service",
-                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", true);
+                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", false);
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_FILE_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
@@ -2175,9 +2176,9 @@ public final class StudioFlags {
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "completions.per.hour",
-                    "AI completion requests per hour",
-                    "AI completion requests per hour",
-                    36000);
+                "AI completion requests per hour",
+                "AI completion requests per hour",
+                36000);
 
   public static final Flag<Integer> STUDIOBOT_CONVERSATIONS_PER_HOUR =
     new IntFlag(STUDIOBOT, "conversations.per.hour",
@@ -2236,7 +2237,7 @@ public final class StudioFlags {
     new FlagGroup(FLAGS, "wear.runconfigs.autocreate", "Autocreate Wear Run Configs");
   public static final Flag<Boolean> WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED =
     new BooleanFlag(WEAR_RUN_CONFIGS_AUTOCREATE, "enabled", "Enable Autocreate Wear Run Configs",
-                "When enabled, Wear run configurations will be automatically created.", true);
+                    "When enabled, Wear run configurations will be automatically created.", true);
   public static final Flag<Integer> WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS =
     new IntFlag(WEAR_RUN_CONFIGS_AUTOCREATE, "max.total.runconfigs", "Maximum total run configurations",
                 "Maximum total number of all types of run configurations that can be reached after autocreating Wear Run Configs. Wear Run Configurations will not be created if this limit is breached.",
@@ -2354,11 +2355,13 @@ public final class StudioFlags {
   // endregion WIZARD_MIGRATION
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
-    // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
-    // In IDEA: disables unless the user explicitly overrides BUILD_OUTPUT_DOWNLOADS_INFORMATION.
-    return IdeInfo.getInstance().isAndroidStudio() || BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()
+    return BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()
            ? BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()
-           : false;
+           : isAndroidStudio();
+  }
+
+  private static boolean isAndroidStudio() {
+    return "AndroidStudio".equals(getPlatformPrefix());
   }
 
   // region Settings Sync

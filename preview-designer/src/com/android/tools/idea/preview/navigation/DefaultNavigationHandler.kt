@@ -25,8 +25,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
-import java.util.WeakHashMap
 import kotlinx.coroutines.withContext
+import java.util.WeakHashMap
 
 /**
  * Navigation handler that defaults navigation from a [SceneView] to a particular predefined (via

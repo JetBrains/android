@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.model
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
-import com.jetbrains.rd.util.AtomicReference
+import java.util.concurrent.atomic.AtomicReference
 
 fun learnMoreAction(url: String) =
   StatusNotificationAction("Learn More") { BrowserUtil.browse(url) }

@@ -1,0 +1,35 @@
+### auto-generated section `build intellij.android.profilers.atrace` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "profilers-atrace",
+  module_name = "intellij.android.profilers.atrace",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/core/common/src/main/kotlin/**/*.kt", "src/core/common/src/main/kotlin/**/*.java", "src/core/model/src/main/kotlin/**/*.kt", "src/core/model/src/main/kotlin/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-reflect",
+    "@lib//:kotlin-stdlib",
+  ]
+)
+
+jvm_library(
+  name = "profilers-atrace_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":profilers-atrace"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-reflect",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+  ]
+)
+
+jvm_test(
+  name = "profilers-atrace_test",
+  runtime_deps = [":profilers-atrace_test_lib"]
+)
+### auto-generated section `build intellij.android.profilers.atrace` end

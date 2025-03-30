@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.*;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Test cases for the {@link ScopedStateStore}

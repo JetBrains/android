@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.sdklib.AndroidDpCoordinate
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -29,10 +28,10 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Point
 import kotlin.math.absoluteValue
-import org.intellij.lang.annotations.JdkConstants
 
 /** Implements a target allowing dragging a nav editor screen */
 class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponentTarget {
@@ -56,17 +55,19 @@ class ScreenDragTarget(component: SceneComponent) : BaseTarget(), MultiComponent
   // region Layout
   /////////////////////////////////////////////////////////////////////////////
 
-  override fun newSelection(): List<SceneComponent?>? {
+  override fun newSelection(): List<SceneComponent>? {
     if (changedComponent) {
       val selection = getComponent().scene.selection
       return if (selection.size == 1) {
         ImmutableList.of(getComponent())
       } else {
         val scene = myComponent.scene
+        val result = ImmutableList.builder<SceneComponent>()
         selection
-          .stream()
-          .map { c: NlComponent? -> scene.getSceneComponent(c) }
-          .collect(ImmutableList.toImmutableList())
+          .asSequence()
+          .mapNotNull { scene.getSceneComponent(it) }
+          .forEach { result.add(it) }
+        return result.build()
       }
     }
     return null

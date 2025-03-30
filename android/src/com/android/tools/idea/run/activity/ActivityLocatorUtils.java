@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.run.activity;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_PACKAGE;
+import static com.android.xml.AndroidManifest.NODE_ACTION;
+import static com.android.xml.AndroidManifest.NODE_CATEGORY;
+
 import com.android.tools.idea.apk.ApkFacet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -31,10 +37,6 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import static com.android.SdkConstants.*;
-import static com.android.xml.AndroidManifest.NODE_ACTION;
-import static com.android.xml.AndroidManifest.NODE_CATEGORY;
 
 public class ActivityLocatorUtils {
   public static boolean containsAction(@NotNull Element filter, @NotNull String name) {

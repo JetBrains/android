@@ -38,7 +38,6 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
@@ -294,10 +293,10 @@ public abstract class BaseAction extends AnAction {
   }
 
   protected static List<Executor> getRunningExecutorsOfDifferentType(@NotNull Project project, List<ProcessHandler> processHandlers) {
-    ExecutionManagerImpl executionManager = ExecutionManagerImpl.getInstance(project);
+    ExecutionManager executionManager = ExecutionManager.getInstance(project);
     List<RunContentDescriptor> runningDescriptors =
       executionManager.getRunningDescriptors(c -> true).stream().filter(d -> processHandlers.contains(d.getProcessHandler())).toList();
-    return runningDescriptors.stream().flatMap(r -> ExecutionManagerImpl.getInstance(project).getExecutors(r).stream()).distinct().toList();
+    return runningDescriptors.stream().flatMap(r -> ExecutionManager.getInstance(project).getExecutors(r).stream()).distinct().toList();
   }
 
   public static final class DisableMessage {

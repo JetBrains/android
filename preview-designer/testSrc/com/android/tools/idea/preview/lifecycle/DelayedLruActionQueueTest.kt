@@ -18,12 +18,12 @@ package com.android.tools.idea.preview.lifecycle
 import com.android.testutils.VirtualTimeScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import java.time.Duration
-import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 internal class DelayedLruActionQueueTest {
   lateinit var testDisposable: Disposable

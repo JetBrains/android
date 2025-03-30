@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea;
 
+import static com.intellij.util.PlatformUtils.getPlatformPrefix;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 @Service
 public final class IdeInfo {

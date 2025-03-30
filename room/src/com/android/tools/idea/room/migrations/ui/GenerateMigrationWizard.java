@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.room.migrations.ui;
 
-import static com.android.tools.idea.room.migrations.ui.GenerateMigrationWizard.RenamePanelElement.*;
+import static com.android.tools.idea.room.migrations.ui.GenerateMigrationWizard.RenamePanelElement.MAX_PANEL_COMPONENT_HEIGHT;
+import static com.android.tools.idea.room.migrations.ui.GenerateMigrationWizard.RenamePanelElement.MAX_PANEL_COMPONENT_WIDTH;
+import static com.android.tools.idea.room.migrations.ui.GenerateMigrationWizard.RenamePanelElement.MAX_PANEL_HEIGHT;
+import static com.android.tools.idea.room.migrations.ui.GenerateMigrationWizard.RenamePanelElement.MAX_PANEL_WIDTH;
 
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.intellij.ide.wizard.AbstractWizard;

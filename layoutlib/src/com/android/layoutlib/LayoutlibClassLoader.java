@@ -18,17 +18,16 @@ package com.android.layoutlib;
 import android.os._Original_Build;
 import com.android.tools.environment.Logger;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.commons.ClassRemapper;
-import org.objectweb.asm.commons.Remapper;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.function.BiConsumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.commons.ClassRemapper;
+import org.jetbrains.org.objectweb.asm.commons.Remapper;
 
 /**
  * {@link ClassLoader} used for Layoutlib. Currently it only generates {@code android.os.Build} dynamically by copying the class in

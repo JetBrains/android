@@ -21,10 +21,13 @@ import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.AnimatedIcon
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
-import com.intellij.ui.NewUI
 import com.intellij.util.ui.ImageUtil
+import org.junit.Assert.assertThrows
+import org.junit.Rule
+import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -32,12 +35,10 @@ import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.UIManager
-import org.junit.Assert.assertThrows
-import org.junit.Rule
-import org.junit.Test
 
 class IconTableComponentTest {
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @Test
   fun updateTablePresentation() {
@@ -53,10 +54,11 @@ class IconTableComponentTest {
 
     label.updateTablePresentation(presentationManager, selected)
     assertThat(label.background).isEqualTo(JBColor.RED)
-    if (NewUI.isEnabled()) {
+    if (ExperimentalUI.isNewUI()) {
       // We don't change the icon colors in the new UI
       assertThat(label.icon).isEqualTo(icon)
-    } else {
+    }
+    else {
       assertSameImage(render(label, label.icon), render(label, icon.applyColor(JBColor.BLUE)))
     }
 

@@ -16,12 +16,11 @@
 package com.android.tools.idea.observable;
 
 import com.google.common.collect.Queues;
+import java.util.Queue;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import java.util.Queue;
 
 /**
  * A utility class which invokes some logic and, if multiple invocation requests come in at the

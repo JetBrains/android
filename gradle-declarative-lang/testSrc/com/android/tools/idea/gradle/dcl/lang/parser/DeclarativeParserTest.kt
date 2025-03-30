@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.parser
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment

@@ -15,6 +15,9 @@
  */
 package com.android.tools.rendering.parsers;
 
+import static com.android.AndroidXConstants.NAVIGATION_VIEW;
+import static com.android.tools.rendering.parsers.LayoutPullParsers.createEmptyParser;
+
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.tools.module.ModuleDependencies;
 import com.android.tools.rendering.LayoutlibCallbackImpl;
@@ -23,9 +26,6 @@ import com.android.utils.XmlUtils;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
-
-import static com.android.AndroidXConstants.NAVIGATION_VIEW;
-import static com.android.tools.rendering.parsers.LayoutPullParsers.createEmptyParser;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy.

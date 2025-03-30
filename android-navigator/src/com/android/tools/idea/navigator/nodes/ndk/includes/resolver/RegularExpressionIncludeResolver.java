@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.regex.Pattern;
 
 /**
  * Represents an include resolver that uses a regular expression to match

@@ -95,7 +95,6 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
         try {
           MyPublicResourceIdMapBuilder builder = new MyPublicResourceIdMapBuilder();
           NanoXmlUtil.parse(publicXml.getInputStream(), builder);
-
           resourceIdMap.putAll(builder.getIdMap());
         }
         catch (IOException e) {

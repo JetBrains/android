@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.run;
 import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.PathManager;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -93,7 +94,7 @@ public class PublicMethodsBuildActionTest {
   }
 
   @NotNull
-  private static Set<String> getClassesNames(@NotNull JarFile jarFile) throws ClassNotFoundException {
+  private static Set<String> getClassesNames(@NotNull JarFile jarFile) {
     Set<String> classes = new HashSet<>();
     Enumeration <JarEntry> entries = jarFile.entries();
     while (entries.hasMoreElements()) {
@@ -115,10 +116,7 @@ public class PublicMethodsBuildActionTest {
     }
     else {
       // Running from classes (jar can be obtained by getting resources) e.g. running in IDEA
-      String pathToJar = ImmutableMap.class.getResource("").getFile().
-        replaceFirst("file:", "").
-        replaceAll("!/.*", "");
-      return new JarFile(pathToJar);
+      return new JarFile(PathManager.getJarPathForClass(ImmutableMap.class));
     }
   }
 

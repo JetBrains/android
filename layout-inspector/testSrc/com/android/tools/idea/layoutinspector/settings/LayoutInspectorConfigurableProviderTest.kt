@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.withAutoConnect
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.testFramework.ApplicationRule
@@ -27,10 +28,10 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
-import javax.swing.JCheckBox
-import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JCheckBox
+import javax.swing.JPanel
 import org.mockito.kotlin.mock
 
 class LayoutInspectorConfigurableProviderTest {
@@ -55,13 +56,15 @@ class LayoutInspectorConfigurableProviderTest {
 
   @Test
   fun testConfigurableControls() {
+    val ideName = ApplicationNamesInfo.getInstance().fullProductName
+
     val configurable1 =
       LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
     val component1 = configurable1.createComponent()!!
 
     assertThat(component1.components).hasLength(2)
     assertThat((component1.components[0] as JCheckBox).text)
-      .isEqualTo("Enable auto connect (requires a restart of Android Studio)")
+      .isEqualTo("Enable auto connect (requires a restart of $ideName)")
 
     val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
@@ -73,7 +76,7 @@ class LayoutInspectorConfigurableProviderTest {
 
     assertThat(component2.components).hasLength(2)
     assertThat((component2.components[0] as JCheckBox).text)
-      .isEqualTo("Enable auto connect (requires a restart of Android Studio)")
+      .isEqualTo("Enable auto connect (requires a restart of $ideName)")
     assertThat((enableEmbeddedLiPanel.components[0] as JCheckBox).text)
       .isEqualTo("Enable embedded Layout Inspector")
 

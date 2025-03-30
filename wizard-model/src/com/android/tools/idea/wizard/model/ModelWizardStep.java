@@ -184,7 +184,7 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
     return null;
   }
 
-  private static final class BlankModel extends WizardModel {
+  public static final class BlankModel extends WizardModel {
     @Override
     protected void handleFinished() {
     }

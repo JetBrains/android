@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
-import org.objectweb.asm.tree.AnnotationNode
-import org.objectweb.asm.tree.ParameterNode
+import org.jetbrains.org.objectweb.asm.tree.AnnotationNode
+import org.jetbrains.org.objectweb.asm.tree.ParameterNode
 
 class IrParameter(val index: Int,
                   node: ParameterNode,

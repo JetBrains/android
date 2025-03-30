@@ -65,11 +65,8 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
     )
   }
 
-  override fun refresh(editorMarkupModel: EditorMarkupModel?) {
+  override fun refresh(editorMarkupModel: EditorMarkupModel) {
     super.refresh(editorMarkupModel)
-    if (editorMarkupModel == null) {
-      return
-    }
     errorCounts.fill(0)
     val issues = IssuePanelService.getInstance(project).getSharedPanelIssues()
     issues.forEach {

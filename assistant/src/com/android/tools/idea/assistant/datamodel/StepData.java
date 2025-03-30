@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
+import java.util.List;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * A single step in a tutorial. All tutorials are made of one or more steps

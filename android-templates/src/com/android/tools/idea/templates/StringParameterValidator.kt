@@ -27,8 +27,23 @@ import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceFolderRegistry
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.idea.wizard.template.Constraint.*
 import com.android.tools.idea.wizard.template.Constraint
+import com.android.tools.idea.wizard.template.Constraint.ACTIVITY
+import com.android.tools.idea.wizard.template.Constraint.APP_PACKAGE
+import com.android.tools.idea.wizard.template.Constraint.CLASS
+import com.android.tools.idea.wizard.template.Constraint.DRAWABLE
+import com.android.tools.idea.wizard.template.Constraint.EXISTS
+import com.android.tools.idea.wizard.template.Constraint.KOTLIN_FUNCTION
+import com.android.tools.idea.wizard.template.Constraint.LAYOUT
+import com.android.tools.idea.wizard.template.Constraint.MODULE
+import com.android.tools.idea.wizard.template.Constraint.NAVIGATION
+import com.android.tools.idea.wizard.template.Constraint.NONEMPTY
+import com.android.tools.idea.wizard.template.Constraint.PACKAGE
+import com.android.tools.idea.wizard.template.Constraint.SOURCE_SET_FOLDER
+import com.android.tools.idea.wizard.template.Constraint.STRING
+import com.android.tools.idea.wizard.template.Constraint.UNIQUE
+import com.android.tools.idea.wizard.template.Constraint.URI_AUTHORITY
+import com.android.tools.idea.wizard.template.Constraint.VALUES
 import com.android.tools.idea.wizard.template.StringParameter
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Iterables
@@ -36,6 +51,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
@@ -170,7 +186,7 @@ fun StringParameter.validateStringType(
         module ?: return false
         val facet = AndroidFacet.getInstance(module) ?: return false
         val modulePath: @SystemIndependent String = AndroidRootUtil.getModuleDirPath(module) ?: return false
-        val file = File(FileUtil.toSystemDependentName(modulePath), value)
+        val file = File(FileUtilRt.toSystemDependentName(modulePath), value)
         val vFile = VfsUtil.findFileByIoFile(file, true)
         facet.sourceProviders.getForFile(vFile) != null
       }

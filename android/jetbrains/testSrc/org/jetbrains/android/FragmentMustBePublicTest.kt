@@ -16,7 +16,7 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants.DOT_JAVA
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.test.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.visibility.VisibilityInspection

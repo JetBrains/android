@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.openapi.options.Configurable;
@@ -22,13 +24,12 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.RawCommandLineEditor;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Configuration page for Gradle compiler settings.
@@ -116,10 +117,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     String commandLineOptions = nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myContinueBuildWithErrors.setSelected(myBuildConfiguration.CONTINUE_FAILED_BUILD);
     myCommandLineOptionsEditor.setText(commandLineOptions);
-  }
-
-  @Override
-  public void disposeUIResources() {
   }
 
   private void createUIComponents() {

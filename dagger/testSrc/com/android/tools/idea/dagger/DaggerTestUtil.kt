@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.dagger
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture

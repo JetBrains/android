@@ -1,4 +1,5 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+### auto-generated section `build intellij.android.ml-api` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 # managed by go/iml_to_build
 iml_module(
@@ -28,3 +29,29 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )
+### auto-generated section `build intellij.android.ml-api` end
+
+### auto-generated section `build intellij.android.ml-api-tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "ml-api-tests_test",
+  srcs = glob(["src/testSrc/kotlin/**/*.kt", "src/testSrc/kotlin/**/*.java"], allow_empty = True),
+  associates = ["//android/ml-api"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlin-test",
+    "@lib//:junit4",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/indexing-api:indexing",
+    "//platform/indexing-impl",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+  ]
+)
+### auto-generated section `build intellij.android.ml-api-tests` end

@@ -21,13 +21,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.tabs.TabInfo
-import javax.swing.JPanel
-import kotlin.test.assertNotNull
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
+import kotlin.test.assertNotNull
 
 class AnimationTabsTest {
 

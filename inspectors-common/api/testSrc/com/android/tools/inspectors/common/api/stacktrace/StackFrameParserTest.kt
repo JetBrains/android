@@ -18,7 +18,6 @@ package com.android.tools.inspectors.common.api.stacktrace
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser.parseFrame
 import com.google.common.truth.Truth.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 class StackFrameParserTest {

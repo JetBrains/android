@@ -19,8 +19,8 @@ import com.android.tools.idea.assistant.datamodel.TutorialBundleData
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import java.net.URL
 import org.apache.http.concurrent.FutureCallback
+import java.net.URL
 
 class AssistantGetBundleFromConfigTask(
   project: Project,

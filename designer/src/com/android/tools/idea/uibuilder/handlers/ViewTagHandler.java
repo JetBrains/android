@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
 

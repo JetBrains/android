@@ -784,7 +784,18 @@ public class IdeSdks {
     if (!JavaSdk.getInstance().isOfVersionOrHigher(jdk, JDK_1_8)) {
       return false;
     }
-    return true;
+
+    JavaSdkVersion jdkVersion = JavaSdk.getInstance().getVersion(jdk);
+    if (jdkVersion == null) {
+      return false;
+    }
+
+    return isJdkVersionCompatible(preferredVersion, jdkVersion);
+  }
+
+  @VisibleForTesting
+  boolean isJdkVersionCompatible(@NotNull JavaSdkVersion preferredVersion, @NotNull JavaSdkVersion jdkVersion) {
+    return jdkVersion.compareTo(preferredVersion) >= 0 && jdkVersion.compareTo(MAX_JDK_VERSION) <= 0;
   }
 
   /**
@@ -870,6 +881,7 @@ public class IdeSdks {
       for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
         ProjectJdkTable.getInstance().removeJdk(sdk);
       }
+      AndroidSdkPathStore.getInstance().setAndroidSdkPath(null);
     }));
   }
 

@@ -21,9 +21,9 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.util.text.Matcher
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 import kotlin.properties.Delegates
-import org.jetbrains.annotations.TestOnly
 
 // Prefix to the keys used to store/restore the state of expandable groups in the inspector
 @VisibleForTesting const val KEY_PREFIX = "inspector.open."

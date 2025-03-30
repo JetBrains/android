@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
+
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import java.util.Set;
-
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
 
 public class GradleProjectSettingsFinder {
   @NotNull

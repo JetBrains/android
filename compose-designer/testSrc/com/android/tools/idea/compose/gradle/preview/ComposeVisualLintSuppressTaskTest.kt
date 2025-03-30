@@ -43,7 +43,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.concurrency.AppExecutorUtil
-import java.util.concurrent.CompletableFuture
 import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -53,6 +52,8 @@ import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.toUElementOfType
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CompletableFuture
+import kotlin.test.assertEquals
 
 class ComposeVisualLintSuppressTaskTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)

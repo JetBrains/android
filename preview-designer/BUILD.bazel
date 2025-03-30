@@ -1,0 +1,145 @@
+### auto-generated section `build intellij.android.preview-designer` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "preview-designer_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "preview-designer",
+  module_name = "intellij.android.preview-designer",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:commons-lang3",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-ir-provided",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//platform/ide-core-impl",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/designer",
+    "//android/jps-model",
+    "//android/layout-ui",
+    "//android/preview-elements",
+    "//android/project-system:projectSystem",
+    "//android/render-resources",
+    "//android/rendering",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-impl:psi-impl",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//uast/uast-common:uast",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-api:psi",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//java/java-indexing-impl:indexing-impl",
+    "//plugins/kotlin/base/indices:kotlin-base-indices",
+    "//plugins/kotlin/base/analysis:kotlin-base-analysis",
+    "//plugins/maven",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/highlighting/highlighting-minimal:kotlin-highlighting-minimal",
+    "//android/preview-fast-compile",
+    "//android/completion",
+    "@lib//:kotlinc-analysis-api-provided",
+    "//platform/util-ex",
+    "//java/java-analysis-impl:analysis-impl",
+    "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
+    "@lib//:kotlinx-collections-immutable",
+  ],
+  runtime_deps = [":preview-designer_resources"]
+)
+### auto-generated section `build intellij.android.preview-designer` end
+
+### auto-generated section `build intellij.android.preview-designer.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "preview-designer-tests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "preview-designer-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/preview-designer"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:mockito",
+    "//platform/analysis-api:analysis",
+    "@lib//:truth",
+    "@lib//:guava",
+    "@lib//:protobuf",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/android-common:common",
+    "//android/render-resources",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android:core",
+    "//android/designer",
+    "//android/designer:designer_test_lib",
+    "//android/layout-ui",
+    "//android/layout-ui:layout-ui_test_lib",
+    "//android/preview-elements",
+    "//android/rendering",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//uast/uast-common:uast",
+    "//android/android:core-tests_test_lib",
+    "//plugins/kotlin/idea",
+    "//android/project-system:projectSystem",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//android/preview-fast-compile",
+    "//android/rendering:rendering-tests_test_lib",
+    "@lib//:kotlinc-analysis-api-provided",
+    "//android/designer:designer-tests_test_lib",
+    "@lib//:kotlinx-collections-immutable",
+  ]
+)
+
+jvm_test(
+  name = "preview-designer-tests_test",
+  runtime_deps = [":preview-designer-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.preview-designer.tests` end

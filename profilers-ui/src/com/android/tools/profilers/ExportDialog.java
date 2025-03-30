@@ -15,11 +15,10 @@
  */
 package com.android.tools.profilers;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
 public interface ExportDialog {
   /**

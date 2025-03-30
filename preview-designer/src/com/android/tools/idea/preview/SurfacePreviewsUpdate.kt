@@ -109,7 +109,7 @@ fun <T : PreviewElement<*>, M> matchElementsToModels(
     // finish early
     if (
       matchedElements.size == affinityMatrix.size ||
-        matchedModels.size == affinityMatrix.first().size
+      matchedModels.size == affinityMatrix.first().size
     ) {
       break
     }
@@ -135,7 +135,7 @@ suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElemen
   progressIndicator: ProgressIndicator,
   modelToPreview: NlModel.() -> T?,
   configureLayoutlibSceneManager:
-    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
+  (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
   refreshFilter: (LayoutlibSceneManager) -> Boolean = { true },
   refreshOrder: (LayoutlibSceneManager) -> Int = { 0 },
   refreshEventBuilder: PreviewRefreshEventBuilder?,
@@ -195,7 +195,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   modelUpdater: NlModelUpdaterInterface,
   navigationHandler: PreviewNavigationHandler,
   configureLayoutlibSceneManager:
-    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
+  (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
   refreshEventBuilder: PreviewRefreshEventBuilder?,
 ): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
@@ -205,7 +205,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       ?.findAndroidModule()
       ?.let { module -> AndroidFacet.getInstance(module) }
       ?.let { facet -> facet to ConfigurationManager.getOrCreateInstance(facet.module) }
-      ?: (null to null)
+    ?: (null to null)
   if (facet == null || configurationManager == null) return emptyList()
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new
   // ones.
@@ -276,7 +276,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           if (affinity > 0) invalidatePreviousRender = true
           model.updateFileContentBlocking(fileContents)
           newModel = model
-          this@NlDesignSurface.getSceneManager(newModel)?.let {
+          this.getSceneManager(newModel)?.let {
             if (forceReinflate) it.sceneRenderConfiguration.needsInflation.set(true)
             if (invalidatePreviousRender) it.invalidateCachedResponse()
           }
@@ -294,11 +294,11 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           configuration.imageTransformation = this.getGlobalImageTransformation()
           newModel =
             NlModel.Builder(
-                parentDisposable,
-                AndroidBuildTargetReference.from(facet, psiFile.virtualFile),
-                file,
-                configuration,
-              )
+              parentDisposable,
+              AndroidBuildTargetReference.from(facet, psiFile.virtualFile),
+              file,
+              configuration,
+            )
               .withComponentRegistrar(NlComponentRegistrar)
               .withXmlProvider { project, virtualFile ->
                 NlModel.getDefaultFile(project, virtualFile).also {
@@ -325,19 +325,19 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           // example "MyComposableName - Font sizes"
           val groupId =
             methodPreviewElement.methodFqn +
-              (methodPreviewElement.displaySettings.organizationGroup ?: "")
+            (methodPreviewElement.displaySettings.organizationGroup ?: "")
           val displayName =
             methodPreviewElement.displaySettings.baseName +
-              (methodPreviewElement.displaySettings.organizationGroup?.let { " - $it" } ?: "")
+            (methodPreviewElement.displaySettings.organizationGroup?.let { " - $it" } ?: "")
           newModel.organizationGroup =
             groups.getOrCreate(groupId) {
               OrganizationGroup(groupId, displayName) {
-                  // Everytime state is changed we need to save it.
-                  isOpened ->
-                  getInstance(project)
-                    .surfaceState
-                    .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
-                }
+                // Everytime state is changed we need to save it.
+                isOpened ->
+                getInstance(project)
+                  .surfaceState
+                  .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
+              }
                 .apply {
                   // Load previously saved state.
                   setOpened(previousOrganizationState[groupId] ?: DEFAULT_ORGANIZATION_GROUP_STATE)
@@ -359,7 +359,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       .let { elementModelList ->
         // Reorder existing models and add placeholders altogether to improve performance and UX in
         // comparison with adding/reordering them one by one.
-        this@NlDesignSurface.addModelsWithoutRender(elementModelList.map { it.second })
+        this.addModelsWithoutRender(elementModelList.map { it.second })
           .mapIndexed { idx, sceneManager ->
             val previewElement = elementModelList[idx].first
             previewElement to

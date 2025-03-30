@@ -16,7 +16,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="These sites are consulted for installing and updating SDK platforms and tools."/>
+          <text resource-bundle="messages/AndroidBundle" key="label.these.are.the.sites"/>
         </properties>
       </component>
       <grid id="cef67" binding="mySourcesPanel" custom-create="true" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -41,7 +41,7 @@
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Loading sources..."/>
+              <text resource-bundle="messages/AndroidBundle" key="label.loading.sources"/>
             </properties>
           </component>
           <component id="35d4e" class="com.intellij.util.ui.AsyncProcessIcon" binding="mySourcesLoadingIcon" custom-create="true">
@@ -57,7 +57,7 @@
           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Force https://... sources to be fetched using http://..."/>
+          <text resource-bundle="messages/AndroidBundle" key="checkbox.force.https.sources"/>
         </properties>
       </component>
       <component id="b0f0e" class="com.intellij.ui.components.JBLabel">

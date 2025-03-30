@@ -77,6 +77,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -185,7 +186,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
     DefaultActionGroup actions = new DefaultActionGroup();
 
-    AnAction addDependencyAction = new DumbAwareAction("Add Dependency", "", IconUtil.getAddIcon()) {
+    AnAction addDependencyAction =
+      new DumbAwareAction(AndroidBundle.messagePointer("action.DumbAware.AbstractDependenciesPanel.text.add.dependency"), () -> "",
+                          IconUtil.getAddIcon()) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<AbstractPopupAction>(null, getPopupActions()) {

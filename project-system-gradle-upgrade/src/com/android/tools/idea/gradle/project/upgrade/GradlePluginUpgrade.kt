@@ -47,7 +47,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vcs.FileStatusManager
 import com.intellij.util.SystemProperties
-import com.jetbrains.rd.util.first
 import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.TimeUnit
 
@@ -325,7 +324,7 @@ fun computeGradlePluginUpgradeState(
     if (!acceptableStables.containsKey(current.major)) {
       // We can't upgrade to a new version of our current series, but there are upgrade targets (acceptableStables is not empty).  We
       // must be at the end of a major series, so recommend the latest compatible in the next major series.
-      return GradlePluginUpgradeState(recommendationStrength, acceptableStables.first().value.last().value.last())
+      return GradlePluginUpgradeState(recommendationStrength, acceptableStables.values.first().last().value.last())
     }
 
     val currentSeriesCandidates = acceptableStables[current.major]!!

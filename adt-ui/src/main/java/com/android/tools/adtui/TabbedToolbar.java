@@ -25,7 +25,6 @@ import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -214,7 +213,7 @@ public class TabbedToolbar extends JPanel {
 
     @Override
     protected void paintComponent(final Graphics g) {
-      GraphicsUtil.setAntialiasingType(this, AntialiasingType.getAAHintForSwingComponent());
+      GraphicsUtil.setAntialiasingType(this, AntialiasingType.getAATextInfoForSwingComponent());
 
       // 1) Adjust our background color before painting for hover effect.
       if (myMouseOverTab == this) {

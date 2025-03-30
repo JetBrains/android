@@ -15,10 +15,13 @@
  */
 package com.android.tools.adtui.stdui.menu;
 
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import javax.swing.Icon;
+import javax.swing.JMenuItem;
+import javax.swing.SwingConstants;
 import sun.swing.MenuItemLayoutHelper;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Allows the caller to explicitly specify the leading gap and after checked icon gap, and have the layout logic respect those parameters

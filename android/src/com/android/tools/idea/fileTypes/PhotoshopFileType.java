@@ -21,7 +21,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileTypes.FileType;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -50,7 +49,6 @@ public final class PhotoshopFileType implements FileType {
     return EXTENSION;
   }
 
-  @Nullable
   @Override
   public Icon getIcon() {
     return AllIcons.FileTypes.Image;

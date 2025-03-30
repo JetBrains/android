@@ -5,16 +5,18 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.designer" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.nav.editor" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.nav.editor.gradle" scope="RUNTIME" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.android.compose-designer" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.designer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.designer.customview" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.glance-designer" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.nav.editor" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.wear-designer" scope="RUNTIME" />
-    <orderEntry type="library" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.android.design-plugin.descriptor" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.nav.editor.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.motion-editor" scope="RUNTIME" />
   </component>
 </module>

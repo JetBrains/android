@@ -18,8 +18,7 @@ package com.android.tools.adtui.categorytable
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.AnimatedIcon
-import com.intellij.ui.JBColor
-import com.intellij.ui.NewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.components.JBLabel
 import java.awt.Color
 import javax.swing.Icon
@@ -55,7 +54,7 @@ interface IconTableComponent : TableComponent {
 fun IconTableComponent.updateIconColor(presentation: TablePresentation) {
   iconColor =
     when {
-      presentation.rowSelected && !NewUI.isEnabled() -> presentation.foreground
+      presentation.rowSelected && !ExperimentalUI.isNewUI() -> presentation.foreground
       else -> null
     }
 }

@@ -1,0 +1,88 @@
+### auto-generated section `build intellij.android.rendering` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "rendering_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "rendering",
+  module_name = "intellij.android.rendering",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:asm",
+    "@lib//:guava",
+    "@lib//:asm-tools",
+    "@lib//:http-client",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlin-reflect",
+    "@lib//:kxml2",
+    "//android/layoutlib-loader",
+    "//android/render-resources",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "@lib//:layoutlib",
+  ],
+  runtime_deps = [":rendering_resources"]
+)
+### auto-generated section `build intellij.android.rendering` end
+
+### auto-generated section `build intellij.android.rendering.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "rendering-tests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "rendering-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:asm",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:asm-tools",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-test",
+    "@lib//:kotlin-reflect",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kxml2",
+    "@lib//:truth",
+    "//android/render-resources",
+    "//android/rendering",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/extensions",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//android/android:core",
+    "@lib//:layoutlib",
+    "@lib//:bouncy-castle-provider",
+  ]
+)
+
+jvm_test(
+  name = "rendering-tests_test",
+  runtime_deps = [":rendering-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.rendering.tests` end

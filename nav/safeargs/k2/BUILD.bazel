@@ -1,0 +1,32 @@
+### auto-generated section `build intellij.android.nav.safeargs.k2` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-nav-safeargs-k2_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-nav-safeargs-k2",
+  module_name = "intellij.android.nav.safeargs.k2",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/project-system:projectSystem",
+    "//platform/core-api:core",
+    "//xml/impl",
+    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
+    "//android/nav/safeargs/common:android-nav-safeargs-common",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//platform/util",
+    "//plugins/kotlin/base/analysis:kotlin-base-analysis",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-analysis-api-platform-interface-provided",
+  ],
+  runtime_deps = [":android-nav-safeargs-k2_resources"]
+)
+### auto-generated section `build intellij.android.nav.safeargs.k2` end

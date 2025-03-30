@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
 import androidx.compose.animation.tooling.ComposeAnimation
-import java.lang.reflect.Method
 import org.jetbrains.annotations.VisibleForTesting
+import java.lang.reflect.Method
 
 /**
  * Returns a list of the given [ComposeAnimation]'s animated properties. The properties are wrapped

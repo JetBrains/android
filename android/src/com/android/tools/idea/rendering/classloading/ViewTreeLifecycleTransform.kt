@@ -17,10 +17,10 @@ package com.android.tools.idea.rendering.classloading
 
 
 import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.Label
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 private const val ORIGINAL_SUFFIX = "_Original"
 const val FAKE_SAVEDSTATE_REGISTRY_PATH = "_layoutlib_/_internal_/androidx/lifecycle/FakeSavedStateRegistry"

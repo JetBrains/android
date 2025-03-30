@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.base.execution;
 
-import com.intellij.ide.impl.TrustedProjects;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.project.Project;
 
 /** A {@link BazelGuard} that only allows execution if the project is trusted. */

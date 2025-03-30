@@ -83,7 +83,7 @@ class UnsignedApkQuickFixTest {
     quickFix = UnsignedApkQuickFix.create(module2, "release", null)
 
     assertEquals(module2, quickFix!!.module)
-    
+
     Disposer.dispose(module1)
     Disposer.dispose(module2)
   }

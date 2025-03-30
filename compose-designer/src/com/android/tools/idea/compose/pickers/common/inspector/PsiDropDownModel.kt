@@ -25,10 +25,10 @@ import com.android.tools.property.panel.api.NewEnumValueCallback
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.google.common.util.concurrent.Futures
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Model for the PsiPropertyDropdown component.

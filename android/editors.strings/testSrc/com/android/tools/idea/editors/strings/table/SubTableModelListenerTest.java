@@ -21,7 +21,6 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public final class SubTableModelListenerTest {
@@ -32,6 +31,6 @@ public final class SubTableModelListenerTest {
     TableModelListener delegateListener = Mockito.mock(TableModelListener.class);
 
     new SubTableModelListener(model, delegateListener).tableChanged(new TableModelEvent(delegateModel));
-    Mockito.verify(delegateListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+    Mockito.verify(delegateListener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 }

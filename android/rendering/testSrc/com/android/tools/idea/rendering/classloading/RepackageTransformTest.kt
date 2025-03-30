@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.util.TraceClassVisitor
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 

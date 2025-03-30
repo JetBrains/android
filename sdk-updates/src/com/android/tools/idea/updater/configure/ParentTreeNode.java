@@ -18,16 +18,15 @@ package com.android.tools.idea.updater.configure;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionUtils;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Enumeration;
 import java.util.function.Function;
+import javax.swing.JTree;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A tree node used in {@link SdkUpdaterConfigurable}. Represents a summary view of several packages.
  */
-class ParentTreeNode extends UpdaterTreeNode {
+public class ParentTreeNode extends UpdaterTreeNode {
   private final AndroidVersion myVersion;
   private final String myTitle;
   private PackageNodeModel.SelectedState myInitialState;

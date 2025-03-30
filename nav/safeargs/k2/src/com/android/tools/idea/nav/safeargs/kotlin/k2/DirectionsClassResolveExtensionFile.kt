@@ -72,10 +72,10 @@ internal class DirectionsClassResolveExtensionFile(
       for (argument in action.arguments) {
         appendLine(
           "        " +
-            "// argument ${argument.name}: " +
-            "${argument.type ?: "<undefined type>"} " +
-            "(nullable: ${argument.nullable ?: "<null>"})" +
-            " = ${argument.defaultValue ?: "<no default>"}"
+          "// argument ${argument.name}: " +
+          "${argument.type ?: "<undefined type>"} " +
+          "(nullable: ${argument.nullable ?: "<null>"})" +
+          " = ${argument.defaultValue ?: "<no default>"}"
         )
         val argumentType = argument.resolveKotlinType(navInfo.packageName)
         append("        ${argument.name.toCamelCase()}: ${argumentType}")

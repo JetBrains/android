@@ -42,7 +42,7 @@ import kotlin.system.measureTimeMillis
  * CpuCaptureStage and CpuCaptureStageView then reports the memory used and the max memory after entering the stage. The stage enter
  * is triggered by setting the stage on the StudioProfilers.
  */
-open class CpuProfilerMemoryLoadTestBase {
+abstract class CpuProfilerMemoryLoadTestBase {
   val myMemoryBenchmark = Benchmark.Builder("CpuProfiler Import Trace Memory (kb)").setProject("Android Studio Profilers").build()
   val myTimingBenchmark = Benchmark.Builder("CpuProfiler Import Trace Time (millis)").setProject("Android Studio Profilers").build()
   val myTimer = FakeTimer()

@@ -41,15 +41,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
 import java.awt.Dimension
 import java.awt.event.AWTEventListener
 import java.awt.event.MouseEvent
 import java.io.IOException
 import java.io.InputStreamReader
 import javax.swing.JComponent
-import org.intellij.lang.annotations.Language
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.ResourceFolderManager
 
 private val logger: Logger by lazy { Logger.getInstance("DesignSurfaceHelper") }
 

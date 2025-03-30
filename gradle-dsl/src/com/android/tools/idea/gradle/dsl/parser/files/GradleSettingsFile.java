@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;

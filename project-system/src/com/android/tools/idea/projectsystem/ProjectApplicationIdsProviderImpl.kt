@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project

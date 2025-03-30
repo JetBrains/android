@@ -125,9 +125,7 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
         // we just catch and log all possible problems.
         catch (e: Throwable) {
           getLog()
-            .info(
-              "${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\": ${e.message}"
-            )
+            .infoWithDebug("${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\": ${e.message}", e)
           null
         }
       }

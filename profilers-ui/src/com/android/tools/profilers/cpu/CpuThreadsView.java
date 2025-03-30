@@ -21,7 +21,6 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.adtui.ui.HideablePanel;
@@ -53,7 +52,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of threads and their
  * corresponding {@link com.android.tools.adtui.chart.statechart.StateChart} whose data are the thread state changes.
  */
-final class CpuThreadsView {
+public final class CpuThreadsView {
   @NotNull
   private final HideablePanel myPanel;
   @NotNull

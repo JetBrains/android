@@ -1,0 +1,134 @@
+### auto-generated section `build intellij.android.kotlin.idea` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+create_kotlinc_options(
+  name = "custom",
+  opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
+)
+
+jvm_resources(
+  name = "android-kotlin-idea_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-kotlin-idea",
+  module_name = "intellij.android.kotlin.idea",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/android-kotlin/idea-android/common:android-kotlin-idea-common",
+    "//android/android-kotlin/idea-android/k1:android-kotlin-idea-k1",
+    "//android/android-kotlin/idea-android/k2:android-kotlin-idea-k2",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//xml/dom-openapi:dom",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
+    "//plugins/kotlin/core",
+    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core",
+  ],
+  runtime_deps = [":android-kotlin-idea_resources"]
+)
+### auto-generated section `build intellij.android.kotlin.idea` end
+
+### auto-generated section `build intellij.android.kotlin.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "android-kotlin-tests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "android-kotlin-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["tests/**/*.kt", "tests/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:gson",
+    "@lib//:jetbrains-annotations",
+    "@lib//:truth",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-fe10-provided",
+    "@lib//:kotlinc-kotlin-compiler-tests-provided",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
+    "//android/jps-model",
+    "//android/android-kotlin/idea-android:android-kotlin-idea",
+    "//android/android-kotlin/idea-android/common:android-kotlin-idea-common",
+    "//android/android-kotlin/idea-android/k1:android-kotlin-idea-k1",
+    "//android/android-kotlin/idea-android/k2:android-kotlin-idea-k2",
+    "//android/android-lint:lint",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-psi-api:psi",
+    "//java/java-runtime:rt",
+    "//java/testFramework",
+    "//java/idea-ui:ui",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/code-style-api:codeStyle",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/jdom",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/util:util-ui",
+    "//xml/dom-openapi:dom",
+    "//plugins/kotlin/base/analysis:kotlin-base-analysis",
+    "//plugins/kotlin/base/fe10/analysis:kotlin-base-fe10-analysis",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
+    "//plugins/kotlin/completion/impl-shared:kotlin-completion-impl-shared",
+    "//plugins/kotlin/gradle/code-insight-common:kotlin-gradle-code-insight-common",
+    "//plugins/kotlin/project-configuration",
+    "//android/adt-testutils:adt-testutils_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "android-kotlin-tests_test",
+  runtime_deps = [":android-kotlin-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.kotlin.tests` end

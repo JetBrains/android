@@ -17,6 +17,8 @@ package com.android.tools.idea.project
 
 import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.util.concurrency.ThreadingAssertions
@@ -24,11 +26,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
+private val LOG: Logger by lazy { Logger.getInstance(AndroidRunConfigurationsManager::class.java) }
+
 class AndroidRunConfigurationsManager(private val project: Project) {
 
   private val operationsStates= mutableListOf<Job>()
 
   fun createProjectRunConfigurations() {
+    LOG.debug { "AndroidRunConfigurationsManager.createProjectRunConfigurations" }
     project.coroutineScope.launch {
       withBackgroundProgress(project, "Setting up run configurations...") {
         AndroidRunConfigurations.instance.createRunConfigurations(project)

@@ -16,14 +16,13 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.model.SeriesData;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-class DefaultLineChartReducer implements LineChartReducer {
+public class DefaultLineChartReducer implements LineChartReducer {
   private static final float EPS  = 1e-6f;
 
   /**

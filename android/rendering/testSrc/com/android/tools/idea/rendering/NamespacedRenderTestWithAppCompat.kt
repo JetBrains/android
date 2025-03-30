@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.res.TestResourceIdManager
 import com.intellij.testFramework.IndexingTestUtil
+import com.intellij.testFramework.PlatformTestUtil
 
 class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
 
@@ -46,7 +47,7 @@ class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
   }
 
   fun testActivityMain() {
-    val layout = project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    val layout = PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     RenderTestUtil.checkRendering(myAndroidFacet, layout, getTestDataPath() + "/layouts/namespaced_with_appcompat/activity_main.png")
   }
 }

@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>This bit of logic is separate because the custom skin definition properties are Files in the configuration step which are difficult to
  * test properly. They're Paths here.
  */
-final class CustomSkinDefinitionResolver {
+public final class CustomSkinDefinitionResolver {
   private final @Nullable Path myCustomSkinDefinition;
   private final @Nullable Path myCustomSkinDefinitionBackup;
 

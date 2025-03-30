@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.observable;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.util.ref.GCUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class ObservableValueTest {
   @Test

@@ -1,0 +1,92 @@
+### auto-generated section `build intellij.android.inspectors-common.api-ide` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "android-inspectors-common-api-ide",
+  module_name = "intellij.android.inspectors-common.api-ide",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/adt-ui",
+    "//platform/ide-core-impl",
+    "//android/adt-ui-model",
+    "//android/codenavigation",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//android/native-symbolizer",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util:util-ui",
+  ]
+)
+
+jvm_library(
+  name = "android-inspectors-common-api-ide_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":android-inspectors-common-api-ide"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//platform/ide-core-impl",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//android/codenavigation",
+    "//android/codenavigation:codenavigation_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
+    "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//android/inspectors-common/ui:android-inspectors-common-ui_test_lib",
+    "//android/native-symbolizer",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "android-inspectors-common-api-ide_test",
+  runtime_deps = [":android-inspectors-common-api-ide_test_lib"]
+)
+### auto-generated section `build intellij.android.inspectors-common.api-ide` end

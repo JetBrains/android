@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import org.jetbrains.annotations.Nls
 import java.io.File
 import kotlin.properties.ReadWriteProperty
 
@@ -49,6 +50,7 @@ interface ModelPropertyCore<PropertyT : Any> :
   /**
    * A property description as it should appear in the UI.
    */
+  @get:Nls
   val description: String
 
   /**
@@ -92,6 +94,7 @@ interface ModelProperty<in ModelT, PropertyT : Any, ValueT : Any, out PropertyCo
   /**
    * A property description as it should appear in the UI.
    */
+  @get:Nls
   val description: String
 
   /**

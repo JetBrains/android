@@ -37,6 +37,15 @@ import javax.swing.JTextField
  */
 const val MAX_IMPORT_FILES = 400
 
+private fun <T> Collection<T>.toIdentitySet(): MutableSet<T> {
+  val result = Collections.newSetFromMap<T>(IdentityHashMap())
+  for (element in this) {
+    result.add(element)
+  }
+
+  return result
+}
+
 /**
  * ViewModel for [ResourceImportDialogViewModel]
  */

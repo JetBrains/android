@@ -30,6 +30,7 @@ import static org.junit.Assume.assumeThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
@@ -89,6 +90,11 @@ public class PsModuleTest {
 
   @Test
   public void testLocalRepositories() throws Exception {
+    if (AndroidGradleTests.shouldUseRemoteRepositories()) {
+      assert !IdeInfo.getInstance().isAndroidStudio();
+      return; // IDEA does not use local repositories during testing
+    }
+
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
     preparedProject.open(it -> it, (project) -> {
       PsProject psProject = new PsProjectImpl(project, new CachingRepositorySearchFactory());

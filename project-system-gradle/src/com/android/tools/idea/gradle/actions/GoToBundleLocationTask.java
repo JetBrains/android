@@ -44,7 +44,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -175,18 +174,18 @@ public class GoToBundleLocationTask {
   }
 
   @VisibleForTesting
-  static class OpenFolderNotificationListener extends NotificationListener.Adapter {
+  public static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Project myProject;
     @NotNull private final Map<String, File> myBundlePathsPerModule;
     @NotNull private final FileOrDirOpener myLocationOpener;
 
-    OpenFolderNotificationListener(@NotNull Project project,
+    public OpenFolderNotificationListener(@NotNull Project project,
                                    @NotNull Map<String, File> myBuildsAndBundlePaths) {
       this(project, myBuildsAndBundlePaths, new FileOrDirOpener());
     }
 
     @VisibleForTesting
-    OpenFolderNotificationListener(@NotNull Project project,
+    public OpenFolderNotificationListener(@NotNull Project project,
                                    @NotNull Map<String, File> myBuildsAndBundlePaths,
                                    @NotNull FileOrDirOpener locationOpener) {
       myProject = project;
@@ -260,17 +259,14 @@ public class GoToBundleLocationTask {
   }
 
   @VisibleForTesting
-  static class OpenEventLogHyperlink extends NotificationHyperlink {
-    OpenEventLogHyperlink() {
+  public static class OpenEventLogHyperlink extends NotificationHyperlink {
+    public OpenEventLogHyperlink() {
       super("open.event.log", "Show app bundle path(s) in the '" + ActionCenter.getToolwindowName() + "' view");
     }
 
     @Override
     protected void execute(@NotNull Project project) {
-      ToolWindow tw = ActionCenter.getToolWindow(project);
-      if (tw != null) {
-        tw.activate(null, false);
-      }
+      ActionCenter.activateLog(project, false);
     }
 
     @Override

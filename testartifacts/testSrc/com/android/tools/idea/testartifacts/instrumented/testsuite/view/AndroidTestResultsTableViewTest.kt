@@ -58,6 +58,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.anyBoolean
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.isNull
@@ -100,9 +101,9 @@ class AndroidTestResultsTableViewTest {
   @Mock lateinit var mockAndroidTestRunConfiguration: AndroidTestRunConfiguration
 
   // Workaround for Kotlin nullability check.
-  // ArgumentMatchers.argThat returns null for interface types.
+  // Mockito.argThat returns null for interface types.
   private fun argThat(matcher: (AndroidTestResults) -> Boolean): AndroidTestResults {
-    ArgumentMatchers.argThat(matcher)
+    Mockito.argThat(matcher)
     return object : AndroidTestResults {
       override val methodName: String = ""
       override val className: String = ""

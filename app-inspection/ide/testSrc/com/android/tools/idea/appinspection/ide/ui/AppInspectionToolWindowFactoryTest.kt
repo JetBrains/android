@@ -4,9 +4,9 @@ import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
-import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.fail
 
 /** Tests for [AppInspectionToolWindowFactory] */
 class AppInspectionToolWindowFactoryTest {

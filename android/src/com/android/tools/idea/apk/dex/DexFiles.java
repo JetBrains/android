@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.apk.dex;
 
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import com.android.tools.smali.dexlib2.Opcodes;
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
-
+import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
 
 public final class DexFiles {
   private DexFiles() {

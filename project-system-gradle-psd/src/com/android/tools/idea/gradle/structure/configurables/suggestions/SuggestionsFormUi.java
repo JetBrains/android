@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.suggestions;
 
+import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import java.awt.BorderLayout;
+import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 
 public abstract class SuggestionsFormUi {
   protected JPanel myMainPanel;

@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (C) 2017 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <depends optional="true" config-file="android-adb-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.adb.AdbService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.adb.AdbOptionsService"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.adblib.AdbLibService"
+        serviceImplementation="com.android.tools.idea.adblib.AdbLibServiceImpl"
+    />
+    <projectService
+        serviceInterface="com.android.processmonitor.monitor.ProcessNameMonitor"
+        serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorService"
+    />
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.DeviceCableMonitor"/>
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.DeviceStateReporter"/>
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.adblib.AdbServerStatusReporter"/>
+    <postStartupActivity implementation="com.android.tools.idea.adblib.AdbLibApplicationService$MyStartupActivity"/>
+    <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider"/>
+    <notificationGroup id="ADB Logs" displayType="NONE"/>
+    <notificationGroup id="Adb Service" displayType="BALLOON"/>
+    <notificationGroup id="Android Devices (Balloon)" displayType="BALLOON"/>
+    <notificationGroup id="Android Device Speed Warning" displayType="BALLOON"/>
+  </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.run.deviceNameRenderer"
+                    interface="com.android.tools.idea.ddms.DeviceNameRendererEx"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.deviceProvisioner"
+                    interface="com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <deviceProvisioner implementation="com.android.tools.idea.deviceprovisioner.DefaultDeviceProvisionerFactory"/>
+    <deviceProvisioner implementation="com.android.tools.idea.deviceprovisioner.PhysicalDeviceProvisionerFactory"/>
+  </extensions>
+
+  <actions>
+    <action id="Android.AdbDevicePairing"
+            class="com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction"
+            icon="StudioIcons.Avd.PAIR_OVER_WIFI"
+            text="Pair Devices Using Wi-Fi"
+            description="Open the Device Pairing dialog which allows connecting devices over Wi-Fi"/>
+
+    <group id="android.device.reservation.extend"
+           class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction"
+           icon="StudioIcons.Emulator.Toolbar.SESSION"
+           text="Extend Reservation"
+           description="Extend device reservation"
+           popup="true">
+      <separator text="Current Session" />
+      <action id="android.device.reservation.extend.status"
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$Status" />
+      <separator text="Extend Session" />
+      <action id="android.device.reservation.extend.quarter.hour"
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$Extend15MinOrLessAction"/>
+      <action id="android.device.reservation.extend.half.hour"
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$Extend30MinOrLessAction" />
+    </group>
+
+    <action id="android.device.reservation.end"
+            class="com.android.tools.idea.deviceprovisioner.EndReservationAction"
+            text="Return and Erase Device"
+            description="End reservation and return device"/>
+    <action id="Android.AdbSettings" class="com.android.tools.idea.adb.AdbOpenSettingsAction"/>
+  </actions>
+</idea-plugin>

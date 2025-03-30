@@ -23,8 +23,8 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsProvider
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
-import javax.swing.JCheckBox
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import javax.swing.JCheckBox
 
 /** Allows to turn on and off [ComposePostFormatProcessor] in Code Style settings. */
 class ComposeFormattingCodeStyleSettingsProvider : CodeStyleSettingsProvider() {

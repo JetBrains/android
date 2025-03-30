@@ -35,8 +35,8 @@ import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.nullize
-import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue

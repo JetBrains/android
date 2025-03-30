@@ -200,7 +200,7 @@ public class JniReferenceInstanceObject implements InstanceObject {
 
   @Override
   public int getHeapId() {
-    return LiveAllocationCaptureObject.JNI_HEAP_ID;
+    return CaptureObject.JNI_HEAP_ID;
   }
 
   @Override

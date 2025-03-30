@@ -23,11 +23,11 @@ import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatHeaderParser
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.Disposable
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.CoroutineContext
 
 private const val SYSTEM_LINE_PREFIX = "--------- beginning of "
 

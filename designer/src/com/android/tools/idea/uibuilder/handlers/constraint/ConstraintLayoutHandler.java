@@ -16,6 +16,15 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
 import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
@@ -33,17 +42,8 @@ import static com.android.SdkConstants.ATTR_MIN_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
 import static com.android.SdkConstants.AUTO_URI;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
-import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
@@ -787,7 +787,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         }
       }
     }
-    if (builder.length() == 0) {
+    if (builder.isEmpty()) {
       return null;
     }
     return builder.toString().substring(0, builder.length() - 1);

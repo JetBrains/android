@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AndroidModuleRootConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
+import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
 
 const val MODULES_VIEW = "ModulesView"
-const val MODULES_PERSPECTIVE_DISPLAY_NAME: String = "Modules"
+@Nls val modulesPerspectiveDisplayName: String = AndroidGradlePsdBundle.message("android.modules.perspective.configurable.display.name")
 
 class ModulesPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
@@ -39,7 +41,8 @@ class ModulesPerspectiveConfigurable(context: PsContext)
       else -> ModuleUnsupportedConfigurable(context, this, module)
     }
 
-  override fun getDisplayName() = MODULES_PERSPECTIVE_DISPLAY_NAME
+  @Nls
+  override fun getDisplayName() = modulesPerspectiveDisplayName
 
   private fun createConfigurable(module: PsAndroidModule) =
       AndroidModuleRootConfigurable(context, this, module).apply { history = myHistory }

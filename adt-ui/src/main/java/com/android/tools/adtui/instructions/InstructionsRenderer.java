@@ -15,13 +15,16 @@
  */
 package com.android.tools.adtui.instructions;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.JComponent;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Helper object for calculating size and rendering a list of {@link RenderInstruction}.

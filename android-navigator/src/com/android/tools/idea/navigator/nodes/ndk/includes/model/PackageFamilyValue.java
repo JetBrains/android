@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
-import com.google.common.collect.ImmutableList;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.util.Collection;
-
 import static com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValue.SortOrderKey.NDK_PACKAGING_FAMILY;
 import static com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValue.SortOrderKey.OTHER_PACKAGING_FAMILY;
+
+import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.util.Collection;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A folder that represents a particular packaging family like NDK or CDep.

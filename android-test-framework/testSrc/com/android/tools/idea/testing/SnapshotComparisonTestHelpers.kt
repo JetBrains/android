@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.testutils.TestUtils
-import com.android.testutils.TestUtils.getSdk
+import com.android.test.testutils.TestUtils
+import com.android.test.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dumpProject
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
@@ -45,7 +45,8 @@ fun Project.saveAndDump(
     androidSdk = getSdk().toFile(),
     offlineRepos = getOfflineM2Repositories(),
     additionalRoots = additionalRoots,
-    devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
+    devBuildHome = TestUtils.resolveWorkspacePath("tools/adt/idea").toFile(),
+    // This does not work in IDEA: devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
     projectJdk = ProjectRootManager.getInstance(this).projectSdk,
   )
 

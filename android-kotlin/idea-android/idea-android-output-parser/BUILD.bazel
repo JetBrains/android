@@ -1,0 +1,32 @@
+### auto-generated section `build intellij.android.kotlin.output.parser` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-kotlin-output-parser_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_provided_library(
+  name = "artifactResolver-m31_provided",
+  lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31"
+)
+
+jvm_library(
+  name = "android-kotlin-output-parser",
+  module_name = "intellij.android.kotlin.output.parser",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//android/android:core",
+    "//platform/util",
+    "//platform/util-rt",
+    ":artifactResolver-m31_provided",
+  ],
+  runtime_deps = [":android-kotlin-output-parser_resources"]
+)
+### auto-generated section `build intellij.android.kotlin.output.parser` end

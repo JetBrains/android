@@ -21,8 +21,9 @@ import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBOptionButton;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-
-import javax.swing.*;
+import javax.swing.Action;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.text.DefaultCaret;
 
 public abstract class SuggestionViewerUi {

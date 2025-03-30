@@ -15,17 +15,16 @@
  */
 package com.android.tools.rendering.parsers;
 
-import com.android.xml.AttrNameSplitter;
-import com.google.common.annotations.VisibleForTesting;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.atomic.AtomicLong;
-
 import static com.android.SdkConstants.AAPT_ATTR_PREFIX;
 import static com.android.SdkConstants.AAPT_PREFIX;
 import static com.android.SdkConstants.ATTR_NAME;
+
+import com.android.xml.AttrNameSplitter;
+import com.google.common.annotations.VisibleForTesting;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Aapt attributes are attributes that instead of containing a reference, contain the inlined value of the reference. This snapshot will
@@ -61,7 +60,7 @@ public class AaptAttrAttributeSnapshot extends AttributeSnapshot {
     }
 
     List<RenderXmlTag> subTags = tag.getSubTags();
-    if (subTags.size() == 0) {
+    if (subTags.isEmpty()) {
       return null;
     }
 

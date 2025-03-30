@@ -21,6 +21,7 @@ import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.sdklib.AndroidVersion
 import com.intellij.testFramework.ProjectRule
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -29,6 +30,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 
+@Ignore("FakeAdbTestRule hangs")
 class AndroidProcessHandlerIntegrationTest {
 
   @get:Rule

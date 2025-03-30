@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.IntegrationTestEnvironment
@@ -29,7 +29,7 @@ import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.IndexingTestUtil
 import org.jetbrains.annotations.SystemIndependent
@@ -309,8 +309,9 @@ private fun <T : Any> updateXmlDoc(manifestPath: Path, transform: (Document) -> 
 }
 
 private fun TemplateBasedTestProject.resolveTestDataPath(testDataPath: @SystemIndependent String): File {
-  val testDataDirectory = TestUtils.resolveWorkspacePath(FileUtil.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
-  return testDataDirectory.resolve(FileUtil.toSystemDependentName(testDataPath)).toFile()
+  val testDataDirectory = TestUtils.resolveWorkspacePath(
+    FileUtilRt.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+  return testDataDirectory.resolve(FileUtilRt.toSystemDependentName(testDataPath)).toFile()
 }
 
 private fun TemplateBasedTestProject.defaultOpenPreparedProjectOptions(): OpenPreparedProjectOptions {

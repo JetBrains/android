@@ -22,11 +22,11 @@ import static com.android.tools.idea.room.generators.TestUtils.createFieldBundle
 import static com.android.tools.idea.room.generators.TestUtils.createFtsEntityBundle;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.room.migrations.generators.SqlStatementsGenerator;
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
-import com.android.tools.idea.room.migrations.generators.SqlStatementsGenerator;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
 import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
 import com.android.tools.idea.room.migrations.json.IndexBundle;

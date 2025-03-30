@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.pom
 
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_REPO
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.core.IsEqual.equalTo
 import org.jetbrains.android.AndroidTestBase

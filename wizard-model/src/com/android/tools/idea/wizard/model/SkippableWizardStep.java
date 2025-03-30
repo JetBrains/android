@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.wizard.model;
 
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Steps that extend this class can have their visibility set directly using the {@link #setShouldShow(boolean)} method.

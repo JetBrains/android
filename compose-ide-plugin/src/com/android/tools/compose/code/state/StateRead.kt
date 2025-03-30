@@ -69,7 +69,7 @@ internal data class StateRead(
             if (scope.isGetter) "${scope.property.name}.get()" else return null
           is KtNamedFunction ->
             scope.name
-              ?: ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function")
+            ?: ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function")
           else -> scope.name ?: return null
         }
       val bodyScope = (scope as? KtDeclarationWithBody)?.bodyExpression ?: scope
@@ -124,11 +124,11 @@ private fun KtNameReferenceExpression.getExplicitStateReadElement(): KtExpressio
  */
 private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean =
   (resolveMainReference() as? KtProperty)?.delegateExpression?.isStateType(GENERIC_STATE_CLASS_ID)
-    ?: false
+  ?: false
 
 private fun KotlinType.isStateType(stateTypeFqName: String) =
   (fqName?.asString() == stateTypeFqName ||
-    supertypes().any { it.fqName?.asString() == stateTypeFqName })
+   supertypes().any { it.fqName?.asString() == stateTypeFqName })
 
 private fun KaSession.isStateType(type: KaType, stateClassId: ClassId): Boolean =
   type.isSubtypeOf(stateClassId)
@@ -145,6 +145,6 @@ private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
 
 private fun KtNameReferenceExpression.isAssignee(): Boolean {
   return parentOfType<KtBinaryExpression>()
-    ?.takeIf { it.operationToken.toString() == "EQ" }
-    ?.let { it.left == this || it.left?.descendants()?.contains(this) == true } ?: false
+           ?.takeIf { it.operationToken.toString() == "EQ" }
+           ?.let { it.left == this || it.left?.descendants()?.contains(this) == true } ?: false
 }

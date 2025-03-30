@@ -1,7 +1,6 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.resources.ResourceType;
-import com.android.SdkConstants;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.GenericAttributeValue;

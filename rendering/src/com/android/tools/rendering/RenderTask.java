@@ -157,7 +157,8 @@ public class RenderTask {
   /**
    * Executor to run the dispose tasks. The thread will run them sequentially.
    */
-  private static final ExecutorService ourDisposeService =
+  @VisibleForTesting
+  public static final ExecutorService ourDisposeService =
     AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
 
   @NotNull RenderTaskAllocationTracker myTracker;
@@ -236,6 +237,7 @@ public class RenderTask {
              @NotNull ClassTransform additionalNonProjectTransform,
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
+             @NotNull Collection<String> immediateClassesToPreload,
              boolean reportOutOfDateUserClasses,
              @NotNull RenderAsyncActionExecutor.RenderingTopic topic,
              boolean useCustomInflater,
@@ -271,6 +273,13 @@ public class RenderTask {
     myModuleClassLoaderReference = renderContextModule.getClassLoaderProvider(privateClassLoader)
       .getClassLoader(myLayoutLib.getClassLoader(), additionalProjectTransform, additionalNonProjectTransform, onNewModuleClassLoader);
     ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
+    immediateClassesToPreload.forEach(clazz -> {
+      try {
+        moduleClassLoader.loadClass(clazz);
+      }
+      catch (ClassNotFoundException ignored) {
+      }
+    });
     ClassLoaderPreloaderKt.preload(moduleClassLoader, moduleClassLoader::isDisposed, classesToPreload);
     try {
       myLayoutlibCallback =

@@ -39,7 +39,7 @@ import kotlin.concurrent.write
  * @param T the listener type
  * @param myExecutor the executor to use when calling listeners in this collection
  */
-class ListenerCollection<T> private constructor(private val myExecutor: Executor) {
+class ListenerCollection<T : Any> private constructor(private val myExecutor: Executor) {
   /** Lock that guards the access to the instance state  */
   private val myLock = ReentrantReadWriteLock()
 
@@ -68,9 +68,11 @@ class ListenerCollection<T> private constructor(private val myExecutor: Executor
   /**
    * Removes all the listeners from the handler
    */
-  fun clear() = myLock.write {
-    myListenerSetCopy = ImmutableSet.of()
-    myListenersSet.clear()
+  fun clear() {
+    myLock.write {
+      myListenerSetCopy = ImmutableSet.of()
+      myListenersSet.clear()
+    }
   }
 
   /**
@@ -85,14 +87,14 @@ class ListenerCollection<T> private constructor(private val myExecutor: Executor
    * Iterates over all the listeners in the given [Executor]. This method returns a [ListenableFuture] to know when
    * the processing has finished.
    */
-  fun forEach(runOnListener: Consumer<T>): ListenableFuture<Void> {
+  fun forEach(runOnListener: Consumer<T>): ListenableFuture<Void?> {
     val listeners: Set<T> = getUpToDateListeners()
 
     if (listeners.isEmpty()) {
       return Futures.immediateFuture(null)
     }
 
-    val future = SettableFuture.create<Void>()
+    val future = SettableFuture.create<Void?>()
     myExecutor.execute {
       listeners.forEach(runOnListener)
       future.set(null)
@@ -119,7 +121,7 @@ class ListenerCollection<T> private constructor(private val myExecutor: Executor
      * Creates a ListenerCollection that will call listeners in the [.forEach] caller thread
      */
     @JvmStatic
-    fun <T> createWithDirectExecutor(): ListenerCollection<T> {
+    fun <T : Any> createWithDirectExecutor(): ListenerCollection<T> {
       return createWithExecutor(MoreExecutors.directExecutor())
     }
 
@@ -127,7 +129,7 @@ class ListenerCollection<T> private constructor(private val myExecutor: Executor
      * Creates a ListenerCollection that will call listeners in the given [Executor]
      */
     @JvmStatic
-    fun <T> createWithExecutor(executor: Executor): ListenerCollection<T> {
+    fun <T : Any> createWithExecutor(executor: Executor): ListenerCollection<T> {
       return ListenerCollection(executor)
     }
   }

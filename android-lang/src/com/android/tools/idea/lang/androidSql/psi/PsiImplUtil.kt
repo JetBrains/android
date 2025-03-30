@@ -25,8 +25,8 @@ import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiRefe
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlDefinedTablePsiReference
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlParameterReference
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlSelectedTablePsiReference
-import com.android.tools.idea.lang.androidSql.resolution.QualifiedColumnPsiReference
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlTable
+import com.android.tools.idea.lang.androidSql.resolution.QualifiedColumnPsiReference
 import com.android.tools.idea.lang.androidSql.resolution.SubqueryTable
 import com.android.tools.idea.lang.androidSql.resolution.UnqualifiedColumnPsiReference
 import com.android.tools.idea.lang.androidSql.resolution.WithClauseTable

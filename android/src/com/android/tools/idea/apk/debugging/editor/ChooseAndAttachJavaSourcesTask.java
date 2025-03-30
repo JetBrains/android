@@ -43,7 +43,7 @@ import com.intellij.ui.EditorNotifications;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
-class ChooseAndAttachJavaSourcesTask implements Runnable {
+public class ChooseAndAttachJavaSourcesTask implements Runnable {
   @NotNull private final String myClassFqn;
   @NotNull private final Module myModule;
   @NotNull private final EditorNotifications myEditorNotifications;
@@ -63,7 +63,7 @@ class ChooseAndAttachJavaSourcesTask implements Runnable {
   }
 
   @VisibleForTesting
-  ChooseAndAttachJavaSourcesTask(@NotNull String classFqn,
+  public ChooseAndAttachJavaSourcesTask(@NotNull String classFqn,
                                  @NotNull Module module,
                                  @NotNull DumbService dumbService,
                                  @NotNull EditorNotifications editorNotifications,

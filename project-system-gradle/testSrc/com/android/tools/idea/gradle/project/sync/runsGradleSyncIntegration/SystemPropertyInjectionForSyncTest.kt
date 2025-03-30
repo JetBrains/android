@@ -25,6 +25,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
@@ -77,7 +78,7 @@ class SystemPropertyInjectionForSyncTest {
         taskOutput.append(text)
       }
 
-      override fun onSuccess(id: ExternalSystemTaskId) {
+      override fun onSuccess(proojecPath: String, id: ExternalSystemTaskId) {
         successDetected = true
       }
     }
@@ -85,14 +86,12 @@ class SystemPropertyInjectionForSyncTest {
     // Opening project makes sure we inject the version during sync
     prepared.open {
       // Running a task makes sure we inject the version during build
-      AndroidGradleTaskManager().executeTasks(
-        ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-        listOf("help"),
-        project.basePath!!,
-        null,
-        null,
-        listener
-      )
+      val projectPath = project.basePath!!
+      val id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
+      val settings = GradleExecutionSettings().apply {
+        tasks = listOf("help")
+      }
+      AndroidGradleTaskManager().executeTasks(projectPath, id, settings, listener)
     }
     if (!listener.successDetected) {
       expect.fail("Task should succeed, but it failed with:\n %s", listener.taskOutput.toString())

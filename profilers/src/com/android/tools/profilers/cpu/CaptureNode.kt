@@ -22,8 +22,6 @@ import com.android.tools.adtui.model.filter.FilterResult
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.annotations.VisibleForTesting
-import java.util.PriorityQueue
-import java.util.function.Predicate
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.reflect.KMutableProperty1

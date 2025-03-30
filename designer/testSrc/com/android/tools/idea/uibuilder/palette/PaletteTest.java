@@ -39,7 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;

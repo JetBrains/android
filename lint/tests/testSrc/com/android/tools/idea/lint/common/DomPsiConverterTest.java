@@ -18,7 +18,6 @@ package com.android.tools.idea.lint.common;
 import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
-import static org.junit.Assert.assertSame;
 
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.utils.PositionXmlParser;

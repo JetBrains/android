@@ -43,7 +43,6 @@ import org.mockito.kotlin.whenever
  *
  * The getEmulatorScreenRecorderOptions() has been moved to EmulatorConsoleRecordingProviderTest
  */
-@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
 class ScreenRecorderActionTest {
   private val projectRule = ProjectRule()
 
@@ -80,6 +79,7 @@ class ScreenRecorderActionTest {
   }
 
   @Test
+  @Suppress("DEPRECATION_ERROR")
   fun update_deviceDoesNotSupportScreenRecording_disabled() = runBlockingTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(false)
     val event = TestActionEvent.createTestEvent { userData[it] }
@@ -90,6 +90,7 @@ class ScreenRecorderActionTest {
   }
 
   @Test
+  @Suppress("DEPRECATION_ERROR")
   fun update_deviceDoesSupportScreenRecording_enabled() = runBlockingTest {
     whenever(mockScreenRecordingSupportedCache.isScreenRecordingSupported("device", 30)).thenReturn(true)
     val event = TestActionEvent.createTestEvent { userData[it] }

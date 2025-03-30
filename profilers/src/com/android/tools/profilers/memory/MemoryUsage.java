@@ -20,8 +20,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
@@ -33,7 +31,7 @@ public class MemoryUsage extends LineChartModel {
 
   @NotNull private final Range myMemoryRange;
   @NotNull private final RangedContinuousSeries myTotalMemorySeries;
-  static final int KB_TO_B = 1024;
+  public static final int KB_TO_B = 1024;
 
   public MemoryUsage(@NotNull StudioProfilers profilers) {
     myMemoryRange = new Range(0, 0);

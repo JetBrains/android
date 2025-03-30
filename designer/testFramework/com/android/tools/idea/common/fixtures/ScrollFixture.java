@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.common.fixtures;
 
+import static org.junit.Assert.assertNotNull;
+
 import com.android.sdklib.AndroidCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.InteractionNonInputEvent;
 import com.android.tools.idea.common.surface.MouseWheelMovedEvent;
 import com.android.tools.idea.common.surface.MouseWheelStopEvent;
+import com.android.tools.idea.common.surface.ScrollInteraction;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.common.surface.ScrollInteraction;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseWheelEvent;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
-
-import static org.junit.Assert.assertNotNull;
 
 public class ScrollFixture {
   @NotNull private final ComponentFixture myComponentFixture;

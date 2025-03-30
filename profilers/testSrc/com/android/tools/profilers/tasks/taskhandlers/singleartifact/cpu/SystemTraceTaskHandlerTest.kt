@@ -44,7 +44,6 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
-import io.ktor.util.reflect.instanceOf
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
@@ -99,7 +98,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
-    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf(AtraceConfiguration::class) }
+    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration is AtraceConfiguration }
   }
 
   @Test
@@ -111,7 +110,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
-    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf(PerfettoSystemTraceConfiguration::class) }
+    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration is PerfettoSystemTraceConfiguration }
   }
 
   @Test
@@ -134,7 +133,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
-    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf(PerfettoSystemTraceConfiguration::class) }
+    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration is PerfettoSystemTraceConfiguration }
   }
 
   @Test

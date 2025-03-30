@@ -1,0 +1,21 @@
+### auto-generated section `build intellij.android.buildCommon` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "buildCommon",
+  module_name = "intellij.android.buildCommon",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:gradle",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//platform/ide-core",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+  ]
+)
+### auto-generated section `build intellij.android.buildCommon` end

@@ -21,6 +21,8 @@ import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
+import com.android.tools.idea.io.grpc.Channel;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
@@ -46,8 +48,6 @@ import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import com.android.tools.idea.io.grpc.Channel;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
@@ -77,7 +77,8 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
    * A map of active channels to unified event streams. This map helps us clean up streams when a channel is closed.
    */
   private final Map<Channel, Stream> myChannelToStream = Maps.newHashMap();
-  @VisibleForTesting final AtomicInteger myNextCommandId = new AtomicInteger();
+  @VisibleForTesting
+  public final AtomicInteger myNextCommandId = new AtomicInteger();
 
   public TransportService(@NotNull DataStoreService service,
                           @NotNull UnifiedEventsTable unifiedTable,

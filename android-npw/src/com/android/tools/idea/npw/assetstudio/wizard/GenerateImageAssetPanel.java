@@ -69,6 +69,7 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.AnimatedIcon;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -431,7 +432,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
    * only the most recently added will be handled, whenever the worker finishes.
    */
   private void enqueueGenerateNotificationIcons() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
 
     AndroidIconType iconType = myOutputIconType.get();
     IconGenerator iconGenerator = getActiveIconView().getIconGenerator();

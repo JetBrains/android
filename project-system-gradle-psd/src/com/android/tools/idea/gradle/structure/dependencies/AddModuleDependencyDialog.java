@@ -17,12 +17,11 @@ package com.android.tools.idea.gradle.structure.dependencies;
 
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.ui.ValidationInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
   @NotNull public static final String TITLE = "Add Module Dependency";

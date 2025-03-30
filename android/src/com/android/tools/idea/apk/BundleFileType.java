@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.apk;
 
-import static com.android.SdkConstants.EXT_AAR;
 import static com.android.SdkConstants.EXT_APP_BUNDLE;
 
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;

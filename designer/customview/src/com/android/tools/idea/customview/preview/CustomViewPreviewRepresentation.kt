@@ -63,13 +63,13 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.JComponent
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.JComponent
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
 

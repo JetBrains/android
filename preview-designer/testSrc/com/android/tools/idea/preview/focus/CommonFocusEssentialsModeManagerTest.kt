@@ -27,8 +27,6 @@ import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
-import com.jetbrains.rd.util.AtomicInteger
-import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.android.uipreview.AndroidEditorSettings
@@ -38,6 +36,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.assertEquals
 
 class CommonFocusEssentialsModeManagerTest {
 

@@ -21,7 +21,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
-import javax.swing.JLabel
 
 
 class StatusPanelTest {

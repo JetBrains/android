@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
-import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import java.awt.Component;

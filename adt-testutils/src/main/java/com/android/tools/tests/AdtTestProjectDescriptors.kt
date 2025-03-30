@@ -15,7 +15,7 @@
  */
 package com.android.tools.tests
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ContentEntry
@@ -26,8 +26,10 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.IdeaTestUtil
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.DefaultLightProjectDescriptor
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 import java.nio.file.Path
 
@@ -172,5 +174,14 @@ object AdtTestProjectDescriptors {
    */
   @JvmStatic
   @JvmName("defaultDescriptor")  // default is a reserved word in Java
-  fun default(): AdtTestProjectDescriptor = java()
+  fun default(): AdtTestProjectDescriptor {
+    // b/294248298: Tests using K2 Analysis API need Kotlin stdlib to be available, or analysis crashes.
+    // Therefore, for tests with the K2 plugin, we default to a Kotlin descriptor that will load the stdlib.
+    //
+    // The KotlinPluginModeProvider.isK2Mode() function depends on application-level service lookup, which requires that the IJ
+    // application is loaded. Therefore, we need to load TestApplicationManager here, since project descriptor
+    // selection happens very early on, and the application might not otherwise be ready.
+    TestApplicationManager.getInstance()
+    return if (KotlinPluginModeProvider.isK2Mode()) kotlin() else java()
+  }
 }

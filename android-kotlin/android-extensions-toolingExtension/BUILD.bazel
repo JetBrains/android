@@ -1,0 +1,24 @@
+### auto-generated section `build intellij.android.kotlin.extensions.tooling` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-kotlin-extensions-tooling_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-kotlin-extensions-tooling",
+  module_name = "intellij.android.kotlin.extensions.tooling",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = "@community//:k8",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:gradle",
+    "//plugins/gradle/tooling-extension-api:toolingExtension",
+  ],
+  runtime_deps = [":android-kotlin-extensions-tooling_resources"]
+)
+### auto-generated section `build intellij.android.kotlin.extensions.tooling` end

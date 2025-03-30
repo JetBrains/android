@@ -17,12 +17,12 @@ package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.RenderService
 import kotlin.reflect.jvm.javaMethod
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
-import org.objectweb.asm.commons.GeneratorAdapter
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.Label
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
 
 class TooManyAllocationsException(message: String) : RuntimeException(message)
 

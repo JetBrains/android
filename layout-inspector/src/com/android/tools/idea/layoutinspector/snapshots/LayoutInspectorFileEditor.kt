@@ -180,8 +180,13 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         object : StatusText() {
           override fun isStatusVisible() = true
         }
-      status.appendLine("Error loading snapshot")
-      (exception as? SnapshotLoaderException)?.message?.let { status.appendLine(it) }
+      // TODO these "gap" calls can be removed after the images in
+      //  com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditorTest.editorShowsVersionError
+      //  are updated accordingly (there was a bug in StatusText that added the gap after the second line,
+      //  but not after the first line, and the test images were created with that bug)
+      status.forceGapAfterLastLine()
+      status.withUnscaledGapAfter(0).appendLine("Error loading snapshot")
+      (exception as? SnapshotLoaderException)?.message?.let { status.withUnscaledGapAfter(2).appendLine(it) }
 
       return object : JPanel() {
         init {

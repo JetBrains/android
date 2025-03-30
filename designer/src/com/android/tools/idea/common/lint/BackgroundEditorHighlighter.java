@@ -17,7 +17,6 @@ package com.android.tools.idea.common.lint;
 
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.intellij.codeHighlighting.HighlightingPass;
-import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 
 public class BackgroundEditorHighlighter implements com.intellij.codeHighlighting.BackgroundEditorHighlighter {

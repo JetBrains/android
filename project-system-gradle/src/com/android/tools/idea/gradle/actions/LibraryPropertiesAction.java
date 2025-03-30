@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.intellij.openapi.actionSystem.CommonDataKeys.NAVIGATABLE_ARRAY;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.library.LibraryPropertiesDialog;
 import com.intellij.icons.AllIcons;
@@ -30,9 +33,6 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.actionSystem.CommonDataKeys.NAVIGATABLE_ARRAY;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class LibraryPropertiesAction extends AnAction {
   public LibraryPropertiesAction() {

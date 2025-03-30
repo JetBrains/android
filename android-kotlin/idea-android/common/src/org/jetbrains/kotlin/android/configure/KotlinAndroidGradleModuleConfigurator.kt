@@ -80,7 +80,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     override val kotlinPluginName: String = KOTLIN_ANDROID
 
     override fun getKotlinPluginExpression(forKotlinDsl: Boolean): String =
-      if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
+        if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
 
     /**
      * The KGP versions displayed on the dropdown come from [ConfigureDialogWithModulesAndVersion.VERSIONS_LIST_URL]
@@ -194,10 +194,10 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
             val modulesAndJvmTargets = modules
-              .mapNotNull { module -> GradleAndroidModel.get(module)?.getTargetLanguageLevel()?.let {
-                  languageLevel -> module.name to languageLevel.toJavaVersion().toString() }
-              }
-              .toMap()
+                .mapNotNull { module -> GradleAndroidModel.get(module)?.getTargetLanguageLevel()?.let {
+                    languageLevel -> module.name to languageLevel.toJavaVersion().toString() }
+                }
+                .toMap()
             val (configuredModules, changedFiles) = configureWithVersion(project, modules, version, collector,
                                                                          kotlinVersionsAndModules = emptyMap(),
                                                                          modulesAndJvmTargets = modulesAndJvmTargets)
@@ -221,14 +221,14 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     }
 
     private fun addDependency(
-      projectBuildModel: ProjectBuildModel,
-      moduleBuildModel: GradleBuildModel,
-      id: GoogleMavenArtifactId,
-      version: String
+        projectBuildModel: ProjectBuildModel,
+        moduleBuildModel: GradleBuildModel,
+        id: GoogleMavenArtifactId,
+        version: String
     ): Set<PsiFile> =
-      DependenciesHelper.withModel(projectBuildModel).addDependency("implementation",
-                                                                    ArtifactDependencySpec.create(id.mavenArtifactId, id.mavenGroupId, version).compactNotation(),
-                                                                    moduleBuildModel)
+        DependenciesHelper.withModel(projectBuildModel).addDependency("implementation",
+                                                                      ArtifactDependencySpec.create(id.mavenArtifactId, id.mavenGroupId, version).compactNotation(),
+                                                                      moduleBuildModel)
 
     // Return version string of the specified dependency if module depends on it, and null otherwise.
     private fun getDependencyVersion(module: Module, id: GoogleMavenArtifactId): String? {
@@ -241,16 +241,16 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     }
 
     private fun addKtxDependenciesFromMap(
-      projectBuildModel: ProjectBuildModel,
-      module: Module,
-      moduleBuildModel: GradleBuildModel,
-      libraryMap: Map<GoogleMavenArtifactId, GoogleMavenArtifactId>
+        projectBuildModel: ProjectBuildModel,
+        module: Module,
+        moduleBuildModel: GradleBuildModel,
+        libraryMap: Map<GoogleMavenArtifactId, GoogleMavenArtifactId>
     ): Set<PsiFile> {
         val updatedFiles = mutableSetOf<PsiFile>()
         for ((library, ktxLibrary) in libraryMap) {
             getDependencyVersion(module, library)?.let {
                 updatedFiles.addAll(
-                  addDependency(projectBuildModel, moduleBuildModel, ktxLibrary, it)
+                    addDependency(projectBuildModel, moduleBuildModel, ktxLibrary, it)
                 )
             }
         }
@@ -258,10 +258,10 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     }
 
     override fun changeGeneralFeatureConfiguration(
-      module: Module,
-      feature: LanguageFeature,
-      state: LanguageFeature.State,
-      forTests: Boolean
+        module: Module,
+        feature: LanguageFeature,
+        state: LanguageFeature.State,
+        forTests: Boolean
     ) {
         val (enabledString, disabledString) = when (feature) {
             LanguageFeature.InlineClasses -> "-Xinline-classes" to "-XXLanguage:-InlineClasses"
@@ -307,12 +307,12 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         private const val KOTLIN_ANDROID = "kotlin-android"
 
         private val nonAndroidxKtxLibraryMap = mapOf(
-          NAVIGATION_UI to NAVIGATION_UI_KTX,
-          NAVIGATION_FRAGMENT to NAVIGATION_FRAGMENT_KTX,
+            NAVIGATION_UI to NAVIGATION_UI_KTX,
+            NAVIGATION_FRAGMENT to NAVIGATION_FRAGMENT_KTX,
         )
 
         private val androidxKtxLibraryMap = mapOf(
-          ANDROIDX_LIFECYCLE_EXTENSIONS to ANDROIDX_LIFECYCLE_VIEWMODEL_KTX,
+            ANDROIDX_LIFECYCLE_EXTENSIONS to ANDROIDX_LIFECYCLE_VIEWMODEL_KTX,
         )
     }
 }

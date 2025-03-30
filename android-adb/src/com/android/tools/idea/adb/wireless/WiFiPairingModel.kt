@@ -16,7 +16,6 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import java.util.ArrayList
 
 /** Model used for pairing devices */
 @UiThread

@@ -63,7 +63,6 @@ import java.awt.event.MouseEvent;
 import java.awt.font.TextLayout;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EventObject;
 import java.util.List;
 import java.util.Set;
 import javax.swing.BorderFactory;
@@ -143,8 +142,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       ApplicationManager.getApplication().invokeLater(() -> {
         List<SystemImageDescription> remotes = getRemoteImages(packages);
         if (remotes != null) {
-          items.addAll(remotes);
-          setItems(items);
+          addRows(remotes);
         }
         completedDownload("");
       }, ModalityState.any());
@@ -407,12 +405,6 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       public Object getCellEditorValue() {
         return null;
       }
-
-      @Override
-      public boolean isCellEditable(EventObject e) {
-        return true;
-      }
-
     }
 
     private void downloadImage(SystemImageDescription image) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.perf
 
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import org.junit.Before
 import java.io.File
 
@@ -32,7 +33,7 @@ class DolphinSmokeTest: AbstractGradleSyncSmokeTestCase() {
     // because the diff patch (setupForSyncTest) we applied already changed build.gradle to refer to the CMakeLists.txt under this "native"
     // directory.
     val dolphinSource: File = projectRule.resolveTestDataPath(TestProjectPaths.DOLPHIN_PROJECT_ROOT)
-    val ideaProjectDolphinSource = File(FileUtil.toSystemDependentName(projectRule.project.basePath!!), "native")
+    val ideaProjectDolphinSource = File(FileUtilRt.toSystemDependentName(projectRule.project.basePath!!), "native")
     FileUtil.copyDir(dolphinSource, ideaProjectDolphinSource)
   }
 }

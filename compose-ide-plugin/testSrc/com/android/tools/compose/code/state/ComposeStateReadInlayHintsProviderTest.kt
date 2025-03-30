@@ -37,7 +37,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.refactoring.suggested.range
 import com.intellij.testFramework.RunsInEdt
-import java.awt.event.MouseEvent
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -58,6 +57,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
+import java.awt.event.MouseEvent
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunsInEdt

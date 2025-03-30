@@ -15,19 +15,18 @@
  */
 package org.jetbrains.android.intentions;
 
+import static com.android.resources.ResourceType.DIMEN;
+
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import java.io.IOException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-
-import static com.android.resources.ResourceType.DIMEN;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class AndroidExtractDimensionActionTest extends AndroidTestCase {

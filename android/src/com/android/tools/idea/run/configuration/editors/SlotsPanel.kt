@@ -323,8 +323,7 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
         0,
         null,
       )
-      g?.color = JBColor.red
-
+      g?.color = JBColor.RED
       // We first draw the LARGE_IMAGE complication, as other complications will overlap with it.
       val largeImageSlot =
         currentModel.currentChosenSlots.firstOrNull { it.type == ComplicationType.LARGE_IMAGE }

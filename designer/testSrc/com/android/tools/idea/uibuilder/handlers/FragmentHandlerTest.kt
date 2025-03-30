@@ -31,7 +31,7 @@ import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.PlatformTestUtil.waitForFuture
 import java.util.EnumSet
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mockito.eq
 
 class FragmentHandlerTest : LayoutTestCase() {
   // http://b/242129835

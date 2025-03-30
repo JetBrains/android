@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin>
   <name>Gradle Declarative Support</name>
   <id>com.android.tools.gradle.dcl</id>
   <description>
@@ -22,10 +22,18 @@
     ]]>
   </description>
   <version>0.1</version>
-  <vendor>Google</vendor>
-  <depends>com.intellij.java</depends>
-  <depends>com.intellij.gradle</depends>
-  <depends>org.jetbrains.kotlin</depends>
+  <vendor>JetBrains, Google</vendor>
+
+  <dependencies>
+    <plugin id="com.intellij.java" />
+    <plugin id="com.intellij.gradle" />
+    <plugin id="org.jetbrains.kotlin" />
+  </dependencies>
+
+  <content>
+    <module name="intellij.android.gradle.declarative.lang" loading="embedded"/>
+  </content>
+
   <idea-version since-build="242"/>
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -68,5 +76,4 @@
     <extensionPoint qualifiedName="com.android.tools.gradle.dcl.ide.declarativeSchemaProvider"
                     interface="com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeSchemaProvider"/>
   </extensionPoints>
-  <xi:include href="/META-INF/gradle-declarative-lang.xml"/>
 </idea-plugin>

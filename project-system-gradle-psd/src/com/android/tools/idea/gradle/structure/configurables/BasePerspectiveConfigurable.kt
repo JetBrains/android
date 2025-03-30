@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
-import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.showDefaultWizard
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -166,7 +167,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     currentModuleSelectorStyle = null
     centerComponent = splitter.secondComponent
     val splitterLeftComponent = (splitter.firstComponent as JPanel)
-    toolWindowHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, splitterLeftComponent, ToolWindowAnchor.LEFT)
+    toolWindowHeader = ToolWindowHeader.createAndAdd(AndroidGradlePsdBundle.message("tab.title.android.modules"), ANDROID_MODULE, splitterLeftComponent, ToolWindowAnchor.LEFT)
       .also {
         it.setPreferredFocusedComponent(myTree)
         it.addMinimizeListener { modulesTreeMinimized() }
@@ -270,7 +271,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     reconfigureForCurrentSettings()
     return JBLoadingPanel(BorderLayout(), this).also {
       loadingPanel = it
-      it.setLoadingText("Fetching Gradle build models")
+      it.setLoadingText(AndroidGradlePsdBundle.message("android.base.perspective.configurable.loading.models"))
       it.add(contents, BorderLayout.CENTER)
       if (loadingPanelVisible) {
         it.startLoading()
@@ -320,14 +321,16 @@ abstract class BasePerspectiveConfigurable protected constructor(
   }
 
   override fun createActions(fromPopup: Boolean): List<AnAction> {
-    val addNewModuleAction = object : DumbAwareAction("New Module", "Add new module", IconUtil.addIcon) {
+    val addNewModuleAction = object : DumbAwareAction(
+      AndroidGradlePsdBundle.message("android.project.system.gradle.action.new.module.text"),
+      AndroidGradlePsdBundle.message("android.project.system.gradle.action.new.module.description"), IconUtil.addIcon) {
       override fun actionPerformed(e: AnActionEvent) {
         if (!context.project.isModified ||
             Messages.showYesNoDialog(
-                e.project,
-                "Pending changes will be applied to the project. Continue?",
-                "Add Module",
-                Messages.getQuestionIcon()) == Messages.YES
+              e.project,
+              AndroidGradlePsdBundle.message("android.project.system.gradle.pending.changes.message"),
+              AndroidGradlePsdBundle.message("android.project.system.gradle.pending.changes.title"),
+              Messages.getQuestionIcon()) == Messages.YES
         ) {
           context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
           var synced = false
@@ -344,7 +347,9 @@ abstract class BasePerspectiveConfigurable protected constructor(
       override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.BGT
     }
 
-    val removeModuleAction = object : DumbAwareAction("Remove Module", "Remove module", IconUtil.removeIcon) {
+    val removeModuleAction = object : DumbAwareAction(
+      AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.title"),
+      AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.description"), IconUtil.removeIcon) {
       override fun update(e: AnActionEvent) {
         if (uiDisposed) return
         super.update(e)
@@ -356,20 +361,20 @@ abstract class BasePerspectiveConfigurable protected constructor(
       override fun actionPerformed(e: AnActionEvent) {
         val module = (selectedObject as? PsModule) ?: return
         if (Messages.showYesNoDialog(
-                e.project,
-                buildString {
+            e.project,
+            buildString {
                   append(when {
-                           module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
-                           else -> "Remove module '${module.name}' from the project?"
+                           module.parent.modelCount == 1 -> AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.confirm.last.module")
+                           else -> AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.confirm", module.name)
                          })
                   append("\n")
-                  append("No files will be deleted on disk.")
+                  append(AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.files.remark"))
                 },
-                "Remove Module",
-                Messages.getQuestionIcon()
+            AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.title"),
+            Messages.getQuestionIcon()
             ) == Messages.YES) {
           context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_REMOVE)
-          module.parent.removeModule(module.gradlePath!!)
+          module.parent.removeModule(module.gradlePath)
         }
       }
     }

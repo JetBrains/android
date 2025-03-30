@@ -164,8 +164,7 @@ class PreviewPickerLineMarkerProviderTest {
 
 private fun PsiFile.findPreviewAnnotation(ordinal: Int): PsiElement = runInEdtAndGet {
   // The element should start after the '@' so add 1 to the offset
-  val indexOfElement =
-    StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", ordinal) + 1
+  val indexOfElement = StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", ordinal) + 1
   checkNotNull(
     PsiTreeUtil.findElementOfClassAtOffset(
       this,

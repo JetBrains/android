@@ -63,7 +63,6 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSe
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.util.containers.ImmutableList;
 import icons.StudioIcons;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
@@ -193,7 +192,7 @@ public class MemoryClassifierViewTest {
     assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
-    ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
 
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
     MemoryObject selectedClassifier = ((MemoryObjectTreeNode)classifierTree.getSelectionPath().getLastPathComponent()).getAdapter();
@@ -346,7 +345,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
     //noinspection unchecked
-    ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
     assertThat(childrenOfRoot.size()).isEqualTo(3);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
     MemoryObjectTreeNode<ClassifierSet> selectedClassNode = childrenOfRoot.get(0);
@@ -444,7 +443,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
     //noinspection unchecked
-    ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
     assertThat(childrenOfRoot.size()).isEqualTo(3);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
 
@@ -1400,7 +1399,7 @@ public class MemoryClassifierViewTest {
       }
       else if (depth > currentDepth) {
         // We need to go deeper...
-        ImmutableList<MemoryObjectTreeNode> children = node.getChildren();
+        List<MemoryObjectTreeNode> children = node.getChildren();
         assertThat(children.size()).isGreaterThan(0);
         assertThat(childrenVisited).isFalse();
         for (MemoryObjectTreeNode childNode : children) {

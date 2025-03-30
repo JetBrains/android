@@ -20,7 +20,6 @@ import com.android.tools.apk.analyzer.internal.ApkArchive
 import com.android.tools.apk.analyzer.internal.AppBundleArchive
 import com.intellij.testFramework.BinaryLightVirtualFile
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File

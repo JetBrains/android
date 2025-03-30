@@ -1,0 +1,63 @@
+### auto-generated section `build intellij.android.core.editing.metrics` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "android-core-editing-metrics_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-core-editing-metrics",
+  module_name = "intellij.android.core.editing.metrics",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-datetime-jvm",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:protobuf",
+    "//platform/extensions",
+    "//platform/core-api:core",
+    "//platform/platform-api:ide",
+    "//platform/lang-api:lang",
+  ],
+  runtime_deps = [":android-core-editing-metrics_resources"]
+)
+
+jvm_library(
+  name = "android-core-editing-metrics_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":android-core-editing-metrics"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-datetime-jvm",
+    "@lib//:kotlinc-analysis-api-provided",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//platform/extensions",
+    "@lib//:kotlinx-coroutines-test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
+    "//platform/platform-api:ide",
+    "//platform/lang-api:lang",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+  ],
+  runtime_deps = [":android-core-editing-metrics_resources"]
+)
+
+jvm_test(
+  name = "android-core-editing-metrics_test",
+  runtime_deps = [":android-core-editing-metrics_test_lib"]
+)
+### auto-generated section `build intellij.android.core.editing.metrics` end

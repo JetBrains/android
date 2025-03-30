@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.jfr
 
-import com.android.tools.idea.diagnostics.jfr.JfrReportGenerator.Capture
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties
 import com.android.tools.idea.diagnostics.report.GenericReport
 import com.intellij.openapi.diagnostic.thisLogger

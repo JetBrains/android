@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
+import com.android.tools.idea.gradle.structure.configurables.ui.androidGradlePluginVersionViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.project.ProjectPropertiesConfigPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.androidGradlePluginVersionViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
 import com.android.tools.idea.gradle.structure.model.PsProjectDescriptors
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
@@ -36,7 +37,7 @@ const val PROJECT_VIEW = "ProjectView"
 class ProjectPerspectiveConfigurable(private val context: PsContext)
   : BaseConfigurable(), TrackedConfigurable, Disposable {
   private var uiDisposed = true
-  override fun getDisplayName(): String = "Project"
+  override fun getDisplayName(): String = AndroidGradlePsdBundle.message("android.project.perspective.configurable.display.name")
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_PROJECT
 
   override fun createComponent(): JComponent? =

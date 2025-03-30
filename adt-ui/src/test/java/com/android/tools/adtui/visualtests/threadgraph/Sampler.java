@@ -16,9 +16,8 @@
 
 package com.android.tools.adtui.visualtests.threadgraph;
 
-import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.chart.hchart.Method;
-
+import com.android.tools.adtui.model.DefaultHNode;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;

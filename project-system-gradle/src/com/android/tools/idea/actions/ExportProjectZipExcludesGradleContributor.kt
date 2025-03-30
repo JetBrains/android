@@ -22,7 +22,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import java.io.File
 
 class ExportProjectZipExcludesGradleContributor : ExportProjectZipExcludesContributor {
@@ -31,7 +31,7 @@ class ExportProjectZipExcludesGradleContributor : ExportProjectZipExcludesContri
   override fun excludes(project: Project): Collection<File> {
     val result = mutableSetOf<File>()
     // TODO(b/306156888): handle linked Gradle builds properly.
-    val basePath = FileUtil.toSystemDependentName(project.basePath!!)
+    val basePath = FileUtilRt.toSystemDependentName(project.basePath!!)
     result.add(File(basePath, SdkConstants.DOT_GRADLE))
     result.add(File(basePath, GradleProjectSystemUtil.BUILD_DIR_DEFAULT_NAME))
     result.add(File(basePath, Project.DIRECTORY_STORE_FOLDER))

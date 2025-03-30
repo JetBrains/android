@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogPlugins;
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogVersions;
-import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import org.jetbrains.annotations.NotNull;
 

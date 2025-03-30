@@ -18,8 +18,8 @@ package com.android.tools.idea.testing
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.util.Disposer
-import com.intellij.serviceContainer.ComponentManagerImpl
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 
@@ -35,7 +35,7 @@ fun <T : Any> ComponentManager.registerServiceInstance(serviceInterface: Class<T
     registerServiceInstance(serviceInterface, instance)
     Disposer.register(parentDisposable) {
       @Suppress("UnstableApiUsage")
-      (this as ComponentManagerImpl).unregisterComponent(serviceInterface)
+      (this as ComponentManagerEx).unregisterComponent(serviceInterface)
     }
     return
   }

@@ -18,7 +18,6 @@ package com.android.tools.idea.lang.multiDexKeep;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * File type for multiDexKeepFile format.
@@ -49,7 +48,6 @@ public class MultiDexKeepFileType extends LanguageFileType {
     return "";
   }
 
-  @Nullable
   @Override
   public Icon getIcon() {
     return null;

@@ -165,7 +165,9 @@ class DefaultModuleSystem(override val module: Module) :
     ModuleRootManager.getInstance(module)
       .orderEntries()
       .librariesOnly()
+      // Don't iterate *all* project modules *recursively*, as this is O(n*n) complexity, where n is the modules count.
       .recursively()
+      .exportedOnly()
       .forEachLibrary { library ->
         // Typically, a library xml looks like the following:
         //     <CLASSES>

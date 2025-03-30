@@ -19,8 +19,6 @@ package com.android.tools.idea.lang.rs;
 import com.intellij.lang.Language;
 import org.jetbrains.annotations.NonNls;
 
-import java.lang.String;
-
 public class RenderscriptLanguage extends Language {
   public static final RenderscriptLanguage INSTANCE = new RenderscriptLanguage();
 

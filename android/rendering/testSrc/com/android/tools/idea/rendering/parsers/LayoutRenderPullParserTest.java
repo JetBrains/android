@@ -39,13 +39,12 @@ import static org.xmlpull.v1.XmlPullParser.END_TAG;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.rendering.RenderLogger;
 import com.android.tools.idea.rendering.StudioEnvironmentContext;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.NavGraphResolver;
 import com.android.tools.rendering.parsers.AaptAttrAttributeSnapshot;
 import com.android.tools.rendering.parsers.LayoutPullParser;

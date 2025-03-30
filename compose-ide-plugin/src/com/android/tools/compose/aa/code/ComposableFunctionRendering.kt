@@ -72,7 +72,7 @@ private fun KaSession.isRequired(valueParamSymbol: KaValueParameterSymbol): Bool
 
   // TODO(274145999): When we check it with a real AS instance, determine if we can drop this hacky
   // solution or not.
-  // The KtValueParameterSymbol we get when running this from [ComposableItemPresentationProvider]
+  // The KaValueParameterSymbol we get when running this from [ComposableItemPresentationProvider]
   // for some reason says that optional
   // Composable parameters don't declare a default value, which is incorrect. At the moment, the
   // only way I've found to determine that

@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.configuration.editors
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration

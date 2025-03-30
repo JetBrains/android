@@ -18,18 +18,18 @@ package com.android.tools.adtui.webp;
 import com.android.testutils.ImageDiffUtil;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import com.google.common.truth.Truth;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Base64;
-
-import com.google.common.truth.Truth;
+import javax.imageio.ImageIO;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class WebpSupportTest extends TestCase {
 

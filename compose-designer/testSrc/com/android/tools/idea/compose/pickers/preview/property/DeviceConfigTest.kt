@@ -27,12 +27,12 @@ import com.android.tools.preview.config.REFERENCE_PHONE_SPEC
 import com.android.tools.preview.config.REFERENCE_TABLET_SPEC
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.toMutableConfig
-import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 internal class DeviceConfigTest {
   @Test

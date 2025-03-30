@@ -22,9 +22,9 @@ import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
-import java.awt.Color
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Parameter
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ParameterGroup
+import java.awt.Color
 
 class ComposeParametersData(
   /** The parameters associated with a composable as a list. */

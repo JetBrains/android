@@ -23,9 +23,9 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
-import java.awt.image.BufferedImage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
+import java.awt.image.BufferedImage
 
 /** Various checks for tests. */
 object CheckUtil {

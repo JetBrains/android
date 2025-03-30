@@ -1,0 +1,43 @@
+### auto-generated section `build intellij.android.gradle-tooling.impl` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "android-gradle-tooling-impl_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-gradle-tooling-impl",
+  module_name = "intellij.android.gradle-tooling.impl",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = "@community//:k8",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:gradle",
+    "@lib//:kotlin-stdlib",
+    "@lib//:javax-inject-provided",
+    "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+  ],
+  runtime_deps = [":android-gradle-tooling-impl_resources"]
+)
+
+jvm_test(
+  name = "android-gradle-tooling-impl_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  kotlinc_opts = "@community//:k8",
+  associates = [":android-gradle-tooling-impl"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:gradle",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:equalsverifier",
+    "@lib//:javax-inject-provided",
+    "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+  ],
+  runtime_deps = [":android-gradle-tooling-impl_resources"]
+)
+### auto-generated section `build intellij.android.gradle-tooling.impl` end
