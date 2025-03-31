@@ -58,6 +58,7 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     UNSUPPORTED_SRC_CHANGE_SUPER_CLASS("Unsupported change", "%", false, Status.UNSUPPORTED_SUPER_CLASS),
     UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_ADDED_CLASS),
     UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH("Unsupported change", "%", false, Status.UNSUPPORTED_WHEN_ENUM_PATH),
+    UNSUPPORTED_SRC_CHANGE_ENUM("Unsupported change", "%", false, Status.UNKNOWN), // TODO: Add new metrics
 
     UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false, Status.UNSUPPORTED_TEST_SRC_CHANGE),
     UNABLE_TO_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNABLE_TO_DESUGAR),
@@ -147,6 +148,9 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
 
     fun unsupportedSourceModificationWhenEnumPath(msg: String, file: PsiFile) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH, msg, file?.name, null)
+
+    fun unsupportedSourceModificationEnum(msg: String, file: PsiFile) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ENUM, msg, file.name, null)
 
     fun unsupportedSourceModificationConstructor(msg: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, msg, null, null)

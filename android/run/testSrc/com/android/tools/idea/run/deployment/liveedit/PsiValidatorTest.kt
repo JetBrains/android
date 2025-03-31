@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.editors.liveedit.LiveEditService
-import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
-import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.wireless.android.sdk.stats.LiveEditEvent
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
+import com.intellij.openapi.application.ReadAction
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
+import org.intellij.lang.annotations.Language
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 class PsiValidatorTest {
   @get:Rule
@@ -46,113 +40,164 @@ class PsiValidatorTest {
   }
 
   @Test
-  fun propertyInitializer() {
-    val file = projectRule.createKtFile("A.kt", """
+  fun `modify initial property value`() {
+    val exceptions = testCase(
+      """
       val x = 100
       val y = 100
-    """.trimIndent())
-
-    val apk = projectRule.directApiCompileByteArray(file)
-    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project)
-
-    val device: IDevice = mock()
-    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    whenever(device.isEmulator).thenReturn(false)
-
-    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
-    projectRule.modifyKtFile(file, """
+      """.trimIndent(),
+      """
       val x = 999
       val y = 100
-    """.trimIndent())
+      """.trimIndent(),
+    )
 
-    monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
-    val status = monitor.status(device)
-    assertEquals("Out Of Date", status.title)
-    assertTrue(status.description.contains("modified property"))
+    assertEquals(1, exceptions.size)
+    assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED)
+    assertTrue(exceptions.single().details.contains("modified property"))
   }
 
   @Test
-  fun propertyDelegate() {
-    val file = projectRule.createKtFile("A.kt", """
+  fun `modify property value in delegate`() {
+    val exceptions = testCase(
+      """
       val x: Int by lazy {
         100
       }
-    """.trimIndent())
-
-    val apk = projectRule.directApiCompileByteArray(file)
-    fakeBuildSystemLiveEditServices.withClasses(apk)
-    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project)
-
-    val device: IDevice = mock()
-    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    whenever(device.isEmulator).thenReturn(false)
-
-    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
-    projectRule.modifyKtFile(file, """
+      """.trimIndent(),
+      """
       val x: Int by lazy {
         999
       }
-    """.trimIndent())
-
-    monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
-    val status = monitor.status(device)
-    assertEquals("Out Of Date", status.title)
-    assertTrue(status.description.contains("modified property"))
+      """.trimIndent())
+    assertEquals(1, exceptions.size)
+    assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED)
+    assertTrue(exceptions.single().details.contains("modified property"))
   }
 
   @Test
-  fun constructor() {
-    val file = projectRule.createKtFile("Foo.kt", """
-      class Foo(val a: Int, val b: Int) {
-        constructor(a: String, b: String): this(0, 0) {}
-        constructor(a: Double, b: Double): this(0, 0) {}
+  fun `add enum entry`() {
+    val exceptions = testCase(
+      """
+      enum class Simple {
+        VALUE_A,
+        VALUE_B,
+        VALUE_C
       }
-    """.trimIndent())
-
-    val apk = projectRule.directApiCompileByteArray(file)
-    fakeBuildSystemLiveEditServices.withClasses(apk)
-    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project)
-
-    val device: IDevice = mock()
-    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    whenever(device.isEmulator).thenReturn(false)
-
-    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
-    projectRule.modifyKtFile(file, """
-      class Foo(val a: Int, val b: Int) {
-        constructor(a: String, b: String): this(0, 0) {}
-        constructor(a: Double, b: Double): this(1, 1) {}
+      """.trimIndent(),
+      """
+      enum class Simple {
+        VALUE_A,
+        VALUE_B,
+        VALUE_C,
+        VALUE_D
       }
-
-    """.trimIndent())
-
-    monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
-    val status = monitor.status(device)
-    assertEquals("Out Of Date", status.title)
-    assertTrue(status.description.contains("modified constructor"))
+      """.trimIndent())
+    assertEquals(1, exceptions.size)
+    assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_ENUM)
+    assertTrue(exceptions.single().details.contains("added enum entry"))
   }
 
   @Test
-  fun ignoresNewlinesAndComments() {
-    val file = projectRule.createKtFile("Foo.kt", """
+  fun `remove enum entry`() {
+    val exceptions = testCase(
+      """
+      enum class Simple {
+        VALUE_A,
+        VALUE_B,
+        VALUE_C
+      }
+      """.trimIndent(),
+      """
+      enum class Simple {
+        VALUE_A,
+        VALUE_B,
+      }
+      """.trimIndent())
+
+    assertEquals(1, exceptions.size)
+    assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_ENUM)
+    assertTrue(exceptions.single().details.contains("removed enum entry"))
+  }
+
+  @Test
+  fun `modify enum initializer`() {
+    val exceptions = testCase(
+      """
+      enum class Complex(x: String = "") {
+        VALUE_A("Hello"),
+        VALUE_B,
+        VALUE_C("Goodbye"),
+      }
+      """.trimIndent(),
+      """
+      enum class Complex(x: String = "") {
+        VALUE_A("Hello"),
+        VALUE_B("CHANGED"),
+        VALUE_C("Goodbye"),
+      }
+      """.trimIndent())
+
+    assertEquals(1, exceptions.size)
+    assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_ENUM)
+    assertTrue(exceptions.single().details.contains("modified enum initializer"))
+  }
+
+  @Test
+  fun `modify enum order`() {
+    val exceptions = testCase(
+      """
+      enum class Complex(x: String = "") {
+        VALUE_A("Hello"),
+        VALUE_B,
+        VALUE_C("Goodbye"),
+      }
+      """.trimIndent(),
+      """
+      enum class Complex(x: String = "") {
+        VALUE_A("Hello"),
+        VALUE_C("Goodbye"),
+        VALUE_B,
+      }
+      """.trimIndent())
+
+    assertEquals(1, exceptions.size)
+    assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_ENUM)
+    assertTrue(exceptions.single().details.contains("modified order of enum"))
+  }
+
+  @Test
+  fun `modify constructor`() {
+    val exceptions = testCase(
+      """
+      class Foo(val a: Int, val b: Int) {
+        constructor(a: String, b: String): this(0, 0)
+        constructor(a: Double, b: Double): this(0, 0)
+      }
+      """.trimIndent(),
+      """
+      class Foo(val a: Int, val b: Int) {
+        constructor(a: String, b: String): this(0, 0)
+        constructor(a: Double, b: Double): this(1, 1)
+      }
+      """.trimIndent())
+    assertEquals(1, exceptions.size)
+    assertEquals(exceptions.single().error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR)
+    assertTrue(exceptions.single().details.contains("modified constructor"))
+  }
+
+  @Test
+  fun `validator should ignore newlines and comments`() {
+    val exceptions = testCase(
+      """
       class Foo(val a: Int, val b: Int) {
         constructor(a: String, b: String): this(0, 0) {}
         val foo: Int by lazy {
           100
         }
       }
-    """.trimIndent())
-
-    val apk = projectRule.directApiCompileByteArray(file)
-    fakeBuildSystemLiveEditServices.withClasses(apk)
-    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(projectRule.project), projectRule.project)
-
-    val device: IDevice = mock()
-    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    whenever(device.isEmulator).thenReturn(false)
-
-    monitor.notifyAppDeploy(TestApplicationProjectContext("app"), device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
-    projectRule.modifyKtFile(file, """
+      """.trimIndent(),
+      """
       class Foo(val a: Int, val b: Int) {
         constructor(a: String, b: String): this(0, 0) {
         
@@ -163,11 +208,15 @@ class PsiValidatorTest {
           100
         }
       }
+      """.trimIndent())
+    assertEquals(0, exceptions.size)
+  }
 
-    """.trimIndent())
-
-    monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
-    val status = monitor.status(device)
-    assertEquals("Loading", status.title)
+  private fun testCase(@Language("kotlin") original: String, @Language("kotlin") next: String): List<LiveEditUpdateException> {
+    val file = projectRule.createKtFile("A.kt", original)
+    val original = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
+    projectRule.modifyKtFile(file, next)
+    val next = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
+    return ReadAction.compute<List<LiveEditUpdateException>, Throwable> { validatePsiChanges(original, next) }
   }
 }
