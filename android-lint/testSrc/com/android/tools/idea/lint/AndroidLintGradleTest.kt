@@ -17,6 +17,7 @@ package com.android.tools.idea.lint
 
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
+import com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidLintSimilarGradleDependencyInspection
 import com.android.tools.idea.lint.common.AndroidLintUseTomlInsteadInspection
@@ -296,6 +297,23 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       "dep|endencies { // OK" to
         """
         No warnings.
+        """,
+    )
+  }
+
+  fun testCompileSdkLocation() {
+    loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
+    val appBuildFile = myFixture.loadFile("app/build.gradle.kts")
+    myFixture.checkLint(
+      appBuildFile,
+      AndroidLintGradleDependencyInspection(),
+      "compileSdk|Version" to
+        """
+        Warning: A newer version of `compileSdkVersion` than 34 is available: 35
+            compileSdkVersion(34)
+            ~~~~~~~~~~~~~~~~~~~~~
+            Fix: Set compileSdkVersion to 35
+            Fix: Suppress GradleDependency with a comment
         """,
     )
   }

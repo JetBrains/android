@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.myapplication"
-    compileSdk = 34
+    compileSdkVersion(34)
 
     defaultConfig {
         kotlinOptions { // Wrong place: options
@@ -25,6 +25,7 @@ android {
         create("demo") {
             dimension = "version"
             dependencies { // Wrong place: product flavor
+                //noinspection GradleDependency
                 implementation("com.android.support:appcompat-v7:28.0.0")
             }
         }
@@ -38,11 +39,13 @@ android {
                 "proguard-rules.pro"
             )
             dependencies { // Wrong place: build type
+                //noinspection GradleDependency
                 implementation("com.android.support:appcompat-v7:28.0.0")
             }
         }
     }
     dependencies { // Wrong place: elsewhere
+        //noinspection GradleDependency
         implementation("com.android.support:appcompat-v7:28.0.0")
     }
     compileOptions {
@@ -63,5 +66,6 @@ android {
 }
 
 dependencies { // OK
+    //noinspection GradleDependency
     implementation("com.android.support:appcompat-v7:28.0.0")
 }
