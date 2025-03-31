@@ -426,7 +426,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    */
   @SuppressWarnings("rawtypes")
   @NotNull
-  public Map<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+  public Map<String, @NotNull PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
     @NotNull GradleDslNameConverter.Kind kind
   ) {
     return GradleBlockModelMap.getElementMap(this.getClass(), kind);
