@@ -133,10 +133,16 @@ class ProjectDumper(
       else -> {
         val (filePath, suffix) = splitPathAndSuffix()
         val file = File(filePath)
-        val existenceSuffix = if (!file.exists()) " [-]" else ""
-        (if (file.isRooted) filePath.replaceKnownPaths() else filePath) + suffix + existenceSuffix
+        (if (file.isRooted) filePath.replaceKnownPaths() else filePath) + suffix + file.existenceSuffix()
       }
     }
+  }
+
+  fun File.existenceSuffix(): String {
+    // Exclude Gradle build directory since expected generated files are tracked separately
+    // and its presence depends on applied dependencies/plugins
+    if (name == "build") return ""
+    return if (!exists()) " [-]" else ""
   }
 
   fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
