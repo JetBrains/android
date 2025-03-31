@@ -15,7 +15,7 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesBySeverityPathTextComparator
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.intellij.openapi.Disposable
@@ -52,7 +52,7 @@ class SuggestionsForm(
     if (issues.size > maxNumberOfIssuesToShow) {
       logger.warn("There are ${issues.size} issues but only $maxNumberOfIssuesToShow will be shown in PSD")
     }
-    issuesViewer.display(issues.sortedWith(IssuesByTypeAndTextComparator.INSTANCE).take(maxNumberOfIssuesToShow), scope)
+    issuesViewer.display(issues.sortedWith(IssuesBySeverityPathTextComparator.INSTANCE).take(maxNumberOfIssuesToShow), scope)
     updateLoading()
   }
 

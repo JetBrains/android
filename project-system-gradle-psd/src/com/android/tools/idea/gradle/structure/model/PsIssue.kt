@@ -41,12 +41,19 @@ interface PsIssue {
 
   val description: String?
   val quickFixes: List<PsQuickFix>
+  // Allow granular ordering for issues with the same Severity
+  val priority: Priority
 
   enum class Severity constructor(val text: String, val pluralText: String, val icon: Icon, val color: Color, val priority: Int) {
     ERROR("Error", "Errors", BalloonError, RED, 0),
     WARNING("Warning", "Warnings", BalloonWarning, warningColor, 1),
     INFO("Information", "Information", BalloonInformation, GRAY, 3),
     UPDATE("Update", "Updates", Download, GRAY, 2)
+  }
+
+  enum class Priority constructor(val priority: Int) {
+    HIGH_PRIORITY(0),
+    NORMAL_PRIORITY(1),
   }
 }
 
@@ -76,7 +83,8 @@ data class PsGeneralIssue(
   override val path: PsPath,
   override val type: PsIssueType,
   override val severity: PsIssue.Severity,
-  override val quickFixes: List<PsQuickFix> = listOf()
+  override val quickFixes: List<PsQuickFix> = listOf(),
+  override val priority: PsIssue.Priority = PsIssue.Priority.NORMAL_PRIORITY
 ) : PsIssue {
   constructor (text: String, path: PsPath, type: PsIssueType, severity: PsIssue.Severity, quickFix: PsQuickFix? = null) :
     this(text, null, path, type, severity, listOfNotNull(quickFix))

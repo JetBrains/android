@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesBySeverityPathTextComparator;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
@@ -78,7 +78,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
 
         if (myShowIssues && node instanceof AbstractPsModelNode) {
           AbstractPsModelNode<? extends PsModel> modelNode = (AbstractPsModelNode<? extends PsModel>)node;
-          issues = findIssues(modelNode, IssuesByTypeAndTextComparator.INSTANCE);
+          issues = findIssues(modelNode, IssuesBySeverityPathTextComparator.INSTANCE);
           presentation.setTooltip(getTooltipText(issues, false));
         }
 

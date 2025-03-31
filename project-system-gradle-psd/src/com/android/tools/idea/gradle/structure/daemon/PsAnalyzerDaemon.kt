@@ -365,7 +365,8 @@ private fun generateDeprecatedLibraryIssue(
   }
   val severity = if (isBlocking) ERROR else WARNING
   val message = index.generateDeprecatedMessage(groupId, artifactId)
-  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, listOf())
+  val priority = if (isBlocking) PsIssue.Priority.HIGH_PRIORITY else PsIssue.Priority.NORMAL_PRIORITY
+  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, listOf(), priority)
 }
 
 private fun generatePolicyIssues(
@@ -451,7 +452,8 @@ private fun createIndexIssue(
   mainPath: PsPath,
   severity: PsIssue.Severity,
   sdkIndex: GooglePlaySdkIndex,
-  additionalFixes: List<PsQuickFix> = listOf()
+  additionalFixes: List<PsQuickFix> = listOf(),
+  severityOffset: PsIssue.Priority = PsIssue.Priority.NORMAL_PRIORITY,
 ): PsGeneralIssue {
   val url = sdkIndex.getSdkUrl(groupId, artifactId)
   val fixes = mutableListOf<PsQuickFix>()
@@ -466,7 +468,8 @@ private fun createIndexIssue(
     mainPath,
     PLAY_SDK_INDEX_ISSUE,
     severity,
-    fixes
+    fixes,
+    priority = severityOffset,
   )
 }
 

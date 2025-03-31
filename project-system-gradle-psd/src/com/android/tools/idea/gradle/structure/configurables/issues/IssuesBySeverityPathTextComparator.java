@@ -20,8 +20,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
-public class IssuesByTypeAndTextComparator implements Comparator<PsIssue> {
-  @NotNull public static final IssuesByTypeAndTextComparator INSTANCE = new IssuesByTypeAndTextComparator();
+/**
+ * Compare two issues based on the following criteria:
+ * <ul>
+ *   <li>Severity</li>
+ *   <li>Path</li>
+ *   <li>Priority offset</li>
+ *   <li>Text</li>
+ * </ul>
+ *
+ */
+public class IssuesBySeverityPathTextComparator implements Comparator<PsIssue> {
+  @NotNull public static final IssuesBySeverityPathTextComparator INSTANCE = new IssuesBySeverityPathTextComparator();
 
   @Override
   public int compare(PsIssue i1, PsIssue i2) {
@@ -30,6 +40,10 @@ public class IssuesByTypeAndTextComparator implements Comparator<PsIssue> {
       return compare;
     }
     compare = i1.getPath().compareTo(i2.getPath());
+    if (compare != 0) {
+      return compare;
+    }
+    compare = i1.getPriority().getPriority() - i2.getPriority().getPriority();
     if (compare != 0) {
       return compare;
     }

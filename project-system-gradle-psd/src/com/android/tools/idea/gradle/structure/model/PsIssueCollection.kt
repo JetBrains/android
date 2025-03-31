@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesBySeverityPathTextComparator
 import com.google.common.collect.HashMultimap
 import java.util.Comparator
 
@@ -83,7 +83,7 @@ fun getTooltipText(issues: List<PsIssue>, includePath: Boolean): String? {
     return null
   }
 
-  val sorted = issues.sortedWith(IssuesByTypeAndTextComparator.INSTANCE)
+  val sorted = issues.sortedWith(IssuesBySeverityPathTextComparator.INSTANCE)
 
   val useBullets = issues.size > 1
 
