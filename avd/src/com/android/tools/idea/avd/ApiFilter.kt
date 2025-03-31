@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.NameDetails
 import com.android.sdklib.getApiNameAndDetails
+import com.android.tools.adtui.compose.LingeringTooltip
 import com.android.tools.idea.ui.ChooseApiLevelDialog
 import javax.swing.Action
 import org.jetbrains.jewel.ui.component.Dropdown

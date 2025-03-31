@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avd
+package com.android.tools.adtui.compose
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
@@ -27,13 +27,14 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.printToLog
 import androidx.compose.ui.unit.dp
-import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import org.jetbrains.jewel.ui.component.Text
 import org.junit.Rule
 import org.junit.Test
 
 class LingeringTooltipTest {
-  @get:Rule val composeTestRule = createStudioComposeTestRule()
+  @get:Rule
+  val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
 
   @OptIn(ExperimentalFoundationApi::class, ExperimentalTestApi::class)
   @Test

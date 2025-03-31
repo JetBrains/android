@@ -32,7 +32,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +43,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.displayApiString
+import com.android.tools.adtui.compose.LingeringTooltip
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.SortOrder
