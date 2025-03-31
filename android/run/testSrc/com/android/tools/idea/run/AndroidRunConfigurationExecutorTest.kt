@@ -29,6 +29,7 @@ import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.backup.BackupManager.Source.RUN_CONFIG
+import com.android.tools.idea.backup.testing.FakeBackupManager
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
@@ -44,13 +45,17 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.applicationProjectContextForTests
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration.Companion.DO_NOTHING
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
+import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.editor.DeployTargetState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
@@ -58,6 +63,7 @@ import com.intellij.execution.ExecutionManager
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunProfile
+import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ExecutionManagerImpl
@@ -70,12 +76,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -85,6 +93,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.reset
@@ -136,6 +146,8 @@ class AndroidRunConfigurationExecutorTest {
     projectRule.replaceProjectService(BackupManager::class.java, mockBackupManager)
     runBlocking {
       whenever(mockBackupManager.isInstalled(any(), any())).thenReturn(true)
+      whenever(mockBackupManager.getRestoreRunConfigSection(any()))
+        .thenReturn(FakeBackupManager().getRestoreRunConfigSection(projectRule.project))
     }
   }
 
@@ -677,6 +689,26 @@ class AndroidRunConfigurationExecutorTest {
     if (!newProcessHandler.waitFor(5000)) {
       fail("Process handler didn't stop when debug process terminated")
     }
+  }
+
+  @Test
+  fun testFacetConsistency() {
+    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val env = getExecutionEnvironment(listOf(device))
+    val configuration = spy(env.runProfile as AndroidRunConfiguration)
+    val captor = argumentCaptor<AndroidFacet>()
+    val deployTarget = object : DeployTarget {
+      override fun hasCustomRunProfileState(executor: Executor): Boolean = false
+      override fun getRunProfileState(executor: Executor, env: ExecutionEnvironment, state: DeployTargetState): RunProfileState? = null
+      override fun launchDevices(project: Project): DeviceFutures = FakeAndroidDevice.forDevices(listOf(device))
+      override fun getAndroidDevices(project: Project): List<AndroidDevice?> = listOf(FakeAndroidDevice(device))
+    }
+    doReturn(deployTarget).whenever(configuration).deployTarget
+    val state = configuration.getState(DefaultDebugExecutor.getDebugExecutorInstance(), env)
+    verify(configuration).getExecutor(any(), captor.capture(), any())
+    val executorFacet = captor.firstValue
+    val finderFacet = projectRule.project.getProjectSystem().findModulesWithApplicationId(APPLICATION_ID).first().androidFacet
+    assertThat(executorFacet).isEqualTo(finderFacet)
   }
 
   private fun testApplicationDeployer(

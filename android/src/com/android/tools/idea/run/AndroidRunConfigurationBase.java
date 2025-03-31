@@ -8,6 +8,8 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidRunConfiguration;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.getModuleForAndroidTestRunConfiguration;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
@@ -282,8 +284,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Module module = getConfigurationModule().getModule();
     assert module != null : "Enforced by fatal validation check in checkConfiguration.";
+    if (isTestConfiguration()) {
+      Module androidTestModule = getModuleForAndroidTestRunConfiguration(module);
+      if (androidTestModule != null) module = androidTestModule;
+
+    }
+    else {
+      module = getModuleForAndroidRunConfiguration(module);
+    }
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null : "Enforced by fatal validation check in checkConfiguration.";
+    assert facet != null : "Enforced by fatal validation check in checkConfiguration."; // TODO no longer quite true in theory
 
     stats.setDebuggable(LaunchUtils.canDebugApp(facet));
     stats.setExecutor(executor.getId());

@@ -39,6 +39,7 @@ import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
+import com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.Companion.getModuleForAndroidRunConfiguration
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
@@ -91,7 +92,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   }
 
   private fun getAndroidFacetOrThrow(): AndroidFacet {
-    val module = configurationModule.module!!
+    val module = getModuleForAndroidRunConfiguration(configurationModule.module!!)
     return AndroidFacet.getInstance(module) ?: throw RuntimeConfigurationError(AndroidBundle.message("no.facet.error", module.name))
   }
 

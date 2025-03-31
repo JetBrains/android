@@ -24,6 +24,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvisionException
+import com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationToken.Companion.getModuleForAndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.ImportAndroidTestMatrixRunProfile
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
@@ -58,7 +59,7 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
     } catch (e: ApkProvisionException) {
       throw ExecutionException("Can't get application ID")
   }
-  protected val module = configuration.configurationModule.module!!
+  protected val module = configuration.configurationModule.module!!.let { getModuleForAndroidTestRunConfiguration(it) ?: it }
   protected val facet =
     module.androidFacet ?: throw RuntimeException("AndroidTestRunConfigurationExecutorBase shouldn't be invoked for module without facet")
   protected val LOG = Logger.getInstance(this::class.java)
