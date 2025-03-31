@@ -23,9 +23,11 @@ import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
 import com.android.tools.idea.common.surface.organization.DEFAULT_ORGANIZATION_GROUP_STATE
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
+import com.android.tools.idea.common.surface.organization.OrganizationGroupType
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
@@ -198,6 +200,12 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
         newModel.displaySettings.setBaseName(previewElement.displaySettings.baseName)
         newModel.displaySettings.setParameterName(previewElement.displaySettings.parameterName)
+        // TODO(b/407525144) Set correct icon and do not set file name if preview opened from the
+        // same file.
+        if (StudioFlags.PREVIEW_SOURCESET_UI.get()) {
+          newModel.displaySettings.setFileName(psiFile.name)
+          newModel.displaySettings.setGroupType(OrganizationGroupType.Test)
+        }
         newModel.dataProvider = previewElementModelAdapter.createDataProvider(previewElement)
         newModel.setModelUpdater(modelUpdater)
         (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
@@ -215,9 +223,15 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           val displayName =
             methodPreviewElement.displaySettings.baseName +
               (methodPreviewElement.displaySettings.organizationGroup?.let { " - $it" } ?: "")
+          val fileAndDisplayName =
+            newModel.displaySettings.fileName.value?.let { "$it.$displayName" } ?: displayName
           newModel.organizationGroup =
             groups.getOrCreate(groupId) {
-              OrganizationGroup(groupId, displayName) {
+              OrganizationGroup(
+                  groupId,
+                  fileAndDisplayName,
+                  newModel.displaySettings.groupType.value,
+                ) {
                   // Everytime state is changed we need to save it.
                   isOpened ->
                   getInstance(project)

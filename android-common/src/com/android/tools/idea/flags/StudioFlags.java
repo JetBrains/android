@@ -1417,6 +1417,14 @@ public final class StudioFlags {
     "If enabled, the process to find previews for a file will also search in its associated files from the preview-sourceset",
     false
   );
+
+  public static final Flag<Boolean> PREVIEW_SOURCESET_UI = new BooleanFlag(
+    PREVIEW_COMMON, "preview.sourceset.ui",
+    "Enable UI for preview-sourseset",
+    "If enabled, the UI specific to preview-sourceset will be enabled.",
+    false
+  );
+
   //endregion
 
   //region Compose

@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.common.surface.organization
 
+import com.intellij.icons.AllIcons
+import javax.swing.Icon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import org.jetbrains.jewel.ui.icon.PathIconKey
 
 /**
  * Default [OrganizationGroup.isOpened] state of new created [OrganizationGroup]. Note: Default
@@ -26,10 +29,19 @@ import kotlinx.coroutines.flow.update
  */
 const val DEFAULT_ORGANIZATION_GROUP_STATE = true
 
+enum class OrganizationGroupType(val iconKey: PathIconKey?, val icon: Icon?) {
+  Default(null, null),
+  Test(
+    PathIconKey("expui/runConfigurations/junit.svg", AllIcons::class.java),
+    AllIcons.RunConfigurations.Junit,
+  ),
+}
+
 /** Information required for each organization group. */
 class OrganizationGroup(
   val methodFqn: String,
   val displayName: String,
+  val groupType: OrganizationGroupType = OrganizationGroupType.Default,
   val saveState: (Boolean) -> Unit = { _ -> },
 ) {
 

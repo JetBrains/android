@@ -64,6 +64,11 @@ fun OrganizationHeader(group: OrganizationGroup) {
 
       Spacer(Modifier.width(toolbarSpacing))
 
+      group.groupType.iconKey?.let { it ->
+        Icon(key = it, contentDescription = null, modifier = Modifier.testTag("groupIcon"))
+        Spacer(Modifier.width(toolbarSpacing))
+      }
+
       Text(
         group.displayName,
         modifier = Modifier.testTag("displayName"),
