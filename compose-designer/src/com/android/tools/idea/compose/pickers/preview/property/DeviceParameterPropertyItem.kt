@@ -51,6 +51,7 @@ import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_NAVIGATION
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_SHAPE
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_UNIT
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_WIDTH_DP
+import com.android.tools.preview.config.Preview.DeviceSpec.MAX_CHIN_SIZE
 import com.android.tools.preview.config.Shape
 import com.android.tools.preview.config.findByIdOrName
 import com.android.tools.preview.config.getDefaultPreviewDevice
@@ -173,7 +174,8 @@ internal class DeviceParameterPropertyItem(
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_CHIN_SIZE,
         defaultValue = defaultDeviceValues.chinSizeString,
-        inputValidation = DeviceSpecDimValidator(strictPositive = false),
+        inputValidation =
+          DeviceSpecDimValidator(strictPositive = false, maxFloatAllowed = MAX_CHIN_SIZE),
         getter = { it.chinSizeString },
       ) { config, newValue ->
         val newChinSize = newValue.toFloatOrNull()

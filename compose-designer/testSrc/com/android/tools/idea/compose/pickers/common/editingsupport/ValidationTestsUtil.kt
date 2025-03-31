@@ -18,6 +18,9 @@ package com.android.tools.idea.compose.pickers.common.editingsupport
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 
 internal val ERROR_GREATER_THAN_ZERO = Pair(EditingErrorCategory.ERROR, "Should be at least 1")
+internal val ERROR_TOO_BIG = { maxValue: Int ->
+  Pair(EditingErrorCategory.ERROR, "Number is too big, should be at most $maxValue")
+}
 
 internal val ERROR_NOT_INTEGER = Pair(EditingErrorCategory.ERROR, "Not an Integer")
 internal val ERROR_NOT_FLOAT = Pair(EditingErrorCategory.ERROR, "Not a Float")

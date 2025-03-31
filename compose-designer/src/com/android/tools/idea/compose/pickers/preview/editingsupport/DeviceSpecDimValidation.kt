@@ -27,14 +27,24 @@ import com.android.tools.idea.compose.pickers.common.editingsupport.validateFloa
  *
  * @param strictPositive If true, [EditingErrorCategory.ERROR] will be used when the value is
  *   effectively zero (<0.5f).
+ * @param maxFloatAllowed If not null, [EditingErrorCategory.ERROR] will be used when validated
+ *   value is greater than [maxFloatAllowed].
  */
-internal class DeviceSpecDimValidator(private val strictPositive: Boolean) : EditingValidation {
+internal class DeviceSpecDimValidator(
+  private val strictPositive: Boolean,
+  private val maxFloatAllowed: Float? = null,
+) : EditingValidation {
   override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {
     if (editedValue == null || editedValue.isBlank()) return EDITOR_NO_ERROR
     val trimmedValue = editedValue.trim()
 
     val validFloatResult =
-      validateFloat(editedValue = trimmedValue, validateSuffix = false, canBeZero = !strictPositive)
+      validateFloat(
+        editedValue = trimmedValue,
+        validateSuffix = false,
+        canBeZero = !strictPositive,
+        maxFloatAllowed,
+      )
     if (validFloatResult != EDITOR_NO_ERROR) {
       return validFloatResult
     }

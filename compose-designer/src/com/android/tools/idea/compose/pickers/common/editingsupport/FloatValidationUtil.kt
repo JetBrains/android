@@ -29,6 +29,7 @@ fun validateFloat(
   editedValue: String,
   validateSuffix: Boolean,
   canBeZero: Boolean,
+  maxValueAllowed: Float? = null,
 ): Pair<EditingErrorCategory, String> {
   if (editedValue.isBlank()) return EDITOR_NO_ERROR
   val trimmedValue = editedValue.trim()
@@ -52,6 +53,15 @@ fun validateFloat(
       EditingErrorCategory.ERROR,
       message("picker.preview.input.validation.positive.value"),
     )
+  }
+
+  maxValueAllowed?.let { max ->
+    if (numberValue > max) {
+      return Pair(
+        EditingErrorCategory.ERROR,
+        message("picker.preview.input.validation.too.big.value", maxValueAllowed),
+      )
+    }
   }
 
   if (validateSuffix && !trimmedValue.isValidFloatFormat()) {

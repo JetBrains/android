@@ -80,6 +80,7 @@ object Preview {
     // Set those values first as they are referenced by ReferencePhoneConfig
     const val DEFAULT_DPI: Int = 420
     const val DEFAULT_CHIN_SIZE_ZERO: Int = 0
+    const val MAX_CHIN_SIZE: Float = 1_000_000f
     val DEFAULT_ORIENTATION = Orientation.portrait
     val DEFAULT_CUTOUT = Cutout.none
     val DEFAULT_NAVIGATION = Navigation.gesture
