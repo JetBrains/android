@@ -80,6 +80,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",
     "@lib//:kotlin-test",

@@ -14,13 +14,10 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
     "@lib//:gradle",
     "@lib//:guava",
     "@lib//:junit4",
-    "@lib//:jetbrains-annotations",
     "@lib//:jna",
-    "@lib//:kotlinx-coroutines-core",
     "@lib//:truth",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//java/java-frontback-psi-api:frontback-psi",

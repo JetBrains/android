@@ -5,6 +5,7 @@ load("@rules_jvm//:jvm.bzl", "jvm_test")
 jvm_test(
   name = "core-gutter_test",
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/android:core"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -14,7 +15,6 @@ jvm_test(
     "@lib//:truth",
     "//android/project-system-gradle-psd:projectSystem-gradle-psd",
     "//android/android-common:common",
-    "//android/android:core",
     "//android/android:core-tests_test_lib",
     "//android/render-resources",
     "//android/android-test-framework:testFramework_test_lib",
@@ -23,6 +23,7 @@ jvm_test(
     "//platform/analysis-api:analysis",
     "//platform/analysis-impl",
     "//platform/core-api:core",
+    "//platform/editor/shared:editor",
     "//platform/editor-ui-api:editor-ui",
     "//platform/lang-api:lang",
     "//platform/lang-impl",
@@ -33,6 +34,7 @@ jvm_test(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//xml/xml-psi-api:psi",
+    "//android/layoutlib",
   ]
 )
 ### auto-generated section `build intellij.android.core.gutter` end

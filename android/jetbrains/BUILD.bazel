@@ -42,6 +42,7 @@ jvm_library(
     "@lib//:kotlin-test",
     "@lib//:kxml2",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:kotlinc-analysis-api",
@@ -122,6 +123,7 @@ jvm_library(
     "//tools/intellij.tools.ide.metrics.benchmark:ide-metrics-benchmark_test_lib",
     "//android/android/editing/documentation:android-core-editing-documentation",
     "//android/android/editing/documentation:android-core-editing-documentation_test_lib",
+    "//java/openapi:java",
   ]
 )
 

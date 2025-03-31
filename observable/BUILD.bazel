@@ -9,7 +9,6 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
     "@lib//:guava",
   ]
 )
@@ -23,7 +22,6 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:truth",
     "@lib//:guava",

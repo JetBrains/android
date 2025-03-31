@@ -82,6 +82,7 @@ jvm_library(
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
     "//plugins/kotlin/base/scripting:kotlin-base-scripting",
     "//plugins/kotlin/base/util:kotlin-base-util",
+    "//android/device-manager-v2",
   ],
   runtime_deps = [":layout-inspector_resources"]
 )
@@ -189,6 +190,9 @@ jvm_library(
     "//platform/testFramework/common",
     "//java/testFramework",
     "//android/project-system-gradle:projectSystem-gradle",
+    "@lib//:mockito-kotlin",
+    "//android/device-manager-v2",
+    "//android/device-manager-v2:device-manager-v2_test_lib",
   ],
   runtime_deps = [":layout-inspector_resources"]
 )
@@ -216,6 +220,7 @@ jvm_test(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
+    "@lib//:guava",
     "@lib//:junit4",
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:layoutlib",
@@ -327,6 +332,8 @@ jvm_test(
     "//plugins/kotlin/plugin",
     "//plugins/kotlin/plugin/k1:kotlin-plugin-k1",
     "@lib//:jimfs",
+    "//android/device-manager-v2",
+    "//android/device-manager-v2:device-manager-v2_test_lib",
   ],
   runtime_deps = [":layout-inspector-tests_test_resources"]
 )

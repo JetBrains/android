@@ -14,6 +14,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "//android/android:core",
+    "//android/gmaven",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/ide-core",

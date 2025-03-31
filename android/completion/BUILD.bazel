@@ -14,7 +14,6 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:truth",
     "//android/android:core-tests_test_lib",
@@ -24,6 +23,7 @@ jvm_library(
     "//platform/ide-core",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "@lib//:javapoet",
   ]
 )
 

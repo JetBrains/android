@@ -36,6 +36,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//plugins/gradle:gradle-common",
     "//platform/external-system-api:externalSystem",

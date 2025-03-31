@@ -20,6 +20,7 @@ jvm_test(
     "@lib//:jetbrains-annotations",
     "@lib//:layoutlib",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",

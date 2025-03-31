@@ -61,6 +61,7 @@ jvm_test(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/android-lang:lang",
     "//android/room",

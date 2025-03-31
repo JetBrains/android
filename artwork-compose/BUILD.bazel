@@ -18,7 +18,6 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//android/artwork",
     "//android/adt-ui-compose",
-    "@lib//:jewel-ide-laf-bridge",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

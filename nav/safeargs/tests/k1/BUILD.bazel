@@ -23,6 +23,7 @@ jvm_test(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kotlinc-kotlin-compiler-fe10-provided",

@@ -92,6 +92,7 @@ jvm_test(
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
+    "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",
     "@lib//:mockito",

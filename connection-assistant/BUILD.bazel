@@ -48,6 +48,7 @@ jvm_test(
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:truth",
     "@lib//:jaxb-api",
     "//android/android-adb:adb",

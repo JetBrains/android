@@ -13,6 +13,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:google-protobuf-java-util",
+    "//platform/util",
   ]
 )
 

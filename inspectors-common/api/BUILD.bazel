@@ -12,10 +12,8 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "//android/adt-ui-model",
-    "//android/codenavigation",
-    "//platform/core-api:core",
-    "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
+    "//android/codenavigation",
   ]
 )
 
@@ -34,14 +32,12 @@ jvm_library(
     "@lib//:truth",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
-    "//android/codenavigation",
-    "//android/codenavigation:codenavigation_test_lib",
-    "//platform/core-api:core",
-    "//platform/editor-ui-api:editor-ui",
-    "//platform/platform-api:ide",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "//platform/platform-api:ide",
+    "//android/codenavigation",
+    "//android/codenavigation:codenavigation_test_lib",
   ]
 )
 

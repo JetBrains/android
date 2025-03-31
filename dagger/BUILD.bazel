@@ -68,11 +68,10 @@ jvm_test(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
     "@lib//:junit4",
+    "@lib//:truth",
     "@lib//:mockito",
     "@lib//:protobuf",
-    "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kotlinc-analysis-api-provided",
     "//android/adt-testutils",
@@ -105,6 +104,8 @@ jvm_test(
     "//plugins/kotlin/base/util:kotlin-base-util",
     "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//plugins/kotlin/base/psi:kotlin-base-psi",
+    "@lib//:mockito-kotlin",
+    "//android/intellij.android.testutils:testutils_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.dagger.tests` end

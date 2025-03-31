@@ -16,9 +16,11 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "@lib//:guava",
+    "@lib//:commons-lang3",
     "@lib//:jetbrains-annotations",
-    "//platform/platform-impl:ide-impl",
     "@lib//:jsoup",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//platform/platform-impl:ide-impl",
     "//java/java-impl:impl",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
@@ -29,9 +31,8 @@ jvm_library(
     "//platform/util",
     "//platform/util:util-ui",
     "//android/gradle-declarative-lang",
+    "//android/gradle-declarative-lang-sync",
     "//platform/code-style-impl:codeStyle-impl",
-    "@lib//:commons-lang3",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
   runtime_deps = [":gradle-declarative-lang-ide_resources"]
 )
@@ -47,12 +48,13 @@ jvm_test(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
     "@lib//:truth",
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:jsoup",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "//android/android:core",
     "//android/android:core-tests_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
@@ -70,6 +72,8 @@ jvm_test(
     "//platform/util",
     "//platform/util:util-ui",
     "//android/gradle-declarative-lang",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/gradle-declarative-lang-sync",
     "//android/gradle-declarative-lang-ide",
   ]
 )

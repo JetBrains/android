@@ -30,6 +30,7 @@ jvm_library(
     "//platform/extensions",
     "//platform/external-system-api:externalSystem",
     "//platform/ide-core",
+    "//platform/ide-core-impl",
     "//platform/lang-api:lang",
     "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
@@ -66,18 +67,12 @@ jvm_test(
     "//android/android-common:common",
     "//android/jps-model",
     "//android/project-system:projectSystem",
-    "//platform/core-api:core",
-    "//platform/core-impl",
-    "//platform/extensions",
-    "//jps/model-api:model",
-    "//platform/lang-api:lang",
-    "//platform/lang-core",
-    "//platform/projectModel-api:projectModel",
+    "@lib//:mockito-kotlin",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-    "//platform/util",
     "//plugins/kotlin/base/util:kotlin-base-util",
     "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
+    "//platform/lang-api:lang",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.tests` end

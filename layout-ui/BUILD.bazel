@@ -15,9 +15,6 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
-    "@lib//:fastutil-min",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
     "@lib//:swingx",
     "//android/adt-ui",
     "//android/adt-ui-model",
@@ -37,6 +34,7 @@ jvm_library(
     "//platform/util/text-matching",
     "//platform/util:util-ui",
     "//platform/platform-impl/ui:ide-ui",
+    "@lib//:fastutil-min",
   ]
 )
 
@@ -47,12 +45,9 @@ jvm_library(
   associates = [":layout-ui"],
   deps = [
     "@lib//:studio-platform-provided",
-    "@lib//:studio-test-platform",
     "@lib//:guava",
-    "@lib//:fastutil-min",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-stdlib",
     "@lib//:swingx",
+    "@lib//:studio-test-platform",
     "@lib//:junit4",
     "@lib//:kotlin-test",
     "@lib//:mockito",
@@ -90,6 +85,7 @@ jvm_library(
     "//platform/testFramework/common",
     "//platform/util/jdom",
     "//platform/platform-impl/ui:ide-ui",
+    "@lib//:fastutil-min",
   ],
   runtime_deps = [":layout-ui_test_resources"]
 )

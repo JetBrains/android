@@ -51,6 +51,7 @@ jvm_test(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
+    "@lib//:mockito-kotlin",
     "@lib//:junit4",
     "@lib//:truth",
     "//android/as-driver/utils:android-as-driver-utils_test_lib",

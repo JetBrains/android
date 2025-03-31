@@ -1,10 +1,19 @@
 ### auto-generated section `build intellij.android.safemode` start
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
-java_library(
+jvm_library(
   name = "safemode",
+  module_name = "intellij.android.safemode",
   visibility = ["//visibility:public"],
-  runtime_deps = ["@lib//:kotlin-stdlib"]
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/artwork",
+    "//platform/core-api:core",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+  ]
 )
 ### auto-generated section `build intellij.android.safemode` end
 
@@ -23,7 +32,6 @@ jvm_test(
     "@lib//:commons-lang3",
     "@lib//:truth",
     "//android/as-driver/utils:android-as-driver-utils_test_lib",
-    "//plugins/maven/maven-server-indexer:server-indexer",
   ]
 )
 ### auto-generated section `build intellij.android.safemode.integration.tests` end

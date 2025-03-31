@@ -32,15 +32,13 @@ jvm_test(
     "//android/wizard-model:wizard-model_test_lib",
     "//android/android-adb:adb",
     "//android/artwork",
-    "//android/intellij.android.testutils:testutils_test_lib",
-    "//platform/platform-api:ide",
-    "//platform/platform-util-io:ide-util-io",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-    "//platform/util",
-    "//platform/util-rt",
-    "//platform/util-rt:util-rt_test_lib",
-    "//platform/util:util-ui",
+    "@lib//:mockito-kotlin",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/util-ex",
+    "@lib//:kotlinx-datetime-jvm",
   ]
 )
 ### auto-generated section `build intellij.android.avdmanager.tests` end

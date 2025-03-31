@@ -2,32 +2,15 @@
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
-# managed by go/iml_to_build
-iml_module(
-    name = "intellij.android.adt.ui.compose",
-    srcs = ["src"],
-    iml_files = ["intellij.android.adt.ui.compose.iml"],
-    kotlin_use_compose = True,
-    test_resources = ["testResources"],
-    test_srcs = ["testSrc"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    exports = [
-        "//prebuilts/tools/common/m2:jewel-ide",
-        "//prebuilts/tools/common/m2:compose-desktop",
-        "//prebuilts/tools/common/m2:jewel-standalone",
-        "//prebuilts/tools/common/m2:compose-desktop-test",
-    ],
-    # do not sort: must match IML order
-    deps = [
-        "@intellij//:intellij-sdk",
-        "//prebuilts/tools/common/m2:jewel-ide",
-        "//prebuilts/tools/common/m2:compose-desktop",
-        "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//prebuilts/tools/common/m2:jewel-standalone[test]",
-        "//prebuilts/tools/common/m2:compose-desktop-test[test]",
-        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
-    ],
+create_kotlinc_options(
+  name = "custom",
+  context_receivers = True
+)
+
+jvm_resources(
+  name = "adt-ui-compose_resources",
+  files = glob(["src/META-INF/**/*"]),
+  strip_prefix = "src"
 )
 
 jvm_resources(
@@ -45,20 +28,25 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
+    "@lib//:android-adt-ui-compose-jewel-ide-laf-bridge-243",
+    "@lib//:android-adt-ui-compose-jewel-markdown-ide-laf-bridge-styling-243",
     "//android/android-common:common",
     "//android/android:core",
-    "//platform/util:util-ui",
-    "//platform/editor-ui-api:editor-ui",
     "//platform/core-api:core",
-    "@lib//:android-adt-ui-compose-jewel-markdown-ide-laf-bridge-styling-242",
-    "@lib//:jewel-ide-laf-bridge",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/util:util-ui",
   ],
   exports = [
     "@lib//:android-adt-ui-compose-jetbrains-compose-ui-test-junit4-desktop",
-    "@lib//:android-adt-ui-compose-jewel-markdown-int-ui-standalone-styling-242",
-    "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-242",
+    "@lib//:android-adt-ui-compose-jewel-markdown-int-ui-standalone-styling-243",
+    "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-243",
+    "@lib//:android-adt-ui-compose-jewel-ide-laf-bridge-243",
   ],
-  runtime_deps = ["@lib//:android-adt-ui-compose-jetbrains-skiko-awt-runtime-all-0-8-9"],
+  runtime_deps = [
+    ":adt-ui-compose_resources",
+    "@lib//:android-adt-ui-compose-jetbrains-skiko-awt-runtime-all-0-8-18",
+  ],
   plugins = ["@lib//:compose-plugin"]
 )
 
@@ -73,20 +61,25 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-test",
+    "@lib//:android-adt-ui-compose-jetbrains-compose-ui-test-junit4-desktop",
+    "@lib//:android-adt-ui-compose-jewel-markdown-int-ui-standalone-styling-243",
+    "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-243",
+    "@lib//:android-adt-ui-compose-jewel-ide-laf-bridge-243",
+    "@lib//:android-adt-ui-compose-jewel-markdown-ide-laf-bridge-styling-243",
     "//android/android-common:common",
     "//android/android:core",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
-    "//platform/util:util-ui",
-    "//platform/editor-ui-api:editor-ui",
     "//platform/core-api:core",
-    "@lib//:android-adt-ui-compose-jetbrains-compose-ui-test-junit4-desktop",
-    "@lib//:android-adt-ui-compose-jewel-markdown-int-ui-standalone-styling-242",
-    "@lib//:android-adt-ui-compose-jewel-int-ui-standalone-242",
-    "@lib//:android-adt-ui-compose-jewel-markdown-ide-laf-bridge-styling-242",
-    "@lib//:jewel-ide-laf-bridge",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/platform-api:ide",
+    "//platform/util:util-ui",
   ],
-  runtime_deps = [":adt-ui-compose_test_resources"],
+  runtime_deps = [
+    ":adt-ui-compose_resources",
+    ":adt-ui-compose_test_resources",
+  ],
   plugins = ["@lib//:compose-plugin"]
 )
 

@@ -16,6 +16,7 @@ jvm_library(
     "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
     "//android/codenavigation",
     "//android/inspectors-common/api:android-inspectors-common-api",
+    "//platform/util",
   ]
 )
 
@@ -43,6 +44,7 @@ jvm_library(
     "//android/inspectors-common/api:android-inspectors-common-api",
     "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/util",
   ]
 )
 

@@ -79,6 +79,7 @@ jvm_test(
     "@lib//:junit4",
     "@lib//:gson",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",
     "//android/artwork",

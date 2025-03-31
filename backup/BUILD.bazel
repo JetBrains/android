@@ -39,6 +39,7 @@ jvm_library(
     "//platform/execution-impl",
     "//platform/progress/shared:ide-progress",
     "//android/streaming",
+    "//platform/lang-api:lang",
   ],
   runtime_deps = [":backup_resources"]
 )
@@ -58,6 +59,7 @@ jvm_library(
     "//platform/util",
     "//android/project-system:projectSystem",
     "//platform/core-api:core",
+    "//platform/execution",
   ]
 )
 ### auto-generated section `build intellij.android.backup.api` end
@@ -84,6 +86,7 @@ jvm_test(
     "//android/backup:backup-api",
     "//android/android:core",
     "//android/android-common:common",
+    "//android/execution/common:android-execution-common",
     "//android/project-system:projectSystem",
     "//android/android-test-framework:testFramework_test_lib",
     "@lib//:junit4",
@@ -91,6 +94,7 @@ jvm_test(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "@lib//:protobuf",
+    "//platform/execution",
   ]
 )
 ### auto-generated section `build intellij.android.backup.tests` end

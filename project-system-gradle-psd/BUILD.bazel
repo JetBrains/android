@@ -89,7 +89,6 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:android-project_system-gradle-psd-tests-liblint-checks-proto-lib",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlin-reflect",
     "@lib//:gradle",
@@ -97,9 +96,10 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",
-    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-compiler-common",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/android:core",
@@ -137,6 +137,8 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
+    "//android/gradle-declarative-lang-ide",
+    "@lib//:kotlinx-datetime-jvm",
   ]
 )
 

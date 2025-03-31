@@ -34,9 +34,9 @@ jvm_test(
     "@lib//:gradle",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
-    "@lib//:equalsverifier",
     "@lib//:javax-inject-provided",
     "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
+    "@lib//:equalsverifier",
   ],
   runtime_deps = [":android-gradle-tooling-impl_resources"]
 )

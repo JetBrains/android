@@ -9,13 +9,11 @@ jvm_test(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
     "@lib//:guava",
     "@lib//:junit4",
-    "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-test",
     "@lib//:mockito",
     "@lib//:truth",
+    "@lib//:kotlin-test",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
@@ -58,6 +56,7 @@ jvm_test(
     "//platform/util/base",
     "//platform/util:util-ui",
     "//plugins/kotlin/base/facet:kotlin-base-facet",
+    "@lib//:jaxb-api",
   ]
 )
 ### auto-generated section `build intellij.android.core.sdk` end

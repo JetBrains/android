@@ -36,6 +36,7 @@ jvm_resources(
 jvm_test(
   name = "android-material-tests_test",
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/android-material"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -44,9 +45,9 @@ jvm_test(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//android/adt-testutils:adt-testutils_test_lib",
-    "//android/android-material",
     "//android/android:core",
     "//android/android-test-framework:testFramework_test_lib",
     "//platform/core-api:core",
@@ -58,6 +59,8 @@ jvm_test(
     "//platform/util-ex",
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
+    "@lib//:gson",
+    "//android/android-common:common",
   ],
   runtime_deps = [":android-material-tests_test_resources"]
 )

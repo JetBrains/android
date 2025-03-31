@@ -153,6 +153,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/lang-impl",
     "@lib//:kotlinx-coroutines-test",
+    "@lib//:mockito-kotlin",
   ],
   runtime_deps = [":profilersAndroid_resources"]
 )

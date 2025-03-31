@@ -125,6 +125,7 @@ jvm_test(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util/jdom",
+    "@lib//:mockito-kotlin",
   ],
   runtime_deps = [":android-app-inspection-ide-tests_test_resources"]
 )

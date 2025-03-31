@@ -18,6 +18,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-guava",
     "@lib//:protobuf",
     "//android/android-adb:adb",
     "//android/adt-ui",
@@ -59,9 +60,10 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-guava",
     "@lib//:protobuf",
     "@lib//:mockito",
-    "@lib//:truth",
+    "@lib//:mockito-kotlin",
     "//android/android-adb:adb",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
@@ -94,6 +96,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
+    "@lib//:truth",
   ],
   runtime_deps = [":wear-pairing_resources"]
 )

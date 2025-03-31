@@ -15,9 +15,9 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:guava",
     "//android/android-common:common",
+    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
     "//android/android-transport:transport",
     "//platform/util",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
   ]
 )
 
@@ -39,15 +39,15 @@ jvm_library(
     "@lib//:truth",
     "@lib//:guava",
     "//android/android-common:common",
-    "//android/android-transport:transport",
-    "//android/android-transport:transport_test_lib",
-    "//platform/util",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
     "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
+    "//android/android-transport:transport",
+    "//android/android-transport:transport_test_lib",
+    "//platform/util",
   ]
 )
 

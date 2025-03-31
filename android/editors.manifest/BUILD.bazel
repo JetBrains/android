@@ -8,14 +8,11 @@ jvm_test(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
-    "@lib//:kotlin-stdlib",
-    "@lib//:guava",
     "@lib//:junit4",
-    "@lib//:jetbrains-annotations",
+    "//android/android:core",
     "@lib//:mockito",
     "@lib//:truth",
     "//android/android-common:common",
-    "//android/android:core",
     "//android/android:core-tests_test_lib",
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
@@ -36,6 +33,7 @@ jvm_test(
     "//platform/util",
     "//xml/xml-parser:parser",
     "//xml/xml-psi-api:psi",
+    "@lib//:guava",
   ]
 )
 ### auto-generated section `build intellij.android.core.editors.manifest` end

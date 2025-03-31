@@ -34,7 +34,6 @@ jvm_library(
     "//android/artwork",
     "//android/artwork-compose",
     "//android/android-adb:adb",
-    "@lib//:jewel-ide-laf-bridge",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

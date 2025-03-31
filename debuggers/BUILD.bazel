@@ -55,8 +55,12 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//xml/dom-openapi:dom",
+    "//plugins/kotlin/jvm-debugger/base/util:kotlin-jvm-debugger-base-util",
+    "//plugins/kotlin/jvm-debugger/core:kotlin-jvm-debugger-core",
     "//plugins/kotlin/jvm-debugger/coroutines:kotlin-jvm-debugger-coroutines",
     "//java/openapi:java",
+    "//android/project-system:projectSystem",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
   runtime_deps = [":debuggers_resources"]
 )
@@ -80,6 +84,7 @@ jvm_test(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-test",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
@@ -116,6 +121,7 @@ jvm_test(
     "//platform/util/base",
     "//platform/util/jdom",
     "//platform/util:util-ui",
+    "//plugins/maven",
   ]
 )
 ### auto-generated section `build intellij.android.debuggers.tests` end

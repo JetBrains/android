@@ -12,6 +12,7 @@ jvm_test(
     "@lib//:junit4",
     "@lib//:truth",
     "//android/as-driver/utils:android-as-driver-utils_test_lib",
+    "//platform/util",
   ]
 )
 ### auto-generated section `build intellij.android.app-inspection.integration` end

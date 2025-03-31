@@ -61,6 +61,7 @@ jvm_library(
     "//plugins/kotlin/jvm-debugger/evaluation:kotlin-jvm-debugger-evaluation",
     "//plugins/kotlin/project-configuration",
     "//android/project-system-gradle:projectSystem-gradle",
+    "//android/gmaven",
   ],
   runtime_deps = [":android-kotlin-idea-common_resources"]
 )

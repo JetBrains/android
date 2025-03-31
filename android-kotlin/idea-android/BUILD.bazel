@@ -44,7 +44,6 @@ jvm_library(
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
     "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
     "//plugins/kotlin/core",
-    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core",
   ],
   runtime_deps = [":android-kotlin-idea_resources"]
 )

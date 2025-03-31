@@ -109,7 +109,9 @@ jvm_library(
     "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-k2",
     "//android/completion",
     "@lib//:kotlinc-compose-compiler-plugin-provided",
+    "//plugins/kotlin/bundled-compiler-plugins-support",
     "//plugins/kotlin/jvm-debugger/base/util:kotlin-jvm-debugger-base-util",
+    "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
   ],
   runtime_deps = [":compose-ide-plugin_resources"]
 )
@@ -124,12 +126,14 @@ jvm_test(
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/compose-ide-plugin"],
   deps = [
-    "@lib//:studio-platform-provided",
+    "@lib//:studio-platform",
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:truth",
+    "@lib//:guava",
     "@lib//:gradle",
     "@lib//:junit4",
+    "@lib//:kotlin-reflect",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:kotlinc-kotlin-compiler-fe10",
@@ -140,10 +144,10 @@ jvm_test(
     "//plugins/kotlin/refactorings/kotlin.refactorings.k2:kotlin-refactorings-k2",
     "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
+    "//android/android-common:common",
+    "//android/artwork",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-material",
-    "//android/artwork",
-    "//android/android-common:common",
     "//android/intellij.android.compose-common:compose-common",
     "//android/android:core",
     "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
@@ -205,6 +209,10 @@ jvm_test(
     "//plugins/kotlin/base/psi:kotlin-base-psi",
     "@lib//:kotlinc-compose-compiler-plugin-provided",
     "//plugins/kotlin/jvm-debugger/base/util:kotlin-jvm-debugger-base-util",
+    "@lib//:mockito-kotlin",
+    "@lib//:kotlin-test",
+    "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
+    "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin.tests` end

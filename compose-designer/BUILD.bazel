@@ -1,5 +1,11 @@
 ### auto-generated section `build intellij.android.compose-designer` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+create_kotlinc_options(
+  name = "custom",
+  context_receivers = True
+)
 
 jvm_resources(
   name = "compose-designer_resources",
@@ -12,8 +18,18 @@ jvm_library(
   module_name = "intellij.android.compose-designer",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom",
   deps = [
     "@lib//:studio-platform-provided",
+    "//android/android:core",
+    "//android/designer",
+    "//android/adt-ui",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-model",
+    "//android/project-system:projectSystem",
+    "//android/android-common:common",
+    "//android/layout-ui",
+    "//android/artwork",
     "//android/compose-designer/lib:ui-animation-tooling-internal",
     "@lib//:guava",
     "@lib//:grpc-core",
@@ -26,19 +42,13 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-provided",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:kotlinc-kotlin-compiler-fe10-provided",
-    "//android/adt-ui",
-    "//android/adt-ui-model",
-    "//android/artwork",
-    "//android/android-common:common",
+    "@lib//:kotlinc-kotlin-compiler-ir-provided",
     "//android/intellij.android.compose-common:compose-common",
-    "//android/android:core",
-    "//android/designer",
     "//android/execution/common:android-execution-common",
     "//android/jps-model",
-    "//android/layout-ui",
+    "//android/ml-api",
     "//android/preview-designer",
     "//android/preview-elements",
-    "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/render-resources",
@@ -96,10 +106,10 @@ jvm_library(
     "//java/java-impl:impl",
     "//platform/diff-impl",
     "//android/preview-fast-compile",
-    "//android/ml-api",
-    "//platform/util/coroutines",
+    "//android/visual-lint",
   ],
-  runtime_deps = [":compose-designer_resources"]
+  runtime_deps = [":compose-designer_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.compose-designer` end
 
@@ -115,16 +125,22 @@ jvm_test(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:junit4",
-    "//android/as-driver/utils:android-as-driver-utils_test_lib",
     "//android/android:core",
     "//android/execution/common:android-execution-common",
+    "//android/as-driver/utils:android-as-driver-utils_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.compose-designer.integration` end
 
 ### auto-generated section `build intellij.android.compose-designer.tests` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+create_kotlinc_options(
+  name = "custom_compose-designer-tests",
+  context_receivers = True
+)
 
 jvm_resources(
   name = "compose-designer-tests_test_resources",
@@ -147,10 +163,32 @@ jvm_library(
   name = "compose-designer-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom_compose-designer-tests",
   associates = ["//android/compose-designer"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
+    "@lib//:kotlin-test",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/android:core-tests_test_lib",
+    "//android/android:core",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
+    "//android/adt-ui-model",
+    "//android/adt-ui-model:adt-ui-model_test_lib",
+    "//android/deploy",
+    "//android/deploy:deploy_test_lib",
+    "@lib//:mockito",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/designer",
+    "//android/designer:designer_test_lib",
+    "//android/layout-ui",
+    "//android/layout-ui:layout-ui_test_lib",
     "//android/compose-designer/lib:ui-animation-tooling-internal",
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
@@ -159,41 +197,22 @@ jvm_library(
     "@lib//:asm-tools",
     "@lib//:commons-lang3",
     "@lib//:jetbrains-annotations",
-    "@lib//:kotlin-test",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:layoutlib",
     "//platform/editor-ui-ex:editor-ex",
-    "@lib//:mockito",
     "@lib//:protobuf",
     "@lib//:truth",
     "@lib//:kotlinc-analysis-api",
     "@lib//:kotlinc-kotlin-compiler-common",
     "//android/intellij.android.compose-common:compose-common",
-    "//android/adt-testutils:adt-testutils_test_lib",
-    "//android/adt-ui",
-    "//android/adt-ui:adt-ui_test_lib",
-    "//android/adt-ui-model",
-    "//android/adt-ui-model:adt-ui-model_test_lib",
     "//android/artwork",
-    "//android/android-common:common",
     "//android/compose-ide-plugin",
-    "//android/android:core",
-    "//android/android:core-tests_test_lib",
-    "//android/deploy",
-    "//android/deploy:deploy_test_lib",
-    "//android/designer",
-    "//android/designer:designer_test_lib",
     "//android/execution/common:android-execution-common",
     "//android/jps-model",
-    "//android/layout-ui",
-    "//android/layout-ui:layout-ui_test_lib",
     "//android/preview-designer",
     "//android/preview-elements",
-    "//android/project-system:projectSystem",
-    "//android/project-system-gradle:projectSystem-gradle",
     "//android/render-resources",
     "//android/rendering",
-    "//android/android-test-framework:testFramework_test_lib",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/execution/openapi:java-execution",
@@ -240,11 +259,15 @@ jvm_library(
     "//android/preview-fast-compile",
     "//android/ml-api",
     "@lib//:mockito-kotlin",
+    "//android/visual-lint",
+    "//android/backup:backup-api",
+    "@lib//:kotlinx-coroutines-test",
   ],
   runtime_deps = [
     ":compose-designer-tests_test_resources",
     ":compose-designer-tests_test_resources_1",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jvm_test(

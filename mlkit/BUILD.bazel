@@ -120,6 +120,7 @@ jvm_test(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util:util-ui",
+    "//android/project-system-gradle:projectSystem-gradle",
   ],
   runtime_deps = [":mlkit-tests_test_resources"]
 )

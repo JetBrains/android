@@ -63,6 +63,7 @@ jvm_test(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlinx-coroutines-core",
     "@lib//:mockito",
+    "@lib//:mockito-kotlin",
     "@lib//:truth",
     "//android/android-adb:adb",
     "//android/adt-testutils:adt-testutils_test_lib",
