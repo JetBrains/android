@@ -79,7 +79,6 @@ class AndroidGradleProjectStartupActivityTest {
     ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myProjectRule.testRootDisposable)
     myInfo = mock()
     myStartupActivity = AndroidGradleProjectStartupActivity()
-    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
   }
 
   @After
@@ -95,6 +94,8 @@ class AndroidGradleProjectStartupActivityTest {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
     whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
     runBlocking { myStartupActivity.execute(myProject) }
     val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN)
     assertThat(myRequest).isEqualTo(request)
@@ -104,6 +105,8 @@ class AndroidGradleProjectStartupActivityTest {
   fun testRunActivityWithExistingGradleProject() {
     whenever(myInfo.isBuildWithGradle).thenReturn(true)
     whenever(myInfo.androidModules).thenReturn(listOf<Module>(MockModule(myProjectRule.testRootDisposable)))
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
     runBlocking { myStartupActivity.execute(myProject) }
     val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN)
     assertThat(myRequest).isEqualTo(request)
@@ -112,6 +115,8 @@ class AndroidGradleProjectStartupActivityTest {
   @Test
   fun testRunActivityWithNonGradleProject() {
     whenever(myInfo.isBuildWithGradle).thenReturn(false)
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
     runBlocking { myStartupActivity.execute(myProject) }
     assertThat(myRequest).isNull()
   }
@@ -121,6 +126,8 @@ class AndroidGradleProjectStartupActivityTest {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
     whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
     runBlocking { myStartupActivity.execute(myProject) }
     val ignoredProducersService = RunConfigurationProducerService.getInstance(myProject).state.ignoredProducers
     val allJUnitProducers =
@@ -136,6 +143,8 @@ class AndroidGradleProjectStartupActivityTest {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
     whenever(myInfo.isBuildWithGradle).thenReturn(false)
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
     val ignoredProducers = RunConfigurationProducerService.getInstance(myProject).state.ignoredProducers
     assertThat(ignoredProducers).isEmpty() // arguably this test is too strong, but it works.
     runBlocking { myStartupActivity.execute(myProject) }
@@ -148,6 +157,8 @@ class AndroidGradleProjectStartupActivityTest {
     if (!IdeInfo.getInstance().isAndroidStudio) return
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
     whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
     runBlocking { myStartupActivity.execute(myProject) }
     assertThat(myRequest).isNull()
   }
@@ -158,6 +169,8 @@ class AndroidGradleProjectStartupActivityTest {
     if (!IdeInfo.getInstance().isAndroidStudio) return
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
     whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
     runBlocking { myStartupActivity.execute(myProject) }
     assertThat(myRequest).isNull()
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Default
@@ -173,6 +186,7 @@ class AndroidGradleProjectStartupActivityTest {
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, false)
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
     whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     try {
       runBlocking { myStartupActivity.execute(myProject) }
@@ -190,6 +204,8 @@ class AndroidGradleProjectStartupActivityTest {
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
     whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
     runBlocking { myStartupActivity.execute(myProject) }
 
     val notification = notificationRule.notifications.find { it.groupId == SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID }
