@@ -21,9 +21,12 @@ import java.awt.event.MouseWheelListener
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.JScrollPane
 import javax.swing.event.ChangeListener
+import javax.swing.event.TreeSelectionEvent
+import javax.swing.event.TreeSelectionListener
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.AbstractLayoutCache
 import javax.swing.tree.TreePath
+import kotlin.math.max
 
 /**
  * This custom TreeUI handles horizontal scrolling for components within the tree by adjusting the
@@ -38,6 +41,7 @@ class ColumnTreeUI(
   private var stateChangeListener: ChangeListener? = null
   private val treeNodesWidth = ConcurrentHashMap<Int, Int>()
   private var mouseWheelListener: MouseWheelListener? = null
+  private var treeSelectionListener: TreeSelectionListener? = null
 
   override fun installListeners() {
     super.installListeners()
@@ -63,7 +67,23 @@ class ColumnTreeUI(
           }
         }
       }
+    treeSelectionListener =
+      object : TreeSelectionListener {
+        override fun valueChanged(e: TreeSelectionEvent?) {
+          // Scroll to the selected item.
+          val path = e?.path
+          path.let {
+            val rec = getPathBounds(table.tree, path)
+            if (rec != null) {
+              hScrollBarPanel.getModel().value =
+                rec.x + tree.treeOffset - max(expandedIcon.iconWidth, collapsedIcon.iconWidth)
+            }
+          }
+        }
+      }
+
     scrollPane.addMouseWheelListener(mouseWheelListener)
+    table.tree.addTreeSelectionListener(treeSelectionListener)
   }
 
   override fun uninstallListeners() {
@@ -75,6 +95,10 @@ class ColumnTreeUI(
     if (mouseWheelListener != null) {
       scrollPane.removeMouseWheelListener(mouseWheelListener)
       mouseWheelListener = null
+    }
+    if (treeSelectionListener != null) {
+      table.tree.removeTreeSelectionListener(treeSelectionListener)
+      treeSelectionListener = null
     }
   }
 

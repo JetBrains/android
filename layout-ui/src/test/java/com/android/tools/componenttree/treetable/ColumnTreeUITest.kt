@@ -81,6 +81,19 @@ class ColumnTreeUITest {
     assertThat(table.tree.getRowBounds(0).x).isEqualTo(0)
   }
 
+  @Test
+  fun testScrollTreeHorizontallyOnSelection() {
+    val result = createTree()
+    val table = result.focusComponent as TreeTableImpl
+
+    TreeUtil.expandAll(table.tree)
+    assertThat(table.tree.getRowBounds(0).x).isEqualTo(0)
+
+    table.setRowSelectionInterval(1, 1)
+
+    assertThat(table.tree.getRowBounds(0).x).isEqualTo(-2)
+  }
+
   private fun createTree(
     customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }
   ): ComponentTreeBuildResult {
