@@ -283,10 +283,36 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testApplyFrom() {
+    check(
+      """
+      apply from: "common1.gradle"
+      apply from: "common2.gradle"
+      """,
+      """
+      checkMethodCall(statement="apply", namedArguments="from=common1.gradle")
+      checkMethodCall(statement="apply", namedArguments="from=common2.gradle")
+      """,
+      listOf("common1.gradle" to "plugins {}", "common2.gradle" to "buildscript {}"),
+      """
+      Included scripts:
+      common1.gradle, common2.gradle
+      """,
+    )
+  }
+
   // Test infrastructure below
 
-  private fun check(@Language("groovy") gradleSource: String, expected: String) {
+  private fun check(
+    @Language("groovy") gradleSource: String,
+    expected: String,
+    includedScripts: List<Pair<String, String>> = emptyList(),
+    expectedScripts: String = "",
+  ) {
     val file = myFixture.addFileToProject("build.gradle", gradleSource.trimIndent())
+    for ((name, includedScript) in includedScripts) {
+      myFixture.addFileToProject(name, includedScript.trimIndent())
+    }
 
     val visitor = LintIdeGradleVisitor()
     val detector = LoggingGradleDetector()
@@ -311,6 +337,14 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
       expected.trimIndent().trim().lines().sorted().joinToString("\n"),
       detector.toString().trim().lines().sorted().joinToString("\n"),
     )
+
+    val includedScripts = visitor.getIncludedScripts()
+    if (includedScripts.isNotEmpty()) {
+      val ioFile = file.virtualFile.parent.toNioPath().toString()
+      val actual =
+        "Included scripts:\n${includedScripts.joinToString(", ") {it.path.removePrefix(ioFile).replace("\\", "/").removePrefix("/")}}"
+      assertEquals(expectedScripts.trimIndent().trim(), actual.trim())
+    }
   }
 }
 

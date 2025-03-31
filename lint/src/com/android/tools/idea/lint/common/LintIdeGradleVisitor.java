@@ -433,6 +433,16 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                   }
                 }
               }
+            } else if (parentNames.isEmpty() && namedArguments.size() == 1 && unnamedArguments.isEmpty()) {
+              GrExpression invokedExpression = applicationStatement.getInvokedExpression();
+              if (invokedExpression instanceof GrReferenceExpression) {
+                GrReferenceExpression referenceExpression = (GrReferenceExpression) invokedExpression;
+                List<String> names = getReferenceExpressionNames(referenceExpression);
+                if (names.size() == 1 && names.get(0).equals("apply")) {
+                  String relative = namedArguments.get("from");
+                  addIncludedScript(context, relative);
+                }
+              }
             }
             super.visitApplicationStatement(applicationStatement);
           }
