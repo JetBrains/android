@@ -59,7 +59,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -326,7 +326,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/benchmark
             EXCLUDE_FOLDER                : file://<PROJECT>/benchmark/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/benchmark/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/benchmark/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -489,7 +489,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/test
             EXCLUDE_FOLDER                : file://<PROJECT>/test/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/test/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/test/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -652,7 +652,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/test2
             EXCLUDE_FOLDER                : file://<PROJECT>/test2/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/test2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/test2/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

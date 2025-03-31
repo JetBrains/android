@@ -13,7 +13,7 @@ MODULE                        : project
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -625,7 +625,7 @@ MODULE                        : TestCompositeLib1
         group                         : com.test.composite1
         version                       : 1.0
         projectDir                    : <ROOT>/TestCompositeLib1
-        buildDir                      : <ROOT>/TestCompositeLib1/build [-]
+        buildDir                      : <ROOT>/TestCompositeLib1/build
         buildFile                     : <ROOT>/TestCompositeLib1/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -637,7 +637,7 @@ MODULE                        : TestCompositeLib1
                 group                         : com.test.composite1
                 version                       : 1.0
                 projectDir                    : <ROOT>/TestCompositeLib1/app
-                buildDir                      : <ROOT>/TestCompositeLib1/app/build [-]
+                buildDir                      : <ROOT>/TestCompositeLib1/app/build
                 buildFile                     : <ROOT>/TestCompositeLib1/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -839,7 +839,7 @@ MODULE                        : TestCompositeLib1
                 group                         : com.test.composite1
                 version                       : 1.0
                 projectDir                    : <ROOT>/TestCompositeLib1/lib
-                buildDir                      : <ROOT>/TestCompositeLib1/lib/build [-]
+                buildDir                      : <ROOT>/TestCompositeLib1/lib/build
                 buildFile                     : <ROOT>/TestCompositeLib1/lib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1077,7 +1077,7 @@ MODULE                        : TestCompositeLib1.app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
+    BuildFolder                   : <ROOT>/TestCompositeLib1/app/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : com.test.composite1
@@ -1769,7 +1769,7 @@ MODULE                        : TestCompositeLib1.lib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
+    BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : com.test.composite1
@@ -2395,7 +2395,7 @@ MODULE                        : TestCompositeLib3
         qName                         : TestCompositeLib3
         version                       : unspecified
         projectDir                    : <ROOT>/TestCompositeLib3
-        buildDir                      : <ROOT>/TestCompositeLib3/build [-]
+        buildDir                      : <ROOT>/TestCompositeLib3/build
         buildFile                     : <ROOT>/TestCompositeLib3/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -2407,7 +2407,7 @@ MODULE                        : TestCompositeLib3
                 group                         : TestCompositeLib3
                 version                       : unspecified
                 projectDir                    : <ROOT>/TestCompositeLib3/app
-                buildDir                      : <ROOT>/TestCompositeLib3/app/build [-]
+                buildDir                      : <ROOT>/TestCompositeLib3/app/build
                 buildFile                     : <ROOT>/TestCompositeLib3/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -2609,7 +2609,7 @@ MODULE                        : TestCompositeLib3
                 group                         : com.test.composite3
                 version                       : 1.0
                 projectDir                    : <ROOT>/TestCompositeLib3/lib
-                buildDir                      : <ROOT>/TestCompositeLib3/lib/build [-]
+                buildDir                      : <ROOT>/TestCompositeLib3/lib/build
                 buildFile                     : <ROOT>/TestCompositeLib3/lib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -2740,7 +2740,7 @@ MODULE                        : TestCompositeLib3.app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
+    BuildFolder                   : <ROOT>/TestCompositeLib3/app/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : TestCompositeLib3
@@ -3420,7 +3420,7 @@ MODULE                        : TestCompositeLib3.lib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
+    BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : com.test.composite3
@@ -3941,7 +3941,7 @@ MODULE                        : com.test.compositeNest3.compositeNest
         group                         : com.test.compositeNest3
         version                       : 1.0
         projectDir                    : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3
-        buildDir                      : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build [-]
+        buildDir                      : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build
         buildFile                     : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build.gradle
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
@@ -4027,7 +4027,7 @@ MODULE                        : composite2
         group                         : com.test.composite2
         version                       : 1.0
         projectDir                    : <ROOT>/TestCompositeLib2
-        buildDir                      : <ROOT>/TestCompositeLib2/build [-]
+        buildDir                      : <ROOT>/TestCompositeLib2/build
         buildFile                     : <ROOT>/TestCompositeLib2/build.gradle
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
@@ -4113,7 +4113,7 @@ MODULE                        : composite4
         group                         : com.test.composite4
         version                       : 1.0
         projectDir                    : <ROOT>/TestCompositeLib4
-        buildDir                      : <ROOT>/TestCompositeLib4/build [-]
+        buildDir                      : <ROOT>/TestCompositeLib4/build
         buildFile                     : <ROOT>/TestCompositeLib4/build.gradle
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
@@ -4199,7 +4199,7 @@ MODULE                        : compositeNest
         group                         : com.test.compositeNest1
         version                       : 1.0
         projectDir                    : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1
-        buildDir                      : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build [-]
+        buildDir                      : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build
         buildFile                     : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build.gradle
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel
@@ -4276,7 +4276,7 @@ MODULE                        : project
         qName                         : project
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -4290,7 +4290,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -4495,7 +4495,7 @@ MODULE                        : project
                 group                         : com.test.composite
                 version                       : 1.0
                 projectDir                    : <ROOT>/lib
-                buildDir                      : <ROOT>/lib/build [-]
+                buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -4733,7 +4733,7 @@ MODULE                        : project.app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
@@ -5431,7 +5431,7 @@ MODULE                        : project.lib
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : com.test.composite

@@ -59,7 +59,7 @@ PROJECT                       : Kotlin Multiplatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/androidLib
             EXCLUDE_FOLDER                : file://<PROJECT>/androidLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/androidLib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/androidLib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -419,7 +419,7 @@ PROJECT                       : Kotlin Multiplatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -744,7 +744,7 @@ PROJECT                       : Kotlin Multiplatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpFirstLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/kmpFirstLib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmpFirstLib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1303,7 +1303,7 @@ PROJECT                       : Kotlin Multiplatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/kmpJvmOnly
             EXCLUDE_FOLDER                : file://<PROJECT>/kmpJvmOnly/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/kmpJvmOnly/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmpJvmOnly/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

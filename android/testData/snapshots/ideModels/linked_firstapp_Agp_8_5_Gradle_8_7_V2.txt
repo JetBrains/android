@@ -13,7 +13,7 @@ MODULE                        : My_First_App
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>/firstapp
         EXCLUDE_FOLDER                : file://<ROOT>/firstapp/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/firstapp/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/firstapp/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -563,7 +563,7 @@ MODULE                        : My_First_App
         qName                         : My First App
         version                       : unspecified
         projectDir                    : <ROOT>/firstapp
-        buildDir                      : <ROOT>/firstapp/build [-]
+        buildDir                      : <ROOT>/firstapp/build
         buildFile                     : <ROOT>/firstapp/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -575,7 +575,7 @@ MODULE                        : My_First_App
                 group                         : My First App
                 version                       : unspecified
                 projectDir                    : <ROOT>/firstapp/app
-                buildDir                      : <ROOT>/firstapp/app/build [-]
+                buildDir                      : <ROOT>/firstapp/app/build
                 buildFile                     : <ROOT>/firstapp/app/build.gradle
                 externalSystemId              : GRADLE
                 childProjects
@@ -587,7 +587,7 @@ MODULE                        : My_First_App
                         group                         : My First App.app
                         version                       : unspecified
                         projectDir                    : <ROOT>/shared/mysharedlibrary
-                        buildDir                      : <ROOT>/shared/mysharedlibrary/build [-]
+                        buildDir                      : <ROOT>/shared/mysharedlibrary/build
                         buildFile                     : <ROOT>/shared/mysharedlibrary/build.gradle
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
@@ -1099,7 +1099,7 @@ MODULE                        : My_First_App.app
     ModelVersion                  : 8.5.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/firstapp/app/build [-]
+    BuildFolder                   : <ROOT>/firstapp/app/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : My First App
@@ -2186,7 +2186,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     ModelVersion                  : 8.5.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
+    BuildFolder                   : <ROOT>/shared/mysharedlibrary/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : My First App.app

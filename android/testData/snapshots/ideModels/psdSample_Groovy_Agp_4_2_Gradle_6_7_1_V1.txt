@@ -13,7 +13,7 @@ MODULE                        : project
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -772,7 +772,7 @@ MODULE                        : project
         qName                         : project
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -784,7 +784,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1565,7 +1565,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/dyn_feature
-                buildDir                      : <ROOT>/dyn_feature/build [-]
+                buildDir                      : <ROOT>/dyn_feature/build
                 buildFile                     : <ROOT>/dyn_feature/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1696,7 +1696,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/jav
-                buildDir                      : <ROOT>/jav/build [-]
+                buildDir                      : <ROOT>/jav/build
                 buildFile                     : <ROOT>/jav/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1777,7 +1777,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/lib
-                buildDir                      : <ROOT>/lib/build [-]
+                buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1914,7 +1914,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/nested1
-                buildDir                      : <ROOT>/nested1/build [-]
+                buildDir                      : <ROOT>/nested1/build
                 buildFile                     : <ROOT>/nested1/build.gradle
                 externalSystemId              : GRADLE
                 childProjects
@@ -1926,7 +1926,7 @@ MODULE                        : project
                         group                         : project.nested1
                         version                       : unspecified
                         projectDir                    : <ROOT>/nested1/deep
-                        buildDir                      : <ROOT>/nested1/deep/build [-]
+                        buildDir                      : <ROOT>/nested1/deep/build
                         buildFile                     : <ROOT>/nested1/deep/build.gradle
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
@@ -2189,7 +2189,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/nested2
-                buildDir                      : <ROOT>/nested2/build [-]
+                buildDir                      : <ROOT>/nested2/build
                 buildFile                     : <ROOT>/nested2/build.gradle
                 externalSystemId              : GRADLE
                 childProjects
@@ -2201,7 +2201,7 @@ MODULE                        : project
                         group                         : project.nested2
                         version                       : unspecified
                         projectDir                    : <ROOT>/nested2/deep
-                        buildDir                      : <ROOT>/nested2/deep/build [-]
+                        buildDir                      : <ROOT>/nested2/deep/build
                         buildFile                     : <ROOT>/nested2/deep/build.gradle
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
@@ -2338,7 +2338,7 @@ MODULE                        : project
                         group                         : project.nested2
                         version                       : unspecified
                         projectDir                    : <ROOT>/nested2/trans
-                        buildDir                      : <ROOT>/nested2/trans/build [-]
+                        buildDir                      : <ROOT>/nested2/trans/build
                         buildFile                     : <ROOT>/nested2/trans/build.gradle [-]
                         externalSystemId              : GRADLE
                         childProjects
@@ -2350,7 +2350,7 @@ MODULE                        : project
                                 group                         : project.nested2.trans
                                 version                       : unspecified
                                 projectDir                    : <ROOT>/nested2/trans/deep2
-                                buildDir                      : <ROOT>/nested2/trans/deep2/build [-]
+                                buildDir                      : <ROOT>/nested2/trans/deep2/build
                                 buildFile                     : <ROOT>/nested2/trans/deep2/build.gradle
                                 externalSystemId              : GRADLE
                                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -2858,7 +2858,7 @@ MODULE                        : project.app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
@@ -3905,7 +3905,7 @@ MODULE                        : project.dyn_feature
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/dyn_feature/build [-]
+    BuildFolder                   : <ROOT>/dyn_feature/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
@@ -4231,7 +4231,7 @@ MODULE                        : project.lib
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
@@ -4742,7 +4742,7 @@ MODULE                        : project.nested1
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/nested1/build [-]
+    BuildFolder                   : <ROOT>/nested1/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
@@ -5052,7 +5052,7 @@ MODULE                        : project.nested1.deep
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/nested1/deep/build [-]
+    BuildFolder                   : <ROOT>/nested1/deep/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested1
@@ -5372,7 +5372,7 @@ MODULE                        : project.nested2
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/nested2/build [-]
+    BuildFolder                   : <ROOT>/nested2/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
@@ -5816,7 +5816,7 @@ MODULE                        : project.nested2.deep
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/nested2/deep/build [-]
+    BuildFolder                   : <ROOT>/nested2/deep/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested2
@@ -6138,7 +6138,7 @@ MODULE                        : project.nested2.trans.deep2
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
+    BuildFolder                   : <ROOT>/nested2/trans/deep2/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested2.trans

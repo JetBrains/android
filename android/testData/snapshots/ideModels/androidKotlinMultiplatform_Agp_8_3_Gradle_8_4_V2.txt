@@ -13,7 +13,7 @@ MODULE                        : Kotlin_Multiplatform
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -140,7 +140,7 @@ MODULE                        : Kotlin_Multiplatform
         qName                         : Kotlin Multiplatform
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -152,7 +152,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/androidLib
-                buildDir                      : <ROOT>/androidLib/build [-]
+                buildDir                      : <ROOT>/androidLib/build
                 buildFile                     : <ROOT>/androidLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -595,7 +595,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -713,7 +713,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/kmpFirstLib
-                buildDir                      : <ROOT>/kmpFirstLib/build [-]
+                buildDir                      : <ROOT>/kmpFirstLib/build
                 buildFile                     : <ROOT>/kmpFirstLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -835,7 +835,7 @@ MODULE                        : Kotlin_Multiplatform
                 group                         : Kotlin Multiplatform
                 version                       : unspecified
                 projectDir                    : <ROOT>/kmpJvmOnly
-                buildDir                      : <ROOT>/kmpJvmOnly/build [-]
+                buildDir                      : <ROOT>/kmpJvmOnly/build
                 buildFile                     : <ROOT>/kmpJvmOnly/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1222,7 +1222,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
     ModelVersion                  : 8.3.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/androidLib/build [-]
+    BuildFolder                   : <ROOT>/androidLib/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform
@@ -1826,7 +1826,7 @@ MODULE                        : Kotlin_Multiplatform.app
     ModelVersion                  : 8.3.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : Kotlin Multiplatform
@@ -2277,7 +2277,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     ModelVersion                  : 8.3.1
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/kmpFirstLib/build [-]
+    BuildFolder                   : <ROOT>/kmpFirstLib/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : Kotlin Multiplatform

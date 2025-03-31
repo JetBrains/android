@@ -5,7 +5,7 @@ MODULE                        : project.app
     Type                          : APP
     MavenName                     : project:app:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/optional/org.apache.http.legacy.jar
     JavaSourceLevel               : 1.8
@@ -863,7 +863,7 @@ MODULE                        : project.lib
     Type                          : LIBRARY
     MavenName                     : project:lib:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34

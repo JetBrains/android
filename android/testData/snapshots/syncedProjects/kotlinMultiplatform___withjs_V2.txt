@@ -59,7 +59,7 @@ PROJECT                       : kotlinMultiPlatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -562,7 +562,7 @@ PROJECT                       : kotlinMultiPlatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/jsModule
             EXCLUDE_FOLDER                : file://<PROJECT>/jsModule/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/jsModule/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/jsModule/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -703,7 +703,7 @@ PROJECT                       : kotlinMultiPlatform
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/module2
             EXCLUDE_FOLDER                : file://<PROJECT>/module2/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/module2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/module2/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

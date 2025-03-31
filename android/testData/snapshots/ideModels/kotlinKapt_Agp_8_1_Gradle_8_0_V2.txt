@@ -13,7 +13,7 @@ MODULE                        : MainActivity
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -718,7 +718,7 @@ MODULE                        : MainActivity
         qName                         : MainActivity
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -730,7 +730,7 @@ MODULE                        : MainActivity
                 group                         : MainActivity
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1263,7 +1263,7 @@ MODULE                        : MainActivity
                 group                         : MainActivity
                 version                       : unspecified
                 projectDir                    : <ROOT>/javaLib
-                buildDir                      : <ROOT>/javaLib/build [-]
+                buildDir                      : <ROOT>/javaLib/build
                 buildFile                     : <ROOT>/javaLib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1405,7 +1405,7 @@ MODULE                        : MainActivity
                 group                         : MainActivity
                 version                       : unspecified
                 projectDir                    : <ROOT>/lib
-                buildDir                      : <ROOT>/lib/build [-]
+                buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1673,7 +1673,7 @@ MODULE                        : MainActivity.app
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : true
     GroupId                       : MainActivity
@@ -2499,7 +2499,7 @@ MODULE                        : MainActivity.app
                 - pureKotlinSourceFolders     : <ROOT>/app/src/localDebugUnitTest/kotlin [-]
     kaptGradleModel               : <PROXY>
         isEnabled                     : true
-        buildDirectory                : <ROOT>/app/build [-]
+        buildDirectory                : <ROOT>/app/build
         - sourceSets                  : localDebug (<PROXY>)
             generatedSourcesDir           : <ROOT>/app/build/generated/source/kapt/localDebug [-]
             generatedClassesDir           : <ROOT>/app/build/tmp/kapt3/classes/localDebug [-]
@@ -2607,7 +2607,7 @@ MODULE                        : MainActivity.javaLib
                 pluginVersion                 : <CUT>
                 - pureKotlinSourceFolders     : <ROOT>/javaLib/src/test/kotlin [-]
     kaptGradleModel               : KaptGradleModelImpl
-        buildDirectory                : <ROOT>/javaLib/build [-]
+        buildDirectory                : <ROOT>/javaLib/build
         isEnabled                     : true
         - sourceSets                  : main (KaptSourceSetModelImpl)
             generatedClassesDir           : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
@@ -2653,7 +2653,7 @@ MODULE                        : MainActivity.lib
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : false
     GroupId                       : MainActivity

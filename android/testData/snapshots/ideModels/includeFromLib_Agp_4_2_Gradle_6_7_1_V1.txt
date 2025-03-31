@@ -13,7 +13,7 @@ MODULE                        : navgraph
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -1023,7 +1023,7 @@ MODULE                        : navgraph
         qName                         : navgraph
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -1035,7 +1035,7 @@ MODULE                        : navgraph
                 group                         : navgraph
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1172,7 +1172,7 @@ MODULE                        : navgraph
                 group                         : navgraph
                 version                       : unspecified
                 projectDir                    : <ROOT>/lib
-                buildDir                      : <ROOT>/lib/build [-]
+                buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1334,7 +1334,7 @@ MODULE                        : navgraph.app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : navgraph
@@ -1998,7 +1998,7 @@ MODULE                        : navgraph.lib
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : navgraph

@@ -16,7 +16,7 @@ PROJECT                       : project
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -59,7 +59,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -598,7 +598,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/lib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/lib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1090,7 +1090,7 @@ PROJECT                       : project
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -1133,7 +1133,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1662,7 +1662,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/lib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/lib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2069,7 +2069,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2147,7 +2147,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2225,7 +2225,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2303,7 +2303,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2420,7 +2420,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2959,7 +2959,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

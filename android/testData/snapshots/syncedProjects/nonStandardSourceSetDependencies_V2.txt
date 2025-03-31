@@ -39,7 +39,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/aarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -82,7 +82,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -436,7 +436,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/common
             EXCLUDE_FOLDER                : file://<PROJECT>/common/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/common/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/common/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -707,7 +707,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/desktop
             EXCLUDE_FOLDER                : file://<PROJECT>/desktop/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/desktop/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/desktop/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -880,7 +880,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/feature-a
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/feature-a/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1356,7 +1356,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/feature-b
             EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/feature-b/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1761,7 +1761,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/jarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -1784,7 +1784,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/javaLibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2015,7 +2015,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2038,7 +2038,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2081,7 +2081,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample-test
             EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/kmp-java/sample-test/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -2633,7 +2633,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

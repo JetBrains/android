@@ -59,7 +59,7 @@ PROJECT                       : project_sm_src
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>_sm_src/app
             EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>_sm_src/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

@@ -13,7 +13,7 @@ MODULE                        : project
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -44,7 +44,7 @@ MODULE                        : project
         qName                         : project
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -56,7 +56,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -194,7 +194,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/library
-                buildDir                      : <ROOT>/library/build [-]
+                buildDir                      : <ROOT>/library/build
                 buildFile                     : <ROOT>/library/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -328,7 +328,7 @@ MODULE                        : project
                 group                         : com.example.google
                 version                       : 1.0
                 projectDir                    : <ROOT>/library-remote
-                buildDir                      : <ROOT>/library-remote/build [-]
+                buildDir                      : <ROOT>/library-remote/build
                 buildFile                     : <ROOT>/library-remote/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -464,7 +464,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/lint
-                buildDir                      : <ROOT>/lint/build [-]
+                buildDir                      : <ROOT>/lint/build
                 buildFile                     : <ROOT>/lint/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -604,7 +604,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/lintpublish
-                buildDir                      : <ROOT>/lintpublish/build [-]
+                buildDir                      : <ROOT>/lintpublish/build
                 buildFile                     : <ROOT>/lintpublish/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -713,7 +713,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/lintpublish-remote
-                buildDir                      : <ROOT>/lintpublish-remote/build [-]
+                buildDir                      : <ROOT>/lintpublish-remote/build
                 buildFile                     : <ROOT>/lintpublish-remote/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -849,7 +849,7 @@ MODULE                        : project.app
     ModelVersion                  : 8.4.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : project
@@ -1185,7 +1185,7 @@ MODULE                        : project.library
     ModelVersion                  : 8.4.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/library/build [-]
+    BuildFolder                   : <ROOT>/library/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : project
@@ -1490,7 +1490,7 @@ MODULE                        : project.library-remote
     ModelVersion                  : 8.4.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/library-remote/build [-]
+    BuildFolder                   : <ROOT>/library-remote/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : com.example.google

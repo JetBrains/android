@@ -13,7 +13,7 @@ MODULE                        : NonStandardSourceSetDependencies
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -728,7 +728,7 @@ MODULE                        : NonStandardSourceSetDependencies
         qName                         : NonStandardSourceSetDependencies
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -755,7 +755,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -981,7 +981,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/common
-                buildDir                      : <ROOT>/common/build [-]
+                buildDir                      : <ROOT>/common/build
                 buildFile                     : <ROOT>/common/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1140,7 +1140,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/desktop
-                buildDir                      : <ROOT>/desktop/build [-]
+                buildDir                      : <ROOT>/desktop/build
                 buildFile                     : <ROOT>/desktop/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1257,7 +1257,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/feature-a
-                buildDir                      : <ROOT>/feature-a/build [-]
+                buildDir                      : <ROOT>/feature-a/build
                 buildFile                     : <ROOT>/feature-a/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1490,7 +1490,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/feature-b
-                buildDir                      : <ROOT>/feature-b/build [-]
+                buildDir                      : <ROOT>/feature-b/build
                 buildFile                     : <ROOT>/feature-b/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1759,7 +1759,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/jarWrapperLib
-                buildDir                      : <ROOT>/jarWrapperLib/build [-]
+                buildDir                      : <ROOT>/jarWrapperLib/build
                 buildFile                     : <ROOT>/jarWrapperLib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1774,7 +1774,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/javaLibrary
-                buildDir                      : <ROOT>/javaLibrary/build [-]
+                buildDir                      : <ROOT>/javaLibrary/build
                 buildFile                     : <ROOT>/javaLibrary/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1939,7 +1939,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/kmp-java
-                buildDir                      : <ROOT>/kmp-java/build [-]
+                buildDir                      : <ROOT>/kmp-java/build
                 buildFile                     : <ROOT>/kmp-java/build.gradle [-]
                 externalSystemId              : GRADLE
                 childProjects
@@ -1951,7 +1951,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         group                         : NonStandardSourceSetDependencies.kmp-java
                         version                       : unspecified
                         projectDir                    : <ROOT>/kmp-java/sample
-                        buildDir                      : <ROOT>/kmp-java/sample/build [-]
+                        buildDir                      : <ROOT>/kmp-java/sample/build
                         buildFile                     : <ROOT>/kmp-java/sample/build.gradle
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
@@ -2170,7 +2170,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         group                         : NonStandardSourceSetDependencies.kmp-java
                         version                       : unspecified
                         projectDir                    : <ROOT>/kmp-java/sample-test
-                        buildDir                      : <ROOT>/kmp-java/sample-test/build [-]
+                        buildDir                      : <ROOT>/kmp-java/sample-test/build
                         buildFile                     : <ROOT>/kmp-java/sample-test/build.gradle
                         externalSystemId              : GRADLE
                         sourceSetModel                : DefaultGradleSourceSetModel
@@ -2293,7 +2293,7 @@ MODULE                        : NonStandardSourceSetDependencies
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 projectDir                    : <ROOT>/lib
-                buildDir                      : <ROOT>/lib/build [-]
+                buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -2569,7 +2569,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : true
     GroupId                       : NonStandardSourceSetDependencies
@@ -3679,7 +3679,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/feature-a/build [-]
+    BuildFolder                   : <ROOT>/feature-a/build
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
@@ -4752,7 +4752,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/feature-b/build [-]
+    BuildFolder                   : <ROOT>/feature-b/build
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies
@@ -5742,7 +5742,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/kmp-java/sample-test/build [-]
+    BuildFolder                   : <ROOT>/kmp-java/sample-test/build
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies.kmp-java
@@ -6047,7 +6047,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
     ModelVersion                  : 8.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     buildToolsVersion             : 33.0.1
     IsBaseSplit                   : false
     GroupId                       : NonStandardSourceSetDependencies

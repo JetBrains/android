@@ -59,7 +59,7 @@ PROJECT                       : AS36
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -512,7 +512,7 @@ PROJECT                       : AS36
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/features
             EXCLUDE_FOLDER                : file://<PROJECT>/features/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/features/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/features/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -555,7 +555,7 @@ PROJECT                       : AS36
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature
             EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -823,7 +823,7 @@ PROJECT                       : AS36
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/features/dynamicfeature2
             EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature2/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/features/dynamicfeature2/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1071,7 +1071,7 @@ PROJECT                       : AS36
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/libs
             EXCLUDE_FOLDER                : file://<PROJECT>/libs/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/libs/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/libs/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -1114,7 +1114,7 @@ PROJECT                       : AS36
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/libs/android_library
             EXCLUDE_FOLDER                : file://<PROJECT>/libs/android_library/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/libs/android_library/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/libs/android_library/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1563,7 +1563,7 @@ PROJECT                       : AS36
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib
             EXCLUDE_FOLDER                : file://<PROJECT>/libs/java_lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/libs/java_lib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/libs/java_lib/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

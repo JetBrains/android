@@ -13,7 +13,7 @@ MODULE                        : project_sm_src
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>_sm_src
         EXCLUDE_FOLDER                : file://<ROOT>_sm_src/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>_sm_src/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>_sm_src/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -26,7 +26,7 @@ MODULE                        : project_sm_src
         qName                         : project_sm_src
         version                       : unspecified
         projectDir                    : <ROOT>_sm_src
-        buildDir                      : <ROOT>_sm_src/build [-]
+        buildDir                      : <ROOT>_sm_src/build
         buildFile                     : <ROOT>_sm_src/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -38,7 +38,7 @@ MODULE                        : project_sm_src
                 group                         : project_sm_src
                 version                       : unspecified
                 projectDir                    : <ROOT>_sm_src/app
-                buildDir                      : <ROOT>_sm_src/app/build [-]
+                buildDir                      : <ROOT>_sm_src/app/build
                 buildFile                     : <ROOT>_sm_src/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -201,7 +201,7 @@ MODULE                        : project_sm_src.app
     ModelVersion                  : 8.9.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-35
-    BuildFolder                   : <ROOT>_sm_src/app/build [-]
+    BuildFolder                   : <ROOT>_sm_src/app/build
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       : project_sm_src

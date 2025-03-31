@@ -36,7 +36,7 @@ MODULE                        : project
         ExternalSource                : GRADLE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> Android SDK
     *isInherited                  : false
         SdkType                       : Android SDK
@@ -592,7 +592,7 @@ MODULE                        : project
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/build [-]
+    BuildFolder                   : <ROOT>/build
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       :
@@ -1134,7 +1134,7 @@ MODULE                        : project
         qName                         : project
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         sourceSetModel                : DefaultGradleSourceSetModel

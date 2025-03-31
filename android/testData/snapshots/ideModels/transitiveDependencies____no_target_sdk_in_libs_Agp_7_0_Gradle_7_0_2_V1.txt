@@ -13,7 +13,7 @@ MODULE                        : project
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -701,7 +701,7 @@ MODULE                        : project
         qName                         : project
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -713,7 +713,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -819,7 +819,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/javalib1
-                buildDir                      : <ROOT>/javalib1/build [-]
+                buildDir                      : <ROOT>/javalib1/build
                 buildFile                     : <ROOT>/javalib1/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -924,7 +924,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/javalib2
-                buildDir                      : <ROOT>/javalib2/build [-]
+                buildDir                      : <ROOT>/javalib2/build
                 buildFile                     : <ROOT>/javalib2/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1001,7 +1001,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/library1
-                buildDir                      : <ROOT>/library1/build [-]
+                buildDir                      : <ROOT>/library1/build
                 buildFile                     : <ROOT>/library1/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1107,7 +1107,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/library2
-                buildDir                      : <ROOT>/library2/build [-]
+                buildDir                      : <ROOT>/library2/build
                 buildFile                     : <ROOT>/library2/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -1240,7 +1240,7 @@ MODULE                        : project.app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
@@ -1884,7 +1884,7 @@ MODULE                        : project.library1
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/library1/build [-]
+    BuildFolder                   : <ROOT>/library1/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
@@ -2436,7 +2436,7 @@ MODULE                        : project.library2
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/library2/build [-]
+    BuildFolder                   : <ROOT>/library2/build
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project

@@ -39,7 +39,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk
             EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -82,7 +82,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/ads-sdk-implementation
             EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk-implementation/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk-implementation/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/ads-sdk-implementation/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -438,7 +438,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -492,7 +492,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app-with-dynamic-feature
             EXCLUDE_FOLDER                : file://<PROJECT>/app-with-dynamic-feature/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app-with-dynamic-feature/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app-with-dynamic-feature/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1486,7 +1486,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/feature
             EXCLUDE_FOLDER                : file://<PROJECT>/feature/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/feature/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/feature/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

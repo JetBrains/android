@@ -5,7 +5,7 @@ MODULE                        : TestCompositeLib1.app
     Type                          : APP
     MavenName                     : com.test.composite1:app:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
+    BuildFolder                   : <ROOT>/TestCompositeLib1/app/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34
@@ -668,7 +668,7 @@ MODULE                        : TestCompositeLib1.lib
     Type                          : LIBRARY
     MavenName                     : com.test.composite1:lib:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
+    BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34
@@ -1324,7 +1324,7 @@ MODULE                        : TestCompositeLib3.app
     Type                          : APP
     MavenName                     : TestCompositeLib3:app:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
+    BuildFolder                   : <ROOT>/TestCompositeLib3/app/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34
@@ -1975,7 +1975,7 @@ MODULE                        : TestCompositeLib3.lib
     Type                          : LIBRARY
     MavenName                     : com.test.composite3:lib:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
+    BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34
@@ -2598,7 +2598,7 @@ MODULE                        : project.app
     Type                          : APP
     MavenName                     : project:app:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34
@@ -3261,7 +3261,7 @@ MODULE                        : project.lib
     Type                          : LIBRARY
     MavenName                     : com.test.composite:lib:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34

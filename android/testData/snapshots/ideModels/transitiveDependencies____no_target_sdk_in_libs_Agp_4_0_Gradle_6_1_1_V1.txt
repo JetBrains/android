@@ -13,7 +13,7 @@ MODULE                        : project
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -685,7 +685,7 @@ MODULE                        : project.app
     ModelVersion                  : 4.0.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project
@@ -1266,7 +1266,7 @@ MODULE                        : project.library1
     ModelVersion                  : 4.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/library1/build [-]
+    BuildFolder                   : <ROOT>/library1/build
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
@@ -1771,7 +1771,7 @@ MODULE                        : project.library2
     ModelVersion                  : 4.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-32
-    BuildFolder                   : <ROOT>/library2/build [-]
+    BuildFolder                   : <ROOT>/library2/build
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project

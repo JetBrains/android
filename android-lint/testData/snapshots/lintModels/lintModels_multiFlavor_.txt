@@ -5,7 +5,7 @@ MODULE                        : MultiFlavor.app
     Type                          : APP
     MavenName                     : MultiFlavor:app:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34

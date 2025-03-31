@@ -16,7 +16,7 @@ PROJECT                       : BuildSrcWithComposite
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -59,7 +59,7 @@ PROJECT                       : BuildSrcWithComposite
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1034,7 +1034,7 @@ PROJECT                       : BuildSrcWithComposite
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/android-included
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/android-included/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/android-included/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -1077,7 +1077,7 @@ PROJECT                       : BuildSrcWithComposite
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/android-included/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/android-included/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1594,7 +1594,7 @@ PROJECT                       : BuildSrcWithComposite
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/android-included/lib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/android-included/lib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

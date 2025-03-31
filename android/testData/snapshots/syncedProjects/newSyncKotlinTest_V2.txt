@@ -59,7 +59,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -660,7 +660,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/awesomeandroidlibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/awesomeandroidlibrary/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/awesomeandroidlibrary/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/awesomeandroidlibrary/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1180,7 +1180,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/contentLib
             EXCLUDE_FOLDER                : file://<PROJECT>/contentLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/contentLib/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/contentLib/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

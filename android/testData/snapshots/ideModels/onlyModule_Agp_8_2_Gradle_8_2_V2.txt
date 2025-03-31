@@ -13,7 +13,7 @@ MODULE                        : project
     ModuleTypeName                : JAVA_MODULE
     CONENT_ENTRY                  : file://<ROOT>
         EXCLUDE_FOLDER                : file://<ROOT>/.gradle
-        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+        EXCLUDE_FOLDER                : file://<ROOT>/build
     JDK                           : <NAME_CUT> JavaSDK
     *isInherited                  : true
     ORDER_ENTRY                   : <Module source>
@@ -625,7 +625,7 @@ MODULE                        : project
         qName                         : project
         version                       : unspecified
         projectDir                    : <ROOT>
-        buildDir                      : <ROOT>/build [-]
+        buildDir                      : <ROOT>/build
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
         childProjects
@@ -637,7 +637,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build [-]
+                buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -789,7 +789,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/benchmark
-                buildDir                      : <ROOT>/benchmark/build [-]
+                buildDir                      : <ROOT>/benchmark/build
                 buildFile                     : <ROOT>/benchmark/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -836,7 +836,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/test
-                buildDir                      : <ROOT>/test/build [-]
+                buildDir                      : <ROOT>/test/build
                 buildFile                     : <ROOT>/test/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -877,7 +877,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/test2
-                buildDir                      : <ROOT>/test2/build [-]
+                buildDir                      : <ROOT>/test2/build
                 buildFile                     : <ROOT>/test2/build.gradle
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
@@ -945,7 +945,7 @@ MODULE                        : project.app
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : true
     GroupId                       : project
@@ -1329,7 +1329,7 @@ MODULE                        : project.benchmark
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/benchmark/build [-]
+    BuildFolder                   : <ROOT>/benchmark/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : project
@@ -1798,7 +1798,7 @@ MODULE                        : project.test
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/test/build [-]
+    BuildFolder                   : <ROOT>/test/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : project
@@ -2258,7 +2258,7 @@ MODULE                        : project.test2
     ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_TEST
     CompileTarget                 : android-34
-    BuildFolder                   : <ROOT>/test2/build [-]
+    BuildFolder                   : <ROOT>/test2/build
     buildToolsVersion             : 34.0.0
     IsBaseSplit                   : false
     GroupId                       : project

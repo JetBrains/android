@@ -5,7 +5,7 @@ MODULE                        : MainActivity.app
     Type                          : APP
     MavenName                     : MainActivity:app:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/app/build [-]
+    BuildFolder                   : <ROOT>/app/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34
@@ -422,7 +422,7 @@ MODULE                        : MainActivity.lib
     Type                          : LIBRARY
     MavenName                     : MainActivity:lib:
     AGPVersion                    : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/lib/build [-]
+    BuildFolder                   : <ROOT>/lib/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-34/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-34

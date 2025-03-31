@@ -59,7 +59,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -525,7 +525,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/javalib1
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib1/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/javalib1/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/javalib1/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -615,7 +615,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/javalib2
             EXCLUDE_FOLDER                : file://<PROJECT>/javalib2/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/javalib2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/javalib2/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -713,7 +713,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/library1
             EXCLUDE_FOLDER                : file://<PROJECT>/library1/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/library1/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/library1/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1168,7 +1168,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/library2
             EXCLUDE_FOLDER                : file://<PROJECT>/library2/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/library2/build [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/library2/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

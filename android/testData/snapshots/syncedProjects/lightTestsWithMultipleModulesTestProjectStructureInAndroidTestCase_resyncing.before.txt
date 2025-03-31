@@ -12,7 +12,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<TEMP>
             EXCLUDE_FOLDER                : file://<TEMP>/.gradle
-            EXCLUDE_FOLDER                : file://<TEMP>/build [-]
+            EXCLUDE_FOLDER                : file://<TEMP>/build
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -53,7 +53,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<TEMP>/app
             EXCLUDE_FOLDER                : file://<TEMP>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<TEMP>/app/build [-]
+            EXCLUDE_FOLDER                : file://<TEMP>/app/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -308,7 +308,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<TEMP>/lib
             EXCLUDE_FOLDER                : file://<TEMP>/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<TEMP>/lib/build [-]
+            EXCLUDE_FOLDER                : file://<TEMP>/lib/build
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
