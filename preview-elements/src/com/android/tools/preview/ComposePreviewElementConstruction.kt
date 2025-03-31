@@ -66,13 +66,14 @@ fun <T : Any> previewAnnotationToPreviewElement(
   // copy & paste and both the compiler and Studio will flag it as an error.
   val displaySettings =
     PreviewDisplaySettings(
-      previewName,
-      baseName,
-      parameterName,
-      groupName,
-      showDecorations,
-      showBackground,
-      backgroundColorString,
+      name = previewName,
+      baseName = baseName,
+      parameterName = parameterName,
+      group = groupName,
+      showDecoration = showDecorations,
+      showBackground = showBackground,
+      backgroundColor = backgroundColorString,
+      organizationGroup = null,
     )
 
   val parameters = getPreviewParameters(annotatedMethod.parameterAnnotations)

@@ -187,14 +187,15 @@ class SingleComposePreviewElementInstance<T>(
       SingleComposePreviewElementInstance<T>(
         composableMethodFqn,
         PreviewDisplaySettings(
-          displayName,
-          baseName,
-          parameterName,
-          groupName,
-          showDecorations,
-          showBackground,
-          backgroundColor,
-          displayPositioning,
+          name = displayName,
+          baseName = baseName,
+          parameterName = parameterName,
+          group = groupName,
+          showDecoration = showDecorations,
+          showBackground = showBackground,
+          backgroundColor = backgroundColor,
+          displayPositioning = displayPositioning,
+          organizationGroup = null,
         ),
         null,
         null,
@@ -236,15 +237,16 @@ class ParametrizedComposePreviewElementInstance<T>(
 
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(
-      getDisplayName(parameterName),
-      basePreviewElement.displaySettings.baseName,
-      getParameterName(basePreviewElement.displaySettings.parameterName, parameterName),
-      basePreviewElement.displaySettings.group,
-      basePreviewElement.displaySettings.showDecoration,
-      basePreviewElement.displaySettings.showBackground,
-      basePreviewElement.displaySettings.backgroundColor,
-      basePreviewElement.displaySettings.displayPositioning,
-      basePreviewElement.displaySettings.organizationGroup,
+      name = getDisplayName(parameterName),
+      baseName = basePreviewElement.displaySettings.baseName,
+      parameterName =
+        getParameterName(basePreviewElement.displaySettings.parameterName, parameterName),
+      group = basePreviewElement.displaySettings.group,
+      showDecoration = basePreviewElement.displaySettings.showDecoration,
+      showBackground = basePreviewElement.displaySettings.showBackground,
+      backgroundColor = basePreviewElement.displaySettings.backgroundColor,
+      displayPositioning = basePreviewElement.displaySettings.displayPositioning,
+      organizationGroup = basePreviewElement.displaySettings.organizationGroup,
     )
 
   override fun toPreviewXml(): PreviewXmlBuilder {
@@ -386,13 +388,14 @@ open class ParametrizedComposePreviewElementTemplate<T>(
       SingleComposePreviewElementInstance(
         fakeElementFqn,
         PreviewDisplaySettings(
-          basePreviewElement.displaySettings.name,
-          basePreviewElement.displaySettings.baseName,
-          basePreviewElement.displaySettings.parameterName,
-          null,
-          false,
-          false,
-          null,
+          name = basePreviewElement.displaySettings.name,
+          baseName = basePreviewElement.displaySettings.baseName,
+          parameterName = basePreviewElement.displaySettings.parameterName,
+          group = null,
+          showDecoration = false,
+          showBackground = false,
+          backgroundColor = null,
+          organizationGroup = null,
         ),
         null,
         null,

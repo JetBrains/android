@@ -83,13 +83,14 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
     }
   val displaySettings =
     PreviewDisplaySettings(
-      nameHelper.buildPreviewName(),
-      uMethod.name,
-      nameHelper.buildParameterName(),
-      null,
-      false,
-      false,
-      null,
+      name = nameHelper.buildPreviewName(),
+      baseName = uMethod.name,
+      parameterName = nameHelper.buildParameterName(),
+      group = null,
+      showDecoration = false,
+      showBackground = false,
+      backgroundColor = null,
+      organizationGroup = null,
     )
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
   val widthDp =
