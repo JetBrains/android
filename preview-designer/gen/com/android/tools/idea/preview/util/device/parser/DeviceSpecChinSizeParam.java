@@ -19,9 +19,7 @@
 // Do not edit it manually.
 package com.android.tools.idea.preview.util.device.parser;
 
-import java.util.List;
 import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
 
 public interface DeviceSpecChinSizeParam extends DeviceSpecParam {
 
