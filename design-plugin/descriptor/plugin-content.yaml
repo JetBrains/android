@@ -6,10 +6,6 @@
     - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-tree/9/asm-tree-9.jar
     - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm/9/asm-9.jar
     reason: <- intellij.android.layoutlib
-  - name: layoutlib
-    files:
-    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/15/layoutlib-15.jar
-    reason: withProjectLibrary
   modules:
   - name: intellij.android.compose-designer
     libraries:
@@ -34,3 +30,9 @@
   - name: intellij.android.motion-editor
   - name: intellij.android.visual-lint
   - name: intellij.android.design-plugin.descriptor
+- name: lib/layoutlib.jar
+  projectLibraries:
+  - name: layoutlib
+    files:
+    - name: $MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib/15/layoutlib-15.jar
+    reason: withProjectLibrary
