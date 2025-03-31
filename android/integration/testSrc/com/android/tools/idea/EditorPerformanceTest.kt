@@ -90,32 +90,32 @@ class EditorPerformanceTest {
       val telemetry = system.installation.telemetry
 
       Quantiles.median().compute(telemetry.get("completion").toList()).let { benchmark.log("completion_median", it.toLong()) }
-      telemetry.get("completion").max(Long::compareTo).get().let { benchmark.log("completion_max", it) }
+      telemetry.get("completion").max(Long::compareTo).get().let { benchmark.logWithoutAnalyzer("completion_max", it) }
 
       Quantiles.median().compute(telemetry.get("firstCodeAnalysis").toList()).let {
         benchmark.log("firstCodeAnalysis_median", it.toLong())
       }
-      telemetry.get("firstCodeAnalysis").max(Long::compareTo).get().let { benchmark.log("firstCodeAnalysis_max", it) }
+      telemetry.get("firstCodeAnalysis").max(Long::compareTo).get().let { benchmark.logWithoutAnalyzer("firstCodeAnalysis_max", it) }
 
       Quantiles.median().compute(telemetry.getChild("findUsagesParent", "findUsages").toList()).let {
         benchmark.log("findUsages_median", it.toLong())
       }
       telemetry.getChild("findUsagesParent", "findUsages").max(Long::compareTo).get().let {
-        benchmark.log("findUsages_max", it)
+        benchmark.logWithoutAnalyzer("findUsages_max", it)
       }
 
       Quantiles.median().compute(telemetry.getChild("findUsagesParent", "findUsages_firstUsage").toList()).let {
         benchmark.log("findUsages_firstUsage_median", it.toLong())
       }
       telemetry.getChild("findUsagesParent", "findUsages_firstUsage").max(Long::compareTo).get().let {
-        benchmark.log("findUsages_firstUsage_max", it)
+        benchmark.logWithoutAnalyzer("findUsages_firstUsage_max", it)
       }
 
       Quantiles.median().compute(telemetry.getChild("completion", "invokeCompletion").toList()).let {
         benchmark.log("invokeCompletion_median", it.toLong())
       }
       telemetry.getChild("completion", "invokeCompletion").max(Long::compareTo).get().let {
-        benchmark.log("invokeCompletion_max", it)
+        benchmark.logWithoutAnalyzer("invokeCompletion_max", it)
       }
     }
 

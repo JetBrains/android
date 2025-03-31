@@ -76,6 +76,15 @@ class StartupPerformanceTest {
       benchmark.log("startup_performance_frame_became_visible", it.startupPerformanceFrameBecameVisibleEvent.durationMs.toLong())
     }
     system.installation.indexingMetrics.get(project).forEach {
+      // Per-filetype metrics are too volatile and fine-granular. Let's report them without analyzer.
+      if (it.metricLabel.startsWith("processingSpeedAvg_") ||
+          it.metricLabel.startsWith("processingSpeedOfBaseLanguageAvg_") ||
+          it.metricLabel.startsWith("processingSpeedWorst_") ||
+          it.metricLabel.startsWith("processingSpeedOfBaseLanguageWorst_") ||
+          it.metricLabel.startsWith("processingTime_")) {
+        benchmark.logWithoutAnalyzer(it.metricLabel, it.metricValue)
+        return
+      }
       benchmark.log(it.metricLabel, it.metricValue)
     }
   }

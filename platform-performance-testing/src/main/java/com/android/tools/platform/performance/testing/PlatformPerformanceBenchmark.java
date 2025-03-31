@@ -49,8 +49,18 @@ public class PlatformPerformanceBenchmark {
   }
 
   public void log(@NotNull final String metricName, long metricValue) {
+    doLog(metricName, metricValue, true);
+  }
+
+  public void logWithoutAnalyzer(@NotNull final String metricName, long metricValue) {
+    doLog(metricName, metricValue, false);
+  }
+
+  private void doLog(@NotNull final String metricName, long metricValue, boolean setAnalyzers) {
     Metric metric = new Metric(metricName);
-    metric.setAnalyzers(benchmark, Collections.singleton(ANALYZER));
+    if (setAnalyzers) {
+      metric.setAnalyzers(benchmark, Collections.singleton(ANALYZER));
+    }
     metric.addSamples(benchmark, new Metric.MetricSample(creationTimestampMs, metricValue));
     metric.commit();
   }
