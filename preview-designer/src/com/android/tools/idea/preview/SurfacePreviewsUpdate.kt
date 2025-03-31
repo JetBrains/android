@@ -175,7 +175,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   val groups =
     elementsToReusableModels
       .mapNotNull { (_, model) -> model?.organizationGroup }
-      .associateBy { it.methodFqn }
+      .associateBy { it.groupId }
       .toMutableMap()
 
   // Second, reorder the models to reuse and create the new models needed,

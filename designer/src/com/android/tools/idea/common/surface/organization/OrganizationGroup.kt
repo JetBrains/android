@@ -37,9 +37,16 @@ enum class OrganizationGroupType(val iconKey: PathIconKey?, val icon: Icon?) {
   ),
 }
 
-/** Information required for each organization group. */
+/**
+ * Information required for each organization group.
+ *
+ * @param groupId unique id for this group
+ * @param displayName name of the organization
+ * @param groupType type of the group
+ * @param saveState action to perform on [setOpened] state change
+ */
 class OrganizationGroup(
-  val methodFqn: String,
+  val groupId: String,
   val displayName: String,
   val groupType: OrganizationGroupType = OrganizationGroupType.Default,
   val saveState: (Boolean) -> Unit = { _ -> },
