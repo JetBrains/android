@@ -50,7 +50,6 @@ private const val descriptionClosed = "Show preview group"
 @Composable
 fun OrganizationHeader(group: OrganizationGroup) {
   val opened = group.isOpened.collectAsState()
-  val displayName = group.displayName.collectAsState()
 
   IconButton(
     modifier =
@@ -66,7 +65,7 @@ fun OrganizationHeader(group: OrganizationGroup) {
       Spacer(Modifier.width(toolbarSpacing))
 
       Text(
-        displayName.value,
+        group.displayName,
         modifier = Modifier.testTag("displayName"),
         color = AdtUiUtils.HEADER_COLOR.toComposeColor(),
         fontSize = TextUnit(UIUtil.getFontSize(UIUtil.FontSize.SMALL), TextUnitType.Sp),
@@ -85,5 +84,5 @@ fun createOrganizationHeader(group: OrganizationGroup): JComponent {
 }
 
 fun createTestOrganizationHeader(group: OrganizationGroup): JComponent {
-  return JBLabel(group.displayName.value)
+  return JBLabel(group.displayName)
 }

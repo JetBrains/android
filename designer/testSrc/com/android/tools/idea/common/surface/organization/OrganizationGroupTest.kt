@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface.organization
 
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.junit.Test
@@ -32,11 +31,5 @@ class OrganizationGroupTest {
     assertFalse(group.isOpened.value)
     group.setOpened(true)
     assertTrue(group.isOpened.value)
-  }
-
-  @Test
-  fun checkName() {
-    val group = OrganizationGroup("method", "Name")
-    assertEquals("Name", group.displayName.value)
   }
 }

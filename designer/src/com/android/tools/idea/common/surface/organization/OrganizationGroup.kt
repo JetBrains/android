@@ -29,7 +29,7 @@ const val DEFAULT_ORGANIZATION_GROUP_STATE = true
 /** Information required for each organization group. */
 class OrganizationGroup(
   val methodFqn: String,
-  displayName: String,
+  val displayName: String,
   val saveState: (Boolean) -> Unit = { _ -> },
 ) {
 
@@ -37,9 +37,6 @@ class OrganizationGroup(
 
   /** If group is opened, all previews in this group are visible. */
   val isOpened: StateFlow<Boolean> = _isOpened.asStateFlow()
-
-  /** Name of the organization. */
-  val displayName: StateFlow<String> = MutableStateFlow(displayName)
 
   /** Set group opened or closed. */
   fun setOpened(isOpened: Boolean) {
