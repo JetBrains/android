@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
+import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.shouldDisableForceUpgrades
@@ -156,8 +157,7 @@ private suspend fun performActivity(project: Project) {
         attachCachedModelsOrTriggerSyncBody(project, gradleProjectInfo)
       }
       catch (e: RequestSyncThrowable) {
-        val autoSyncEnabled = !StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get() || GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR == AutoSyncBehavior.Default
-        if (autoSyncEnabled) {
+        if (AutoSyncSettingStore.autoSyncBehavior == AutoSyncBehavior.Default) {
           // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
           //  path individually.
           LOG.info("Requesting Gradle sync (${e.reason}).")

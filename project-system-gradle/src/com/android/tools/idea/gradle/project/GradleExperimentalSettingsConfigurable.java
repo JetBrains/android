@@ -22,6 +22,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.ExperimentalConfigurable;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior;
+import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AutoSyncSettingChangeEvent;
@@ -71,7 +72,9 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     autoSyncBehaviorComboBox.setModel(new EnumComboBoxModel<>(AutoSyncBehavior.class));
     autoSyncBehaviorComboBox.setRenderer(
       SimpleListCellRenderer.create("", behavior -> AndroidBundle.message(behavior.getLabelBundleKey())));
-    autoSyncBehaviorComboBox.getParent().setVisible(StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get());
+    boolean showAutoSyncControlInExperimentalSettings =
+      StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get() && !StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI.get();
+    autoSyncBehaviorComboBox.getParent().setVisible(showAutoSyncControlInExperimentalSettings);
     reset();
   }
 
@@ -89,7 +92,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
            mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
            mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD != isShowAgpVersionChooserInNewProjectWizard() ||
-           mySettings.AUTO_SYNC_BEHAVIOR != getAutoSyncBehaviorComboBox();
+           AutoSyncSettingStore.INSTANCE.getAutoSyncBehavior() != getAutoSyncBehaviorComboBox();
   }
 
   @Override
@@ -100,8 +103,8 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
     mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = isShowAgpVersionChooserInNewProjectWizard();
-    if (mySettings.AUTO_SYNC_BEHAVIOR != getAutoSyncBehaviorComboBox()) {
-      mySettings.AUTO_SYNC_BEHAVIOR = getAutoSyncBehaviorComboBox();
+    if (AutoSyncSettingStore.INSTANCE.getAutoSyncBehavior() != getAutoSyncBehaviorComboBox()) {
+      AutoSyncSettingStore.INSTANCE.setAutoSyncBehavior(getAutoSyncBehaviorComboBox());
       trackAutoSyncSettingChanged();
       clearAutoSyncVariables();
     }
@@ -116,7 +119,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     myShowAgpVersionChooserInNewProjectWizard.setSelected(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
     autoSyncBehaviorComboBox.setSelectedIndex(
-      AutoSyncBehavior.getEntries().indexOf(GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR));
+      AutoSyncBehavior.getEntries().indexOf(AutoSyncSettingStore.INSTANCE.getAutoSyncBehavior()));
   }
 
   @VisibleForTesting

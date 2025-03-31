@@ -19,10 +19,15 @@
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.AGPMessagesNotificationExtension"/>
     <applicationInitializedListener id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleProjectOpenProcessor"/>
+    <applicationInitializedListener id="Startup.HideNotApplicableSettings"
+                                    implementation="com.android.tools.idea.projectsystem.gradle.AndroidStudioSettingsInitializer"/>
     <applicationInitializedListener id="DisableGradleAttachSourcesProvider"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleAttachSourcesProvider" />
     <applicationInitializedListener id="DisableKotlinGradleTomlVersionCatalogReferencesSearcher"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableKotlinGradleTomlVersionCatalogReferencesSearcher" />
+    <projectConfigurable groupId="build" id="build.tools"
+                         instance="com.android.tools.idea.projectsystem.gradle.AndroidStudioBuildToolsConfigurable"
+                         key="settings.build.tools.display.name" bundle="messages.ExternalSystemBundle"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState"/>
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"

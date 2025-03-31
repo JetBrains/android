@@ -16,9 +16,9 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.SyncDueMessage
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
+import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
@@ -69,7 +69,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     if (!StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get()) {
       return false;
     }
-    if (GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR == AutoSyncBehavior.Default) {
+    if (AutoSyncSettingStore.autoSyncBehavior == AutoSyncBehavior.Default) {
       return false
     }
     if (reason == SyncReason.USER_REQUEST) {

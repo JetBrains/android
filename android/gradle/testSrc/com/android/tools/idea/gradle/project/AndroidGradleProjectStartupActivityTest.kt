@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
+import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -85,7 +86,7 @@ class AndroidGradleProjectStartupActivityTest {
   @After
   fun tearDown() {
     myRequest = null
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Default
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
     StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.clearOverride()
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN)
   }
@@ -156,7 +157,7 @@ class AndroidGradleProjectStartupActivityTest {
   fun testAutoSyncDisabledResultsInNoRequest() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
@@ -168,13 +169,13 @@ class AndroidGradleProjectStartupActivityTest {
   fun testAutoSyncReEnabledResultsInARequest() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     runBlocking { myStartupActivity.execute(myProject) }
     assertThat(myRequest).isNull()
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Default
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
     runBlocking { myStartupActivity.execute(myProject) }
     assertThat(myRequest).isNotNull()
   }
@@ -185,7 +186,7 @@ class AndroidGradleProjectStartupActivityTest {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return;
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, false)
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
@@ -203,7 +204,7 @@ class AndroidGradleProjectStartupActivityTest {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return;
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
