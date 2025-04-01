@@ -35,6 +35,7 @@
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer.tests" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.nav.editor" />
 </module>
