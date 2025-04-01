@@ -65,6 +65,7 @@ import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.common.proto.ProtoStringInterner;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
+import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.deps.OutputInfo;
@@ -103,6 +104,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.stream.Streams;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /** An object that knows how to build dependencies for given targets */
@@ -122,6 +124,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   public static final StringExperiment aspectLocation =
       new StringExperiment("qsync.build.aspect.location");
   public static final String INVOCATION_FILES_DIR = ".aswb";
+
+  public static final Label RULES_ANDROID_RULES_BZL1 = Label.of("@@rules_android~//android:rules.bzl");
+  public static final Label RULES_ANDROID_RULES_BZL2 = Label.of("@@rules_android+//android:rules.bzl");
 
   public record BuildDependencyParameters(
       ImmutableList<String> include,
@@ -146,6 +151,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   protected final Project project;
   protected final BuildSystem buildSystem;
   protected final ProjectDefinition projectDefinition;
+  protected final SnapshotHolder snapshotHolder;
   protected final WorkspaceRoot workspaceRoot;
   protected final Optional<BlazeVcsHandler> vcsHandler;
   protected final ImmutableSet<String> handledRuleKinds;
@@ -162,16 +168,18 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       ImmutableMap<Path, ByteSource> invocationWorkspaceFiles) {}
 
   public BazelDependencyBuilder(
-      Project project,
-      BuildSystem buildSystem,
-      ProjectDefinition projectDefinition,
-      WorkspaceRoot workspaceRoot,
-      Optional<BlazeVcsHandler> vcsHandler,
-      BuildArtifactCache buildArtifactCache,
-      ImmutableSet<String> handledRuleKinds) {
+    Project project,
+    BuildSystem buildSystem,
+    ProjectDefinition projectDefinition,
+    SnapshotHolder snapshotHolder,
+    WorkspaceRoot workspaceRoot,
+    Optional<BlazeVcsHandler> vcsHandler,
+    BuildArtifactCache buildArtifactCache,
+    ImmutableSet<String> handledRuleKinds) {
     this.project = project;
     this.buildSystem = buildSystem;
     this.projectDefinition = projectDefinition;
+    this.snapshotHolder = snapshotHolder;
     this.workspaceRoot = workspaceRoot;
     this.vcsHandler = vcsHandler;
     this.handledRuleKinds = handledRuleKinds;
@@ -355,6 +363,11 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   protected Path getBundledAspectAndroidDepsFilePath() {
+    if (snapshotHolder.getCurrent().map(it -> it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL1) ||
+                                              it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL2))
+      .orElse(false)) {
+      return getBundledAspectPath("build_dependencies_android_rules_android_deps.bzl");
+    }
     return getBundledAspectPath("build_dependencies_android_deps.bzl");
   }
 

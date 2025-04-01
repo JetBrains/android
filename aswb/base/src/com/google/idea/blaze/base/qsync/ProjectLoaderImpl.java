@@ -231,7 +231,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
     DependencyBuilder dependencyBuilder =
       createDependencyBuilder(
-        workspaceRoot, latestProjectDef, buildSystem, vcsHandler, artifactCache, handledRules);
+        workspaceRoot, latestProjectDef, graph, buildSystem, vcsHandler, artifactCache, handledRules);
 
     ArtifactTracker<BlazeContext> artifactTracker;
     RenderJarArtifactTracker renderJarArtifactTracker;
@@ -320,14 +320,15 @@ public class ProjectLoaderImpl implements ProjectLoader {
   }
 
   protected DependencyBuilder createDependencyBuilder(
-      WorkspaceRoot workspaceRoot,
-      ProjectDefinition projectDefinition,
-      BuildSystem buildSystem,
-      Optional<BlazeVcsHandler> vcsHandler,
-      BuildArtifactCache buildArtifactCache,
-      ImmutableSet<String> handledRuleKinds) {
+    WorkspaceRoot workspaceRoot,
+    ProjectDefinition projectDefinition,
+    SnapshotHolder snapshotHolder,
+    BuildSystem buildSystem,
+    Optional<BlazeVcsHandler> vcsHandler,
+    BuildArtifactCache buildArtifactCache,
+    ImmutableSet<String> handledRuleKinds) {
     return new BazelDependencyBuilder(
-      project, buildSystem, projectDefinition, workspaceRoot, vcsHandler, buildArtifactCache, handledRuleKinds);
+      project, buildSystem, projectDefinition, snapshotHolder, workspaceRoot, vcsHandler, buildArtifactCache, handledRuleKinds);
   }
 
   protected RenderJarBuilder createRenderJarBuilder(

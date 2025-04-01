@@ -29,6 +29,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.artifacts.MockArtifactCache;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
@@ -53,6 +54,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
   @Rule
   public final TemporaryFolder temporaryFolder = new TemporaryFolder();
   private final MockExperimentService experimentService = new MockExperimentService();
+  private final SnapshotHolder snapshotHolder = new SnapshotHolder();
 
   @Before
   public void before() {
@@ -91,6 +93,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
                                    .setTestSources(ImmutableSet.of())
                                    .setLanguageClasses(ImmutableSet.of())
                                    .build(),
+                                 snapshotHolder,
                                  new WorkspaceRoot(temporaryFolder.getRoot()),
                                  Optional.empty(),
                                  new MockArtifactCache(temporaryFolder.newFolder().toPath()),
@@ -149,6 +152,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
                                    .setTestSources(ImmutableSet.of())
                                    .setLanguageClasses(ImmutableSet.of())
                                    .build(),
+                                 snapshotHolder,
                                  new WorkspaceRoot(temporaryFolder.getRoot()),
                                  Optional.empty(),
                                  new MockArtifactCache(temporaryFolder.newFolder().toPath()),

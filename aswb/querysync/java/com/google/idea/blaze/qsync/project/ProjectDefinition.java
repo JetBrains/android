@@ -191,7 +191,7 @@ public abstract class ProjectDefinition {
    */
   public Optional<Path> getIncludingContentRoot(Path workspacePath) {
     Optional<Path> contentRoot =
-        projectIncludes().stream().filter(workspacePath::startsWith).findAny();
+        projectIncludes().stream().filter(it -> isUnderRootDirectory(it, workspacePath)).findAny();
 
     if (contentRoot.isEmpty()) {
       return contentRoot;
