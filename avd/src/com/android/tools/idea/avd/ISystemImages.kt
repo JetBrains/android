@@ -102,7 +102,7 @@ internal object ISystemImages {
           listOf(RepoLoadedListener { trySend(LocalImagesLoaded) }),
           listOf(RepoLoadedListener { trySend(RemoteImagesLoaded) }),
           listOf(Runnable { trySend(Error) }),
-          StudioProgressRunner(false, false, "Loading Images", project),
+          StudioProgressRunner(false, "Loading Images", project),
           StudioDownloader(),
           StudioSettingsController.getInstance(),
         )

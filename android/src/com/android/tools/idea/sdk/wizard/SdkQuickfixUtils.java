@@ -193,7 +193,7 @@ public final class SdkQuickfixUtils {
       // This is an expensive call involving a number of manifest download operations,
       // so make it only when some installations are requested.
       mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-                            new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
+                            new StudioProgressRunner(false, "Finding Available SDK Components", project),
                             new StudioDownloader(), StudioSettingsController.getInstance());
       RepositoryPackages packages = mgr.getPackages();
       if (requestedPackages == null) {
@@ -314,7 +314,7 @@ public final class SdkQuickfixUtils {
       null,
       null,
       null,
-      new StudioProgressRunner(false, false, "Finding Available SDK Components", null),
+      new StudioProgressRunner(false, "Finding Available SDK Components", null),
       new StudioDownloader(),
       StudioSettingsController.getInstance());
     RepositoryPackages packages = mgr.getPackages();

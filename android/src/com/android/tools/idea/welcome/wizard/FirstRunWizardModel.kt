@@ -121,7 +121,7 @@ class FirstRunWizardModel(
           null,
           null,
           null,
-          StudioProgressRunner(true, false, "Finding Available SDK Components", null),
+          StudioProgressRunner(false, "Finding Available SDK Components", null),
           StudioDownloader(),
           StudioSettingsController.getInstance(),
         )

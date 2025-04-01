@@ -267,7 +267,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
     ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = mySdkHandlerSupplier.get().getRepoManager(progress);
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-                                 new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
+                                 new StudioProgressRunner(false, "Finding Available SDK Components", null),
                                  new StudioDownloader(), StudioSettingsController.getInstance());
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     List<Change> toReturn = new ArrayList<>();

@@ -13,111 +13,88 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.progress;
+package com.android.tools.idea.progress
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.repository.api.ProgressRunner;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.progress.*;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.ExecutionException;
+import com.android.annotations.concurrency.AnyThread
+import com.android.repository.api.NullProgressIndicator
+import com.android.repository.api.ProgressRunner
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.platform.ide.progress.withBackgroundProgress
+import com.intellij.platform.util.progress.reportRawProgress
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 
 /**
- * {@link ProgressRunner} implementation that uses Studio's {@link ProgressManager} mechanism for showing progress and running tasks.
- * Invokes all tasks on the UI thread.
+ * [ProgressRunner] implementation that sets up IntelliJ's progress reporting and adapts it to the
+ * sdklib progress reporting interface.
  */
-public class StudioProgressRunner implements ProgressRunner {
-  private boolean myModal;
-  private final boolean myCancellable;
-  private final Project myProject;
-  private final String myProgressTitle;
-
-  public StudioProgressRunner(boolean modal,
-                              boolean cancellable,
-                              String progressTitle,
-                              @Nullable Project project) {
-    myModal = modal;
-    myCancellable = cancellable;
-    myProject = project;
-    myProgressTitle = progressTitle;
-  }
-
-  @Override
-  public void runAsyncWithProgress(@NotNull final ProgressRunnable r) {
-    runAsyncWithProgress(r, false);
-  }
-
-  @VisibleForTesting
-  public void runAsyncWithProgress(@NotNull final ProgressRunnable r, boolean overrideTestMode) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        Task.Backgroundable task = new Task.Backgroundable(myProject, myProgressTitle, myCancellable, new PerformInBackgroundOption() {
-          @Override
-          public boolean shouldStartInBackground() {
-            return !myModal;
+class StudioProgressRunner
+@JvmOverloads
+constructor(
+  private val cancellable: Boolean,
+  private val title: String,
+  private val project: Project?,
+  private val coroutineScope: CoroutineScope =
+    StudioProgressRunnerService.getInstance().coroutineScope + Dispatchers.Default,
+) : ProgressRunner {
+  /** Runs the task on [coroutineScope] with a background progress indicator. */
+  @AnyThread
+  override fun runAsyncWithProgress(r: ProgressRunner.ProgressRunnable) {
+    coroutineScope.launch {
+      if (project == null) {
+        // withBackgroundProgress requires a project to own the progress indicator. If we don't have
+        // one, just run the task directly and pass an empty progress indicator.
+        r.run(NullProgressIndicator, this@StudioProgressRunner)
+      } else {
+        withBackgroundProgress(project, title, cancellable) {
+          reportRawProgress { reporter ->
+            r.run(RawProgressReporterAdapter(reporter), this@StudioProgressRunner)
           }
-        }) {
-          @Override
-          public void run(@NotNull ProgressIndicator indicator) {
-            ApplicationManager.getApplication().executeOnPooledThread(
-              () -> r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this));
-          }
-
-          @Override
-          public boolean isConditionalModal() {
-            return true;
-          }
-
-          @Override
-          public boolean isHeadless() {
-            return overrideTestMode ? false : super.isHeadless();
-          }
-        };
-
-        boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
-        if (hasOpenProjects) {
-          ProgressManager.getInstance().run(task);
-        }
-        else {
-          // If we don't have any open projects run(task) will show a modal popup no matter what.
-          // Instead explicitly use an empty progress indicator to suppress that.
-          ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, new EmptyProgressIndicator());
         }
       }
-    }, ModalityState.any());
-  }
-
-  @Override
-  public void runSyncWithProgress(@NotNull final ProgressRunnable progressRunnable) {
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      Task task = new Task.Modal(myProject, myProgressTitle, myCancellable) {
-        @Override
-        public void run(@NotNull ProgressIndicator indicator) {
-          doRunSync(indicator, progressRunnable);
-        }
-      };
-      ProgressManager.getInstance().run(task);
-    }, ModalityState.any());
-  }
-
-  private void doRunSync(@NotNull ProgressIndicator indicator, @NotNull ProgressRunnable progressRunnable) {
-    RepoProgressIndicatorAdapter repoProgress = new RepoProgressIndicatorAdapter(indicator);
-    try {
-      ApplicationManager.getApplication().executeOnPooledThread(() -> progressRunnable.run(repoProgress, this)).get();
-    }
-    catch (InterruptedException | ExecutionException e) {
-      // shouldn't happen
     }
   }
 
-  @Override
-  public void runSyncWithoutProgress(@NotNull Runnable r) {
-    r.run();
+  /**
+   * Runs a modal progress reporting dialog on the EDT, which invokes the task on a background
+   * worker thread.
+   */
+  @AnyThread
+  override fun runSyncWithProgress(progressRunnable: ProgressRunner.ProgressRunnable) {
+    // runWithModalProgressBlocking requires the EDT
+    ApplicationManager.getApplication()
+      .invokeAndWait(
+        {
+          runWithModalProgressBlocking(
+            owner =
+              if (project != null) ModalTaskOwner.project(project) else ModalTaskOwner.guess(),
+            title = title,
+            cancellation =
+              if (cancellable) TaskCancellation.cancellable() else TaskCancellation.nonCancellable(),
+          ) {
+            reportRawProgress { reporter ->
+              progressRunnable.run(RawProgressReporterAdapter(reporter), this@StudioProgressRunner)
+            }
+          }
+        },
+        ModalityState.any(),
+      )
+  }
+}
+
+/** Service for providing a CoroutineScope to StudioProgressRunner. */
+@Service(Service.Level.APP)
+class StudioProgressRunnerService(val coroutineScope: CoroutineScope) {
+  companion object {
+    fun getInstance(): StudioProgressRunnerService = service<StudioProgressRunnerService>()
   }
 }

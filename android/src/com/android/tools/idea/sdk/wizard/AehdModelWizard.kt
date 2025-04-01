@@ -83,7 +83,7 @@ class AehdModelWizard(
       sdkHandler
         .getRepoManager(progressIndicator)
         .loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-                           StudioProgressRunner(true, false, "Finding Available SDK Components", null),
+                           StudioProgressRunner(false, "Finding Available SDK Components", null),
                            StudioDownloader(), StudioSettingsController.getInstance())
       myAehdSdkComponentTreeNode.updateState(sdkHandler)
 

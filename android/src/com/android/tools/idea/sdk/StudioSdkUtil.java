@@ -31,7 +31,7 @@ public class StudioSdkUtil {
    */
   public static void reloadRemoteSdk(boolean modal) {
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    StudioProgressRunner runner = new StudioProgressRunner(modal, false, "Refreshing SDK", null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, "Refreshing SDK", null);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(StudioSdkUtil.class);
     RepoManager sdkManager = sdkHandler.getRepoManager(progress);
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null, runner, new StudioDownloader(),
