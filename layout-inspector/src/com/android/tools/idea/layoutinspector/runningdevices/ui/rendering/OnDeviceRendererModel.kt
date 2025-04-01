@@ -28,6 +28,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
+ * Package name used to identify views added to the app's view hierarchy by the Layout Inspector
+ * agent. Currently used to identify the view used by on-device rendering to render Layout Inspector
+ * UI on-top of the app's UI.
+ */
+const val AGENT_PACKAGE = "com.android.tools.agent.appinspection"
+
+/**
  * Draw instructions to render the bounds of a node.
  *
  * @param rootViewId The drawId of the root view the [bounds] belong to.
@@ -176,8 +183,11 @@ class OnDeviceRendererModel(
   /** Returns all the visible nodes belonging to [rootId]. */
   private fun getNodes(rootId: Long = inspectorModel.root.drawId): List<ViewNode> {
     return inspectorModel[rootId]
-      ?.flattenedList()
+      ?.reversePostOrderFlattenedList()
       ?.filter { inspectorModel.isVisible(it) }
+      // Prevent selection of views added by Layout Inspector, making them selectable only from the
+      // component tree:
+      ?.filter { !it.qualifiedName.startsWith(AGENT_PACKAGE) }
       ?.filter {
         !treeSettings.hideSystemNodes || (treeSettings.hideSystemNodes && !it.isSystemNode)
       } ?: emptyList()

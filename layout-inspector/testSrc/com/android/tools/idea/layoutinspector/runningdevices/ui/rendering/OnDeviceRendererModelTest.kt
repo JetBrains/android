@@ -62,8 +62,16 @@ class OnDeviceRendererModelTest {
     inspectorModel =
       model(disposableRule.disposable) {
         view(ROOT, 0, 0, 100, 100) {
-          view(VIEW1, 10, 15, 25, 25) {}
+          view(VIEW1, 10, 15, 25, 25)
           compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+          view(
+            VIEW2,
+            0,
+            0,
+            100,
+            100,
+            qualifiedName = "com.android.tools.agent.appinspection.rendering.OverlayView",
+          )
         }
       }
 
@@ -152,13 +160,13 @@ class OnDeviceRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
         ),
@@ -378,13 +386,13 @@ class OnDeviceRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
         ),
@@ -517,13 +525,13 @@ class OnDeviceRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = Rectangle(0, 0, 10, 10),
+          bounds = Rectangle(0, 0, 50, 50),
           color = BASE_COLOR_ARGB,
           label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = Rectangle(0, 0, 50, 50),
+          bounds = Rectangle(0, 0, 10, 10),
           color = BASE_COLOR_ARGB,
           label = null,
         ),
@@ -575,7 +583,7 @@ class OnDeviceRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = Rectangle(0, 0, 50, 50),
+          bounds = Rectangle(0, 0, 10, 10),
           color = SELECTION_COLOR_ARGB,
           label = "View",
         )
@@ -616,7 +624,7 @@ class OnDeviceRendererModelTest {
       .isEqualTo(
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = Rectangle(0, 0, 50, 50),
+          bounds = Rectangle(0, 0, 10, 10),
           color = HOVER_COLOR_ARGB,
           label = null,
         )
@@ -646,13 +654,13 @@ class OnDeviceRendererModelTest {
       listOf(
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = inspectorModel[VIEW1]!!.layoutBounds,
+          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
-          bounds = inspectorModel[COMPOSE1]!!.layoutBounds,
+          bounds = inspectorModel[VIEW1]!!.layoutBounds,
           color = BASE_COLOR_ARGB,
           label = null,
         ),

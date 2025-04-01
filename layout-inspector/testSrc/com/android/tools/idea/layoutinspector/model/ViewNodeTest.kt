@@ -21,8 +21,9 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
@@ -34,7 +35,9 @@ private val LAYOUT_MAIN =
   ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class ViewNodeTest {
-  @get:Rule val disposableRule = DisposableRule()
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule)
 
   val disposable
     get() = disposableRule.disposable
@@ -44,23 +47,43 @@ class ViewNodeTest {
     val model =
       model(disposable) {
         view(ROOT) {
-          view(VIEW1) { view(VIEW3) }
+          view(VIEW1) {
+            view(VIEW3)
+            view(VIEW4)
+          }
           view(VIEW2)
         }
       }
 
-    UsefulTestCase.assertSameElements(
-      model[ROOT]!!.flattenedList().map { it.drawId }.toList(),
-      ROOT,
-      VIEW1,
-      VIEW3,
-      VIEW2,
-    )
-    UsefulTestCase.assertSameElements(
-      model[VIEW1]!!.flattenedList().map { it.drawId }.toList(),
-      VIEW1,
-      VIEW3,
-    )
+    assertThat(model[ROOT]!!.flattenedList().map { it.drawId }.toList())
+      .containsExactly(VIEW3, VIEW4, VIEW1, VIEW2, ROOT)
+      .inOrder()
+
+    assertThat(model[VIEW1]!!.flattenedList().map { it.drawId }.toList())
+      .containsExactly(VIEW3, VIEW4, VIEW1)
+      .inOrder()
+  }
+
+  @Test
+  fun testReversePostOrderFlatten() {
+    val model =
+      model(disposable) {
+        view(ROOT) {
+          view(VIEW1) {
+            view(VIEW3)
+            view(VIEW4)
+          }
+          view(VIEW2)
+        }
+      }
+
+    assertThat(model[ROOT]!!.reversePostOrderFlattenedList().map { it.drawId }.toList())
+      .containsExactly(VIEW2, VIEW4, VIEW3, VIEW1, ROOT)
+      .inOrder()
+
+    assertThat(model[VIEW1]!!.reversePostOrderFlattenedList().map { it.drawId }.toList())
+      .containsExactly(VIEW4, VIEW3, VIEW1)
+      .inOrder()
   }
 
   @Test

@@ -215,6 +215,9 @@ open class ViewNode(
     return result.asSequence()
   }
 
+  /** Materialize a list containing all the nodes in the tree in (Reverse-Post-order, RLN). */
+  fun reversePostOrderFlattenedList(): List<ViewNode> = preOrderFlatten().toList().asReversed()
+
   /**
    * Calculate the transitive bounds for all nodes under the given [root]. This should be called
    * once after the ViewNode tree is built.
