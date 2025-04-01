@@ -25,38 +25,37 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-
-public class BazelBuildSystemFilePreviewServices
+final class BazelBuildSystemFilePreviewServices
   implements BuildSystemFilePreviewServices<BazelProjectSystem, BazelBuildTargetReference>, BazelToken {
 
   @Override
-  public boolean isApplicable(BuildTargetReference buildTargetReference) {
+  public boolean isApplicable(@NotNull BuildTargetReference buildTargetReference) {
     return buildTargetReference instanceof BazelBuildTargetReference;
   }
 
   @Override
-  public BuildServices<BazelBuildTargetReference> getBuildServices() {
+  public @NotNull BuildServices<@NotNull BazelBuildTargetReference> getBuildServices() {
     return new BazelBuildServices();
   }
 
   @Override
   public @NotNull RenderingServices getRenderingServices(
     @NotNull BazelBuildTargetReference buildTargetReference) {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public @NotNull ApplicationLiveEditServices getApplicationLiveEditServices(
     @NotNull BazelBuildTargetReference buildTargetReference) {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public void subscribeBuildListener(Project project,
-                                     Disposable parentDisposable, BuildListener listener) {}
+  public void subscribeBuildListener(@NotNull Project project, @NotNull Disposable parentDisposable, @NotNull BuildListener listener) {
+  }
 
   @Override
-  public BuildTargets getBuildTargets() {
+  public @NotNull BuildTargets getBuildTargets() {
     return new BuildTargets() {
       @Override
       public @NotNull BuildTargetReference from(@NotNull Module module,
