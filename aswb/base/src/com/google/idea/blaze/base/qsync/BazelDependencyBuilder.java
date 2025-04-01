@@ -408,7 +408,6 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     if (aspectPath != null) {
       return Path.of(aspectPath);
     }
-    PluginDescriptor plugin = checkNotNull(PluginManager.getPluginByClass(getClass()));
     if (Strings.isNotEmpty(aspectLocation.getValue())) {
       Path workspaceAbsolutePath = workspaceRoot.absolutePathFor("");
       // NOTE: aspectLocation allows both relative and absolute paths.
@@ -432,6 +431,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       logger.info("Using build aspect file: " + result);
       return result;
     } else {
+      PluginDescriptor plugin = checkNotNull(PluginManager.getPluginByClass(getClass()));
       return plugin.getPluginPath().resolve(dir).resolve(filename);
     }
   }
