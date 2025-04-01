@@ -25,6 +25,7 @@ import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.k2.OutputFileForKtCompiledFile
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
+import com.android.tools.idea.run.deployment.liveedit.readActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.application.readAction
@@ -173,6 +174,13 @@ class EmbeddedCompilerClientImpl private constructor(
   @OptIn(KaExperimentalApi::class)
   private suspend fun compileKtFilesForK2(moduleForAllInputs: Module, inputs: List<KtFile>, outputDirectory: Path) {
     readAction {
+      // Verify that the files are valid and the module has not been disposed.
+      if (moduleForAllInputs.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(moduleForAllInputs)
+      inputs.forEach {
+        if (!it.isValid) throw LiveEditUpdateException.fileNotValid(it)
+        it.module?.let { module -> if (module.isDisposed) throw LiveEditUpdateException.moduleIsDisposed(module) }
+      }
+
       val pathToCompileOutput = mutableMapOf<String, OutputFileForKtCompiledFile>()
       val filesAlreadyCompiled = mutableSetOf<VirtualFile>()
       runWithCompileLock {
