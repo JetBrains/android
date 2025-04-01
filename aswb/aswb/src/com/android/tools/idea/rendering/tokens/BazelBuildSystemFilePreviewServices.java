@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.tokens;
 
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices;
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
@@ -24,7 +23,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -38,19 +36,7 @@ public class BazelBuildSystemFilePreviewServices
 
   @Override
   public BuildServices<BazelBuildTargetReference> getBuildServices() {
-    return new BuildServices<>() {
-      @Override
-      public @NotNull ProjectSystemBuildManager.BuildStatus getLastCompileStatus(
-        @NotNull BazelBuildTargetReference buildTarget) {
-        return ProjectSystemBuildManager.BuildStatus.UNKNOWN;
-      }
-
-      @Override
-      public void buildArtifacts(
-        @NotNull Collection<? extends BazelBuildTargetReference> buildTargets) {
-        throw new UnsupportedOperationException();
-      }
-    };
+    return new BazelBuildServices();
   }
 
   @Override
