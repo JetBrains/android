@@ -32,9 +32,16 @@ import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.plugin.BuildSystemVersionChecker;
+import com.google.idea.blaze.base.projectview.ProjectView;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.projectview.ProjectViewStorageManager;
 import com.google.idea.blaze.base.projectview.ProjectViewVerifier;
+import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
+import com.google.idea.blaze.base.projectview.section.ScalarSection;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
+import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
@@ -56,6 +63,7 @@ import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.project.Project;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -71,6 +79,11 @@ final class ProjectStateSyncTask {
     return task.getProjectState(context);
   }
 
+  static void updateProjectViewForWorkspaceLocation(Project project, BlazeContext context) {
+    ProjectStateSyncTask task = new ProjectStateSyncTask(project);
+    task.updateProjectViewForWorkspaceLocation(context);
+  }
+
   private final Project project;
   private final BlazeImportSettings importSettings;
   private final WorkspaceRoot workspaceRoot;
@@ -79,6 +92,58 @@ final class ProjectStateSyncTask {
     this.project = project;
     this.importSettings = BlazeImportSettingsManager.getInstance(project).getImportSettings();
     this.workspaceRoot = WorkspaceRoot.fromProject(project);
+  }
+
+  private void updateProjectViewForWorkspaceLocation(BlazeContext context) {
+    if (!FileOperationProvider.getInstance().exists(workspaceRoot.directory())) {
+      String message = String.format("Workspace '%s' doesn't exist.", workspaceRoot.directory());
+      IssueOutput.error(message).submit(context);
+      BlazeSyncManager.printAndLogError(message, context);
+      return;
+    }
+
+    BlazeVcsHandler vcsHandler = BlazeVcsHandlerProvider.vcsHandlerForProject(project);
+    if (vcsHandler == null) {
+      String message = "Could not find a VCS handler";
+      IssueOutput.error(message).submit(context);
+      BlazeSyncManager.printAndLogError("Could not find a VCS handler", context);
+      return;
+    }
+
+    ListeningExecutorService executor = BlazeExecutor.getInstance().getExecutor();
+    WorkspacePathResolverAndProjectView workspacePathResolverAndProjectView =
+      computeWorkspacePathResolverAndProjectView(context, vcsHandler, executor);
+    if (workspacePathResolverAndProjectView == null) {
+      BlazeSyncManager.printAndLogError(
+        "Sync failed: Could not resolve the workspace path and/or parse the project view",
+        context);
+      return;
+    }
+    ProjectViewSet projectViewSet = workspacePathResolverAndProjectView.projectViewSet;
+    ProjectViewSet.ProjectViewFile projectViewFile = projectViewSet.getTopLevelProjectViewFile();
+    if (projectViewFile.projectView.getSections().stream().anyMatch(x -> x.isSectionType(WorkspaceLocationSection.KEY))) {
+      // return if already added
+      return;
+    }
+    ScalarSection<String> workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
+      .set(
+        WorkspaceRoot
+          .fromImportSettings(importSettings)
+          .toString())
+      .build();
+    ProjectView projectView = ProjectView.builder(projectViewFile.projectView)
+      .add(TextBlockSection.of(TextBlock.newLine()))
+      .add(workspaceRootSection)
+      .build();
+    String projectViewText = ProjectViewParser.projectViewToString(projectView);
+    try {
+      ProjectViewStorageManager.getInstance()
+        .writeProjectView(projectViewText, projectViewFile.projectViewFile);
+    } catch (IOException e) {
+      BlazeSyncManager.printAndLogError(
+        "Error while adding workspace_location to project file: " + e.getMessage(),
+        context);
+    }
   }
 
   private SyncProjectState getProjectState(BlazeContext context)

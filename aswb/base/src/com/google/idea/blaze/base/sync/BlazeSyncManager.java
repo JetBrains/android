@@ -128,6 +128,9 @@ public class BlazeSyncManager {
                                                 project,
                                                 BlazeUserSettings.getInstance()
                                                     .getShowProblemsViewOnSync()));
+                                    if (syncParams.syncMode() == SyncMode.STARTUP) {
+                                      ProjectStateSyncTask.updateProjectViewForWorkspaceLocation(project, context);
+                                    }
                                     if (!runInitialDirectoryOnlySync(syncParams)) {
                                       executeTask(project, syncParams, context);
                                       return;
