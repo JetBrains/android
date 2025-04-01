@@ -17,17 +17,20 @@ package com.google.idea.blaze.base.settings;
 
 /** The kind of the build system's binary */
 public enum BuildBinaryType {
-  NONE(false),
-  BLAZE(false),
-  BAZEL(false),
-  RABBIT(true), // rabbit CLI
-  RABBIT_API(true), // rabbit via RPCs
-  BLAZE_CUSTOM(false);
+  NONE(false, false),
+  BLAZE(false, false),
+  BAZEL(false, true),
+  RABBIT(true, false), // rabbit CLI
+  RABBIT_API(true, false), // rabbit via RPCs
+  BLAZE_CUSTOM(false, false);
 
   /** Whether the blaze invocations are run remotely. */
   public final boolean isRemote;
 
-  BuildBinaryType(boolean isRemote) {
+  public final boolean needsAndroidHome;
+
+  BuildBinaryType(boolean isRemote, boolean needsAndroidHome) {
     this.isRemote = isRemote;
+    this.needsAndroidHome = needsAndroidHome;
   }
 }
