@@ -145,7 +145,6 @@ class EditorPerformanceTest {
                            "size"),
         CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/taskdetail/TaskDetailScreen.kt", 89, 32,
                            "snackbarHostState"),
-        CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/di/DataModules.kt", 59, 17, "Room"),
         CompletionPosition("app/src/main/java/com/example/android/architecture/blueprints/todoapp/tasks/TasksScreen.kt", 93, 29, "Filled"))
 
     val completionPositions =
