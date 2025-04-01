@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable
-import com.intellij.ui.components.JBTextField
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.util.function.IntSupplier
@@ -25,7 +24,7 @@ import java.util.function.IntSupplier
 internal class TranslationsEditorTextField(
   private val table: StringResourceTable,
   private val columnSupplier: IntSupplier
-) : JBTextField() {
+) : MinimumWidthTextField() {
   private var lastSavedValue: String? = null
 
   override fun setText(text: String?) {
