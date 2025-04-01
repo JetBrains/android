@@ -154,6 +154,18 @@ class StudioLabsSettingsConfigurable :
             imageSourceDark = "images/studio_labs/attach-image_dark.png",
             imageDescription = "Image attaching menu",
           ),
+          StudioLabsFeaturePanelUi(
+            flag = StudioFlags.STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED,
+            heading = "Context Management",
+            description =
+              """
+                Allows attaching files from your project to Gemini queries, and storing them in a context drawer.
+              """
+                .trimIndent(),
+            imageSourceDefault = "images/studio_labs/at-file.png",
+            imageSourceDark = "images/studio_labs/at-file_dark.png",
+            imageDescription = "@file attaching menu",
+          ),
         )
 
       if (StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.get()) {
