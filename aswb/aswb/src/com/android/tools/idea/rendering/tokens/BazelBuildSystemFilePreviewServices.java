@@ -20,9 +20,7 @@ import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEdit
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
 import com.google.idea.blaze.android.projectsystem.BazelToken;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 final class BazelBuildSystemFilePreviewServices
@@ -56,17 +54,6 @@ final class BazelBuildSystemFilePreviewServices
 
   @Override
   public @NotNull BuildTargets getBuildTargets() {
-    return new BuildTargets() {
-      @Override
-      public @NotNull BuildTargetReference from(@NotNull Module module,
-                                                @NotNull VirtualFile targetFile) {
-        return fromModuleOnly(module);
-      }
-
-      @Override
-      public @NotNull BuildTargetReference fromModuleOnly(@NotNull Module module) {
-        return new BazelBuildTargetReference(module);
-      }
-    };
+    return new BazelBuildTargets();
   }
 }
