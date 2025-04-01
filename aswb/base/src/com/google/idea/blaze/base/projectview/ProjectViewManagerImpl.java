@@ -20,6 +20,10 @@ import com.google.idea.blaze.base.async.executor.BlazeExecutor;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
+import com.google.idea.blaze.base.projectview.section.ScalarSection;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
+import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
@@ -107,6 +111,7 @@ final class ProjectViewManagerImpl extends ProjectViewManager {
           "Failed to read project view from " + projectViewFile.getAbsolutePath());
     }
     ProjectViewSet projectViewSet = parser.getResult();
+    updateProjectViewWithWorkspaceLocation(importSettings, projectViewSet.getTopLevelProjectViewFile());
     File file = getCacheFile(project, importSettings);
     try {
       SerializationUtil.saveToDisk(file, projectViewSet);
@@ -115,6 +120,30 @@ final class ProjectViewManagerImpl extends ProjectViewManager {
     }
     this.projectViewSet = projectViewSet;
     return projectViewSet;
+  }
+
+  private static void updateProjectViewWithWorkspaceLocation(BlazeImportSettings importSettings, ProjectViewSet.ProjectViewFile projectViewFile) {
+    if (projectViewFile.projectView.getSections().stream().anyMatch(x -> x.isSectionType(WorkspaceLocationSection.KEY))) {
+      // return if already added
+      return;
+    }
+    ScalarSection<String> workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
+        .set(
+          WorkspaceRoot
+            .fromImportSettings(importSettings)
+            .toString())
+        .build();
+    ProjectView projectView = ProjectView.builder(projectViewFile.projectView)
+      .add(TextBlockSection.of(TextBlock.newLine()))
+      .add(workspaceRootSection)
+      .build();
+    String projectViewText = ProjectViewParser.projectViewToString(projectView);
+    try {
+      ProjectViewStorageManager.getInstance()
+        .writeProjectView(projectViewText, projectViewFile.projectViewFile);
+    } catch (IOException e) {
+      logger.error(e);
+    }
   }
 
   private static File getCacheFile(Project project, BlazeImportSettings importSettings) {
