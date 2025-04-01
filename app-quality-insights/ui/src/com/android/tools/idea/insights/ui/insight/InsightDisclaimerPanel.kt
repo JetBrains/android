@@ -63,7 +63,7 @@ class InsightDisclaimerPanel(
 
   private val geminiOnboardingObserverAction =
     object : AnAction() {
-      override fun getActionUpdateThread() = ActionUpdateThread.BGT
+      override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
       override fun update(e: AnActionEvent) {
         // This action is never visible

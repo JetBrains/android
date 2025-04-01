@@ -65,7 +65,7 @@ import org.mockito.kotlin.whenever
 class InsightDisclaimerPanelTest {
 
   private lateinit var scope: CoroutineScope
-  private val insightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
+  private lateinit var insightFlow: MutableStateFlow<LoadingState<AiInsight?>>
   private val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
   private val state =
     AppInsightsState(
@@ -83,6 +83,7 @@ class InsightDisclaimerPanelTest {
   @Before
   fun setup() {
     scope = CoroutineScope(EmptyCoroutineContext)
+    insightFlow = MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.contextAllowed = false
     ExtensionTestUtil.maskExtensions(
