@@ -34,7 +34,7 @@ public class SceneLayer extends Layer {
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
   private final boolean myShowAlways;
-  private final Display myDisplay = Display.create();
+  private final Display myDisplay;
   private boolean myShowOnHover = false;
   private boolean myAlwaysShowSelection;
   private boolean myTemporaryShow = false;
@@ -55,6 +55,7 @@ public class SceneLayer extends Layer {
     myDesignSurface = surface;
     mySceneView = view;
     myShowAlways = showAlways;
+    myDisplay = Display.create(mySceneView);
   }
 
   /**
@@ -99,7 +100,7 @@ public class SceneLayer extends Layer {
         }
       }
       // Draw the components
-      myDisplay.draw(sceneContext, g, mySceneView.getScene());
+      myDisplay.draw(mySceneView, g);
     }
     finally {
       g.dispose();

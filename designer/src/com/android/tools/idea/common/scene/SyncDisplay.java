@@ -18,6 +18,7 @@ package com.android.tools.idea.common.scene;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import java.awt.Graphics2D;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +37,9 @@ class SyncDisplay implements Display {
   }
 
   @UiThread
-  public void draw(@NotNull SceneContext sceneContext, @NotNull Graphics2D g, @NotNull Scene scene) {
+  public void draw(@NotNull SceneView sceneView, @NotNull Graphics2D g) {
+    Scene scene = sceneView.getScene();
+    SceneContext sceneContext = sceneView.getContext();
     long mTime = System.currentTimeMillis();
     boolean needsRebuild = scene.getDisplayListVersion() > myDisplayListVersion;
     if (sceneContext.getScale() != myScale) {

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.intellij.openapi.util.Disposer
+import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -40,6 +42,11 @@ class SceneLayerTest {
       }
     }
     sceneLayer = SceneLayer(designSurfaceMock, sceneViewMock, false)
+  }
+
+  @After
+  fun tearDown() {
+    Disposer.dispose(sceneViewMock)
   }
 
   @Test
