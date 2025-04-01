@@ -123,24 +123,27 @@ private data class OutputGroupTargetConfigFileSets(
 /**
  * A data structure allowing to associate file set names with output group, targets and configs and allowing to retrieve them efficiently
  * at each level of the hierarchy.
+ *
+ * For each config, the file set names are stored as <aspect, List<file set name>> map to avoid duplicate file set names for the same
+ * config but different aspects. While retrieving, a flatmap for the given config is returned.
  */
 private class OutputGroupTargetConfigFileSetMap {
-  private val data: MutableMap<String, MutableMap<String, MutableMap<String, List<String>>>> = mutableMapOf()
+  private val data: MutableMap<String, MutableMap<String, MutableMap<String, MutableMap<String, List<String>>>>> = mutableMapOf()
 
-  private fun getOutputGroup(outputGroup: String): MutableMap<String, MutableMap<String, List<String>>> {
+  private fun getOutputGroup(outputGroup: String): MutableMap<String, MutableMap<String, MutableMap<String, List<String>>>> {
     return data.computeIfAbsent(outputGroup) { mutableMapOf() }
   }
 
-  private fun getOutputGroupTarget(outputGroup: String, target: String): MutableMap<String, List<String>> {
+  private fun getOutputGroupTarget(outputGroup: String, target: String): MutableMap<String, MutableMap<String, List<String>>> {
     return getOutputGroup(outputGroup).computeIfAbsent(target) { mutableMapOf() }
   }
 
-  private fun getOutputGroupTargetConfig(outputGroup: String, target: String, config: String): List<String> {
-    return getOutputGroupTarget(outputGroup, target)[config] ?: emptyList()
+  private fun getOutputGroupTargetConfig(outputGroup: String, target: String, config: String): MutableMap<String, List<String>> {
+    return getOutputGroupTarget(outputGroup, target).computeIfAbsent(config){mutableMapOf()}
   }
 
-  fun setOutputGroupTargetConfig(outputGroup: String, target: String, config: String, fileSetNames: List<String>) {
-    val previous = getOutputGroupTarget(outputGroup, target).put(config, fileSetNames.toList())
+  fun setOutputGroupTargetConfigAspect(outputGroup: String, target: String, config: String, aspect: String, fileSetNames: List<String>) {
+    val previous = getOutputGroupTargetConfig(outputGroup, target, config).put(aspect, fileSetNames.toList())
     if (previous != null) {
       error("$outputGroup:$target:$config already present")
     }
@@ -151,7 +154,7 @@ private class OutputGroupTargetConfigFileSetMap {
       outputGroup.value.entries.asSequence().flatMap { target ->
         target.value.entries.asSequence().map { config ->
           OutputGroupTargetConfigFileSets(outputGroup.key, target.key,
-                                          config.key, config.value)
+                                          config.key, config.value.entries.flatMap { it.value })
         }
       }
     }
@@ -162,7 +165,7 @@ private class OutputGroupTargetConfigFileSetMap {
     return outputGroupData.entries.asSequence().flatMap { target ->
       target.value.entries.asSequence().map { config ->
         OutputGroupTargetConfigFileSets(outputGroup, target.key,
-                                        config.key, config.value)
+                                        config.key, config.value.entries.flatMap { it.value })
       }
     }
   }
@@ -172,7 +175,7 @@ private class OutputGroupTargetConfigFileSetMap {
     val outputGroupTargetData = outputGroupData[target] ?: return emptySequence()
     return outputGroupTargetData.entries.asSequence().map { config ->
       OutputGroupTargetConfigFileSets(outputGroup, target,
-                                      config.key, config.value)
+                                      config.key, config.value.entries.flatMap { it.value })
     }
   }
 }
@@ -307,11 +310,16 @@ private fun parseBep(stream: BuildEventStreamProvider, nullableInterner: Interne
       TARGET_COMPLETED -> {
         val label = event.id.targetCompleted.label
         val configId = event.id.targetCompleted.configuration.id
+        val aspect = event.id.targetCompleted.aspect
 
         for (o in event.completed.outputGroupList) {
           val fileSetNames = getFileSets(o, interner)
-          state.outputs.setOutputGroupTargetConfig(interner.intern(o.name), interner.intern(label), interner.intern(configId),
-                                                   fileSetNames)
+          state.outputs.setOutputGroupTargetConfigAspect(
+            interner.intern(o.name),
+            interner.intern(label),
+            interner.intern(configId),
+            interner.intern(aspect),
+            fileSetNames)
         }
       }
 
