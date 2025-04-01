@@ -384,7 +384,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
     synchronized(dataLock) {
       val runningAvds = runningAvdTracker.runningAvds
       for (emulator in emulators) {
-        val avdId = emulator.emulatorId.avdFolder.toString()
+        val avdId = emulator.emulatorId.avdId
         if (emulator.emulatorId.isEmbedded && runningAvds[avdId]?.isLaunchedByThisProcess == true) {
           emulator.shutdown()
           registrationDirectory?.resolve("pid_${emulator.emulatorId.pid}.ini")?.deleteIfExists()

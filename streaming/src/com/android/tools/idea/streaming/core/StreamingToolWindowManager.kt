@@ -516,7 +516,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
-    val avdId = emulator.emulatorId.avdFolder.toString()
+    val avdId = emulator.emulatorId.avdId
     val contentManager = recentAvdStartRequesters.remove(avdId)
     addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator), contentManager)
   }

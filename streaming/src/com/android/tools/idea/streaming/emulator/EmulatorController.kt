@@ -340,7 +340,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       alarm.cancelAllRequests()
       val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
       setVmState(vmRunState)
-      runningAvdTracker.shuttingDown(emulatorId.avdFolder.toString())
+      runningAvdTracker.shuttingDown(emulatorId.avdId)
     }
   }
 

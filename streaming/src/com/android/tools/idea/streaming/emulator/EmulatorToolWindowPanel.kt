@@ -67,7 +67,6 @@ import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import org.jetbrains.annotations.TestOnly
 import java.awt.EventQueue
-import java.nio.file.Path
 import java.util.function.IntFunction
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -93,7 +92,7 @@ internal class EmulatorToolWindowPanel(
 
   private val multiDisplayStateStorage = MultiDisplayStateStorage.getInstance(project)
   private val multiDisplayStateUpdater = Runnable {
-    multiDisplayStateStorage.setMultiDisplayState(emulatorId.avdFolder, displayConfigurator.getMultiDisplayState())
+    multiDisplayStateStorage.setMultiDisplayState(emulatorId.avdId, displayConfigurator.getMultiDisplayState())
   }
 
   private val emulatorId
@@ -187,7 +186,7 @@ internal class EmulatorToolWindowPanel(
     })
     emulator.addConnectionStateListener(this)
 
-    val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdFolder)
+    val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdId)
     if (multiDisplayState?.isInitialized() == true) {
       try {
         displayConfigurator.buildLayout(multiDisplayState)
@@ -472,14 +471,14 @@ internal class EmulatorToolWindowPanel(
       updaters.remove(updater)
     }
 
-    fun getMultiDisplayState(avdFolder: Path): MultiDisplayState? = displayStateByAvdFolder[avdFolder.toString()]
+    fun getMultiDisplayState(avdId: String): MultiDisplayState? = displayStateByAvdFolder[avdId]
 
-    fun setMultiDisplayState(avdFolder: Path, state: MultiDisplayState?) {
+    fun setMultiDisplayState(avdId: String, state: MultiDisplayState?) {
       if (state == null) {
-        displayStateByAvdFolder.remove(avdFolder.toString())
+        displayStateByAvdFolder.remove(avdId)
       }
       else {
-        displayStateByAvdFolder[avdFolder.toString()] = state
+        displayStateByAvdFolder[avdId] = state
       }
     }
 

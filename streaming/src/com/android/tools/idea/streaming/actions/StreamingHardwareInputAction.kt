@@ -83,7 +83,7 @@ internal class HardwareInputStateStorage {
 
   private val DeviceId.storageKey: String
     get() = when (this) {
-      is DeviceId.EmulatorDeviceId -> emulatorId.avdFolder.toString()
+      is DeviceId.EmulatorDeviceId -> emulatorId.avdId
       is DeviceId.PhysicalDeviceId -> serialNumber
     }
 }
