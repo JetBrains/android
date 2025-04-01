@@ -688,6 +688,7 @@ public final class StudioIcons {
     }
 
     public static final class Toolbar {
+      /** 16x16 */ public static final @NotNull Icon CRASH_APP = load("studio/icons/logcat/toolbar/crash-app.svg", -2062992834, 2);
       /** 16x16 */ public static final @NotNull Icon WRAP_TEXT = load("studio/icons/logcat/toolbar/wrap-text.svg", 1760152752, 2);
     }
   }

@@ -682,6 +682,7 @@ object StudioIconsCompose {
     }
 
     object Toolbar {
+      val CrashApp: IntelliJIconKey = IntelliJIconKey("/studio/icons/logcat/toolbar/crash-app.svg", "/studio/icons/logcat/toolbar/crash-app.svg", StudioIconsCompose.javaClass) // 16x16
       val WrapText: IntelliJIconKey = IntelliJIconKey("/studio/icons/logcat/toolbar/wrap-text.svg", "/studio/icons/logcat/toolbar/wrap-text.svg", StudioIconsCompose.javaClass) // 16x16
     }
   }
