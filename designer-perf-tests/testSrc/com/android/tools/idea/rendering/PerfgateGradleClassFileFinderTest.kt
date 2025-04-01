@@ -34,6 +34,7 @@ import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.gradle.GradleClassFileFinder
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildMainArtifactStub
@@ -199,7 +200,8 @@ class PerfgateGradleClassFileFinderTest {
 
     repeat(NUMBER_OF_SAMPLES) {
       val stopWatch = Stopwatch.createStarted()
-      val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module)
+      val gradleClassFinder =
+        GradleClassFileFinder.createWithoutTests(projectRule.module.getMainModule())
       classesToQuery.forEach { assertNotNull(gradleClassFinder.findClassFile(it)) }
       samples.add(Metric.MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
     }
@@ -232,7 +234,8 @@ class PerfgateGradleClassFileFinderTest {
         .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
       val stopWatch = Stopwatch.createStarted()
-      val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module)
+      val gradleClassFinder =
+        GradleClassFileFinder.createWithoutTests(projectRule.module.getMainModule())
       classesToQuery.forEach { assertNotNull(gradleClassFinder.findClassFile(it)) }
       samples.add(Metric.MetricSample(System.currentTimeMillis(), stopWatch.elapsed().toMillis()))
     }

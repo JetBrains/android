@@ -240,8 +240,14 @@ class GradleClassFileFinder
 private constructor(private val module: Module, private val scope: CompileRootsScope) :
   ClassFileFinder {
 
+  init {
+    if (module.isLinkedAndroidModule() && module.isHolderModule()) {
+      LOG.error("Using GradleClassFileFinder with a holder module is basically never right.")
+    }
+  }
+
   override fun findClassFile(fqcn: String): ClassContent? {
-    return module.getCompileOutputs(scope)?.findClass(fqcn)
+    return module.getCompileOutputs(scope).findClass(fqcn)
   }
 
   companion object {
@@ -262,5 +268,7 @@ private constructor(private val module: Module, private val scope: CompileRootsS
      */
     fun createIncludingScreenshotTest(module: Module) =
       GradleClassFileFinder(module, CompileRootsScope.MAIN_AND_SCREENSHOT_TEST)
+
+    private val LOG = Logger.getInstance(GradleClassFileFinder::class.java)
   }
 }

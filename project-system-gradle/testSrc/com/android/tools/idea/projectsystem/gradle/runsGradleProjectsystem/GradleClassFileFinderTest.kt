@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.gradle.GradleClassFileFinder
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.findAppModule
@@ -47,7 +49,7 @@ class GradleClassFileFinderTest {
     preparedProject.open { project ->
       GradleProjectSystemBuildManager(project).compileProject()
 
-      val classFinder = GradleClassFileFinder.createWithoutTests(project.findAppModule())
+      val classFinder = GradleClassFileFinder.createWithoutTests(project.findAppModule().getMainModule())
       expect.that(classFinder.findClassFile("com.example.app.AppJavaClass")).isNotNull()
       expect.that(classFinder.findClassFile("com.example.app.AppKotlinClass")).isNotNull()
     }
@@ -59,11 +61,13 @@ class GradleClassFileFinderTest {
     preparedProject.open { project ->
       GradleProjectSystemBuildManager(project).compileProject()
 
-      val classFinder = GradleClassFileFinder.createIncludingAndroidTest(project.findAppModule())
+      val classFinder = GradleClassFileFinder.createIncludingAndroidTest(project.findAppModule().getAndroidTestModule()!!)
 
       // Fqcns present in the main module or in android test files should be found
       expect.that(classFinder.findClassFile("google.simpleapplication.ApplicationTest")).isNotNull()
       expect.that(classFinder.findClassFile("google.simpleapplication.MyActivity")).isNotNull()
+      // ... but not unit tests.
+      expect.that(classFinder.findClassFile("google.simpleapplication.UnitTest")).isNull()
     }
   }
 
@@ -76,7 +80,7 @@ class GradleClassFileFinderTest {
     preparedProject.open { project ->
       GradleProjectSystemBuildManager(project).compileProject()
 
-      val classFinder = GradleClassFileFinder.createWithoutTests(project.findAppModule())
+      val classFinder = GradleClassFileFinder.createWithoutTests(project.findAppModule().getMainModule())
 
       // Only fqcns present in the main module should be found
       expect.that(classFinder.findClassFile("google.simpleapplication.ApplicationTest")).isNull()

@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent
@@ -69,7 +70,7 @@ import java.util.UUID
 
 private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
   return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { facet ->
-    facet.getModuleSystem().isRClassTransitive
+    !facet.module.isHolderModule() && facet.getModuleSystem().isRClassTransitive
   }
 }
 
