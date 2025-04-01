@@ -33,6 +33,7 @@ import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -102,22 +103,19 @@ public class MergedManifestModificationTrackerTest extends HeavyPlatformTestCase
 
     MergedManifestModificationTracker myModuleTracker = MergedManifestModificationTracker.getInstance(myModule);
     MergedManifestModificationTracker dependencyModuleTracker = MergedManifestModificationTracker.getInstance(dependencyModule);
-    long myModuleTrackerBaseCount = myModuleTracker.getModificationCount();
-    long dependencyModuleTrackerBaseCount = dependencyModuleTracker.getModificationCount();
 
     for (int i = 0; i < 20; i++) {
       // Since "myModule" depends on "dependencyModule", manifest file updates in "dependencyModule" will increment
-      // the tracker of "myModule". However, considering our fake long running operation when getting transitive
-      // dependents, the "in progress" task to update modification trackers is likely to be cancelled if the same
-      // task comes. Here, the task is always to update the tracker of "dependencyModule" and "myModule".
+      // the tracker of "myModule".
+      long startingDependencyCount = dependencyModuleTracker.getModificationCount();
+      long startingModuleCount = myModuleTracker.getModificationCount();
       updateManifest(modificationListener, stringPath, androidFacet);
-      Thread.sleep(50);
+      modificationListener.waitAllUpdatesCompletedWithTimeout(2, TimeUnit.SECONDS);
+      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+
+      assertThat(dependencyModuleTracker.getModificationCount()).isEqualTo(startingDependencyCount + 1);
+      assertThat(myModuleTracker.getModificationCount()).isEqualTo(startingModuleCount + 1);
     }
-
-    modificationListener.waitAllUpdatesCompletedWithTimeout(2, TimeUnit.SECONDS);
-
-    assertThat(dependencyModuleTracker.getModificationCount()).isEqualTo(dependencyModuleTrackerBaseCount + 20);
-    assertThat(myModuleTracker.getModificationCount()).isEqualTo(myModuleTrackerBaseCount + 1);
   }
 
   public void testCombinationCases() throws Exception {

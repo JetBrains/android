@@ -29,10 +29,7 @@ iml_module(
         "-Djdk.attach.allowAttachSelf=true",
     ],
     test_srcs = ["testSrc"],
-    test_tags = [
-        "block-network",
-        "noci:studio-win",  # TODO(b/406680743): Fix flakiness
-    ],
+    test_tags = ["block-network"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
