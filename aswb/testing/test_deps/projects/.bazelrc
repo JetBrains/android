@@ -13,3 +13,8 @@ common --java_language_version=17
 common --java_runtime_version=remotejdk_17
 common --tool_java_language_version=17
 common --tool_java_runtime_version=remotejdk_17
+
+# Configure Android.
+
+common --experimental_google_legacy_api
+common --experimental_enable_android_migration_apis
