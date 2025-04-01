@@ -21,7 +21,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.settingssync.onboarding.ChooseCategoriesStepPage
 import com.google.gct.login2.LoginFeature
+import com.google.gct.wizard.WizardPage
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -68,5 +70,9 @@ class SettingsSyncFeature : LoginFeature {
       override val description: String =
         "Settings Sync backs up your IDE settings to Google Drives and restores them " +
           "across your workstations so that your Android Studio experience is just the way you like it." // TODO: update wording
+
+      override fun getPages(): List<WizardPage> {
+        return listOf(ChooseCategoriesStepPage())
+      }
     }
 }
