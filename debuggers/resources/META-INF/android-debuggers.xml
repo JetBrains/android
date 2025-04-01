@@ -33,6 +33,7 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
     <debugger.fieldVisibilityProvider implementation="com.android.tools.idea.debug.AndroidFieldVisibilityProvider"/>
     <debugger.dexBytecodeInspector implementation="com.android.tools.idea.debug.DexBytecodeInspectorImpl"/>
+    <debugger.jdiHelperClassLoader implementation="com.android.tools.idea.debug.AndroidJdiHelperClassLoader"/>
 
     <debuggerClassFilterProvider implementation="com.android.tools.idea.debug.AndroidDebuggerClassesFilterProvider"/>
     <xdebugger.settings implementation="com.android.tools.idea.debug.AndroidDebuggerSettings"/>

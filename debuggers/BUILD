@@ -30,6 +30,7 @@ iml_module(
         "//tools/base/kexter:studio.android.sdktools.kexter",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger",
+        "//prebuilts/r8",
     ],
 )
 
