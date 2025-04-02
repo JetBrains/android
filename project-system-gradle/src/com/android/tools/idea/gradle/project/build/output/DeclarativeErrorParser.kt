@@ -114,14 +114,14 @@ class DeclarativeErrorParser : BuildOutputParser {
 
         override fun getNavigatable(project: Project): Navigatable? {
           val virtualFile = VfsUtil.findFileByIoFile(projectFile, false) ?: return null
-          return OpenFileDescriptor(project, virtualFile, lineNumber.toInt(), columnNumber.toInt())
+          return OpenFileDescriptor(project, virtualFile, lineNumber.toInt() - 1, columnNumber.toInt() - 1)
         }
 
       }
       return ReadResult(
         BuildIssueEventImpl(parentEventId, buildIssue, MessageEvent.Kind.ERROR),
-        lineNumber.toInt(),
-        columnNumber.toInt()
+        lineNumber.toInt() - 1,
+        columnNumber.toInt() - 1
       )
     }
     return null

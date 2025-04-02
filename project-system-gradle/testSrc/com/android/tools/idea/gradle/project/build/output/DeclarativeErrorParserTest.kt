@@ -56,8 +56,8 @@ class DeclarativeErrorParserTest {
       verifyIssue(iterator,
                   reader.parentEventId,
                   getDeclarativeBuildIssueDescription(project.basePath + "/path/build.gradle.dcl"),
-                  4,
-                  9,
+                  3,
+                  8,
                   file)
     }
   }
@@ -74,8 +74,8 @@ class DeclarativeErrorParserTest {
       verifyIssue(iterator,
                   reader.parentEventId,
                   getFailureBuildingLanguageTreeDescription(project.basePath + "/path/build.gradle.dcl"),
-                  2,
-                  10,
+                  1,
+                  9,
                   file)
     }
   }
@@ -90,8 +90,8 @@ class DeclarativeErrorParserTest {
       namespace = 1
     }
     """.trimIndent(), ::getMultipleSubject) { file, iterator, reader ->
-      verifyIssue(iterator, reader.parentEventId, getMultipleSubject1(file.path), 2, 10, file)
-      verifyIssue(iterator, reader.parentEventId, getMultipleSubject2(file.path), 4, 5, file)
+      verifyIssue(iterator, reader.parentEventId, getMultipleSubject1(file.path), 1, 9, file)
+      verifyIssue(iterator, reader.parentEventId, getMultipleSubject2(file.path), 3, 4, file)
     }
   }
 
@@ -106,8 +106,8 @@ class DeclarativeErrorParserTest {
       }
     }
     """.trimIndent(), ::getMultipleIssueOutput) { file, iterator, reader ->
-      verifyIssue(iterator, reader.parentEventId, getMultipleIssue1(file.path), 2, 5, file)
-      verifyIssue(iterator, reader.parentEventId, getMultipleIssue2(file.path), 4, 9, file)
+      verifyIssue(iterator, reader.parentEventId, getMultipleIssue1(file.path), 1, 4, file)
+      verifyIssue(iterator, reader.parentEventId, getMultipleIssue2(file.path), 3, 8, file)
     }
   }
 
