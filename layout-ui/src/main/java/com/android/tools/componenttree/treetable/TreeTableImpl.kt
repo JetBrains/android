@@ -34,7 +34,6 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
@@ -58,6 +57,7 @@ import javax.swing.TransferHandler
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeWillExpandListener
+import javax.swing.plaf.TreeUI
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.table.JTableHeader
 import javax.swing.table.TableCellRenderer
@@ -95,7 +95,6 @@ class TreeTableImpl(
   model: TreeTableModelImpl,
   private val contextPopup: ContextPopupHandler,
   private val doubleClick: DoubleClickHandler,
-  private val painter: (() -> Control.Painter?)?,
   private val installKeyboardActions: (JComponent) -> Unit,
   treeSelectionMode: Int,
   autoScroll: Boolean,
@@ -113,6 +112,11 @@ class TreeTableImpl(
   private var initialHeaderVisibility = false
   private var enableDrags = false
   private var dndClient: Disposable? = null
+  var treeUI: TreeUI? = null
+    set(ui) {
+      field = ui
+      updateUI()
+    }
 
   // The currently expanded row by the expandable items handler (needed by ViewTreeCellRenderer).
   val expandedRow: Int?
@@ -266,7 +270,12 @@ class TreeTableImpl(
     } else {
       // BasicTreeUI will reset the selection model during updateUI. Do not fire a selection
       // update to the client since is not the users intent to reset the selection.
-      treeTableSelectionModel.update { super.updateUI() }
+      treeTableSelectionModel.update {
+        super.updateUI()
+        if (tree != null && treeUI != null) {
+          tree.ui = treeUI
+        }
+      }
 
       // The tree row height is not updated correctly after a UI update. See b/275514572
       tree.rowHeight = getRowHeight()
@@ -329,7 +338,6 @@ class TreeTableImpl(
     TreeTableModelAdapterImpl(tableModel, tree, this)
 
   override fun paintComponent(g: Graphics) {
-    tree.putClientProperty(Control.Painter.KEY, painter?.invoke())
     super.paintComponent(g)
     dropTargetHandler?.paintDropTargetPosition(g)
     paintColumnDividers(g)

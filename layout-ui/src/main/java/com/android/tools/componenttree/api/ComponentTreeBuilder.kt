@@ -24,7 +24,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -38,6 +37,7 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
 import javax.swing.table.TableCellRenderer
+import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION
 import javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
 
@@ -73,10 +73,11 @@ class ComponentTreeBuilder {
   private var dndMerger: DnDMerger? = null
   private var dndDeleteOriginOfInternalMove = true
   private var componentName = "componentTree"
-  private var painter: (() -> Control.Painter?)? = null
   private var installKeyboardActions: (JComponent) -> Unit = {}
   private var toggleClickCount = 2
   private var expandAllOnRootChange = false
+  private var showSupportLines: () -> Boolean = { true }
+  private var isCallStackNode: (TreePath) -> Boolean = { path -> false }
 
   /** Register a [NodeType]. */
   fun <T> withNodeType(type: NodeType<T>) = apply { nodeTypeMap[type.clazz] = type }
@@ -140,6 +141,16 @@ class ComponentTreeBuilder {
   /** Show the expansion icon for the root. */
   fun withExpandableRoot() = apply { showRootHandles = true }
 
+  /** Show the support lines for the component tree. */
+  fun withShowSupportLines(showSupportLines: () -> Boolean) = apply {
+    this.showSupportLines = showSupportLines
+  }
+
+  /** Checks if the node in the tree has a callstack relation. */
+  fun withIsCallStackNodeCheck(isCallStackNode: (TreePath) -> Boolean) = apply {
+    this.isCallStackNode = isCallStackNode
+  }
+
   /** Show an horizontal scrollbar if necessary. */
   fun withHorizontalScrollBar() = apply { horizontalScrollbar = true }
 
@@ -148,12 +159,6 @@ class ComponentTreeBuilder {
 
   /** Auto scroll to make a newly selected item scroll into view. */
   fun withAutoScroll() = apply { autoScroll = true }
-
-  /**
-   * Sets a custom tree painter (e.g. [Control.Painter.COMPACT]) for this tree to use, which may
-   * change during runtime.
-   */
-  fun withPainter(painter: () -> Control.Painter?) = apply { this.painter = painter }
 
   /** Allows custom keyboard actions to be installed. */
   fun withKeyboardActions(installer: (JComponent) -> Unit) = apply {
@@ -170,7 +175,6 @@ class ComponentTreeBuilder {
         model,
         contextPopup,
         doubleClick,
-        painter,
         installKeyboardActions,
         selectionMode,
         autoScroll,
@@ -205,7 +209,15 @@ class ComponentTreeBuilder {
       val horizontalScrollPane = ColumnTreeScrollPanel(tree, table)
       horizontalScrollPane.border = verticalScrollPane.border
 
-      tree.ui = ColumnTreeUI(table, horizontalScrollPane, verticalScrollPane, autoScroll)
+      table.treeUI =
+        ColumnTreeUI(
+          table,
+          horizontalScrollPane,
+          verticalScrollPane,
+          autoScroll,
+          showSupportLines,
+          isCallStackNode,
+        )
 
       val outerPanel = JPanel(BorderLayout())
       // Add a vertical scroll pane wrapping the TreeTable content to the center, and add a JPanel

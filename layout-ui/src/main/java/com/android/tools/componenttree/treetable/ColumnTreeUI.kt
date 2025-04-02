@@ -15,6 +15,13 @@
  */
 package com.android.tools.componenttree.treetable
 
+import com.intellij.ui.scale.JBUIScale
+import com.intellij.ui.tree.ui.Control
+import com.intellij.ui.tree.ui.DefaultControl
+import java.awt.BasicStroke
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.Insets
 import java.awt.Rectangle
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
@@ -38,11 +45,15 @@ class ColumnTreeUI(
   private val hScrollBarPanel: ColumnTreeScrollPanel,
   private val scrollPane: JScrollPane,
   private val autoScroll: Boolean,
+  private val showSupportLines: () -> Boolean,
+  private val isCallStackNode: (TreePath) -> Boolean,
 ) : BasicTreeUI() {
   private var stateChangeListener: ChangeListener? = null
   private val treeNodesWidth = ConcurrentHashMap<Int, Int>()
   private var mouseWheelListener: MouseWheelListener? = null
   private var treeSelectionListener: TreeSelectionListener? = null
+  private val control = DefaultControl()
+  private val defaultPainter = Control.Painter.DEFAULT
 
   override fun installListeners() {
     super.installListeners()
@@ -180,5 +191,146 @@ class ColumnTreeUI(
       mostExpandedNodeWidth = maxOf(mostExpandedNodeWidth, treeNodesWidth.getOrElse(r) { 0 })
     }
     hScrollBarPanel.updateScrollBar(mostExpandedNodeWidth)
+  }
+
+  /** Copied from [BasicTreeUI] to control the support lines visibility. */
+  override fun paintHorizontalPartOfLeg(
+    g: Graphics,
+    clipBounds: Rectangle,
+    insets: Insets,
+    bounds: Rectangle,
+    path: TreePath,
+    row: Int,
+    isExpanded: Boolean,
+    hasBeenExpanded: Boolean,
+    isLeaf: Boolean,
+  ) {
+    if (!showSupportLines.invoke()) {
+      return
+    }
+
+    val depth = path.pathCount - 1
+    if ((depth == 0 || (depth == 1 && !isRootVisible)) && !showsRootHandles) {
+      return
+    }
+
+    val indent =
+      defaultPainter.getControlOffset(control, 2, false) -
+        defaultPainter.getControlOffset(control, 1, false)
+    val spaceForControlLine = indent - control.width / 2 - JBUIScale.scale(4)
+    if (depth > 1 && spaceForControlLine > JBUIScale.scale(4)) {
+      val lineY = bounds.y + bounds.height / 2
+      val leftX =
+        table.tree
+          .getPathBounds(path.parentPath)
+          ?.bounds
+          ?.x
+          ?.minus(control.width / 2)
+          ?.minus(JBUIScale.scale(1))
+      val rightX =
+        if (isLeaf) bounds.x - JBUIScale.scale(4) else bounds.x - control.width - JBUIScale.scale(4)
+
+      g.color = hashColor
+      if (leftX != null && leftX < rightX) {
+        val isCallStack = isCallStackNode(path)
+        if (isCallStack) {
+          drawDashedLine(g, lineY, leftX, rightX, false)
+        } else {
+          g.drawLine(leftX, lineY, rightX, lineY)
+        }
+      }
+    }
+  }
+
+  /** Copied from [BasicTreeUI] to control the support lines visibility. */
+  override fun paintVerticalPartOfLeg(
+    g: Graphics,
+    clipBounds: Rectangle,
+    insets: Insets,
+    path: TreePath,
+  ) {
+    if (!showSupportLines.invoke()) {
+      return
+    }
+
+    val depth = path.pathCount - 1
+    if (depth == 0 && !showsRootHandles && !isRootVisible) {
+      return
+    }
+
+    val lineX = table.tree.getPathBounds(path.parentPath)?.bounds?.x?.plus(control.width / 2)
+
+    val clipLeft = clipBounds.x
+    val clipRight = clipBounds.x + (clipBounds.width - 1)
+
+    if (lineX != null && lineX >= clipLeft && lineX <= clipRight) {
+      val clipTop = clipBounds.y
+      val clipBottom = clipBounds.y + clipBounds.height
+      val parentBounds = getPathBounds(tree, path)
+      val lastChildBounds = getPathBounds(tree, getLastChildPath(path))
+
+      if (lastChildBounds == null) return
+
+      var top: Int
+
+      top =
+        if (parentBounds == null) {
+          (insets.top + verticalLegBuffer).coerceAtLeast(clipTop)
+        } else (parentBounds.y + parentBounds.height + verticalLegBuffer).coerceAtLeast(clipTop)
+
+      if (depth == 0 && !isRootVisible) {
+        val model = model
+
+        if (model != null) {
+          val root = model.root
+
+          if (model.getChildCount(root) > 0) {
+            val firstChildPath = path.pathByAddingChild(model.getChild(root, 0))
+            val firstChildBounds = getPathBounds(tree, firstChildPath)
+            if (firstChildBounds != null)
+              top =
+                (insets.top + verticalLegBuffer).coerceAtLeast(
+                  firstChildBounds.y + firstChildBounds.height / 2
+                )
+          }
+        }
+      }
+      val bottom = (lastChildBounds.y + (lastChildBounds.height / 2)).coerceAtMost(clipBottom)
+      if (top <= bottom) {
+        g.color = hashColor
+        paintVerticalLine(g, tree, lineX, top - JBUIScale.scale(1), bottom)
+      }
+    }
+  }
+
+  /** Copied from [BasicTreeUI] and modified the gap and dash length. */
+  private fun drawDashedLine(g: Graphics, v: Int, v1: Int, v2: Int, isVertical: Boolean) {
+    if (v1 >= v2) {
+      return
+    }
+    var start = v1
+
+    val g2d = g as Graphics2D
+    val oldStroke = g2d.stroke
+    val dashLength = 2f
+    val gapLength = 3f
+    val dashedStroke =
+      BasicStroke(
+        2f, // Line width
+        BasicStroke.CAP_BUTT,
+        BasicStroke.JOIN_ROUND,
+        0f,
+        floatArrayOf(dashLength, gapLength),
+        0f,
+      )
+    g2d.stroke = dashedStroke
+
+    if (isVertical) {
+      g2d.drawLine(v, start, v, v2)
+    } else {
+      g2d.drawLine(start, v, v2, v)
+    }
+
+    g2d.stroke = oldStroke
   }
 }

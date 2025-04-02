@@ -38,7 +38,6 @@ import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAcces
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
-import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.CommonActionsManager
 import com.intellij.ide.DefaultTreeExpander
@@ -74,6 +73,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.table.TableCellRenderer
+import javax.swing.tree.TreePath
 import kotlin.math.max
 
 fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
@@ -229,10 +229,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withColumn(recompositionCountsColumn)
       .withColumn(recompositionChildCountColumn)
       .withColumn(recompositionSkipsColumn)
+      .withIsCallStackNodeCheck(::isCallStackNode)
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
+      .withShowSupportLines { layoutInspector?.treeSettings?.supportLines == true }
       .withComponentName("inspectorComponentTree")
-      .withPainter { if (layoutInspector?.treeSettings?.supportLines == true) LINES else null }
       .withKeyboardActions(::installKeyboardActions)
       .build()
   }
@@ -651,6 +652,19 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       // TreeTableSelectionModelImpl requires updating the state from the ui thread.
       componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
     }
+  }
+
+  /**
+   * Checks if the tree node has a "compose callstack" relation. This essentially verifies if the
+   * node's unfiltered original parent is the same as the one presented in the component tree.
+   */
+  @VisibleForTesting
+  fun isCallStackNode(nodePath: TreePath): Boolean {
+    val node = nodePath.lastPathComponent as TreeViewNode
+    val nodeView = readAccess { node.view.parent }
+    return layoutInspector?.treeSettings?.let {
+      nodeView?.findClosestUnfilteredNode(it)?.treeNode
+    } !== node.parent
   }
 
   @Suppress("UNUSED_PARAMETER")
