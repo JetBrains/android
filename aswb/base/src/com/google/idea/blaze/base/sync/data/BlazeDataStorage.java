@@ -84,9 +84,13 @@ public class BlazeDataStorage {
     if (importSettings == null) {
       throw new IllegalStateException("BlazeImportSettings unavailable");
     }
+    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProjectSafe(project);
+    if (workspaceRoot == null) {
+      throw new IllegalStateException("workspaceRoot unavailable");
+    }
     final var pathResolver =
       ProjectPath.Resolver.create(
-        WorkspaceRoot.fromImportSettings(importSettings).path(),
+        workspaceRoot.path(),
         Path.of(
           importSettings
             .getProjectDataDirectory()));

@@ -179,7 +179,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     BlazeImportSettings importSettings =
       Preconditions.checkNotNull(
         BlazeImportSettingsManager.getInstance(project).getImportSettings());
-    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
     ProjectViewManager projectViewManager = ProjectViewManager.getInstance(project);
     // TODO we may need to get the WorkspacePathResolver from the VcsHandler, as the old sync
     // does inside ProjectStateSyncTask.computeWorkspacePathResolverAndProjectView

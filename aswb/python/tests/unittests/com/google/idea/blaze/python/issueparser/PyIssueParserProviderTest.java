@@ -41,7 +41,7 @@ public class PyIssueParserProviderTest extends BlazeTestCase {
 
   private static final BlazeImportSettings DUMMY_SETTINGS =
       new BlazeImportSettings("root", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
-  private static final WorkspaceRoot ROOT = WorkspaceRoot.fromImportSettings(DUMMY_SETTINGS);
+  private static final WorkspaceRoot ROOT = WorkspaceRoot.fromImportSettingsForTesting(DUMMY_SETTINGS);
   private ImmutableList<BlazeIssueParser.Parser> parsers;
 
   @Override

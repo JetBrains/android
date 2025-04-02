@@ -65,7 +65,7 @@ public class BlazeCompilerSettingsTest extends BlazeTestCase {
     importSettingsManager.setImportSettings(importSettings);
     projectServices.register(BlazeImportSettingsManager.class, importSettingsManager);
 
-    workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    workspaceRoot = WorkspaceRoot.fromProject(project);
     blazeProjectData = MockBlazeProjectDataBuilder.builder(workspaceRoot).build();
     projectServices.register(
         BlazeProjectDataManager.class, new MockBlazeProjectDataManager(blazeProjectData));

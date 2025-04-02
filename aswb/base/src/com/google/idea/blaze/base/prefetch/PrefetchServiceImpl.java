@@ -141,7 +141,10 @@ public class PrefetchServiceImpl implements PrefetchService {
     if (importSettings == null) {
       return Futures.immediateFuture(PrefetchStats.NONE);
     }
-    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProjectSafe(project);
+    if (workspaceRoot == null) {
+      return Futures.immediateFuture(PrefetchStats.NONE);
+    }
     if (!FileOperationProvider.getInstance().exists(workspaceRoot.directory())) {
       // quick sanity check before trying to prefetch each individual file
       return Futures.immediateFuture(PrefetchStats.NONE);

@@ -198,7 +198,7 @@ public class CPrefetchFileSourceTest extends BlazeIntegrationTestCase {
   private ImportRoots getImportRoots(ProjectViewSet projectViewSet) {
     BlazeImportSettings importSettings =
         BlazeImportSettingsManager.getInstance(getProject()).getImportSettings();
-    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(getProject());
     return ImportRoots.builder(workspaceRoot, importSettings.getBuildSystem())
         .add(projectViewSet)
         .build();

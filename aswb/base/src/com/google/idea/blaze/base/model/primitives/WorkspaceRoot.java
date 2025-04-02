@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.nio.file.Path;
 import javax.annotation.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /** Represents a workspace root */
 @SuppressWarnings("FileComparisons")
@@ -40,8 +41,13 @@ public class WorkspaceRoot implements ProtoWrapper<String> {
    * @param blazeSettings settings for the project in question
    * @return the path to workspace root that is used for the project
    */
-  public static WorkspaceRoot fromImportSettings(BlazeImportSettings blazeSettings) {
+  private static WorkspaceRoot fromImportSettings(BlazeImportSettings blazeSettings) {
     return new WorkspaceRoot(new File(blazeSettings.getWorkspaceRoot()));
+  }
+
+  @TestOnly
+  public static WorkspaceRoot fromImportSettingsForTesting(BlazeImportSettings blazeSettings) {
+    return fromImportSettings(blazeSettings);
   }
 
   /**

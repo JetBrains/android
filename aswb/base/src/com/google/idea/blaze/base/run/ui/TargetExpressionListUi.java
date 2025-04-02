@@ -221,12 +221,13 @@ public class TargetExpressionListUi extends JPanel {
       BlazeImportSettings importSettings =
           BlazeImportSettingsManager.getInstance(project).getImportSettings();
       ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
-      if (projectData == null || importSettings == null || projectViewSet == null) {
+      WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProjectSafe(project);
+      if (projectData == null || importSettings == null || projectViewSet == null || workspaceRoot == null) {
         return ImmutableList.of();
       }
       ImportRoots importRoots =
           ImportRoots.builder(
-                  WorkspaceRoot.fromImportSettings(importSettings), importSettings.getBuildSystem())
+              workspaceRoot, importSettings.getBuildSystem())
               .add(projectViewSet)
               .build();
 

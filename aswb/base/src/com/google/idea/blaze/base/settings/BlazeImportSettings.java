@@ -76,6 +76,7 @@ public final class BlazeImportSettings {
     return projectName.replaceAll("[^a-zA-Z0-9]", "") + "-" + uuid;
   }
 
+  @Deprecated
   @SuppressWarnings("unused")
   public String getWorkspaceRoot() {
     return workspaceRoot;
@@ -110,6 +111,7 @@ public final class BlazeImportSettings {
   }
 
   /** The type of this project. */
+  @Deprecated
   @SuppressWarnings("unused")
   public ProjectType getProjectType() {
     return projectType;

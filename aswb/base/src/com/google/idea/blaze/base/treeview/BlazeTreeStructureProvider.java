@@ -18,8 +18,6 @@ package com.google.idea.blaze.base.treeview;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
-import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.intellij.ide.projectView.ProjectViewSettings;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
@@ -82,10 +80,8 @@ public class BlazeTreeStructureProvider implements TreeStructureProvider, DumbAw
 
   @Nullable
   private WorkspaceRootNode createRootNode(Project project, ViewSettings settings) {
-    BlazeImportSettings importSettings =
-        BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    if (importSettings != null) {
-      WorkspaceRoot workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProjectSafe(project);
+    if (workspaceRoot != null) {
       File fdir = workspaceRoot.directory();
       VirtualFile vdir = LocalFileSystem.getInstance().findFileByIoFile(fdir);
       if (vdir != null) {

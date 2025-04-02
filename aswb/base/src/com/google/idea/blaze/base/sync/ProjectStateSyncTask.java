@@ -78,7 +78,7 @@ final class ProjectStateSyncTask {
   private ProjectStateSyncTask(Project project) {
     this.project = project;
     this.importSettings = BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    this.workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    this.workspaceRoot = WorkspaceRoot.fromProject(project);
   }
 
   private SyncProjectState getProjectState(BlazeContext context)

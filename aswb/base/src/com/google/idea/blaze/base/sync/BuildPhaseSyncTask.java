@@ -116,7 +116,7 @@ public final class BuildPhaseSyncTask {
       BuildSystem buildSystem) {
     this.project = project;
     this.importSettings = BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    this.workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    this.workspaceRoot = WorkspaceRoot.fromProject(project);
     this.syncParams = syncParams;
     this.projectState = projectState;
     this.buildId = buildId;

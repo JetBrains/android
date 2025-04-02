@@ -144,7 +144,7 @@ final class ProjectUpdateSyncTask {
       BlazeInfo blazeInfo) {
     this.project = project;
     this.importSettings = BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    this.workspaceRoot = WorkspaceRoot.fromImportSettings(importSettings);
+    this.workspaceRoot = WorkspaceRoot.fromProject(project);
     this.syncMode = syncMode;
     this.projectState = projectState;
     this.targetData = targetData;
