@@ -43,6 +43,5 @@
   <xi:include href="/META-INF/layoutlib.xml"/>
   <xi:include href="/META-INF/glance-designer.xml"/>
   <xi:include href="/META-INF/wear-designer.xml"/>
-  <xi:include href="/META-INF/motion-editor.xml"/>
 
 </idea-plugin>
