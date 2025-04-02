@@ -29,6 +29,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.projectsystem.gradle.isMainModule
@@ -109,7 +110,7 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
             module.isMainModule() -> gradleModuleSystem.moduleClassFileFinder
             module.isAndroidTestModule() -> gradleModuleSystem.androidTestsClassFileFinder
             module.isScreenshotTestModule() -> gradleModuleSystem.screenshotTestsClassFileFinder
-            module.isHolderModule() -> gradleModuleSystem.moduleClassFileFinder.also {
+            module.isHolderModule() -> module.getMainModule().getModuleSystem().moduleClassFileFinder.also {
               thisLogger().error(
                 "ClassFileFinder for $module holder module requested. This is ambiguous. Falling back to the main module.",
                 Throwable()
