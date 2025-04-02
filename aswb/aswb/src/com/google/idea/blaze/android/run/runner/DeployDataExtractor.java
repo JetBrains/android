@@ -53,27 +53,30 @@ final class DeployDataExtractor {
       throw new IOException("Error getting deployinfo: " + e.getMessage(), e);
     }
 
-    // The deploy info proto provides workspace relative paths (i.e. blaze-out/k8-fastbuild/...),
-    // even though the field itself is called execRootPath. So we trim the blaze-out prefix
-    // when looking at these paths.
     List<String> apkPaths =
         deployInfoProto.getApksToDeployList().stream()
             .map(Artifact::getExecRootPath)
-            .map(blazeOutPath -> StringUtil.trimStart(blazeOutPath, "blaze-out/"))
+            .map(DeployDataExtractor::getBazelOutRelativePath)
             .collect(toImmutableList());
     ImmutableList<OutputArtifact> apkArtifacts =
         apkBuildArtifacts.stream()
-            .filter(a -> apkPaths.contains(a.getBazelOutRelativePath()))
+            .filter(a -> apkPaths.contains(getBazelOutRelativePath(a.getArtifactPath().toString())))
             .collect(toImmutableList());
 
-    String mergedManifestPath =
-        StringUtil.trimStart(deployInfoProto.getMergedManifest().getExecRootPath(), "blaze-out/");
+    String mergedManifestPath = getBazelOutRelativePath(deployInfoProto.getMergedManifest().getExecRootPath());
     OutputArtifact manifestArtifact =
         infoBuildArtifacts.stream()
-            .filter(a -> mergedManifestPath.equals(a.getBazelOutRelativePath()))
+            .filter(a -> mergedManifestPath.equals(getBazelOutRelativePath(a.getArtifactPath().toString())))
             .collect(MoreCollectors.onlyElement());
 
     return DeployData.create(parseManifest(manifestArtifact), apkArtifacts);
+  }
+
+  private static String getBazelOutRelativePath(String str) {
+    if (str.startsWith("blaze-out/") || str.startsWith("bazel-out/")) {
+      return str.substring("blaze-out/".length());
+    }
+    return str;
   }
 
   private static AndroidDeployInfo fetchAndParseDeployInfo(
