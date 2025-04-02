@@ -16,6 +16,15 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
 import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
@@ -33,17 +42,8 @@ import static com.android.SdkConstants.ATTR_MIN_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
 import static com.android.SdkConstants.AUTO_URI;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
-import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
@@ -133,20 +133,14 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -1211,9 +1205,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private static class MarginSelector extends DirectViewAction {
 
     private static final String PICK_A_DIMENSION = "Pick a Dimension";
-    private static final float DEFAULT_ICON_FONT_SIZE = 12f;
-    private static final int DEFAULT_ICON_WIDTH = 36;
-    private static final int DEFAULT_ICON_HEIGHT = 16;
 
     private final ActionListener myResourcePickerIconClickListener = new ActionListener() {
       @Override
@@ -1321,37 +1312,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     private void updateIcon() {
       myMarginPopup = createIfNeeded();
-      String previousDisplay = myMarginPopup.getMargin().getDisplayValue();
-      if (!previousDisplay.equals(myPreviousDisplay)) {
-        myPreviousDisplay = previousDisplay;
-        myMarginIcon = new Icon() {
-          @Override
-          public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(JBColor.foreground());
-            g.setFont(g.getFont().deriveFont(Font.PLAIN, JBUI.scaleFontSize(DEFAULT_ICON_FONT_SIZE)));
-            String m = myPreviousDisplay;
-            FontMetrics metrics = g.getFontMetrics();
-            int strWidth = metrics.stringWidth(m);
-            ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            int stringY = (getIconHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
-            g.drawString(m, x + (getIconWidth() - strWidth) / 2, y + stringY - 1);
-            g.setColor(JBColor.foreground().darker());
-            int marginRight = 6;
-            g.drawLine(x + 1, y + getIconHeight() - 1, x + getIconWidth() - 1, y + getIconHeight() - 1);
-            g.drawLine(x + 1, y + getIconHeight(), x + 1, y + getIconHeight() - marginRight);
-            g.drawLine(x + getIconWidth() - 1, y + getIconHeight(), x + getIconWidth() - 1, y + getIconHeight() - marginRight);
-          }
-
-          @Override
-          public int getIconWidth() {
-            return JBUI.scale(DEFAULT_ICON_WIDTH);
-          }
-
-          @Override
-          public int getIconHeight() {
-            return JBUI.scale(DEFAULT_ICON_HEIGHT);
-          }
-        };
+      String currentDisplayValue = myMarginPopup.getMargin().getDisplayValue();
+      if (!currentDisplayValue.equals(myPreviousDisplay)) {
+        myPreviousDisplay = currentDisplayValue;
+        myMarginIcon = new MarginTextIcon(currentDisplayValue);
       }
     }
 
