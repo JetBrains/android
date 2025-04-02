@@ -23,7 +23,7 @@ COMMON_DATA = [
     "//prebuilts/studio/sdk:ndk",
     # TODO (b/378379062): Delete sdk 34 after migrating all test apps to API 35
     "//prebuilts/studio/sdk:platforms/android-34_build_only",
-    "//prebuilts/studio/sdk:platforms/android-35_build_only",
+    "//prebuilts/studio/sdk:platforms/android-36_build_only",
     "//prebuilts/studio/sdk:platform-tools",
     "//prebuilts/tools/common/aspects-agent:aspects_agent",
     "//prebuilts/tools:bazel-dist",
@@ -1253,7 +1253,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:runtime",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/studio/sdk:platforms/android-35",
+        "//prebuilts/studio/sdk:platforms/android-36",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
