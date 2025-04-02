@@ -31,7 +31,7 @@ public final class AdbOptionsService {
   /**
    * Default user managed adb port.
    */
-  public static final int USER_MANAGED_ADB_PORT_DEFAULT = USER_MANAGED_ADB_PORT_MIN_VALUE;
+  public static final int USER_MANAGED_ADB_PORT_DEFAULT = USER_MANAGED_ADB_PORT_MIN_VALUE + 1;
 
   /**
    * Max ephemeral port number for most modern operating systems.

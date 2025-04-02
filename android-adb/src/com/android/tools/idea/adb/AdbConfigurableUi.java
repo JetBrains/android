@@ -240,9 +240,9 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
 
-    myExistingAdbServerPortSpinner.setMax(65535);
-    myExistingAdbServerPortSpinner.setMin(5038);
-    myExistingAdbServerPortSpinner.setNumber(5038);
+    myExistingAdbServerPortSpinner.setMax(AdbOptionsService.USER_MANAGED_ADB_PORT_MAX_VALUE);
+    myExistingAdbServerPortSpinner.setMin(AdbOptionsService.USER_MANAGED_ADB_PORT_MIN_VALUE);
+    myExistingAdbServerPortSpinner.setNumber(AdbOptionsService.USER_MANAGED_ADB_PORT_DEFAULT);
     myExistingAdbServerPortSpinner.setOpaque(false);
     lifeCyclePanel.add(myExistingAdbServerPortSpinner, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
                                                                    GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
