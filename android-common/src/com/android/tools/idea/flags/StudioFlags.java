@@ -2335,6 +2335,29 @@ public final class StudioFlags {
                     "Enable support for GCA Enterprise tier",
                     enabledUpTo(CANARY));
 
+  public enum DasherSupportMode {
+    /**
+     * Don't include any special treatment for dasher users.
+     * This is mainly useful as a workaround for situations like in b/407825030
+     */
+    NEVER,
+    /**
+     * If we detect a dasher user, attempt to automatically figure out their eligibility for various tiers
+     */
+    AUTO,
+    /**
+     * Always show the tier selection mode and let the user choose.
+     * This is a bypass in case the AUTO mode doesn't work for some reason.
+     */
+    ALWAYS
+  }
+
+  public static final EnumFlag<DasherSupportMode> STUDIOBOT_SUPPORT_GIAS_DASHER_ACCOUNTS =
+    new EnumFlag<>(STUDIOBOT, "support.gias.dasher.accounts",
+                   "Enable support for GCA Dasher accounts",
+                   "Enable support for GCA Dasher accounts",
+                   DasherSupportMode.NEVER);
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
