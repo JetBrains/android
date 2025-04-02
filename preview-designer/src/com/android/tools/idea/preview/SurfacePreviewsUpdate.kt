@@ -209,7 +209,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   if (facet == null || configurationManager == null) return emptyList()
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new
   // ones.
-  val existingModels = models.toMutableList()
+  val existingModels = models
   val previewElementsList = previewElements.toList()
   val modelIndices =
     if (tryReusingModels) {
@@ -225,9 +225,9 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       previewElement to if (modelIndices[idx] == -1) null else existingModels[modelIndices[idx]]
     }
 
-  existingModels.removeAll(elementsToReusableModels.mapNotNull { it.second })
-  debugLogger?.log("Removing ${existingModels.size} model(s)")
-  removeModels(existingModels)
+  val notReusedModels = existingModels - elementsToReusableModels.mapNotNull { it.second }.toSet()
+  debugLogger?.log("Removing ${notReusedModels.size} model(s)")
+  removeModels(notReusedModels)
 
   refreshEventBuilder?.withPreviewsCount(elementsToReusableModels.size)
   refreshEventBuilder?.withPreviewsToRefresh(elementsToReusableModels.size)
