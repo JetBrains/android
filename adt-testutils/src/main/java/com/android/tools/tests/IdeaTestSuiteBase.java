@@ -32,9 +32,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.junit.ClassRule;
 
 @JarTestSuiteRunner.FinalizerTest(LastInIdeaTestSuite.class)
 public class IdeaTestSuiteBase {
+
+  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
+
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {

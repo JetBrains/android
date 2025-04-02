@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
@@ -26,7 +24,6 @@ import org.junit.runner.RunWith;
   GradleProjectSystemUpgradeTestSuite.class
 })
 public class GradleProjectSystemUpgradeTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static GradleDaemonsRule daemons = new GradleDaemonsRule();
 
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle-upgrade/test_deps.manifest");

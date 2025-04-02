@@ -17,15 +17,12 @@ package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths;
-import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import java.util.logging.Logger;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 public class SyncPerfTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static final GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   private static final Logger LOG = Logger.getLogger(SyncPerfTestSuite.class.getName());
 

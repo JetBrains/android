@@ -16,12 +16,9 @@
 package com.android.tools.idea.nav.safeargs;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import org.junit.ClassRule;
 
 public abstract class SafeArgsTestSuiteBase extends IdeaTestSuiteBase {
-  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
     String TESTDEPS_REPO = "tools/adt/idea/nav/safeargs/tests/testdeps_repo.manifest";

@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.testartifacts
 
-import com.android.testutils.JarTestSuiteRunner;
-import com.android.testutils.TestUtils;
-import com.android.tools.idea.adb.AdbService;
-import com.android.tools.tests.GradleDaemonsRule;
-import com.android.tools.tests.IdeaTestSuiteBase;
-import org.junit.ClassRule;
-import org.junit.runner.RunWith;
+import com.android.testutils.JarTestSuiteRunner
+import com.android.testutils.TestUtils
+import com.android.tools.idea.adb.AdbService
+import com.android.tools.tests.IdeaTestSuiteBase
+import org.junit.runner.RunWith
 
 
 @RunWith(JarTestSuiteRunner::class)
@@ -30,11 +28,7 @@ class TestArtifactsTestSuite : IdeaTestSuiteBase() {
 
   // Refactored from IdeaTestSuite
   companion object {
-    @ClassRule
-    @JvmField
-    val gradle: GradleDaemonsRule = GradleDaemonsRule()
-
-    const val DATA_BINDING_RUNTIME_ZIP: String = "tools/data-binding/data_binding_runtime.zip"
+    val DATA_BINDING_RUNTIME_ZIP: String = "tools/data-binding/data_binding_runtime.zip"
 
     init {
       try {

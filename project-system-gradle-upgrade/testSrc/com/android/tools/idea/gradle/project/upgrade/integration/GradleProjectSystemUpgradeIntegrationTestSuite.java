@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade.integration;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.junit4.OldAgpSuite;
 import com.android.tools.idea.gradle.project.upgrade.GradleProjectSystemUpgradeTestSuite;
-import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.MavenRepoRule;
 import org.junit.ClassRule;
@@ -32,6 +31,5 @@ import org.junit.runner.RunWith;
   BaseProjectsMatchingTargetsTest.class
 })
 public class GradleProjectSystemUpgradeIntegrationTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static GradleDaemonsRule daemons = new GradleDaemonsRule();
   @ClassRule public static MavenRepoRule mavenRepos = MavenRepoRule.fromTestSuiteSystemProperty();
 }

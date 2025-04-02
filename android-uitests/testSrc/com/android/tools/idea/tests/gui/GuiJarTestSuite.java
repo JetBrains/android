@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui;
 
 import com.android.testutils.ClassSuiteRunner;
 import com.android.testutils.TestUtils;
-import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.XDisplayRule;
 import com.intellij.openapi.diagnostic.Logger;
@@ -31,8 +30,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(ClassSuiteRunner.class)
 public class GuiJarTestSuite extends IdeaTestSuiteBase {
-
-  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   @ClassRule public static XDisplayRule display = new XDisplayRule();
 

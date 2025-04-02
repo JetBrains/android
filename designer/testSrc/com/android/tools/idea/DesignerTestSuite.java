@@ -18,9 +18,7 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.adtui.swing.IconLoaderRule;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
-import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
@@ -29,8 +27,6 @@ import org.junit.runner.RunWith;
   NlDesignSurfaceTest.class, // Flaky
 })
 public class DesignerTestSuite extends IdeaTestSuiteBase {
-
-  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/designer/test_deps.manifest");

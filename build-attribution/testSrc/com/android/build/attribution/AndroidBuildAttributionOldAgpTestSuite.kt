@@ -17,7 +17,6 @@ package com.android.build.attribution
 
 import com.android.testutils.JarTestSuiteRunner
 import com.android.testutils.junit4.OldAgpSuite
-import com.android.tools.tests.GradleDaemonsRule
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.tools.tests.MavenRepoRule
 import org.junit.ClassRule
@@ -31,9 +30,6 @@ import org.junit.runner.RunWith
 class AndroidBuildAttributionOldAgpTestSuite : IdeaTestSuiteBase() {
 
   companion object {
-    @ClassRule
-    @JvmField
-    val daemons = GradleDaemonsRule()
 
     @ClassRule
     @JvmField

@@ -17,16 +17,12 @@ package com.android.tools.idea.benchmarks
 
 import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.perflogger.PerfData
-import com.android.tools.tests.GradleDaemonsRule
 import com.android.tools.tests.IdeaTestSuiteBase
-import org.junit.ClassRule
 import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
   companion object {
-    @get:ClassRule
-    val gradleDaemonCleanup = GradleDaemonsRule()
 
     init {
       try {

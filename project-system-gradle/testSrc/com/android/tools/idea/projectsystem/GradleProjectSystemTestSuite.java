@@ -17,14 +17,12 @@ package com.android.tools.idea.projectsystem;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
-import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.icons.CoreIconManager;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
@@ -33,7 +31,6 @@ import org.junit.runner.RunWith;
   GradleProjectSystemOldAgpTestSuite.class,
 })
 public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
     Path declarativePlugin = TestUtils.getWorkspaceRoot().resolve("tools/base/build-system/declarative_android_gradle_plugin.zip");

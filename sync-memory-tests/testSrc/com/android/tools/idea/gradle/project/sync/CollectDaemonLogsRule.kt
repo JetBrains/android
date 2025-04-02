@@ -19,8 +19,9 @@ import com.android.testutils.TestUtils
 import org.junit.rules.ExternalResource
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 
-class CollectDaemonLogsRule : ExternalResource(){
+class CollectDaemonLogsRule : ExternalResource() {
   override fun after() {
     val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
     val testOutputDir = TestUtils.getTestOutputDir()
@@ -29,7 +30,9 @@ class CollectDaemonLogsRule : ExternalResource(){
       .walk()
       .filter { it.name.endsWith("out.log") }
       .forEach {
-        Files.copy(it.toPath(), testOutputDir.resolve(it.name))
+        // There is a more general rule that collects logs only when tests fail,
+        // but in benchmarks we also are interested in logs when it succeeds.
+        Files.copy(it.toPath(), testOutputDir.resolve(it.name), StandardCopyOption.REPLACE_EXISTING)
       }
   }
 }

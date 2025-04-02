@@ -16,15 +16,11 @@
 package com.android.tools.idea.databinding;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
-
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/databinding/testapp_deps.manifest");
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
