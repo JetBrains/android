@@ -205,7 +205,7 @@ class ComponentTreeBuilder {
       val horizontalScrollPane = ColumnTreeScrollPanel(tree, table)
       horizontalScrollPane.border = verticalScrollPane.border
 
-      tree.ui = ColumnTreeUI(table, horizontalScrollPane, verticalScrollPane)
+      tree.ui = ColumnTreeUI(table, horizontalScrollPane, verticalScrollPane, autoScroll)
 
       val outerPanel = JPanel(BorderLayout())
       // Add a vertical scroll pane wrapping the TreeTable content to the center, and add a JPanel

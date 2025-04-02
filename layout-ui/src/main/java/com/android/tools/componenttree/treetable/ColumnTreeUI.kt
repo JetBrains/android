@@ -37,6 +37,7 @@ class ColumnTreeUI(
   private val table: TreeTableImpl,
   private val hScrollBarPanel: ColumnTreeScrollPanel,
   private val scrollPane: JScrollPane,
+  private val autoScroll: Boolean,
 ) : BasicTreeUI() {
   private var stateChangeListener: ChangeListener? = null
   private val treeNodesWidth = ConcurrentHashMap<Int, Int>()
@@ -67,23 +68,71 @@ class ColumnTreeUI(
           }
         }
       }
-    treeSelectionListener =
-      object : TreeSelectionListener {
-        override fun valueChanged(e: TreeSelectionEvent?) {
-          // Scroll to the selected item.
-          val path = e?.path
-          path.let {
-            val rec = getPathBounds(table.tree, path)
-            if (rec != null) {
-              hScrollBarPanel.getModel().value =
-                rec.x + tree.treeOffset - max(expandedIcon.iconWidth, collapsedIcon.iconWidth)
+
+    if (autoScroll) {
+      treeSelectionListener =
+        object : TreeSelectionListener {
+          override fun valueChanged(e: TreeSelectionEvent?) {
+            // Check if a new node has been selected.
+            if (e?.newLeadSelectionPath == null) {
+              return
             }
+            val row = getRowForPath(table.tree, e.path)
+            // Scroll vertically.
+            table.scrollRectToVisible(table.getCellRect(row, 0, true))
+            autoScrollHorizontally(row)
           }
         }
-      }
-
+    }
     scrollPane.addMouseWheelListener(mouseWheelListener)
     table.tree.addTreeSelectionListener(treeSelectionListener)
+  }
+
+  private fun autoScrollHorizontally(selectedRow: Int) {
+    var selectRowPath = table.tree.getPathForRow(selectedRow)
+    var path = selectRowPath
+    // Get the furthest visible parent row in the tree viewport.
+    while (
+      isPathVisible(path?.parentPath) &&
+        isSelectedRowAtLeastHalfVisible(path?.parentPath, selectRowPath)
+    ) {
+      path = path?.parentPath
+    }
+    // Scroll horizontally to the furthest visible parent.
+    path.let {
+      val rec = getPathBounds(table.tree, path)
+      if (rec != null) {
+        hScrollBarPanel.getModel().value =
+          max(0, rec.x + tree.treeOffset - max(expandedIcon.iconWidth, collapsedIcon.iconWidth))
+      }
+    }
+  }
+
+  private fun isSelectedRowAtLeastHalfVisible(
+    ancestorPath: TreePath?,
+    selectRowPath: TreePath,
+  ): Boolean {
+    val ancestorBounds = table.tree.getPathBounds(ancestorPath)
+    val selectRowBounds = table.tree.getPathBounds(selectRowPath)
+    if (ancestorBounds == null || selectRowBounds == null) {
+      return false
+    }
+    val ancestorStartX = ancestorBounds.x - expandedIcon.iconWidth
+    val selectRowStartX = selectRowBounds.x
+    val columnWidth = table.getColumnModel().getColumn(0).getWidth()
+
+    return selectRowStartX - ancestorStartX <= columnWidth / 2
+  }
+
+  private fun isPathVisible(path: TreePath?): Boolean {
+    val rowBounds = table.tree.getPathBounds(path)
+
+    val viewPosition = scrollPane.viewport.viewPosition
+    // Counts the start of the item even if it's partially visible.
+    val startY = viewPosition.y - (rowBounds?.height?.div(2) ?: 0)
+    val endY = viewPosition.y + scrollPane.viewport.extentSize.height
+
+    return rowBounds != null && rowBounds.y > startY && rowBounds.y <= endY
   }
 
   override fun uninstallListeners() {

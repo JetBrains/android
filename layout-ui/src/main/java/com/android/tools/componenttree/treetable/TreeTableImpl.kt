@@ -23,6 +23,7 @@ import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DnDMerger
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.api.TableVisibility
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.dnd.DnDSupport
 import com.intellij.openapi.Disposable
@@ -141,7 +142,9 @@ class TreeTableImpl(
       addMouseMotionListener(it)
     }
 
-    if (autoScroll) {
+    if (
+      autoScroll && !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE.get()
+    ) {
       treeTableSelectionModel.addAutoScrollListener {
         invokeLater {
           selectionModel.selectedIndices.singleOrNull()?.let {
