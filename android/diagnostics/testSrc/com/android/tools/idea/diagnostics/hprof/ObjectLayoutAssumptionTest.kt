@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
+import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.util.Disposer
 import org.junit.Test
+import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.isAccessible
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class ObjectLayoutAssumptionTest {
 
@@ -46,5 +49,12 @@ class ObjectLayoutAssumptionTest {
 
     // ObjectTree.myObject2ParentNode validation
     assertEquals("it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap", map.javaClass.canonicalName)
+  }
+
+  @Test
+  fun editorAssumptions() {
+    val editorClass = EditorImpl::class.java
+    assertNotEquals(editorClass.modifiers and Modifier.FINAL, 0)
+    assertNotEquals(editorClass.getDeclaredField("isReleased"), null)
   }
 }

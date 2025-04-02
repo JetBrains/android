@@ -1,0 +1,27 @@
+==================== HISTOGRAM ====================
+Histogram. Top 2147483647 by instance count [All-objects] [Only-strong-ref]:
+    1: [   10/1.08KB] [   10/1.08KB] java.lang.Class
+    2: [    2/   18B] [    2/   18B] com.intellij.openapi.editor.impl.EditorImpl
+    3: [    1/   16B] [    1/   16B] java.util.Arrays$ArrayList
+    4: [    1/   28B] [    1/   28B] com.android.tools.idea.diagnostics.hprof.HeapAnalysisTest$testReleasedEditor$MockEditor[]
+Total -        All:    14 1.14KB 4 classes (Total instances: 14)
+Total - Strong-ref:    14 1.14KB 4 classes (Total instances: 14)
+Unreachable objects:     0      0B
+=================== HEAP SUMMARY ==================
+Class count: 10
+Finalizable size: 0B
+Soft-reachable size: 0B
+Weak-reachable size: 0B
+Reachable only from disposer tree: 0
+======== INSTANCES OF EACH NOMINATED CLASS ========
+Nominated classes:
+ --> [2/18B] com.intellij.openapi.editor.impl.EditorImpl
+
+CLASS: com.intellij.openapi.editor.impl.EditorImpl (2 objects)
+Root 1:
+[    2/100%/   18B]    68B          1   ROOT: Global JNI
+[    2/100%/   18B]    68B          1   (root): java.util.Arrays$ArrayList
+[    2/100%/   18B]    52B          1   a: com.android.tools.idea.diagnostics.hprof.HeapAnalysisTest$testReleasedEditor$MockEditor[]
+[    1/ 50%/    9B]    12B          1 * +-[]: com.intellij.openapi.editor.impl.EditorImpl
+[    1/ 50%/    9B]    12B          1 * \-[]: com.intellij.openapi.editor.impl.EditorImpl (disposed)
+

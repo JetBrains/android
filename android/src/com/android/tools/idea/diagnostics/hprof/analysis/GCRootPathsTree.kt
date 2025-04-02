@@ -106,12 +106,20 @@ class GCRootPathsTree(
     }
   }
 
+  private fun isDisposed(nav: ObjectNavigator, id: Int): Boolean {
+    if (context.disposedObjectsIDs.contains(id)) return true
+    if (nav.getClassForObjectId(id.toLong()).name == "com.intellij.openapi.editor.impl.EditorImpl") {
+      nav.goTo(id.toLong(), ObjectNavigator.ReferenceResolution.ALL_REFERENCES)
+      return nav.getExtraData() != 0
+    }
+    return false
+  }
+
   fun registerObject(objectId: Int) {
     val nav = context.navigator
     val parentMapping = context.parentList
     val refIndexMapping = context.refIndexList
     val sizesMapping = context.sizesList
-    val disposedObjectsIDsSet = context.disposedObjectsIDs
 
     val gcPath = IntArrayList()
     val fieldsPath = IntArrayList()
@@ -149,7 +157,7 @@ class GCRootPathsTree(
     for (i in gcPath.size - 1 downTo 0) {
       val id = gcPath.getInt(i)
       val classDefinition = nav.getClassForObjectId(id.toLong())
-      currentNode = currentNode.addEdge(id, size, sizesPath.getInt(i), classDefinition, fieldsPath.getInt(i).toByte(), disposedObjectsIDsSet.contains(id))
+      currentNode = currentNode.addEdge(id, size, sizesPath.getInt(i), classDefinition, fieldsPath.getInt(i).toByte(), isDisposed(nav, id))
     }
   }
 
