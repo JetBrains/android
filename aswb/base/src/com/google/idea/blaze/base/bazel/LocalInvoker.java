@@ -23,8 +23,6 @@ import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.async.process.PrintOutputLineProcessor;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.BlazeCommandRunner;
-import com.google.idea.blaze.base.command.CommandLineBlazeCommandRunner;
 import com.google.idea.blaze.base.command.WorkspaceRootReplacement;
 import com.google.idea.blaze.base.command.buildresult.BuildEventProtocolUtils;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
@@ -73,11 +71,6 @@ public class LocalInvoker extends AbstractBuildInvoker {
       BuildBinaryType binaryType) {
     super(project, buildSystem, binaryPath(binaryType, project));
     this.buildBinaryType = binaryType;
-  }
-
-  @Override
-  public BlazeCommandRunner getCommandRunner() {
-    return new CommandLineBlazeCommandRunner();
   }
 
   @Override

@@ -34,7 +34,6 @@ import com.google.idea.blaze.base.bazel.BazelBuildSystemProvider;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.SyncStrategy;
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
-import com.google.idea.blaze.base.bazel.FakeBlazeCommandRunner;
 import com.google.idea.blaze.base.bazel.FakeBuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BuildFlagsProvider;
@@ -441,10 +440,6 @@ public class BlazeBuildTargetSharderTest extends BlazeTestCase {
       return null;
     }
 
-    @Override
-    public FakeBlazeCommandRunner getCommandRunner() {
-      throw new UnsupportedOperationException(String.format("%s does not support getCommandRunner()", this.getClass().getName()));
-    }
 
     @Override
     public BuildSystem getBuildSystem() {

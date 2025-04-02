@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.android.run;
 
-import static org.mockito.Mockito.mock;
-
 import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.truth.Expect;
@@ -25,27 +23,18 @@ import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.BlazeApkBuildStep;
 import com.google.idea.blaze.android.run.runner.DeployInfoExtractor;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
-import com.google.idea.blaze.base.bazel.BazelExitCode;
-import com.google.idea.blaze.base.bazel.FakeBlazeCommandRunner;
 import com.google.idea.blaze.base.bazel.FakeBuildInvoker;
-import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider.BuildEventStreamException;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.ErrorCollector;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
-import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import java.io.File;
 import java.io.IOException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.VerificationCollector;
 
@@ -65,45 +54,6 @@ public final class BlazeApkBuildStepTest extends BlazeIntegrationTestCase {
 
     errorCollector = new ErrorCollector();
     context.addOutputSink(IssueOutput.class, errorCollector);
-  }
-
-  @Test
-  @Ignore("TODO: b/374906681 - broken by the build invokers cleanup.")
-  public void command_usesMobileInstall() throws BuildEventStreamException, IOException {
-    // Set up a build step with nominal output and mobile-install=true
-    FakeBuildInvoker invoker = newFakeInvoker();
-    BlazeApkBuildStep buildStep =
-        defaultBuildStepBuilder().setUseMobileInstall(true).setBuildInvoker(invoker).build();
-
-    // Issue the build
-    buildStep.build(context, null);
-
-    // Verify that the issued blaze command was mobile-install
-    errorCollector.assertNoIssues();
-    expect
-        .that(invoker.getCommandRunner().getIssuedCommand().getName())
-        .isEqualTo(BlazeCommandName.MOBILE_INSTALL);
-  }
-
-  @Test
-  @Ignore("TODO: b/374906681 - broken by the build invokers cleanup.")
-  public void command_withMultipleTargets() throws BuildEventStreamException, IOException {
-    // Set up a build step set to build two targets
-    FakeBuildInvoker invoker = newFakeInvoker();
-    ImmutableList<Label> targets =
-        ImmutableList.of(
-            Label.create("//com/foo/test:target"), Label.create("//com/foo/app:target"));
-    BlazeApkBuildStep buildStep =
-        defaultBuildStepBuilder().setTargets(targets).setBuildInvoker(invoker).build();
-
-    // Issue the build
-    buildStep.build(context, null);
-
-    // Verify that the issued blaze command was building both the targets
-    errorCollector.assertNoIssues();
-    expect
-        .that(invoker.getCommandRunner().getIssuedCommand().toString())
-        .contains("//com/foo/test:target //com/foo/app:target");
   }
 
   @Test
@@ -144,33 +94,6 @@ public final class BlazeApkBuildStepTest extends BlazeIntegrationTestCase {
 
     // Verify post-condition: android deploy info should've been extracted using deploy info parser
     expect.that(buildStep.getDeployInfo()).isEqualTo(deployInfo);
-  }
-
-  @Test
-  @Ignore("TODO: b/374906681 - broken by the build invokers cleanup.")
-  public void build_buildFailed() {
-    FakeBuildInvoker invoker =
-        FakeBuildInvoker.builder()
-            .commandRunner(
-                new FakeBlazeCommandRunner(
-                    helper ->
-                        BlazeBuildOutputs.noOutputs(
-                            BuildResult.fromExitCode(BazelExitCode.BUILD_FAILED)),
-                    helper ->
-                        BlazeBuildOutputs.noOutputsForLegacy(
-                            BuildResult.fromExitCode(BazelExitCode.BUILD_FAILED))))
-            .build();
-    DeployInfoExtractor deployInfoExtractor = mock(DeployInfoExtractor.class);
-    BlazeApkBuildStep buildStep =
-        defaultBuildStepBuilder()
-            .setBuildInvoker(invoker)
-            .setDeployInfoExtractor(deployInfoExtractor)
-            .build();
-
-    buildStep.build(context, null);
-
-    expect.that(context.hasErrors()).isTrue();
-    Mockito.verifyNoInteractions(deployInfoExtractor);
   }
 
   /** Returns a {@link BlazeApkBuildStep.Builder} with some default data set up. */

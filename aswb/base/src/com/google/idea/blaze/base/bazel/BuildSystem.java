@@ -18,15 +18,11 @@ package com.google.idea.blaze.base.bazel;
 import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.command.BlazeCommand;
-import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
-import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
-import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
@@ -124,20 +120,9 @@ public interface BuildSystem {
      */
     BuildBinaryType getType();
 
-    /**
-     * The path to the build binary on disk.
-     *
-     * <p>TODO(mathewi) This should really be fully encapsulated inside the runner returned from
-     * {@link #getCommandRunner()} since it's not applicable to all implementations.
-     */
     String getBinaryPath();
 
     BlazeInfo getBlazeInfo(BlazeContext blazeContext) throws SyncFailedException;
-
-    /**
-     * Returns a {@link BlazeCommandRunner} to be used to invoke the build.
-     */
-    BlazeCommandRunner getCommandRunner();
 
     /**
      * Returns the BuildSystem object.

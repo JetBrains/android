@@ -21,8 +21,6 @@ import com.google.errorprone.annotations.MustBeClosed;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.bazel.BuildSystem.SyncStrategy;
 import com.google.idea.blaze.base.command.BlazeCommand;
-import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefinition;
@@ -240,11 +238,6 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
         throw new SyncFailedException();
       }
       return inner.getBlazeInfo(blazeContext);
-    }
-
-    @Override
-    public BlazeCommandRunner getCommandRunner() {
-      return inner.getCommandRunner();
     }
 
     @Override

@@ -39,7 +39,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     return new AutoValue_FakeBuildInvoker.Builder()
         .type(BuildBinaryType.NONE)
         .binaryPath("")
-        .commandRunner(new FakeBlazeCommandRunner())
         .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
   }
 
@@ -69,9 +68,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   public BlazeInfo getBlazeInfo(BlazeContext blazeContext) {
     return null;
   }
-
-  @Override
-  public abstract FakeBlazeCommandRunner getCommandRunner();
 
   private BuildEventStreamProvider fakeBuildEventStreamProvider() {
     return new BuildEventStreamProvider() {
@@ -133,8 +129,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     public abstract Builder type(BuildBinaryType type);
 
     public abstract Builder binaryPath(String binaryPath);
-
-    public abstract Builder commandRunner(FakeBlazeCommandRunner runner);
 
     public abstract Builder buildSystem(BuildSystem buildSystem);
   }

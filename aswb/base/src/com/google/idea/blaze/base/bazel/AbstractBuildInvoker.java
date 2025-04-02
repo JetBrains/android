@@ -20,7 +20,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.FutureUtil;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
@@ -95,11 +94,6 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
         BlazeInvocationContext.SYNC_CONTEXT);
     return BlazeInfoRunner.getInstance()
       .runBlazeInfo(project, this, blazeContext, buildSystem.getName(), syncFlags);
-  }
-
-  @Override
-  public BlazeCommandRunner getCommandRunner() {
-    throw new UnsupportedOperationException("This method should not be called, this invoker does not support command runners.");
   }
 
   @Override
