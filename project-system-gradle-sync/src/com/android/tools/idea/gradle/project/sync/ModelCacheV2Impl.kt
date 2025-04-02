@@ -62,8 +62,8 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
-import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
+import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_DEFAULT_ENABLED
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_ERROR
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_FATAL
@@ -611,10 +611,16 @@ internal fun modelCacheV2Impl(
         val library = internedModels.lookup(libraryReference)
         if (library is IdePreResolvedModuleLibraryImpl) {
           val id = ClasspathIdentifier(BuildId(File(library.buildId)), library.projectPath, library.sourceSet, classpathId.classpathType)
-          projectIdToIndex[id] = indexed[key]!!
+          projectIdToIndex[id] = checkNotNull(indexed[key]) {
+            "Artifact ($key) not in indices map $indexed. Known artifacts and dependencies: $artifactAddressesAndDependencies"
+          }
         }
 
-        dependencyList.add(IdeDependencyCoreImpl(libraryReference, deps.mapNotNull { indexed[keyToIdentityMap[it]!!] }))
+        dependencyList.add(IdeDependencyCoreImpl(libraryReference, deps.mapNotNull {
+          indexed[checkNotNull(keyToIdentityMap[it]){
+            "Dependency ($it) not in known identities by key: $keyToIdentityMap"
+          }]
+        }))
       }
 
       val ideDependenciesCore = IdeDependenciesCoreDirect(dependencyList)
