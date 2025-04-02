@@ -160,7 +160,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
   class CrashAppAction :
     TerminateAppActions(
       LogcatBundle.message("logcat.terminate.app.crash"),
-      StudioIcons.AppQualityInsights.ISSUE,
+      StudioIcons.Logcat.Toolbar.CRASH_APP,
     ) {
     override fun isEnabled(logcatHeader: LogcatHeader): Boolean {
       return logcatHeader.applicationId != "system_process" &&
