@@ -23,11 +23,14 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.TableUtil
 import com.intellij.ui.ToolbarDecorator
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.table.JBTable
 import com.intellij.util.text.UniqueNameGenerator
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
+import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -58,12 +61,17 @@ class RuleVariablesDialog(
       ToolbarDecorator.createDecorator(table)
         .setAddAction { addRow() }
         .setRemoveAction { deleteRow() }
-    decorator.setPreferredSize(
-      JBUI.size(Dimension(dialogState.dialogWidth, dialogState.dialogHeight))
-    )
 
     ConfigColumnTableAspect.apply(project, table, dialogState.columns)
-    val panel = decorator.createPanel()
+    val tableDecorator = decorator.createPanel()
+
+    val panel = BorderLayoutPanel()
+    panel.addToCenter(tableDecorator)
+    val label =
+      JBLabel("Rule variables can be used in rules by referencing them with '\${RULE_NAME}' ")
+    label.border = JBUI.Borders.emptyTop(16)
+    panel.addToBottom(label)
+    panel.preferredSize = JBUI.size(Dimension(dialogState.dialogWidth, dialogState.dialogHeight))
     panel.addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
@@ -73,6 +81,7 @@ class RuleVariablesDialog(
         }
       }
     )
+
     return panel
   }
 
