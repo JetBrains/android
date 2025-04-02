@@ -209,6 +209,7 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
         writer.append(String.format("-agentpath:%s%n", jvmtiAgent));
         writer.append(String.format("-Denable.bleak=true%n"));
         writer.append(String.format("-Dbleak.jvmti.enabled=true%n"));
+        writer.append(String.format("-Didea.disposer.debug=on%n"));
       }
       catch (IOException ignored) {
         throw new IllegalStateException("BLeak JVMTI agent not found");

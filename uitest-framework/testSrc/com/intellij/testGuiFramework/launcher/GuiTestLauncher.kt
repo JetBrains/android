@@ -179,6 +179,7 @@ object GuiTestLauncher {
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
+      options += "-Didea.disposer.debug=on"
       try {
         val jvmtiAgent = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/bleak/native/libjnibleakhelper.so").toRealPath()
         options += "-agentpath:$jvmtiAgent"

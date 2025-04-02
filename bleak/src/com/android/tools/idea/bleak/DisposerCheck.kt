@@ -107,7 +107,7 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, CountInfo> =
       return findChildNode(parent, disposable)
     }
 
-    private fun getChildren(disposable: Any): Collection<Disposable> {
+    fun getChildren(disposable: Any): Collection<Disposable> {
       val objectNode = getObjectNode(disposable) ?: return listOf()
       return getChildrenOfNode(objectNode)
     }
@@ -143,13 +143,13 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, CountInfo> =
   }
 }
 
-class DisposerLeakInfo(val key: DisposerInfo.Key, val count: Int, val increase: Int) {
+class DisposerLeakInfo(val key: DisposerInfo.Key, val count: Int, val increase: Int, val registrationStack: String?) {
   override fun toString(): String {
     return if (key.disposable === DisposerInfo.rootDisposable) {
       "There are an increasing number ($count total, +$increase/iteration) of Disposer roots of type ${key.klass.name}"
     } else {
       "Disposable of type ${key.disposable.javaClass.name} has an increasing number ($count total, +$increase/iteration) of children of type ${key.klass.name}"
-    }
+    } + if (registrationStack == null) "" else "\nSample Disposer.register stack:\n$registrationStack"
   }
 }
 
@@ -166,7 +166,13 @@ class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList()): BleakCheck<
 
   override fun lastIterationFinished() = middleIterationFinished()
 
-  override fun getResults(ignoreList: IgnoreList<DisposerLeakInfo>) =
-    disposerInfo?.growingCounts?.map { (key, value) -> DisposerLeakInfo(key, value.count, value.delta) }?.filterNot { ignoreList.matches(it) } ?: listOf()
+  private fun getSampleRegistrationStack(key: DisposerInfo.Key): String? {
+    val sampleChild = DisposerInfo.getChildren(key.disposable).lastOrNull { it::class.java == key.klass }
+    if (sampleChild == null) return null
+    return Disposer.getRegistrationTrace(sampleChild)?.stackTraceToString()
+  }
 
+  override fun getResults(ignoreList: IgnoreList<DisposerLeakInfo>) =
+    disposerInfo?.growingCounts?.map { (key, value) -> DisposerLeakInfo(key, value.count, value.delta, getSampleRegistrationStack(key)) }
+      ?.filterNot { ignoreList.matches(it) } ?: listOf()
 }
