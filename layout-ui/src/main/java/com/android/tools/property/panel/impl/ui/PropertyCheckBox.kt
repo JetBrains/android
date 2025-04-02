@@ -67,7 +67,12 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
     addFocusListener(EditorFocusListener(this, propertyModel))
     model.addChangeListener {
       if (!stateChangeFromModel) {
-        propertyModel.value = fromStateValue(model.isSelected)
+        val newValue = fromStateValue(model.isSelected)
+        if (newValue != propertyModel.value) {
+          // Only update the propertyModel value if it differs from the file content to prevent
+          // unnecessary I/O and rendering.
+          propertyModel.value = newValue
+        }
       }
     }
     PropertyTextField.addBorderAtTextFieldBorderSize(this)
