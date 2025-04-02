@@ -32,7 +32,6 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.compiler.options.CompileStepBeforeRun.MakeBeforeRunTask
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -44,17 +43,16 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
 import com.intellij.xdebugger.impl.XDebugSessionImpl
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.joinAll
 
-abstract class AndroidConfigurationExecutorBase(
-  protected val environment: ExecutionEnvironment,
-  private val deviceFutures: DeviceFutures,
-  protected val appRunSettings: AppRunSettings,
-  protected val apkProvider: ApkProvider,
-  protected val applicationContext: ApplicationProjectContext,
-  protected val applicationDeployer: ApplicationDeployer
-) : AndroidConfigurationExecutor {
+abstract class AndroidConfigurationExecutorBase(protected val environment: ExecutionEnvironment,
+                                                private val deviceFutures: DeviceFutures,
+                                                protected val appRunSettings: AppRunSettings,
+                                                protected val apkProvider: ApkProvider,
+                                                protected val applicationContext: ApplicationProjectContext,
+                                                protected val applicationDeployer: ApplicationDeployer) : AndroidConfigurationExecutor {
 
   private val LOG = Logger.getInstance(this::class.java)
   val logger = LogWrapper(LOG)
@@ -63,7 +61,7 @@ abstract class AndroidConfigurationExecutorBase(
 
   protected val project = environment.project
 
-  internal fun getActivator(app: App) : Activator {
+  internal fun getActivator(app: App): Activator {
     return Activator(app, logger)
   }
 
@@ -78,17 +76,20 @@ abstract class AndroidConfigurationExecutorBase(
     val onDevice = { device: IDevice ->
       LOG.info("Launching on device ${device.name}")
 
-      val result = try {
-        // ApkProvider provides multiple ApkInfo only for instrumented tests.
-        val app = apkProvider.getApks(device).single()
+      try {
+        val app = apkProvider.getApks(device).single() // ApkProvider provides multiple ApkInfo only for instrumented tests.
         val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-        applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
+        val result = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
+        launch(device, result.app, console, false, indicator)
       }
       catch (e: DeployerException) {
         throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
       }
-      launch(device, result.app, console, false, indicator)
+      catch (e: ExecutionException) {
+        tryCleanupAfterLaunchFailure(device, console, applicationId, false)
+        throw e
+      }
       processHandler.addTargetDevice(device)
     }
 
@@ -114,33 +115,34 @@ abstract class AndroidConfigurationExecutorBase(
     val app = apkProvider.getApks(device).single()
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-    val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
-
-    val runContentDescriptorDeferred = async {
-      startDebugSession(device, applicationContext, console, indicator).runContentDescriptor
-    }
-
-    launch(device, deployResult.app, console, true, indicator)
-
     try {
+      indicator.text = "Installing app..."
+      val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
+      val runContentDescriptorDeferred = async(Dispatchers.Default) {
+        startDebugSession(device, applicationContext, console, indicator).runContentDescriptor
+      }
+      indicator.text = "Launching..."
+      launch(device, deployResult.app, console, true, indicator)
       runContentDescriptorDeferred.await()
     }
+    catch (e: DeployerException) {
+      throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
+    }
     catch (e: ExecutionException) {
-      if (!device.isOffline) {
-        try {
-          getStopCallback(console, applicationId, true).invoke(device)
-        }
-        catch (e: Exception) {
-          LOG.warn(e)
-        }
-        try {
-          ApplicationTerminator(device, applicationId).killApp()
-        }
-        catch (e: Exception) {
-          LOG.warn(e)
-        }
-      }
+      tryCleanupAfterLaunchFailure(device, console, applicationId, true)
       throw e
+    }
+  }
+
+  private fun tryCleanupAfterLaunchFailure(device: IDevice, console: ConsoleView, applicationId: String, isDebug: Boolean) {
+    if (!device.isOffline) {
+      try {
+        getStopCallback(console, applicationId, isDebug).invoke(device)
+        ApplicationTerminator(device, applicationId).killApp()
+      }
+      catch (e: Exception) {
+        LOG.warn("Failed to cleanup after launch failure", e)
+      }
     }
   }
 
