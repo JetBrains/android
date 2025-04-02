@@ -881,7 +881,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public void waitUntilProgressBarNotDisplayed() {
     GuiTests.waitUntilGone(robot(), target(),
                            Matchers.byType(JProgressBar.class).andIsShowing(),
-                           30);
+                           60);
   }
 
   /**

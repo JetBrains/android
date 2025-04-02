@@ -22,13 +22,10 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
@@ -70,10 +67,10 @@ public class WarningsCheckInNewCPPProjectTest {
     myEditorFixture.open(NativeLibFilePath)
       .waitForFileToActivate();
 
-    myEditorFixture.moveBetween("\"Hello from C++\";", "")
+    myEditorFixture.waitUntilErrorAnalysisFinishes()
+      .moveBetween("\"Hello from C++\";", "")
       .moveBetween("\"Hello from C++\";", "") //To reduce flakiness
-      .pressAndReleaseKeys(KeyEvent.VK_ENTER)
-      .typeText("int x = 0;\n");
+      .enterText("\nint x = 0;\n");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     myIdeFrameFixture.requestFocusIfLost();
 
@@ -81,9 +78,7 @@ public class WarningsCheckInNewCPPProjectTest {
       .clickAnalyze();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     myEditorFixture.waitUntilErrorAnalysisFinishes();
-
-    new ProblemsPaneFixture(myIdeFrameFixture)
-      .switchToTab("File");
+    myIdeFrameFixture.waitUntilProgressBarNotDisplayed();
 
     String inspectionResults = myInspections.getResults(); //get inspections results from the problem panel
     assertThat((inspectionResults).contains("Local variable 'x' is only assigned but never accessed")).isTrue();

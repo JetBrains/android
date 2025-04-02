@@ -2069,9 +2069,7 @@ java_test(
 java_test(
     name = "WarningsCheckInNewCPPProjectTest",
     size = "large",
-    data = COMMON_DATA + glob([
-        "testData/debugger/CLionNdkHelloJni/**",
-    ]),
+    data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.WarningsCheckInNewCPPProjectTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
