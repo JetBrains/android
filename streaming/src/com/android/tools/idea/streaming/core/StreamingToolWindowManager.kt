@@ -1439,8 +1439,8 @@ internal class DeviceClientRegistry : Disposable {
   }
 }
 
-private fun <K, V> buildCache(expiration: Duration): Cache<K, V> =
+private fun <K : Any, V> buildCache(expiration: Duration): Cache<K, V> =
     Caffeine.newBuilder().expireAfterWrite(expiration.toJavaDuration()).build()
-private fun <K, V> buildWeakCache(expiration: Duration): Cache<K, V> =
+private fun <K : Any, V> buildWeakCache(expiration: Duration): Cache<K, V> =
     Caffeine.newBuilder().weakKeys().weakValues().expireAfterWrite(expiration.toJavaDuration()).build()
-private fun <K, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }
+private fun <K : Any, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }
