@@ -6,16 +6,7 @@
       <file url="file://$PROJECT_DIR$/../profilers/testSrc/com/android/tools/profilers/performance/DataSeriesPerformanceTest.kt" />
     </excludeFromCompile>
     <wildcardResourcePatterns>
-      <entry name="!*.form" />
-      <entry name="!*.java" />
-      <entry name="!*.class" />
-      <entry name="!*.groovy" />
-      <entry name="!*.flex" />
-      <entry name="!*.kt" />
-      <entry name="!*.iml" />
-      <entry name="!*.gant" />
-      <entry name="!BUILD" />
-      <entry name="!BUILD.bazel" />
+      <entry name="!*" />
     </wildcardResourcePatterns>
     <annotationProcessing>
       <profile name="ChunkIO" enabled="true">
