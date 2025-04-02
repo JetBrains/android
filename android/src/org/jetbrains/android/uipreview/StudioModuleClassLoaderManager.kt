@@ -337,6 +337,7 @@ class StudioModuleClassLoaderManager :
    */
   @Synchronized
   override fun clearCache(module: Module) {
+    clearModuleData(module)
     clearCaches {
       it.getModuleSystem().getHolderModule() == module.getModuleSystem().getHolderModule()
     }
