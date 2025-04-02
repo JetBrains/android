@@ -1,9 +1,8 @@
 - name: lib/aapt-proto.jar
-  projectLibraries:
-  - name: aapt-proto
-    files:
-    - name: $MAVEN_REPOSITORY$/com/android/tools/build/aapt2-proto/8/aapt2-proto-8.jar
-    reason: withProjectLibrary
+  library: aapt-proto
+  files:
+  - name: $MAVEN_REPOSITORY$/com/android/tools/build/aapt2-proto/8/aapt2-proto-8.jar
+  reason: withProjectLibrary
 - name: lib/adt-ui.jar
   modules:
   - name: intellij.android.adt.ui.compose
@@ -36,16 +35,15 @@
   - name: intellij.android.kotlin.idea.k2
   - name: intellij.android.kotlin.output.parser
 - name: lib/android-profilers.jar
-  projectLibraries:
-  - name: sqlite
-    files:
-    - name: $MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3/sqlite-jdbc-3.jar
-    reason: <- intellij.android.transportDatabase
   modules:
   - name: intellij.android.profilers.atrace
   - name: intellij.android.profilers.ui
   - name: intellij.android.profilers
   - name: intellij.android.transportDatabase
+  library: sqlite
+  files:
+  - name: $MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3/sqlite-jdbc-3.jar
+  reason: <- intellij.android.transportDatabase
 - name: lib/android-project-system-gradle-models.jar
   modules:
   - name: intellij.android.projectSystem.gradle.models
@@ -192,71 +190,143 @@
   - name: intellij.android.artwork
   - name: intellij.android.artwork-compose
 - name: lib/asm-tools.jar
-  projectLibraries:
-  - name: asm-tools
-    files:
-    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-analysis/9/asm-analysis-9.jar
-    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-tree/9/asm-tree-9.jar
-    - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm/9/asm-9.jar
-    reason: withProjectLibrary
+  library: asm-tools
+  files:
+  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-analysis/9/asm-analysis-9.jar
+  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm-tree/9/asm-tree-9.jar
+  - name: $MAVEN_REPOSITORY$/org/ow2/asm/asm/9/asm-9.jar
+  reason: withProjectLibrary
 - name: lib/build-common.jar
   modules:
   - name: intellij.android.buildCommon
 - name: lib/ffmpeg-6.0-1.5.9.jar
+  library: ffmpeg
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6/ffmpeg-6.jar
 - name: lib/ffmpeg-linux-x64-6.0-1.5.9.jar
+  library: ffmpeg-linux-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-linux-x86_64/6/ffmpeg-linux-x86_64-6.jar
 - name: lib/ffmpeg-macos-aarch64-6.0-1.5.9.jar
+  library: ffmpeg-macos-aarch64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-arm64/6/ffmpeg-macosx-arm64-6.jar
 - name: lib/ffmpeg-macos-x64-6.0-1.5.9.jar
+  library: ffmpeg-macos-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-x86_64/6/ffmpeg-macosx-x86_64-6.jar
 - name: lib/ffmpeg-windows-x64-6.0-1.5.9.jar
+  library: ffmpeg-windows-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-windows-x86_64/6/ffmpeg-windows-x86_64-6.jar
 - name: lib/google-baksmali.jar
-  projectLibraries:
-  - name: google-baksmali
-    files:
-    - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-baksmali/3/smali-baksmali-3.jar
-    - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-util/3/smali-util-3.jar
-    reason: withProjectLibrary
+  library: google-baksmali
+  files:
+  - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-baksmali/3/smali-baksmali-3.jar
+  - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-util/3/smali-util-3.jar
+  reason: withProjectLibrary
 - name: lib/google-dexlib2.jar
-  projectLibraries:
-  - name: google-dexlib2
-    files:
-    - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-dexlib2/3/smali-dexlib2-3.jar
-    reason: withProjectLibrary
+  library: google-dexlib2
+  files:
+  - name: $MAVEN_REPOSITORY$/com/android/tools/smali/smali-dexlib2/3/smali-dexlib2-3.jar
+  reason: withProjectLibrary
 - name: lib/hdrhistogram.jar
-  projectLibraries:
-  - name: HdrHistogram
-    files:
-    - name: $MAVEN_REPOSITORY$/org/hdrhistogram/HdrHistogram/2/HdrHistogram-2.jar
-    reason: withProjectLibrary
+  library: HdrHistogram
+  files:
+  - name: $MAVEN_REPOSITORY$/org/hdrhistogram/HdrHistogram/2/HdrHistogram-2.jar
+  reason: withProjectLibrary
 - name: lib/inspectors-common.jar
   modules:
   - name: intellij.android.inspectors-common.api
   - name: intellij.android.inspectors-common.api-ide
   - name: intellij.android.inspectors-common.ui
 - name: lib/instantapps-api.jar
+  library: instantapps-api
+  module: intellij.android.core
+  files:
+  - name: $PROJECT_DIR$/community/android/android/lib/instantapps-api-1.jar
 - name: lib/javacpp-1.5.9.jar
+  library: ffmpeg-javacpp
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp/1/javacpp-1.jar
 - name: lib/javacpp-linux-x64-1.5.9.jar
+  library: javacpp-linux-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-linux-x86_64/1/javacpp-linux-x86_64-1.jar
 - name: lib/javacpp-macos-aarch64-1.5.9.jar
+  library: javacpp-macos-aarch64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-arm64/1/javacpp-macosx-arm64-1.jar
 - name: lib/javacpp-macos-x64-1.5.9.jar
+  library: javacpp-macos-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-x86_64/1/javacpp-macosx-x86_64-1.jar
 - name: lib/javacpp-windows-x64-1.5.9.jar
+  library: javacpp-windows-x64
+  module: intellij.android.streaming
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-windows-x86_64/1/javacpp-windows-x86_64-1.jar
 - name: lib/javax-inject.jar
-  projectLibraries:
-  - name: javax-inject
-    files:
-    - name: $MAVEN_REPOSITORY$/javax/inject/javax.inject/1/javax.inject-1.jar
-    reason: withProjectLibrary
+  library: javax-inject
+  files:
+  - name: $MAVEN_REPOSITORY$/javax/inject/javax.inject/1/javax.inject-1.jar
+  reason: withProjectLibrary
 - name: lib/jewel-ide-laf-bridge-243.jar
+  library: jewel-ide-laf-bridge-243
+  module: intellij.android.adt.ui.compose
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-243/0/jewel-ide-laf-bridge-243-0.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui-243/0/jewel-ui-243-0.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation-243/0/jewel-foundation-243-0.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1/foundation-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/androidx/annotation/annotation-jvm/1/annotation-jvm-1.jar
+  - name: $MAVEN_REPOSITORY$/androidx/collection/collection-jvm/1/collection-jvm-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1/animation-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1/animation-core-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1/ui-geometry-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1/foundation-layout-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1/ui-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-common-jvm/2/lifecycle-common-jvm-2.jar
+  - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-runtime-desktop/2/lifecycle-runtime-desktop-2.jar
+  - name: $MAVEN_REPOSITORY$/androidx/arch/core/core-common/2/core-common-2.jar
+  - name: $MAVEN_REPOSITORY$/androidx/lifecycle/lifecycle-viewmodel-desktop/2/lifecycle-viewmodel-desktop-2.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2/lifecycle-runtime-compose-desktop-2.jar
+  - name: $MAVEN_REPOSITORY$/androidx/annotation/annotation/1/annotation-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1/runtime-saveable-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1/ui-graphics-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1/ui-unit-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1/ui-text-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1/ui-util-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0/skiko-awt-0.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/components/components-resources-desktop/1/components-resources-desktop-1.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1/runtime-desktop-1.jar
 - name: lib/jewel-markdown-ide-laf-bridge-styling-243.jar
+  library: jewel-markdown-ide-laf-bridge-styling-243
+  module: intellij.android.adt.ui.compose
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-242/0/jewel-markdown-ide-laf-bridge-styling-242-0.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-markdown-core-242/0/jewel-markdown-core-242-0.jar
+  - name: $MAVEN_REPOSITORY$/org/commonmark/commonmark/0/commonmark-0.jar
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-242/0/jewel-ide-laf-bridge-242-0.jar
 - name: lib/kotlinx-coroutines-guava.jar
-  projectLibraries:
-  - name: kotlinx-coroutines-guava
-    files:
-    - name: $MAVEN_REPOSITORY$/com/intellij/platform/kotlinx-coroutines-guava/1/kotlinx-coroutines-guava-1.jar
-    reason: withProjectLibrary
+  library: kotlinx-coroutines-guava
+  files:
+  - name: $MAVEN_REPOSITORY$/com/intellij/platform/kotlinx-coroutines-guava/1/kotlinx-coroutines-guava-1.jar
+  reason: withProjectLibrary
 - name: lib/kxml2.jar
-  projectLibraries:
-  - name: kxml2
-    files:
-    - name: $MAVEN_REPOSITORY$/net/sf/kxml/kxml2/2/kxml2-2.jar
-    reason: withProjectLibrary
+  library: kxml2
+  files:
+  - name: $MAVEN_REPOSITORY$/net/sf/kxml/kxml2/2/kxml2-2.jar
+  reason: withProjectLibrary
 - name: lib/layoutlib-loader.jar
   modules:
   - name: intellij.android.layoutlib-loader
@@ -267,11 +337,10 @@
   modules:
   - name: intellij.android.memory-usage
 - name: lib/studio-platform.jar
-  projectLibraries:
-  - name: studio-platform
-    files:
-    - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/studio-platform/2024/studio-platform-2024.jar
-    reason: withProjectLibrary
+  library: studio-platform
+  files:
+  - name: $MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/studio-platform/2024/studio-platform-2024.jar
+  reason: withProjectLibrary
 - name: lib/utp.jar
   modules:
   - name: intellij.android.utp
