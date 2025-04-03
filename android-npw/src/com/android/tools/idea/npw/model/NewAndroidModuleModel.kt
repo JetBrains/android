@@ -150,7 +150,7 @@ class NewAndroidModuleModel(
   recommendedBuildSdk: AndroidVersion?,
 ) :
   ModuleModel(
-    "",
+    name = "",
     commandName,
     isLibrary,
     projectModelData,

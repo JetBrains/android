@@ -28,10 +28,10 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 class DynamicFeatureModel(
   project: Project,
@@ -39,32 +39,40 @@ class DynamicFeatureModel(
   projectSyncInvoker: ProjectSyncInvoker,
   val isInstant: Boolean,
   val templateName: String,
-  val templateDescription: String
-) : ModuleModel(
-  name = "dynamicfeature",
-  commandName = "New Dynamic Feature Module",
-  isLibrary = false,
-  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-  moduleParent = moduleParent,
-  wizardContext = NEW_MODULE
-) {
+  val templateDescription: String,
+) :
+  ModuleModel(
+    name = "dynamicfeature",
+    commandName = "New Dynamic Feature Module",
+    isLibrary = false,
+    projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+    moduleParent = moduleParent,
+    wizardContext = NEW_MODULE,
+  ) {
   val featureTitle = StringValueProperty("Module Title")
   val baseApplication = OptionalValueProperty<Module>()
   // TODO(qumeric): investigate why featureOnDemand = !isInstant disappeared
   val featureFusing = BoolValueProperty(true)
   val deviceFeatures = ObservableList<DeviceFeatureModel>()
   val downloadInstallKind =
-    OptionalValueProperty(if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME else DownloadInstallKind.ON_DEMAND_ONLY)
+    OptionalValueProperty(
+      if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME
+      else DownloadInstallKind.ON_DEMAND_ONLY
+    )
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-    get() = if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
+    get() =
+      if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE
+      else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
 
   override fun getParamsToLog(): String {
-    val deviceFeaturesString = deviceFeatures.get().joinToString("\n  ") { featureModel ->
-      "Type: ${featureModel.deviceFeatureType.get()} Value: ${featureModel.deviceFeatureValue}"
-    }
+    val deviceFeaturesString =
+      deviceFeatures.get().joinToString("\n  ") { featureModel ->
+        "Type: ${featureModel.deviceFeatureType.get()} Value: ${featureModel.deviceFeatureValue}"
+      }
 
-    return super.getParamsToLog() + """
+    return super.getParamsToLog() +
+      """
       |
       |[Dynamic Feature params]
       |Base Application Module: ${baseApplication.valueOrNull ?: "N/A"}
@@ -72,27 +80,30 @@ class DynamicFeatureModel(
       |Install-time inclusion: ${downloadInstallKind.valueOrNull?.displayName ?: "N/A"}
       |Fusing: ${featureFusing.get()}
       |Device features: $deviceFeaturesString
-    """.trimMargin()
+    """
+        .trimMargin()
   }
 
-  override val renderer = object : ModuleTemplateRenderer() {
-    override val recipe: Recipe get() = { td: TemplateData ->
-      generateDynamicFeatureModule(
-        moduleData = td as ModuleTemplateData,
-        isInstantModule = isInstant,
-        dynamicFeatureTitle = featureTitle.get(),
-        fusing = featureFusing.get(),
-        downloadInstallKind = downloadInstallKind.value,
-        deviceFeatures = deviceFeatures,
-        useGradleKts = useGradleKts.get(),
-        useVersionCatalog = useVersionCatalog.get()
-      )
-    }
+  override val renderer =
+    object : ModuleTemplateRenderer() {
+      override val recipe: Recipe
+        get() = { td: TemplateData ->
+          generateDynamicFeatureModule(
+            moduleData = td as ModuleTemplateData,
+            isInstantModule = isInstant,
+            dynamicFeatureTitle = featureTitle.get(),
+            fusing = featureFusing.get(),
+            downloadInstallKind = downloadInstallKind.value,
+            deviceFeatures = deviceFeatures,
+            useGradleKts = useGradleKts.get(),
+            useVersionCatalog = useVersionCatalog.get(),
+          )
+        }
 
-    @WorkerThread
-    override fun init() {
-      super.init()
-      moduleTemplateDataBuilder. setBaseFeature(baseApplication.value)
+      @WorkerThread
+      override fun init() {
+        super.init()
+        moduleTemplateDataBuilder.setBaseFeature(baseApplication.value)
+      }
     }
-  }
 }
