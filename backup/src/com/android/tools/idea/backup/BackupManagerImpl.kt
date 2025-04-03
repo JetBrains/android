@@ -27,6 +27,7 @@ import com.android.backup.BackupResult.Success
 import com.android.backup.BackupService
 import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
+import com.android.backup.ErrorCode.APP_NOT_INSTALLED
 import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
 import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
@@ -40,7 +41,6 @@ import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.backup.DialogFactory.DialogButton
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.flags.StudioFlags
@@ -51,6 +51,7 @@ import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
@@ -64,6 +65,7 @@ import com.intellij.platform.util.progress.reportSequentialProgress
 import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
@@ -286,6 +288,7 @@ internal constructor(
     return when (code) {
       BACKUP_NOT_SUPPORTED -> false
       BACKUP_NOT_ACTIVATED -> false
+      APP_NOT_INSTALLED -> false
       else -> true
     }
   }
@@ -300,7 +303,7 @@ internal constructor(
             PLAY_STORE_NOT_INSTALLED -> message("open.play.store.error.unavailable")
             else -> message("open.play.store.error.unexpected")
           }
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           Messages.showErrorDialog(project, message, message("open.play.store.error.title"))
         }
       }
