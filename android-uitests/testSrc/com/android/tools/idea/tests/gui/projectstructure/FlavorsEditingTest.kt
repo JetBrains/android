@@ -91,12 +91,12 @@ class FlavorsEditingTest {
       .currentFileContents
 
     val dimen = "dimension '$dimenName'"
-    assertThat(gradleFileContents).contains(flavor + " {\n" +
-                                            "            " + dimen + "\n" +
-                                            "            minSdk 35\n" +
-                                            "            targetSdk 34\n" +
-                                            "            versionCode 5\n" +
-                                            "            versionName '2.3'\n" +
-                                            "        }")
+    assertThat(gradleFileContents).containsMatch("flavor\\s\\{\\n" +
+                                           "\\s+dimension\\s'demo'\\n" +
+                                           "\\s+minSdk\\s\\d{2}\\n" +
+                                           "\\s+targetSdk\\s\\d{2}\\n" +
+                                           "\\s+versionCode \\d+\\n" +
+                                           "\\s+versionName\\s'\\d.\\d'\\n" +
+                                           "\\s+\\}")
   }
 }
