@@ -10,8 +10,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.App"
-        tools:targetApi="31">
+        android:theme="@style/Theme.App">
 
         <!--
              TODO: Before you run your application, you need a Google Maps API key.

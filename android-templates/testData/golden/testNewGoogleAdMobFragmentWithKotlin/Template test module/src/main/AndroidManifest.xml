@@ -14,8 +14,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.App"
-        tools:targetApi="31">
+        android:theme="@style/Theme.App">
 
         <!--
             Adding this meta data is required as of Google Mobile Ads SDK version 17.0.0 as explained in

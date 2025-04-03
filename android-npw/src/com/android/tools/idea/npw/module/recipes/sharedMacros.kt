@@ -38,7 +38,6 @@ fun generateManifest(
 ): String {
   val backupBlock = renderIf(addBackupRules) { """
     android:fullBackupContent="@xml/backup_rules"
-    tools:targetApi="31"
     android:dataExtractionRules="@xml/data_extraction_rules"
     """
   }
