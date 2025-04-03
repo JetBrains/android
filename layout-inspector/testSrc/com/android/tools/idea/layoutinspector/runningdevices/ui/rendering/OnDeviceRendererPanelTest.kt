@@ -77,6 +77,7 @@ class OnDeviceRendererPanelTest {
         inspectorModel = inspectorRule.inspectorModel,
         treeSettings = FakeTreeSettings(),
         renderSettings = FakeRenderSettings(),
+        navigateToSelectedViewOnDoubleClick = {},
       )
   }
 

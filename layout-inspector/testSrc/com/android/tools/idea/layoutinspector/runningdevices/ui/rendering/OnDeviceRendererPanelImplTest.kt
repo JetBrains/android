@@ -71,6 +71,8 @@ class OnDeviceRendererPanelImplTest {
   private lateinit var renderModel: OnDeviceRendererModel
   private lateinit var treeSettings: FakeTreeSettings
 
+  private var navigateToInvocations = 0
+
   @Before
   fun setUp() {
     inspectorModel =
@@ -82,6 +84,7 @@ class OnDeviceRendererPanelImplTest {
       }
 
     treeSettings = FakeTreeSettings()
+    navigateToInvocations = 0
 
     renderModel =
       OnDeviceRendererModel(
@@ -89,6 +92,7 @@ class OnDeviceRendererPanelImplTest {
         inspectorModel = inspectorModel,
         treeSettings = treeSettings,
         renderSettings = FakeRenderSettings(),
+        navigateToSelectedViewOnDoubleClick = { navigateToInvocations += 1 },
       )
   }
 
@@ -380,6 +384,41 @@ class OnDeviceRendererPanelImplTest {
     testScheduler.advanceUntilIdle()
 
     assertThat(inspectorModel.hoveredNode).isEqualTo(inspectorModel[COMPOSE1])
+  }
+
+  @Test
+  fun testDoubleClickNodeReceived() = runTest {
+    val (_, messenger) = buildMessenger()
+    val onDeviceRenderingClient = OnDeviceRenderingClient(messenger = messenger)
+
+    val scope = CoroutineScope(StandardTestDispatcher(testScheduler))
+
+    OnDeviceRendererPanelImpl(
+      disposable = disposableRule.disposable,
+      scope = scope,
+      client = onDeviceRenderingClient,
+      renderModel = renderModel,
+      enableSendRightClicksToDevice = {},
+    )
+
+    testScheduler.advanceUntilIdle()
+
+    val touchEvent =
+      buildUserInputEventProto(
+        rootId = ROOT,
+        x = 15f,
+        y = 55f,
+        type = LayoutInspectorViewProtocol.UserInputEvent.Type.DOUBLE_CLICK,
+      )
+    renderModel.setInterceptClicks(true)
+    testScheduler.advanceUntilIdle()
+
+    onDeviceRenderingClient.handleEvent(touchEvent)
+
+    testScheduler.advanceUntilIdle()
+
+    assertThat(inspectorModel.selection).isEqualTo(inspectorModel[COMPOSE1])
+    assertThat(navigateToInvocations).isEqualTo(1)
   }
 
   @Test

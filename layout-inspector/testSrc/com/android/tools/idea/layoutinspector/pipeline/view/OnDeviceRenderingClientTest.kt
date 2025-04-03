@@ -112,6 +112,23 @@ class OnDeviceRenderingClientTest {
   }
 
   @Test
+  fun testHandleDoubleClickEvent() = runTest {
+    val doubleClickEventProto =
+      buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.DOUBLE_CLICK)
+
+    // Launch collector coroutine, these events are ephemeral so it needs to be started before
+    // sending the event.
+    launch {
+      val receivedEvent = onDeviceRenderingClient.doubleClickEvents.first()
+      assertThat(receivedEvent).isEqualTo(InputEvent(rootId = 1L, x = 1f, y = 1f))
+    }
+
+    testScheduler.advanceUntilIdle()
+
+    onDeviceRenderingClient.handleEvent(doubleClickEventProto)
+  }
+
+  @Test
   fun testOldSelectionEventsAreNotReceived() = runTest {
     val selectionEventProto =
       buildUserInputEventProto(rootId = 1L, x = 1f, y = 1f, type = UserInputEvent.Type.SELECTION)

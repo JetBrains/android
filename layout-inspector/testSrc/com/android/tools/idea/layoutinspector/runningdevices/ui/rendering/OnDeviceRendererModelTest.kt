@@ -55,6 +55,8 @@ class OnDeviceRendererModelTest {
   private lateinit var treeSettings: FakeTreeSettings
   private lateinit var renderSettings: RenderSettings
 
+  private var navigateToInvocations = 0
+
   @Before
   fun setUp() {
     inspectorModel =
@@ -67,6 +69,7 @@ class OnDeviceRendererModelTest {
 
     treeSettings = FakeTreeSettings()
     renderSettings = FakeRenderSettings()
+    navigateToInvocations = 0
 
     onDeviceRendererModel =
       OnDeviceRendererModel(
@@ -74,6 +77,7 @@ class OnDeviceRendererModelTest {
         inspectorModel = inspectorModel,
         treeSettings = treeSettings,
         renderSettings = renderSettings,
+        navigateToSelectedViewOnDoubleClick = { navigateToInvocations += 1 },
       )
   }
 
@@ -128,6 +132,16 @@ class OnDeviceRendererModelTest {
 
     val instructions2 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions2).isNull()
+  }
+
+  @Test
+  fun testDoubleClickNode() = runTest {
+    assertThat(navigateToInvocations).isEqualTo(0)
+    onDeviceRendererModel.doubleClickNode(15.0, 55.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    assertThat(inspectorModel.selection).isEqualTo(inspectorModel[COMPOSE1])
+    assertThat(navigateToInvocations).isEqualTo(1)
   }
 
   @Test

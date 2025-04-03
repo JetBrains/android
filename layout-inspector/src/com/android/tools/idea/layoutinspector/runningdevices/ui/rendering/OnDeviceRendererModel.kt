@@ -62,6 +62,7 @@ class OnDeviceRendererModel(
   val inspectorModel: InspectorModel,
   private val treeSettings: TreeSettings,
   private val renderSettings: RenderSettings,
+  private val navigateToSelectedViewOnDoubleClick: () -> Unit,
 ) : Disposable {
 
   private val _interceptClicks = MutableStateFlow<Boolean>(false)
@@ -160,6 +161,11 @@ class OnDeviceRendererModel(
   fun hoverNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
     val node = findNodesAt(x, y, rootId).firstOrNull()
     inspectorModel.hoveredNode = node
+  }
+
+  fun doubleClickNode(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId) {
+    selectNode(x, y, rootId)
+    navigateToSelectedViewOnDoubleClick()
   }
 
   /** Returns the list of visible nodes belonging to [rootId], at the provided coordinates. */

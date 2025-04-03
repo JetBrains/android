@@ -218,6 +218,14 @@ class OnDeviceRendererPanelImpl(
         }
       }
     }
+
+    childScope.launch {
+      client.doubleClickEvents.filterNotNull().collect { event ->
+        if (interceptClicks) {
+          renderModel.doubleClickNode(event.x.toDouble(), event.y.toDouble(), event.rootId)
+        }
+      }
+    }
   }
 
   override fun dispose() {

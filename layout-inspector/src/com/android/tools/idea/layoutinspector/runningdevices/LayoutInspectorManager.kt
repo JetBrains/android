@@ -360,6 +360,9 @@ private fun createRendererPanel(
         inspectorModel = layoutInspector.inspectorModel,
         treeSettings = layoutInspector.treeSettings,
         renderSettings = layoutInspector.renderSettings,
+        navigateToSelectedViewOnDoubleClick = {
+          layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
+        },
       )
 
     OnDeviceRendererPanel(

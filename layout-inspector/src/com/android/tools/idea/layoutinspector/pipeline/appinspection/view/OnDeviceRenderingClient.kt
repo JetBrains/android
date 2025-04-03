@@ -43,6 +43,9 @@ class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
   private val _rightClickEvents = ephemeralFlow<InputEvent?>()
   val rightClickEvents = _rightClickEvents.asSharedFlow()
 
+  private val _doubleClickEvents = ephemeralFlow<InputEvent?>()
+  val doubleClickEvents = _doubleClickEvents.asSharedFlow()
+
   fun handleEvent(event: Event): Boolean {
     return when (event.specializedCase) {
       Event.SpecializedCase.USER_INPUT_EVENT -> {
@@ -59,6 +62,7 @@ class OnDeviceRenderingClient(private val messenger: AppInspectorMessenger) {
       UserInputEvent.Type.SELECTION -> _selectionEvents.tryEmit(point)
       UserInputEvent.Type.HOVER -> _hoverEvents.tryEmit(point)
       UserInputEvent.Type.RIGHT_CLICK -> _rightClickEvents.tryEmit(point)
+      UserInputEvent.Type.DOUBLE_CLICK -> _doubleClickEvents.tryEmit(point)
       else -> throw IllegalArgumentException("Unknown user input type ${inputEvent.type}")
     }
   }
