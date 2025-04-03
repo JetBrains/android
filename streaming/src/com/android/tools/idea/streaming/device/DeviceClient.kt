@@ -25,6 +25,7 @@ import com.android.adblib.isKnownDevice
 import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
 import com.android.annotations.concurrency.GuardedBy
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -116,6 +117,7 @@ internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 internal const val STREAM_AUDIO = 0x04
 internal const val USE_UINPUT = 0x08
+internal const val DEVICE_IS_XR = 0x10 // TODO: Remove when b/406870742 is fixed.
 internal const val DEBUG_LAYOUT_UI_SETTINGS = 0x20
 internal const val GESTURE_NAVIGATION_UI_SETTINGS = 0x40
 /** Maximum cumulative length of agent messages to remember. */
@@ -415,7 +417,8 @@ internal class DeviceClient(
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) DEBUG_LAYOUT_UI_SETTINGS else 0) or
                 (if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) GESTURE_NAVIGATION_UI_SETTINGS else 0) or
-                (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0)
+                (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0) or
+                (if (isEmulator && deviceConfig.deviceType == DeviceType.XR) DEVICE_IS_XR else 0) // Workaround for b/406870742.
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()
     val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""
