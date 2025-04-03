@@ -126,10 +126,7 @@ final class ProjectStateSyncTask {
       return;
     }
     ScalarSection<String> workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
-      .set(
-        WorkspaceRoot
-          .fromImportSettings(importSettings)
-          .toString())
+      .set(WorkspaceRoot.fromProject(project).toString())
       .build();
     ProjectView projectView = ProjectView.builder(projectViewFile.projectView)
       .add(TextBlockSection.of(TextBlock.newLine()))
