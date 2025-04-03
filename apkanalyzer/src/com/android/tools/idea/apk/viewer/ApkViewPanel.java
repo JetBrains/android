@@ -68,6 +68,8 @@ import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.FlowLayout;
 import java.awt.Insets;
+import java.io.IOException;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -682,13 +684,18 @@ public class ApkViewPanel implements TreeSelectionListener {
       }
 
       ArchiveEntry data = ((ArchiveTreeNode)value).getData();
-      if (!Files.isDirectory(data.getPath())) {
-        if (data.isFileCompressed()) {
-          append("Compressed");
+      try {
+        if (!Files.isDirectory(data.getPath())) {
+          if (data.isFileCompressed()) {
+            append("Compressed");
+          }
+          else {
+            append("Uncompressed");
+          }
         }
-        else {
-          append("Uncompressed");
-        }
+      } catch (ClosedFileSystemException e) {
+        // When the APK tab is closed, the APK file gets closed in another thread but the
+        // UI still tries to render it (b/402589243).
       }
     }
   }
