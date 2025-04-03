@@ -107,7 +107,6 @@
     <OutputGroupsProvider implementation="com.google.idea.blaze.android.sync.aspects.strategy.RenderResolveOutputGroupProvider"/>
     <ComposeStatusProvider implementation="com.google.idea.blaze.android.compose.ExperimentComposeStatusProvider"/>
     <BlazeBuildListener implementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemBuildManager$BuildCallbackPublisher"/>
-    <android.ApkBuildStepProvider implementation="com.google.idea.blaze.android.run.BazelApkBuildStepProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.google.idea.blaze.cpp">

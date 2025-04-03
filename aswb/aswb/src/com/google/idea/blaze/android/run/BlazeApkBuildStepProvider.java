@@ -123,6 +123,6 @@ public class BlazeApkBuildStepProvider implements ApkBuildStepProvider {
 
   @Override
   public ImmutableSet<BuildSystemName> getSupportedBuildSystems() {
-    return ImmutableSet.of(BuildSystemName.Blaze);
+    return ImmutableSet.of(BuildSystemName.Blaze, BuildSystemName.Bazel);
   }
 }
