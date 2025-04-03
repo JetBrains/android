@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.utils
 import com.android.SdkConstants
 import com.google.common.base.Strings
 import com.intellij.openapi.util.io.FileUtil
-import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_USER_HOME_ENV_KEY
 import java.io.File
 
 object GradleUtils {
@@ -32,7 +32,7 @@ object GradleUtils {
   fun getUserGradlePropertiesFile(): File {
     var gradleUserHome = System.getProperty("gradle.user.home")
     if (Strings.isNullOrEmpty(gradleUserHome)) {
-      gradleUserHome = System.getenv(GradleConstants.SYSTEM_DIRECTORY_PATH_KEY)
+      gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)
     }
     if (Strings.isNullOrEmpty(gradleUserHome)) {
       gradleUserHome = FileUtil.join(System.getProperty("user.home"), SdkConstants.DOT_GRADLE)

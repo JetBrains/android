@@ -30,9 +30,9 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
 import org.jetbrains.jps.model.serialization.JpsComponentLoader
 import org.jetbrains.plugins.gradle.properties.GRADLE_JAVA_HOME_PROPERTY
-import org.jetbrains.plugins.gradle.properties.GRADLE_PROPERTIES_FILE_NAME
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_PROPERTIES_FILE_NAME
 import java.io.File
 
 private const val PROJECT_DIR = "${'$'}PROJECT_DIR${'$'}"
