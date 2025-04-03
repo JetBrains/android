@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.scopeDisposable
 import com.intellij.ide.ui.UISettingsListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBLabel
@@ -75,14 +74,13 @@ open class LabelPanel(
             invalidate()
           }
         }
-    }
 
-    val messageBusConnection =
-      ApplicationManager.getApplication().messageBus.connect(scope.scopeDisposable())
-    messageBusConnection.subscribe(
-      UISettingsListener.TOPIC,
-      UISettingsListener { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) },
-    )
+      val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
+      messageBusConnection.subscribe(
+        UISettingsListener.TOPIC,
+        UISettingsListener { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) },
+      )
+    }
   }
 
   companion object {
