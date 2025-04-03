@@ -72,19 +72,42 @@ class LayoutBindingModuleCache(val module: Module) : Disposable {
   private val moduleBindingClassMarker = Any()
 
   /**
+   * [LightBindingClassSearchScope] representing only the current module. When accessed via
+   * [lightBindingClassSearchScope], additional modules needed for light binding class resolution
+   * will be included as well.
+   */
+  private val singleModuleSearchScope = LightBindingClassSearchScope(moduleBindingClassMarker)
+
+  /**
    * Search scope which includes any light binding classes generated in this cache for the current
    * module.
    */
   val lightBindingClassSearchScope: GlobalSearchScope
-    get() {
-      val localSearchScope = LightBindingClassSearchScope(moduleBindingClassMarker)
-      val additionalScopes =
-        BindingLayoutToken.additionalModulesForLightBindingScope(module)
-          .mapNotNull { it.androidFacet }
-          .map { getInstance(it).lightBindingClassSearchScope }
-      return if (additionalScopes.isEmpty()) localSearchScope
-      else localSearchScope.union(GlobalSearchScope.union(additionalScopes))
+    get() = makeLightBindingClassSearchScope()
+
+  private fun makeLightBindingClassSearchScope(): GlobalSearchScope {
+    // In the most common cases, there should be only 1 or 2 modules total.
+    val modulesToProcess: ArrayDeque<Module> = ArrayDeque(2)
+    modulesToProcess.add(module)
+
+    val processedModules: MutableSet<Module> = mutableSetOf()
+    val searchScopes: MutableList<GlobalSearchScope> = mutableListOf()
+    while (modulesToProcess.isNotEmpty()) {
+      val currModule = modulesToProcess.removeFirst()
+      if (!processedModules.add(currModule)) continue
+
+      modulesToProcess.addAll(BindingLayoutToken.additionalModulesForLightBindingScope(currModule))
+
+      val currFacet = currModule.androidFacet ?: continue
+      searchScopes.add(getInstance(currFacet).singleModuleSearchScope)
     }
+
+    return when (searchScopes.size) {
+      0 -> GlobalSearchScope.EMPTY_SCOPE
+      1 -> searchScopes.single()
+      else -> GlobalSearchScope.union(searchScopes)
+    }
+  }
 
   private val _dataBindingMode = AtomicReference(DataBindingMode.NONE)
   var dataBindingMode: DataBindingMode
