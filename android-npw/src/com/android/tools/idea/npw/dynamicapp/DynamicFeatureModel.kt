@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.dynamicapp
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
@@ -59,6 +61,9 @@ class DynamicFeatureModel(
       if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME
       else DownloadInstallKind.ON_DEMAND_ONLY
     )
+  override val recommendedBuildSdk: AndroidVersion?
+    get() =
+      baseApplication.valueOrNull?.let { StudioAndroidModuleInfo.getInstance(it)?.buildSdkVersion }
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() =

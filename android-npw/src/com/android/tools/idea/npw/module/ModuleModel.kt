@@ -72,8 +72,10 @@ abstract class ModuleModel(
     },
   val moduleParent: String,
   override val wizardContext: WizardUiContext,
-  val recommendedBuildSdk: AndroidVersion? = null,
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
+  open val recommendedBuildSdk: AndroidVersion?
+    get() = null
+
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
   override val category: ObjectProperty<Category> = ObjectValueProperty(Category.Activity)
@@ -132,8 +134,7 @@ abstract class ModuleModel(
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()
         val buildVersion =
-          if (recommendedBuildSdk != null) androidSdkInfo.value.withBuildSdk(recommendedBuildSdk)
-          else androidSdkInfo.value
+          recommendedBuildSdk?.let { androidSdkInfo.value.withBuildSdk(it) } ?: androidSdkInfo.value
         setBuildVersion(buildVersion, project)
         setModuleRoots(
           template.get().paths,

@@ -93,6 +93,7 @@ abstract class AddNewModulesToAppTest(
       "com.android.dynamic-feature",
       "libs.plugins.android.dynamic.feature",
     )
+    checkModuleCompileSdkVersion("feature1")
     assembleDebugProject()
   }
 
@@ -133,7 +134,9 @@ abstract class AddNewModulesToAppTest(
     )
 
     checkBuildGradleJavaVersion("feature1")
+    checkModuleCompileSdkVersion("feature1")
     checkBuildGradleJavaVersion("feature2")
+    checkModuleCompileSdkVersion("feature2")
     assembleDebugProject()
   }
 
@@ -160,6 +163,7 @@ abstract class AddNewModulesToAppTest(
     ) // Base module is always kts for this test
 
     checkAgpClasspathAndId("mylibrary", "com.android.library", "libs.plugins.android.library")
+    checkModuleCompileSdkVersion("mylibrary")
     checkBuildGradleJavaVersion(moduleName)
     assembleDebugProject()
   }
@@ -270,6 +274,27 @@ abstract class AddNewModulesToAppTest(
           .resolve("build.gradle")
           .readText()
           .contains("sourceCompatibility JavaVersion.VERSION_11")
+      )
+    }
+  }
+
+  private fun checkModuleCompileSdkVersion(moduleName: String) {
+    val project = projectRule.project
+    if (useGradleKts) {
+      assertTrue(
+        File(project.basePath!!)
+          .resolve(moduleName)
+          .resolve("build.gradle.kts")
+          .readText()
+          .contains("compileSdk = " + getAgpVersion().compileSdk)
+      )
+    } else {
+      assertTrue(
+        File(project.basePath!!)
+          .resolve(moduleName)
+          .resolve("build.gradle")
+          .readText()
+          .contains("compileSdk " + getAgpVersion().compileSdk)
       )
     }
   }
