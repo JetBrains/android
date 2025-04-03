@@ -211,7 +211,19 @@ private constructor(
       withTimeout(visualLintTimeout.seconds) {
         for (model in modelsToAnalyze) {
           val runAtfChecks = AtfAnalyzer.shouldRun(project, true)
-          val result = createRenderResult(model, runAtfChecks).get()
+          val result =
+            createRenderResult(model, runAtfChecks)
+              .handle { renderResult, ex ->
+                if (ex == null) return@handle renderResult
+                if (ex is AlreadyDisposedException) return@handle null
+                LOG.warn(ex)
+                Disposer.dispose(model)
+                return@handle null
+              }
+              .get()
+          if (result == null) {
+            continue
+          }
           withContext(visualLintAnalyzerDispatcher) {
             try {
               updateHierarchy(result, model)
