@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk
 
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
@@ -34,12 +35,14 @@ class SdkWritingAccessProvider(private val project: Project) : WritingAccessProv
 
   private fun isInAndroidSdk(file: VirtualFile): Boolean {
     return SlowOperations.knownIssue("b/322462245").use {
-      // Optimization: avoid querying isInAndroidSdk() in the common case where the file is within project sources.
-      if (ProjectFileIndex.getInstance(project).isInContent(file)) {
-        false
-      }
-      else {
-        AndroidSdks.getInstance().isInAndroidSdk(project, file)
+      runReadAction {
+        // Optimization: avoid querying isInAndroidSdk() in the common case where the file is within project sources.
+        if (ProjectFileIndex.getInstance(project).isInContent(file)) {
+          false
+        }
+        else {
+          AndroidSdks.getInstance().isInAndroidSdk(project, file)
+        }
       }
     }
   }
