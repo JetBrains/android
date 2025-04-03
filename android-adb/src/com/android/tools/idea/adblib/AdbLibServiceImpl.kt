@@ -24,7 +24,6 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.net.InetSocketAddress
@@ -34,26 +33,15 @@ import kotlinx.coroutines.withContext
 
 /** The production implementation of [AdbLibService] */
 internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposable {
-  /** Take a snapshot of the flag in case the value changes (during tests for example) */
-  private val oneSessionPerProject = StudioFlags.ADBLIB_ONE_SESSION_PER_PROJECT.get()
 
   init {
     AdbLibApplicationService.instance.registerProject(project)
   }
 
-  override val session =
-    if (oneSessionPerProject) {
-      // Create per project session
-      createProjectSession(project)
-    } else {
-      // re-use session from application service
-      AdbLibApplicationService.instance.session
-    }
+  override val session = createProjectSession(project)
 
   override fun dispose() {
-    if (oneSessionPerProject) {
-      session.close()
-    }
+    session.close()
   }
 
   companion object {

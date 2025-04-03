@@ -16,9 +16,7 @@
 package com.android.tools.idea.adblib
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.flags.junit.FlagRule
 import com.android.tools.idea.adb.FakeAdbServiceRule
-import com.android.tools.idea.flags.StudioFlags.ADBLIB_ONE_SESSION_PER_PROJECT
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
@@ -30,14 +28,9 @@ class AdbLibServiceTest {
   private val projectRule = ProjectRule()
   private val fakeAdbRule = FakeAdbRule()
   private val fakeAdbServiceRule = FakeAdbServiceRule({ projectRule.project }, fakeAdbRule)
-  private val oneSessionPerProject = FlagRule(ADBLIB_ONE_SESSION_PER_PROJECT)
 
   @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(projectRule)
-      .around(oneSessionPerProject)
-      .around(fakeAdbRule)
-      .around(fakeAdbServiceRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(fakeAdbRule).around(fakeAdbServiceRule)!!
 
   private val project
     get() = projectRule.project
@@ -55,31 +48,8 @@ class AdbLibServiceTest {
   }
 
   @Test
-  fun adbSessionInstanceShouldBeTheSameAsTheApplicationInstance() {
-    // Act
-    ADBLIB_ONE_SESSION_PER_PROJECT.override(false)
-    val applicationSession = AdbLibApplicationService.instance.session
-    val projectSession = AdbLibService.getSession(project)
-
-    // Assert
-    Truth.assertThat(projectSession).isSameAs(applicationSession)
-  }
-
-  @Test
-  fun applicationAdbSessionInstanceShouldBeTheSameAsTheProjectInstance() {
-    // Act
-    ADBLIB_ONE_SESSION_PER_PROJECT.override(false)
-    val projectSession = AdbLibService.getSession(project)
-    val applicationSession = AdbLibApplicationService.instance.session
-
-    // Assert
-    Truth.assertThat(applicationSession).isSameAs(projectSession)
-  }
-
-  @Test
   fun adbSessionInstanceShouldNotBeTheSameAsTheApplicationInstance() {
     // Act
-    ADBLIB_ONE_SESSION_PER_PROJECT.override(true)
     val applicationSession = AdbLibApplicationService.instance.session
     val projectSession = AdbLibService.getSession(project)
 
@@ -90,7 +60,6 @@ class AdbLibServiceTest {
   @Test
   fun applicationAdbSessionInstanceShouldNotBeTheSameAsTheProjectInstance() {
     // Act
-    ADBLIB_ONE_SESSION_PER_PROJECT.override(true)
     val projectSession = AdbLibService.getSession(project)
     val applicationSession = AdbLibApplicationService.instance.session
 
@@ -99,14 +68,12 @@ class AdbLibServiceTest {
   }
 
   @Test
-  fun projectShouldBeRegisteredIfUsingAdbLibService() {
-    // Prepare
-    val applicationService = AdbLibApplicationService.instance
-
+  fun adbLibServiceGetSession_registersProjectWithAdbLibApplicationService() {
     // Act
     AdbLibService.getSession(project)
 
-    // Assert
-    Truth.assertThat(applicationService.registerProject(project)).isFalse()
+    // Assert: `ApplicationService` already registered the project, and so
+    // trying to register it again returns `false`.
+    Truth.assertThat(AdbLibApplicationService.instance.registerProject(project)).isFalse()
   }
 }
