@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.findPageAlignWarningsPaths;
 import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APK_ANALYZED;
 import static com.google.wireless.android.sdk.stats.ApkAnalyzerStats.ApkAnalyzerAlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APK_ANALYZED;
 
@@ -31,7 +32,9 @@ import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.ApkArchive;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive;
-import com.android.tools.idea.ndk.PageAlignConfig;
+import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.IS_PAGE_ALIGN_ENABLED;
+
+import com.android.tools.idea.apk.viewer.pagealign.AlignmentCellRenderer;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
@@ -68,7 +71,6 @@ import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.FlowLayout;
 import java.awt.Insets;
-import java.io.IOException;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -176,6 +178,9 @@ public class ApkViewPanel implements TreeSelectionListener {
           .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
         try {
           refreshTree();
+          if (IS_PAGE_ALIGN_ENABLED) {
+            myTree.expandPaths(findPageAlignWarningsPaths(result));
+          }
         }
         catch (Exception e) {
           // Ignore exceptions if the archive was disposed (b/351919218)
@@ -325,57 +330,53 @@ public class ApkViewPanel implements TreeSelectionListener {
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("File")
-                   .setPreferredWidth(JBUI.scale(600))
+                   .setPreferredWidth(JBUI.scale(270))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new NameRenderer(myApkParser, treeSpeedSearch)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Size")
-                   .setPreferredWidth(JBUI.scale(150))
+                   .setPreferredWidth(JBUI.scale(80))
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(false)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Download Size")
-                   .setPreferredWidth(JBUI.scale(150))
+                   .setPreferredWidth(JBUI.scale(80))
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("% of Total Download Size")
-                   .setPreferredWidth(JBUI.scale(150))
-                   .setHeaderAlignment(SwingConstants.LEADING)
-                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new PercentRenderer(percentProvider)));
-      if (PageAlignConfig.INSTANCE.isPageAlignMessageEnabled()) {
+                    .setName("% of Download Size")
+                    .setPreferredWidth(JBUI.scale(150))
+                    .setHeaderAlignment(SwingConstants.LEADING)
+                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+                    .setRenderer(new PercentRenderer(percentProvider)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                    .setName("Compressed")
+                    .setPreferredWidth(JBUI.scale(110))
+                    .setHeaderAlignment(SwingConstants.LEADING)
+                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+                    .setRenderer(new CompressionRenderer()));
+
+      if (IS_PAGE_ALIGN_ENABLED) {
         builder
           .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Zip Alignment")
-                   .setPreferredWidth(JBUI.scale(50))
-                   .setHeaderAlignment(SwingConstants.LEADING)
-                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new ZipAlignmentRenderer()))
-          .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                       .setName("Native Alignment")
-                       .setPreferredWidth(JBUI.scale(150))
-                       .setHeaderAlignment(SwingConstants.LEADING)
-                       .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                       .setRenderer(new ElfMinimumLoadAlignmentRenderer()));
+                     .setName("Alignment")
+                     .setPreferredWidth(JBUI.scale(320))
+                     .setHeaderAlignment(SwingConstants.LEADING)
+                     .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
+                     .setRenderer(new AlignmentCellRenderer()));
       } else {
         builder
           .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                        .setName("Alignment")
-                       .setPreferredWidth(JBUI.scale(150))
+                       .setPreferredWidth(JBUI.scale(200))
                        .setHeaderAlignment(SwingConstants.LEADING)
                        .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                        .setRenderer(new ZipAlignmentRenderer()));
       }
-     builder.addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Compression")
-                   .setPreferredWidth(JBUI.scale(200))
-                   .setHeaderAlignment(SwingConstants.LEADING)
-                   .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
-                   .setRenderer(new CompressionRenderer()));
+
     myColumnTreePane = builder.build();
     myTree.addTreeSelectionListener(this);
   }
@@ -568,6 +569,8 @@ public class ApkViewPanel implements TreeSelectionListener {
         else if (fileName.equals("baseline.prof") || fileName.equals("baseline.profm")) {
           // TODO: Use dedicated icon for this.
           return AllIcons.FileTypes.Hprof;
+        } else if (entry.getIsElf()) {
+          return AllIcons.FileTypes.BinaryData;
         }
 
         FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
@@ -578,6 +581,8 @@ public class ApkViewPanel implements TreeSelectionListener {
         fileName = StringUtil.trimEnd(fileName, "/");
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
+        } else if (path.toString().equals("/lib")) {
+          return AllIcons.Nodes.NativeLibrariesFolder;
         }
         //noinspection UnstableApiUsage
         return IconManager.getInstance().getPlatformIcon(PlatformIcons.Package);
@@ -618,7 +623,7 @@ public class ApkViewPanel implements TreeSelectionListener {
    */
   private static class ZipAlignmentRenderer extends ColoredTreeCellRenderer {
     ZipAlignmentRenderer() {
-      setTextAlign(SwingConstants.RIGHT);
+      setTextAlign(SwingConstants.LEFT);
     }
 
     @Override
@@ -638,37 +643,9 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
   }
 
-  /**
-   * Render information about what the minimum .so ELF LOAD alignment is.
-   */
-  private static class ElfMinimumLoadAlignmentRenderer extends ColoredTreeCellRenderer {
-    ElfMinimumLoadAlignmentRenderer() {
-      setTextAlign(SwingConstants.RIGHT);
-    }
-
-    @Override
-    public void customizeCellRenderer(@NotNull JTree tree,
-                                      Object value,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-      if (!(value instanceof ArchiveTreeNode)) {
-        return;
-      }
-
-      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
-      long loadAlignment = data.getElfMinimumLoadSectionAlignment();
-      if (loadAlignment != -1L) {
-        append(loadAlignment / 1024 + " KB");
-      }
-    }
-  }
-
   private static class CompressionRenderer extends ColoredTreeCellRenderer {
     public CompressionRenderer() {
-      setTextAlign(SwingConstants.RIGHT);
+      setTextAlign(SwingConstants.LEFT);
     }
 
     @Override
@@ -686,11 +663,12 @@ public class ApkViewPanel implements TreeSelectionListener {
       ArchiveEntry data = ((ArchiveTreeNode)value).getData();
       try {
         if (!Files.isDirectory(data.getPath())) {
+          // For page alignment, use "Yes" and "No" to give more horizontal space for the alignment message.
           if (data.isFileCompressed()) {
-            append("Compressed");
+            append("Yes");
           }
           else {
-            append("Uncompressed");
+            append("No");
           }
         }
       } catch (ClosedFileSystemException e) {
