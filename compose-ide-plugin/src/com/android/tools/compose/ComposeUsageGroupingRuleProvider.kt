@@ -35,7 +35,18 @@ import javax.swing.Icon
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFunction
 
-private val PREVIEW_CLASS_ID = ClassId.fromString("androidx/compose/ui/tooling/preview/Preview")
+private val PREVIEW_ANNOTATIONS =
+  listOf(
+    "Preview",
+    "PreviewDynamicColors",
+    "PreviewFontScale",
+    "PreviewLightDark",
+    "PreviewParameter",
+    "PreviewScreenSizes",
+  )
+
+private val PREVIEW_CLASS_IDS =
+  PREVIEW_ANNOTATIONS.map { ClassId.fromString("androidx/compose/ui/tooling/preview/$it") }
 
 /** Returns whether a [PsiElement] is used within a Kotlin function annotated with @Preview. */
 private tailrec fun PsiElement.isInPreviewFunction(): Boolean {
@@ -47,7 +58,7 @@ private tailrec fun PsiElement.isInPreviewFunction(): Boolean {
 }
 
 /** Returns whether a [KtFunction] is annotated with @Preview. */
-private fun KtFunction.hasPreviewAnnotation() = hasAnnotation(PREVIEW_CLASS_ID)
+private fun KtFunction.hasPreviewAnnotation() = PREVIEW_CLASS_IDS.any(::hasAnnotation)
 
 /** Returns whether any of the [UsageTarget]s represent @Composable functions. */
 private fun Array<out UsageTarget>.containsComposable(): Boolean =

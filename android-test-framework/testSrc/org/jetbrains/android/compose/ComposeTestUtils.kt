@@ -28,41 +28,51 @@ import java.io.File
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-private const val COMPOSE_LIB_VERSION = "1.7.1"
+private const val DEFAULT_COMPOSE_LIB_VERSION = "1.7.1"
 
-private enum class ComposeLib(val libPath: String) {
+private enum class ComposeLib(private val libPath: String) {
   Runtime(
-    "androidx/compose/runtime/runtime-android/$COMPOSE_LIB_VERSION/runtime-android-$COMPOSE_LIB_VERSION.aar"
+    "androidx/compose/runtime/runtime-android/%s/runtime-android-%s.aar"
   ),
   RuntimeSaveable(
-    "androidx/compose/runtime/runtime-saveable-android/$COMPOSE_LIB_VERSION/runtime-saveable-android-$COMPOSE_LIB_VERSION.aar"
+    "androidx/compose/runtime/runtime-saveable-android/%s/runtime-saveable-android-%s.aar"
   ),
-  Ui("androidx/compose/ui/ui-android/$COMPOSE_LIB_VERSION/ui-android-$COMPOSE_LIB_VERSION.aar"),
+  Ui("androidx/compose/ui/ui-android/%s/ui-android-%s.aar"),
   UiGraphics(
-    "androidx/compose/ui/ui-graphics-android/$COMPOSE_LIB_VERSION/ui-graphics-android-$COMPOSE_LIB_VERSION.aar"
+    "androidx/compose/ui/ui-graphics-android/%s/ui-graphics-android-%s.aar"
   ),
+  UiToolingPreview(
+    "androidx/compose/ui/ui-tooling-preview-android/%s/ui-tooling-preview-android-%s.aar"
+  );
+
+  fun getLibPath(version: String) = libPath.format(version, version)
 }
 
-fun CodeInsightTestFixture.addComposeRuntimeDep() {
-  addLibDep(ComposeLib.Runtime)
+fun CodeInsightTestFixture.addComposeRuntimeDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
+  addLibDep(ComposeLib.Runtime, version)
 }
 
-fun CodeInsightTestFixture.addComposeRuntimeSaveableDep() {
-  addLibDep(ComposeLib.RuntimeSaveable)
+fun CodeInsightTestFixture.addComposeRuntimeSaveableDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
+  addLibDep(ComposeLib.RuntimeSaveable, version)
 }
 
-fun CodeInsightTestFixture.addComposeUiDep() {
-  addLibDep(ComposeLib.Ui)
+fun CodeInsightTestFixture.addComposeUiDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
+  addLibDep(ComposeLib.Ui, version)
 }
 
-fun CodeInsightTestFixture.addComposeUiGraphicsDep() {
-  addLibDep(ComposeLib.UiGraphics)
+fun CodeInsightTestFixture.addComposeUiGraphicsDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
+  addLibDep(ComposeLib.UiGraphics, version)
 }
 
-private fun CodeInsightTestFixture.addLibDep(composeLib: ComposeLib) {
-  val aarPath = File(TestUtils.getLocalMavenRepoFile(composeLib.libPath).toString()).toPath()
+fun CodeInsightTestFixture.addComposeUiToolingPreviewDep(version: String = DEFAULT_COMPOSE_LIB_VERSION) {
+  addLibDep(ComposeLib.UiToolingPreview, version)
+}
 
-  val libName = composeLib.libPath.split("/")[3]
+private fun CodeInsightTestFixture.addLibDep(composeLib: ComposeLib, version: String) {
+  val libPath = composeLib.getLibPath(version)
+  val aarPath = File(TestUtils.getLocalMavenRepoFile(libPath).toString()).toPath()
+
+  val libName = libPath.split("/")[3]
   val tempDir = tempDirFixture.findOrCreateDir("composeTestLib_$libName").toIoFile()
   ZipUtil.extract(aarPath, tempDir.toPath()) { _, filename -> filename == "classes.jar" }
   val jarPath = File(tempDir, "classes.jar").path

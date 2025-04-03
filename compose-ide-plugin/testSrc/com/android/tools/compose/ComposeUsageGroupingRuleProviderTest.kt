@@ -32,9 +32,10 @@ import com.intellij.usages.UsageTarget
 import com.intellij.usages.impl.rules.UsageGroupingRulesDefaultRanks
 import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageGroupingRuleEx
-import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.android.compose.addComposeRuntimeDep
+import org.jetbrains.android.compose.addComposeUiToolingPreviewDep
 import org.jetbrains.kotlin.psi.KtExpression
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -117,10 +118,7 @@ class ComposeUsageGroupingRuleProviderTest {
  * potential annotations.
  */
 @RunWith(Parameterized::class)
-class ComposeUsageGroupingRuleProviderParameterizedTest(
-  private val targetAnnotations: List<String>,
-  private val usageAnnotations: List<String>,
-) {
+class ComposeUsageGroupingRuleProviderParameterizedTest(private val testConfig: TestConfig) {
   @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val fixture by lazy { projectRule.fixture }
@@ -132,22 +130,46 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
   }
 
   companion object {
-    @Parameterized.Parameters(name = "{0}_target_{1}_element")
+    data class TestConfig(val targetAnnotations: List<String>, val usageAnnotations: List<String>) {
+      override fun toString(): String = "target: $targetAnnotations usage: $usageAnnotations"
+    }
+
+    @Parameterized.Parameters(name = "{0}")
     @JvmStatic
-    fun data(): List<Array<List<String>>> =
+    fun data(): List<TestConfig> =
       listOf(
-        arrayOf(listOf(), listOf()),
-        arrayOf(listOf(), listOf(COMPOSABLE)),
-        arrayOf(listOf(), listOf(PREVIEW)),
-        arrayOf(listOf(), listOf(PREVIEW, COMPOSABLE)),
-        arrayOf(listOf(COMPOSABLE), listOf()),
-        arrayOf(listOf(COMPOSABLE), listOf(COMPOSABLE)),
-        arrayOf(listOf(COMPOSABLE), listOf(PREVIEW)),
-        arrayOf(listOf(COMPOSABLE), listOf(PREVIEW, COMPOSABLE)),
+        TestConfig(listOf(), listOf()),
+        TestConfig(listOf(), listOf(COMPOSABLE)),
+        TestConfig(listOf(COMPOSABLE), listOf()),
+        TestConfig(listOf(COMPOSABLE), listOf(COMPOSABLE)),
+      ) +
+        PREVIEW_ANNOTATIONS.flatMap { preview ->
+          listOf(
+            TestConfig(listOf(), listOf(preview)),
+            TestConfig(listOf(), listOf(preview, COMPOSABLE)),
+            TestConfig(listOf(COMPOSABLE), listOf(preview)),
+            TestConfig(listOf(COMPOSABLE), listOf(preview, COMPOSABLE)),
+          )
+        }
+
+    private val PREVIEW_ANNOTATIONS =
+      listOf(
+        "Preview",
+        "PreviewDynamicColors",
+        "PreviewFontScale",
+        "PreviewLightDark",
+        "PreviewParameter",
+        "PreviewScreenSizes",
       )
 
     private const val COMPOSABLE = "Composable"
-    private const val PREVIEW = "Preview"
+  }
+
+  @Before
+  fun setUp() {
+    (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    fixture.addComposeRuntimeDep()
+    fixture.addComposeUiToolingPreviewDep(version = "1.7.5")
   }
 
   @RunsInEdt
@@ -155,8 +177,8 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
   fun getParentGroupsFor() {
     val (usage, targets) =
       fixture.configureCode(
-        targetAnnotations,
-        usageAnnotations,
+        testConfig.targetAnnotations,
+        testConfig.usageAnnotations,
         "target|Function() // usage",
         "fun target|Function()",
       )
@@ -168,8 +190,8 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
   fun getParentGroupsFor_nested() {
     val (usage, targets) =
       fixture.configureCode(
-        targetAnnotations,
-        usageAnnotations,
+        testConfig.targetAnnotations,
+        testConfig.usageAnnotations,
         "target|Function() // nested usage",
         "fun target|Function()",
       )
@@ -181,8 +203,8 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
   fun ignoresNonKtFunctionTarget() {
     val (usage, targets) =
       fixture.configureCode(
-        targetAnnotations,
-        usageAnnotations,
+        testConfig.targetAnnotations,
+        testConfig.usageAnnotations,
         "target|Function() // usage",
         "PROP|ERTY",
         "fun target|Function()",
@@ -195,8 +217,8 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
   fun ignoresNonPsiElementTarget() {
     val (usage, targets) =
       fixture.configureCode(
-        targetAnnotations,
-        usageAnnotations,
+        testConfig.targetAnnotations,
+        testConfig.usageAnnotations,
         "target|Function() // usage",
         "fun target|Function()",
       )
@@ -211,8 +233,9 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
    */
   private fun checkUsageGroups(usageGroups: List<UsageGroup>) {
     when {
-      COMPOSABLE !in targetAnnotations -> assertThat(usageGroups).isEmpty()
-      COMPOSABLE in usageAnnotations && PREVIEW in usageAnnotations ->
+      COMPOSABLE !in testConfig.targetAnnotations -> assertThat(usageGroups).isEmpty()
+      COMPOSABLE in testConfig.usageAnnotations &&
+        PREVIEW_ANNOTATIONS.any(testConfig.usageAnnotations::contains) ->
         assertThat(usageGroups).containsExactly(PreviewUsageGroup)
       else -> assertThat(usageGroups).containsExactly(ProductionUsageGroup)
     }
@@ -225,15 +248,16 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
     elementWindow: String,
     vararg targetWindows: String,
   ): Pair<Usage, Array<out UsageTarget>> {
-    (module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    stubComposableAnnotation()
-    stubPreviewAnnotation()
+    val previewImports =
+      usageAnnotations.filter(PREVIEW_ANNOTATIONS::contains).joinToString("\n") {
+        "import androidx.compose.ui.tooling.preview.$it"
+      }
     // language=kotlin
     val contents =
       """
       package the.regrettes
       import ${ComposeFqNames.Composable.asString()}
-      import androidx.compose.ui.tooling.preview.Preview
+      $previewImports
       private const val PROPERTY = 3
       ${targetAnnotations.joinToString(" ") { "@$it" }}
       fun targetFunction() {}

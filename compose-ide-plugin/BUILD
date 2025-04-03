@@ -49,6 +49,7 @@ iml_module(
         "@maven//:androidx.compose.runtime.runtime-saveable-android_1.7.1",
         "@maven//:androidx.compose.ui.ui-android_1.7.1",
         "@maven//:androidx.compose.ui.ui-graphics-android_1.7.1",
+        "@maven//:androidx.compose.ui.ui-tooling-preview-android_1.7.5",
     ],
     # do not sort: must match IML order
     test_deps = [
