@@ -2356,7 +2356,7 @@ public final class StudioFlags {
     new EnumFlag<>(STUDIOBOT, "support.gias.dasher.accounts",
                    "Enable support for GCA Dasher accounts",
                    "Enable support for GCA Dasher accounts",
-                   DasherSupportMode.NEVER);
+                   DasherSupportMode.AUTO);
 
   // endregion STUDIO_BOT
 
