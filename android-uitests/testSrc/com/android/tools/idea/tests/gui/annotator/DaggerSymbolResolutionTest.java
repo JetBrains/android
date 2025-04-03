@@ -72,7 +72,7 @@ public class DaggerSymbolResolutionTest {
    * <p>
    */
   @RunIn(TestGroup.FAST_BAZEL)
-  //@Test
+  @Test
   public void daggerSymbolResolutionTest() throws Exception{
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("Dagger2App");
 
