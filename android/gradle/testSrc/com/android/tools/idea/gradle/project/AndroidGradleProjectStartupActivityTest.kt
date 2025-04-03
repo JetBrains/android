@@ -42,6 +42,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -93,7 +94,7 @@ class AndroidGradleProjectStartupActivityTest {
   fun testRunActivityWithImportedProject() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
-    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     runBlocking { myStartupActivity.execute(myProject) }
@@ -103,8 +104,8 @@ class AndroidGradleProjectStartupActivityTest {
 
   @Test
   fun testRunActivityWithExistingGradleProject() {
-    whenever(myInfo.isBuildWithGradle).thenReturn(true)
-    whenever(myInfo.androidModules).thenReturn(listOf<Module>(MockModule(myProjectRule.testRootDisposable)))
+    doReturn(true).whenever(myInfo).isBuildWithGradle
+    doReturn(listOf<Module>(MockModule(myProjectRule.testRootDisposable))).whenever(myInfo).androidModules
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     runBlocking { myStartupActivity.execute(myProject) }
@@ -114,7 +115,7 @@ class AndroidGradleProjectStartupActivityTest {
 
   @Test
   fun testRunActivityWithNonGradleProject() {
-    whenever(myInfo.isBuildWithGradle).thenReturn(false)
+    doReturn(false).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     runBlocking { myStartupActivity.execute(myProject) }
@@ -125,7 +126,7 @@ class AndroidGradleProjectStartupActivityTest {
   fun testJunitProducersAreIgnored() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
-    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     runBlocking { myStartupActivity.execute(myProject) }
@@ -142,7 +143,7 @@ class AndroidGradleProjectStartupActivityTest {
   fun testJunitProducersAreNotIgnoredInNonGradleProjects() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
-    whenever(myInfo.isBuildWithGradle).thenReturn(false)
+    doReturn(false).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     val ignoredProducers = RunConfigurationProducerService.getInstance(myProject).state.ignoredProducers
@@ -156,7 +157,7 @@ class AndroidGradleProjectStartupActivityTest {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
-    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     runBlocking { myStartupActivity.execute(myProject) }
@@ -168,7 +169,7 @@ class AndroidGradleProjectStartupActivityTest {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio) return
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
-    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     runBlocking { myStartupActivity.execute(myProject) }
@@ -185,7 +186,7 @@ class AndroidGradleProjectStartupActivityTest {
     if (!IdeInfo.getInstance().isAndroidStudio) return;
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, false)
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
-    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     try {
@@ -203,7 +204,7 @@ class AndroidGradleProjectStartupActivityTest {
     if (!IdeInfo.getInstance().isAndroidStudio) return;
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
     GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
-    whenever(myInfo.isBuildWithGradle).thenReturn(true)
+    doReturn(true).whenever(myInfo).isBuildWithGradle
     myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
 
     runBlocking { myStartupActivity.execute(myProject) }
