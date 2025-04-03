@@ -15,19 +15,29 @@
  */
 package com.google.idea.blaze.kotlin.qsync;
 
-
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.BlazeQuerySyncPlugin;
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.java.projectview.JavaLanguageLevelSection;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.java.LanguageLevel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
 import org.jetbrains.kotlin.cli.common.arguments.FreezableKt;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder;
+import org.jetbrains.kotlin.idea.facet.KotlinFacet;
+import org.jetbrains.kotlin.idea.facet.KotlinFacetType;
 
 /** Supports Kotlin. */
 public class BlazeKotlinQuerySyncPlugin implements BlazeQuerySyncPlugin {
@@ -45,10 +55,57 @@ public class BlazeKotlinQuerySyncPlugin implements BlazeQuerySyncPlugin {
     setProjectJvmTarget(project, javaLanguageLevel);
   }
 
+  @Override
+  public void updateProjectStructureForQuerySync(
+      Project project,
+      Context<?> context,
+      IdeModifiableModelsProvider models,
+      WorkspaceRoot workspaceRoot,
+      Module workspaceModule,
+      Set<String> androidResourceDirectories,
+      Set<String> androidSourcePackages,
+      WorkspaceLanguageSettings workspaceLanguageSettings) {
+    KotlinFacet kotlinFacet = getOrCreateKotlinFacet(models, workspaceModule);
+    // TODO(xinruiy): makes BlazeGoogle3AndroidKotlinPluginOptionsProvider#hasParcelizeDependency
+    // compatible with query sync. So that we can
+    // collect new plugin options for query sync targets.
+    updatePluginOptions(kotlinFacet, new ArrayList<>());
+  }
+
+  private static KotlinFacet getOrCreateKotlinFacet(
+      IdeModifiableModelsProvider models, Module module) {
+    KotlinFacet facet = KotlinFacet.Companion.get(module);
+    if (facet != null) {
+      return facet;
+    }
+    FacetManager facetManager = FacetManager.getInstance(module);
+    ModifiableFacetModel modifiableFacetModel = models.getModifiableFacetModel(module);
+    facet =
+        facetManager.createFacet(
+            KotlinFacetType.Companion.getINSTANCE(), KotlinFacetType.NAME, null);
+    modifiableFacetModel.addFacet(facet);
+    return facet;
+  }
+
+  private static void updatePluginOptions(KotlinFacet kotlinFacet, List<String> newPluginOptions) {
+    var facetSettings = kotlinFacet.getConfiguration().getSettings();
+    CommonCompilerArguments commonArguments = facetSettings.getCompilerArguments();
+    if (commonArguments == null) {
+      commonArguments = new K2JVMCompilerArguments();
+    }
+
+    String[] oldPluginOptions = commonArguments.getPluginOptions();
+    if (oldPluginOptions == null) {
+      oldPluginOptions = new String[0];
+    }
+    commonArguments.setPluginOptions(newPluginOptions.toArray(new String[0]));
+    facetSettings.setCompilerArguments(commonArguments);
+  }
+
   private static void setProjectJvmTarget(Project project, LanguageLevel javaLanguageLevel) {
     K2JVMCompilerArguments k2JVMCompilerArguments =
         (K2JVMCompilerArguments)
-          FreezableKt.unfrozen(
+            FreezableKt.unfrozen(
                 Kotlin2JvmCompilerArgumentsHolder.Companion.getInstance(project).getSettings());
 
     String javaVersion = javaLanguageLevel.toJavaVersion().toString();
