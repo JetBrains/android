@@ -33,40 +33,13 @@ import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
-import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
-import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.gradle.GradleBuild
-import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
-class DeclarativeGradleModelProvider : ProjectImportModelProvider {
-
-  override fun populateModels(
-    controller: BuildController,
-    buildModels: Collection<GradleBuild>,
-    consumer: ProjectImportModelProvider.GradleModelConsumer
-  ) {
-    for (buildModel in buildModels) {
-      try {
-        controller.findModel(DeclarativeSchemaModel::class.java)
-          ?.also { schemaModel ->
-            consumer.consumeBuildModel(buildModel, schemaModel.convertProject(), ProjectSchemas::class.java)
-            consumer.consumeBuildModel(buildModel, schemaModel.convertSettings(), SettingsSchemas::class.java)
-          }
-        ?: LOG.debug(ExternalSystemException("Incompatible (too old?) version of Gradle: Cannot import DeclarativeSchemaModel"))
-      }
-      catch (e: Exception) {
-        LOG.warn(ExternalSystemException("Caught exception from requesting DeclarativeSchemaModel", e))
-      }
-    }
-  }
-}
-
-private fun DeclarativeSchemaModel.convertProject(): ProjectSchemas {
+fun DeclarativeSchemaModel.convertProject(): ProjectSchemas {
   val projectSchemas = projectSequence.steps.map { it.evaluationSchemaForStep.analysisSchema }
   return ProjectSchemas(projectSchemas.map { it.convert() }.toSet())
 }
 
-private fun DeclarativeSchemaModel.convertSettings(): SettingsSchemas {
+fun DeclarativeSchemaModel.convertSettings(): SettingsSchemas {
   val settingSchemas = settingsSequence.steps.map { it.evaluationSchemaForStep.analysisSchema }
   return SettingsSchemas(settingSchemas.map { it.convert() }.toSet())
 }
@@ -234,4 +207,4 @@ private fun DataType.ParameterizedTypeInstance.TypeArgument.convert(): GenericTy
 
 private fun Name.convert(): DataClassRef = DataClassRef(fqName.convert())
 
-private val LOG = Logger.getInstance(DeclarativeGradleModelProvider::class.java)
+private val LOG = Logger.getInstance(GradleSchemaProjectResolver::class.java)
