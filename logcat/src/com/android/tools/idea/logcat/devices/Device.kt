@@ -18,9 +18,7 @@ package com.android.tools.idea.logcat.devices
 import com.android.sdklib.deviceprovisioner.DeviceType
 
 /** A representation of a device used by [DeviceComboBox]. */
-@Suppress("DataClassPrivateConstructor") // Exposed via copy which we use in tests
-data class Device
-private constructor(
+data class Device(
   val deviceId: String,
   val name: String,
   val serialNumber: String,

@@ -22,8 +22,6 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.LoadLogcatFile
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.PauseLogcat
@@ -381,7 +379,7 @@ constructor(
       UserInputHandlers(this).install()
     }
 
-    editor.settings.isUseSoftWraps = state?.isSoftWrap ?: false
+    editor.settings.isUseSoftWraps = state?.isSoftWrap == true
     messageFormatter.setSoftWrapEnabled(editor.settings.isUseSoftWraps)
     addComponentListener(
       object : ComponentAdapter() {
@@ -503,7 +501,7 @@ constructor(
         )
     }
 
-    coroutineScope.launch(workerThread) {
+    coroutineScope.launch(Dispatchers.Default) {
       deviceComboBox.trackSelected().collect { item ->
         messageProcessor.context(item)
         pausedBanner.isVisible = false
@@ -513,7 +511,7 @@ constructor(
           } else {
             val sameDevice = connectedDevice.get()?.deviceId == item.device.deviceId
             logcatServiceChannel.send(StopLogcat)
-            withContext(uiThread) {
+            withContext(Dispatchers.EDT) {
               if (!sameDevice) {
                 clearDocument()
               }
@@ -528,7 +526,7 @@ constructor(
                 LogcatFileIo().readLogcat(item.path)
               } catch (e: Exception) {
                 LOGGER.warn("Failed to load Logcat from file ${item.path}", e)
-                withContext(uiThread) {
+                withContext(Dispatchers.EDT) {
                   deviceComboBox.handleItemError(
                     item,
                     LogcatBundle.message("logcat.device.combo.error.load.file", item.path),
@@ -740,9 +738,9 @@ constructor(
   @UiThread
   override fun reloadMessages() {
     clearDocument()
-    coroutineScope.launch(workerThread) {
+    coroutineScope.launch(Dispatchers.Default) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
-      withContext(uiThread) { noLogsBanner.isVisible = isLogsMissing() }
+      withContext(Dispatchers.EDT) { noLogsBanner.isVisible = isLogsMissing() }
     }
   }
 
@@ -848,11 +846,11 @@ constructor(
     packages.clear()
     processNames.clear()
     documentAppender.reset()
-    withContext(uiThread) { clearDocument() }
+    withContext(Dispatchers.EDT) { clearDocument() }
   }
 
   override fun clearMessageView() {
-    coroutineScope.launch(workerThread) {
+    coroutineScope.launch(Dispatchers.Default) {
       val device = connectedDevice.get()
       val systemMessages = mutableListOf<LogcatMessage>()
       if (device != null) {
@@ -874,7 +872,7 @@ constructor(
         } else {
           try {
             logcatService.clearLogcat(device.serialNumber)
-          } catch (e: TimeoutException) {
+          } catch (_: TimeoutException) {
             LOGGER.warn("Timed out executing logcat -c")
             systemMessages.add(
               LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.timeout"))
@@ -883,7 +881,7 @@ constructor(
         }
       }
       messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         clearDocument()
         noLogsBanner.isVisible = isLogsMissing()
         processMessages(systemMessages)
@@ -952,7 +950,7 @@ constructor(
   }
 
   private suspend fun startLogcat(device: Device): Job {
-    withContext(uiThread) { clearDocument() }
+    withContext(Dispatchers.EDT) { clearDocument() }
     messageBacklog.get().clear()
 
     return coroutineScope.launch(Dispatchers.IO) {
@@ -975,7 +973,7 @@ constructor(
   }
 
   private suspend fun loadLogcatFile(data: LogcatFileData?, loadFilter: Boolean) {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       clearDocument()
       messageBacklog.get().clear()
       if (loadFilter) {
