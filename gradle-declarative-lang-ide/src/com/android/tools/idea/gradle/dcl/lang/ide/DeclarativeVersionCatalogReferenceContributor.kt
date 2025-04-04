@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBare
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
@@ -22,7 +23,6 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeQualified
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeRecursiveVisitor
-import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
@@ -35,6 +35,7 @@ import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.util.ProcessingContext
+import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
 
 class DeclarativeVersionCatalogReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {

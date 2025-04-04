@@ -20,5 +20,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" scope="TEST" />
   </component>
 </module>

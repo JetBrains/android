@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 
 class DeclarativeGoToApiDeclarationHandler : GotoDeclarationHandlerBase() {
   override fun getGotoDeclarationTarget(sourceElement: PsiElement?, editor: Editor?): PsiElement? {

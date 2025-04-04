@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
-import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.AndroidDeclarativeType
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel

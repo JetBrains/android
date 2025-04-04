@@ -24,7 +24,7 @@ import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralR
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
-import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;

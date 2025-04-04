@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.sync.ProjectSchemas
 import com.android.tools.idea.gradle.dcl.lang.sync.SettingsSchemas
 import com.google.common.truth.Truth.assertThat

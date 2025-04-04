@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide;
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;

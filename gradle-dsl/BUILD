@@ -65,6 +65,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils",
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
         "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
+        "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
     ],
     test_shard_count = 3,
     test_srcs = ["testSrc"],

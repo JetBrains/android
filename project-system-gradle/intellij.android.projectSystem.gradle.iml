@@ -71,5 +71,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" />
   </component>
 </module>

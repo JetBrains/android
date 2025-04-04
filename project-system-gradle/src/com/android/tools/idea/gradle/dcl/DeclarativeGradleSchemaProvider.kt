@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dcl
 
 import com.android.tools.idea.gradle.dcl.lang.ide.BuildDeclarativeSchemas
-import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeSchemaProvider
 import com.android.tools.idea.gradle.project.sync.idea.GradleSchemaProjectResolver.Companion.DECLARATIVE_PROJECT_SCHEMAS
 import com.android.tools.idea.gradle.project.sync.idea.GradleSchemaProjectResolver.Companion.DECLARATIVE_SETTINGS_SCHEMAS

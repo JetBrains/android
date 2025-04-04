@@ -118,6 +118,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
     ],
     test_srcs = ["testSrc"],
     test_tags = [

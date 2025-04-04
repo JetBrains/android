@@ -111,6 +111,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
     ],
 )
 
@@ -557,6 +558,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
+        "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],

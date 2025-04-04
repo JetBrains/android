@@ -26,7 +26,7 @@ import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import org.junit.After
 
 class PsProjectImplDeclarativeTest {

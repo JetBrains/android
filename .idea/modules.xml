@@ -284,6 +284,7 @@
       <module fileurl="file://$PROJECT_DIR$/gradle-declarative-lang-ide/intellij.android.gradle.declarative.lang.ide.tests.iml" filepath="$PROJECT_DIR$/gradle-declarative-lang-ide/intellij.android.gradle.declarative.lang.ide.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/gradle-declarative-lang-sync/intellij.android.gradle.declarative.lang.sync.iml" filepath="$PROJECT_DIR$/gradle-declarative-lang-sync/intellij.android.gradle.declarative.lang.sync.iml" />
       <module fileurl="file://$PROJECT_DIR$/gradle-declarative-lang/intellij.android.gradle.declarative.lang.tests.iml" filepath="$PROJECT_DIR$/gradle-declarative-lang/intellij.android.gradle.declarative.lang.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gradle-declarative-lang-flags/intellij.android.gradle.declarative.lang.flags.iml" filepath="$PROJECT_DIR$/gradle-declarative-lang-flags/intellij.android.gradle.declarative.lang.flags.iml" />
       <module fileurl="file://$PROJECT_DIR$/gradle-dsl/intellij.android.gradle.dsl.iml" filepath="$PROJECT_DIR$/gradle-dsl/intellij.android.gradle.dsl.iml" />
       <module fileurl="file://$PROJECT_DIR$/gradle-dsl-declarative/intellij.android.gradle.dsl.declarative.iml" filepath="$PROJECT_DIR$/gradle-dsl-declarative/intellij.android.gradle.dsl.declarative.iml" />
       <module fileurl="file://$PROJECT_DIR$/gradle-dsl-groovy/intellij.android.gradle.dsl.groovy.iml" filepath="$PROJECT_DIR$/gradle-dsl-groovy/intellij.android.gradle.dsl.groovy.iml" />

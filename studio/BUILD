@@ -716,6 +716,7 @@ studio_plugin(
             "//tools/adt/idea/gradle-declarative-lang:intellij.android.gradle.declarative.lang",
             "//tools/adt/idea/gradle-declarative-lang-ide:intellij.android.gradle.declarative.lang.ide",
             "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
+            "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
         ],
     },
     visibility = ["//visibility:public"],

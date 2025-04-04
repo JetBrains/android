@@ -31,7 +31,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
-import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport;
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport;
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePsiFactory;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;

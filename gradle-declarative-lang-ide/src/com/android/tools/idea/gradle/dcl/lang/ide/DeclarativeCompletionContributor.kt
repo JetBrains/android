@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BLOCK
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.ENUM
@@ -84,7 +85,6 @@ import com.intellij.psi.util.prevLeaf
 import com.intellij.psi.util.prevLeafs
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import org.gradle.declarative.dsl.schema.FqName
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import kotlin.math.max
 
