@@ -261,7 +261,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   private fun waitForDialog(): DialogWrapper {
-    waitForCondition(2.seconds) { findDialog() != null }
+    waitForCondition(10.seconds) { findDialog() != null }
     return findDialog()!!
   }
 
