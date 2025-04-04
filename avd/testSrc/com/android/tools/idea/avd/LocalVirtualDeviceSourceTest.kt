@@ -42,6 +42,7 @@ import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -220,6 +221,7 @@ class LocalVirtualDeviceSourceTest {
   }
 
   @Test
+  @IJIgnore(issue = "IDEA-370408")
   fun configurationPage_preferredAbi() {
     with(SdkFixture()) {
       val api34Image = api34()
