@@ -457,7 +457,10 @@ java_test(
 java_test(
     name = "AddResourceMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:runtime",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddResourceMemoryUseTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
@@ -471,7 +474,10 @@ java_test(
 java_test(
     name = "AddAssetMemoryUseTest",
     size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:runtime",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddAssetMemoryUseTest"],
     tags = COMMON_TAGS + [
         "ci:studio-linux_very_flaky",
