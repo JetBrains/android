@@ -121,7 +121,7 @@ jvm_library(
     "//java/java-psi-impl:psi-impl",
     "//java/idea-ui:ui",
     "//java/idea-ui:ui-tests",
-    "//json",
+    "//json/backend",
     "//java/jsp-openapi:jsp",
     "//plugins/junit",
     "//jvm/jvm-analysis-api:analysis",

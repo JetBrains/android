@@ -32,7 +32,6 @@ jvm_library(
     "//platform/lang-impl",
     "//platform/util",
     "//platform/util:util-ui",
-    "//json",
   ]
 )
 
@@ -70,8 +69,9 @@ jvm_library(
     "//platform/lang-impl",
     "//platform/util",
     "//platform/util:util-ui",
-    "//json",
     "//android/adt-testutils:adt-testutils_test_lib",
+    "//json/backend",
+    "//platform/core-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
   ],
