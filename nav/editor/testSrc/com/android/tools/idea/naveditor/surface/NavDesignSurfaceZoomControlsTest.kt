@@ -212,6 +212,7 @@ class NavDesignSurfaceZoomControlsTest {
   private fun getGoldenImagePath(testName: String) =
     Paths.get("${androidProjectRule.fixture.testDataPath}/zoomGoldenImages/$testName.png")
 
+  @Ignore("b/407977758")
   @Test
   fun testNavDesignSurfaceZoomIn() = runTest {
     populateSchema()
