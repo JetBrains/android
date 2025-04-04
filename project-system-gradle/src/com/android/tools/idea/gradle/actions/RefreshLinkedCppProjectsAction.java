@@ -22,6 +22,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Syncs project with Gradle, with an additional argument to refresh the linked C++ projects.
@@ -49,7 +50,8 @@ public class RefreshLinkedCppProjectsAction extends SyncProjectAction {
   }
 
   /** Checks if the given project contains a module that contains code built by Android Studio's C++ support. */
-  private static boolean containsExternalCppProjects(@NotNull Project project) {
+  @VisibleForTesting
+  boolean containsExternalCppProjects(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
       if (ndkModuleModel != null) {
