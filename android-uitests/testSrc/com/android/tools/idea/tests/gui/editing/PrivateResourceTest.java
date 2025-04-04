@@ -88,14 +88,11 @@ public class PrivateResourceTest {
     EditorFixture editor = ideFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR, Wait.seconds(30));
 
-    guiTest.waitForBackgroundTasks();
-
+    editor.waitForFileToActivate();
     String[] autoCompleteSuggestions = editor.waitUntilErrorAnalysisFinishes()
-      // I think the collapsing of string references messes with the select. Hence this moveBetween.
-      .moveBetween("android:text=\"", "@string/app_name\"")
-      .select("(@string/app_name)")
+      .select("(android:text=\"@string/app_name\")")
       .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_BACK_SPACE))
-      .enterText("@string/")
+      .typeText("android:text=\"@string/")
       .getAutoCompleteWindow()
       .contents();
 
