@@ -219,8 +219,9 @@ maven_repository(
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.3",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.8.7",
         "@maven//:androidx.lifecycle.lifecycle-common_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-common_2.8.7",
         "@maven//:androidx.lifecycle.lifecycle-extensions_2.2.0",
         "@maven//:androidx.lifecycle.lifecycle-livedata-core_2.8.3",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.lifecycle.lifecycle-livedata-core_2.8.7",
