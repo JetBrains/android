@@ -176,8 +176,6 @@ internal fun WizardPageScope.ConfigurationPage(
           "Creating AVD",
           TaskCancellation.nonCancellable(),
         ) {
-          state.resetPlayStoreFields()
-
           withContext(AndroidDispatchers.uiThread) {
             finish(state.device, parent, finish, sdkHandler)
           }

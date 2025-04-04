@@ -20,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.sdklib.ISystemImage
-import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
@@ -104,17 +103,5 @@ internal class ConfigureDevicePanelState(
     }
 
     return skin
-  }
-
-  fun resetPlayStoreFields() {
-    if (!hasPlayStore()) return
-
-    device.apply {
-      expandedStorage = Custom(storageGroupState.custom.valid().storageCapacity.withMaxUnit())
-      cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES
-      graphicsMode = GraphicsMode.AUTO
-      ram = defaultRam
-      vmHeapSize = defaultVmHeapSize
-    }
   }
 }

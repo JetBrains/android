@@ -18,11 +18,16 @@ package com.android.tools.idea.avd
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasParent
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextReplacement
+import com.android.repository.api.LocalPackage
+import com.android.repository.api.RemotePackage
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.PathFileWrapper
@@ -49,55 +54,101 @@ class EditVirtualDeviceDialogTest {
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
+  @OptIn(ExperimentalTestApi::class)
+  private inner class EditAvdFixture(
+    val sdkFixture: SdkFixture,
+    localPackages: List<LocalPackage> = emptyList<LocalPackage>(),
+    remotePackages: List<RemotePackage> = emptyList<RemotePackage>(),
+  ) {
+    val sdkHandler by sdkFixture::sdkHandler
+    val avdManager by sdkFixture::avdManager
+
+    init {
+      with(sdkFixture) {
+        repoPackages.setLocalPkgInfos(localPackages)
+        repoPackages.setRemotePkgInfos(remotePackages)
+      }
+    }
+
+    val systemImageManager = sdkHandler.getSystemImageManager(FakeProgressIndicator())
+    val api34Image = systemImageManager.getImageAt(localPackages.first().location)
+
+    val pixel7 = sdkFixture.deviceManager.getDevice("pixel_7", "Google")!!
+    val pixel7AvdInfo =
+      avdManager.createAvd(
+        avdManager.createAvdBuilder(pixel7).apply {
+          systemImage = api34Image
+          skin = null
+        }
+      )
+
+    val editDialog =
+      EditVirtualDeviceDialog(
+        pixel7AvdInfo,
+        pixel7,
+        EditVirtualDeviceDialog.Mode.EDIT,
+        MutableStateFlow(sdkFixture.systemImageState()),
+        persistentListOf(NoSkin.INSTANCE),
+        sdkHandler,
+        avdManager,
+      )
+
+    val wizard = TestComposeWizard { with(editDialog) { Page() } }
+
+    init {
+      with(sdkFixture) {
+        composeTestRule.setContentWithSdkLocals { wizard.Content() }
+        composeTestRule.waitUntilDoesNotExist(hasText("Loading"))
+      }
+    }
+
+    fun parseIniFile(): Map<String, String> =
+      AvdManager.parseIniFile(
+        PathFileWrapper(sdkFixture.avdRoot.resolve("Pixel_7.avd").resolve("config.ini")),
+        null,
+      )
+  }
+
   /** Edit an existing AVD, changing its name and its system image. */
   @OptIn(ExperimentalTestApi::class)
   @Test
-  fun editAvd() {
+  fun editAvdName() {
     with(SdkFixture()) {
-      val api34Package = api34()
-      repoPackages.setLocalPkgInfos(listOf(api34Package, api34ps16kbPackage()))
+      with(
+        EditAvdFixture(sdkFixture = this, localPackages = listOf(api34(), api34ps16kbPackage()))
+      ) {
+        composeTestRule.onNodeWithEditableText("Pixel 7").performTextReplacement("Large Pages")
+        composeTestRule.onNodeWithText("16 KB Page Size", substring = true).performClick()
 
-      val systemImageManager = sdkHandler.getSystemImageManager(FakeProgressIndicator())
-      val api34Image = systemImageManager.getImageAt(api34Package.location)
+        wizard.performAction(wizard.finishAction)
+        wizard.awaitClose()
 
-      val pixel7 = deviceManager.getDevice("pixel_7", "Google")!!
-      val pixel7AvdInfo =
-        avdManager.createAvd(
-          avdManager.createAvdBuilder(pixel7).apply {
-            systemImage = api34Image
-            skin = null
-          }
-        )!!
+        assertThat(Files.list(avdRoot).map { it.fileName.toString() }.toList())
+          .containsExactly("Pixel_7.avd", "Large_Pages.ini")
 
-      val editDialog =
-        EditVirtualDeviceDialog(
-          pixel7AvdInfo,
-          pixel7,
-          EditVirtualDeviceDialog.Mode.EDIT,
-          MutableStateFlow(systemImageState()),
-          persistentListOf(NoSkin.INSTANCE),
-          sdkHandler,
-          avdManager,
-        )
-      val wizard = TestComposeWizard { with(editDialog) { Page() } }
-      composeTestRule.setContentWithSdkLocals { wizard.Content() }
+        val properties = parseIniFile()
+        assertThat(properties[ConfigKey.IMAGES_1]).contains("google_apis_ps16k")
+      }
+    }
+  }
 
-      composeTestRule.waitUntilDoesNotExist(hasText("Loading"))
+  /** Edit an existing AVD, changing its RAM. */
+  @OptIn(ExperimentalTestApi::class)
+  @Test
+  fun editAvdRam() {
+    with(SdkFixture()) {
+      with(EditAvdFixture(sdkFixture = this, localPackages = listOf(api34Play()))) {
+        composeTestRule.onNodeWithText("Additional settings").performClick()
+        composeTestRule
+          .onNode(hasParent(hasTestTag("RamRow")) and hasSetTextAction())
+          .performTextReplacement("5")
 
-      composeTestRule.onNodeWithEditableText("Pixel 7").performTextReplacement("Large Pages")
-      composeTestRule.onNodeWithText("16 KB Page Size", substring = true).performClick()
+        wizard.performAction(wizard.finishAction)
+        wizard.awaitClose()
 
-      wizard.performAction(wizard.finishAction)
-      wizard.awaitClose()
-
-      assertThat(Files.list(avdRoot).map { it.fileName.toString() }.toList())
-        .containsExactly("Pixel_7.avd", "Large_Pages.ini")
-      val properties =
-        AvdManager.parseIniFile(
-          PathFileWrapper(avdRoot.resolve("Pixel_7.avd").resolve("config.ini")),
-          null,
-        )
-      assertThat(properties[ConfigKey.IMAGES_1]).contains("google_apis_ps16k")
+        val properties = parseIniFile()
+        assertThat(properties[ConfigKey.RAM_SIZE]).contains("5120")
+      }
     }
   }
 
@@ -119,7 +170,7 @@ class EditVirtualDeviceDialogTest {
             systemImage = api34Image
             skin = null
           }
-        )!!
+        )
 
       val editDialog =
         EditVirtualDeviceDialog(
@@ -159,6 +210,13 @@ class EditVirtualDeviceDialogTest {
 
 private fun SdkFixture.api34() =
   createLocalSystemImage("google_apis", listOf(SystemImageTags.GOOGLE_APIS_TAG), AndroidVersion(34))
+
+private fun SdkFixture.api34Play() =
+  createLocalSystemImage(
+    "google_apis_playstore",
+    listOf(SystemImageTags.PLAY_STORE_TAG),
+    AndroidVersion(34),
+  )
 
 private fun SdkFixture.api34ps16kbPackage() =
   createLocalSystemImage(
