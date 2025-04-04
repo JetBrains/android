@@ -21,6 +21,17 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.COMPOSE2
+import com.android.tools.idea.layoutinspector.model.COMPOSE3
+import com.android.tools.idea.layoutinspector.model.COMPOSE4
+import com.android.tools.idea.layoutinspector.model.COMPOSE5
+import com.android.tools.idea.layoutinspector.model.COMPOSE6
+import com.android.tools.idea.layoutinspector.model.COMPOSE7
+import com.android.tools.idea.layoutinspector.model.COMPOSE8
+import com.android.tools.idea.layoutinspector.model.FLAG_HAS_CHILD_DRAW_MODIFIER
+import com.android.tools.idea.layoutinspector.model.FLAG_HAS_DRAW_MODIFIER
+import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -36,7 +47,9 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
 import java.awt.Polygon
 import java.awt.Rectangle
 import java.awt.Shape
@@ -52,7 +65,9 @@ private val activityMain =
 private const val EPSILON = 0.001
 
 class RenderModelTest {
-  @get:Rule val disposableRule = DisposableRule()
+  private val disposableRule = DisposableRule()
+
+  @get:Rule val chain = RuleChain(ApplicationRule(), disposableRule)
 
   val disposable: Disposable
     get() = disposableRule.disposable
@@ -274,6 +289,96 @@ class RenderModelTest {
     assertThat(selectedView!!.drawId).isEqualTo(VIEW3)
     assertThat(model.selection).isEqualTo(model[VIEW3])
     verify(mockStats).selectionMadeFromImage(selectedView)
+  }
+
+  @Test
+  fun testPreferSelectionOfNodesWithDrawModifiers() {
+    val treeSettings = FakeTreeSettings()
+    val model =
+      model(disposable) {
+        view(ROOT, 0, 0, 100, 200) {
+          view(VIEW1, 0, 0, 100, 200) {
+            compose(COMPOSE1, "Column", x = 0, y = 0, width = 100, height = 200) {
+              compose(
+                COMPOSE2,
+                "Text",
+                x = 0,
+                y = 0,
+                width = 80,
+                height = 100,
+                composeFlags = FLAG_HAS_CHILD_DRAW_MODIFIER,
+              ) {
+                compose(
+                  COMPOSE3,
+                  "BasicText",
+                  x = 0,
+                  y = 0,
+                  width = 80,
+                  height = 100,
+                  composeFlags = FLAG_SYSTEM_DEFINED,
+                ) {
+                  compose(
+                    COMPOSE4,
+                    "Layout",
+                    x = 0,
+                    y = 0,
+                    width = 80,
+                    height = 100,
+                    composeFlags = FLAG_SYSTEM_DEFINED or FLAG_HAS_DRAW_MODIFIER,
+                  )
+                }
+              }
+              compose(
+                COMPOSE5,
+                "Text",
+                x = 20,
+                y = 20,
+                width = 80,
+                height = 100,
+                composeFlags = FLAG_HAS_CHILD_DRAW_MODIFIER,
+              ) {
+                compose(
+                  COMPOSE6,
+                  "BasicText",
+                  x = 20,
+                  y = 20,
+                  width = 80,
+                  height = 100,
+                  composeFlags = FLAG_SYSTEM_DEFINED,
+                ) {
+                  compose(
+                    COMPOSE7,
+                    "Layout",
+                    x = 20,
+                    y = 20,
+                    width = 80,
+                    height = 100,
+                    composeFlags = FLAG_SYSTEM_DEFINED or FLAG_HAS_DRAW_MODIFIER,
+                  )
+                }
+              }
+            }
+            compose(COMPOSE8, "Box", x = 0, y = 0, width = 100, height = 200)
+          }
+        }
+      }
+    val mockStats = mock<SessionStatistics>()
+    val mockClient = mock<InspectorClient>()
+    whenever(mockClient.stats).thenAnswer { mockStats }
+    var renderModel = RenderModel(model, mock(), treeSettings) { mockClient }
+
+    assertThat(renderModel.selectView(10.0, 40.0)!!.drawId).isEqualTo(COMPOSE2)
+    assertThat(renderModel.selectView(30.0, 110.0)!!.drawId).isEqualTo(COMPOSE5)
+    assertThat(renderModel.selectView(30.0, 40.0)!!.drawId).isEqualTo(COMPOSE5)
+    assertThat(renderModel.selectView(10.0, 140.0)!!.drawId).isEqualTo(COMPOSE8)
+
+    treeSettings.hideSystemNodes = false
+    renderModel = RenderModel(model, mock(), treeSettings) { mockClient }
+
+    assertThat(renderModel.selectView(10.0, 40.0)!!.drawId).isEqualTo(COMPOSE4)
+    assertThat(renderModel.selectView(30.0, 110.0)!!.drawId).isEqualTo(COMPOSE7)
+    assertThat(renderModel.selectView(30.0, 40.0)!!.drawId).isEqualTo(COMPOSE7)
+    assertThat(renderModel.selectView(10.0, 140.0)!!.drawId).isEqualTo(COMPOSE8)
   }
 
   private fun checkRects(xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {

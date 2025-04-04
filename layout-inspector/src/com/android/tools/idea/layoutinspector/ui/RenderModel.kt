@@ -156,7 +156,16 @@ class RenderModel(
       .sortedByDescending { it.hitLevel }
       .distinct()
 
-  fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).firstOrNull()
+  fun findTopViewAt(x: Double, y: Double): ViewNode? {
+    val views = findViewsAt(x, y)
+    val view =
+      if (treeSettings.hideSystemNodes) {
+        views.firstOrNull { it.hasChildComposeDrawModifier }
+      } else {
+        views.firstOrNull { it.hasComposeDrawModifier }
+      }
+    return view ?: views.firstOrNull()
+  }
 
   fun rotate(xRotation: Double, yRotation: Double) {
     xOff = (xOff + xRotation).coerceIn(-1.0, 1.0)

@@ -17,6 +17,8 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
+import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.writeAccess
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.google.common.annotations.VisibleForTesting
@@ -108,6 +110,19 @@ open class ViewNode(
 
   /** Returns true if this [ViewNode] represent an inlined composable function */
   open val isInlined: Boolean
+    get() = false
+
+  /**
+   * Returns true if this node (or a non-reported child) has LayoutInfo with draw modifier.
+   *
+   * The presence of a draw modifier indicates that this composable node may draw, and that this
+   * node may be more desirable for selection than nodes above it that are without a draw modifier.
+   */
+  open val hasComposeDrawModifier: Boolean
+    get() = false
+
+  /** Returns true if this node has a system child node with a draw modifier */
+  open val hasChildComposeDrawModifier: Boolean
     get() = false
 
   /**

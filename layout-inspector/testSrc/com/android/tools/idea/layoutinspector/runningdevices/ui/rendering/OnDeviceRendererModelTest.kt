@@ -22,11 +22,20 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.COMPOSE3
+import com.android.tools.idea.layoutinspector.model.COMPOSE4
+import com.android.tools.idea.layoutinspector.model.COMPOSE5
+import com.android.tools.idea.layoutinspector.model.COMPOSE6
+import com.android.tools.idea.layoutinspector.model.COMPOSE7
+import com.android.tools.idea.layoutinspector.model.COMPOSE8
+import com.android.tools.idea.layoutinspector.model.FLAG_HAS_CHILD_DRAW_MODIFIER
+import com.android.tools.idea.layoutinspector.model.FLAG_HAS_DRAW_MODIFIER
+import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.ui.BASE_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.HOVER_COLOR_ARGB
@@ -775,5 +784,169 @@ class OnDeviceRendererModelTest {
       )
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions)
+  }
+
+  @Test
+  fun testPreferSelectionOfNodesWithDrawModifiers() = runTest {
+    val newWindow = createWindowForDrawModifierTest()
+    inspectorModel.update(newWindow, listOf(ROOT), 0)
+
+    val expectedInstructionsForText1 =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(0, 0, 80, 100),
+        color = SELECTION_COLOR_ARGB,
+        label = "Text",
+      )
+    val expectedInstructionsForLayout1 =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(0, 0, 80, 100),
+        color = SELECTION_COLOR_ARGB,
+        label = "Layout",
+      )
+    val expectedInstructionsForText2 =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(20, 20, 80, 100),
+        color = SELECTION_COLOR_ARGB,
+        label = "Text",
+      )
+    val expectedInstructionsForLayout2 =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(20, 20, 80, 100),
+        color = SELECTION_COLOR_ARGB,
+        label = "Layout",
+      )
+    val expectedInstructionsForColumn =
+      DrawInstruction(
+        rootViewId = ROOT,
+        bounds = Rectangle(0, 0, 100, 200),
+        color = SELECTION_COLOR_ARGB,
+        label = "Box",
+      )
+
+    onDeviceRendererModel.selectNode(10.0, 40.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    val instructions1 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions1).isEqualTo(expectedInstructionsForText1)
+
+    onDeviceRendererModel.selectNode(30.0, 110.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    val instructions2 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions2).isEqualTo(expectedInstructionsForText2)
+
+    // Click on overlapping location:
+    onDeviceRendererModel.selectNode(30.0, 40.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    val instructions3 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions3).isEqualTo(expectedInstructionsForText2)
+
+    // Click outside any Text node:
+    onDeviceRendererModel.selectNode(10.0, 140.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    val instructions4 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions4).isEqualTo(expectedInstructionsForColumn)
+
+    treeSettings.hideSystemNodes = false
+
+    onDeviceRendererModel.selectNode(10.0, 40.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    val instructions5 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions5).isEqualTo(expectedInstructionsForLayout1)
+
+    onDeviceRendererModel.selectNode(30.0, 110.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    val instructions6 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions6).isEqualTo(expectedInstructionsForLayout2)
+
+    // Click on overlapping location:
+    onDeviceRendererModel.selectNode(30.0, 40.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    val instructions7 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions7).isEqualTo(expectedInstructionsForLayout2)
+
+    // Click outside any Text node:
+    onDeviceRendererModel.selectNode(10.0, 140.0, ROOT)
+    testScheduler.advanceUntilIdle()
+
+    val instructions8 = onDeviceRendererModel.selectedNode.first()
+    assertThat(instructions8).isEqualTo(expectedInstructionsForColumn)
+  }
+
+  private fun createWindowForDrawModifierTest(): ViewAndroidWindow {
+    return viewWindow(ROOT, 0, 0, 100, 200) {
+      view(VIEW1, 0, 0, 100, 200) {
+        compose(COMPOSE1, "Column", x = 0, y = 0, width = 100, height = 200) {
+          compose(
+            COMPOSE2,
+            "Text",
+            x = 0,
+            y = 0,
+            width = 80,
+            height = 100,
+            composeFlags = FLAG_HAS_CHILD_DRAW_MODIFIER,
+          ) {
+            compose(
+              COMPOSE3,
+              "BasicText",
+              x = 0,
+              y = 0,
+              width = 80,
+              height = 100,
+              composeFlags = FLAG_SYSTEM_DEFINED,
+            ) {
+              compose(
+                COMPOSE4,
+                "Layout",
+                x = 0,
+                y = 0,
+                width = 80,
+                height = 100,
+                composeFlags = FLAG_SYSTEM_DEFINED or FLAG_HAS_DRAW_MODIFIER,
+              )
+            }
+          }
+          compose(
+            COMPOSE5,
+            "Text",
+            x = 20,
+            y = 20,
+            width = 80,
+            height = 100,
+            composeFlags = FLAG_HAS_CHILD_DRAW_MODIFIER,
+          ) {
+            compose(
+              COMPOSE6,
+              "BasicText",
+              x = 20,
+              y = 20,
+              width = 80,
+              height = 100,
+              composeFlags = FLAG_SYSTEM_DEFINED,
+            ) {
+              compose(
+                COMPOSE7,
+                "Layout",
+                x = 20,
+                y = 20,
+                width = 80,
+                height = 100,
+                composeFlags = FLAG_SYSTEM_DEFINED or FLAG_HAS_DRAW_MODIFIER,
+              )
+            }
+          }
+        }
+        compose(COMPOSE8, "Box", x = 0, y = 0, width = 100, height = 200)
+      }
+    }
   }
 }
