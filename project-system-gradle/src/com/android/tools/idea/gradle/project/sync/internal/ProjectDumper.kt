@@ -286,12 +286,15 @@ class ProjectDumper(
       .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
   }
 
-  fun String.replaceJdkPath() = when(this) {
-    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() -> "<JDK_PATH>"
-    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString() -> "<JDK_PATH-17>"
-    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString() -> "<JDK_PATH-11>"
-    EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() -> "<JDK_PATH-1_8>"
-    else -> this
+  fun String.replaceJdkPath(): String {
+    if (!StudioPathManager.isRunningFromSources()) return this
+    return when (this) {
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString() -> "<JDK_PATH>"
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString() -> "<JDK_PATH-17>"
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString() -> "<JDK_PATH-11>"
+      EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk8").toString() -> "<JDK_PATH-1_8>"
+      else -> this
+    }
   }
 
   fun String.replaceMatchingVersion(version: String?): String =
