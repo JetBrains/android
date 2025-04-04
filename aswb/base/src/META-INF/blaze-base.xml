@@ -227,18 +227,20 @@
     <fileTypeFactory implementation="com.google.idea.blaze.base.plugin.BlazeFileTypeFactory" />
     <projectService serviceImplementation="com.google.idea.blaze.base.ui.problems.BuildTasksProblemsView"/>
 
-    <applicationConfigurable
-        instance="com.google.idea.blaze.base.settings.ui.BlazeUserSettingsCompositeConfigurable"
-        key="user.settings.display.name"
-        bundle="resources.messages.pluginBundle"
-        id ="blaze.view" />
+    <applicationConfigurable bundle="resources.messages.pluginBundle" id="blaze.view"
+        instance="com.google.idea.blaze.base.settings.ui.BlazeUserSettingsCompositeConfigurable" key="user.settings.display.name"
+        parentId="com.google.idea.blaze.AswbSettings" />
+
     <search.optionContributor implementation="com.google.idea.blaze.base.settings.ui.BlazeUserSettingsCompositeConfigurable$BlazeUserSettingsSearchableOptionContributor"/>
 
     <projectService serviceImplementation="com.google.idea.blaze.base.build.BlazeBuildService"/>
     <projectService serviceInterface="com.google.idea.blaze.base.sync.data.BlazeProjectDataManager"
                     serviceImplementation="com.google.idea.blaze.base.sync.data.DelegatingBlazeProjectDataManager"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.sync.BlazeSyncManager"/>
-    <applicationConfigurable provider="com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider" id ="query.sync" displayName="Query Sync"/>
+
+    <applicationConfigurable displayName="Query Sync" id="query.sync" parentId="com.google.idea.blaze.AswbSettings"
+        provider="com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider" />
+
     <applicationService serviceImplementation="com.google.idea.blaze.base.qsync.settings.QuerySyncSettings" id="QuerySyncSettings"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.qsync.QuerySyncManager"/>
     <iw.actionProvider implementation="com.google.idea.blaze.base.qsync.QuerySyncInspectionWidgetActionProvider"/>

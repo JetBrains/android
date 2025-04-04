@@ -56,6 +56,10 @@
     <applicationService serviceInterface="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService"
         serviceImplementation="com.google.idea.blaze.android.run.deployinfo.BlazeApkProviderService$DefaultImpl"/>
     <dom.fileMetaData implementation="com.google.idea.blaze.android.resources.BlazeResourcesDomFileDescription" rootTagName="resources"/>
+
+    <groupConfigurable bundle="tools.adt.idea.aswb.aswb.resources.messages.AswbSettingsBundle" descriptionKey="aswb.settings.description"
+        displayNameKey="aswb.settings.name" id="com.google.idea.blaze.AswbSettings" />
+
     <moduleService serviceImplementation="com.google.idea.blaze.android.projectsystem.BazelModuleSystem"/>
     <runConfigurationProducer
         implementation="com.google.idea.blaze.android.run.producers.BlazeFilterAndroidTestRunConfigurationProducer"
