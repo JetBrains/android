@@ -23,7 +23,6 @@ import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.Language
-import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.testing.disposable
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
@@ -207,8 +206,7 @@ class GeminiAiInsightClientTest {
               .trimMargin(),
             Language.KOTLIN,
           ),
-        ),
-        Experiment.TOP_THREE_SOURCES,
+        )
       )
 
     // This should truncate the second source code file.

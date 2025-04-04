@@ -27,9 +27,6 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.Language
-import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
-import com.android.tools.idea.insights.experiments.Experiment
-import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ToolWindowManager
@@ -76,13 +73,6 @@ class AiInsightToolkitTest {
       manager,
       projectRule.disposable,
     )
-    application.replaceService(
-      AppInsightsExperimentFetcher::class.java,
-      object : AppInsightsExperimentFetcher {
-        override fun getCurrentExperiment(experimentGroup: ExperimentGroup) = Experiment.ALL_SOURCES
-      },
-      projectRule.disposable,
-    )
     deprecationDataProvider = mock<DevServicesDeprecationDataProvider>()
     whenever(deprecationDataProvider.getCurrentDeprecationData(any()))
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
@@ -103,7 +93,7 @@ class AiInsightToolkitTest {
       )
 
     fakeGeminiPluginApi.contextAllowed = false
-    assertThat(toolKit.getSource(conn, StacktraceGroup())).isEqualTo(CodeContextData.UNASSIGNED)
+    assertThat(toolKit.getSource(conn, StacktraceGroup())).isEqualTo(CodeContextData.DISABLED)
 
     fakeGeminiPluginApi.contextAllowed = true
     assertThat(toolKit.getSource(conn, StacktraceGroup()).codeContext).isNotEmpty()
@@ -121,8 +111,7 @@ class AiInsightToolkitTest {
         )
       fakeGeminiPluginApi.contextAllowed = true
 
-      assertThat(toolKit.getSource(conn, StacktraceGroup()))
-        .isEqualTo(CodeContextData(emptyList(), Experiment.ALL_SOURCES))
+      assertThat(toolKit.getSource(conn, StacktraceGroup()).isEmpty()).isTrue()
     }
 
   @Test

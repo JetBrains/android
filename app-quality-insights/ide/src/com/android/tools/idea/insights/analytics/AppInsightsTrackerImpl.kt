@@ -194,7 +194,6 @@ class AppInsightsTrackerImpl(
         AppQualityInsightsUsageEvent.InsightSentiment.newBuilder()
           .apply {
             this.sentiment = sentiment
-            this.experiment = insight.experiment.toProto()
             this.crashType = crashType
             this.source = insight.insightSource.toProto()
           }
@@ -214,11 +213,10 @@ class AppInsightsTrackerImpl(
         AppQualityInsightsUsageEvent.InsightFetchDetails.newBuilder()
           .apply {
             this.crashType = crashType.toCrashType()
-            this.experiment = insight.experiment.toProto()
             this.isCached = insight.isCached
             this.source = insight.insightSource.toProto()
             this.codeContextDetails =
-              insight.codeContextTrackingDetails
+              insight.codeContextData.codeContextTrackingInfo
                 .toCodeContextDetailsProto()
                 .apply { this.contextLimit = contextLimit.toLong() }
                 .build()

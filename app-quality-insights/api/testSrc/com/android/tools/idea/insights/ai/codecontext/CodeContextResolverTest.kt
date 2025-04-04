@@ -24,9 +24,6 @@ import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
-import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
-import com.android.tools.idea.insights.experiments.Experiment
-import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ExtensionTestUtil
@@ -35,8 +32,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
@@ -300,8 +295,7 @@ private val EXCLUDED_ACTIVITY_CONTEXT =
     Language.KOTLIN,
   )
 
-@RunWith(Parameterized::class)
-class CodeContextResolverTest(private val experiment: Experiment) {
+class CodeContextResolverTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
@@ -309,24 +303,6 @@ class CodeContextResolverTest(private val experiment: Experiment) {
     get() = projectRule.fixture
 
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
-
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}")
-    val modes = ExperimentGroup.CODE_CONTEXT.experiments
-
-    fun expectedCodeContextTrackingInfoByExperiment(
-      experiment: Experiment
-    ): CodeContextTrackingInfo =
-      when (experiment) {
-        Experiment.UNKNOWN,
-        Experiment.CONTROL -> CodeContextTrackingInfo.EMPTY
-        Experiment.TOP_SOURCE -> CodeContextTrackingInfo(1, 14, 344)
-        Experiment.TOP_THREE_SOURCES -> CodeContextTrackingInfo(3, 46, 1135)
-        Experiment.ALL_SOURCES -> CodeContextTrackingInfo(4, 53, 1309)
-      }
-  }
 
   @Before
   fun setUp() {
@@ -346,59 +322,24 @@ class CodeContextResolverTest(private val experiment: Experiment) {
       listOf(fakeGeminiPluginApi),
       projectRule.testRootDisposable,
     )
-
-    projectRule.replaceService(
-      AppInsightsExperimentFetcher::class.java,
-      createTestExperimentFetcher(experiment),
-    )
   }
 
-  /**
-   * Tests the resolving of code context for all 4 experiments.
-   *
-   * In addition, it covers these scenarios:
-   * 1. source file appears more than once in the stack trace
-   * 2. source file does not exist in project
-   * 3. source file is excluded in .aiexclude and would've otherwise been included
-   */
   @Test
-  fun `resolve code context based on assigned experiment`() = runBlocking {
+  fun `resolve code context`() = runBlocking {
     val resolver = CodeContextResolverImpl(projectRule.project)
     val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
     val contexts = resolver.getSource(conn, STACKTRACE)
 
     val expected =
-      when (experiment) {
-        Experiment.UNKNOWN -> CodeContextData.UNASSIGNED
-        Experiment.CONTROL -> CodeContextData.CONTROL
-        Experiment.TOP_SOURCE ->
-          CodeContextData(
-            listOf(EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT),
-            experiment,
-            expectedCodeContextTrackingInfoByExperiment(experiment),
-          )
-        Experiment.TOP_THREE_SOURCES ->
-          CodeContextData(
-            listOf(
-              EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
-              EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
-              EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
-            ),
-            experiment,
-            expectedCodeContextTrackingInfoByExperiment(experiment),
-          )
-        Experiment.ALL_SOURCES ->
-          CodeContextData(
-            listOf(
-              EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
-              EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
-              EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
-              EXPECTED_MAIN_ACTIVITY_CONTEXT,
-            ),
-            experiment,
-            expectedCodeContextTrackingInfoByExperiment(experiment),
-          )
-      }
+      CodeContextData(
+        listOf(
+          EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
+          EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
+          EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
+          EXPECTED_MAIN_ACTIVITY_CONTEXT,
+        ),
+        CodeContextTrackingInfo(4, 53, 1309),
+      )
 
     assertThat(contexts).isEqualTo(expected)
   }
@@ -410,11 +351,5 @@ class CodeContextResolverTest(private val experiment: Experiment) {
       val contexts = resolver.getSource(mock(), STACKTRACE)
 
       assertThat(contexts.codeContext).isEmpty()
-      assertThat(contexts.experimentType).isEqualTo(experiment)
-    }
-
-  private fun createTestExperimentFetcher(experiment: Experiment) =
-    object : AppInsightsExperimentFetcher {
-      override fun getCurrentExperiment(experimentGroup: ExperimentGroup) = experiment
     }
 }

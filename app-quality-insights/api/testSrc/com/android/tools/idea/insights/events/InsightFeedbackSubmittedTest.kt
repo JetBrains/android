@@ -24,9 +24,9 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
-import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
@@ -54,7 +54,7 @@ class InsightFeedbackSubmittedTest {
 
     val expectedInsight = DEFAULT_AI_INSIGHT.copy(feedback = InsightFeedback.THUMBS_UP)
     assertThat(transition.newState.currentInsight.valueOrNull()).isEqualTo(expectedInsight)
-    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, Experiment.UNKNOWN))
+    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, CodeContextData.DISABLED))
       .isEqualTo(expectedInsight.copy(isCached = true))
 
     verify(tracker)

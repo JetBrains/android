@@ -18,9 +18,11 @@ package com.android.tools.idea.insights.ui.insight
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.insights.AI_INSIGHT_WITH_CODE_CONTEXT
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
@@ -28,7 +30,6 @@ import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
 import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -112,7 +113,7 @@ class InsightDisclaimerPanelTest {
               }
             }
         )
-      insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.UNKNOWN)) }
+      insightFlow.update { LoadingState.Ready(AiInsight("")) }
       waitForCondition(2.seconds) { disclaimerPanel.isVisible }
 
       clickOnLink()
@@ -120,7 +121,7 @@ class InsightDisclaimerPanelTest {
       fakeUi.updateToolbars()
       assertThat(refreshInsightCalled.await()).isTrue()
 
-      insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.TOP_SOURCE)) }
+      insightFlow.update { LoadingState.Ready(AiInsight("")) }
       waitForCondition(2.seconds) { !disclaimerPanel.isVisible }
     }
 
@@ -131,28 +132,15 @@ class InsightDisclaimerPanelTest {
         createDisclaimerPanel(
           StubAppInsightsProjectLevelController(state = MutableStateFlow(state))
         )
-      insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.UNKNOWN)) }
-
-      for (experiment in
-        listOf(
-          Experiment.CONTROL,
-          Experiment.ALL_SOURCES,
-          Experiment.TOP_THREE_SOURCES,
-          Experiment.TOP_SOURCE,
-        )) {
-        insightFlow.update { LoadingState.Ready(AiInsight("", experiment = Experiment.UNKNOWN)) }
-        waitForCondition(2.seconds) { disclaimerPanel.isVisible }
-        // Reset the button visibility for the next experiment
-        insightFlow.update { LoadingState.Ready(AiInsight("", experiment = experiment)) }
-        waitForCondition(2.seconds) { !disclaimerPanel.isVisible }
-      }
+      insightFlow.update { LoadingState.Ready(DEFAULT_AI_INSIGHT) }
+      waitForCondition(2.seconds) { disclaimerPanel.isVisible }
     }
 
   @Test
   fun `project mismatch panel shown when context enabled and project different from connection`() =
     runBlocking {
       doReturn(false).whenever(conn).isMatchingProject()
-      insightFlow.update { LoadingState.Ready(AiInsight("", Experiment.TOP_SOURCE)) }
+      insightFlow.update { LoadingState.Ready(AI_INSIGHT_WITH_CODE_CONTEXT) }
       createDisclaimerPanel(StubAppInsightsProjectLevelController(state = MutableStateFlow(state)))
 
       val textPane = fakeUi.findComponent<JTextPane> { it.isVisible } ?: fail("JTextPane not found")

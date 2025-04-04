@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.insights.ai.codecontext
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
-import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
-import com.android.tools.idea.insights.experiments.Experiment
-import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
@@ -45,19 +41,22 @@ data class CodeContextTrackingInfo(val fileCount: Int, val lineCount: Int, val c
     }
 }
 
+enum class ContextSharingState {
+  DISABLED,
+  ALLOWED,
+}
+
 data class CodeContextData(
   val codeContext: List<CodeContext>,
-  val experimentType: Experiment,
   val codeContextTrackingInfo: CodeContextTrackingInfo = CodeContextTrackingInfo.EMPTY,
+  val contextSharingState: ContextSharingState = ContextSharingState.DISABLED,
 ) {
   companion object {
-    /**
-     * The default experiment state for users who disable context sharing settings or for whatever
-     * reason not assigned to an experiment
-     */
-    val UNASSIGNED = CodeContextData(emptyList(), Experiment.UNKNOWN)
-    val CONTROL = CodeContextData(emptyList(), Experiment.CONTROL)
+    /** The default experiment state for users who disable context sharing settings. */
+    val DISABLED = CodeContextData(emptyList(), contextSharingState = ContextSharingState.DISABLED)
   }
+
+  fun isEmpty() = codeContext.isEmpty()
 }
 
 /** A simple value class for containing info related to a piece of code context. */
@@ -76,54 +75,18 @@ interface CodeContextResolver {
    *
    * @param conn [Connection] selected connection.
    * @param stack [StacktraceGroup] for which the files are needed.
-   * @param overrideSourceLimit override source limits for [Experiment.CONTROL]
    */
-  suspend fun getSource(
-    conn: Connection,
-    stack: StacktraceGroup,
-    overrideSourceLimit: Boolean = false,
-  ): CodeContextData
+  suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData
 }
 
 class CodeContextResolverImpl(private val project: Project) : CodeContextResolver {
 
-  private val experimentFetcher: AppInsightsExperimentFetcher
-    get() = AppInsightsExperimentFetcher.instance
-
-  override suspend fun getSource(
-    conn: Connection,
-    stack: StacktraceGroup,
-    overrideSourceLimit: Boolean,
-  ): CodeContextData {
-    val flagValue =
-      Experiment.entries[
-          StudioFlags.CODE_CONTEXT_EXPERIMENT_OVERRIDE.get().takeIf { i ->
-            i in 0 until Experiment.entries.size
-          } ?: 0]
-    val experiment =
-      if (flagValue != Experiment.UNKNOWN) {
-        flagValue
-      } else {
-        experimentFetcher.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
-      }
+  override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
     if (!conn.isMatchingProject()) {
-      return CodeContextData(emptyList(), experiment)
+      return CodeContextData(emptyList())
     }
-    val fileLimit =
-      when (experiment) {
-        Experiment.TOP_SOURCE -> 1
-        Experiment.TOP_THREE_SOURCES -> 3
-        Experiment.ALL_SOURCES -> Integer.MAX_VALUE
-        Experiment.CONTROL ->
-          if (overrideSourceLimit) {
-            1
-          } else {
-            return CodeContextData.CONTROL
-          }
-        Experiment.UNKNOWN -> return CodeContextData.UNASSIGNED
-      }
-    val sources = getSource(stack, fileLimit)
-    return CodeContextData(sources, experiment, getMetadata(sources))
+    val sources = getSource(stack)
+    return CodeContextData(sources, getMetadata(sources))
   }
 
   private fun getMetadata(contexts: List<CodeContext>): CodeContextTrackingInfo =
@@ -135,7 +98,7 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
       )
     }
 
-  private suspend fun getSource(stack: StacktraceGroup, fileLimit: Int): List<CodeContext> {
+  private suspend fun getSource(stack: StacktraceGroup): List<CodeContext> {
     val index = ProjectFileIndex.getInstance(project)
     val exceptionInfoCache = ExceptionInfoCache(project, ProjectScope.getContentScope(project))
     return stack.exceptions
@@ -161,6 +124,5 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
         }
       }
       .distinctBy { it.filePath }
-      .take(fileLimit)
   }
 }

@@ -22,7 +22,7 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.intellij.openapi.project.Project
 
 /** Exposes AI related tools to AQI. */
@@ -40,13 +40,8 @@ interface AiInsightToolkit {
    *
    * @param conn [Connection] for which the source is needed
    * @param stack [StacktraceGroup] for which the files are needed.
-   * @param overrideSourceLimit override source limits for [Experiment.CONTROL]
    */
-  suspend fun getSource(
-    conn: Connection,
-    stack: StacktraceGroup,
-    overrideSourceLimit: Boolean = false,
-  ): CodeContextData
+  suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData
 }
 
 internal const val GEMINI_TOOL_WINDOW_ID = "StudioBot"
@@ -66,13 +61,11 @@ class AiInsightToolkitImpl(
     }
   }
 
-  override suspend fun getSource(
-    conn: Connection,
-    stack: StacktraceGroup,
-    overrideSourceLimit: Boolean,
-  ): CodeContextData {
-    if (!GeminiPluginApi.getInstance().isContextAllowed(project)) return CodeContextData.UNASSIGNED
-    return codeContextResolver.getSource(conn, stack, overrideSourceLimit)
+  override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
+    if (!GeminiPluginApi.getInstance().isContextAllowed(project)) return CodeContextData.DISABLED
+    return codeContextResolver
+      .getSource(conn, stack)
+      .copy(contextSharingState = ContextSharingState.ALLOWED)
   }
 
   private fun getDeprecationData(service: String) =

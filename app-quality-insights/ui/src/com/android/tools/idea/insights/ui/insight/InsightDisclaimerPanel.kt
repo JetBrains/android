@@ -20,6 +20,7 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -136,7 +137,7 @@ class InsightDisclaimerPanel(
           return@collect
         }
         when {
-          !insight.isEnhancedWithCodeContext() -> {
+          insight.codeContextData.contextSharingState == ContextSharingState.DISABLED -> {
             isVisible = true
             withoutCode.isVisible = true
             projectMismatch.isVisible = false
