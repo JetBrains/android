@@ -3,9 +3,6 @@ package com.google.idea.blaze.base.qsync
 import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.projectview.ProjectViewSet
-import com.google.idea.blaze.base.qsync.ProjectUpdaterWithWorkspaceEntity.LibraryData
-import com.google.idea.blaze.base.qsync.ProjectUpdaterWithWorkspaceEntity.ModuleData
-import com.google.idea.blaze.base.qsync.ProjectUpdaterWithWorkspaceEntity.ProjectData
 import com.google.idea.blaze.base.qsync.entity.BazelEntitySource
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport
 import com.google.idea.blaze.base.util.UrlUtil
@@ -16,6 +13,8 @@ import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.WORKSPACE_MODULE_NAME
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
+import com.google.idea.common.experiments.EnumExperiment
+import com.google.idea.common.experiments.IntExperiment
 import com.google.idea.common.util.Transactions
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
@@ -37,7 +36,6 @@ import com.intellij.platform.workspace.jps.entities.LibraryTableId
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleSourceDependency
 import com.intellij.platform.workspace.storage.MutableEntityStorage
-import java.nio.file.Path
 import java.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -53,6 +51,17 @@ class ProjectUpdaterWithWorkspaceEntity(
   private val workspaceRoot: WorkspaceRoot,
   private val projectPathResolver: ProjectPath.Resolver,
 ) : QuerySyncProjectListener {
+
+  enum class ProjectStructure {
+    SHARDED_LIBRARY,
+    LIBRARY_PER_TARGET
+  }
+
+  companion object {
+    val projectStructureExperiment = EnumExperiment("query.sync.project.structure", ProjectStructure.SHARDED_LIBRARY)
+    val libraryShardsExperiment = IntExperiment("query.sync.library.shards", 10)
+  }
+
   override fun onNewProjectSnapshot(
     context: Context<*>,
     graph: QuerySyncProjectSnapshot,
@@ -109,12 +118,34 @@ class ProjectUpdaterWithWorkspaceEntity(
       )
     }
 
+    fun LibraryData.Companion.from(name: String, libraries: List<ProjectProto.Library>): LibraryData {
+      return LibraryData(
+        name = name,
+        jarUrls = libraries.flatMap { it.classesJarList }.map { it.toIdeaUrl() },
+        sourceUrls = libraries.flatMap { it.sourcesList }.filter { it.hasSrcjar() }.map { it.toIdeaUrl() },
+      )
+    }
 
     fun ProjectData.Companion.from(project: ProjectProto.Project): ProjectData {
-      return ProjectData(
-        modules = project.modulesList.map { ModuleData.from(it) }.associateBy { it.name },
-        libraries = project.libraryList.map { LibraryData.from(it) }.associateBy { it.name },
-      )
+      return when(projectStructureExperiment.value) {
+        ProjectStructure.LIBRARY_PER_TARGET -> ProjectData(
+          modules = project.modulesList.map { ModuleData.from(it) }.associateBy { it.name },
+          libraries = project.libraryList.map { LibraryData.from(it) }.associateBy { it.name },
+        )
+        ProjectStructure.SHARDED_LIBRARY ->  let {
+          val shards = libraryShardsExperiment.value.toULong()
+          ProjectData(
+            modules = project.modulesList.map { ModuleData.from(it) }.associateBy { it.name },
+            libraries = project
+              .libraryList
+              .groupBy { it.name.hashCode().toULong() % shards }
+              .map {
+                LibraryData.from("Lib ${it.key}", it.value)
+              }
+              .associateBy { it.name },
+          )
+        }
+      }
     }
   }
 
@@ -139,7 +170,6 @@ class ProjectUpdaterWithWorkspaceEntity(
       }
     }
   }
-
 
   private fun buildChanges(
     storage: MutableEntityStorage,
@@ -177,8 +207,7 @@ class ProjectUpdaterWithWorkspaceEntity(
     )
   }
 
-  private fun
-    updateProjectModel(spec: ProjectProto.Project, context: Context<*>) {
+  private fun updateProjectModel(spec: ProjectProto.Project, context: Context<*>) {
     Transactions.submitWriteActionTransactionAndWait {
       val models =
         ProjectDataManager.getInstance().createModifiableModelsProvider(project)
