@@ -22,8 +22,8 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.progress.checkCanceled
 import com.intellij.util.containers.WeakList
-import com.intellij.util.ui.UIUtil
 import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.util.Collections
@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
 /** [Display] that runs the layout and the creation of the display list in a background thread. */
@@ -59,21 +59,18 @@ private class AsyncDisplay(disposable: Disposable, private val captureRepaints: 
         val scene = sceneView.scene
         val sceneContext = sceneView.context
         val newDisplayList = DisplayList()
-        // Scene is not coroutine aware. Both layout and buildDisplayList can potentially have
-        // blocking calls that could block the coroutine. We dispatch those calls into a pooled
-        // thread and continue afterward.
-        runInterruptible {
-          var needsAnotherRepaint: Boolean
-          do {
-            val time = System.currentTimeMillis()
-            needsAnotherRepaint = scene.layout(time, sceneContext)
-            sceneContext.time = time
-            val sceneVersion = scene.displayListVersion
-            scene.buildDisplayList(newDisplayList, time, sceneContext)
-            cachedStateFlow.value = CachedState(sceneVersion, newDisplayList, sceneContext.scale)
-            // Request the surface to be repainted so the new display list is painted
-            UIUtil.invokeAndWaitIfNeeded { scene.repaint() }
-          } while (needsAnotherRepaint)
+
+        var needsAnotherRepaint = false
+        val time = System.currentTimeMillis()
+        needsAnotherRepaint = scene.layout(time, sceneContext)
+        sceneContext.time = time
+        checkCanceled()
+        val sceneVersion = scene.displayListVersion
+        scene.buildDisplayList(newDisplayList, time, sceneContext)
+        cachedStateFlow.value = CachedState(sceneVersion, newDisplayList, sceneContext.scale)
+        if (needsAnotherRepaint) {
+          // Request the surface to be repainted so the new display list is painted
+          withContext(Dispatchers.Main) { scene.repaint() }
         }
       }
     }
