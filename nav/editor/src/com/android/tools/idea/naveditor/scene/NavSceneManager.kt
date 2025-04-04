@@ -61,6 +61,7 @@ import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlTag
@@ -589,7 +590,7 @@ private fun buildTree(roots: List<XmlTag>): List<TagSnapshotTreeNode> {
         get() = TagSnapshot.createTagSnapshot(PsiXmlTag(it), null)
 
       override val children: List<TagSnapshotTreeNode>
-        get() = buildTree(it.subTags.toList())
+        get() = runReadAction { buildTree(it.subTags.toList()) }
     }
   }
 }
