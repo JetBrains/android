@@ -74,6 +74,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -195,10 +196,13 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @Override
   public PsiDirectory @NotNull [] getSelectedDirectories() {
-    Object[] selectedElements = getSelectedUserObjects();
+    TreePath[] paths = getSelectionPaths();
     Object selectedElement = null;
-    if (selectedElements.length == 1) {
-      selectedElement = selectedElements[0];
+    if (paths != null) {
+      Object[] selectedElements = ContainerUtil.map2Array(paths, TreeUtil::getLastUserObject);
+      if (selectedElements.length == 1) {
+        selectedElement = selectedElements[0];
+      }
     }
     if (selectedElement instanceof PackageElement packageElement) {
       Module m = packageElement.getModule();
