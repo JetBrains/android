@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 
 /** A representation of a device used by [DeviceComboBox]. */
@@ -25,6 +26,7 @@ data class Device(
   val isOnline: Boolean,
   val release: String,
   val sdk: Int,
+  val sdkMinor: Int,
   val featureLevel: Int,
   val model: String,
   val type: DeviceType?,
@@ -37,10 +39,9 @@ data class Device(
       serialNumber: String,
       isOnline: Boolean,
       release: String,
-      sdk: Int,
+      androidVersion: AndroidVersion,
       manufacturer: String,
       model: String,
-      featureLevel: Int = sdk,
       type: DeviceType? = null,
     ): Device {
       val deviceName = if (model.startsWith(manufacturer)) model else "$manufacturer $model"
@@ -50,8 +51,9 @@ data class Device(
         serialNumber,
         isOnline,
         release.normalizeVersion(),
-        sdk,
-        featureLevel,
+        androidVersion.androidApiLevel.majorVersion,
+        androidVersion.androidApiLevel.minorVersion,
+        androidVersion.featureLevel,
         model,
         type,
       )
@@ -61,10 +63,9 @@ data class Device(
       serialNumber: String,
       isOnline: Boolean,
       release: String,
-      sdk: Int,
+      androidVersion: AndroidVersion,
       avdName: String,
       avdPath: String,
-      featureLevel: Int = sdk,
       type: DeviceType? = null,
     ): Device {
       return Device(
@@ -73,8 +74,9 @@ data class Device(
         serialNumber,
         isOnline,
         release.normalizeVersion(),
-        sdk,
-        featureLevel,
+        androidVersion.androidApiLevel.majorVersion,
+        androidVersion.androidApiLevel.minorVersion,
+        androidVersion.featureLevel,
         model = avdName.substringBefore(" API "),
         type,
       )

@@ -31,6 +31,7 @@
 package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.intellij.util.messages.Topic
@@ -54,8 +55,7 @@ interface ShowLogcatListener {
     class PhysicalDeviceInfo(
       serialNumber: String,
       val release: String,
-      val sdk: Int,
-      val featureLevel: Int,
+      val androidVersion: AndroidVersion,
       val manufacturer: String,
       val model: String,
     ) : DeviceInfo(serialNumber, serialNumber)
@@ -63,8 +63,7 @@ interface ShowLogcatListener {
     class EmulatorDeviceInfo(
       serialNumber: String,
       val release: String,
-      val sdk: Int,
-      val featureLevel: Int,
+      val androidVersion: AndroidVersion,
       val avdName: String,
       val avdPath: String,
     ) : DeviceInfo(avdPath, serialNumber)
@@ -80,13 +79,13 @@ interface ShowLogcatListener {
         val avdData = avdData.getDoneOrNull()
         val avdName = avdData?.name ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.avd")
         val avdPath = avdData?.avdFolder?.pathString ?: avdName
-        EmulatorDeviceInfo(serialNumber, release, version.apiLevel, version.featureLevel, avdName, avdPath)
+        EmulatorDeviceInfo(serialNumber, release, version, avdName, avdPath)
       }
       else {
         val manufacturer =
           getProperty(IDevice.PROP_DEVICE_MANUFACTURER) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.manufacturer")
         val model = getProperty(IDevice.PROP_DEVICE_MODEL) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.model")
-        DeviceInfo.PhysicalDeviceInfo(serialNumber, release, version.apiLevel, version.featureLevel, manufacturer, model)
+        DeviceInfo.PhysicalDeviceInfo(serialNumber, release, version, manufacturer, model)
       }
     }
 

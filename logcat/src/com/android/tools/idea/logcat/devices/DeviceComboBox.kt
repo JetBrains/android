@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
 import com.android.tools.idea.logcat.LogcatBundle
@@ -284,8 +285,13 @@ internal class DeviceComboBox(
       if (device.isOnline) {
         append(" (${device.serialNumber})", REGULAR_ATTRIBUTES)
       }
+      val version = AndroidVersion(device.sdk, device.sdkMinor)
       append(
-        LogcatBundle.message("logcat.device.combo.version", device.release, device.sdk.toString()),
+        LogcatBundle.message(
+          "logcat.device.combo.version",
+          device.release,
+          version.getApiStringWithExtension(),
+        ),
         GRAY_ATTRIBUTES,
       )
       if (!device.isOnline) {

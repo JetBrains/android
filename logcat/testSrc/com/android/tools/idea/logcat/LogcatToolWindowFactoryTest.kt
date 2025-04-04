@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
@@ -47,16 +48,16 @@ import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.util.io.delete
+import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.nio.file.Files
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import kotlin.test.fail
 
 @RunsInEdt
 class LogcatToolWindowFactoryTest {
@@ -184,13 +185,17 @@ class LogcatToolWindowFactoryTest {
   fun showLogcat_opensLogcatPanel() {
     val toolWindow = MockToolWindow(project)
     logcatToolWindowFactory().init(toolWindow)
-    val device = Device.createPhysical("device1", true, "11", 30, "Google", "Pixel")
+    val device =
+      Device.createPhysical("device1", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
     project.replaceService(DeviceFinder::class.java, DeviceFinder { device }, disposable)
     deviceTracker.addDevices(device)
 
     project.messageBus
       .syncPublisher(ShowLogcatListener.TOPIC)
-      .showLogcat(PhysicalDeviceInfo("device1", "11", 30, 30, "Google", "Pixel"), "com.test")
+      .showLogcat(
+        PhysicalDeviceInfo("device1", "11", AndroidVersion(30, 0), "Google", "Pixel"),
+        "com.test",
+      )
 
     waitForCondition { toolWindow.contentManager.contentCount == 1 }
 

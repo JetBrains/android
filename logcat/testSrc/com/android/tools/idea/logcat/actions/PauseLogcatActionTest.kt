@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.devices.Device
@@ -32,7 +33,8 @@ import org.mockito.kotlin.whenever
 class PauseLogcatActionTest {
   @get:Rule val applicationRule = ApplicationRule()
 
-  private val device = Device.createPhysical("device", true, "10", 30, "Google", "Pixel")
+  private val device =
+    Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
   private val mockLogcatPresenter = mock<LogcatPresenter>()
 
   @Test

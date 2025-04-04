@@ -44,11 +44,11 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
 import com.intellij.util.text.UniqueNameGenerator
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
@@ -208,8 +208,8 @@ private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
 private fun DeviceInfo.toOfflineDevice(): Device {
   return when (this) {
     is PhysicalDeviceInfo ->
-      Device.createPhysical(serialNumber, false, release, sdk, manufacturer, model, featureLevel)
+      Device.createPhysical(serialNumber, false, release, androidVersion, manufacturer, model)
     is EmulatorDeviceInfo ->
-      Device.createEmulator(serialNumber, false, release, sdk, avdName, avdPath, featureLevel)
+      Device.createEmulator(serialNumber, false, release, androidVersion, avdName, avdPath)
   }
 }
