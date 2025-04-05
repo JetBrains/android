@@ -16,6 +16,7 @@
 
 #include "session_environment.h"
 
+#include "accessors/service_manager.h"
 #include "controller.h"
 #include "log.h"
 #include "num_to_string.h"
@@ -49,6 +50,7 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
     : accelerometer_rotation_(Settings::Table::SYSTEM, "accelerometer_rotation"),
       stay_on_(Settings::Table::GLOBAL, "stay_on_while_plugged_in"),
       restore_normal_display_power_mode_(false) {
+  ServiceManager::GetService(Jvm::GetJni(), "settings", true);  // Wait for the "settings" service to initialize.
   // Keep the screen on as long as the device has power.
   stay_on_.Set(num_to_string<BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS>::value);
 

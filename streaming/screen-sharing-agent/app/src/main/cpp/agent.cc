@@ -27,7 +27,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "accessors/service_manager.h"
 #include "flags.h"
 #include "log.h"
 #include "session_environment.h"
@@ -336,7 +335,6 @@ DisplayInfo Agent::GetDisplayInfo(int32_t display_id) {
 }
 
 SessionEnvironment& Agent::GetSessionEnvironment() {
-  ServiceManager::GetService(Jvm::GetJni(), "settings", true);  // Wait for the "settings" service to initialize.
   unique_lock lock(environment_mutex_);
   if (session_environment_ == nullptr) {
     session_environment_ = new SessionEnvironment((flags_ & TURN_OFF_DISPLAY_WHILE_MIRRORING) != 0);
