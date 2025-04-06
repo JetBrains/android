@@ -478,6 +478,7 @@ class OnDeviceRendererPanelImplTest {
     // wait for the popup to be shown.
     popupLatch.await()
 
+    assertThat(inspectorModel.selection).isEqualTo(inspectorModel[COMPOSE1])
     lastPopup!!.assertSelectViewActionAndGotoDeclaration(COMPOSE1, ROOT)
     verify(lastPopup.popup).show(onDeviceRenderer, 42, 42)
   }

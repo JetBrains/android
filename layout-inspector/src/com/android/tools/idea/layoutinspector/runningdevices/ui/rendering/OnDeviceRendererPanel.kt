@@ -203,6 +203,10 @@ class OnDeviceRendererPanelImpl(
         if (!interceptClicks) {
           return@collect
         }
+
+        // Select the node first.
+        renderModel.selectNode(event.x.toDouble(), event.y.toDouble(), event.rootId)
+
         val views = renderModel.findNodesAt(event.x.toDouble(), event.y.toDouble(), event.rootId)
         // There should always be a lastMousePosition available, if for some reason it's missing,
         // show the popup in them middle of the panel.
