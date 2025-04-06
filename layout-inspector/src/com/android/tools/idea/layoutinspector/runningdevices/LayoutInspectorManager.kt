@@ -388,9 +388,20 @@ private fun createRendererPanel(
           },
         )
       },
-      currentSessionStatistics = { layoutInspector.currentClient.stats },
+      navigateToSelectedViewOnDoubleClick = {
+        layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
+      },
     )
   }
+}
+
+private fun LayoutInspector.navigateToSelectedViewFromRendererDoubleClick() {
+  navigateToSelectedViewFromRendererDoubleClick(
+    scope = coroutineScope,
+    inspectorModel = inspectorModel,
+    client = currentClient,
+    notificationModel = notificationModel,
+  )
 }
 
 /**

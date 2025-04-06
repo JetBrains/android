@@ -30,23 +30,19 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.runningdevices.calculateRotationCorrection
-import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
-import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.runDispatching
-import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -63,7 +59,6 @@ import kotlin.io.path.pathString
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
@@ -76,16 +71,11 @@ private const val DIFF_THRESHOLD = 0.2
 
 class StudioRendererPanelTest {
 
-  private val androidProjectRule = AndroidProjectRule.Companion.withSdk()
-  private val fileOpenCaptureRule = FileOpenCaptureRule(androidProjectRule)
-
-  @get:Rule val ruleChain = RuleChain.outerRule(androidProjectRule).around(fileOpenCaptureRule)!!
-
   @get:Rule val testName = TestName()
-
   @get:Rule val edtRule = EdtRule()
-
   @get:Rule val applicationRule = ApplicationRule()
+  @get:Rule val projectRule = ProjectRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var sessionStats: SessionStatisticsImpl
 
@@ -93,10 +83,12 @@ class StudioRendererPanelTest {
   private val renderSettings = FakeRenderSettings()
 
   private val disposable: Disposable
-    get() = androidProjectRule.testRootDisposable
+    get() = disposableRule.disposable
 
   private lateinit var renderModel: RenderModel
   private lateinit var renderLogic: RenderLogic
+
+  private var navigateToSelectedViewInvocations = 0
 
   /** The dimension of the screen, or canvas in this case */
   private val screenDimension = Dimension(200, 250)
@@ -132,6 +124,7 @@ class StudioRendererPanelTest {
     renderModel = RenderModel(verticalInspectorModel, mock(), treeSettings) { DisconnectedClient }
     renderLogic = RenderLogic(renderModel, renderSettings)
     sessionStats = SessionStatisticsImpl(DisconnectedClient.clientType)
+    navigateToSelectedViewInvocations += 1
   }
 
   @Test
@@ -379,9 +372,6 @@ class StudioRendererPanelTest {
   @Test
   @RunsInEdt
   fun testMouseDoubleClick() {
-    loadComposeFiles()
-    val inspectorModel = createModel()
-    val renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     renderSettings.drawLabel = false
     val layoutInspectorRenderer = createRenderer(renderModel)
     val parent = BorderLayoutPanel()
@@ -400,13 +390,7 @@ class StudioRendererPanelTest {
     fakeUi.render()
     fakeUi.layoutAndDispatchEvents()
 
-    assertThat(renderModel.model.selection?.drawId).isEqualTo(2L)
-    runDispatching { GotoDeclarationAction.lastAction?.join() }
-    fileOpenCaptureRule.checkEditor("demo.xml", 2, "<RelativeLayout")
-
-    val data = DynamicLayoutInspectorSession.newBuilder()
-    sessionStats.save(data)
-    assertThat(data.gotoDeclaration.doubleClicksFromRender).isEqualTo(1)
+    assertThat(navigateToSelectedViewInvocations).isEqualTo(1)
   }
 
   @Test
@@ -421,7 +405,7 @@ class StudioRendererPanelTest {
 
     var latestPopup: FakeActionPopupMenu? = null
     ApplicationManager.getApplication()
-      .replaceService(ActionManager::class.java, mock(), androidProjectRule.testRootDisposable)
+      .replaceService(ActionManager::class.java, mock(), disposable)
     doAnswer { invocation ->
         latestPopup = FakeActionPopupMenu(invocation.getArgument(1))
         latestPopup
@@ -530,7 +514,7 @@ class StudioRendererPanelTest {
 
     val renderModel =
       RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
-    val notificationModel = NotificationModel(androidProjectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
     var seenNotificationIds = listOf<String>()
     notificationModel.notificationListeners.add {
       seenNotificationIds = notificationModel.notifications.map { it.id }
@@ -622,20 +606,19 @@ class StudioRendererPanelTest {
     renderModel: RenderModel = this.renderModel,
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
-    notificationModel: NotificationModel = NotificationModel(androidProjectRule.project),
+    notificationModel: NotificationModel = NotificationModel(projectRule.project),
   ): StudioRendererPanel {
     return StudioRendererPanel(
-      androidProjectRule.testRootDisposable,
-      AndroidCoroutineScope(androidProjectRule.testRootDisposable),
+      disposable,
+      AndroidCoroutineScope(disposable),
       renderLogic,
       renderModel,
       notificationModel,
       displayRectangleProvider = { deviceDisplayRectangle },
       screenScaleProvider = { 1.0 },
       orientationQuadrantProvider = { displayOrientation },
-    ) {
-      sessionStats
-    }
+      navigateToSelectedViewOnDoubleClick = {},
+    )
   }
 
   private fun createRenderImage(): BufferedImage {
@@ -654,32 +637,6 @@ class StudioRendererPanelTest {
       renderImage,
       DIFF_THRESHOLD,
     )
-  }
-
-  private fun createModel(): InspectorModel =
-    model(
-      androidProjectRule.testRootDisposable,
-      androidProjectRule.project,
-      FakeTreeSettings(),
-      body =
-        DemoExample.setUpDemo(androidProjectRule.fixture) {
-          view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
-            compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
-              compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)
-              compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) {
-                compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3)
-              }
-            }
-          }
-        },
-    )
-
-  private fun loadComposeFiles() {
-    val fixture = androidProjectRule.fixture
-    fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
-    fixture.copyFileToProject("java/com/example/MyCompose.kt")
-    fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
 }
 

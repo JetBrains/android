@@ -17,10 +17,8 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.Disposable
@@ -62,7 +60,7 @@ class StudioRendererPanel(
   private val displayRectangleProvider: () -> Rectangle?,
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
-  private val currentSessionStatistics: () -> SessionStatistics,
+  private val navigateToSelectedViewOnDoubleClick: () -> Unit,
 ) : LayoutInspectorRenderer() {
 
   override var interceptClicks = false
@@ -262,15 +260,7 @@ class StudioRendererPanel(
       renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
 
       if (e.clickCount == 2 && e.button == MouseEvent.BUTTON1) {
-        // Navigate to sources on double click.
-        // TODO(b/265150325) move to RenderModel for consistency
-        GotoDeclarationAction.navigateToSelectedView(
-          coroutineScope,
-          renderModel.model,
-          renderModel.currentClientProvider(),
-          renderModel.notificationModel,
-        )
-        currentSessionStatistics().gotoSourceFromRenderDoubleClick()
+        navigateToSelectedViewOnDoubleClick()
       }
 
       refresh()
