@@ -99,6 +99,7 @@ jvm_test(
     "//platform/external-system-impl:externalSystem-tests_test_lib",
     "//platform/backend/workspace",
     "//plugins/gradle",
+    "//plugins/kotlin/plugin/k1:kotlin-plugin-k1",
   ]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.tests` end
