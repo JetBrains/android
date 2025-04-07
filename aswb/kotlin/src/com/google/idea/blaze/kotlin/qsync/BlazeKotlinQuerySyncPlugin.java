@@ -35,9 +35,11 @@ import java.util.Set;
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
 import org.jetbrains.kotlin.cli.common.arguments.FreezableKt;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder;
 import org.jetbrains.kotlin.idea.facet.KotlinFacet;
 import org.jetbrains.kotlin.idea.facet.KotlinFacetType;
+import org.jetbrains.kotlin.idea.fir.extensions.KotlinK2BundledCompilerPlugins;
 
 /** Supports Kotlin. */
 public class BlazeKotlinQuerySyncPlugin implements BlazeQuerySyncPlugin {
@@ -94,9 +96,15 @@ public class BlazeKotlinQuerySyncPlugin implements BlazeQuerySyncPlugin {
       commonArguments = new K2JVMCompilerArguments();
     }
 
-    String[] oldPluginOptions = commonArguments.getPluginOptions();
-    if (oldPluginOptions == null) {
-      oldPluginOptions = new String[0];
+    if (KotlinPluginModeProvider.Companion.isK2Mode()) {
+      // Register the bundled directly, as KtCompilerPluginsProviderIdeImpl consistently replaces user's plugin class path with it.
+      // Note: This implementation may need updating if the Kotlin plugin alters its provider replacement logic.
+      commonArguments.setPluginClasspaths(
+          new String[] {
+            KotlinK2BundledCompilerPlugins.COMPOSE_COMPILER_PLUGIN
+                .getBundledJarLocation()
+                .toString(),
+          });
     }
     commonArguments.setPluginOptions(newPluginOptions.toArray(new String[0]));
     facetSettings.setCompilerArguments(commonArguments);
