@@ -31,6 +31,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
 import com.android.tools.idea.lint.inspections.AndroidLintUnusedResourcesInspection
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.lint.checks.GradleDetector
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInspection.CommonProblemDescriptor
 import com.intellij.codeInspection.GlobalInspectionTool
@@ -309,10 +310,10 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       AndroidLintGradleDependencyInspection(),
       "compileSdk|Version" to
         """
-        Warning: A newer version of `compileSdkVersion` than 34 is available: 35
+        Warning: A newer version of `compileSdkVersion` than 34 is available: ${GradleDetector.HIGHEST_KNOWN_STABLE_ANDROID_API}
             compileSdkVersion(34)
             ~~~~~~~~~~~~~~~~~~~~~
-            Fix: Set compileSdkVersion to 35
+            Fix: Set compileSdkVersion to ${GradleDetector.HIGHEST_KNOWN_STABLE_ANDROID_API}
             Fix: Suppress GradleDependency with a comment
         """,
     )
