@@ -704,7 +704,6 @@ iml_test(
     ],
     tags_linux = [
         "block-network",
-        "manual",  # TODO(b/403433771) Disable test temporarily until we stabilize the test
     ],
     tags_mac = [],
     tags_windows = [

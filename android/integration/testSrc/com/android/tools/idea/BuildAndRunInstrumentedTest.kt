@@ -37,8 +37,6 @@ class BuildAndRunInstrumentedTest {
   var watcher = MemoryDashboardNameProviderWatcher()
 
 
-  // TODO Reenable the test once we stabilize it.
-  @Ignore("b/403433771")
   @Test
   fun deployInstrumentedTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/InstrumentedTestApp")
@@ -55,8 +53,11 @@ class BuildAndRunInstrumentedTest {
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
           studio.waitForIndex()
-          studio.executeAction("Run")
-          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.instrumentedtestapp", 5, TimeUnit.MINUTES)
+
+          studio.waitForSmart();
+          studio.executeActionWhenSmart("Run")
+
+          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.instrumentedtestapp", 1, TimeUnit.MINUTES)
           adb.runCommand("logcat").waitForLog(".*Instrumented Test Success!!.*", 5.minutes)
         }
       }

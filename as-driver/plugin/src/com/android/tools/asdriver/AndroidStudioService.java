@@ -197,8 +197,15 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
           return;
         }
 
+        Boolean runWhenSmart = request.hasRunWhenSmart() && request.getRunWhenSmart();
+
         AnActionEvent event = AnActionEvent.createEvent(action, dataContext, null, ActionPlaces.UNKNOWN, ActionUiKind.NONE, null);
-        ActionUtil.performActionDumbAwareWithCallbacks(action, event);
+        if (runWhenSmart) {
+          DumbService.getInstance(getSingleProject()).runWhenSmart(() -> ActionUtil.performActionDumbAwareWithCallbacks(action, event));
+        }
+        else {
+          ActionUtil.performActionDumbAwareWithCallbacks(action, event);
+        }
         builder.setResult(ASDriver.ExecuteActionResponse.Result.OK);
       } catch (Throwable e) {
         e.printStackTrace();

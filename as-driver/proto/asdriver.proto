@@ -11,6 +11,8 @@ service AndroidStudio {
 
   rpc ExecuteAction(ExecuteActionRequest) returns (ExecuteActionResponse) {}
 
+  rpc ExecuteActionWhenSmart(ExecuteActionRequest) returns (ExecuteActionResponse) {}
+
   rpc ExecuteCommands(ExecuteCommandsRequest) returns (ExecuteCommandsResponse) {}
 
   rpc ShowToolWindow(ShowToolWindowRequest) returns (ShowToolWindowResponse) {}
@@ -59,6 +61,8 @@ message ExecuteActionRequest {
   optional string project_name = 2;
 
   optional DataContextSource data_context_source = 3;
+
+  optional bool run_when_smart = 4;
 }
 
 message ExecuteActionResponse {

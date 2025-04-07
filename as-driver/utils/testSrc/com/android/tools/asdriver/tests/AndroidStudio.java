@@ -201,15 +201,27 @@ public class AndroidStudio extends Ide {
   }
 
   public void executeAction(String action) {
-    executeAction(action, DataContextSource.DEFAULT);
+    executeAction(action, DataContextSource.DEFAULT, false);
   }
 
   public void executeAction(String action, DataContextSource dataContextSource) {
+    executeAction(action, dataContextSource, false);
+  }
+
+  public void executeActionWhenSmart(String action) {
+    executeAction(action, DataContextSource.DEFAULT, true);
+  }
+
+  public void executeAction(String action, DataContextSource dataContextSource, Boolean whenSmart) {
     ASDriver.ExecuteActionRequest rq =
-      ASDriver.ExecuteActionRequest.newBuilder().setActionId(action).setDataContextSource(dataContextSource.dataContextSource).build();
-    ASDriver.ExecuteActionResponse response = androidStudio.executeAction(rq);
+      ASDriver.ExecuteActionRequest.newBuilder().setActionId(action).setDataContextSource(dataContextSource.dataContextSource)
+        .setRunWhenSmart(whenSmart).build();
+    ASDriver.ExecuteActionResponse response;
+    response = androidStudio.executeAction(rq);
+
     switch (response.getResult()) {
-      case OK -> {}
+      case OK -> {
+      }
       case ACTION_NOT_FOUND -> throw new NoSuchElementException(String.format("No action found by this ID: %s", action));
       case ERROR -> throw new IllegalStateException(String.format("Failed to execute action: %s. %s",
                                                                   action, formatErrorMessage(response.getErrorMessage())));
@@ -635,6 +647,10 @@ public class AndroidStudio extends Ide {
       builder.append(" WARMUP");
     }
     executeCommand(builder.toString(), null);
+  }
+
+  public void waitForSmart() {
+    executeCommand("%waitForSmart", null);
   }
 
   private void executeCommand(@NotNull final String command, @Nullable final String projectName) {
