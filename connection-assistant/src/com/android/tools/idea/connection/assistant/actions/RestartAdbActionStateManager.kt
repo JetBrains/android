@@ -60,14 +60,15 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
 
     fun initDebugBridge() {
       val adb = AndroidSdkUtils.getAdb(project) ?: return
-      adbFuture = AdbService.getInstance().getDebugBridge(adb) ?: return
+      val adbFutureNotNull = AdbService.getInstance().getDebugBridge(adb) ?: return
+      adbFuture = adbFutureNotNull
 
-      Futures.addCallback(adbFuture, object : FutureCallback<AndroidDebugBridge> {
-        override fun onSuccess(bridge: AndroidDebugBridge?) {
+      Futures.addCallback(adbFutureNotNull, object : FutureCallback<AndroidDebugBridge> {
+        override fun onSuccess(bridge: AndroidDebugBridge) {
           refreshDependencyState(project)
         }
 
-        override fun onFailure(t: Throwable?) {
+        override fun onFailure(t: Throwable) {
           refreshDependencyState(project)
         }
       }, EdtExecutorService.getInstance())

@@ -159,7 +159,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
             Futures.immediateFuture(null)
 
           override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
-            Futures.immediateFuture(null)
+            Futures.immediateFuture(Unit)
         }
 
       val appInspectionServices = mock(AppInspectionIdeServices::class.java)
@@ -258,7 +258,7 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
           Futures.immediateFuture(null)
 
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
-          Futures.immediateFuture(null)
+          Futures.immediateFuture(Unit)
       }
 
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)
