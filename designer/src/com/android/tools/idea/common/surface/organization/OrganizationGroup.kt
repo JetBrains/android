@@ -24,16 +24,24 @@ import kotlinx.coroutines.flow.update
 import org.jetbrains.jewel.ui.icon.PathIconKey
 
 /**
- * Default [OrganizationGroup.isOpened] state of new created [OrganizationGroup]. Note: Default
- * being false currently not supported.
+ * Type of the preview group - for example test preview.
+ *
+ * @param iconKey icon for this preview
+ * @param icon icon for this preview, same as [iconKey], the only difference is that Compose and
+ *   Swing needs different format for icons.
+ * @param defaultGroupState default [OrganizationGroup.isOpened] state of new created
+ *   [OrganizationGroup].
  */
-const val DEFAULT_ORGANIZATION_GROUP_STATE = true
-
-enum class OrganizationGroupType(val iconKey: PathIconKey?, val icon: Icon?) {
-  Default(null, null),
+enum class OrganizationGroupType(
+  val iconKey: PathIconKey?,
+  val icon: Icon?,
+  val defaultGroupState: Boolean,
+) {
+  Default(null, null, true),
   Test(
     PathIconKey("expui/runConfigurations/junit.svg", AllIcons::class.java),
     AllIcons.RunConfigurations.Junit,
+    false,
   ),
 }
 

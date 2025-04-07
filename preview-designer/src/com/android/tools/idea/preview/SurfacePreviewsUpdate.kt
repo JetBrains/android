@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
-import com.android.tools.idea.common.surface.organization.DEFAULT_ORGANIZATION_GROUP_STATE
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.organization.OrganizationGroupType
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -239,8 +238,11 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
                     .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
                 }
                 .apply {
-                  // Load previously saved state.
-                  setOpened(previousOrganizationState[groupId] ?: DEFAULT_ORGANIZATION_GROUP_STATE)
+                  // Load previously saved state or use default state.
+                  setOpened(
+                    previousOrganizationState[groupId]
+                      ?: newModel.displaySettings.groupType.value.defaultGroupState
+                  )
                 }
             }
         }
