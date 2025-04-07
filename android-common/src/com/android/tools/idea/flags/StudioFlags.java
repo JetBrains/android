@@ -1612,11 +1612,6 @@ public final class StudioFlags {
     "Enables a context-menu action to send Compose Previews to Studio Bot as context.",
     enabledUpTo(DEV));
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_COMPONENT_POP_UP = new BooleanFlag(
-    COMPOSE, "preview.popup", "Enable the opening pop up when holding the option key while clicking a preview",
-    "If enabled, when holding the option key while clicking a preview on a preview it will open pop up with all components under click",
-    enabledUpTo(DEV));
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
     "If a user moves their caret to a element present in a preview, we highlight those elements",

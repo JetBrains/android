@@ -700,8 +700,7 @@ class ComposePreviewRepresentation(
     NavigatingInteractionHandler(
       composeWorkBench.mainSurface,
       navigationHandler,
-      isSelectionEnabled = true,
-      isPopUpEnabled = { StudioFlags.COMPOSE_PREVIEW_COMPONENT_POP_UP.get() },
+      isSelectionEnabled = true
     )
 
   @VisibleForTesting

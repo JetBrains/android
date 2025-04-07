@@ -55,14 +55,12 @@ import org.intellij.lang.annotations.JdkConstants
 /**
  * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation
  * capabilities. When [isSelectionEnabled] is true, Preview selection capabilities are also added,
- * affecting the navigation logic. When [isPopUpEnabled] returns true, option clicking will open a
- * pop up with all components under click.
+ * affecting the navigation logic.
  */
 class NavigatingInteractionHandler(
   private val surface: DesignSurface<*>,
   private val navigationHandler: NavigationHandler,
   private val isSelectionEnabled: Boolean = false,
-  private val isPopUpEnabled: () -> Boolean = { false },
 ) : NlInteractionHandler(surface) {
 
   private val scope = AndroidCoroutineScope(surface)
@@ -362,7 +360,7 @@ class NavigatingInteractionHandler(
           isOptionDown,
         )
 
-      if (isOptionDown && isPopUpEnabled() && navigatables.isNotEmpty()) {
+      if (isOptionDown && navigatables.isNotEmpty()) {
         // Open a pop up menu with all components under coordinates
         val actions = createActionGroup(sceneView, navigatables)
         withContext(uiThread) { surface.showPopup(mouseEvent, actions, "Navigatables") }
