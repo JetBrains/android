@@ -393,6 +393,9 @@ class ComposePreviewRepresentation(
       Disposer.register(this@ComposePreviewRepresentation, this)
     }
 
+  /** Blank panel to display on top of the surface when transitioning between two [PreviewMode]s */
+  private val blankTransitionPanel = JPanel()
+
   private val emptyUiCheckPanel =
     object : JPanel() {
       val label =
@@ -1565,10 +1568,13 @@ class ComposePreviewRepresentation(
       }
     }
     surface.background = mode.backgroundColor
+    surface.layeredPane.remove(blankTransitionPanel)
   }
 
   /** Performs cleanup for [mode] when leaving this mode to go to a mode of a different class. */
   private suspend fun onExit(mode: PreviewMode) {
+    // Show blank surface while performing exit cleanup
+    surface.layeredPane.add(blankTransitionPanel, JLayeredPane.DRAG_LAYER, 0)
     when (mode) {
       is PreviewMode.Default -> {}
       is PreviewMode.Interactive -> {
