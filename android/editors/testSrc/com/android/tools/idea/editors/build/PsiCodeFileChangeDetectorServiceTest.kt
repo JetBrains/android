@@ -6,8 +6,10 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.replaceText
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiFile
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.test.runTest
 import org.jetbrains.kotlin.psi.KtBlockCodeFragment
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.scripting.definitions.runReadAction
@@ -280,5 +283,32 @@ class PsiCodeFileChangeDetectorServiceTest {
     WriteCommandAction.runWriteCommandAction(projectRule.project) { file.add(methodToAdd) }
 
     assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
+  }
+
+  @Test
+  fun `deleted files should not be out of date after build`() = runTest {
+    // Assert there are no out-of-date-files in second project.
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
+
+    // Change a file in first project
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      fixture.openFileInEditor(kotlinFile.virtualFile)
+      fixture.editor.executeAndSave { replaceText("primary = 1", "primary = 2") }
+    }
+
+    // File is now out of date
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isNotEmpty()
+    @Suppress("UnstableApiUsage")
+    writeAction {
+      kotlinFile.delete()
+    }
+    // File is still out of date before marking everything up to date
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isNotEmpty()
+
+    // Marking everything up to date should remove deleted files
+    PsiCodeFileUpToDateStatusRecorder.getInstance(projectRule.project).prepareMarkUpToDate().markUpToDate(
+      GlobalSearchScope.allScope(projectRule.project))
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
+
   }
 }

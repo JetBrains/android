@@ -238,7 +238,9 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
   override fun prepareMarkUpToDate(): PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction {
     val changed = outOfDateFiles
     return PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction { scope ->
-      markAsUpToDate(changed.filter { scope.contains(it.virtualFile) })
+      // Mark the files contained in the scope as up-to-date. Also, if any of the changed files does not exist anymore, mark it as
+      // up-to-date so it is not in the out-of-date group.
+      markAsUpToDate(changed.filter { !it.isValid || scope.contains(it.virtualFile) })
     }
   }
 
