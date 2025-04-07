@@ -164,7 +164,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
         latch.countDown();
       }
     };
-    GradleSyncState.subscribe(getProject(), postSetupListener);
+    GradleSyncState.subscribe(getProject(), postSetupListener, getTestRootDisposable());
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, null);
 

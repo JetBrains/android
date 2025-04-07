@@ -80,7 +80,7 @@ class GradlePropertyProcessorTest {
         override fun syncSucceeded(project: Project) {
           synced = true
         }
-      })
+      }, projectRule.testRootDisposable)
       WriteCommandAction.runWriteCommandAction(project) {
         processor.updateProjectBuildModel(usages)
       }
@@ -110,7 +110,7 @@ class GradlePropertyProcessorTest {
         override fun syncSucceeded(project: Project) {
           synced = true
         }
-      })
+      }, projectRule.testRootDisposable)
       WriteCommandAction.runWriteCommandAction(project) {
         processor.updateProjectBuildModel(usages)
       }
@@ -142,7 +142,7 @@ class GradlePropertyProcessorTest {
         override fun syncSucceeded(project: Project) {
           synced = true
         }
-      })
+      }, projectRule.testRootDisposable)
       WriteCommandAction.runWriteCommandAction(project) {
         processor.updateProjectBuildModel(usages)
       }

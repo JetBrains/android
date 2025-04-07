@@ -70,7 +70,7 @@ class FixBuildToolsProcessorIntegrationTest : AndroidGradleTestCase() {
       override fun syncSucceeded(project: Project) {
         synced = true
       }
-    })
+    }, testRootDisposable)
 
     WriteCommandAction.runWriteCommandAction(project) {
       processor.performRefactoring(usages)

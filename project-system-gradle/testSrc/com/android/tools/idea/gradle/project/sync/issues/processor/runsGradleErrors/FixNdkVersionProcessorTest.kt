@@ -100,7 +100,7 @@ class FixNdkVersionProcessorTest {
           // It fails with 77.7.7.
           synced = true
         }
-      })
+      }, projectRule.testRootDisposable)
 
       WriteCommandAction.runWriteCommandAction(project) {
         processor.updateProjectBuildModel()
