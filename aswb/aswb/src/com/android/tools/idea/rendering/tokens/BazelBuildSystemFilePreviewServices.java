@@ -39,7 +39,7 @@ final class BazelBuildSystemFilePreviewServices
   @Override
   public @NotNull RenderingServices getRenderingServices(
     @NotNull BazelBuildTargetReference buildTargetReference) {
-    throw new UnsupportedOperationException();
+    return new BazelRenderingServices();
   }
 
   @Override
