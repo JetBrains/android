@@ -62,7 +62,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.jvm.java
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -520,6 +520,9 @@ private class ListenerMap<TKey, TObserver : ObserverWithListeners> {
       .forEach {
         try {
           it.lambda()
+        } catch (e: CancellationException) {
+          // Cancellation exceptions must not be logged and should be re-thrown
+          throw e
         } catch (t: Throwable) {
           // Avoid listeners crashing stopping other events from being delivered.
           thisLogger().error(t)
@@ -567,7 +570,7 @@ private class ModuleEventObserver(
         return@withContext
       }
 
-      this@ModuleEventObserver.generation = generation
+      this@ModuleEventObserver.generation = appResources.modificationCount
       invokeOnListeners { resourcesChanged(reason) }
     }
   }
