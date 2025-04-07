@@ -17,7 +17,9 @@
 package com.android.tools.idea.backup
 
 import com.android.backup.BackupType
+import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -26,34 +28,32 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.SwingHelper
 import java.awt.Dimension
+import java.awt.event.ItemEvent
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
 import javax.swing.GroupLayout
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants.HORIZONTAL
 import javax.swing.event.DocumentEvent
+import javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
 import org.jetbrains.annotations.VisibleForTesting
 
-private val APPLICATION_ID_FIELD_WIDTH
-  get() = JBUIScale.scale(300)
-private val TYPE_FIELD_WIDTH
-  get() = JBUIScale.scale(100)
-private val PATH_FIELD_WIDTH
-  get() = JBUIScale.scale(500)
-
-private val DEFAULT_BACKUP_FILENAME = "application.${BackupFileType.defaultExtension}"
-
-internal class BackupDialog(private val project: Project, initialApplicationId: String) :
-  DialogWrapper(project) {
+internal class BackupDialog(
+  private val project: Project,
+  initialApplicationId: String,
+  private val isBackupEnabled: Boolean,
+) : DialogWrapper(project) {
   private val applicationIds = buildList {
     if (StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get()) {
       add(initialApplicationId)
@@ -69,7 +69,20 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
   private val typeComboBox =
     ComboBox(DefaultComboBoxModel(BackupType.entries.toTypedArray())).apply {
       name = "typeComboBox"
-      maximumSize = Dimension(TYPE_FIELD_WIDTH, maximumSize.height)
+      maximumSize = Dimension(TYPE_FIELD_WIDTH, preferredSize.height)
+    }
+  private val backupNotEnabledWarning =
+    SwingHelper.createHtmlViewer(false, JLabel().font, null, null).apply {
+      name = "backupNotEnabledWarning"
+      isEditable = false
+      isOpaque = false
+      putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
+      isVisible = !isBackupEnabled
+      addHyperlinkListener { it ->
+        if (it.eventType == ACTIVATED) {
+          BrowserUtil.browse("https://developer.android.com/identity/sign-in/restore-credentials")
+        }
+      }
     }
   private val fileTextField =
     BackupFileTextField.createFileSaver(project) { fileSetByChooser = true }
@@ -77,12 +90,7 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
         textComponent.document.addDocumentListener(
           object : DocumentAdapter() {
             override fun textChanged(e: DocumentEvent) {
-              try {
-                val path = Path.of(text)
-                isOKActionEnabled = path.isValid() && !path.isDirectory()
-              } catch (_: InvalidPathException) {
-                isOKActionEnabled = false
-              }
+              updateOkAction()
             }
           }
         )
@@ -113,6 +121,21 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
     }
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
+
+    if (!isBackupEnabled) {
+      fun doUpdate() {
+        backupNotEnabledWarning.text =
+          if (typeComboBox.item == DEVICE_TO_DEVICE) WARNING_DTD else WARNING_CLOUD
+        updateOkAction()
+      }
+
+      val itemListener: (ItemEvent) -> Unit = {
+        doUpdate()
+        pack()
+      }
+      doUpdate()
+      typeComboBox.addItemListener(itemListener)
+    }
     pack()
     isResizable = false
   }
@@ -136,7 +159,12 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
               .addComponent(applicationIdLabel)
               .addComponent(applicationIdComboBox)
           )
-          .addGroup(createSequentialGroup().addComponent(typeLabel).addComponent(typeComboBox))
+          .addGroup(
+            createSequentialGroup()
+              .addComponent(typeLabel)
+              .addComponent(typeComboBox)
+              .addComponent(backupNotEnabledWarning)
+          )
           .addGroup(createSequentialGroup().addComponent(fileLabel).addComponent(fileTextField))
       )
       setVerticalGroup(
@@ -147,9 +175,13 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
               .addComponent(applicationIdComboBox)
           )
           .addGroup(
-            createParallelGroup(GroupLayout.Alignment.CENTER)
-              .addComponent(typeLabel)
-              .addComponent(typeComboBox)
+            createParallelGroup(GroupLayout.Alignment.LEADING)
+              .addGroup(
+                createParallelGroup(GroupLayout.Alignment.CENTER)
+                  .addComponent(typeLabel)
+                  .addComponent(typeComboBox)
+              )
+              .addComponent(backupNotEnabledWarning)
           )
           .addGroup(
             createParallelGroup(GroupLayout.Alignment.CENTER)
@@ -194,7 +226,7 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
 
   private fun getLastUsedType(): BackupType {
     return when (val name = properties.getValue(LAST_USED_TYPE_KEY)) {
-      null -> BackupType.DEVICE_TO_DEVICE
+      null -> DEVICE_TO_DEVICE
       else -> BackupType.valueOf(name)
     }
   }
@@ -204,9 +236,48 @@ internal class BackupDialog(private val project: Project, initialApplicationId: 
   }
 
   companion object {
+    private val APPLICATION_ID_FIELD_WIDTH
+      get() = JBUIScale.scale(300)
+
+    private val TYPE_FIELD_WIDTH
+      get() = JBUIScale.scale(100)
+
+    private val PATH_FIELD_WIDTH
+      get() = JBUIScale.scale(500)
+
+    private val DEFAULT_BACKUP_FILENAME = "application.${BackupFileType.defaultExtension}"
+
+    private val WARNING_DTD =
+      """
+      App-data won't be backed up as allowBackup property is false.<br>
+      Backup may contain Restore Keys, if present for the app.<br>
+      (<a href='http://bar.com/'>Learn more</a>)
+    """
+        .trimIndent()
+
+    private val WARNING_CLOUD =
+      """
+      App-data won't be backed up as allowBackup property is false.<br>
+      Restore Keys backup is not supported via this tool for Cloud.<br>
+      backup type. (<a href='http://bar.com/'>Learn more</a>)
+    """
+        .trimIndent()
+
     @VisibleForTesting internal const val LAST_USED_FILE_KEY = "Backup.Last.Used.File"
 
     @VisibleForTesting internal const val LAST_USED_TYPE_KEY = "Backup.Last.Used.Type"
+  }
+
+  fun updateOkAction() {
+    try {
+      val path = Path.of(fileTextField.text)
+      isOKActionEnabled =
+        path.isValid() &&
+          !path.isDirectory() &&
+          (typeComboBox.item == DEVICE_TO_DEVICE || isBackupEnabled)
+    } catch (_: InvalidPathException) {
+      isOKActionEnabled = false
+    }
   }
 }
 

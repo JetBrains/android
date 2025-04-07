@@ -19,7 +19,6 @@ import com.android.backup.BackupResult.Success
 import com.android.backup.BackupService
 import com.android.backup.BackupType
 import com.android.backup.BackupType.CLOUD
-import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.SUCCESS
@@ -126,7 +125,13 @@ internal class BackupManagerImplTest {
     val serialNumber = "serial"
 
     createModalDialogAndInteractWithIt({
-      backupManagerImpl.showBackupDialog(serialNumber, "app2", RUN_CONFIG)
+      backupManagerImpl.showBackupDialog(
+        serialNumber,
+        "app2",
+        RUN_CONFIG,
+        notify = true,
+        isBackupEnabled = true,
+      )
     }) { dialogWrapper ->
       val dialog = dialogWrapper as BackupDialog
       val applicationIdComboBox = dialog.findComponent<ComboBox<String>>("applicationIdComboBox")
@@ -140,7 +145,7 @@ internal class BackupManagerImplTest {
     }
 
     assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, SUCCESS))
+      .containsExactly(backupUsageEvent(CLOUD, RUN_CONFIG, SUCCESS))
     assertThat(notificationRule.notifications).hasSize(1)
     notificationRule.notifications
       .first()

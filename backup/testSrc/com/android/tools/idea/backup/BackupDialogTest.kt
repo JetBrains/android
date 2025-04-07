@@ -34,12 +34,43 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.TextAccessor
+import javax.swing.JEditorPane
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+
+private val WARNING_DTD_HTML =
+  """
+    <html>
+      <head>
+        
+      </head>
+      <body>
+        App-data won't be backed up as allowBackup property is false.<br>Backup 
+        may contain Restore Keys, if present for the app.<br>(<a href="http://bar.com/">Learn 
+        more</a>)
+      </body>
+    </html>
+"""
+    .trimIndent()
+
+private val WARNING_CLOUD_HTML =
+  """
+    <html>
+      <head>
+        
+      </head>
+      <body>
+        App-data won't be backed up as allowBackup property is false.<br>Restore 
+        Keys backup is not supported via this tool for Cloud.<br>backup type. (<a href="http://bar.com/">Learn 
+        more</a>)
+      </body>
+    </html>
+"""
+    .trimIndent()
 
 /** Tests for [BackupDialog] */
 @RunWith(JUnit4::class)
@@ -194,11 +225,43 @@ class BackupDialogTest {
     }
   }
 
+  @Test
+  fun showDialog_backupEnabled() {
+    createDialog(isBackupEnabled = true) {
+      assertThat(it.findComponent<JEditorPane>("backupNotEnabledWarning").isVisible).isFalse()
+      assertThat(it.isOKActionEnabled).isTrue()
+    }
+  }
+
+  @Test
+  fun showDialog_backupDisabled() {
+    createDialog(isBackupEnabled = false) {
+      val warning = it.findComponent<JEditorPane>("backupNotEnabledWarning")
+      val typeCombo = it.findComponent<ComboBox<BackupType>>("typeComboBox")
+      assertThat(warning.isVisible).isTrue()
+
+      typeCombo.item = DEVICE_TO_DEVICE
+      assertThat(warning.text.trim()).isEqualTo(WARNING_DTD_HTML)
+      assertThat(it.isOKActionEnabled).isTrue()
+
+      typeCombo.item = CLOUD
+      assertThat(warning.text.trim()).isEqualTo(WARNING_CLOUD_HTML)
+      assertThat(it.isOKActionEnabled).isFalse()
+
+      typeCombo.item = CLOUD
+      assertThat(warning.text.trim()).isEqualTo(WARNING_CLOUD_HTML)
+      assertThat(it.isOKActionEnabled).isFalse()
+    }
+  }
+
   private fun createDialog(
     initialApplication: String = "app",
+    isBackupEnabled: Boolean = true,
     dialogInteractor: (BackupDialog) -> Unit,
   ) {
-    createModalDialogAndInteractWithIt(BackupDialog(project, initialApplication)::show) {
+    createModalDialogAndInteractWithIt(
+      BackupDialog(project, initialApplication, isBackupEnabled)::show
+    ) {
       dialogInteractor(it as BackupDialog)
     }
   }
