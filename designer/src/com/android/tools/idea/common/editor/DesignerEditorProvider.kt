@@ -79,7 +79,11 @@ protected constructor(
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
-    throw UnsupportedOperationException()
+    thisLogger().warn("DesignerEditorProvider.createEditor should not be called")
+    // This path only exists for users of the old createEditor API like the APKViewer. The APKViewer
+    // calls directly this method instead of using the async provider. Since the APKViewer does not
+    // have previews, we can directly return a TextEditor.
+    return TextEditorProvider.getInstance().createEditor(project, file)
   }
 
   @Suppress("UnstableApiUsage")
