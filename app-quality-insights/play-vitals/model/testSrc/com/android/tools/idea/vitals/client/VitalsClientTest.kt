@@ -74,6 +74,10 @@ import com.android.tools.idea.vitals.datamodel.MetricType
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
 import com.google.android.studio.gemini.CodeSnippet
 import com.google.android.studio.gemini.GeminiInsightsRequest
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponseException
 import com.google.common.io.BaseEncoding
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Message
@@ -818,5 +822,43 @@ class VitalsClientTest {
       )
     assertThat(insight)
       .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(experiment = Experiment.TOP_SOURCE)))
+  }
+
+  @Test
+  fun `test fetch insight throws 403 forbidden error`() = runBlocking {
+    val fakeAiInsightClient =
+      object : AiInsightClient {
+        override suspend fun fetchCrashInsight(
+          projectId: String,
+          additionalContextMsg: Message,
+        ): AiInsight {
+          throw GoogleJsonResponseException(
+            HttpResponseException.Builder(403, "Forbidden", HttpHeaders()),
+            GoogleJsonError(),
+          )
+        }
+      }
+    val client =
+      VitalsClient(
+        projectRule.project,
+        projectRule.disposable,
+        AppInsightsCacheImpl(),
+        ForwardingInterceptor,
+        TestVitalsGrpcClient(),
+        fakeAiInsightClient,
+      )
+
+    val insight =
+      client.fetchInsight(
+        TEST_CONNECTION_1,
+        ISSUE1.id,
+        null,
+        FailureType.FATAL,
+        ISSUE1.sampleEvent,
+        TimeIntervalFilter.ONE_DAY,
+        CodeContextData.UNASSIGNED,
+      )
+
+    assertThat(insight).isInstanceOf(LoadingState.PermissionDenied::class.java)
   }
 }

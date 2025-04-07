@@ -43,5 +43,6 @@
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="studio-grpc-testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="google-api-client" level="project" />
   </component>
 </module>

@@ -16,6 +16,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
