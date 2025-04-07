@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.plugin;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getAndroidFacets;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -28,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.google.common.annotations.VisibleForTesting;
@@ -40,6 +42,7 @@ import com.intellij.util.Processor;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,16 +93,18 @@ public class AndroidPluginInfo {
   @Nullable
   public static AndroidPluginInfo findFromModel(@NotNull Project project) {
     return ReadAction.compute(() -> {
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        GradleFacet gradleModel = GradleFacet.getInstance(module);
-        if (gradleModel != null && gradleModel.getGradleModuleModel() != null &&
-            getModuleSystem(module).getType() == AndroidModuleSystem.Type.TYPE_APP) {
-          // This is the 'app' module in the project.
-          String agpStringVersion = gradleModel.getGradleModuleModel().getAgpVersion();
-          if (agpStringVersion != null) {
-            return new AndroidPluginInfo(module, AgpVersion.tryParse(agpStringVersion), null);
-          }
-        }
+      for (AndroidFacet facet : getAndroidFacets(project)) {
+        Module module = facet.getModule();
+        if (getModuleSystem(module).getType() != AndroidModuleSystem.Type.TYPE_APP) continue;
+        GradleFacet gradleFacet = GradleFacet.getInstance(module);
+        if (gradleFacet == null) continue;
+        GradleModuleModel gradleModuleModel = gradleFacet.getGradleModuleModel();
+        if (gradleModuleModel == null) continue;
+        String agpStringVersion = gradleModuleModel.getAgpVersion();
+        if (agpStringVersion == null) continue;
+        AgpVersion agpVersion = AgpVersion.tryParse(agpStringVersion);
+        if (agpVersion == null) continue;
+        return new AndroidPluginInfo(module, agpVersion, null);
       }
       return null;
     });
