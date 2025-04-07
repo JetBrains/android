@@ -43,8 +43,6 @@ private val wearSpecToName =
   mapOf(
     "id:wearos_large_round" to "Wear OS Large Round",
     "id:wearos_small_round" to "Wear OS Small Round",
-    "id:wearos_square" to "Wear OS Square",
-    "id:wearos_rect" to "Wear OS Rectangular",
   )
 private val fontScales =
   mapOf(

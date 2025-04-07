@@ -883,7 +883,7 @@ class ComposePreviewRepresentationTest {
         "Failed set uiCheckMode",
         25.seconds,
       ) {
-        it.asCollection().size > 2
+        it.asCollection().size == 2
       }
       assertEquals(
         """
@@ -894,14 +894,6 @@ class ComposePreviewRepresentationTest {
           TestKt.Preview
           id:wearos_small_round
           PreviewDisplaySettings(name=Wear OS Small Round - Preview, baseName=Preview, parameterName=Wear OS Small Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
-
-          TestKt.Preview
-          id:wearos_square
-          PreviewDisplaySettings(name=Wear OS Square - Preview, baseName=Preview, parameterName=Wear OS Square, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
-
-          TestKt.Preview
-          id:wearos_rect
-          PreviewDisplaySettings(name=Wear OS Rectangular - Preview, baseName=Preview, parameterName=Wear OS Rectangular, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
         """
           .trimIndent(),
