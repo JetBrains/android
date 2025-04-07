@@ -78,6 +78,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkLabel;
@@ -117,6 +118,9 @@ import org.jetbrains.annotations.Nullable;
  * parameters.
  */
 public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModuleModel> {
+  public static final String ANDROID_AUTOMOTIVE_OS_ONLY = "Android Automotive OS only";
+  public static final String ANDROID_AUTOMOTIVE_OS_AND_ANDROID_AUTO = "Android Automotive OS and Android Auto";
+
   private final NewProjectModel myProjectModel;
 
   private final ValidatorPanel myValidatorPanel;
@@ -135,6 +139,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JBLabel myProjectLanguageLabel;
   private JBCheckBox myWearCheck;
   private JBCheckBox myTvCheck;
+  private JComboBox<String> myCarPlatformCombo;
+  private JBLabel myCarPlatformComboLabel;
   private JBLabel myTemplateTitle;
   private JBLabel myTemplateDetail;
   private HyperlinkLabel myDocumentationLink;
@@ -287,6 +293,12 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.Mobile);
       myWearCheck.setVisible(formFactor == FormFactor.Wear);
       myTvCheck.setVisible(formFactor == FormFactor.Tv);
+      boolean isCar = formFactor == FormFactor.Car;
+      myCarPlatformCombo.setVisible(isCar);
+      myCarPlatformComboLabel.setVisible(isCar);
+      if (isCar) {
+        myCarPlatformCombo.setSelectedItem(ANDROID_AUTOMOTIVE_OS_AND_ANDROID_AUTO);
+      }
     });
   }
 
@@ -314,7 +326,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     getModel().hasCompanionApp.set(
       (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
-      getModel().formFactor.get() == FormFactor.Car // Automotive projects include a mobile module for Android Auto by default
+      (myCarPlatformCombo.isVisible() &&
+          ANDROID_AUTOMOTIVE_OS_AND_ANDROID_AUTO.equals(myCarPlatformCombo.getSelectedItem()))
     );
 
     myInstallRequests.clear();
@@ -407,6 +420,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myPanel.add(myTvCheck, new GridConstraints(17, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myCarPlatformCombo = new ComboBox<>(new String[] { ANDROID_AUTOMOTIVE_OS_ONLY, ANDROID_AUTOMOTIVE_OS_AND_ANDROID_AUTO });
+    myPanel.add(myCarPlatformCombo, new GridConstraints(16, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JBLabel jBLabel1 = new JBLabel();
     Font jBLabel1Font = getFont(null, Font.PLAIN, -1, jBLabel1.getFont());
     if (jBLabel1Font != null) jBLabel1.setFont(jBLabel1Font);
@@ -436,6 +452,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     jBLabel3.setVerticalAlignment(0);
     myPanel.add(jBLabel3,
                 new GridConstraints(9, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myCarPlatformComboLabel = new JBLabel();
+    Font myCarPlatformComboLabelFont = getFont(null, Font.PLAIN, -1, myCarPlatformComboLabel.getFont());
+    if (myCarPlatformComboLabelFont != null) myCarPlatformComboLabel.setFont(myCarPlatformComboLabelFont);
+    myCarPlatformComboLabel.setText("Platform");
+    myCarPlatformComboLabel.setVerticalAlignment(0);
+    myPanel.add(myCarPlatformComboLabel,
+                new GridConstraints(16, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     myProjectLanguageLabel = new JBLabel();
     Font myProjectLanguageLabelFont = getFont(null, Font.PLAIN, -1, myProjectLanguageLabel.getFont());
@@ -521,6 +545,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     jBLabel1.setLabelFor(myAppName);
     jBLabel2.setLabelFor(myPackageName);
     jBLabel3.setLabelFor(myProjectLocation);
+    myCarPlatformComboLabel.setLabelFor(myCarPlatformCombo);
     myProjectLanguageLabel.setLabelFor(myProjectLanguage);
     myTemplateTitle.setLabelFor(myAppName);
     myTemplateDetail.setLabelFor(myAppName);
