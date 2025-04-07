@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import android.view.View
+import android.view.ViewGroup
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
@@ -148,7 +150,9 @@ class ConfigurationResizeListenerTest {
         showDecoration = false
       }
     val configuration = createConfiguration(500, 600)
-    val testView = TestView()
+    val testView = mock<View>()
+    val layoutParams = ViewGroup.LayoutParams(500, 600)
+    whenever(testView.layoutParams).thenReturn(layoutParams)
 
     whenever(sceneManager.viewObject).thenReturn(testView)
     whenever(sceneManager.executeInRenderSessionAsync(any(), any(), any())).then {
@@ -171,8 +175,8 @@ class ConfigurationResizeListenerTest {
     advanceUntilIdle()
 
     verify(sceneManager, times(1)).requestRenderWithNewSize(700, 800)
-    assertEquals(700, testView.getLayoutParams().width) // Check width changed by reflection
-    assertEquals(800, testView.getLayoutParams().height) // Check height changed by reflection
+    assertEquals(700, testView.layoutParams.width) // Check width changed by reflection
+    assertEquals(800, testView.layoutParams.height) // Check height changed by reflection
     Disposer.dispose(sceneManager)
   }
 
@@ -212,7 +216,9 @@ class ConfigurationResizeListenerTest {
         showDecoration = false
       }
     val configuration = createConfiguration(500, 600)
-    val testView = TestView()
+    val testView = mock<View>()
+    val layoutParams = ViewGroup.LayoutParams(500, 600)
+    whenever(testView.layoutParams).thenReturn(layoutParams)
     val firstRenderBlockStarted = CompletableDeferred<Unit>()
     val allowFirstRenderToComplete = CompletableDeferred<Unit>()
 
@@ -388,18 +394,5 @@ class TestConfigurationSettingsImpl : ConfigurationSettings {
   override fun getDeviceById(id: String): Device? {
     getDeviceByIdCallCount++
     return getDeviceByIdReturn
-  }
-}
-
-class TestView {
-  class LayoutParams {
-    @JvmField var width: Int = 0
-    @JvmField var height: Int = 0
-  }
-
-  var _layoutParams = LayoutParams()
-
-  fun getLayoutParams(): LayoutParams {
-    return _layoutParams
   }
 }
