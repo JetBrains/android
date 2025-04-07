@@ -16,11 +16,11 @@
 package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.PopupBorder
 import com.intellij.ui.WindowMoveListener
 import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.util.ui.JBUI
@@ -40,7 +40,7 @@ internal class UiSettingsDialog(
   model: UiSettingsModel,
   deviceType: DeviceType,
   parentDisposable: Disposable
-) : DialogWrapper(project, false, IdeModalityType.MODELESS) {
+) : DialogWrapper(project, null, false, IdeModalityType.MODELESS, false) {
   private val panel = UiSettingsPanel(model, deviceType)
 
   init {
@@ -55,7 +55,6 @@ internal class UiSettingsDialog(
     setUndecorated(true)
     rootPane.windowDecorationStyle = JRootPane.NONE
     rootPane.border = JBUI.Borders.empty()
-    panel.border = PopupBorder.Factory.create(true, true)
     WindowRoundedCornersManager.configure(this)
 
     // Close the dialog if the dialog loses focus:
@@ -88,6 +87,7 @@ internal class UiSettingsDialog(
     return UIUtil.isDescendingFrom(component, window)
   }
 
+  override fun createContentPaneBorder() = JBUI.Borders.customLine(secondaryPanelBackground, 8, 12, 8, 12)
   override fun createCenterPanel(): JComponent = panel
   override fun createActions(): Array<Action> = emptyArray()
 }
