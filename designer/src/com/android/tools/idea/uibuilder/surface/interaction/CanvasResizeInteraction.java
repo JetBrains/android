@@ -18,9 +18,8 @@ package com.android.tools.idea.uibuilder.surface.interaction;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
 
+import android.annotation.SuppressLint;
 import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenRatio;
-import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
@@ -34,7 +33,6 @@ import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.AdditionalDeviceService;
 import com.android.tools.idea.uibuilder.analytics.ResizeTracker;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
@@ -43,10 +41,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 
@@ -57,24 +52,16 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.swing.JComponent;
 
 public class CanvasResizeInteraction implements Interaction {
-  private static final double SQRT_2 = Math.sqrt(2.0);
   /**
    * Cut-off size (in dp) for resizing, it should be bigger than any Android device. Resizing size needs to be capped
    * because layoutlib will create an image of the size of the device, which will cause an OOM error when the
@@ -86,21 +73,13 @@ public class CanvasResizeInteraction implements Interaction {
   @NotNull private final NlDesignSurface myDesignSurface;
   @NotNull private final ScreenView myScreenView;
   @NotNull private final Configuration myConfiguration;
-  private final OrientationLayer myOrientationLayer;
-  private final SizeBucketLayer mySizeBucketLayer;
   private final List<DeviceLayer> myDeviceLayers = new ArrayList<>();
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
   private final DeviceSizeList myDeviceSizeList = new DeviceSizeList();
   private final MergingUpdateQueue myUpdateQueue;
   private final int myMaxSize;
-  private final Update myLayerUpdate = new Update("CanvasResizeLayerUpdate") {
-    @Override
-    public void run() {
-      mySizeBucketLayer.reset();
-      myOrientationLayer.reset();
-    }
-  };
+
   private final Update myPositionUpdate = new Update("CanvasResizePositionUpdate") {
     @Override
     public void run() {
@@ -129,9 +108,7 @@ public class CanvasResizeInteraction implements Interaction {
     myDesignSurface = designSurface;
     myScreenView = screenView;
     myConfiguration = configuration;
-    myOrientationLayer = new OrientationLayer(myDesignSurface, myScreenView, myConfiguration);
-    mySizeBucketLayer = new SizeBucketLayer();
-    myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 100, true, null, myDesignSurface);
+    myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 10, true, null, myDesignSurface);
     myUpdateQueue.setRestartTimerOnAdd(true);
 
     myOriginalDevice = configuration.getCachedDevice();
@@ -140,7 +117,6 @@ public class CanvasResizeInteraction implements Interaction {
     myCurrentDpi = configuration.getDensity().getDpiValue();
     ConfigurationSettings configSettings = configuration.getSettings();
 
-    boolean addSmallScreen = false;
     List<Device> devicesToShow;
     if (Device.isWear(myOriginalDevice)) {
       devicesToShow = configSettings.getDevices().stream().filter(
@@ -153,7 +129,6 @@ public class CanvasResizeInteraction implements Interaction {
     else {
       // Reference devices as phone, foldable, tablet, desktop
       devicesToShow = AdditionalDeviceService.getInstance().getWindowSizeDevices();
-      addSmallScreen = true;
     }
 
     for (Device device : devicesToShow) {
@@ -166,11 +141,6 @@ public class CanvasResizeInteraction implements Interaction {
       myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, px, py, device.getDisplayName()));
     }
     myDeviceSizeList.sort();
-
-    if (addSmallScreen) {
-      myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, (int)(426.0 * myCurrentDpi / DEFAULT_DENSITY),
-                                                                 (int)(320.0 * myCurrentDpi / DEFAULT_DENSITY), "Small Screen"));
-    }
 
     myMaxSize = (int)(1.0 * MAX_ANDROID_SIZE * myCurrentDpi / DEFAULT_DENSITY);
   }
@@ -186,28 +156,6 @@ public class CanvasResizeInteraction implements Interaction {
       myCurrentY = y;
 
       myDesignSurface.setResizeMode(true);
-    }
-  }
-
-  private static void constructPolygon(@NotNull Polygon polygon, @Nullable ScreenRatio ratio, int dim, boolean isPortrait) {
-    polygon.reset();
-    int x1 = isPortrait ? 0 : dim;
-    int y1 = isPortrait ? dim : 0;
-    int x2 = isPortrait ? dim : 5 * dim / 3;
-    int y2 = isPortrait ? 5 * dim / 3 : dim;
-
-    polygon.addPoint(0, 0);
-    if (ratio == null) {
-      polygon.addPoint(x1, y1);
-      polygon.addPoint(dim, dim);
-    }
-    else if (ratio == ScreenRatio.LONG) {
-      polygon.addPoint(x1, y1);
-      polygon.addPoint(x2, y2);
-    }
-    else {
-      polygon.addPoint(x2, y2);
-      polygon.addPoint(dim, dim);
     }
   }
 
@@ -244,7 +192,6 @@ public class CanvasResizeInteraction implements Interaction {
         myDesignSurface.setScrollableViewMinSize(
           new Dimension(myCurrentX + myResizeTriggerThreshold, myCurrentY + myResizeTriggerThreshold));
         myDesignSurface.validateScrollArea();
-        myUpdateQueue.queue(myLayerUpdate);
       }
 
       myUpdateQueue.queue(myPositionUpdate);
@@ -314,14 +261,7 @@ public class CanvasResizeInteraction implements Interaction {
   @Override
   public synchronized List<Layer> createOverlays() {
     ImmutableList.Builder<Layer> layers = ImmutableList.builder();
-
-    // Only show size buckets for mobile, not wear, tv, etc.
-    if (Device.isMobile(myOriginalDevice)) {
-      layers.add(mySizeBucketLayer);
-    }
-
     layers.addAll(myDeviceLayers);
-    layers.add(myOrientationLayer);
     layers.add(new ResizeLayer());
     return layers.build();
   }
@@ -383,220 +323,6 @@ public class CanvasResizeInteraction implements Interaction {
       graphics.setColor(NlConstants.RESIZING_TEXT_COLOR);
       graphics.drawString(myName, x - myNameWidth - 5, y - 5);
       graphics.dispose();
-    }
-  }
-
-  private static class OrientationLayer extends Layer {
-    private final Polygon myOrientationPolygon = new Polygon();
-    private final double myPortraitWidth;
-    private final double myLandscapeWidth;
-    @NotNull private final NlDesignSurface myDesignSurface;
-    @NotNull private final ScreenView myScreenView;
-    @NotNull private final Configuration myConfiguration;
-    private BufferedImage myOrientationImage;
-    private ScreenOrientation myLastOrientation;
-
-    public OrientationLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration) {
-      myDesignSurface = designSurface;
-      myScreenView = screenView;
-      myConfiguration = configuration;
-      FontMetrics fontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
-      myPortraitWidth = fontMetrics.getStringBounds("Portrait", null).getWidth();
-      myLandscapeWidth = fontMetrics.getStringBounds("Landscape", null).getWidth();
-    }
-
-    @Override
-    public synchronized void paint(@NotNull Graphics2D g2d) {
-      State deviceState = myConfiguration.getDeviceState();
-      assert deviceState != null;
-      ScreenOrientation currentOrientation = deviceState.getOrientation();
-      boolean isDevicePortrait = currentOrientation == ScreenOrientation.PORTRAIT;
-
-      BufferedImage image = currentOrientation == myLastOrientation ? myOrientationImage : null;
-
-      if (image == null) {
-        myLastOrientation = currentOrientation;
-        int height = myDesignSurface.getExtentSize().height;
-        int width = myDesignSurface.getExtentSize().width;
-        int x0 = myScreenView.getX();
-        int y0 = myScreenView.getY();
-        int maxDim = Math.max(width, height);
-        image = ImageUtil.createImage(maxDim, maxDim, BufferedImage.TYPE_INT_ARGB);
-
-        constructPolygon(myOrientationPolygon, null, maxDim, !isDevicePortrait);
-        myOrientationPolygon.translate(x0, y0);
-
-        Graphics2D graphics = image.createGraphics();
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        graphics.setColor(NlConstants.UNAVAILABLE_ZONE_COLOR);
-        graphics.fill(myOrientationPolygon);
-
-        int xL;
-        int yL;
-        int xP;
-        int yP;
-        if (height - width < myPortraitWidth / SQRT_2) {
-          xP = height - y0 + x0 - (int)(myPortraitWidth * SQRT_2) - 5;
-          yP = height;
-        }
-        else {
-          xP = width - (int)(myPortraitWidth / SQRT_2) - 5;
-          yP = width - x0 + y0 + (int)(myPortraitWidth / SQRT_2);
-        }
-
-        if (height - width < y0 - x0 - myLandscapeWidth / SQRT_2) {
-          xL = height - y0 + x0 + 5;
-          yL = height;
-        }
-        else {
-          xL = width - (int)(myLandscapeWidth / SQRT_2);
-          yL = width - x0 + y0 - (int)(myLandscapeWidth / SQRT_2) - 5;
-        }
-
-        graphics.setColor(NlConstants.RESIZING_TEXT_COLOR);
-        graphics.rotate(-Math.PI / 4, xL, yL);
-        graphics.drawString("Landscape", xL, yL);
-        graphics.rotate(Math.PI / 4, xL, yL);
-
-        graphics.rotate(-Math.PI / 4, xP, yP);
-        graphics.drawString("Portrait", xP, yP);
-        graphics.dispose();
-        myOrientationImage = image;
-      }
-      StartupUiUtil.drawImage(g2d, image);
-    }
-
-    public synchronized void reset() {
-      myOrientationImage = null;
-    }
-  }
-
-  private class SizeBucketLayer extends Layer {
-    private final Polygon myClip = new Polygon();
-    private final FontMetrics myFontMetrics;
-    private final Map<ScreenSize, SoftReference<BufferedImage>> myPortraitBuckets;
-    private final Map<ScreenSize, SoftReference<BufferedImage>> myLandscapeBuckets;
-    private int myTotalHeight;
-    private int myTotalWidth;
-
-    public SizeBucketLayer() {
-      myTotalHeight = myDesignSurface.getExtentSize().height;
-      myTotalWidth = myDesignSurface.getExtentSize().width;
-      myFontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
-      int screenSizeNumbers = ScreenSize.values().length;
-      myPortraitBuckets = Maps.newHashMapWithExpectedSize(screenSizeNumbers);
-      myLandscapeBuckets = Maps.newHashMapWithExpectedSize(screenSizeNumbers);
-    }
-
-    @Override
-    public synchronized void paint(@NotNull Graphics2D g2d) {
-      State deviceState = myConfiguration.getDeviceState();
-      assert deviceState != null;
-      boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
-
-      int width = Coordinates.getAndroidXDip(myScreenView, myCurrentX);
-      int height = Coordinates.getAndroidYDip(myScreenView, myCurrentY);
-      if ((width > height && isDevicePortrait) || (width < height && !isDevicePortrait)) {
-        return;
-      }
-
-      int small = Math.min(width, height);
-      int big = Math.max(width, height);
-
-      ScreenSize screenSizeBucket = getScreenSizeBucket(small, big);
-
-      Map<ScreenSize, SoftReference<BufferedImage>> buckets = isDevicePortrait ? myPortraitBuckets : myLandscapeBuckets;
-      SoftReference<BufferedImage> bucketRef = buckets.get(screenSizeBucket);
-      BufferedImage bucket = bucketRef != null ? bucketRef.get() : null;
-      if (bucket == null) {
-        bucket = ImageUtil.createImage(myTotalWidth, myTotalHeight, BufferedImage.TYPE_INT_ARGB);
-        constructPolygon(myClip, null, Math.max(myTotalHeight, myTotalWidth), isDevicePortrait);
-        myClip.translate(myScreenView.getX(), myScreenView.getY());
-
-        Graphics2D graphics = bucket.createGraphics();
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        graphics.clip(myClip);
-        graphics.setColor(NlConstants.RESIZING_BUCKET_COLOR);
-        Area coveredArea = getAreaForScreenSize(screenSizeBucket, myScreenView, isDevicePortrait);
-        graphics.fill(coveredArea);
-
-        graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
-        graphics.setStroke(NlConstants.THICK_SOLID_STROKE);
-        graphics.draw(coveredArea);
-
-        graphics.setColor(NlConstants.RESIZING_TEXT_COLOR);
-        Rectangle bounds = coveredArea.getBounds();
-        if (isDevicePortrait) {
-          int left = bounds.x + 5;
-          int bottom = Math.min(bounds.y + bounds.height, myTotalHeight) - 5;
-          graphics.drawString(screenSizeBucket.getShortDisplayValue() + " size range", left, bottom);
-        }
-        else {
-          String text = screenSizeBucket.getShortDisplayValue() + " size range";
-          Rectangle2D textBounds = myFontMetrics.getStringBounds(text, null);
-          int left = (int)(Math.min(bounds.x + bounds.width, myTotalWidth) - textBounds.getWidth() - 5);
-          int bottom = (int)(bounds.y + textBounds.getHeight());
-
-          graphics.drawString(text, left, bottom);
-        }
-        graphics.dispose();
-        buckets.put(screenSizeBucket, new SoftReference<>(bucket));
-      }
-      StartupUiUtil.drawImage(g2d, bucket);
-    }
-
-    @NotNull
-    private ScreenSize getScreenSizeBucket(int small, int big) {
-      if (big < 470) {
-        return ScreenSize.SMALL;
-      }
-      if (big >= 960 && small >= 720) {
-        return ScreenSize.XLARGE;
-      }
-      if (big >= 640 && small >= 480) {
-        return ScreenSize.LARGE;
-      }
-      return ScreenSize.NORMAL;
-    }
-
-    @NotNull
-    private Area getAreaForScreenSize(@NotNull ScreenSize screenSize, @NotNull SceneView screenView, boolean isDevicePortrait) {
-      int x0 = screenView.getX();
-      int y0 = screenView.getY();
-
-      int smallX = Coordinates.getSwingXDip(screenView, 470);
-      int smallY = Coordinates.getSwingYDip(screenView, 470);
-      Area smallArea = new Area(new Rectangle(x0 - 2, y0 - 2, smallX - x0 + 2, smallY - y0 + 2));
-      if (screenSize == ScreenSize.SMALL) {
-        return smallArea;
-      }
-
-      int xlargeX = Coordinates.getSwingXDip(screenView, isDevicePortrait ? 720 : 960);
-      int xlargeY = Coordinates.getSwingYDip(screenView, isDevicePortrait ? 960 : 720);
-      Area xlargeArea = new Area(new Rectangle(xlargeX, xlargeY, myTotalWidth, myTotalHeight));
-      if (screenSize == ScreenSize.XLARGE) {
-        return xlargeArea;
-      }
-
-      int largeX = Coordinates.getSwingXDip(screenView, isDevicePortrait ? 480 : 640);
-      int largeY = Coordinates.getSwingYDip(screenView, isDevicePortrait ? 640 : 480);
-      Area largeArea = new Area(new Rectangle(largeX, largeY, myTotalWidth, myTotalHeight));
-      if (screenSize == ScreenSize.LARGE) {
-        largeArea.subtract(xlargeArea);
-        return largeArea;
-      }
-
-      Area normalArea = new Area(new Rectangle(x0 - 2, y0 - 2, myTotalWidth, myTotalHeight));
-      normalArea.subtract(smallArea);
-      normalArea.subtract(largeArea);
-      return normalArea;
-    }
-
-    public synchronized void reset() {
-      myTotalHeight = myDesignSurface.getExtentSize().height;
-      myTotalWidth = myDesignSurface.getExtentSize().width;
-      myPortraitBuckets.clear();
-      myLandscapeBuckets.clear();
     }
   }
 }
