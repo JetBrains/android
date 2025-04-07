@@ -424,16 +424,10 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
 
   private fun logQuickDocEvent(eventId: String, data: Map<String, Any>): AndroidStudioEvent.Builder? {
     if (eventId != "quick.doc.closed") return null
-    val fileTypeString = data["file_type"] as? String
-    val durationMsLong = data["duration_ms"] as? Long
-    if (fileTypeString == null) {
-      thisLogger().error("file_type was not a String, instead was $fileTypeString")
-      return null
-    }
-    if (durationMsLong == null) {
-      thisLogger().error("duration_ms was not a Long, instead was $durationMsLong")
-      return null
-    }
+    val fileTypeString: String? = data.getTyped("file_type")
+    val durationMsLong: Long? = data.getTyped("duration_ms")
+    if (fileTypeString == null || durationMsLong == null) return null
+
     return AndroidStudioEvent.newBuilder().setKind(EDITING_METRICS_EVENT).apply {
       editingMetricsEventBuilder.apply {
         quickDocEventBuilder.apply {
@@ -442,6 +436,16 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
         }
       }
     }
+  }
+
+  private inline fun <K, reified V> Map<K, Any>.getTyped(key: K): V? {
+    val valAny = get(key)
+    val valTyped = valAny as? V
+    if (valTyped == null) {
+      this@AndroidStudioEventLogger.thisLogger()
+        .error("$key not ${V::class.java}, was ${valAny?.javaClass}: $valAny")
+    }
+    return valTyped
   }
 
   /**
