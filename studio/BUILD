@@ -98,7 +98,6 @@ studio_plugin(
         "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libgemini_java_proto",
-        "//tools/adt/idea/app-quality-insights/api:libtitan_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/logcat:logcat-proto",

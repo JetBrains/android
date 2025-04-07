@@ -2313,7 +2313,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/libplay_vitals_java_prot
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
-Android Studio Preview.app/Contents/plugins/android/lib/libtitan_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-common-jvm-2.8.5.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-runtime-compose-desktop-2.8.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-runtime-desktop-2.8.5.jar

@@ -37,7 +37,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
-        "//tools/adt/idea/app-quality-insights/api:libtitan_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libgemini_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/server-flags:intellij.android.server-flags",
@@ -52,13 +51,6 @@ iml_module(
 jvm_import(
     name = "libandroid-core-proto",
     jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "libtitan_java_proto",
-    jars = ["//tools/adt/idea/app-quality-insights/api/proto:libtitan_java_proto.jar"],
     visibility = ["//visibility:public"],
 )
 

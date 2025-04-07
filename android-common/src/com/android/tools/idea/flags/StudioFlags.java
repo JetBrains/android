@@ -1872,15 +1872,6 @@ public final class StudioFlags {
       true
     );
 
-  // Must re-enable firebase onboarding flow should this be set to true.
-  public static final Flag<Boolean> CRASHLYTICS_TITAN_INSIGHT_PROVIDER = new BooleanFlag(
-    APP_INSIGHTS,
-    "crashlytics.titan.insight.provider",
-    "Use Titan to provide Crashlytics insights",
-    "Use Titan to provide Crashlytics insights",
-    false
-  );
-
   public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,
