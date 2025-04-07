@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.screenshot
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.testframework.AbstractJavaTestConfigurationProducer
