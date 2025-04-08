@@ -39,10 +39,10 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * Provides APK build steps for Blaze and Bazel projects.
+ * Provides APK build steps for Bazel projects.
  */
-public class BlazeApkBuildStepProvider implements ApkBuildStepProvider {
-  private static final Logger logger = Logger.getInstance(BlazeApkBuildStepProvider.class);
+public class BazelApkBuildStepProvider implements ApkBuildStepProvider {
+  private static final Logger logger = Logger.getInstance(BazelApkBuildStepProvider.class);
 
   @Override
   public ApkBuildStep getBinaryBuildStep(
