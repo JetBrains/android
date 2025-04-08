@@ -43,7 +43,8 @@ import java.io.File
 import java.nio.file.Path
 
 internal class TestProjectFixtureRuleImpl(
-  private val testProject: TestProjectDefinition
+  private val testProject: TestProjectDefinition,
+  private val syncReady: Boolean
 ) : FixtureRule<JavaCodeInsightTestFixture> {
   private val tempDirFixture = AndroidProjectRuleTempDirectoryFixture("p")
   private val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory()
@@ -84,7 +85,8 @@ internal class TestProjectFixtureRuleImpl(
                   },
                   fixtureName,
                   AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-                  null
+                  null,
+                  syncReady
                 )
                 preparedProject.open {
                   projectContext_ = this

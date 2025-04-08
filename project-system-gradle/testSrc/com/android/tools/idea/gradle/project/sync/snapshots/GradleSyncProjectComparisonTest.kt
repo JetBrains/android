@@ -139,7 +139,7 @@ data class ProjectStructureSnapshotTestDef(
   }
 }
 
-private object LightGradleSyncReferenceTestProject: LightGradleTestProject {
+private object LightGradleReferenceTestProject: LightGradleTestProject {
   override val templateProject: TemplateBasedTestProject = TestProject.LIGHT_SYNC_REFERENCE
   override val modelBuilders: List<ModuleModelBuilder> = listOf(
     JavaModuleModelBuilder.rootModuleBuilder.copy(
@@ -194,7 +194,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
   var testName = TestName()
 
   @get:Rule
-  val projectRule = AndroidProjectRule.testProject(LightGradleSyncReferenceTestProject).named("reference")
+  val projectRule = AndroidProjectRule.testProjectNoSync(LightGradleReferenceTestProject).named("reference")
 
   override fun getName(): String = testName.methodName
   override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR

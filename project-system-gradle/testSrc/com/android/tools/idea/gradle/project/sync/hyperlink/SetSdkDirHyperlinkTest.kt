@@ -29,7 +29,7 @@ import javax.swing.event.HyperlinkEvent
 class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
   fun testSdkDirHyperlinkUpdatesOnePropertiesFile() {
     IdeComponents(myFixture).replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
-    prepareProjectForImport(COMPOSITE_BUILD)
+    prepareProjectForImportNoSync(COMPOSITE_BUILD)
 
     // Delete the main local.properties file
     val localPropertiesPath = File(projectFolderPath, FN_LOCAL_PROPERTIES)
@@ -44,7 +44,7 @@ class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
 
   fun testSdkDirHyperlinkUpdatesMultiplePropertiesFiles() {
     IdeComponents(myFixture).replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
-    prepareProjectForImport(COMPOSITE_BUILD)
+    prepareProjectForImportNoSync(COMPOSITE_BUILD)
 
     // Delete all the properties files we want to re-create
     val localPropertiesPath = File(projectFolderPath, FN_LOCAL_PROPERTIES)

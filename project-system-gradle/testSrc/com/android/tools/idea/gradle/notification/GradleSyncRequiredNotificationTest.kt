@@ -37,7 +37,7 @@ import org.junit.Test
 class GradleSyncRequiredNotificationTest {
 
   @get:Rule
-  val androidProjectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
+  val androidProjectRule = AndroidProjectRule.testProjectNoSync(LightGradleTestProjects.SIMPLE_APPLICATION)
 
   private val project: Project
     get() = androidProjectRule.project

@@ -116,7 +116,7 @@ class MigrateToNonTransitiveRClassesProcessorTest {
 
   @get:Rule
   val projectRule =
-    AndroidProjectRule.testProject(MigrateToNonTransitiveRClassesTestProject).named("migrateToNonTransitiveRClasses")
+    AndroidProjectRule.testProjectNoSync(MigrateToNonTransitiveRClassesTestProject).named("migrateToNonTransitiveRClasses")
 
   @Test
   fun testMiddleModule_Java() {

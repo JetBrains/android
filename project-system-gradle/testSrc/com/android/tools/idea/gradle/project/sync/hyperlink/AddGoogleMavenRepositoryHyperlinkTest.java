@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -24,24 +23,14 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.ServiceContainerUtil;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import org.gradle.util.GradleVersion;
@@ -60,7 +49,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
   // Check that quickfix adds google maven correctly when no build file is passed
   public void testExecuteNullBuildFile() throws Exception {
     // Prepare project and mock version
-    prepareProjectForImport(SIMPLE_APPLICATION);
+    prepareProjectForImportNoSync(SIMPLE_APPLICATION);
     Project project = getProject();
 
     // Make sure no repositories are listed
@@ -98,7 +87,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
   private void verifyExecute(@NotNull String version) throws IOException {
     assumeTrue(version.equals("4.0"));
     // Prepare project and mock version
-    prepareProjectForImport(SIMPLE_APPLICATION);
+    prepareProjectForImportNoSync(SIMPLE_APPLICATION);
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, spyVersions, getTestRootDisposable());

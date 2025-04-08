@@ -302,9 +302,21 @@ interface AndroidProjectRule : TestRule {
     @JvmStatic
     fun testProject(
       testProjectDefinition: TestProjectDefinition
+    ): Typed<JavaCodeInsightTestFixture, TestProjectTestHelpers> =
+      internalTestProject(testProjectDefinition, true)
+
+    @JvmStatic
+    fun testProjectNoSync(
+      testProjectDefinition: TestProjectDefinition
+    ): Typed<JavaCodeInsightTestFixture, TestProjectTestHelpers> =
+      internalTestProject(testProjectDefinition, false)
+
+    private fun internalTestProject(
+      testProjectDefinition: TestProjectDefinition,
+      syncReady: Boolean
     ): Typed<JavaCodeInsightTestFixture, TestProjectTestHelpers> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = true)
-      val fixtureRule = TestProjectFixtureRuleImpl(testProjectDefinition)
+      val fixtureRule = TestProjectFixtureRuleImpl(testProjectDefinition, syncReady)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.fixture.project }
       return chain(
         testEnvironmentRule,
@@ -312,17 +324,17 @@ interface AndroidProjectRule : TestRule {
         projectEnvironmentRule,
         edtRule = EdtRule(),
         tools =
-          object : TestProjectTestHelpers {
-            override val projectRoot: File
-              get() = fixtureRule.projectRoot
+        object : TestProjectTestHelpers {
+          override val projectRoot: File
+            get() = fixtureRule.projectRoot
 
-            override fun selectModule(module: Module) {
-              fixtureRule.selectModule(module)
-            }
-          },
+          override fun selectModule(module: Module) {
+            fixtureRule.selectModule(module)
+          }
+        },
       )
     }
-  }
+}
 
   fun <T : Any> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) {
     project.replaceService(serviceType, newServiceInstance, testRootDisposable)

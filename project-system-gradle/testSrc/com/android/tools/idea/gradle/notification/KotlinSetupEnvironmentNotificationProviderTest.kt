@@ -33,7 +33,7 @@ import org.junit.Test
 class KotlinSetupEnvironmentNotificationProviderTest {
 
   @get:Rule
-  val androidProjectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION).onEdt()
+  val androidProjectRule = AndroidProjectRule.testProjectNoSync(LightGradleTestProjects.SIMPLE_APPLICATION).onEdt()
 
   private val project: Project
     get() = androidProjectRule.project

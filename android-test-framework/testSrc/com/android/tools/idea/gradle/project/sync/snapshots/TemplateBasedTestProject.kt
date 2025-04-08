@@ -143,7 +143,8 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
     agpVersion: AgpVersionSoftwareEnvironment,
-    ndkVersion: String?
+    ndkVersion: String?,
+    syncReady: Boolean
   ): PreparedTestProject {
     val resolvedAgpVersion = agpVersion.resolve()
     val root = integrationTestEnvironment.prepareGradleProject(
@@ -151,7 +152,8 @@ interface TemplateBasedTestProject : TestProjectDefinition {
       resolvedAgpVersion,
       getAdditionalRepos(),
       name,
-      ndkVersion = ndkVersion
+      ndkVersion = ndkVersion,
+      syncReady
     )
     if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) {
       migratePackageAttribute(root)

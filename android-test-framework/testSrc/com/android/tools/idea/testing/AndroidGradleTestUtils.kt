@@ -2248,7 +2248,8 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
   resolvedAgpVersion: ResolvedAgpVersionSoftwareEnvironment,
   additionalRepositories: Collection<File>,
   name: String,
-  ndkVersion: String?
+  ndkVersion: String?,
+  syncReady: Boolean = true
 ): File {
   val projectPath = nameToPath(name)
   if (projectPath.exists()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
@@ -2257,12 +2258,13 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
     testProjectAbsolutePath,
     projectPath
   ) { projectRoot ->
-    AndroidGradleTests.defaultPatchPreparedProject(
-      projectRoot,
-      resolvedAgpVersion,
-      ndkVersion,
-      *additionalRepositories.toTypedArray()
-    )
+      AndroidGradleTests.defaultPatchPreparedProject(
+        projectRoot,
+        resolvedAgpVersion,
+        ndkVersion,
+        syncReady,
+        *additionalRepositories.toTypedArray()
+      )
   }
   if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
     println("Test project ${testProjectAbsolutePath.name} prepared at '$projectPath'")

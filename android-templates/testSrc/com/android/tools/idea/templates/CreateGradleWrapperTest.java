@@ -36,7 +36,7 @@ public class CreateGradleWrapperTest extends LightPlatformTestCase {
     File projectFolderPath = new File(getTestDirectoryName());
     assertThat(projectFolderPath.mkdir()).isTrue();
 
-    AndroidGradleTests.createGradleWrapper(projectFolderPath, GRADLE_LATEST_VERSION);
+    AndroidGradleTests.createGradleWrapper(projectFolderPath, GRADLE_LATEST_VERSION, false);
 
     assertAbout(file()).that(new File(projectFolderPath, "gradlew")).isFile();
     assertAbout(file()).that(new File(projectFolderPath, "gradlew.bat")).isFile();
