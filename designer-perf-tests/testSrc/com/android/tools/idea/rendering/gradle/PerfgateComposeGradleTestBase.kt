@@ -90,13 +90,14 @@ open class PerfgateComposeGradleTestBase {
     nExpectedPreviewInstances: Int,
     measurements: List<MetricMeasurement<Unit>>,
     nSamples: Int = NUMBER_OF_SAMPLES,
+    minRefreshTimeout: Int = 20,
     measuredRunnable: suspend () -> Unit = {
-      fullRefresh(maxOf(20, 3 * nExpectedPreviewInstances).seconds)
+      fullRefresh(maxOf(minRefreshTimeout, nExpectedPreviewInstances).seconds)
     },
   ) = runBlocking {
     if (nPreviewsToAdd > 0) {
       projectRule.runAndWaitForRefresh(
-        allRefreshesFinishTimeout = maxOf(20, 3 * nExpectedPreviewInstances).seconds,
+        allRefreshesFinishTimeout = maxOf(minRefreshTimeout, nExpectedPreviewInstances).seconds,
         failOnTimeout = false,
       ) {
         runWriteActionAndWait {
