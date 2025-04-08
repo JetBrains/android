@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
-import com.android.sdklib.displayApiString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedDuration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -185,7 +184,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
                                              "<html>%s<br><font color='#%s'>API %s - %s</font></html>",
                                              value.getName().htmlEscape(),
                                              ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
-                                             value.version.displayApiString,
+                                             value.version.getApiStringWithExtension(),
                                              testDurationText.htmlEscape())
         }
         else {
@@ -193,7 +192,8 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
                                              "<html>%s<br><font color='#%s'>API %s</font></html>",
                                              value.getName().htmlEscape(),
                                              ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
-                                             value.version.displayApiString)
+                                             value.version.getApiStringWithExtension()
+          )
         }
         myDeviceLabel.icon = getIconForDeviceType(value.deviceType)
       }
