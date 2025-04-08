@@ -116,7 +116,10 @@ class VisualizationInteractionHandler(
   private fun applyConfiguration(destination: Configuration, source: Configuration) {
     with(destination) {
       startBulkEditing()
-      setDevice(source.device, true)
+      val sourceDevice = source.device
+      if (cachedDevice != sourceDevice) {
+        setDevice(sourceDevice, true)
+      }
       deviceState = source.deviceState
       nightMode = source.nightMode
       uiMode = source.uiMode
