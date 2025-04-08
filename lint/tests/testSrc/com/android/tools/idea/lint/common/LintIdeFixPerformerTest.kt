@@ -285,6 +285,202 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     assertEquals(file.text.indexOf("foo: Int"), myFixture.editor.caretModel.offset)
   }
 
+  fun testAnnotationSelection() {
+    val file =
+      myFixture.addFileToProject(
+        "src/Test.kt",
+        // language=Kt
+        """
+        package p1.p2
+        /** My Property */
+        class MyTest {
+            /** My test */
+            fun test() {
+            }
+        }
+        """
+          .trimIndent(),
+      )
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    @Suppress("DEPRECATION")
+    val group =
+      LintFix.create()
+        .name("Fix code")
+        .annotate("kotlin.Suppress(\"SdCardPath\")")
+        .range(getLocation(file, "[fun] test"))
+        .select("\"(.*)\"")
+        .build()
+    val incident = Incident().location(getLocation(file, "[class MyTest]"))
+    val fixes = AndroidLintInspectionBase.createFixes(project, file, incident, group)
+    assertEquals(1, fixes.size)
+    val offset = file.text.indexOf("class MyTest")
+    assertTrue(offset != -1)
+    val startElement = file.findElementAt(offset)!!
+    assertNotNull(startElement)
+
+    val fix = fixes[0] as ModCommandLintQuickFix
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+
+    assertEquals(
+      // language=Kt
+      """
+      package p1.p2
+      /** My Property */
+      class MyTest {
+          /** My test */
+          @Suppress("SdCardPath")
+          fun test() {
+          }
+      }
+      """
+        .trimIndent(),
+      myFixture.editor.document.text,
+    )
+    // Make sure we've selected the right thing
+    assertEquals(file.text, myFixture.editor.document.text)
+    assertEquals("SdCardPath", myFixture.editor.selectionModel.selectedText)
+    assertEquals(file.text.indexOf("SdCardPath"), myFixture.editor.caretModel.offset)
+  }
+
+  fun testJavaRepeatedAnnotations() {
+    for (replace in listOf(true, false)) {
+      val name = "RepeatedAnnotationTest${if (replace) "Replace" else "NoReplace"}"
+      val file =
+        myFixture.addFileToProject(
+          "src/$name.java",
+          // language=java
+          """
+          package test.pkg;
+
+          import java.lang.annotation.Repeatable;
+
+          @Repeatable(MyAnnotations.class)
+          @interface MyAnnotation {
+              String value();
+              int first() default 1;
+              int second() default 2;
+          }
+
+          @interface MyAnnotations {
+              MyAnnotation[] value();
+          }
+
+          // target:
+          @MyAnnotation(value = "test", first = 0, second = 42)
+          public class $name {
+          }
+          """
+            .trimIndent(),
+        )
+      myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+      @Suppress("DEPRECATION")
+      val group =
+        LintFix.create()
+          .name("Fix code")
+          .annotate(
+            "@test.pkg.MyAnnotation(value = \"test\", first = 2, second = 0)",
+            replace = replace,
+          )
+          .range(getLocation(file, "[public] class RepeatedAnnotationTest"))
+          .select("\"(.*)\"")
+          .build()
+      val incident = Incident().location(getLocation(file, "[public class RepeatedAnnotationTest]"))
+      val fixes = AndroidLintInspectionBase.createFixes(project, file, incident, group)
+      assertEquals(1, fixes.size)
+      val offset = file.text.indexOf("public class RepeatedAnnotationTest")
+      assertTrue(offset != -1)
+      val startElement = file.findElementAt(offset)!!
+      assertNotNull(startElement)
+
+      val fix = fixes[0] as ModCommandLintQuickFix
+      myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+
+      assertEquals(
+        if (replace) {
+          // language=JAVA
+          """
+          @MyAnnotation(value = "test", first = 2, second = 0)
+          public class RepeatedAnnotationTestReplace {
+          }
+          """
+            .trimIndent()
+        } else {
+          // language=JAVA
+          """
+          @MyAnnotation(value = "test", first = 2, second = 0)
+          @MyAnnotation(value = "test", first = 0, second = 42)
+          public class RepeatedAnnotationTestNoReplace {
+          }
+          """
+            .trimIndent()
+        },
+        myFixture.editor.document.text.substringAfter("// target:").trim(),
+      )
+    }
+  }
+
+  fun testAnnotationCaretPos() {
+    // Like testAnnotationSelection, but instead of selecting a range
+    // of text, we target a specific caret position
+    val file =
+      myFixture.addFileToProject(
+        "src/Test.kt",
+        // language=Kt
+        """
+        package p1.p2
+        /** My Property */
+        class MyTest {
+            /** My test */
+            fun test() {
+            }
+        }
+        """
+          .trimIndent(),
+      )
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    @Suppress("DEPRECATION")
+    val group =
+      LintFix.create()
+        .name("Fix code")
+        .annotate("kotlin.Suppress(\"SdCardPath\")")
+        .range(getLocation(file, "[fun] test"))
+        .select("\"SdCard()Path\"")
+        .build()
+    val incident = Incident().location(getLocation(file, "[class MyTest]"))
+    val fixes = AndroidLintInspectionBase.createFixes(project, file, incident, group)
+    assertEquals(1, fixes.size)
+    val offset = file.text.indexOf("class MyTest")
+    assertTrue(offset != -1)
+    val startElement = file.findElementAt(offset)!!
+    assertNotNull(startElement)
+
+    val fix = fixes[0] as ModCommandLintQuickFix
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+
+    assertEquals(
+      // language=Kt
+      """
+      package p1.p2
+      /** My Property */
+      class MyTest {
+          /** My test */
+          @Suppress("SdCardPath")
+          fun test() {
+          }
+      }
+      """
+        .trimIndent(),
+      myFixture.editor.document.text,
+    )
+    // Make sure we've selected the right thing
+    assertEquals(file.text, myFixture.editor.document.text)
+    assertEquals(file.text.indexOf("Path"), myFixture.editor.caretModel.offset)
+    assertNull(myFixture.editor.selectionModel.selectedText)
+  }
+
   private fun getLocation(file: PsiFile, window: String): Location {
     val ioFile = file.virtualFile.toNioPath().toFile()
     val start = window.indexOf("[")
