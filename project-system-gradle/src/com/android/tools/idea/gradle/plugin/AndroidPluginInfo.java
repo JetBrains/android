@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.plugin;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getAndroidFacets;
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt.isHolderModule;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
@@ -28,14 +27,15 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
@@ -93,9 +93,12 @@ public class AndroidPluginInfo {
   @Nullable
   public static AndroidPluginInfo findFromModel(@NotNull Project project) {
     return ReadAction.compute(() -> {
-      for (AndroidFacet facet : getAndroidFacets(project)) {
+      for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
         Module module = facet.getModule();
-        if (getModuleSystem(module).getType() != AndroidModuleSystem.Type.TYPE_APP) continue;
+        if (!isHolderModule(module)) continue;
+        GradleAndroidModel gradleAndroidModel = GradleAndroidModel.get(facet);
+        if (gradleAndroidModel == null) continue;
+        if (gradleAndroidModel.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_APP) continue;
         GradleFacet gradleFacet = GradleFacet.getInstance(module);
         if (gradleFacet == null) continue;
         GradleModuleModel gradleModuleModel = gradleFacet.getGradleModuleModel();
