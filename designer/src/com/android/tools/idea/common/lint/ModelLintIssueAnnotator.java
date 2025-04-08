@@ -74,8 +74,8 @@ public class ModelLintIssueAnnotator {
 
   public void annotateRenderInformationToLint(@NotNull NlModel model) {
     final DesignSurface<?> surface = mySurfaceRef.get();
-    if (surface == null) {
-      // The surface is gone, no need to keep going
+    if (surface == null || model.isDisposed()) {
+      // The surface is gone or the model is already disposed, no need to keep going
       return;
     }
     Disposable computationToken = Disposer.newDisposable();
