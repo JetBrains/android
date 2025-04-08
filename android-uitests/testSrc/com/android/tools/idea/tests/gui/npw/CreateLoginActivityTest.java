@@ -76,7 +76,8 @@ public class CreateLoginActivityTest {
 
     // Verification.
     EditorFixture myEditor = guiTest.ideFrame().getEditor();
-    myEditor.open(LOGIN_ACTIVITY);
+    myEditor.open(LOGIN_ACTIVITY).waitForFileToActivate();
+    myEditor.waitUntilErrorAnalysisFinishes();
     String content = myEditor.getCurrentFileContents();
 
     String username = "binding.username";
