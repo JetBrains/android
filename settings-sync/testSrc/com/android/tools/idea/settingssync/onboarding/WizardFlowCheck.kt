@@ -65,6 +65,10 @@ class WizardFlowCheck {
   private lateinit var communicator: FakeRemoteCommunicator
   private lateinit var communicatorProvider: FakeCommunicatorProvider
 
+  private val step1 = EnableOrSkipStepPage()
+  private val step3 = ChooseCategoriesStepPage()
+  private val pages = listOf(step1, step3)
+
   @Before
   fun setup() {
     communicator = FakeRemoteCommunicator(USER_EMAIL)
@@ -98,11 +102,15 @@ class WizardFlowCheck {
     assertThat(status).isEqualTo(ServerState.FileNotExists)
   }
 
-  private fun initWizard(pages: List<WizardPage>, state: WizardState) {
+  private fun initWizard(
+    pages: List<WizardPage>,
+    state: WizardState,
+    expectedInitialPage: WizardPage,
+  ) {
     val controller = FakeController(pages, state)
 
     composeTestRule.setContent { controller.CurrentComposablePage() }
-    assertThat(controller.currentPage).isEqualTo(pages[0])
+    assertThat(controller.currentPage).isEqualTo(expectedInitialPage)
   }
 
   // This covers the onboarding flow: step3 only
@@ -115,7 +123,7 @@ class WizardFlowCheck {
         getOrCreateState { GoogleSignInWizard.SignInState() }
           .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
       }
-    initWizard(pages = listOf(ChooseCategoriesStepPage()), wizardState)
+    initWizard(pages, wizardState, expectedInitialPage = step3)
 
     // Ensure status
     assertThat(SettingsSyncSettings.getInstance().syncEnabled).isFalse()
@@ -160,7 +168,7 @@ class WizardFlowCheck {
         getOrCreateState { GoogleSignInWizard.SignInState() }
           .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
       }
-    initWizard(pages = listOf(ChooseCategoriesStepPage()), wizardState)
+    initWizard(pages, wizardState, expectedInitialPage = step3)
 
     // Ensure status
     assertThat(SettingsSyncSettings.getInstance().syncEnabled).isFalse()
@@ -196,6 +204,72 @@ class WizardFlowCheck {
       .isEqualTo(ServerState.UpdateNeeded) // TODO: this doesn't seem right, confirming with JB.
     assertThat(pushResult.result.toString())
       .isEqualTo("SUCCESS") // TODO: check version id when available.
+  }
+
+  // This covers the onboarding flow: step1 only
+  @Test
+  fun `can skip configuration`() {
+    val activeSyncUser = "active_sync_user@test.com"
+    // Prepare
+    SettingsSyncSettings.getInstance().syncEnabled = true
+    SettingsSyncLocalSettings.getInstance().userId = activeSyncUser
+    val wizardState =
+      WizardState().apply {
+        // Make sure we won't skip the page
+        getOrCreateState { GoogleSignInWizard.SignInState() }
+          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+      }
+    initWizard(pages, wizardState, expectedInitialPage = step1)
+
+    // Action
+    // 1. Select to stay with the current configuration.
+    composeTestRule
+      .onNodeWithText("Do not enable Backup & Sync for this account.", useUnmergedTree = true)
+      .assertIsDisplayed()
+      .performClick()
+    // 2. Click "Finish" button.
+    composeTestRule.onNodeWithText("Finish").assertIsDisplayed().performClick()
+
+    // Verify
+    // 1. check locally stored data
+    assertThat(SettingsSyncLocalSettings.getInstance().userId).isEqualTo(activeSyncUser)
+    assertThat(SettingsSyncLocalSettings.getInstance().isCrossIdeSyncEnabled).isFalse()
+    // 2. check wizard state
+    assertThat(wizardState.getOrCreateState { SyncConfigurationState() }.configurationOption)
+      .isEqualTo(SyncConfigurationOption.USE_EXISTING_SETTINGS)
+  }
+
+  // This covers the onboarding flow: step1 -> step3
+  @Test
+  fun `do not skip configuration`() {
+    val activeSyncUser = "active_sync_user@test.com"
+    // Prepare
+    SettingsSyncSettings.getInstance().syncEnabled = true
+    SettingsSyncLocalSettings.getInstance().userId = activeSyncUser
+    val wizardState =
+      WizardState().apply {
+        // Make sure we won't skip the page
+        getOrCreateState { GoogleSignInWizard.SignInState() }
+          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+      }
+    initWizard(pages, wizardState, expectedInitialPage = step1)
+
+    // Action
+    // 1. Select to configure using the new account.
+    composeTestRule
+      .onNodeWithText(
+        "stop syncing settings to the previously signed-in account ($activeSyncUser)",
+        substring = true,
+        useUnmergedTree = true,
+      )
+      .assertIsDisplayed()
+      .performClick()
+    // 2. Click "Next" button.
+    composeTestRule.onNodeWithText("Next").assertIsDisplayed().performClick()
+
+    // Verify
+    assertThat(wizardState.getOrCreateState { SyncConfigurationState() }.configurationOption)
+      .isEqualTo(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
   }
 
   private fun List<CheckboxNode>.toLocallyStoredState(syncEnabled: Boolean): State {
