@@ -134,13 +134,13 @@ class ConfigureBaselineProfilesModuleStepTest {
     targetProjectPath: String
   ): Pair<ConfigureBaselineProfilesModuleStep, NewBaselineProfilesModuleModel> {
     return withContext(Dispatchers.EDT) {
+      projectRule.loadProject(targetProjectPath, agpVersion = getAgpVersion())
       val model =
         NewBaselineProfilesModuleModel(
           project = projectRule.project,
           moduleParent = ":",
           projectSyncInvoker = AddBaselineProfilesModuleTest.emptyProjectSyncInvoker,
         )
-      projectRule.loadProject(targetProjectPath, agpVersion = getAgpVersion())
       ConfigureBaselineProfilesModuleStep(disposable = disposable, model = model) to model
     }
   }
