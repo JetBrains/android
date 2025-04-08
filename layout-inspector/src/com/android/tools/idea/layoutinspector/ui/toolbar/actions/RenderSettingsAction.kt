@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.isActionActive
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
@@ -53,13 +54,15 @@ class RenderSettingsAction(
         RenderSettings::drawBorders,
       )
     )
-    add(
-      ToggleRenderSettingsAction(
-        "Show Layout Bounds",
-        renderSettingsProvider,
-        RenderSettings::drawUntransformedBounds,
+    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      add(
+        ToggleRenderSettingsAction(
+          "Show Layout Bounds",
+          renderSettingsProvider,
+          RenderSettings::drawUntransformedBounds,
+        )
       )
-    )
+    }
     add(
       ToggleRenderSettingsAction(
         "Show View Label",
