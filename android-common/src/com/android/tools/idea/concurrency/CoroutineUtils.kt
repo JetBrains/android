@@ -137,7 +137,7 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
  *
  * @param dispatcher The dispatcher to use when creating the scope. Defaults to [Dispatchers.Default].
  * @param extraContext The context to append to the scope's context. Can be used to provide
- *      a [CoroutineName], for example. Defaults to [EmptyCoroutineContext].
+ *   a [CoroutineName], for example. Defaults to [EmptyCoroutineContext].
  */
 fun Disposable.createCoroutineScope(
   dispatcher: CoroutineDispatcher = Dispatchers.Default,
