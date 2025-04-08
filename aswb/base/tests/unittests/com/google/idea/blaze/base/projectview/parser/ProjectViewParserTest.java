@@ -38,6 +38,8 @@ import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
 import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
 import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
+import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
+import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.ErrorCollector;
@@ -49,7 +51,9 @@ import com.google.idea.common.experiments.MockExperimentService;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -474,5 +478,20 @@ public class ProjectViewParserTest extends BlazeTestCase {
     ProjectView projectView = projectViewFile.projectView;
     String outputString = ProjectViewParser.projectViewToString(projectView);
     assertThat(outputString).isEqualTo(text);
+  }
+
+  @Test
+  public void testParsersSubset() throws Exception {
+    projectViewStorageManager.add(
+      ".blazeproject",
+      "workspace_location: /google3/location",
+            "use_query_sync: compatibility");
+    projectViewParser.parseProjectView(new File(".blazeproject"), List.of(WorkspaceLocationSection.PARSER));
+    // Parser errors are expected from the parsers not included in the parsers list
+
+    ProjectViewSet projectViewSet = projectViewParser.getResult();
+    assertThat(projectViewSet.getScalarValue(WorkspaceLocationSection.KEY)).isEqualTo(Optional.of("/google3/location"));
+    // Value will not be parsed for the parsers not in the provided list
+    assertThat(projectViewSet.getScalarValue(UseQuerySyncSection.KEY)).isEqualTo(Optional.empty());
   }
 }
