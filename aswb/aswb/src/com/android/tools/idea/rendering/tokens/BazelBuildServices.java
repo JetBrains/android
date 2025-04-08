@@ -23,7 +23,8 @@ import org.jetbrains.annotations.NotNull;
 final class BazelBuildServices implements BuildServices<BazelBuildTargetReference> {
   @Override
   public @NotNull BuildStatus getLastCompileStatus(@NotNull BazelBuildTargetReference target) {
-    throw new UnsupportedOperationException();
+    // TODO: b/409383880
+    return BuildStatus.UNKNOWN;
   }
 
   @Override
