@@ -22,6 +22,7 @@ public enum OutputGroup {
   AARS("qs_aars"),
   GENSRCS("qs_gensrcs"),
   ARTIFACT_INFO_FILE("qs_info"),
+  JDEPS("qs_jdeps"),
   CC_HEADERS("qs_cc_headers"),
   CC_INFO_FILE("qs_cc_info");
 

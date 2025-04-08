@@ -42,7 +42,6 @@ public abstract class JavaArtifactInfo {
    */
   public abstract ImmutableSet<BuildArtifact> jars();
 
-
   /**
    * The jar that in target's java_output.
    */
@@ -86,7 +85,8 @@ public abstract class JavaArtifactInfo {
     return new AutoValue_JavaArtifactInfo.Builder();
   }
 
-  public static JavaArtifactInfo create(JavaTargetInfo.JavaArtifacts proto, DigestMap digestMap) {
+  public static JavaArtifactInfo create(
+    JavaTargetInfo.JavaArtifacts proto, DigestMap digestMap) {
     // Note, the proto contains a list of sources, we take the parent as we want directories instead
     Label target = Label.of(proto.getTarget());
     return builder()

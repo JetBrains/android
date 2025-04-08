@@ -26,6 +26,7 @@ def _java_library_test_impl(env, target):
         struct(
             compile_jars_depset = ["*.jar"],
             generated_outputs = [struct(
+                compile_jdeps = "*.jdeps",
                 generated_source_jar = "",
                 generated_class_jar = "",
             )],
@@ -51,6 +52,7 @@ def _java_binary_test_impl(env, target):
         struct(
             compile_jars_depset = [],
             generated_outputs = [struct(
+                compile_jdeps = "",
                 generated_source_jar = "",
                 generated_class_jar = "",
             )],

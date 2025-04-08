@@ -79,6 +79,7 @@ message Artifact {
 
 message JavaArtifacts {
   repeated Artifact jars = 1;
+  repeated Artifact compile_jdeps = 8;
   repeated Artifact output_jars = 7;
   repeated Artifact ide_aars = 2;
   repeated Artifact gen_srcs = 3;

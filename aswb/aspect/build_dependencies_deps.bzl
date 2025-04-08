@@ -21,6 +21,7 @@ def _get_java_info(target, rule):
             java_output_compile_jars.append(java_output.compile_jar)
         generated_outputs.append(
             struct(
+                compile_jdeps = java_output.compile_jdeps,
                 generated_source_jar = java_output.generated_source_jar,
                 generated_class_jar = java_output.generated_class_jar,
             ),

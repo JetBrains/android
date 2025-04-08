@@ -21,6 +21,7 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
+import com.google.idea.common.experiments.BoolExperiment;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
  * dependencies.
  */
 public interface DependencyTracker {
+  BoolExperiment gatherJdeps =
+    new BoolExperiment("qsync.gather.jdeps", false);
 
   /**
    * Builds the external dependencies of the given target(s), putting the resultant libraries in the
@@ -95,6 +98,9 @@ public interface DependencyTracker {
           consumer.accept(OutputGroup.AARS);
           consumer.accept(OutputGroup.GENSRCS);
           consumer.accept(OutputGroup.ARTIFACT_INFO_FILE);
+          if (gatherJdeps.getValue()) {
+            consumer.accept(OutputGroup.JDEPS);
+          }
         }
         case CC -> {
           consumer.accept(OutputGroup.CC_HEADERS);

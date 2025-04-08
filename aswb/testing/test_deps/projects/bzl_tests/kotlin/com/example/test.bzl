@@ -3,7 +3,7 @@
 load("@rules_testing//lib:analysis_test.bzl", "analysis_test", _test_suite = "test_suite")
 load("//bzl_tests:check_utils.bzl", "label_info_factory")
 load("//bzl_tests:test_fixture.bzl", "TargetInfo")
-load(":check_utils.bzl", "java_info_factory")
+load("//bzl_tests/java/com/example:check_utils.bzl", "java_info_factory")
 
 KT_LIBRARY_TARGET = "foolib"
 KT_BINARY_TARGET = "foo"
@@ -26,6 +26,7 @@ def _kt_library_test_impl(env, target):
         struct(
             compile_jars_depset = ["*.jar"],
             generated_outputs = [struct(
+                compile_jdeps = "",
                 generated_source_jar = "",
                 generated_class_jar = "",
             )],
@@ -51,6 +52,7 @@ def _kt_binary_test_impl(env, target):
         struct(
             compile_jars_depset = ["*.jar"],
             generated_outputs = [struct(
+                compile_jdeps = "",
                 generated_source_jar = "",
                 generated_class_jar = "",
             )],

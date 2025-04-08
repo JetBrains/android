@@ -150,6 +150,10 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
 
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
     for (JavaArtifacts javaTarget : outputInfo.getArtifactInfo()) {
+      String target  = javaTarget.getTarget();
+      if (target.startsWith("@@")) {
+        target = target.substring(2);
+      }
       JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap);
       TargetBuildInfo targetInfo =
           TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
