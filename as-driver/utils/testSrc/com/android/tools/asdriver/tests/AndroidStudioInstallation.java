@@ -235,7 +235,7 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
 
   /**
    * Writes a file to disk that will make the platform think that the user has already interacted
-   * with the "Send usage statistics to Google" dialog. This process is faster than automating the
+   * with the "Send usage statistics" dialog. This process is faster than automating the
    * consent dialog since the IDE checks for consent at start-up anyway.
    *
    * The internals of this function must match {@link com.intellij.ide.gdpr.ConfirmedConsent}.

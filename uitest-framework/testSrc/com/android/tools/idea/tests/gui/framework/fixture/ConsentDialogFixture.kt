@@ -26,7 +26,7 @@ class ConsentDialogFixture(robot: Robot, dialogAndWrapper: DialogAndWrapper<Dial
   IdeaDialogFixture<DialogWrapper>(robot, dialogAndWrapper) {
 
   fun optIn() {
-    GuiTests.findAndClickButton(this, "Send usage statistics to Google")
+    GuiTests.findAndClickButton(this, "Send usage statistics")
   }
 
   fun decline() {
