@@ -88,6 +88,8 @@ import com.intellij.util.ThreeState
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import kotlin.math.max
 
+val rootProperties = listOf("rootProject")
+
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
   override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean =
     DeclarativeIdeSupport.isEnabled()
@@ -258,6 +260,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         var suggestionList = getSuggestionList(adjustedParent, schema)
         if (includeAugmentation) {
           suggestionList = updateSuggestionListWithAugmentations(suggestionList, schema, parent)
+        }
+        // filter property for file root
+        if (parent is DeclarativeFile) {
+          suggestionList = suggestionList.filter { it.second.type != PROPERTY || it.second.name in rootProperties }
         }
         result.addAllElements(suggestionList.map { (entry, suggestion) ->
           LookupElementBuilder.create(suggestion.name)
@@ -456,6 +462,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
           document.insertString(context.tailOffset, "()")
           caretModel.moveToOffset(context.tailOffset - 1)
         }
+        PROPERTY -> {
+          document.insertString(context.tailOffset, ".")
+          caretModel.moveToOffset(context.tailOffset)
+        }
         else -> caretModel.moveToOffset(context.tailOffset)
       }
     }
@@ -513,12 +523,14 @@ class DeclarativeCompletionContributor : CompletionContributor() {
             }
             else {
               document.insertString(context.tailOffset, ".${it.name} = ")
+              editor.caretModel.moveToOffset(context.tailOffset)
             }
 
           }
         }
         else {
           document.insertString(context.tailOffset, ".")
+          editor.caretModel.moveToOffset(context.tailOffset)
         }
       }
       EXPRESSION -> {

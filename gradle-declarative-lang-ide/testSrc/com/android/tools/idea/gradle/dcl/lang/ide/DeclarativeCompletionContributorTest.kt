@@ -180,6 +180,19 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testForLayoutPropertyCompletion() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        fakeFileList = listOf(layo$caret)
+      }
+      """, """
+      androidApp {
+        fakeFileList = listOf(layout.$caret)
+      }
+      """)
+  }
+
+  @Test
   fun testForPropertyAsFunctionCallArgument() {
     doTestOnPatchedSchema("""
       androidApp {
@@ -327,7 +340,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         $caret
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp", "androidLibrary", "layout", "listOf"
+        "androidApp", "androidLibrary", "listOf"
       )
     }
   }
