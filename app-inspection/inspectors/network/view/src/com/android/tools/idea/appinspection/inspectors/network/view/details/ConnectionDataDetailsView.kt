@@ -58,13 +58,20 @@ internal class ConnectionDataDetailsView(
   }
 
   /** Updates the view to show given data. */
-  fun setConnectionData(data: ConnectionData) {
+  fun setConnectionData(data: ConnectionData?) {
     val dataComponentFactory =
       when (data) {
+        null -> NullDataComponentFactory()
         is HttpData -> HttpDataComponentFactory(data, inspectorView.componentsProvider)
         is GrpcData -> GrpcDataComponentFactory(inspectorView.project, inspectorView, data)
         else -> throw IllegalArgumentException("Unsupported data type: ${data::class.java.name}")
       }
     tabs.forEach { it.populateFor(data, dataComponentFactory) }
+  }
+
+  private class NullDataComponentFactory : DataComponentFactory(null) {
+    override fun createDataViewer(type: ConnectionType, formatted: Boolean) = null
+
+    override fun createBodyComponent(type: ConnectionType) = null
   }
 }

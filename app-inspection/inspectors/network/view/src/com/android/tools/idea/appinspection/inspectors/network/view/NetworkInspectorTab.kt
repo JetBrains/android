@@ -36,9 +36,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
-import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
@@ -300,6 +300,7 @@ class NetworkInspectorTab(
 
   private fun clearData() {
     model.reset()
+    view.detailsPanel.connectionDataDetailsView.setConnectionData(null)
   }
 
   private fun exportConnections() {
