@@ -83,8 +83,9 @@ public class AndroidDepTest {
 
     editor.open("/library_module/build.gradle.kts")
       .waitForFileToActivate();
-    editor.moveBetween("\n", "    implementation(libs.appcompat)")
-      .enterText("\n   api(\"com.google.code.gson:gson:2.6.2\")\n");
+    editor.waitUntilErrorAnalysisFinishes()
+      .moveBetween("    implementation(libs.appcompat)", "")
+      .enterText("\n   api(\"com.google.code.gson:gson:2.11.0\")\n");
     ideFrame.takeScreenshot();
     guiTest.robot().waitForIdle();
 
@@ -112,12 +113,12 @@ public class AndroidDepTest {
     guiTest.robot().waitForIdle();
     dialogFixture.clickOk(Wait.seconds(30));
 
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
       .waitForFileToActivate();
-    editor.moveBetween("", "ViewCompat.setOnApplyWindowInsetsListener")
+    editor.waitUntilErrorAnalysisFinishes()
+      .moveBetween("", "ViewCompat.setOnApplyWindowInsetsListener")
       .enterText("\n\t\tGson gson = new Gson();\n");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     editor.select("()public class MainActivity")
@@ -136,7 +137,8 @@ public class AndroidDepTest {
 
     editor.open("/library_module/src/main/java/com/google/library_module/LibraryClass.java")
       .waitForFileToActivate();
-    editor.moveBetween("public class LibraryClass {", "")
+    editor.waitUntilErrorAnalysisFinishes()
+      .moveBetween("public class LibraryClass {", "")
       .enterText("\nGson gson = new Gson();\n");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     editor.select("()public class LibraryClass")
