@@ -16,6 +16,7 @@
 package com.android.tools.idea.bleak
 
 import java.util.IdentityHashMap
+import java.lang.ref.Reference
 
 class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
   val leaktrace: Leaktrace = leakRoot.getLeaktrace()
@@ -63,8 +64,12 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
   }
 
   private fun Node.objString() = type.name + ": " + try {
-    val s = obj.toString()
-    if (s.length > 80) s.take(77) + "..." else s
+    val s = if (Reference::class.java.isAssignableFrom(type)) {
+      "-> ${(obj as Reference<*>).get()?.toString()}"
+    } else {
+      obj.toString()
+    }
+    if (s.length > 100) s.take(97) + "..." else s
   } catch (e: NullPointerException) {
     "[NPE in toString]"
   }
