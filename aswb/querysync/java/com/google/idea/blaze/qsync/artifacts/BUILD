@@ -30,6 +30,7 @@ java_proto_library(
     srcs = ["build_artifact.proto"],
     visibility = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc:__pkg__",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps:__pkg__",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java:__pkg__",
         "//tools/adt/idea/aswb/querysync/javatests:__subpackages__",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",

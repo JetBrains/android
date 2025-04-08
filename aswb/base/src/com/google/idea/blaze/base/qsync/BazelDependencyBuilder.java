@@ -104,6 +104,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.VisibleForTesting;
+import com.google.devtools.build.lib.view.proto.Deps;
 
 /** An object that knows how to build dependencies for given targets */
 public class BazelDependencyBuilder implements DependencyBuilder, BazelDependencyBuilderPublicForTests {
@@ -502,14 +503,15 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     ImmutableListMultimap<OutputGroup, OutputArtifact> allArtifacts =
         GroupedOutputArtifacts.create(blazeBuildOutputs, outputGroups);
 
-    ImmutableList<OutputArtifact> artifactInfoFiles =
-        allArtifacts.get(OutputGroup.ARTIFACT_INFO_FILE);
+    ImmutableList<OutputArtifact> artifactInfoFiles = allArtifacts.get(OutputGroup.ARTIFACT_INFO_FILE);
+    ImmutableList<OutputArtifact> compileJdepsFiles = allArtifacts.get(OutputGroup.JDEPS);
     ImmutableList<OutputArtifact> ccArtifactInfoFiles = allArtifacts.get(OutputGroup.CC_INFO_FILE);
     long startTime = System.currentTimeMillis();
-    int totalFilesToFetch = artifactInfoFiles.size() + ccArtifactInfoFiles.size();
+    int totalFilesToFetch = artifactInfoFiles.size() + compileJdepsFiles.size() + ccArtifactInfoFiles.size();
     long totalBytesToFetch =
-        artifactInfoFiles.stream().mapToLong(OutputArtifact::getLength).sum()
-            + ccArtifactInfoFiles.stream().mapToLong(OutputArtifact::getLength).sum();
+      artifactInfoFiles.stream().mapToLong(OutputArtifact::getLength).sum()
+      + compileJdepsFiles.stream().mapToLong(OutputArtifact::getLength).sum()
+      + ccArtifactInfoFiles.stream().mapToLong(OutputArtifact::getLength).sum();
 
     boolean shouldLog =
         totalFilesToFetch > FILE_NUMBER_LOG_THRESHOLD
@@ -523,14 +525,18 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     }
 
     ImmutableSet.Builder<JavaArtifacts> artifactInfoFilesBuilder = ImmutableSet.builder();
+    ImmutableSet.Builder<Deps.Dependencies> jdepsBuilder = ImmutableSet.builder();
     ImmutableSet.Builder<CcCompilationInfo> ccInfoBuilder = ImmutableSet.builder();
 
     List<JavaArtifacts> artifactInfos =
         readAndTransformInfoFiles(context, artifactInfoFiles, this::readArtifactInfoFile);
     List<CcCompilationInfo> ccInfos =
         readAndTransformInfoFiles(context, ccArtifactInfoFiles, this::readCcInfoFile);
+    List<Deps.Dependencies> jdeps =
+      readAndTransformInfoFiles(context, compileJdepsFiles, this::readJdepsFile);
 
     artifactInfoFilesBuilder.addAll(artifactInfos);
+    jdepsBuilder.addAll(jdeps);
     ccInfoBuilder.addAll(ccInfos);
 
     long elapsed = System.currentTimeMillis() - startTime;
@@ -547,8 +553,9 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     return OutputInfo.create(
         Multimaps.filterKeys(
             allArtifacts,
-            it -> it != OutputGroup.ARTIFACT_INFO_FILE && it != OutputGroup.CC_INFO_FILE),
+            it -> it != OutputGroup.ARTIFACT_INFO_FILE && it != OutputGroup.JDEPS && it != OutputGroup.CC_INFO_FILE),
         artifactInfoFilesBuilder.build(),
+        jdepsBuilder.build(),
         ccInfoBuilder.build(),
         blazeBuildOutputs.targetsWithErrors().stream()
             .map(Object::toString)
@@ -625,6 +632,16 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
   private JavaArtifacts readArtifactInfoFile(ByteSource file) throws BuildException {
     return ProtoStringInterner.intern(
         readArtifactInfoProtoFile(JavaArtifacts.newBuilder(), file).build());
+  }
+
+  private Deps.Dependencies readJdepsFile(ByteSource file) throws BuildException {
+    Deps.Dependencies dependencies;
+    try (InputStream inputStream = file.openStream()) {
+      dependencies = Deps.Dependencies.parseFrom(inputStream);
+    } catch (IOException e) {
+      throw new BuildException(e);
+    }
+    return ProtoStringInterner.intern(dependencies);
   }
 
   private CcCompilationInfo readCcInfoFile(ByteSource file) throws BuildException {

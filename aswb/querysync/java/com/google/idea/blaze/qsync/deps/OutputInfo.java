@@ -25,6 +25,7 @@ import com.google.common.collect.Multimap;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
+import com.google.devtools.build.lib.view.proto.Deps;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo;
 
 /** A data class that collecting and converting output group artifacts. */
@@ -38,11 +39,14 @@ public abstract class OutputInfo {
           ImmutableSet.of(),
           ImmutableSet.of(),
           ImmutableSet.of(),
+          ImmutableSet.of(),
           0,
           DependencyBuildContext.NONE);
 
   /** Returns the proto containing details of artifacts per target produced by the aspect. */
   public abstract ImmutableSet<JavaArtifacts> getArtifactInfo();
+
+  public abstract ImmutableSet<Deps.Dependencies> getJdeps();
 
   public abstract ImmutableSet<CcCompilationInfo> getCcCompilationInfo();
 
@@ -81,12 +85,14 @@ public abstract class OutputInfo {
   public static OutputInfo create(
       Multimap<OutputGroup, OutputArtifact> allArtifacts,
       ImmutableSet<JavaArtifacts> artifacts,
+      ImmutableSet<Deps.Dependencies> jdeps,
       ImmutableSet<CcCompilationInfo> ccInfo,
       ImmutableSet<Label> targetsWithErrors,
       int exitCode,
       DependencyBuildContext buildContext) {
     return new AutoValue_OutputInfo.Builder()
         .setArtifactInfo(artifacts)
+        .setJdeps(jdeps)
         .setCcCompilationInfo(ccInfo)
         .setOutputGroups(ImmutableListMultimap.copyOf(allArtifacts))
         .setTargetsWithErrors(targetsWithErrors)
@@ -103,6 +109,9 @@ public abstract class OutputInfo {
     public abstract Builder setArtifactInfo(ImmutableSet<JavaArtifacts> value);
 
     public abstract Builder setArtifactInfo(JavaArtifacts... values);
+    public abstract Builder setJdeps(ImmutableSet<Deps.Dependencies> value);
+
+    public abstract Builder setJdeps(Deps.Dependencies... values);
 
     public abstract Builder setCcCompilationInfo(ImmutableSet<CcCompilationInfo> value);
 

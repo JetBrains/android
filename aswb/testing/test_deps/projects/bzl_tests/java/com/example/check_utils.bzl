@@ -35,6 +35,7 @@ def generated_outputs_factory(actual, *, meta):
     # But only these 3 are used in build_dependencies.bzl, so only list them so far.
     # Add more if we need more.
     attrs = dict(
+        compile_jdeps = subjects_file_factory,
         generated_source_jar = subjects_file_factory,
         generated_class_jar = subjects_file_factory,
     )
