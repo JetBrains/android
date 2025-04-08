@@ -39,12 +39,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * Provides APK build steps for Blaze projects.
- *
- * <p>See {@link BazelApkBuildStepProvider} for the Bazel equivalent. The main reason for splitting
- * the build steps by build system is that we are introducing a lot more Blaze specific features
- * into the build pipeline: in particular, we support remote builds via mdproxy initially, and then
- * via rabbit, both of which are specific to Google3.
+ * Provides APK build steps for Blaze and Bazel projects.
  */
 public class BlazeApkBuildStepProvider implements ApkBuildStepProvider {
   private static final Logger logger = Logger.getInstance(BlazeApkBuildStepProvider.class);
