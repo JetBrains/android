@@ -162,7 +162,7 @@ class RenderErrorTest {
             )
             .also { it.root.validate() }
         }
-      composePreviewRepresentation.activateAndWaitForRender(fakeUi, timeout = 1.minutes)
+      composePreviewRepresentation.activateAndWaitForRender(fakeUi)
     }
   }
 
