@@ -16,15 +16,14 @@
 package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.structure.model.getHolderModuleByGradlePath
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.findModule
 import java.nio.file.Files
-import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
@@ -65,8 +64,8 @@ internal class NotificationManagerTest {
 
   @Test
   fun `flow is updated on every modification`() = runBlocking {
-    val app = BuildTargetReference.gradleOnly(projectRule.project.getHolderModuleByGradlePath(":app") ?: fail("Could not find app"))
-    val lib = BuildTargetReference.gradleOnly(projectRule.project.getHolderModuleByGradlePath(":lib") ?: fail("Could not find lib"))
+    val app = BuildTargetReference.gradleOnly(projectRule.project.findModule(":app"))
+    val lib = BuildTargetReference.gradleOnly(projectRule.project.findModule(":lib"))
 
     // Copy the classes into a temp directory to use as overlay
     val tempOverlayPath = Files.createTempDirectory("overlayTest")

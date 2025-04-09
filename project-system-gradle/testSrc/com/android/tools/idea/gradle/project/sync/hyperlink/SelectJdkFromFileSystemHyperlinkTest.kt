@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
@@ -27,7 +27,7 @@ import javax.swing.event.HyperlinkEvent
 class SelectJdkFromFileSystemHyperlinkTest : LightPlatformTestCase() {
 
   fun `test Given JdkHyperlink without rootProjectPath When execute Then chooseJdkLocation was invoked with null path`() {
-    val mockService = mock<AndroidProjectSettingsServiceImpl>()
+    val mockService = mock<AndroidProjectSettingsService>()
     project.replaceService(ProjectSettingsService::class.java, mockService, testRootDisposable)
     val jdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project, null)
     val mockHyperlinkEvent = mock<HyperlinkEvent>().apply {
@@ -39,7 +39,7 @@ class SelectJdkFromFileSystemHyperlinkTest : LightPlatformTestCase() {
   }
 
   fun `test Given JdkHyperlink with rootProjectPath When execute Then chooseJdkLocation was invoked with provided path`() {
-    val mockService = mock<AndroidProjectSettingsServiceImpl>()
+    val mockService = mock<AndroidProjectSettingsService>()
     project.replaceService(ProjectSettingsService::class.java, mockService, testRootDisposable)
     val rootProjectPath = "gradle/project/root/path"
     val jdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project, rootProjectPath)

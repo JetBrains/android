@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.structure.model.getHolderModuleByGradlePath
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
@@ -30,6 +29,7 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.ViewLoader
@@ -104,8 +104,8 @@ class NonTransitiveResourcesLoaderTest() {
    */
   @Test
   fun testNonTransitiveRClassesAreInitializedCorrectly() {
-    val app = androidProject.project.getHolderModuleByGradlePath(":app") ?: fail("Could not find app")
-    val lib = androidProject.project.getHolderModuleByGradlePath(":lib") ?: fail("Could not find lib")
+    val app = androidProject.project.findModule(":app")
+    val lib = androidProject.project.findModule(":lib")
     // TODO(b/280427949): Should this be done by the withAndroidModels factory?
     ModuleRootModificationUtil.addDependency(app, lib)
 

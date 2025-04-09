@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
@@ -27,7 +27,7 @@ import javax.swing.event.HyperlinkEvent
 class OpenProjectJdkLocationListenerTest : LightPlatformTestCase() {
 
   fun `test Given JdkLocationListener without rootProjectPath When hyperlinkActivated Then chooseJdkLocation was invoked with null path`() {
-    val mockService = mock<AndroidProjectSettingsServiceImpl>()
+    val mockService = mock<AndroidProjectSettingsService>()
     project.replaceService(ProjectSettingsService::class.java, mockService, testRootDisposable)
     val jdkHyperlink = OpenProjectJdkLocationListener.create(project, null)
     val mockHyperlinkEvent = mock<HyperlinkEvent>().apply {
@@ -39,7 +39,7 @@ class OpenProjectJdkLocationListenerTest : LightPlatformTestCase() {
   }
 
   fun `test Given JdkLocationListener with rootProjectPath When hyperlinkActivated Then chooseJdkLocation was invoked with provided path`() {
-    val mockService = mock<AndroidProjectSettingsServiceImpl>()
+    val mockService = mock<AndroidProjectSettingsService>()
     project.replaceService(ProjectSettingsService::class.java, mockService, testRootDisposable)
     val rootProjectPath = "gradle/project/root/path"
     val jdkHyperlink = OpenProjectJdkLocationListener.create(project, rootProjectPath)

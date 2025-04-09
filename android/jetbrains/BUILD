@@ -61,7 +61,6 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )
