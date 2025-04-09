@@ -19,13 +19,11 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
-import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.impl.NonBlockingReadActionImpl
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.util.application
 import java.util.Collections
-import java.util.concurrent.Semaphore
-import java.util.concurrent.TimeUnit
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
@@ -64,12 +62,6 @@ class ComposableFunctionExtractableAnalyserTest {
   }
 
   private class ExtractionHelper : ExtractionEngineHelper(EXTRACT_FUNCTION) {
-    private val finishedSemaphore = Semaphore(0)
-
-    fun waitUntilFinished() {
-      // Use tryAcquire so as to not block if something fails.
-      assertThat(finishedSemaphore.tryAcquire(10, TimeUnit.SECONDS)).isTrue()
-    }
 
     override fun configureAndRun(
       project: Project,
@@ -85,19 +77,11 @@ class ComposableFunctionExtractableAnalyserTest {
         ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT)
       ) { er: ExtractionResult ->
         onFinish(er)
-        finishedSemaphore.release()
       }
     }
   }
 
   private class InteractiveExtractionHelper : ExtractionEngineHelper(INTRODUCE_CONSTANT) {
-    private val finishedSemaphore = Semaphore(0)
-
-    fun waitUntilFinished() {
-      // Use tryAcquire so as to not block if something fails.
-      assertThat(finishedSemaphore.tryAcquire(10, TimeUnit.SECONDS)).isTrue()
-    }
-
     override fun validate(descriptor: ExtractableCodeDescriptor) =
       KotlinIntroduceConstantHandler.InteractiveExtractionHelper.validate(descriptor)
 
@@ -113,19 +97,11 @@ class ComposableFunctionExtractableAnalyserTest {
         descriptorWithConflicts,
       ) { er: ExtractionResult ->
         onFinish(er)
-        finishedSemaphore.release()
       }
     }
   }
 
   private class K2ExtractionHelper : K2ExtractionEngineHelper(EXTRACT_FUNCTION) {
-    private val finishedSemaphore = Semaphore(0)
-
-    fun waitUntilFinished() {
-      // Use tryAcquire so as to not block if something fails.
-      assertThat(finishedSemaphore.tryAcquire(10, TimeUnit.SECONDS)).isTrue()
-    }
-
     @OptIn(KaAllowAnalysisOnEdt::class)
     override fun configureAndRun(
       project: Project,
@@ -147,20 +123,12 @@ class ComposableFunctionExtractableAnalyserTest {
           K2ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT)
         ) { er: K2ExtractionResult ->
           onFinish(er)
-          finishedSemaphore.release()
         }
       }
     }
   }
 
   private class K2InteractiveExtractionHelper : K2ExtractionEngineHelper(INTRODUCE_CONSTANT) {
-    private val finishedSemaphore = Semaphore(0)
-
-    fun waitUntilFinished() {
-      // Use tryAcquire so as to not block if something fails.
-      assertThat(finishedSemaphore.tryAcquire(10, TimeUnit.SECONDS)).isTrue()
-    }
-
     override fun validate(
       descriptor: K2ExtractableCodeDescriptor
     ): K2ExtractableCodeDescriptorWithConflicts =
@@ -178,7 +146,6 @@ class ComposableFunctionExtractableAnalyserTest {
         descriptorWithConflicts,
       ) { er: K2ExtractionResult ->
         onFinish(er)
-        finishedSemaphore.release()
       }
     }
   }
@@ -206,15 +173,15 @@ class ComposableFunctionExtractableAnalyserTest {
       application.invokeAndWait {
         KotlinFirExtractFunctionHandler(helper = helper)
           .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+        NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
       }
-      helper.waitUntilFinished()
     } else {
       val helper = ExtractionHelper()
       application.invokeAndWait {
         ExtractKotlinFunctionHandler(helper = helper)
           .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+        NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
       }
-      helper.waitUntilFinished()
     }
 
     myFixture.checkResult(
@@ -265,15 +232,15 @@ class ComposableFunctionExtractableAnalyserTest {
       application.invokeAndWait {
         KotlinFirExtractFunctionHandler(helper = helper)
           .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+        NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
       }
-      helper.waitUntilFinished()
     } else {
       val helper = ExtractionHelper()
       application.invokeAndWait {
         ExtractKotlinFunctionHandler(helper = helper)
           .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+        NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
       }
-      helper.waitUntilFinished()
     }
 
     myFixture.checkResult(
@@ -326,15 +293,15 @@ class ComposableFunctionExtractableAnalyserTest {
       application.invokeAndWait {
         K2KotlinIntroduceConstantHandler(helper = helper)
           .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+        NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
       }
-      helper.waitUntilFinished()
     } else {
       val helper = InteractiveExtractionHelper()
       application.invokeAndWait {
         KotlinIntroduceConstantHandler(helper = helper)
           .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+        NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
       }
-      helper.waitUntilFinished()
     }
 
     val constValName = if (KotlinPluginModeProvider.isK2Mode()) "string" else "s"
