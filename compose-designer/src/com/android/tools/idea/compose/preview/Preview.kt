@@ -54,7 +54,6 @@ import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
-import com.android.tools.idea.flags.StudioFlags.PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
@@ -703,7 +702,7 @@ class ComposePreviewRepresentation(
     NavigatingInteractionHandler(
       composeWorkBench.mainSurface,
       navigationHandler,
-      isSelectionEnabled = true
+      isSelectionEnabled = true,
     )
 
   @VisibleForTesting
@@ -1398,8 +1397,7 @@ class ComposePreviewRepresentation(
       launch(uiThread) {
         if (
           !composeWorkBench.isMessageBeingDisplayed &&
-            (refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY ||
-              PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME.get())
+            refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY
         ) {
           // Only notify the preview refresh time if there are previews to show.
           val durationString =

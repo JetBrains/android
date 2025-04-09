@@ -1413,11 +1413,6 @@ public final class StudioFlags {
     "When the zoom level is lower than this value, all previews will be rendered at low quality",
     20);
 
-  public static final Flag<Boolean> PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME = new BooleanFlag(
-    PREVIEW_COMMON, "render.quality.notify.time", "Notify refresh time for render quality refreshes",
-    "If enabled, the time taken in render quality refreshes will be notified each time",
-    false);
-
   public static final Flag<Boolean> PREVIEW_KEEP_IMAGE_ON_ERROR = new BooleanFlag(
     PREVIEW_COMMON, "keep.image.on.error", "Keeps the last valid image after a render error",
     "If enabled, when an error happens, the surface will keep the last valid image",
