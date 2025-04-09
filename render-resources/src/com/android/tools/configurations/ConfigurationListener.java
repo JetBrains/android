@@ -17,9 +17,6 @@ package com.android.tools.configurations;
 
 /** Interface implemented by clients getting notified about configuration attribute changes */
 public interface ConfigurationListener {
-  /** The {@link com.android.ide.common.resources.configuration.FolderConfiguration} in change flags or override flags */
-  @SuppressWarnings("PointlessBitwiseExpression")
-  int CFG_FOLDER = 1 << 0;
 
   /** The {@link com.android.sdklib.devices.Device} in change flags or override flags */
   int CFG_DEVICE = 1 << 1;
@@ -54,23 +51,14 @@ public interface ConfigurationListener {
   /** The shape of adaptive icons has changed */
   int CFG_ADAPTIVE_SHAPE = 1 << 11;
 
-  /** References all attributes */
-  int MASK_ALL = 0xFFFF;
-
   /** Attributes which affect the full folder configuration (e.g. setting a target can add -vNN etc) */
   int MASK_FOLDERCONFIG = CFG_NIGHT_MODE | CFG_UI_MODE | CFG_LOCALE | CFG_TARGET | CFG_DEVICE | CFG_DEVICE_STATE;
 
   /** Attributes which affect which best-layout-file selection */
   int MASK_FILE_ATTRS = CFG_DEVICE | CFG_DEVICE_STATE | CFG_LOCALE | CFG_TARGET | CFG_NIGHT_MODE | CFG_UI_MODE;
 
-  /** Attributes which affect resource resolution */
-  int MASK_RESOLVE_RESOURCES = MASK_FOLDERCONFIG | CFG_FOLDER | CFG_THEME;
-
   /** Attributes which affect rendering appearance */
   int MASK_RENDERING = MASK_FILE_ATTRS | CFG_THEME | CFG_FONT_SCALE | CFG_ADAPTIVE_SHAPE;
-
-  /** Attributes which are edited project-wide */
-  int MASK_PROJECT_STATE = CFG_LOCALE|CFG_TARGET|CFG_DEVICE;
 
   /**
    * The configuration has changed. If the client returns false, it means that
