@@ -29,7 +29,6 @@ import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * A list control that supports expansion of labels that could be truncated and
@@ -83,7 +82,7 @@ public abstract class ListWithMargin<E> extends JBList<E> {
 
     @NotNull
     @Override
-    public @Unmodifiable Collection<Integer> getExpandedItems() {
+    public Collection<Integer> getExpandedItems() {
       Collection<Integer> popup = super.getExpandedItems();
       if (!popup.isEmpty()) {
         return popup;
