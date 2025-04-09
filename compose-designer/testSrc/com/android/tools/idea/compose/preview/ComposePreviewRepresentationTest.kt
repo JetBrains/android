@@ -878,12 +878,12 @@ class ComposePreviewRepresentationTest {
       }
 
       assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
-        .containsExactly("Wear OS Devices", "Font scales")
+        .containsExactly("Wear OS Devices", "Font scales", "Colorblind filters")
       preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         25.seconds,
       ) {
-        it.asCollection().size == 8
+        it.asCollection().size == 15
       }
       assertEquals(
         """
@@ -918,6 +918,34 @@ class ComposePreviewRepresentationTest {
           TestKt.Preview
           id:wearos_small_round
           PreviewDisplaySettings(name=Largest - Preview, baseName=Preview, parameterName=Largest, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Original - Preview, baseName=Preview, parameterName=Original, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Protanopes - Preview, baseName=Preview, parameterName=Protanopes, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Protanomaly - Preview, baseName=Preview, parameterName=Protanomaly, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Deuteranopes - Preview, baseName=Preview, parameterName=Deuteranopes, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Deuteranomaly - Preview, baseName=Preview, parameterName=Deuteranomaly, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Tritanopes - Preview, baseName=Preview, parameterName=Tritanopes, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Tritanomaly - Preview, baseName=Preview, parameterName=Tritanomaly, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
         """
           .trimIndent(),

@@ -130,6 +130,7 @@ sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
         if (isWearPreview) {
           previewInstances.addAll(wearDevicesPreviews(base))
           previewInstances.addAll(fontSizePreviews(base, isWearPreview = true))
+          previewInstances.addAll(colorBlindPreviews(base, isWearPreview = true))
         } else {
           previewInstances.addAll(deviceSizePreviews(base))
           previewInstances.addAll(fontSizePreviews(base))
@@ -232,7 +233,10 @@ private fun <T : PreviewElementInstance<*>> lightDarkPreviews(baseInstance: T): 
     .filterIsInstance(baseInstance::class.java)
 }
 
-private fun <T : PreviewElementInstance<*>> colorBlindPreviews(baseInstance: T): List<T> {
+private fun <T : PreviewElementInstance<*>> colorBlindPreviews(
+  baseInstance: T,
+  isWearPreview: Boolean = false,
+): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   return ColorBlindMode.values()
@@ -245,7 +249,7 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(baseInstance: T):
           baseName = baseDisplaySettings.name,
           parameterName = colorBlindMode.displayName,
           group = message("ui.check.mode.screen.accessibility.group"),
-          showDecoration = false,
+          showDecoration = isWearPreview,
           organizationGroup = message("ui.check.mode.screen.accessibility.group"),
         )
       baseInstance.createDerivedInstance(displaySettings, colorFilterBaseConfig)
