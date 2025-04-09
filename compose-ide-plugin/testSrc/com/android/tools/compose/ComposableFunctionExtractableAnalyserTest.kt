@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.loadNewFile
 import com.intellij.openapi.application.impl.NonBlockingReadActionImpl
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.util.application
 import java.util.Collections
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -173,6 +174,7 @@ class ComposableFunctionExtractableAnalyserTest {
       }
 
     application.invokeAndWait {
+      IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
       handler.invoke(fixture.project, fixture.editor, psiFile, null)
       NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
     }
@@ -229,6 +231,7 @@ class ComposableFunctionExtractableAnalyserTest {
       }
 
     application.invokeAndWait {
+      IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
       handler.invoke(fixture.project, fixture.editor, psiFile, null)
       NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
     }
@@ -287,6 +290,7 @@ class ComposableFunctionExtractableAnalyserTest {
       }
 
     application.invokeAndWait {
+      IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
       handler.invoke(fixture.project, fixture.editor, psiFile, null)
       NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
     }
