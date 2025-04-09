@@ -143,8 +143,10 @@ fun ProjectDumper.dump(module: Module) {
     }
     dump(TestModuleProperties.getInstance(module))
 
-    prop("ModuleFile") { moduleFile }
-    prop("ModuleTypeName") { module.moduleTypeName }
+    if (!ignoreModuleFileAndType) {
+      prop("ModuleFile") { moduleFile }
+      prop("ModuleTypeName") { module.moduleTypeName }
+    }
     FacetManager.getInstance(module).allFacets.sortedBy { it.name }.forEach { dump(it) }
     val moduleRootManager = ModuleRootManager.getInstance(module)
     prop("ExternalSource.DisplayName") { moduleRootManager.externalSource?.displayName?.takeUnless { it == "Gradle" } }

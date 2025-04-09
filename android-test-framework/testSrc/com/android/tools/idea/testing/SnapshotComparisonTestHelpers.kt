@@ -38,6 +38,7 @@ typealias ProjectDumpAction = (project: Project, projectDumper: ProjectDumper) -
  */
 fun Project.saveAndDump(
   additionalRoots: Map<String, File> = emptyMap(),
+  ignoreModuleFileAndType : Boolean = false,
   dumpToAction: ProjectDumpAction = { project, projectDumper -> projectDumper.dumpProject(project) }
 ): String {
   ApplicationManager.getApplication().saveAll()
@@ -47,6 +48,7 @@ fun Project.saveAndDump(
     additionalRoots = additionalRoots,
     devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
     projectJdk = ProjectRootManager.getInstance(this).projectSdk,
+    ignoreModuleFileAndType = ignoreModuleFileAndType
   )
 
   dumpToAction(this, dumper)
