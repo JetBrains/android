@@ -2117,6 +2117,13 @@ public final class StudioFlags {
                     "When enabled, @folder can be used to attach folders as context.",
                     enabledUpTo(DEV));
 
+  public static final Flag<Long> STUDIOBOT_FOLDER_CONTEXT_MAX_INCLUDED_FILES =
+    new LongFlag(STUDIOBOT, "chat.folder.context.max.included.files",
+                 "The max number of files included by a @folder attachment.",
+                 "Specifies the max number of files included by a @folder attachment.",
+                 100L
+    );
+
   public static final Flag<Boolean> STUDIOBOT_DEPENDENCY_SUGGESTION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.suggest.dependencies.on.insert",
                     "Suggest missing dependencies when inserting/pasting code snippets",
