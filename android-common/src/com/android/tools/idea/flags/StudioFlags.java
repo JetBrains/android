@@ -1664,7 +1664,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR = new BooleanFlag(
     APP_INSPECTION, "use.experimental.database.inspector", "Use experimental Database Inspector",
     "Use experimental Database Inspector",
-    false
+    enabledUpTo(CANARY)
   );
   // endregion
 

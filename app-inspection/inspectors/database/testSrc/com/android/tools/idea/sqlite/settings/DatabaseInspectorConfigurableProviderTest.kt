@@ -24,34 +24,44 @@ import java.awt.Component
 import javax.swing.JCheckBox
 import kotlin.test.fail
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 private val EXPERIMENTAL_FLAG = StudioFlags.APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR
 
+@RunWith(JUnit4::class)
 class DatabaseInspectorConfigurableProviderTest : LightPlatformTestCase() {
   private lateinit var databaseInspectorSettings: DatabaseInspectorSettings
 
-  @get:Rule val flagRule = FlagRule(EXPERIMENTAL_FLAG)
+  @get:Rule val flagRule = FlagRule(EXPERIMENTAL_FLAG, true)
 
   override fun setUp() {
     super.setUp()
     databaseInspectorSettings = DatabaseInspectorSettings.getInstance()
   }
 
+  @Test
   fun testConfigurableName() {
+    println("testConfigurableName: ${EXPERIMENTAL_FLAG.get()}")
     val provider = DatabaseInspectorConfigurableProvider()
     val configurable = provider.createConfigurable()
 
     assertEquals("Database Inspector", configurable.displayName)
   }
 
+  @Test
   fun testConfigurableId() {
+    println("testConfigurableId: ${EXPERIMENTAL_FLAG.get()}")
     val provider = DatabaseInspectorConfigurableProvider()
     val configurable = provider.createConfigurable() as SearchableConfigurable
 
     assertEquals("database.inspector", configurable.id)
   }
 
+  @Test
   fun testConfigurableSettingsInteraction_enableOfflineMode() {
+    println("testConfigurableSettingsInteraction_enableOfflineMode: ${EXPERIMENTAL_FLAG.get()}")
     val provider = DatabaseInspectorConfigurableProvider()
     val configurable = provider.createConfigurable()
     val checkbox =
@@ -81,11 +91,11 @@ class DatabaseInspectorConfigurableProviderTest : LightPlatformTestCase() {
     assertFalse(checkbox.isSelected)
   }
 
+  @Test
   fun testConfigurableSettingsInteraction_forceOpen() {
-    EXPERIMENTAL_FLAG.override(true)
-
     val provider = DatabaseInspectorConfigurableProvider()
     val configurable = provider.createConfigurable()
+    println("testConfigurableSettingsInteraction_forceOpen: ${EXPERIMENTAL_FLAG.get()}")
     val checkbox =
       configurable.createComponent().getNamedComponent<JCheckBox>("forceOpen")
         ?: kotlin.test.fail("Can't find forceOpen checkbox")
@@ -113,7 +123,10 @@ class DatabaseInspectorConfigurableProviderTest : LightPlatformTestCase() {
     assertFalse(checkbox.isSelected)
   }
 
+  @Test
   fun testForceOpenCheckbox_flagDisabled_notShown() {
+    println("testForceOpenCheckbox_flagDisabled_notShown: ${EXPERIMENTAL_FLAG.get()}")
+    EXPERIMENTAL_FLAG.override(false)
     val provider = DatabaseInspectorConfigurableProvider()
     val configurable = provider.createConfigurable()
 
