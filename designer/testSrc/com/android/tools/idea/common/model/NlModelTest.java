@@ -52,7 +52,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
@@ -78,7 +77,6 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -455,8 +453,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
-                                       projectSystem, getTestRootDisposable());
+    projectSystem.useInTests();
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -499,15 +496,13 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
-  // b/156479695
-  public void ignore_testAddComponentsNoDependencyCheckOnMove() {
+  public void testAddComponentsNoDependencyCheckOnMove() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
-                                       projectSystem, getTestRootDisposable());
+    projectSystem.useInTests();
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
