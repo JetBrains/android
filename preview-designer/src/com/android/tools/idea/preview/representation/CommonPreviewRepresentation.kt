@@ -231,7 +231,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           if (navigatableElement == null) emptyList<PreviewNavigatableWrapper>()
           listOf(PreviewNavigatableWrapper("", navigatableElement!!))
         },
-        componentNavigationDelegateTwo = { sceneView, _ , _-> listOf() },
+        componentNavigationDelegateTwo = { sceneView, _, _ -> listOf() },
       )
       .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
 
@@ -968,4 +968,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
    */
   @TestOnly
   fun renderedPreviewElementsFlowForTest() = previewFlowManager.renderedPreviewElementsFlow
+
+  @TestOnly fun requestRefreshForTest() = requestRefresh()
 }

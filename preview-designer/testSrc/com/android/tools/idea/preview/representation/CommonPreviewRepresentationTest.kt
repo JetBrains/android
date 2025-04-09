@@ -847,6 +847,21 @@ class CommonPreviewRepresentationTest {
 
     // Build the project and wait for a refresh to happen, setting the 'invalidated' to false
     buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    // TODO(b/383310211): remove this once the race condition is fixed
+    run {
+      // The request sometimes happens before the status is RenderingBuildStatus.Ready due to a
+      // de-sync between the project build status and the rendering build status. A refresh
+      // request will be sent once the project status is ready. However, if by the time the
+      // refresh is occurring, the rendering build status has not yet updated, we can skip a
+      // refresh, leading to the condition below never succeeding. Instead, here we manually
+      // wait for the rendering build status to be ready and then trigger a refresh to ensure at
+      // least once refresh has occurred.
+      delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
+        getProjectBuildStatusForTest() is RenderingBuildStatus.Ready
+      }
+      requestRefreshForTest()
+    }
+
     delayUntilCondition(delayPerIterationMs = 1000, 40.seconds) {
       !isInvalidatedForTest() &&
         refreshManager.getTotalRequestsInQueueForTest() == 0 &&
