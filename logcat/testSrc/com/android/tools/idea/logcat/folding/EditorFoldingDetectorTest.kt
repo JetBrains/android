@@ -42,6 +42,9 @@ class EditorFoldingDetectorTest {
   private val editor
     get() = logcatEditorRule.editor
 
+  private val document
+    get() = editor.document
+
   @Test
   fun detectFoldings_firstLines() {
     val foldingDetector = foldingDetector(editor, listOf(TestConsoleFolding("foo")))
@@ -57,7 +60,7 @@ class EditorFoldingDetectorTest {
     foldingDetector.detectFoldings(0, editor.document.lineCount - 1)
 
     assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
-      .containsExactly(FoldInfo("foo\nfoo", "2 x foo"))
+      .containsExactly(FoldInfo("foo|foo", "2 x foo"))
   }
 
   @Test
@@ -75,7 +78,7 @@ class EditorFoldingDetectorTest {
     foldingDetector.detectFoldings(0, editor.document.lineCount - 1)
 
     assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
-      .containsExactly(FoldInfo("foo\nfoo", "2 x foo"))
+      .containsExactly(FoldInfo("foo|foo", "2 x foo"))
   }
 
   @Test
@@ -94,7 +97,7 @@ class EditorFoldingDetectorTest {
     foldingDetector.detectFoldings(0, editor.document.lineCount - 1)
 
     assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
-      .containsExactly(FoldInfo("foo\nfoo", "2 x foo"))
+      .containsExactly(FoldInfo("foo|foo", "2 x foo"))
   }
 
   @Test
@@ -111,7 +114,7 @@ class EditorFoldingDetectorTest {
     foldingDetector.detectFoldings(0, editor.document.lineCount - 1)
 
     assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
-      .containsExactly(FoldInfo("foo\nfoo", "2 x foo"))
+      .containsExactly(FoldInfo("foo|foo", "2 x foo"))
   }
 
   @Test
@@ -132,7 +135,7 @@ class EditorFoldingDetectorTest {
     foldingDetector.detectFoldings(0, editor.document.lineCount - 1)
 
     assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
-      .containsExactly(FoldInfo("\nfoo", "1 x foo"))
+      .containsExactly(FoldInfo("|foo", "1 x foo"))
   }
 
   @Test
@@ -245,7 +248,7 @@ class EditorFoldingDetectorTest {
 
     assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
       .containsExactly(
-        FoldInfo("foo1\nbar1\nfoo2\nbar2\nfoo3", "5 x foo|bar"),
+        FoldInfo("foo1|bar1|foo2|bar2|foo3", "5 x foo|bar"),
         FoldInfo("bar1", "1 x bar"),
         FoldInfo("bar2", "1 x bar"),
       )
@@ -270,7 +273,7 @@ class EditorFoldingDetectorTest {
 
     assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
       .containsExactly(
-        FoldInfo("foo1\nbar1\nfoo2\nbar2\nfoo3", "5 x foo|bar"),
+        FoldInfo("foo1|bar1|foo2|bar2|foo3", "5 x foo|bar"),
         FoldInfo("bar1", "1 x bar"),
         FoldInfo("bar2", "1 x bar"),
       )
@@ -311,12 +314,69 @@ class EditorFoldingDetectorTest {
       )
   }
 
+  @Test
+  fun detectFoldings_mergeRegions_shouldBeAttachedToThePreviousLine_true() {
+    val foldingDetector =
+      foldingDetector(
+        editor,
+        listOf(TestConsoleFolding("foo", shouldBeAttachedToThePreviousLine = true)),
+      )
+    foldingDetector.appendLineAndDetect("foo1")
+    foldingDetector.appendLineAndDetect("foo2")
+    foldingDetector.appendLineAndDetect("bar1")
+    foldingDetector.appendLineAndDetect("foo3")
+    foldingDetector.appendLineAndDetect("foo4")
+    foldingDetector.appendLineAndDetect("bar2")
+    foldingDetector.appendLineAndDetect("foo5")
+    foldingDetector.appendLineAndDetect("foo6")
+
+    assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
+      .containsExactly(
+        FoldInfo("foo1|foo2", "2 x foo"),
+        FoldInfo("|foo3|foo4", "2 x foo"),
+        FoldInfo("|foo5|foo6", "2 x foo"),
+      )
+  }
+
+  @Test
+  fun detectFoldings_mergeRegions_shouldBeAttachedToThePreviousLine_false() {
+    val foldingDetector =
+      foldingDetector(
+        editor,
+        listOf(TestConsoleFolding("foo", shouldBeAttachedToThePreviousLine = false)),
+      )
+    foldingDetector.appendLineAndDetect("foo1")
+    foldingDetector.appendLineAndDetect("foo2")
+    foldingDetector.appendLineAndDetect("bar1")
+    foldingDetector.appendLineAndDetect("foo3")
+    foldingDetector.appendLineAndDetect("foo4")
+    foldingDetector.appendLineAndDetect("bar2")
+    foldingDetector.appendLineAndDetect("foo5")
+    foldingDetector.appendLineAndDetect("foo6")
+
+    assertThat(editor.foldingModel.allFoldRegions.map { it.toFoldInfo(editor) })
+      .containsExactly(
+        FoldInfo("foo1|foo2", "2 x foo"),
+        FoldInfo("foo3|foo4", "2 x foo"),
+        FoldInfo("foo5|foo6", "2 x foo"),
+      )
+  }
+
+  private fun EditorFoldingDetector.appendLineAndDetect(line: String) {
+    val startLine = if (document.lineCount == 0) 0 else document.lineCount - 1
+    document.insertString(document.textLength, "$line\n")
+    detectFoldings(startLine, document.lineCount - 1)
+  }
+
   private fun foldingDetector(editor: Editor, consoleFoldings: List<ConsoleFolding>) =
     EditorFoldingDetector(projectRule.project, editor, consoleFoldings)
 }
 
 private fun FoldRegion.toFoldInfo(editor: Editor) =
-  FoldInfo(editor.document.text.substring(startOffset, endOffset), placeholderText)
+  FoldInfo(
+    editor.document.text.substring(startOffset, endOffset).replace('\n', '|'),
+    placeholderText,
+  )
 
 private data class FoldInfo(val text: String, val placeholder: String)
 
