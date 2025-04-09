@@ -16,6 +16,8 @@
 package com.android.tools.idea.common.editor;
 
 
+import static com.android.tools.idea.common.editor.DefaultModelProviderKt.getDEFAULT_MODEL_PROVIDER;
+
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
@@ -30,7 +32,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.notifications.NotificationPanel;
 import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -38,7 +39,6 @@ import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider;
-import com.android.tools.idea.uibuilder.type.FileTypeUtilsKt;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -288,7 +288,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface<?>>>> toolWindowDefinitions,
                              @NotNull State defaultState) {
     this(editor, project, file, workBench, surface, componentRegistrar,
-         ModelProvider.defaultModelProvider, toolWindowDefinitions, null, defaultState);
+         getDEFAULT_MODEL_PROVIDER(), toolWindowDefinitions, null, defaultState);
   }
 
   /**
@@ -520,30 +520,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
     SPLIT,
     /** Surface is deactivated and not being displayed. */
     DEACTIVATED
-  }
-
-  /**
-   * Used to provide the {@link NlModel}s for the editor file.
-   */
-  public interface ModelProvider {
-
-    ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) -> {
-      Configuration configuration = FileTypeUtilsKt.getConfiguration(file, ConfigurationManager.getOrCreateInstance(facet.getModule()));
-      NlModel model = new NlModel.Builder(disposable, facet, file, configuration)
-        .withComponentRegistrar(componentRegistrar)
-        .build();
-      model.getDisplaySettings().setDisplayName(""); // For the Layout Editor, set an empty name to enable SceneView toolbars.
-      return model;
-    };
-
-    /**
-     * The function Create the {@link NlModel}s for the given virtual file.
-     */
-    NlModel createModel(@NotNull Disposable parentDisposable,
-                        @NotNull Project project,
-                        @NotNull AndroidBuildTargetReference buildTarget,
-                        @NotNull Consumer<NlComponent> componentRegistrar,
-                        @NotNull VirtualFile file);
   }
 
   private static class WaitingForGradleSyncException extends RuntimeException {

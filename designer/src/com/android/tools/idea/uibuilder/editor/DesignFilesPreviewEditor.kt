@@ -22,9 +22,11 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.actions.ANIMATION_TOOLBAR
+import com.android.tools.idea.common.editor.DEFAULT_MODEL_PROVIDER
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
+import com.android.tools.idea.common.editor.ModelProvider
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -120,7 +122,7 @@ class DesignFilesPreviewEditor(
 
     val modelProvider =
       if (fileType is AnimatedStateListFileType) MyAnimatedSelectorModelProvider()
-      else DesignerEditorPanel.ModelProvider.defaultModelProvider
+      else DEFAULT_MODEL_PROVIDER
 
     return DesignerEditorPanel(
       this,
@@ -136,7 +138,7 @@ class DesignFilesPreviewEditor(
     )
   }
 
-  private inner class MyAnimatedSelectorModelProvider : DesignerEditorPanel.ModelProvider {
+  private inner class MyAnimatedSelectorModelProvider : ModelProvider {
     override fun createModel(
       parentDisposable: Disposable,
       project: Project,
