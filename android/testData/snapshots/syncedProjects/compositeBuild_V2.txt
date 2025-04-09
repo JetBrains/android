@@ -1425,7 +1425,7 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
-        ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
+        ORDER_ENTRY                   : TestCompositeLibNested_3.compositeNest.main
         ORDER_ENTRY                   : composite4.main
         Classes
             -                             : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
@@ -1594,7 +1594,7 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : TestCompositeLib3.lib.main
             Scope                         : Test
-        ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
+        ORDER_ENTRY                   : TestCompositeLibNested_3.compositeNest.main
             Scope                         : Test
         ORDER_ENTRY                   : composite4.main
             Scope                         : Test
@@ -2033,15 +2033,15 @@ PROJECT                       : project
                 SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:lib:createMockableJar
                 BASELINE_PROFILE_GEN          : <PROJECT>::TestCompositeLib3:lib:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : <PROJECT>::TestCompositeLib3:lib:generateBaselineProfile
-    MODULE                        : com.test.compositeNest3.compositeNest
+    MODULE                        : TestCompositeLibNested_3.compositeNest
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleVersion         : 1.0
         LinkedProjectId               : :TestCompositeLib3:TestCompositeLibNested_3
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/com.test.compositeNest3.compositeNest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/com.test.compositeNest3.compositeNest [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLibNested_3.compositeNest [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLibNested_3.compositeNest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    :  [-]
@@ -2058,7 +2058,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
-    MODULE                        : com.test.compositeNest3.compositeNest.main
+    MODULE                        : TestCompositeLibNested_3.compositeNest.main
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -2083,7 +2083,7 @@ PROJECT                       : project
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
-    MODULE                        : com.test.compositeNest3.compositeNest.test
+    MODULE                        : TestCompositeLibNested_3.compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
@@ -2103,7 +2103,7 @@ PROJECT                       : project
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
+        ORDER_ENTRY                   : TestCompositeLibNested_3.compositeNest.main
         BUILD_TASKS
                 ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
                 REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
