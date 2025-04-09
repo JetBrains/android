@@ -841,7 +841,7 @@ class ComposePreviewRepresentationTest {
             import androidx.compose.runtime.Composable
 
             @Composable
-            @Preview(device = "id:wearos_square")
+            @Preview(device = "id:wearos_small_round")
             fun Preview() {
             }
           """
@@ -878,22 +878,46 @@ class ComposePreviewRepresentationTest {
       }
 
       assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
-        .containsExactly("Wear OS Devices")
+        .containsExactly("Wear OS Devices", "Font scales")
       preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         25.seconds,
       ) {
-        it.asCollection().size == 2
+        it.asCollection().size == 8
       }
       assertEquals(
         """
           TestKt.Preview
           id:wearos_large_round
-          PreviewDisplaySettings(name=Wear OS Large Round - Preview, baseName=Preview, parameterName=Wear OS Large Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=Wear OS Large Round - Preview, baseName=Preview, parameterName=Wear OS Large Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Wear OS Devices)
 
           TestKt.Preview
           id:wearos_small_round
-          PreviewDisplaySettings(name=Wear OS Small Round - Preview, baseName=Preview, parameterName=Wear OS Small Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=Wear OS Small Round - Preview, baseName=Preview, parameterName=Wear OS Small Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Wear OS Devices)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Small - Preview, baseName=Preview, parameterName=Small, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Normal - Preview, baseName=Preview, parameterName=Normal, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Medium - Preview, baseName=Preview, parameterName=Medium, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Large - Preview, baseName=Preview, parameterName=Large, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Larger - Preview, baseName=Preview, parameterName=Larger, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Largest - Preview, baseName=Preview, parameterName=Largest, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
 
         """
           .trimIndent(),

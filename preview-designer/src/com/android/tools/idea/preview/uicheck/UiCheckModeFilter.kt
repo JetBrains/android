@@ -53,6 +53,16 @@ private val fontScales =
     1.8f to "180%",
     2.0f to "200%",
   )
+// https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:wear/compose/compose-ui-tooling/src/main/java/androidx/wear/compose/ui/tooling/preview/WearPreviewFontScales.kt
+private val wearFontScales =
+  mapOf(
+    0.94f to "Small",
+    1.0f to "Normal",
+    1.06f to "Medium",
+    1.12f to "Large",
+    1.18f to "Larger",
+    1.24f to "Largest",
+  )
 private val lightDarkModes =
   mapOf(Configuration.UI_MODE_NIGHT_NO to "Light", Configuration.UI_MODE_NIGHT_YES to "Dark")
 
@@ -118,7 +128,8 @@ sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
         }
         val previewInstances = mutableListOf<T>()
         if (isWearPreview) {
-          previewInstances.addAll(wearPreviews(base))
+          previewInstances.addAll(wearDevicesPreviews(base))
+          previewInstances.addAll(fontSizePreviews(base, isWearPreview = true))
         } else {
           previewInstances.addAll(deviceSizePreviews(base))
           previewInstances.addAll(fontSizePreviews(base))
@@ -131,7 +142,7 @@ sealed class UiCheckModeFilter<T : PreviewElementInstance<*>> {
   }
 }
 
-private fun <T : PreviewElementInstance<*>> wearPreviews(baseInstance: T): List<T> {
+private fun <T : PreviewElementInstance<*>> wearDevicesPreviews(baseInstance: T): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
   return wearSpecToName
@@ -144,6 +155,7 @@ private fun <T : PreviewElementInstance<*>> wearPreviews(baseInstance: T): List<
           parameterName = name,
           group = message("ui.check.mode.wear.group"),
           showDecoration = true,
+          organizationGroup = message("ui.check.mode.wear.group"),
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
@@ -176,9 +188,13 @@ private fun <T : PreviewElementInstance<*>> deviceSizePreviews(baseInstance: T):
     .filterIsInstance(baseInstance::class.java)
 }
 
-private fun <T : PreviewElementInstance<*>> fontSizePreviews(baseInstance: T): List<T> {
+private fun <T : PreviewElementInstance<*>> fontSizePreviews(
+  baseInstance: T,
+  isWearPreview: Boolean = false,
+): List<T> {
   val baseConfig = baseInstance.configuration
   val baseDisplaySettings = baseInstance.displaySettings
+  val fontScales = if (isWearPreview) wearFontScales else fontScales
   return fontScales
     .map { (value, name) ->
       val config = baseConfig.copy(fontScale = value)
@@ -189,6 +205,7 @@ private fun <T : PreviewElementInstance<*>> fontSizePreviews(baseInstance: T): L
           parameterName = name,
           group = message("ui.check.mode.font.scale.group"),
           organizationGroup = message("ui.check.mode.font.scale.group"),
+          showDecoration = isWearPreview,
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
