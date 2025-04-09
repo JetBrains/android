@@ -1300,32 +1300,6 @@ public final class StudioFlags {
 
   //endregion
 
-  //region Essentials Mode
-
-  public static final FlagGroup ESSENTIALS_MODE = new FlagGroup(FLAGS, "essentialsmode", "Essentials Mode");
-
-
-  public static final Flag<Boolean> ESSENTIALS_MODE_VISIBLE = new BooleanFlag(
-    ESSENTIALS_MODE, "essentials.mode.action.visible",
-    "Show Essentials Mode visible in File drop down menu",
-    "If enabled, makes Essential Highlighting action visible",
-    false
-  );
-  public static final Flag<Boolean> ESSENTIALS_HIGHLIGHTING_MODE = new BooleanFlag(
-    ESSENTIALS_MODE, "essential.highlighting.in.essentials.mode",
-    "Essential Highlighting mode on in Essentials mode",
-    "When enabled turns on Essential Highlighting mode when in Essentials Mode. Essential Highlighting mode enables " +
-    "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
-    false);
-
-  public static final Flag<Boolean> ESSENTIALS_MODE_GETS_RECOMMENDED = new BooleanFlag(
-    ESSENTIALS_MODE, "essentials.mode.gets.recommend",
-    "Essentials Mode is able to get recommended to the user",
-    "When enabled this allows Android Studio to drive adoption of Essentials Mode by recommending users should try it out.",
-    false);
-
-  //endregion
-
   //region Unified App Bundle
   private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
 
