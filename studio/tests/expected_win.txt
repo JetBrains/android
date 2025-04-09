@@ -2332,6 +2332,9 @@ android-studio/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 android-studio/plugins/gemini/lib/libv1internal_java_rest.jar
 android-studio/plugins/gemini/lib/opencensus-api-0.31.1.jar
 android-studio/plugins/gemini/lib/opencensus-contrib-http-util-0.31.1.jar
+android-studio/plugins/gemini/lib/proto-models-1.0.jar
+android-studio/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
+android-studio/plugins/gemini/resources/recorder-release-androidTest.apk
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar

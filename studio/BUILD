@@ -742,6 +742,8 @@ studio_plugin(
     directory = "gemini",
     libs = [
         "//prebuilts/tools/common/m2:libgoogle_auth_transitive_deps",
+        "//prebuilts/tools/common/m2:wire-runtime-jvm-5.3.1",
+        "//tools/vendor/google/ml/aiplugin/android/journeys:proto-models-1.0",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libgoogle_auth_intellij_lib",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libfeedback_java_proto",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libv1internal_java_rest",
@@ -765,6 +767,11 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
+        ],
+    },
+    resources = {
+        "resources": [
+            "//tools/vendor/google/uiautomator-recorder:recorder-release-androidTest.apk",
         ],
     },
     visibility = ["//visibility:public"],
