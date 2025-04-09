@@ -55,7 +55,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
       }
     }
     parent.parsedModel.modules.forEach { path ->
-      val buildModel = projectParsedModel.getModuleByGradlePath(path)
+      val buildModel = projectParsedModel.getBuildModelByGradlePath(path)
       val moduleType = buildModel?.parsedModelModuleType()
       val moduleKey = when (moduleType) {
         PsModuleType.JAVA -> ModuleKey(ModuleKind.JAVA, path)
@@ -138,7 +138,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
         ?.buildFile
         ?.let { buildFilePath -> LocalFileSystem.getInstance().findFileByIoFile(File(buildFilePath)) }
         ?.let { virtualFile -> projectParsedModel.getModuleBuildModel(virtualFile) }
-    ?: projectParsedModel.takeIf { it.modules.contains(gradlePath) }?.getModuleByGradlePath(gradlePath)
+    ?: projectParsedModel.takeIf { it.modules.contains(gradlePath) }?.getBuildModelByGradlePath(gradlePath)
 
   override fun instantiateNew(key: ModuleKey) = throw UnsupportedOperationException()
 
@@ -183,7 +183,7 @@ fun Project.getModuleByGradlePath(gradlePath: String) =
         .modules
         .firstOrNull { it.getGradleProjectPath()?.path == gradlePath }
 
-private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleBuildModel? =
+private fun ProjectBuildModel.getBuildModelByGradlePath(gradlePath: String): GradleBuildModel? =
     when {
       projectSettingsModel == null && gradlePath == ":" -> projectBuildModel
       else -> {
@@ -191,7 +191,7 @@ private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleB
           projectSettingsModel
               .buildFile(gradlePath)
               ?.let { relativeFile ->
-                (projectSettingsModel.moduleDirectory(":") ?: return@getModuleByGradlePath null).resolve(relativeFile)
+                (projectSettingsModel.moduleDirectory(":") ?: return@getBuildModelByGradlePath null).resolve(relativeFile)
               }
               ?.let { absoluteFile -> LocalFileSystem.getInstance().findFileByIoFile(absoluteFile) }
               ?.let { virtualFile -> this.getModuleBuildModel(virtualFile) }
