@@ -724,8 +724,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private fun configureLayoutlibSceneManager(layoutlibSceneManager: LayoutlibSceneManager) =
     layoutlibSceneManager.apply {
       sceneRenderConfiguration.let { config ->
-        config.cacheSuccessfulRenderImage =
-          StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && mode.value !is PreviewMode.Interactive
+        // When the cache successful render image is enabled, the scene manager will retain the last
+        // valid image even if subsequent renders fail. But do not cache in interactive mode as it
+        // does not help, and it would make unnecessary copies of the bitmap.
+        config.cacheSuccessfulRenderImage = mode.value !is PreviewMode.Interactive
         config.classesToPreload =
           if (mode.value is PreviewMode.Interactive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
         config.usePrivateClassLoader = mode.value is PreviewMode.Interactive

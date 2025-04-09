@@ -1387,11 +1387,6 @@ public final class StudioFlags {
     "When the zoom level is lower than this value, all previews will be rendered at low quality",
     20);
 
-  public static final Flag<Boolean> PREVIEW_KEEP_IMAGE_ON_ERROR = new BooleanFlag(
-    PREVIEW_COMMON, "keep.image.on.error", "Keeps the last valid image after a render error",
-    "If enabled, when an error happens, the surface will keep the last valid image",
-    true);
-
   public static final Flag<Boolean> PREVIEW_ESSENTIALS_MODE = new BooleanFlag(
     PREVIEW_COMMON, "essentials.mode", "Enable Preview Essentials Mode",
     "If enabled, Preview Essentials Mode will be enabled.",

@@ -250,8 +250,7 @@ fun configureLayoutlibSceneManager(
       // When the cache successful render image is enabled, the scene manager will retain the last
       // valid image even if subsequent renders fail. But do not cache in interactive mode as it
       // does not help, and it would make unnecessary copies of the bitmap.
-      config.cacheSuccessfulRenderImage =
-        StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && !isInteractive
+      config.cacheSuccessfulRenderImage = !isInteractive
       config.classesToPreload = if (isInteractive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
       config.usePrivateClassLoader = requestPrivateClassLoader
       config.showDecorations = showDecorations
