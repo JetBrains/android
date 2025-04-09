@@ -79,7 +79,10 @@ public class ModelLintIssueAnnotator {
       return;
     }
     Disposable computationToken = Disposer.newDisposable();
-    Disposer.register(model, computationToken);
+    if (!Disposer.tryRegister(model, computationToken)) {
+      // The model has been disposed, no need to keep going
+      return;
+    }
     Disposable oldComputation = annotationComputation.getAndSet(computationToken);
     if (oldComputation != null) {
       Disposer.dispose(oldComputation);
