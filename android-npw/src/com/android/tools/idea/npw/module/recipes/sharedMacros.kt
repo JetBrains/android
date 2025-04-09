@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module.recipes
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
@@ -101,13 +102,17 @@ fun proguardConfig(
 
 fun toAndroidFieldVersion(fieldName: String, fieldValue: String, agpVersion: AgpVersion): String {
   val isNewAGP = agpVersion.compareIgnoringQualifiers("7.0.0") >= 0
-  val versionNumber = fieldValue.toIntOrNull()
+  val androidVersion = AndroidVersion.fromString(fieldValue)
+  // TODO(b/409390818): Include minor version when AGP supports it
+  val apiLevelMajor = androidVersion.androidApiLevel.majorVersion
+
   return when {
-    isNewAGP && versionNumber == null ->
+    // TODO(b/409631131): replace might not be needed anymore
+    isNewAGP && androidVersion.isPreview ->
       "${fieldName}Preview \"${fieldValue.replace("android-", "")}\""
-    isNewAGP -> "$fieldName $versionNumber"
-    versionNumber == null -> "${fieldName}Version \"$fieldValue\""
-    else -> "${fieldName}Version $versionNumber"
+    isNewAGP -> "$fieldName $apiLevelMajor"
+    androidVersion.isPreview -> "${fieldName}Version \"$fieldValue\""
+    else -> "${fieldName}Version $apiLevelMajor"
   }
 }
 

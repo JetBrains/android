@@ -3,80 +3,14 @@
 <issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
 
     <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="            val fakeUser = LoggedInUser(java.util.UUID.randomUUID().toString(), &quot;Jane Doe&quot;)"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk 35"
+        errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/in/data/LoginDataSource.kt"
-            line="14"
-            column="41"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                    usernameEditText.text.toString(),"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
-            line="91"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                    passwordEditText.text.toString()"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
-            line="92"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                    usernameEditText.text.toString(),"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
-            line="101"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                    passwordEditText.text.toString()"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
-            line="102"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                usernameEditText.text.toString(),"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
-            line="111"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                passwordEditText.text.toString()"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/ui/login/LoginFragment.kt"
-            line="112"
-            column="17"/>
+            file="build.gradle"
+            line="13"
+            column="9"/>
     </issue>
 
     <issue

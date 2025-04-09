@@ -3,25 +3,14 @@
 <issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
 
     <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="        val request = PaymentDataRequest.fromJson(paymentDataRequestJson.toString())"
-        errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk 35"
+        errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/in/viewmodel/CheckoutViewModel.kt"
-            line="65"
-            column="51"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="fun Long.centsToString() = BigDecimal(this)"
-        errorLine2="                           ^">
-        <location
-            file="src/main/java/template/test/in/util/PaymentsUtil.kt"
-            line="208"
-            column="28"/>
+            file="build.gradle"
+            line="13"
+            column="9"/>
     </issue>
 
     <issue

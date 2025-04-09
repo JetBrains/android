@@ -19,25 +19,14 @@
     </issue>
 
     <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {@kotlin.internal.IntrinsicConstEvaluation&#xA;open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="            holder.text.text = position.toString()"
-        errorLine2="                               ~~~~~~~~~~~~~~~~~~~">
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk 35"
+        errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/in/ItemListDialogFragment.kt"
-            line="74"
-            column="32"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {@kotlin.internal.IntrinsicConstEvaluation&#xA;open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="            holder.text.text = position.toString()"
-        errorLine2="                               ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/ItemListDialogFragment.kt"
-            line="74"
-            column="32"/>
+            file="build.gradle"
+            line="13"
+            column="9"/>
     </issue>
 
     <issue
