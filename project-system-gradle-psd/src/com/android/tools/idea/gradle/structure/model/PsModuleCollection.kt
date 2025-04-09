@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsMutableCollection
 import com.android.tools.idea.gradle.structure.model.empty.PsEmptyModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
@@ -97,7 +98,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
     val projectParsedModel = parent.parsedModel
     val gradlePathName = key.gradlePath.substringAfterLast(':')
     val moduleName = if (gradlePathName.isNotEmpty()) gradlePathName
-                     else parent.ideProject.getModuleByGradlePath(key.gradlePath)?.name ?: "Unknown"
+                     else parent.ideProject.getHolderModuleByGradlePath(key.gradlePath)?.name ?: "Unknown"
 
     val moduleResolvedModel =
         parent.getResolvedModuleModelsByGradlePath()[key.gradlePath]
@@ -176,12 +177,12 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
   }
 }
 
-fun Project.getModuleByGradlePath(gradlePath: String) =
+fun Project.getHolderModuleByGradlePath(gradlePath: String) =
     // TODO(b/149203281): Fix support for composite builds.
     ModuleManager
         .getInstance(this)  // Use ideProject to find the name of the module.
         .modules
-        .firstOrNull { it.getGradleProjectPath()?.path == gradlePath }
+        .firstOrNull { it.getGradleProjectPath().run { this is GradleHolderProjectPath && path == gradlePath } }
 
 private fun ProjectBuildModel.getBuildModelByGradlePath(gradlePath: String): GradleBuildModel? =
     when {

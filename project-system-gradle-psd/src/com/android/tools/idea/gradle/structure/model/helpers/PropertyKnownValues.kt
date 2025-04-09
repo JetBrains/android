@@ -32,7 +32,7 @@ import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.getModuleByGradlePath
+import com.android.tools.idea.gradle.structure.model.getHolderModuleByGradlePath
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.KnownValues
@@ -98,7 +98,7 @@ fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescript
 })
 
 fun proGuardFileValuesCore(module: PsAndroidModule): List<ValueDescriptor<File>> =
-  module.parent.ideProject.getModuleByGradlePath(module.gradlePath)?.let { ideModule ->
+  module.parent.ideProject.getHolderModuleByGradlePath(module.gradlePath)?.let { ideModule ->
     FilenameIndex.getAllFilesByExt(
       ideModule.project,
       "pro",
