@@ -2344,9 +2344,11 @@ Android Studio Preview.app/Contents/plugins/android/lib/sdklib-sdk-schema.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdklib.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shared.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-0.8.18.jar
+Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-linux-arm64-0.8.18.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-linux-x64-0.8.18.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-arm64-0.8.18.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-x64-0.8.18.jar
+Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-windows-arm64-0.8.18.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-windows-x64-0.8.18.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.3.jar
