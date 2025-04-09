@@ -21,7 +21,6 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
@@ -138,7 +137,7 @@ class RenderingBuildStatusManagerTest {
       statusManager.awaitReady()
 
       // Disabling Live Edit will bring the out of date state
-      FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
+      FastPreviewManager.getInstance(project).disable()
       statusManager.awaitReady()
     } finally {
       FastPreviewConfiguration.getInstance().resetDefault()
@@ -163,7 +162,7 @@ class RenderingBuildStatusManagerTest {
       statusManager.awaitNeedsBuild()
 
       // Disabling Live Edit will bring the out of date state
-      FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
+      FastPreviewManager.getInstance(project).disable()
       statusManager.awaitNeedsBuild()
     } finally {
       FastPreviewConfiguration.getInstance().resetDefault()
@@ -200,7 +199,7 @@ class RenderingBuildStatusManagerTest {
       }
 
       // Disabling Live Edit will bring the out of date state
-      FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
+      FastPreviewManager.getInstance(project).disable()
       statusManager.awaitOutOfDate()
     } finally {
       FastPreviewConfiguration.getInstance().resetDefault()

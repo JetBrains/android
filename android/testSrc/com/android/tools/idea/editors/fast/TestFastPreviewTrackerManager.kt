@@ -28,10 +28,6 @@ class TestFastPreviewTrackerManager(val showTimes: Boolean = true, val onRequest
     outputLog.appendLine("userDisabled")
   }
 
-  override fun autoDisabled() {
-    outputLog.appendLine("autoDisabled")
-  }
-
   override fun daemonStartFailed() {
     outputLog.appendLine("daemonStartFailed")
   }

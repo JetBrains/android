@@ -20,9 +20,7 @@ import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
-import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -62,8 +60,6 @@ class ComposePreviewStatusIconActionTest {
     )
 
   private val tf = listOf(true, false)
-  private val fastPreviewDisableReasons =
-    listOf(null, ManualDisabledReason, DisableReason("Auto-Disabled"))
 
   private val sceneViewMock = Mockito.mock(SceneView::class.java)
   private val sceneManagerMock = Mockito.mock(LayoutlibSceneManager::class.java)
@@ -109,8 +105,8 @@ class ComposePreviewStatusIconActionTest {
         for (renderError in tf) {
           for (outOfDate in tf) {
             for (refreshing in tf) {
-              for (fastPreviewDisableReason in fastPreviewDisableReasons) {
-                updateFastPreviewStatus(fastPreviewDisableReason)
+              for (enableState in tf) {
+                updateFastPreviewStatus(enableState)
                 this.renderError = renderError
                 val status =
                   originStatus.copy(
@@ -152,11 +148,11 @@ class ComposePreviewStatusIconActionTest {
     }
   }
 
-  private fun updateFastPreviewStatus(disableReason: DisableReason?) {
-    if (disableReason == null) {
+  private fun updateFastPreviewStatus(enableFastPreview: Boolean) {
+    if (enableFastPreview) {
       FastPreviewManager.getInstance(projectRule.project).enable()
     } else {
-      FastPreviewManager.getInstance(projectRule.project).disable(disableReason)
+      FastPreviewManager.getInstance(projectRule.project).disable()
     }
   }
 }

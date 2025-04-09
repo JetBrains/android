@@ -80,8 +80,7 @@ internal class BuildStatusTroubleInfoCollector : TroubleInfoCollector {
 internal class FastPreviewTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val fastPreview = FastPreviewManager.getInstance(project)
-    return if (fastPreview.isEnabled)
-      "FastPreviewStatus: available=${fastPreview.isAvailable} disableReason=${fastPreview.disableReason}"
+    return if (fastPreview.isEnabled) "FastPreviewStatus: available=${fastPreview.isAvailable}"
     else ""
   }
 }

@@ -18,17 +18,14 @@ package com.android.tools.idea.editors.fast
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.compile.fast.CompilationResult
-import com.android.tools.compile.fast.isError
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
-import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.util.toDisplayString
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
@@ -76,24 +73,6 @@ private fun Throwable.toLogString(): String {
 
   return exceptionStackWriter.toString()
 }
-
-data class DisableReason(val title: String, val description: String? = null, val throwable: Throwable? = null) {
-  /**
-   * True if a long description is available by calling [longDescriptionString].
-   */
-  val hasLongDescription: Boolean
-    get() = description != null || throwable != null
-
-  /**
-   * Returns the `description` and the full `throwable` if available.
-   */
-  fun longDescriptionString() = (description?.let { "$it\n" } ?: "") + throwable?.toLogString()
-}
-
-/**
- * A [DisableReason] to be used when calling [FastPreviewManager.disable] if it was disabled by the user.
- */
-val ManualDisabledReason = DisableReason("User disabled")
 
 /**
  * Class responsible to managing the existing daemons and avoid multiple daemons for the same version being started.
@@ -295,24 +274,6 @@ class FastPreviewManager private constructor(
     get() = !disableForThisSession && FastPreviewConfiguration.getInstance().isEnabled
 
   /**
-   * Returns the reason why the Fast Preview was disabled, if available.
-   */
-  var disableReason: DisableReason? = null
-    private set
-
-  /**
-   * Returns true if the service is auto disabled and was not manually disabled by the user.
-   */
-  val isAutoDisabled: Boolean
-    get() = !isEnabled && disableReason != null && disableReason != ManualDisabledReason
-
-  /**
-   * Allow auto disable. If set to true, the Fast Preview might disable itself automatically if there is a compiler failure.
-   * This can happen if the project has unsupported features like annotation providers.
-   */
-  var allowAutoDisable: Boolean = COMPOSE_FAST_PREVIEW_AUTO_DISABLE.get()
-
-  /**
    * Returns true when the feature is available. The feature will not be available if Studio is in power save mode, it's currently building
    * or fast preview is disabled.
    */
@@ -348,10 +309,6 @@ class FastPreviewManager private constructor(
    * successful and the path where the result classes can be found.
    *
    * The method takes an optional [ProgressIndicator] to update the progress of the request.
-   *
-   * If the compilation request is not successful and [allowAutoDisable] is true, the [FastPreviewManager] will disable
-   * itself until [enable] is called again. This is to prevent code that can not be compiled using this service being
-   * retried over and over. The user will have the option to re-enable it via a notification.
    *
    * The given [FastPreviewTrackerManager.Request] is used to track the metrics of this request.
    */
@@ -426,24 +383,6 @@ class FastPreviewManager private constructor(
     val durationMs = System.currentTimeMillis() - startTime
     val durationString = Duration.ofMillis(durationMs).toDisplayString()
     log.info("Compiled in $durationString (result=$result, id=$requestId)")
-    if (result.isError && allowAutoDisable) {
-      val reason = when (result) {
-        // Handle RequestException but do not disable the compilation if it's because of a syntax error. This might be caused by the
-        // user still typing.
-        is CompilationResult.RequestException ->
-          DisableReason(title = message("fast.preview.disabled.reason.unable.compile"),
-                        description = result.e?.message,
-                        throwable = result.e)
-        is CompilationResult.DaemonStartFailure -> DisableReason(title = message("fast.preview.disabled.reason.unable.start"),
-                                                                 throwable = result.e)
-        is CompilationResult.DaemonError -> DisableReason(
-          title = message("fast.preview.disabled.reason.unable.compile.compiler.error.title"),
-          description = message("fast.preview.disabled.reason.unable.compile.compiler.error.description"))
-        is CompilationResult.CompilationAborted, is CompilationResult.CompilationError -> null
-        is CompilationResult.Success -> throw IllegalStateException("Result is not an error, no disable reason")
-      }
-      if (reason != null) disable(reason)
-    }
 
     // Notify any error/success into the event log
     if (result !is CompilationResult.CompilationAborted) {
@@ -496,29 +435,15 @@ class FastPreviewManager private constructor(
   }
 
   /**
-   * Disables the Fast Preview. Optionally, receive a reason to be disabled that might be displayed to the user.
+   * Disables the Fast Preview.
    */
-  fun disable(reason: DisableReason) {
+  fun disable() {
     val wasEnabled = isEnabled
-    val newReason = disableReason != reason
-    disableReason = reason
 
-    if (newReason && reason != ManualDisabledReason && reason.hasLongDescription) {
-      // Log long description to the event log.
-      Notification(FAST_PREVIEW_NOTIFICATION_GROUP_ID,
-                   message("fast.preview.disabled.reason.unable.compile.compiler.error.description"),
-                   reason.longDescriptionString(),
-                   NotificationType.WARNING)
-        .notify(project)
-      disableForThisSession = true
-    }
-    else FastPreviewConfiguration.getInstance().isEnabled = false
+    FastPreviewConfiguration.getInstance().isEnabled = false
 
     val tracker = FastPreviewTrackerManager.getInstance(project)
-    if (reason == ManualDisabledReason)
-      tracker.userDisabled()
-    else
-      tracker.autoDisabled()
+    tracker.userDisabled()
 
     if (wasEnabled) {
       project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onFastPreviewStatusChanged(isEnabled)
@@ -528,7 +453,6 @@ class FastPreviewManager private constructor(
   /** Enables the Fast Preview. */
   fun enable() {
     val wasEnabled = isEnabled
-    disableReason = null
     disableForThisSession = false
     FastPreviewTrackerManager.getInstance(project).userEnabled()
     FastPreviewConfiguration.getInstance().isEnabled = true

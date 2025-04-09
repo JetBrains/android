@@ -35,7 +35,6 @@ import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.PsiCodeFileUpToDateStatusRecorder
-import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
@@ -79,8 +78,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-
-private val DISABLED_FOR_A_TEST = DisableReason("Disabled for a test")
 
 class ComposePreviewRepresentationGradleTest {
   @get:Rule
@@ -198,7 +195,7 @@ class ComposePreviewRepresentationGradleTest {
   fun `changes to code are reflected in the preview when rebuilding`() = runBlocking {
     // This test only makes sense when fast preview is disabled, as some build related logic is
     // being tested.
-    FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
+    FastPreviewManager.getInstance(project).disable()
     val firstRender = projectRule.findSceneViewRenderWithName("TwoElementsPreview")
 
     // Make a change to the preview
@@ -239,7 +236,7 @@ class ComposePreviewRepresentationGradleTest {
   fun `removing preview makes it disappear without rebuilding`() = runBlocking {
     // This test only makes sense when fast preview is disabled, as what's being tested is that
     // annotation changes take effect without rebuilding nor recompiling
-    FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
+    FastPreviewManager.getInstance(project).disable()
     projectRule.runAndWaitForRefresh(failOnTimeout = false) {
       // Remove the @Preview from the NavigatablePreview
       runWriteActionAndWait {
@@ -273,7 +270,7 @@ class ComposePreviewRepresentationGradleTest {
     runBlocking {
       // This test only makes sense when fast preview is disabled, as what's being tested is that
       // annotation changes take effect without rebuilding nor recompiling
-      FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
+      FastPreviewManager.getInstance(project).disable()
       val otherPreviewsFile = getPsiFile(project, SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
       projectRule.runAndWaitForRefresh(failOnTimeout = false) {

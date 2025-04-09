@@ -23,14 +23,13 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
-import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.edtWriteAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -61,8 +60,7 @@ class RenderingBuildStatusManagerTest {
   fun setup() {
     LiveEditApplicationConfiguration.getInstance().mode =
       LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
-    FastPreviewManager.getInstance(project)
-      .disable(DisableReason("Disabled for Live Literals testing"))
+    FastPreviewManager.getInstance(project).disable()
   }
 
   @After

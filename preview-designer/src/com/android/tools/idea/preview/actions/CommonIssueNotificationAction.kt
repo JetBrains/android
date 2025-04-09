@@ -42,9 +42,8 @@ private fun getStatus(project: Project, previewStatus: PreviewViewModelStatus) =
   when {
     previewStatus.isRefreshing -> PreviewStatus.Refreshing()
 
-    // No Fast Preview and Preview is out of date (only when is user disabled)
-    !project.fastPreviewManager.isAutoDisabled && previewStatus.isOutOfDate ->
-      PreviewStatus.OutOfDate
+    // No Fast Preview and Preview is out of date
+    previewStatus.isOutOfDate -> PreviewStatus.OutOfDate
 
     // Resources are out of date. FastPreview does not help with this.
     previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
@@ -54,8 +53,7 @@ private fun getStatus(project: Project, previewStatus: PreviewViewModelStatus) =
     previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
     previewStatus.hasRenderErrors -> PreviewStatus.RenderIssues
 
-    // Fast preview refresh/failures
-    project.fastPreviewManager.isAutoDisabled -> PreviewStatus.FastPreviewFailed
+    // Fast preview refresh
     project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
 
     // Up-to-date
@@ -106,17 +104,10 @@ private class FileProvider(dataContext: DataContext) : () -> PsiFile? {
 fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
   val fileProvider = FileProvider(dataContext)::invoke
   return getStatusInfo(project, dataContext)?.let { previewStatusNotification ->
-    val isAutoDisabled =
-      previewStatusNotification is PreviewStatus.FastPreviewFailed &&
-        project.fastPreviewManager.isAutoDisabled
-
     val linksList =
       listOfNotNull(
         createTitleActionLink(fileProvider),
         createErrorsActionLink(previewStatusNotification),
-        createReenableFastPreviewActionLink(isAutoDisabled),
-        createDisableFastPreviewActionLink(isAutoDisabled),
-        createFastPreviewFailedActionLink(previewStatusNotification),
       )
     return@let InformationPopupImpl(
       title = null,
@@ -133,38 +124,6 @@ fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): I
     )
   }
 }
-
-private fun createFastPreviewFailedActionLink(
-  previewStatusNotification: PreviewStatus
-): AnActionLink? =
-  previewStatusNotification
-    .takeIf { it is PreviewStatus.FastPreviewFailed }
-    ?.let {
-      AnActionLink(
-        text = message("fast.preview.disabled.notification.show.details.action.title"),
-        anAction = ShowEventLogAction(),
-      )
-    }
-
-private fun createDisableFastPreviewActionLink(isAutoDisabled: Boolean): AnActionLink? =
-  isAutoDisabled
-    .takeIf { it }
-    ?.let {
-      AnActionLink(
-        text = message("fast.preview.disabled.notification.stop.autodisable.action.title"),
-        anAction = ReEnableFastPreview(false),
-      )
-    }
-
-private fun createReenableFastPreviewActionLink(isAutoDisabled: Boolean): AnActionLink? =
-  isAutoDisabled
-    .takeIf { it }
-    ?.let {
-      AnActionLink(
-        text = message("fast.preview.disabled.notification.reenable.action.title"),
-        anAction = ReEnableFastPreview(),
-      )
-    }
 
 private fun createErrorsActionLink(it: PreviewStatus): AnActionLink? =
   when (it) {
