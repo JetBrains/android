@@ -636,15 +636,16 @@ bool VirtualMouse::WriteButtonEvent(int32_t android_button_code, int32_t android
 }
 
 bool VirtualMouse::WriteRelativeEvent(int32_t relative_x, int32_t relative_y, nanoseconds event_time) {
-  return WriteInputEvent(EV_REL, REL_X, relative_x, event_time) &&
-         WriteInputEvent(EV_REL, REL_Y, relative_y, event_time) &&
-         WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time);
+  return (relative_x == 0 || WriteInputEvent(EV_REL, REL_X, relative_x, event_time)) &&
+         (relative_x == 0 || WriteInputEvent(EV_REL, REL_Y, relative_y, event_time)) &&
+         ((relative_x == 0 && relative_y == 0) || WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time));
 }
 
-bool VirtualMouse::WriteScrollEvent(int32_t x_axis_movement, int32_t y_axis_movement, nanoseconds event_time) {
-  return WriteInputEvent(EV_REL, REL_HWHEEL, x_axis_movement, event_time) &&
-         WriteInputEvent(EV_REL, REL_WHEEL, y_axis_movement, event_time) &&
-         WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time);
+bool VirtualMouse::WriteScrollEvent(int32_t scroll_x, int32_t scroll_y, nanoseconds event_time) {
+  Log::D("%s: WriteScrollEvent(%d, %d,...)", phys_.c_str(), scroll_x, scroll_y);
+  return (scroll_x == 0 || WriteInputEvent(EV_REL, REL_HWHEEL, scroll_x, event_time, true)) &&
+         (scroll_y == 0 || WriteInputEvent(EV_REL, REL_WHEEL, scroll_y, event_time, true)) &&
+         ((scroll_x == 0 && scroll_y == 0) || WriteInputEvent(EV_SYN, SYN_REPORT, 0, event_time, true));
 }
 
 const map<int, UinputAction> VirtualMouse::BUTTON_ACTION_MAPPING = {
@@ -912,7 +913,7 @@ bool VirtualTouchscreen::WriteTouchEvent(int32_t pointer_id, int32_t tool_type, 
          phys_.c_str(), pointer_id, tool_type, action, location_x, location_y, pressure, major_axis_size, event_time.count());
   auto action_iterator = TOUCH_ACTION_MAPPING.find(action);
   if (action_iterator == TOUCH_ACTION_MAPPING.end()) {
-    Log::E("%s: unknown action: %d", phys_.c_str(), action);
+    Log::E("%s: Unknown action: %d", phys_.c_str(), action);
     return false;
   }
   UinputAction uinput_action = action_iterator->second;
@@ -921,7 +922,7 @@ bool VirtualTouchscreen::WriteTouchEvent(int32_t pointer_id, int32_t tool_type, 
   }
   auto tool_type_iterator = TOOL_TYPE_MAPPING.find(tool_type);
   if (tool_type_iterator == TOOL_TYPE_MAPPING.end()) {
-    Log::E("%s: unknown tool: %d", phys_.c_str(), tool_type);
+    Log::E("%s: Unknown tool: %d", phys_.c_str(), tool_type);
     return false;
   }
   if (!WriteInputEvent(EV_ABS, ABS_MT_SLOT, pointer_id, event_time, true)) {

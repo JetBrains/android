@@ -89,7 +89,7 @@ public:
 
   bool WriteButtonEvent(int32_t android_button_code, int32_t android_action, std::chrono::nanoseconds event_time);
   bool WriteRelativeEvent(int32_t relative_x, int32_t relative_y, std::chrono::nanoseconds event_time);
-  bool WriteScrollEvent(int32_t x_axis_movement, int32_t y_axis_movement, std::chrono::nanoseconds event_time);
+  bool WriteScrollEvent(int32_t scroll_x, int32_t scroll_y, std::chrono::nanoseconds event_time);
 
 private:
   friend class VirtualStylus;
