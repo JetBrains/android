@@ -254,10 +254,8 @@ class OpenProjectIntegrationTest {
           "All Tests Sub 36" to null
         ))
       }
-      runReadAction {
-        val projectImlFiles = collectProjectImlFiles(preparedProject)
-        Truth.assertThat(projectImlFiles).isEmpty()
-      }
+      val projectImlFiles = collectProjectImlFiles(preparedProject)
+      Truth.assertThat(projectImlFiles).isEmpty()
     }
   }
 
@@ -292,10 +290,8 @@ class OpenProjectIntegrationTest {
         ))
       }
 
-      runReadAction {
-        val projectImlFiles = collectProjectImlFiles(preparedProject)
-        Truth.assertThat(projectImlFiles).isEmpty()
-      }
+      val projectImlFiles = collectProjectImlFiles(preparedProject)
+      Truth.assertThat(projectImlFiles).isEmpty()
     }
   }
 
