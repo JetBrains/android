@@ -29,13 +29,15 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiNamedElement
-import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.util.ProcessingContext
+import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
+import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
+
 
 class DeclarativeVersionCatalogReferenceContributor : PsiReferenceContributor() {
   override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
@@ -174,28 +176,11 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
     override fun isSoft(): Boolean = false
   }
 
-
   companion object {
-    // TODO(b/335602524): as and when this can use utilities in project-system-gradle, consider replacing this with a call to
-    //  VersionCatalogUtil.findVersionCatalog().
     fun DeclarativeIdentifier.getVersionCatalogFile(): PsiFile? =
-      project.baseDir.findChild("gradle")?.findChild("${name!!}.versions.toml")?.let { virtualFile ->
+      getVersionCatalogFiles(project)[name]?.let { virtualFile ->
         PsiManager.getInstance(project).findFile(virtualFile)
       }
-
-    inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(crossinline predicate: (T) -> Boolean): T? {
-      var result: T? = null
-      this.accept(object : PsiRecursiveElementWalkingVisitor() {
-        override fun visitElement(element: PsiElement) {
-          if (element is T && predicate(element)) {
-            result = element
-            stopWalking()
-            return
-          }
-          super.visitElement(element)
-        }
-      })
-      return result
-    }
   }
+
 }
