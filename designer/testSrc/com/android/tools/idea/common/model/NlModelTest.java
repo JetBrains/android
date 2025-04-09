@@ -411,8 +411,8 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
-    TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    projectSytem.useInTests();
+    TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
+    projectSystem.useInTests();
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
