@@ -50,7 +50,6 @@ constexpr duration SOCKET_WRITE_TIMEOUT = 10s;
 constexpr duration DISPLAY_POLLING_DURATION = 500ms;
 
 constexpr int FINGER_TOUCH_SIZE = 1;
-//constexpr int SCROLL_SCALE = 10;  // TODO: Determine the same value as Android.
 
 nanoseconds UptimeNanos() {
   timespec t = { 0, 0 };
@@ -389,9 +388,10 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   }
   int32_t tool = message.is_mouse() ? AMOTION_EVENT_TOOL_TYPE_STYLUS : AMOTION_EVENT_TOOL_TYPE_FINGER;
 
-  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 30) {
+  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 35 &&
+      action != AMOTION_EVENT_ACTION_SCROLL) {
     if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || action == AMOTION_EVENT_ACTION_HOVER_ENTER ||
-        action == AMOTION_EVENT_ACTION_HOVER_EXIT || action == AMOTION_EVENT_ACTION_SCROLL) {
+        action == AMOTION_EVENT_ACTION_HOVER_EXIT) {
       if (action == AMOTION_EVENT_ACTION_HOVER_MOVE) {
         auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
         for (auto& pointer : message.pointers()) {
@@ -408,30 +408,6 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
         auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
         tablet.StopHovering(event_time);
       }
-
-//      auto& mouse = GetVirtualMouse(display_id);
-//      if (action == AMOTION_EVENT_ACTION_SCROLL) {
-//        if (!message.pointers().empty()) {
-//          auto& pointer = message.pointers()[0];
-//          // TODO: Adjust current position by calling WriteRelativeEvent.
-//          int32_t x_axis_movement = 0;
-//          int32_t y_axis_movement = 0;
-//          for (const auto& entry: pointer.axis_values) {
-//            if (entry.first == AMOTION_EVENT_AXIS_VSCROLL) {
-//              y_axis_movement = entry.second * SCROLL_SCALE;
-//            } else if (entry.first == AMOTION_EVENT_AXIS_HSCROLL) {
-//              x_axis_movement = entry.second * SCROLL_SCALE;
-//            }
-//          }
-//          if (x_axis_movement != 0 || y_axis_movement != 0) {
-//            bool success = mouse.WriteScrollEvent(x_axis_movement, y_axis_movement, event_time);
-//            if (!success) {
-//              Log::E("Error writing mouse scroll event");
-//            }
-//          }
-//        }
-//      }
-      //TODO: Implement
     } else {
       auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
       if (action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_UP || action == AMOTION_EVENT_ACTION_MOVE) {
