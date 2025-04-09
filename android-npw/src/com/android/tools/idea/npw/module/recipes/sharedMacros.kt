@@ -34,14 +34,18 @@ fun generateManifest(
   usesFeatureBlock: String = "",
   hasRoundIcon: Boolean = true,
   appCategory: String = "",
-  addBackupRules: Boolean = false
+  addBackupRules: Boolean = false,
 ): String {
-  val backupBlock = renderIf(addBackupRules) { """
+  val backupBlock =
+    renderIf(addBackupRules) {
+      """
     android:fullBackupContent="@xml/backup_rules"
     android:dataExtractionRules="@xml/data_extraction_rules"
     """
-  }
-  val applicationBlock = if (hasApplicationBlock) """
+    }
+  val applicationBlock =
+    if (hasApplicationBlock)
+      """
     <application
     android:allowBackup="true"
     $backupBlock
@@ -52,7 +56,7 @@ fun generateManifest(
     android:supportsRtl="true"
     android:theme="$theme" />
   """
-  else ""
+    else ""
 
   return """
     <?xml version="1.0" encoding="utf-8"?>
@@ -66,7 +70,8 @@ fun generateManifest(
 }
 
 fun proguardConfig(
-  // Incubating, see https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.BuildType.html
+  // Incubating, see
+  // https://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.BuildType.html
   postprocessing: Boolean = false
 ) =
   if (postprocessing) {
@@ -83,8 +88,7 @@ fun proguardConfig(
         }
     }
     """
-  }
-  else {
+  } else {
     """
     buildTypes {
        release {
@@ -99,7 +103,8 @@ fun toAndroidFieldVersion(fieldName: String, fieldValue: String, agpVersion: Agp
   val isNewAGP = agpVersion.compareIgnoringQualifiers("7.0.0") >= 0
   val versionNumber = fieldValue.toIntOrNull()
   return when {
-    isNewAGP && versionNumber == null -> "${fieldName}Preview \"${fieldValue.replace("android-", "")}\""
+    isNewAGP && versionNumber == null ->
+      "${fieldName}Preview \"${fieldValue.replace("android-", "")}\""
     isNewAGP -> "$fieldName $versionNumber"
     versionNumber == null -> "${fieldName}Version \"$fieldValue\""
     else -> "${fieldName}Version $versionNumber"
@@ -120,44 +125,49 @@ fun androidConfig(
   canUseProguard: Boolean,
   addLintOptions: Boolean,
   enableCpp: Boolean,
-  cppStandard: CppStandardType
+  cppStandard: CppStandardType,
 ): String {
-  val propertiesBlock = if (isDynamicFeature) {
-    toAndroidFieldVersion("minSdk", minApi, agpVersion)
-  }
-  else {
-    """${renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }}
+  val propertiesBlock =
+    if (isDynamicFeature) {
+      toAndroidFieldVersion("minSdk", minApi, agpVersion)
+    } else {
+      """${renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }}
     ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
     ${renderIf(!isLibraryProject) { toAndroidFieldVersion("targetSdk", targetApi, agpVersion) }}
     ${renderIf(!isLibraryProject) { "versionCode 1" }}
     ${renderIf(!isLibraryProject) { "versionName \"1.0\"" }}
     """
-  }
-  val testsBlock = renderIf(hasTests) {
-    "testInstrumentationRunner \"${getMaterialComponentName("android.support.test.runner.AndroidJUnitRunner", useAndroidX)}\""
-  }
-  val proguardConsumerBlock = renderIf(canUseProguard && isLibraryProject) { "consumerProguardFiles \"consumer-rules.pro\"" }
+    }
+  val testsBlock =
+    renderIf(hasTests) {
+      "testInstrumentationRunner \"${getMaterialComponentName("android.support.test.runner.AndroidJUnitRunner", useAndroidX)}\""
+    }
+  val proguardConsumerBlock =
+    renderIf(canUseProguard && isLibraryProject) { "consumerProguardFiles \"consumer-rules.pro\"" }
   val proguardConfigBlock = renderIf(canUseProguard) { proguardConfig() }
-  val lintOptionsBlock = renderIf(addLintOptions) {
-    """
+  val lintOptionsBlock =
+    renderIf(addLintOptions) {
+      """
       lintOptions {
           disable ('AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon')
       }
     """
-  }
+    }
 
-  val cppConfigBlock = renderIf(enableCpp) {
-    """
+  val cppConfigBlock =
+    renderIf(enableCpp) {
+      """
       externalNativeBuild {
         cmake {
           cppFlags "${cppStandard.compilerFlag}"
         }
       }
     """
-  }
+    }
 
-  val cppReferenceBlock = renderIf(enableCpp) {
-    """
+  val cppReferenceBlock =
+    renderIf(enableCpp) {
+      """
     externalNativeBuild {
       cmake {
         path "src/main/cpp/CMakeLists.txt"
@@ -165,7 +175,7 @@ fun androidConfig(
       }
     }
     """
-  }
+    }
 
   return """
     android {
@@ -189,25 +199,24 @@ fun androidConfig(
 private fun resource(path: String) = File("templates/module", path)
 
 fun RecipeExecutor.copyIcons(destination: File, minApi: Int) {
-  fun apiSuffix(api: Int) =
-    if (api > minApi) "-v$api" else ""
+  fun apiSuffix(api: Int) = if (api > minApi) "-v$api" else ""
 
   fun copyAdaptiveIcons() {
     copy(
       resource("mipmap-anydpi-v26/ic_launcher.xml"),
-      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher.xml")
+      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher.xml"),
     )
     copy(
       resource("drawable/ic_launcher_background.xml"),
-      destination.resolve("drawable/ic_launcher_background.xml")
+      destination.resolve("drawable/ic_launcher_background.xml"),
     )
     copy(
       resource("drawable-v24/ic_launcher_foreground.xml"),
-      destination.resolve("drawable${apiSuffix(24)}/ic_launcher_foreground.xml")
+      destination.resolve("drawable${apiSuffix(24)}/ic_launcher_foreground.xml"),
     )
     copy(
       resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
-      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher_round.xml")
+      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher_round.xml"),
     )
   }
 
@@ -232,41 +241,40 @@ fun RecipeExecutor.copyMipmapFile(destination: File, file: String) {
   copy(resource("mipmap-xxxhdpi/$file"), destination.resolve("mipmap-xxxhdpi/$file"))
 }
 
-fun RecipeExecutor.addLocalTests(
-  packageName: String, localTestOut: File, language: Language
-) {
+fun RecipeExecutor.addLocalTests(packageName: String, localTestOut: File, language: Language) {
   val ext = language.extension
   save(
-    if (language == Language.Kotlin)
-      exampleUnitTestKt(packageName)
-    else
-      exampleUnitTestJava(packageName),
-    localTestOut.resolve("ExampleUnitTest.$ext")
+    if (language == Language.Kotlin) exampleUnitTestKt(packageName)
+    else exampleUnitTestJava(packageName),
+    localTestOut.resolve("ExampleUnitTest.$ext"),
   )
 }
 
 fun RecipeExecutor.addInstrumentedTests(
-  packageName: String, useAndroidX: Boolean, isLibraryProject: Boolean, instrumentedTestOut: File, language: Language
+  packageName: String,
+  useAndroidX: Boolean,
+  isLibraryProject: Boolean,
+  instrumentedTestOut: File,
+  language: Language,
 ) {
   val ext = language.extension
   save(
     if (language == Language.Kotlin)
       exampleInstrumentedTestKt(packageName, useAndroidX, isLibraryProject)
-    else
-      exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject),
-    instrumentedTestOut.resolve("ExampleInstrumentedTest.$ext")
+    else exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject),
+    instrumentedTestOut.resolve("ExampleInstrumentedTest.$ext"),
   )
 }
 
-/**
- * Plugin block placeholder. Used to introduce an extra space at the bottom of the block.
- */
-fun emptyPluginsBlock() = """
+/** Plugin block placeholder. Used to introduce an extra space at the bottom of the block. */
+fun emptyPluginsBlock() =
+  """
 plugins {
 }
 """
 
-fun basicThemesXml(parent: String, themeName: String = "Theme.App") = """
+fun basicThemesXml(parent: String, themeName: String = "Theme.App") =
+  """
 <resources>
     <style name="$themeName" parent="$parent" />
 </resources>
