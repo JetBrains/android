@@ -58,6 +58,7 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import java.io.File
 import java.time.Clock
 import java.util.concurrent.TimeoutException
@@ -443,7 +444,7 @@ private fun <T : CodeInsightTestFixture, H> chain(
 
 class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
   NamedExternalResource(), TestEnvironmentRule {
-  private val flagsDisposable: Disposable = Disposer.newDisposable()
+  private val testEnvironmentDisposable: Disposable = Disposer.newDisposable()
   val mockitoCleaner = MockitoThreadLocalsCleaner()
   private var userHome: String? = null
 
@@ -470,8 +471,11 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     )
 
     // Disable antivirus checks on Windows.
-    StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, flagsDisposable)
-    StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.overrideForTest(false, flagsDisposable)
+    StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, testEnvironmentDisposable)
+    StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.overrideForTest(false, testEnvironmentDisposable)
+
+    // Enable workspace model cache
+    WorkspaceModelCacheImpl.forceEnableCaching(testEnvironmentDisposable)
   }
 
   override fun after(description: Description) {
@@ -482,7 +486,7 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     }
     userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
     mockitoCleaner.cleanupAndTearDown()
-    runInEdtAndWait { Disposer.dispose(flagsDisposable) }
+    runInEdtAndWait { Disposer.dispose(testEnvironmentDisposable) }
     checkUndisposedAndroidRelatedObjects()
   }
 }
