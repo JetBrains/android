@@ -1,4 +1,4 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.test.testutils;
 
 import com.intellij.openapi.util.SystemInfo;
@@ -17,7 +17,7 @@ public class AndroidSdkDownloader {
     Path androidSdkRoot = communityRoot.communityRoot.resolve("build/dependencies/build/android-sdk");
 
     //noinspection SpellCheckingInspection
-    BuildDependenciesDownloader.INSTANCE.extractFile(
+    BuildDependenciesDownloader.INSTANCE.extractFileSync(
       downloadAndroidSdk(communityRoot),
       androidSdkRoot.resolve("prebuilts/studio/sdk"),
       communityRoot
