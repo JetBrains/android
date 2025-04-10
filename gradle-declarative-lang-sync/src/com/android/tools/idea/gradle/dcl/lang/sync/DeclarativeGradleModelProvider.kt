@@ -81,6 +81,7 @@ private fun DataType.ClassDataType.convert(schema: BuildDeclarativeSchema): Clas
   when (this) {
     is EnumClass -> convert()
     is DataClass -> convert(schema)
+    is DataType.ParameterizedTypeInstance -> throw IllegalStateException("DataType.ParameterizedTypeInstance is not supported")
   }
 
 private fun DataClass.convert(schema: BuildDeclarativeSchema): ClassModel {
@@ -104,6 +105,10 @@ private fun FunctionSemantics.convert(): FunctionSemantic? = when (this) {
     when (val type = accessor.objectType) {
       is Name -> BlockFunction(type.convert())
       is Type -> (type.dataType as? DataClass)?.let { BlockFunction(DataClassRef(FullName(it.name.qualifiedName))) }
+      is DataTypeRef.NameWithArgs -> {
+        LOG.warn("DataTypeRef.NameWithArgs is not supported")
+        null
+      }
     }
   is FunctionSemantics.Pure -> returnValueType.convert()?.let { PlainFunction(it) }
   is FunctionSemantics.AddAndConfigure -> {
@@ -143,6 +148,14 @@ private fun DataType.convert(): SimpleDataType? = when (this) {
   }
   is DataClass -> {
     LOG.warn("Cannot recognize declarative schema class of DataType:" + javaClass.canonicalName)
+    null
+  }
+  is DataType.ParameterizedTypeInstance -> {
+    LOG.warn("DataType.ParameterizedTypeInstance is not supported")
+    null
+  }
+  is DataType.TypeVariableUsage -> {
+    LOG.warn("DataType.TypeVariableUsage is not supported")
     null
   }
 }
