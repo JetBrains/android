@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
+import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.shouldDisableForceUpgrades
@@ -64,9 +65,11 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager
+import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManagerImpl
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.ExternalStorageConfigurationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -146,6 +149,7 @@ private suspend fun performActivity(project: Project) {
   }
 
   if (shouldSyncOrAttachModels()) {
+    ensureProjectStoredExternally(project)
     removePointlessModules(project)
     addJUnitProducersToIgnoredList(project)
     /**
@@ -156,8 +160,7 @@ private suspend fun performActivity(project: Project) {
         attachCachedModelsOrTriggerSyncBody(project, gradleProjectInfo)
       }
       catch (e: RequestSyncThrowable) {
-        val autoSyncEnabled = !StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get() || GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR == AutoSyncBehavior.Default
-        if (autoSyncEnabled) {
+        if (AutoSyncSettingStore.autoSyncBehavior == AutoSyncBehavior.Default) {
           // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
           //  path individually.
           LOG.info("Requesting Gradle sync (${e.reason}).")
@@ -194,6 +197,15 @@ private fun whenAllModulesLoaded(project: Project, callback: () -> Unit) {
     // when the JPS was loaded, otherwise, any change will be overridden.
     JpsProjectLoadingManager.getInstance(project).jpsProjectLoaded { callback() }
   }
+}
+
+private fun ensureProjectStoredExternally(project: Project) {
+  // Force switch users from the broken "Generate .iml files for modules imported from Gradle" setting. b/396390662
+  val state = ExternalStorageConfigurationManager.getInstance(project).isEnabled
+  LOG.info("ExternalStorageConfigurationManager.isEnabled=$state for $project")
+  // Implementation of this setter invokes some 'swapStore' function for each module.
+  // Even though at this moment it seems to be empty, it is safer to do under WriteLock.
+  ExternalProjectsManagerImpl.getInstance(project).setStoreExternally(true)
 }
 
 private suspend fun removePointlessModules(project: Project) {

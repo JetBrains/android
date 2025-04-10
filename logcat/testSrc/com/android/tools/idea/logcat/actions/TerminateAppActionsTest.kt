@@ -12,6 +12,7 @@ import com.android.adblib.tools.debugging.appProcessTracker
 import com.android.adblib.tools.debugging.jdwpProcessTracker
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.DeviceState.HostConnectionType.USB
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
@@ -75,9 +76,11 @@ class TerminateAppActionsTest {
   private val adbSession
     get() = fakeAdbRule.adbSession
 
-  private val device30 = Device.createPhysical("device", true, "10", 30, "Google", "Pixel")
+  private val device30 =
+    Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
 
-  private val device25 = Device.createPhysical("device", true, "10", 25, "Google", "Pixel")
+  private val device25 =
+    Device.createPhysical("device", true, "10", AndroidVersion(25, 0), "Google", "Pixel")
 
   @Test
   fun forceStopAppAction_processExists_isEnabled(): Unit =
@@ -305,18 +308,16 @@ class TerminateAppActionsTest {
   private suspend fun FakeAdbServerProvider.connectDevice(device: Device): DeviceState {
     val deviceState =
       connectDevice(
-        device.serialNumber,
-        "manufacturer",
-        device.model,
-        device.release,
-        device.sdk.toString(),
-        USB,
-      ).also {
-        it.deviceStatus = DeviceState.DeviceStatus.DEVICE
-      }
+          device.serialNumber,
+          "manufacturer",
+          device.model,
+          device.release,
+          device.sdk.toString(),
+          USB,
+        )
+        .also { it.deviceStatus = DeviceState.DeviceStatus.DEVICE }
     adbSession.connectedDevicesTracker.connectedDevices.waitFor {
-      it.serialNumber == device.serialNumber &&
-      it.isOnline
+      it.serialNumber == device.serialNumber && it.isOnline
     }
     return deviceState
   }

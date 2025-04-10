@@ -914,9 +914,14 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 
-  public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_UI = new BooleanFlag(
-    GRADLE_IDE, "gradle.sync.control.enabled", "Allow disabling of Auto Sync", "Allow opting-out from Gradle Auto Syncing.",
-    enabledUpTo(CANARY));
+  public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_UI =
+    new BooleanFlag(GRADLE_IDE, "gradle.sync.control.enabled", "Allow disabling of Auto Sync", "Allow opting-out from Gradle Auto Syncing.",
+                    true);
+
+  public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI =
+    new BooleanFlag(GRADLE_IDE, "gradle.sync.control.enabled.stable", "Allow disabling of Auto Sync via non-experimental settings",
+                    "Allow opting-out from Gradle Auto Syncing via non-experimental part of settings.",
+                    enabledUpTo(CANARY));
   /**
    * Don't read this directly, use AgpVersions.agpVersionStudioFlagOverride which handles the 'stable' alias
    */
@@ -1295,32 +1300,6 @@ public final class StudioFlags {
 
   //endregion
 
-  //region Essentials Mode
-
-  public static final FlagGroup ESSENTIALS_MODE = new FlagGroup(FLAGS, "essentialsmode", "Essentials Mode");
-
-
-  public static final Flag<Boolean> ESSENTIALS_MODE_VISIBLE = new BooleanFlag(
-    ESSENTIALS_MODE, "essentials.mode.action.visible",
-    "Show Essentials Mode visible in File drop down menu",
-    "If enabled, makes Essential Highlighting action visible",
-    false
-  );
-  public static final Flag<Boolean> ESSENTIALS_HIGHLIGHTING_MODE = new BooleanFlag(
-    ESSENTIALS_MODE, "essential.highlighting.in.essentials.mode",
-    "Essential Highlighting mode on in Essentials mode",
-    "When enabled turns on Essential Highlighting mode when in Essentials Mode. Essential Highlighting mode enables " +
-    "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
-    false);
-
-  public static final Flag<Boolean> ESSENTIALS_MODE_GETS_RECOMMENDED = new BooleanFlag(
-    ESSENTIALS_MODE, "essentials.mode.gets.recommend",
-    "Essentials Mode is able to get recommended to the user",
-    "When enabled this allows Android Studio to drive adoption of Essentials Mode by recommending users should try it out.",
-    false);
-
-  //endregion
-
   //region Unified App Bundle
   private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
 
@@ -1407,16 +1386,6 @@ public final class StudioFlags {
     PREVIEW_COMMON, "render.quality.visibility.threshold", "Render quality zoom visibility threshold",
     "When the zoom level is lower than this value, all previews will be rendered at low quality",
     20);
-
-  public static final Flag<Boolean> PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME = new BooleanFlag(
-    PREVIEW_COMMON, "render.quality.notify.time", "Notify refresh time for render quality refreshes",
-    "If enabled, the time taken in render quality refreshes will be notified each time",
-    false);
-
-  public static final Flag<Boolean> PREVIEW_KEEP_IMAGE_ON_ERROR = new BooleanFlag(
-    PREVIEW_COMMON, "keep.image.on.error", "Keeps the last valid image after a render error",
-    "If enabled, when an error happens, the surface will keep the last valid image",
-    true);
 
   public static final Flag<Boolean> PREVIEW_ESSENTIALS_MODE = new BooleanFlag(
     PREVIEW_COMMON, "essentials.mode", "Enable Preview Essentials Mode",
@@ -1610,11 +1579,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT = new BooleanFlag(
     COMPOSE, "send.preview.to.studio.bot", "Enable action to send Compose Previews to Studio Bot",
     "Enables a context-menu action to send Compose Previews to Studio Bot as context.",
-    enabledUpTo(DEV));
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_COMPONENT_POP_UP = new BooleanFlag(
-    COMPOSE, "preview.popup", "Enable the opening pop up when holding the option key while clicking a preview",
-    "If enabled, when holding the option key while clicking a preview on a preview it will open pop up with all components under click",
     enabledUpTo(DEV));
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
@@ -1858,7 +1822,7 @@ public final class StudioFlags {
       "direct.access.show.oem.lab.devices",
       "Show OEM lab devices",
       "OEM lab devices are available to users.",
-      false);
+      enabledUpTo(CANARY));
 
   // endregion Firebase Test Lab
 
@@ -1881,15 +1845,6 @@ public final class StudioFlags {
       "Fetch real insights",
       "Fetch actual insights from AiInsightClient",
       true
-    );
-
-  public static final Flag<Integer> CODE_CONTEXT_EXPERIMENT_OVERRIDE =
-    new IntFlag(
-      APP_INSIGHTS,
-      "code.context.experiment.override",
-      "Code context experiment override",
-      "Overrides Studio's assigned experiment with this flag's value",
-      0
     );
 
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =

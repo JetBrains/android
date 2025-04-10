@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
+import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -111,7 +112,7 @@ object SyncDueMessage {
           actionSelected = true
           trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.ENABLE_AUTO_SYNC)
           trackAutoSyncEnabled(changeSource = ChangeSource.NOTIFICATION)
-          GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Default
+          AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
           requestProjectSync(project)
           ActivityTracker.getInstance().inc()
           hideBalloon()
@@ -166,7 +167,7 @@ object SyncDueMessage {
             override fun setToBeShown(toBeShown: Boolean, exitCode: Int) {
               if (!toBeShown && exitCode == OK_EXIT_CODE) {
                 trackAutoSyncEnabled(changeSource = ChangeSource.DIALOG)
-                GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Default
+                AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
               }
             }
 

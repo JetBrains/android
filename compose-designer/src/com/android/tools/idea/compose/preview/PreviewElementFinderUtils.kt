@@ -224,8 +224,6 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
     AnnotationPreviewNameHelper.create(this, annotatedMethod.name) {
       readAction { isPreviewAnnotation() }
     }
-  // TODO(b/339615825): avoid running the whole previewAnnotationToPreviewElement method under the
-  // read lock
   return readAction {
     previewAnnotationToPreviewElement(
       attributesProvider,

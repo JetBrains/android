@@ -45,13 +45,15 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextTrackingInfo
+import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.AiInsightFetched
 import com.android.tools.idea.insights.events.EventsChanged
 import com.android.tools.idea.insights.events.SelectedIssueChanged
-import com.android.tools.idea.insights.experiments.Experiment
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsNotesDetails
@@ -353,6 +355,11 @@ class AppInsightsTrackerTest {
 
   @Test
   fun `track insight fetch`() = runBlocking {
+    val context =
+      CodeContextData(
+        listOf(CodeContext("abc", "path", "dklsjfsds", Language.JAVA)),
+        CodeContextTrackingInfo(1, 1, 15),
+      )
     val testState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
@@ -362,10 +369,9 @@ class AppInsightsTrackerTest {
     val insight =
       AiInsight(
         "",
-        Experiment.CONTROL,
         insightSource = InsightSource.STUDIO_BOT,
         isCached = true,
-        codeContextTrackingDetails = CodeContextTrackingInfo(1, 2, 3),
+        codeContextData = context,
       )
     val insightFetch = AiInsightFetched(LoadingState.Ready(insight))
     insightFetch.transition(

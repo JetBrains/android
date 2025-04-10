@@ -3,6 +3,17 @@
 <issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
 
     <issue
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk 35"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="13"
+            column="9"/>
+    </issue>
+
+    <issue
         id="ShowToast"
         message="Toast created but not shown: did you forget to call `show()`?"
         errorLine1="                Toast.makeText("
@@ -11,17 +22,6 @@
             file="src/main/java/template/test/in/WalletActivity.kt"
             line="148"
             column="17"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="            passId = UUID.randomUUID().toString()"
-        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/WalletActivity.kt"
-            line="107"
-            column="22"/>
     </issue>
 
     <issue

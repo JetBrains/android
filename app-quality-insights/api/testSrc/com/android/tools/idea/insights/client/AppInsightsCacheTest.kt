@@ -37,7 +37,10 @@ import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.TestConnection
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
+import com.android.tools.idea.insights.ai.codecontext.Language
 import com.google.common.truth.Truth.assertThat
 import java.time.Duration
 import java.time.Instant
@@ -559,24 +562,32 @@ class AppInsightsCacheTest {
   @Test
   fun `get and put AI insights`() {
     val cache = AppInsightsCacheImpl()
+    val context =
+      CodeContextData(
+        listOf(CodeContext("abc", "/path", "abc", Language.JAVA)),
+        contextSharingState = ContextSharingState.ALLOWED,
+      )
     cache.populateIssues(connection, listOf(ISSUE1))
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, Experiment.UNKNOWN)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, CodeContextData.DISABLED)).isNull()
 
     cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, Experiment.UNKNOWN))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, CodeContextData.DISABLED))
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", Experiment.UNKNOWN)).isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, Experiment.TOP_SOURCE)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", CodeContextData.DISABLED))
+      .isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, context)).isNull()
 
-    val newInsight = AiInsight("blah", Experiment.TOP_THREE_SOURCES)
+    val newInsight = AiInsight("blah", codeContextData = context)
     cache.putAiInsight(connection, ISSUE1.id, null, newInsight)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, newInsight.experiment))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, context))
       .isEqualTo(newInsight.copy(isCached = true))
 
     cache.putAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT.experiment))
+    assertThat(
+        cache.getAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT.codeContextData)
+      )
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
@@ -590,14 +601,14 @@ class AppInsightsCacheTest {
       connection,
       ISSUE1.id,
       "variant2",
-      AiInsight("blah", Experiment.TOP_THREE_SOURCES),
+      AiInsight("blah", codeContextData = CodeContextData.DISABLED),
     )
 
     cache.removeIssue(connection, ISSUE1.id)
     assertThat(cache.getIssues(connection, listOf(ISSUE1.id))).isEmpty()
     assertThat(cache.getNotes(connection, ISSUE1.id)).isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, Experiment.UNKNOWN)).isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant2", Experiment.TOP_THREE_SOURCES))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, CodeContextData.DISABLED)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant2", CodeContextData.DISABLED))
       .isNull()
   }
 }

@@ -841,7 +841,7 @@ class ComposePreviewRepresentationTest {
             import androidx.compose.runtime.Composable
 
             @Composable
-            @Preview(device = "id:wearos_square")
+            @Preview(device = "id:wearos_small_round")
             fun Preview() {
             }
           """
@@ -878,30 +878,74 @@ class ComposePreviewRepresentationTest {
       }
 
       assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
-        .containsExactly("Wear OS Devices")
+        .containsExactly("Wear OS Devices", "Font scales", "Colorblind filters")
       preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         25.seconds,
       ) {
-        it.asCollection().size > 2
+        it.asCollection().size == 15
       }
       assertEquals(
         """
           TestKt.Preview
           id:wearos_large_round
-          PreviewDisplaySettings(name=Wear OS Large Round - Preview, baseName=Preview, parameterName=Wear OS Large Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=Wear OS Large Round - Preview, baseName=Preview, parameterName=Wear OS Large Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Wear OS Devices)
 
           TestKt.Preview
           id:wearos_small_round
-          PreviewDisplaySettings(name=Wear OS Small Round - Preview, baseName=Preview, parameterName=Wear OS Small Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=Wear OS Small Round - Preview, baseName=Preview, parameterName=Wear OS Small Round, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Wear OS Devices)
 
           TestKt.Preview
-          id:wearos_square
-          PreviewDisplaySettings(name=Wear OS Square - Preview, baseName=Preview, parameterName=Wear OS Square, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Small - Preview, baseName=Preview, parameterName=Small, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
 
           TestKt.Preview
-          id:wearos_rect
-          PreviewDisplaySettings(name=Wear OS Rectangular - Preview, baseName=Preview, parameterName=Wear OS Rectangular, group=Wear OS Devices, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Normal - Preview, baseName=Preview, parameterName=Normal, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Medium - Preview, baseName=Preview, parameterName=Medium, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Large - Preview, baseName=Preview, parameterName=Large, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Larger - Preview, baseName=Preview, parameterName=Larger, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Largest - Preview, baseName=Preview, parameterName=Largest, group=Font scales, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Font scales)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Original - Preview, baseName=Preview, parameterName=Original, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Protanopes - Preview, baseName=Preview, parameterName=Protanopes, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Protanomaly - Preview, baseName=Preview, parameterName=Protanomaly, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Deuteranopes - Preview, baseName=Preview, parameterName=Deuteranopes, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Deuteranomaly - Preview, baseName=Preview, parameterName=Deuteranomaly, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Tritanopes - Preview, baseName=Preview, parameterName=Tritanopes, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
+
+          TestKt.Preview
+          id:wearos_small_round
+          PreviewDisplaySettings(name=Tritanomaly - Preview, baseName=Preview, parameterName=Tritanomaly, group=Colorblind filters, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=Colorblind filters)
 
         """
           .trimIndent(),

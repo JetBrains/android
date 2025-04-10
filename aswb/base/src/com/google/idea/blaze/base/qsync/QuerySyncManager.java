@@ -123,7 +123,7 @@ public class QuerySyncManager implements Disposable {
     OTHER,
   }
 
-  interface ThrowingScopedOperation {
+  public interface ThrowingScopedOperation {
     void execute(BlazeContext context) throws BuildException;
   }
 
@@ -278,7 +278,7 @@ public class QuerySyncManager implements Disposable {
         taskOrigin);
   }
 
-  private ListenableFuture<Boolean> runBuild(
+  public ListenableFuture<Boolean> runBuild(
       String title,
       String subTitle,
       QuerySyncActionStatsScope querySyncActionStatsScope,

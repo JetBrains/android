@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
@@ -36,7 +35,6 @@ import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -98,7 +96,6 @@ private const val EXPECTED_NUMBER_OF_ACTIONS = 6
 class RenderErrorTest {
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule val flagRule = FlagRule(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR)
 
   private val project: Project
     get() = projectRule.project
@@ -165,14 +162,13 @@ class RenderErrorTest {
             )
             .also { it.root.validate() }
         }
-      composePreviewRepresentation.activateAndWaitForRender(fakeUi, timeout = 1.minutes)
+      composePreviewRepresentation.activateAndWaitForRender(fakeUi)
     }
   }
 
   @Test
   fun testSceneViewWithRenderErrors() =
     runBlocking(workerThread) {
-      StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(true)
       fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
       startUiCheckForModel("PreviewWithRenderErrors")
 
@@ -190,35 +186,6 @@ class RenderErrorTest {
           .filterIsInstance<SceneViewErrorsPanel>()
           .single()
       assertFalse(visibleErrorsPanel.isVisible)
-
-      val actions = sceneViewPanelWithErrors.getToolbarActions()
-      assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)
-
-      // All actions should be invisible when there are render errors
-      assertEquals(0, countVisibleActions(actions, sceneViewPanelWithErrors))
-    }
-
-  @Test
-  fun testSceneViewWithRenderErrorsWithNoKeepImageOnError() =
-    runBlocking(workerThread) {
-      StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(false)
-      fakeUi.findComponent<SceneViewPanel>()?.setNoComposeHeadersForTests()
-      startUiCheckForModel("PreviewWithRenderErrors")
-
-      lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
-      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
-        panels
-          .singleOrNull { it.displayName == "Medium Phone - PreviewWithRenderErrors" }
-          ?.takeIf { it.sceneView.hasRenderErrors() }
-          ?.also { sceneViewPanelWithErrors = it } != null
-      }
-
-      val visibleErrorsPanel =
-        TreeWalker(sceneViewPanelWithErrors)
-          .descendants()
-          .filterIsInstance<SceneViewErrorsPanel>()
-          .single()
-      assertTrue(visibleErrorsPanel.isVisible)
 
       val actions = sceneViewPanelWithErrors.getToolbarActions()
       assertEquals(EXPECTED_NUMBER_OF_ACTIONS, actions.size)

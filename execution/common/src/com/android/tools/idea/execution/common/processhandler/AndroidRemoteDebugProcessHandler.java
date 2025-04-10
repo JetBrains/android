@@ -128,4 +128,9 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler {
   public boolean isPackageRunning(@Nullable IDevice device, @NotNull String packageName) {
     return (device == null || device == myClient.getDevice()) && packageName.equals(myClient.getClientData().getPackageName());
   }
+
+  @NotNull
+  public IDevice getConnectedDevice() {
+    return myClient.getDevice();
+  }
 }

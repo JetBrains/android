@@ -19,11 +19,13 @@ public class AndroidStudioGradleSettingsControlProvider extends GradleSettingsCo
     if (initialSettings.getProject().isDefault()) {
       return new AndroidDefaultGradleSystemSettingsControlBuilder(initialSettings)
         .dropVmOptions()
-        .dropDefaultProjectSettings();
+        .dropDefaultProjectSettings()
+        .dropStoreExternallyCheckBox();
     } else {
       return new IdeaGradleSystemSettingsControlBuilder(initialSettings)
         .dropVmOptions()
-        .dropDefaultProjectSettings();
+        .dropDefaultProjectSettings()
+        .dropStoreExternallyCheckBox();
     }
   }
 

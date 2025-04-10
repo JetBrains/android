@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
-import com.android.sdklib.displayApiString
 import com.android.tools.adtui.compose.LingeringTooltip
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
@@ -274,7 +273,7 @@ private fun SystemImageTable(
       TableTextColumn(
         "API",
         TableColumnWidth.Fixed(125.dp),
-        { it.androidVersion.displayApiString },
+        { it.androidVersion.getApiStringWithExtension() },
         Comparator.comparing(ISystemImage::getAndroidVersion),
       ),
     )

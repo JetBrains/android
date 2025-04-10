@@ -52,8 +52,7 @@ import org.jetbrains.annotations.SystemIndependent;
  * This subclass of {@linkplain ProjectSettingsService} disables navigation to Project Settings panes that don't apply to
  * Gradle-based projects. For non-Gradle projects, it forwards calls to a delegate instance that preserves normal functionality.
  */
-public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService implements AndroidProjectSettingsService,
-                                                                                         ArtifactAwareProjectSettingsService {
+public class AndroidProjectSettingsServiceImpl extends AndroidProjectSettingsService implements ArtifactAwareProjectSettingsService {
   private final Project myProject;
   private final IdeaProjectSettingsService myDelegate;
 

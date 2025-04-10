@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.backup.testing
 
-import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.UiThread
 import com.android.backup.BackupMetadata
 import com.android.backup.BackupProgressListener
@@ -31,6 +30,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.ui.EDT
 import java.nio.file.Path
 import javax.swing.JPanel
+import org.jetbrains.annotations.TestOnly
 
 @TestOnly
 class FakeBackupManager : BackupManager {
@@ -38,8 +38,7 @@ class FakeBackupManager : BackupManager {
   val showBackupDialogInvocations = mutableListOf<ShowBackupDialogInvocation>()
   val restoreModalInvocations = mutableListOf<RestoreModalInvocation>()
 
-  @UiThread
-  override fun showBackupDialog(
+  override suspend fun showBackupDialog(
     serialNumber: String,
     applicationId: String,
     source: BackupManager.Source,

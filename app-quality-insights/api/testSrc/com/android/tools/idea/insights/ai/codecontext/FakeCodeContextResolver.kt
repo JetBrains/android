@@ -17,33 +17,13 @@ package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
-import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
-import com.android.tools.idea.insights.experiments.Experiment
-import com.android.tools.idea.insights.experiments.ExperimentGroup
 
 open class FakeCodeContextResolver(private var codeContext: List<CodeContext>) :
   CodeContextResolver {
-  override suspend fun getSource(
-    conn: Connection,
-    stack: StacktraceGroup,
-    overrideSourceLimit: Boolean,
-  ): CodeContextData {
-    val experiment =
-      AppInsightsExperimentFetcher.instance.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT)
+  override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
 
-    if (!conn.isMatchingProject()) return CodeContextData(emptyList(), experiment)
+    if (!conn.isMatchingProject()) return CodeContextData.DISABLED
 
-    return when (experiment) {
-      Experiment.TOP_SOURCE,
-      Experiment.TOP_THREE_SOURCES,
-      Experiment.ALL_SOURCES -> CodeContextData(codeContext, experiment)
-      Experiment.CONTROL ->
-        if (overrideSourceLimit) {
-          CodeContextData(codeContext, experiment)
-        } else {
-          CodeContextData.CONTROL
-        }
-      Experiment.UNKNOWN -> CodeContextData.UNASSIGNED
-    }
+    return CodeContextData(codeContext)
   }
 }

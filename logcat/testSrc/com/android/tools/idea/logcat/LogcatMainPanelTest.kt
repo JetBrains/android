@@ -19,6 +19,7 @@ import com.android.adblib.testing.FakeAdbSession
 import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
@@ -177,8 +178,10 @@ class LogcatMainPanelTest {
   private val disposable
     get() = disposableRule.disposable
 
-  private val device1 = Device.createPhysical("device1", true, "11", 30, "Google", "Pixel")
-  private val device2 = Device.createPhysical("device2", true, "11", 30, "Google", "Pixel")
+  private val device1 =
+    Device.createPhysical("device1", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
+  private val device2 =
+    Device.createPhysical("device2", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
 
   @RunsInEdt
   @Test
@@ -279,17 +282,13 @@ class LogcatMainPanelTest {
       )
     )
 
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText())
-        .isEqualTo(
-          """
+    logcatMainPanel.waitForText(
+      """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
         1970-01-01 04:00:01.000     1-2     tag2                    app2                                 I  message2
-
       """
-            .trimIndent()
-        )
-    }
+        .trimIndent()
+    )
   }
 
   @Test
@@ -312,17 +311,12 @@ class LogcatMainPanelTest {
       logcatMainPanel.applyFilter(StringFilter("tag1", LINE, matchCase = true, EMPTY_RANGE))
     }
 
-    awaitQuiescence()
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText())
-        .isEqualTo(
-          """
-        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
-
+    logcatMainPanel.waitForText(
       """
-            .trimIndent()
-        )
-    }
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+      """
+        .trimIndent()
+    )
   }
 
   @Ignore("b/347915674")
@@ -354,18 +348,13 @@ class LogcatMainPanelTest {
       logcatMainPanel.applyFilter(StringFilter("message", LINE, matchCase = true, EMPTY_RANGE))
     }
 
-    awaitQuiescence()
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText())
-        .isEqualTo(
+    logcatMainPanel.waitForText(
+      """
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+        1970-01-01 04:00:01.000     1-2                             app1                                 I  message2
           """
-            1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
-            1970-01-01 04:00:01.000     1-2                             app1                                 I  message2
-
-          """
-            .trimIndent()
-        )
-    }
+        .trimIndent()
+    )
   }
 
   @Test
@@ -478,9 +467,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.clearMessageView()
 
-    awaitQuiescence()
-    runInEdtAndWait {}
-    assertThat(logcatMainPanel.editor.document.immutableText()).isEmpty()
+    logcatMainPanel.waitForText("")
     assertThat(logcatMainPanel.messageBacklog.get().messages).isEmpty()
     // TODO(aalbert): Test the 'logcat -c' functionality if new adb lib allows for it.
   }
@@ -497,9 +484,7 @@ class LogcatMainPanelTest {
 
     project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device1.serialNumber)
 
-    awaitQuiescence()
-    runInEdtAndWait {}
-    assertThat(logcatMainPanel.editor.document.immutableText()).isEmpty()
+    logcatMainPanel.waitForText("")
   }
 
   @Test
@@ -517,7 +502,7 @@ class LogcatMainPanelTest {
 
     awaitQuiescence()
     runInEdtAndWait {}
-    assertThat(logcatMainPanel.editor.document.immutableText()).isEqualTo("not-empty")
+    assertThat(logcatMainPanel.getText()).isEqualTo("not-empty")
   }
 
   /**
@@ -700,12 +685,9 @@ class LogcatMainPanelTest {
 
     awaitQuiescence()
 
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText())
-        .isEqualTo(
-          "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  message\n"
-        )
-    }
+    logcatMainPanel.waitForText(
+      "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  message"
+    )
   }
 
   @Test
@@ -726,17 +708,13 @@ class LogcatMainPanelTest {
     logcatMainPanel.processMessages(messages)
 
     assertThat(logcatMainPanel.messageBacklog.get().messages).containsExactlyElementsIn(messages)
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText())
-        .isEqualTo(
-          """
+    logcatMainPanel.waitForText(
+      """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
         1970-01-01 04:00:01.000     1-2     tag2                    app2                                 I  message2
-        
       """
-            .trimIndent()
-        )
-    }
+        .trimIndent()
+    )
   }
 
   @Test
@@ -753,13 +731,9 @@ class LogcatMainPanelTest {
 
     fakeLogcatService.logMessages(message1)
 
-    logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
-      immutableText().isNotEmpty()
-    }
-    assertThat(logcatMainPanel.editor.document.immutableText())
-      .isEqualTo(
-        "1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1\n"
-      )
+    logcatMainPanel.waitForText(
+      "1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1"
+    )
   }
 
   @Test
@@ -801,17 +775,12 @@ class LogcatMainPanelTest {
     waitForCondition { fakeLogcatService.invocations.get() == 2 }
     fakeLogcatService.logMessages(message1)
 
-    waitForCondition { logcatMainPanel.editor.document.lineCount == 2 }
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText())
-        .isEqualTo(
-          """
-        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
-
+    logcatMainPanel.waitForText(
       """
-            .trimIndent()
-        )
-    }
+        1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
+      """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -893,11 +862,7 @@ class LogcatMainPanelTest {
       logcatMainPanel.formattingOptions = COMPACT.formattingOptions
     }
 
-    awaitQuiescence()
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText().trim())
-        .isEqualTo("04:00:01.000  W  message1")
-    }
+    logcatMainPanel.waitForText("04:00:01.000  W  message1")
   }
 
   @RunsInEdt
@@ -1080,7 +1045,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
-        val offset = logcatMainPanel.editor.document.immutableText().indexOf("app2")
+        val offset = logcatMainPanel.getText().indexOf("app2")
         val point = logcatMainPanel.editor.offsetToXY(offset)
         fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
         assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:app2")
@@ -1112,7 +1077,7 @@ class LogcatMainPanelTest {
     }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
-        val offset = logcatMainPanel.editor.document.immutableText().indexOf("app1")
+        val offset = logcatMainPanel.getText().indexOf("app1")
         val point = logcatMainPanel.editor.offsetToXY(offset)
 
         fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
@@ -1146,7 +1111,7 @@ class LogcatMainPanelTest {
     }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
-        val offset = logcatMainPanel.editor.document.immutableText().indexOf(" I ")
+        val offset = logcatMainPanel.getText().indexOf(" I ")
         val point = logcatMainPanel.editor.offsetToXY(offset)
         fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
         assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
@@ -1178,7 +1143,7 @@ class LogcatMainPanelTest {
     }
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
-        val offset = logcatMainPanel.editor.document.immutableText().indexOf(" I ")
+        val offset = logcatMainPanel.getText().indexOf(" I ")
         val point = logcatMainPanel.editor.offsetToXY(offset)
         fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
         assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
@@ -1209,7 +1174,7 @@ class LogcatMainPanelTest {
 
     logcatMainPanel.messageProcessor.onIdle {
       runInEdtAndWait {
-        val offset = logcatMainPanel.editor.document.immutableText().indexOf(" I ")
+        val offset = logcatMainPanel.getText().indexOf(" I ")
         val point = logcatMainPanel.editor.offsetToXY(offset)
         fakeUi.mouse.click(point.x + 1, point.y + 1, CTRL_LEFT)
         assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:mine | level:error")
@@ -1451,17 +1416,13 @@ class LogcatMainPanelTest {
 
     runInEdtAndWait { fakeProjectApplicationIdsProvider.setApplicationIds("app1") }
 
-    awaitQuiescence()
-    logcatMainPanel.messageProcessor.onIdle {
-      assertThat(logcatMainPanel.editor.document.immutableText().trim())
-        .isEqualTo(
-          """
+    logcatMainPanel.waitForText(
+      """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
         1970-01-01 04:00:01.000     1-2     tag2                    app2                                 W  message2
       """
-            .trimIndent()
-        )
-    }
+        .trimIndent()
+    )
   }
 
   @RunsInEdt
@@ -1583,4 +1544,10 @@ private fun awaitQuiescence() {
     TIMEOUT_SEC,
     SECONDS,
   )
+}
+
+private fun LogcatMainPanel.getText(): String = editor.document.immutableText().trim()
+
+private fun LogcatMainPanel.waitForText(text: String) {
+  waitForCondition { getText() == text }
 }

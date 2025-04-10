@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/android-templates:intellij.android.templates",
         # Kotlin Android Gradle Configurator
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
+        "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
         # TODO(xof): investigate
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
         "//tools/vendor/google/android-ndk:android-ndk",

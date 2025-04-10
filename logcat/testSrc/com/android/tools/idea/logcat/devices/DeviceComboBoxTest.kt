@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
@@ -64,9 +65,12 @@ class DeviceComboBoxTest {
 
   private val selectionEvents = mutableListOf<Any?>()
 
-  private val device1 = Device.createPhysical("device1", false, "11", 30, "Google", "Pixel 2")
-  private val device2 = Device.createPhysical("device2", false, "11", 30, "Google", "Pixel 2")
-  private val emulator = Device.createEmulator("emulator-5555", false, "11", 30, "AVD", "avdPath")
+  private val device1 =
+    Device.createPhysical("device1", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
+  private val device2 =
+    Device.createPhysical("device2", false, "11", AndroidVersion(30, 0), "Google", "Pixel 2")
+  private val emulator =
+    Device.createEmulator("emulator-5555", false, "11", AndroidVersion(30, 0), "AVD", "avdPath")
 
   @Test
   fun noDevice_noSelection(): Unit =
@@ -207,6 +211,16 @@ class DeviceComboBoxTest {
       .isEqualTo("Google Pixel 2 (device1) Android 11, API 30 [ ]")
     assertThat(deviceComboBox.getRenderedText(DeviceItem(device1.online()), true))
       .isEqualTo("Google Pixel 2 (device1) Android 11, API 30 [ ]")
+  }
+
+  @Test
+  fun renderer_minorVersion() {
+    val deviceComboBox = deviceComboBox()
+
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(device1.copy(sdk = 36).online()), false))
+      .isEqualTo("Google Pixel 2 (device1) Android 11, API 36.0 [ ]")
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.copy(sdk = 36).online()), false))
+      .isEqualTo("AVD (emulator-5555) Android 11, API 36.0 [ ]")
   }
 
   @Test

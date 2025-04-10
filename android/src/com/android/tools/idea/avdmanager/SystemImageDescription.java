@@ -20,7 +20,6 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.RemoteSystemImage;
 import com.android.sdklib.SdkVersionInfo;
@@ -152,7 +151,7 @@ public final class SystemImageDescription {
 
   public @NotNull String getName() {
     String versionString = SdkVersionInfo.getVersionString(getVersion().getFeatureLevel());
-    return String.format("Android %s", versionString == null ? "API " + AndroidVersionUtils.getDisplayApiString(getVersion()): versionString);
+    return String.format("Android %s", versionString == null ? "API " + getVersion().getApiStringWithExtension() : versionString);
   }
 
   public @NotNull String getVendor() {

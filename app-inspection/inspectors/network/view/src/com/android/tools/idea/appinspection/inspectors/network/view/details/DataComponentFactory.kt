@@ -25,7 +25,7 @@ import javax.swing.JComponent
  * A factory which wraps a target [ConnectionData] and can create useful, shared UI components for
  * displaying aspects of it.
  */
-internal abstract class DataComponentFactory(protected val data: ConnectionData) {
+internal abstract class DataComponentFactory(protected val data: ConnectionData?) {
   enum class ConnectionType {
     REQUEST,
     RESPONSE;
@@ -50,10 +50,10 @@ internal abstract class DataComponentFactory(protected val data: ConnectionData)
 
   abstract fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer?
 
-  private fun getHeaders(type: ConnectionType) =
+  private fun getHeaders(type: ConnectionType): Map<String, List<String>> =
     when (type) {
-      REQUEST -> data.requestHeaders
-      RESPONSE -> data.responseHeaders
+      REQUEST -> data?.requestHeaders ?: emptyMap()
+      RESPONSE -> data?.responseHeaders ?: emptyMap()
     }
 
   abstract fun createBodyComponent(type: ConnectionType): JComponent?

@@ -27,6 +27,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.ReadAction
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
@@ -185,7 +186,7 @@ class BasicCompileTest {
     val cache = MutableIrClassCache()
     val apk = projectRule.directApiCompileByteArray(file)
     val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
-    val state = getPsiValidationState(file)
+    val state = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
     val output = compile(listOf(LiveEditCompilerInput(file, state)), compiler)
     Assert.assertEquals(1, output.supportClassesMap.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.

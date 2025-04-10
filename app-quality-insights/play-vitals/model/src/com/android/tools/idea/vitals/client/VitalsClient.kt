@@ -232,18 +232,14 @@ class VitalsClient(
           "Insights are currently not available for native crashes"
         )
     }
-    val cachedInsight =
-      cache.getAiInsight(connection, issueId, variantId, codeContextData.experimentType)
+    val cachedInsight = cache.getAiInsight(connection, issueId, variantId, codeContextData)
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
     return runGrpcCatchingWithSupervisorScope(failure) {
       if (cachedInsight == null) {
         val insight =
           aiInsightClient
             .fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
-            .copy(
-              experiment = codeContextData.experimentType,
-              codeContextTrackingDetails = codeContextData.codeContextTrackingInfo,
-            )
+            .copy(codeContextData = codeContextData)
         cache.putAiInsight(connection, issueId, variantId, insight)
         LoadingState.Ready(insight)
       } else {

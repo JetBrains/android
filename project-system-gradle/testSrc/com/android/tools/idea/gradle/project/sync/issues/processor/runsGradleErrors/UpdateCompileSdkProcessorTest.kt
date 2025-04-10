@@ -76,7 +76,7 @@ class UpdateCompileSdkProcessorTest : AndroidGradleTestCase() {
       override fun syncSucceeded(project: Project) {
         synced = true
       }
-    })
+    }, testRootDisposable)
 
     WriteCommandAction.runWriteCommandAction(project) {
       processor.updateProjectBuildModel(usages)

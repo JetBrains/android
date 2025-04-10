@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
@@ -42,7 +41,7 @@ class ToggleFastPreviewAction(
 
       // Automatically refresh when re-enabling
       fastPreviewSurfaceProvider(e.dataContext)?.requestFastPreviewRefreshAsync()
-    } else fastPreviewManager.disable(ManualDisabledReason)
+    } else fastPreviewManager.disable()
     // We have changed the state of Fast Preview, update notifications
     EditorNotifications.getInstance(project).updateAllNotifications()
   }

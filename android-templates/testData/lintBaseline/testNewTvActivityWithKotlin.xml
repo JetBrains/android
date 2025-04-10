@@ -10,69 +10,14 @@
     </issue>
 
     <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="        Log.d(TAG, &quot;onDestroy: &quot; + mBackgroundTimer?.toString())"
-        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk 35"
+        errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/template/test/in/MainFragment.kt"
-            line="65"
-            column="36"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String, override fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                Log.d(TAG, &quot;Item: &quot; + item.toString())"
-        errorLine2="                                      ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/MainFragment.kt"
-            line="139"
-            column="39"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {override fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="        Log.d(TAG, &quot;doInBackground: &quot; + mSelectedMovie?.toString())"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/VideoDetailsFragment.kt"
-            line="89"
-            column="41"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                Toast.makeText(context!!, action.toString(), Toast.LENGTH_SHORT).show()"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/VideoDetailsFragment.kt"
-            line="157"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {open fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                Toast.makeText(context!!, action.toString(), Toast.LENGTH_SHORT).show()"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/VideoDetailsFragment.kt"
-            line="157"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="MemberExtensionConflict"
-        message="Conflict applicable candidates of member and extension: members {override fun toString(): kotlin.String}, extensions {fun kotlin.Any?.toString(): kotlin.String}"
-        errorLine1="                Log.d(TAG, &quot;Item: &quot; + item.toString())"
-        errorLine2="                                      ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/template/test/in/VideoDetailsFragment.kt"
-            line="191"
-            column="39"/>
+            file="build.gradle"
+            line="13"
+            column="9"/>
     </issue>
 
     <issue

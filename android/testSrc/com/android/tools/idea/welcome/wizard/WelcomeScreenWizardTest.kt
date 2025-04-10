@@ -813,6 +813,7 @@ class WelcomeScreenWizardTest {
 
     // Click 'Finish'
     val finishButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Finish") })
+    waitForCondition(2, TimeUnit.SECONDS) { finishButton.isEnabled }
     finishButton.doClick()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 

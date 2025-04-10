@@ -322,6 +322,22 @@ class HeapAnalysisTest {
       summaryBaselineFileName = "testReportSummary_summary.txt")
   }
 
+  @Test
+  fun testReleasedEditor() {
+    class MockEditor(val isReleased: Boolean)
+    val scenario: HProfBuilder.() -> Unit = {
+      val activeEditor = MockEditor(false)
+      val releasedEditor = MockEditor(true)
+      val editors = listOf(activeEditor, releasedEditor)
+      addRootGlobalJNI(editors)
+    }
+    runHProfScenario(scenario,
+                     "testReleasedEditor.txt",
+                     classNameMapping = { if (it === MockEditor::class.java) "com.intellij.openapi.editor.impl.EditorImpl" else it.name },
+                     nominatedClassNames = listOf("com.intellij.openapi.editor.impl.EditorImpl")
+    )
+  }
+
   private fun configWithSummary(vararg classes: String) = AnalysisConfig(
     AnalysisConfig.PerClassOptions(
       classNames = classes.asList(),

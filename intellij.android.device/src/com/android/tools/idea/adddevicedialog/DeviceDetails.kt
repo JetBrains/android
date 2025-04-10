@@ -37,7 +37,6 @@ import com.android.repository.api.RemotePackage
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
 import com.android.sdklib.devices.Storage
-import com.android.sdklib.displayApiString
 import com.android.tools.adtui.compose.DeviceScreenDiagram
 import com.google.common.collect.Range
 import com.intellij.util.ui.JBUI
@@ -101,7 +100,7 @@ fun DeviceDetails(
 
       if (systemImage != null) {
         Header("System Image")
-        LabeledValue("API Level", systemImage.androidVersion.displayApiString)
+        LabeledValue("API Level", systemImage.androidVersion.getApiStringWithExtension())
         LabeledValue("Services", systemImage.services)
         LabeledValue("ABI", systemImage.abiTypes.joinToString(", "))
         if (systemImage.translatedAbiTypes.isNotEmpty()) {

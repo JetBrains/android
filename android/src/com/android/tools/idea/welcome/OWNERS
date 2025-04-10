@@ -1,3 +1,6 @@
+# Route bugs created from test failures to L2 triage.
+# Bug component: 148131
+# See go/studio-test-owners for more.
 davidbelcher@google.com
 estebandlc@google.com
 rpaquay@google.com

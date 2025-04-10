@@ -1,5 +1,6 @@
 package com.android.tools.idea.logcat.actions
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
@@ -56,7 +57,8 @@ class SaveLogcatActionTest {
   private val fakeProjectApplicationIdsProvider by lazy {
     FakeProjectApplicationIdsProvider(project)
   }
-  private val device = Device.createPhysical("device", true, "10", 30, "Google", "Pixel")
+  private val device =
+    Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
   private val fakeLogcatPresenter by lazy {
     FakeLogcatPresenter().also { Disposer.register(disposable, it) }
   }

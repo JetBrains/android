@@ -52,7 +52,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
@@ -78,7 +77,7 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.testFramework.ServiceContainerUtil;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -411,8 +410,8 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
-    TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    projectSytem.useInTests();
+    TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
+    projectSystem.useInTests();
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -448,15 +447,13 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
-  // b/156479695
-  public void ignore_testAddComponentsWithDependencyCheck() {
+  public void testAddComponentsWithDependencyCheck() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
-                                       projectSystem, getTestRootDisposable());
+    projectSystem.useInTests();
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -487,6 +484,7 @@ public class NlModelTest extends LayoutTestCase {
     while (frameLayout.getChildren().isEmpty()) {
       try {
         Thread.sleep(1000);
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
       }
       catch (InterruptedException e) {
         fail("Failed while waiting for RecyclerView to be added.");
@@ -495,19 +493,17 @@ public class NlModelTest extends LayoutTestCase {
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x70, instance=2}",
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x72, instance=2}",
                  myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
-  // b/156479695
-  public void ignore_testAddComponentsNoDependencyCheckOnMove() {
+  public void testAddComponentsNoDependencyCheckOnMove() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
-                                       projectSystem, getTestRootDisposable());
+    projectSystem.useInTests();
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)

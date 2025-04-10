@@ -384,7 +384,9 @@ class WearPairingManager(
   }
 
   override fun deviceChanged(device: IDevice, changeMask: Int) {
-    updateDevicesChannel.trySend(Unit)
+    if (changeMask == IDevice.CHANGE_STATE) {
+      updateDevicesChannel.trySend(Unit)
+    }
   }
 
   internal suspend fun findDevice(deviceID: String): PairingDevice? =

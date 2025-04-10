@@ -18,9 +18,7 @@ package com.android.tools.idea.preview.actions
 import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.adtui.status.InformationPopup
 import com.android.tools.adtui.swing.findAllDescendants
-import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
@@ -94,7 +92,7 @@ class CommonIssueNotificationActionTest {
       assertEquals("The preview is out of date", event.presentation.description)
     }
     try {
-      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
+      FastPreviewManager.getInstance(projectRule.project).disable()
       TestActionEvent.createTestEvent(dataContext).let { event ->
         action.update(event)
         assertEquals("Out of date", event.presentation.text)
@@ -151,7 +149,7 @@ class CommonIssueNotificationActionTest {
     }
 
     try {
-      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
+      FastPreviewManager.getInstance(projectRule.project).disable()
       TestActionEvent.createTestEvent(dataContext).let { event ->
         action.update(event)
         // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
@@ -190,7 +188,7 @@ class CommonIssueNotificationActionTest {
 
     viewModelStatus = TestPreviewViewModelStatus(hasRenderErrors = true, isOutOfDate = true)
     try {
-      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
+      FastPreviewManager.getInstance(projectRule.project).disable()
       TestActionEvent.createTestEvent(dataContext).let { event ->
         action.update(event)
         // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
@@ -244,34 +242,9 @@ class CommonIssueNotificationActionTest {
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
 
-    // Verify popup for an error that auto disabled the Fast Preview
-    run {
-      fastPreviewManager.disable(DisableReason("error"))
-      try {
-        viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
-        val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
-        assertEquals(
-          "The code might contain errors or might not work with Preview Live Edit.",
-          popup.labelsDescription(),
-        )
-        assertEquals(
-          """
-          Build & Refresh (SHORTCUT)
-          Re-enable
-          Do not disable automatically
-          View Details
-        """
-            .trimIndent(),
-          popup.linksDescription(),
-        )
-      } finally {
-        fastPreviewManager.enable()
-      }
-    }
-
     // Verify popup when the preview is out of date and the USER has disabled Fast Preview
     run {
-      fastPreviewManager.disable(ManualDisabledReason)
+      fastPreviewManager.disable()
       try {
         viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
         val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!

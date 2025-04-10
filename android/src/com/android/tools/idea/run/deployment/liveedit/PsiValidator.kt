@@ -24,6 +24,7 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.addIfNotNull
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
@@ -60,6 +61,7 @@ fun validatePsiChanges(old: PsiState?, new: PsiState): List<LiveEditUpdateExcept
     errors.addIfNotNull(validateInitBlocks(old.psiFile, old.initBlocks, new.initBlocks))
     errors.addIfNotNull(validateConstructors(old.psiFile, old.primaryConstructors, new.primaryConstructors))
     errors.addIfNotNull(validateConstructors(old.psiFile, old.secondaryConstructors, new.secondaryConstructors))
+    errors.addIfNotNull(validateEnums(old.psiFile, old.enums, new.enums))
   }
   logger.info("Live Edit: PSI validator checked PSI in $validateMs ms")
   return errors
@@ -98,7 +100,48 @@ private fun validateProperties(psiFile: PsiFile, oldProps: Map<FqName, String>, 
   return null
 }
 
+private fun validateEnums(psiFile: PsiFile, oldEnums: Map<FqName, Map<FqName, String?>>, newEnums: Map<FqName, Map<FqName, String?>>): LiveEditUpdateException? {
+  for (oldEnum in oldEnums) {
+    // If an enum was added/removed, we don't care about catching it here; bytecode diff will catch that.
+    val newEntries = newEnums[oldEnum.key] ?: continue
+    val result = validateEnum(psiFile, oldEnum.value, newEntries)
+    if (result != null) {
+      return result
+    }
+  }
+  return null
+
+}
+
+private fun validateEnum(psiFile: PsiFile, oldEntries: Map<FqName, String?>, newEntries: Map<FqName, String?>): LiveEditUpdateException? {
+  val removed = (oldEntries.keys - newEntries.keys).singleOrNull()
+  if (removed != null) {
+    return LiveEditUpdateException.unsupportedSourceModificationEnum("removed enum entry $removed", psiFile)
+  }
+
+  val added = (newEntries.keys - oldEntries.keys).singleOrNull()
+  if (added != null) {
+    return LiveEditUpdateException.unsupportedSourceModificationEnum("added enum entry $added", psiFile)
+  }
+
+  val oldIt = oldEntries.iterator()
+  val newIt = newEntries.iterator()
+  while (oldIt.hasNext() && newIt.hasNext()) {
+    val old = oldIt.next()
+    val new = newIt.next()
+    if (old.key != new.key) {
+      return LiveEditUpdateException.unsupportedSourceModificationEnum("modified order of enum ${old.key.parent()}", psiFile)
+    }
+
+    if (old.value != new.value) {
+      return LiveEditUpdateException.unsupportedSourceModificationEnum("modified enum initializer of ${old.key}", psiFile)
+    }
+  }
+  return null
+}
+
 class PsiState(val psiFile: PsiFile) : KtTreeVisitorVoid() {
+
   // Map of fully qualified property name to the code of the initializer or delegate.
   val properties = mutableMapOf<FqName, String>()
 
@@ -111,6 +154,9 @@ class PsiState(val psiFile: PsiFile) : KtTreeVisitorVoid() {
 
   // Map of secondary constructor parameter types to kotlin code of the constructor.
   val secondaryConstructors = mutableMapOf<List<String?>, String>()
+
+  // Map of enum names to enum entries; each enum entry maps a qualified name to an initializer list, if one is present.
+  val enums = mutableMapOf<FqName, Map<FqName, String?>>()
 
   override fun visitPrimaryConstructor(constructor: KtPrimaryConstructor) {
     val params = constructor.valueParameters.map { it.typeReference?.getTypeText() }
@@ -143,6 +189,24 @@ class PsiState(val psiFile: PsiFile) : KtTreeVisitorVoid() {
     }
     super.visitProperty(property)
   }
+
+  override fun visitClass(klass: KtClass) {
+    super.visitClass(klass)
+    if (!klass.isEnum()) {
+      return
+    }
+
+    val enumName = klass.fqName ?: return
+    val entries = mutableMapOf<FqName, String?>()
+    klass.body?.let {
+      for (entry in it.enumEntries) {
+        val entryName = entry.fqName ?: continue
+        entries[entryName] = entry.initializerList?.let { flatten (it) }
+      }
+    }
+
+    enums[enumName] = entries
+  }
 }
 
 // Performs a preorder traversal of a PSI tree and returns a string concatenation of the contents of all leaf nodes,
@@ -165,5 +229,5 @@ private fun flatten(elem: PsiElement): String {
       }
     }
   }
-  return leafs.joinToString { it.text }
+  return leafs.joinToString(separator = "") { it.text }
 }

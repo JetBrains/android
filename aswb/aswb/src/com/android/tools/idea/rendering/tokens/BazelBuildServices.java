@@ -16,18 +16,47 @@
 package com.android.tools.idea.rendering.tokens;
 
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices;
+import com.google.common.collect.MoreCollectors;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
+import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
+import com.google.idea.blaze.base.scope.BlazeContext;
+import com.intellij.openapi.module.Module;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 final class BazelBuildServices implements BuildServices<BazelBuildTargetReference> {
   @Override
   public @NotNull BuildStatus getLastCompileStatus(@NotNull BazelBuildTargetReference target) {
-    throw new UnsupportedOperationException();
+    // TODO: b/409383880 - Implement this
+    return BuildStatus.UNKNOWN;
   }
 
+  /**
+   * Executed by an application pool thread
+   */
   @Override
   public void buildArtifacts(@NotNull Collection<? extends @NotNull BazelBuildTargetReference> targets) {
+    var project = targets.stream()
+      .map(BuildTargetReference::getModule)
+      .map(Module::getProject)
+      .distinct()
+      .collect(MoreCollectors.onlyElement());
+
+    // TODO: b/409388569 - Do you need to pass the file that contains the previews to this?
+    var scope = QuerySyncActionStatsScope.create(BazelBuildServices.class, null);
+
+    QuerySyncManager.getInstance(project)
+      .runBuild("Build & Refresh", null, scope, BazelBuildServices::buildAndRefresh, TaskOrigin.USER_ACTION);
+  }
+
+  /**
+   * Executed by the Blaze executor
+   */
+  private static void buildAndRefresh(@NotNull BlazeContext context) {
+    // TODO: b/409388814 - Implement this
     throw new UnsupportedOperationException();
   }
 }

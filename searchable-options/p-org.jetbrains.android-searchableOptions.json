@@ -20,3 +20,5 @@
 {"id":"experimental","name":"Experimental","entries":[{"hit":"Quality Setting"}]}
 {"id":"gradle.compiler","name":"Gradle-Android Compiler","entries":[{"hit":"\nNote: These settings are used for compiling Gradle-based Android projects."},{"hit":"Command-line Options:"},{"hit":"Compile independent modules in parallel (may require larger heap size)"},{"hit":"Continue the build after failures"},{"hit":"Gradle-Android Compiler"}]}
 {"id":"layout.inspector","name":"Layout Inspector","entries":[{"hit":"Enable auto connect (requires a restart of Android Studio)"},{"hit":"Enable embedded Layout Inspector"},{"hit":"Layout Inspector"},{"hit":"Learn More"}]}
+{"id":"DeclarativeFocus","name":"Gradle Declarative Focus"}
+{"id":"build.tools","name":"Build Tools","entries":[{"hit":"Always Sync projects automatically (default)"},{"hit":"Build Tools"},{"hit":"Manual Sync with reminders"},{"hit":"Project Sync mode"}]}

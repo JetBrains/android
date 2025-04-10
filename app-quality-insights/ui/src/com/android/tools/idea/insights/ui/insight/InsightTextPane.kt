@@ -27,39 +27,28 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.Project
-import com.intellij.util.ui.HTMLEditorKitBuilder
+import com.intellij.ui.components.JBHtmlPane
+import com.intellij.ui.components.JBHtmlPaneConfiguration
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import javax.swing.JTextPane
 import javax.swing.event.HyperlinkEvent.EventType
 import javax.swing.text.DefaultCaret
+import javax.swing.text.html.HTMLEditorKit
+import org.jetbrains.annotations.Nls
 
 private const val EMPTY_PARAGRAPH = "<p></p>"
-private const val SPACING = 5
 
 /** [JTextPane] that displays the AI insight. */
-class InsightTextPane(private val project: Project) : JTextPane(), CopyProvider {
+@Suppress("UnstableApiUsage")
+class InsightTextPane(private val project: Project) : JBHtmlPane(), CopyProvider {
 
   init {
-    contentType = "text/html"
     isEditable = false
     isOpaque = false
-    editorKit =
-      HTMLEditorKitBuilder().withoutContentCss().withWordWrapViewFactory().build().apply {
-        with(styleSheet) {
-          addRule("body { white-space: pre-wrap; }")
-          addRule(
-            "ul { margin-bottom: ${JBUI.scale(SPACING)}; margin-top: ${JBUI.scale(SPACING)}; }"
-          )
-          addRule(
-            "ol { margin-bottom: ${JBUI.scale(SPACING)}; margin-top: ${JBUI.scale(SPACING)}; }"
-          )
-          addRule(
-            "p { margin-bottom: ${JBUI.scale(SPACING)}; margin-top: ${JBUI.scale(SPACING)}; }"
-          )
-          addRule("li p { margin-bottom: 0; margin-top: 0; }")
-        }
-      }
+    (editorKit as HTMLEditorKit).apply {
+      with(styleSheet) { addRule("body { white-space: pre-wrap; }") }
+    }
 
     font = StartupUiUtil.labelFont
 
@@ -82,8 +71,12 @@ class InsightTextPane(private val project: Project) : JTextPane(), CopyProvider 
     border = JBUI.Borders.empty()
   }
 
-  override fun setText(text: String) {
-    if (text.isBlank()) {
+  override fun initializePaneConfiguration(builder: JBHtmlPaneConfiguration.Builder) {
+    builder.underlinedHoveredHyperlink = true
+  }
+
+  override fun setText(text: @Nls String?) {
+    if (text == null || text.isBlank()) {
       // Set empty paragraph as text in order to avoid editor kit adding
       // random (un)ordered list tags
       super.setText(EMPTY_PARAGRAPH)
@@ -108,5 +101,5 @@ class InsightTextPane(private val project: Project) : JTextPane(), CopyProvider 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   private val renderedText: String
-    get() = document.getText(0, document.length)
+    get() = document.getText(0, document.length).replace("\u200B", "")
 }

@@ -3,7 +3,7 @@
     "name": "KitKat",
     "version": "4.4",
     "apiLevel": 19,
-    "distributionPercentage": 0.003,
+    "distributionPercentage": 0.001,
     "url": "https://developer.android.com/about/versions/android-4.4.html",
     "descriptionBlocks": [
       {
@@ -40,7 +40,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -105,7 +105,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -113,7 +113,7 @@
     "name": "Lollipop",
     "version": "5.1",
     "apiLevel": 22,
-    "distributionPercentage": 0.008,
+    "distributionPercentage": 0.005,
     "url": "https://developer.android.com/about/versions/android-5.1.html",
     "descriptionBlocks": [
       {
@@ -126,7 +126,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -134,7 +134,7 @@
     "name": "Marshmallow",
     "version": "6",
     "apiLevel": 23,
-    "distributionPercentage": 0.014,
+    "distributionPercentage": 0.008,
     "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
     "descriptionBlocks": [
       {
@@ -167,7 +167,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -175,7 +175,7 @@
     "name": "Nougat",
     "version": "7",
     "apiLevel": 24,
-    "distributionPercentage": 0.01,
+    "distributionPercentage": 0.006,
     "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
     "descriptionBlocks": [
       {
@@ -224,7 +224,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -232,7 +232,7 @@
     "name": "Nougat",
     "version": "7.1",
     "apiLevel": 25,
-    "distributionPercentage": 0.01,
+    "distributionPercentage": 0.007,
     "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
     "descriptionBlocks": [
       {
@@ -261,7 +261,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -269,7 +269,7 @@
     "name": "Oreo",
     "version": "8",
     "apiLevel": 26,
-    "distributionPercentage": 0.015,
+    "distributionPercentage": 0.01,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks": [
       {
@@ -298,7 +298,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -306,7 +306,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.044,
+    "distributionPercentage": 0.031,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks": [
       {
@@ -327,7 +327,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -335,7 +335,7 @@
     "name": "Pie",
     "version": "9",
     "apiLevel": 28,
-    "distributionPercentage": 0.085,
+    "distributionPercentage": 0.059,
     "url": "https://developer.android.com/about/versions/pie/android-9.0",
     "descriptionBlocks": [
       {
@@ -360,7 +360,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -368,7 +368,7 @@
     "name": "Q",
     "version": "10",
     "apiLevel": 29,
-    "distributionPercentage": 0.138,
+    "distributionPercentage": 0.104,
     "url": "https://developer.android.com/about/versions/10",
     "descriptionBlocks": [
       {
@@ -389,7 +389,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -397,7 +397,7 @@
     "name": "R",
     "version": "11",
     "apiLevel": 30,
-    "distributionPercentage": 0.192,
+    "distributionPercentage": 0.162,
     "url": "https://developer.android.com/about/versions/11",
     "descriptionBlocks": [
       {
@@ -414,7 +414,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -422,7 +422,7 @@
     "name": "S",
     "version": "12",
     "apiLevel": 31,
-    "distributionPercentage": 0.148,
+    "distributionPercentage": 0.13,
     "url": "https://developer.android.com/about/versions/12",
     "descriptionBlocks": [
       {
@@ -443,7 +443,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -451,7 +451,7 @@
     "name": "T",
     "version": "13",
     "apiLevel": 33,
-    "distributionPercentage": 0.211,
+    "distributionPercentage": 0.171,
     "url": "https://developer.android.com/about/versions/13",
     "descriptionBlocks": [
       {
@@ -468,7 +468,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
       }
     ]
   },
@@ -476,7 +476,7 @@
     "name": "U",
     "version": "14",
     "apiLevel": 34,
-    "distributionPercentage": 0.12,
+    "distributionPercentage": 0.274,
     "url": "https://developer.android.com/about/versions/14",
     "descriptionBlocks": [
       {
@@ -493,7 +493,56 @@
       },
       {
         "title": "",
-        "body": "Last updated: April 17, 2024"
+        "body": "Last updated: March 1, 2025"
+      }
+    ]
+  },
+  {
+    "name": "V",
+    "version": "15",
+    "apiLevel": 35,
+    "distributionPercentage": 0.029,
+    "url": "https://developer.android.com/about/versions/15",
+    "descriptionBlocks": [
+      {
+        "title": "Camera and media",
+        "body": "Low Light Boost<br>In-app Camera Controls<br>HDR headroom control<br>Loudness control<br>Virtual MIDI 2.0 Devices<br>More efficient AV1 software decoding"
+      },
+      {
+        "title": "Connectivity",
+        "body": "Satellite support<br>Smoother NFC experiences<br>Wallet role"
+      },
+      {
+        "title": "Developer productivity and tools",
+        "body": "OpenJDK 17 updates<br>PDF improvements<br>Automatic language switching refinements<br>Improved OpenType Variable Font API<br>Granular line break controls<br>App archiving"
+      },
+      {
+        "title": "Graphics",
+        "body": "Modernizing Android's GPU access<br>Improvements for Canvas"
+      },
+      {
+        "title": "Large screens and form factors",
+        "body": "Improved large screen multitasking<br>Cover screen support"
+      },
+      {
+        "title": "Performance and battery",
+        "body": "ApplicationStartInfo API<br>Detailed app size information<br>App-managed profiling<br>SQLite database improvements<br>Android Dynamic Performance Framework updates"
+      },
+      {
+        "title": "Privacy",
+        "body": "Screen recording detection<br>Expanded IntentFilter capabilities<br>Private space<br>Query most-recent user selection for Selected Photos Access<br>Privacy Sandbox on Android<br>Health Connect<br>Partial screen sharing"
+      },
+      {
+        "title": "Security",
+        "body": "Integrate Credential Manager with autofill<br>Integrate single tap sign-up and sign-in with biometric prompts<br>Key management for end-to-end encryption<br>Permission checks on content URIs"
+      },
+      {
+        "title": "User experience and system UI",
+        "body": "Richer widget previews with Generated Previews API<br>Picture-in-picture improvements<br>Improved Do Not Disturb rules<br>Set VibrationEffect for notification channels<br>Media projection status bar chip and auto stop"
+      },
+      {
+        "title": "",
+        "body": "Last updated: March 1, 2025"
       }
     ]
   }

@@ -42,6 +42,9 @@ class CreateAuxiliaryFilesVisitor(
   private var directByteBufferCapacityOffset: Int = 0
   private var directByteBufferFdOffset: Int = 0
 
+  private var editorImplClass: ClassDefinition? = null
+  private var editorImplIsReleasedOffset: Int = 0
+
   companion object {
     private val LOG = Logger.getInstance(CreateAuxiliaryFilesVisitor::class.java)
   }
@@ -69,6 +72,16 @@ class CreateAuxiliaryFilesVisitor(
         LOG.error("DirectByteBuffer.capacity and/or .fd field is missing.")
       }
     }
+
+    val eiClass = classStore.getClassIfExists("com.intellij.openapi.editor.impl.EditorImpl")
+    if (eiClass != null) {
+      editorImplClass = eiClass
+      editorImplIsReleasedOffset = eiClass.computeOffsetOfField("isReleased", classStore)
+      if (editorImplIsReleasedOffset == -1) {
+        LOG.error("EditorImpl.isReleased field is missing.")
+      }
+    }
+
     // Map id=0 to 0
     offsets.writeInt(0)
   }
@@ -184,6 +197,15 @@ class CreateAuxiliaryFilesVisitor(
           // File-mapped buffer
           aux.writeNonNegativeLEB128Int(1)
         }
+      }
+    }
+
+    if (objectClass == editorImplClass) { // EditorImpl is final.
+      if (editorImplIsReleasedOffset == -1) {
+        aux.writeNonNegativeLEB128Int(0)
+      } else {
+        val isReleased = bytes.get(editorImplIsReleasedOffset)
+        aux.writeNonNegativeLEB128Int(isReleased.toInt())
       }
     }
   }

@@ -47,9 +47,9 @@ private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 internal class GrpcDataComponentFactory(
   private val project: Project,
   private val parentDisposable: Disposable,
-  data: GrpcData,
+  grpcData: GrpcData,
   private val protoFileFinder: ProtoFileFinder = ProtoFileFinderImpl(project),
-) : DataComponentFactory(data) {
+) : DataComponentFactory(grpcData) {
   private val grpcData: GrpcData
     get() = data as GrpcData
 
@@ -58,14 +58,14 @@ internal class GrpcDataComponentFactory(
   override fun createBodyComponent(type: ConnectionType): JComponent? {
     val bytes =
       when (type) {
-        REQUEST -> data.requestPayload.toByteArray()
-        RESPONSE -> data.responsePayload.toByteArray()
+        REQUEST -> grpcData.requestPayload.toByteArray()
+        RESPONSE -> grpcData.responsePayload.toByteArray()
       }
 
     val text =
       when (type) {
-        REQUEST -> data.requestPayloadText
-        RESPONSE -> data.responsePayloadText
+        REQUEST -> grpcData.requestPayloadText
+        RESPONSE -> grpcData.responsePayloadText
       }
     val fileType = bytes.getFileType()
 
@@ -162,7 +162,7 @@ private fun ByteArray.getFileType(): FileType? {
 private fun String.isJson(): Boolean {
   return try {
     GSON.fromJson(this, JsonObject::class.java) != null
-  } catch (e: Exception) {
+  } catch (_: Exception) {
     false
   }
 }
@@ -171,7 +171,7 @@ private fun String.isXml(): Boolean {
   return try {
     XML.parse(InputSource(StringReader(this)))
     true
-  } catch (e: Exception) {
+  } catch (_: Exception) {
     false
   }
 }

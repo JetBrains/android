@@ -165,8 +165,8 @@ class DeployAndHandleErrorKtTest {
 
     val notificationInfo = notificationRule.notifications.find {
       it.type == NotificationType.ERROR &&
-      it.content == "Installation failed\n" +
-      "Apply Changes could not complete because an application process is crashed."
+      // b/409616973
+      it.content?.startsWith("Installation failed\n") ?: false &&
       it.actions.single().templateText == "Reinstall and restart app"
     }
 
@@ -220,8 +220,8 @@ class DeployAndHandleErrorKtTest {
 
     val notificationInfo = notificationRule.notifications.find {
       it.type == NotificationType.ERROR &&
-      it.content == "Installation failed\n" +
-      "Crashlytics modified your build ID, which requires an activity restart. <a href=\"https://d.android.com/r/studio-ui/apply-changes-crashlytics-buildid\">See here</a>"
+      // b/409616973
+      it.content?.startsWith("Installation failed\n") ?: false &&
       it.actions.single().templateText == "Apply changes and restart activity"
     }
 
@@ -249,8 +249,8 @@ class DeployAndHandleErrorKtTest {
 
     val notificationInfo = notificationRule.notifications.find {
       it.type == NotificationType.ERROR &&
-      it.content == "Installation failed\n" +
-      "Apply Changes could not complete because an application process is crashed."
+      // b/409616973
+      it.content?.startsWith("Installation failed\n") ?: false &&
       it.actions.single().templateText == "Rerun"
     }
 

@@ -329,8 +329,6 @@ maven_repository(
         "@maven//:com.google.android.support.wearable_2.9.0",
         "@maven//:com.google.android.wearable.wearable_2.9.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
-        "@maven//:com.google.code.gson.gson_2.2.4",
-        "@maven//:com.google.code.gson.gson_2.6.2",
         "@maven//:com.google.dagger.dagger-compiler_2.56.1",
         "@maven//:com.google.dagger.dagger_2.56.1",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
@@ -2489,7 +2487,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.google.code.gson.gson_2.6.2",
+        "@maven//:com.google.code.gson.gson_2.11.0",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaDepTest"],
     tags = COMMON_TAGS + [
@@ -2507,7 +2505,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.google.code.gson.gson_2.6.2",
+        "@maven//:com.google.code.gson.gson_2.11.0",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidDepTest"],
     tags = COMMON_TAGS + [

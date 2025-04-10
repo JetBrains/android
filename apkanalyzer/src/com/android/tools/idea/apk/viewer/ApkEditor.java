@@ -16,12 +16,15 @@
 package com.android.tools.idea.apk.viewer;
 
 import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.IS_PAGE_ALIGN_ENABLED;
+import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.getAlignmentFinding;
 import static com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil.withChecksDisabledForSupplier;
 
 import com.android.SdkConstants;
 import com.android.tools.apk.analyzer.ApkSizeCalculator;
 import com.android.tools.apk.analyzer.Archive;
 import com.android.tools.apk.analyzer.ArchiveContext;
+import com.android.tools.apk.analyzer.ArchiveEntry;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.android.tools.apk.analyzer.dex.ProguardMappings;
@@ -29,6 +32,9 @@ import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
+import com.android.tools.idea.apk.viewer.pagealign.AlignmentFinding;
+import com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt;
+import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
@@ -300,6 +306,18 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   ApkFileEditorComponent getEditor(ArchiveTreeNode @Nullable [] nodes) {
     if (nodes == null || nodes.length == 0) {
       return new EmptyPanel();
+    }
+
+    if (IS_PAGE_ALIGN_ENABLED) {
+      // Check whether there is an alignment warning and show a warning panel.
+      // If there are multiple, then give precedence to other viewers.
+      if (nodes.length == 1 && nodes[0] != null) {
+        ArchiveEntry archiveEntry = nodes[0].getData();
+        AlignmentFinding alignment = AlignmentFindingKt.getAlignmentFinding(archiveEntry);
+        if (alignment.getHasWarning()) {
+          return new AlignmentWarningViewer();
+        }
+      }
     }
 
     // Check if multiple dex files are selected and return a multiple dex viewer.

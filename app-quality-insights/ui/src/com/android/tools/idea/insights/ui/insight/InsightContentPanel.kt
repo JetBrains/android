@@ -19,9 +19,6 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.experiments.AppInsightsExperimentFetcher
-import com.android.tools.idea.insights.experiments.Experiment
-import com.android.tools.idea.insights.experiments.ExperimentGroup
 import com.android.tools.idea.insights.mapReady
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
@@ -87,12 +84,7 @@ class InsightContentPanel(
 
   private val insightPanel =
     JPanel(VerticalLayout(JBUI.scale(8))).apply {
-      if (
-        AppInsightsExperimentFetcher.instance.getCurrentExperiment(ExperimentGroup.CODE_CONTEXT) !=
-          Experiment.UNKNOWN
-      ) {
-        add(InsightDisclaimerPanel(controller, scope, currentInsightFlow))
-      }
+      add(InsightDisclaimerPanel(controller, scope, currentInsightFlow))
       add(insightTextPane)
 
       border = JBUI.Borders.empty(8, 16, 8, 8)

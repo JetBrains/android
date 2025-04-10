@@ -66,11 +66,6 @@ interface FastPreviewTrackerManager {
   fun userDisabled()
 
   /**
-   * Called when Fast Preview has been automatically disabled because of an error.
-   */
-  fun autoDisabled()
-
-  /**
    * Called when the daemon has failed to start.
    */
   fun daemonStartFailed()
@@ -101,14 +96,6 @@ internal class FastPreviewTrackerManagerImpl(private val project: Project) : Fas
       newStudioEvent()
         .setFastPreviewEvent(FastPreviewEvent.newBuilder()
                                .setType(FastPreviewEvent.Type.USER_DISABLED))
-    )
-  }
-
-  override fun autoDisabled() {
-    UsageTracker.log(
-      newStudioEvent()
-        .setFastPreviewEvent(FastPreviewEvent.newBuilder()
-                               .setType(FastPreviewEvent.Type.AUTO_DISABLED))
     )
   }
 

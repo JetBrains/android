@@ -88,6 +88,14 @@ class AndroidComplicationConfigurationExecutor(
 
     installWatchApp(device, console, indicator)
 
+    if (isDebug) {
+      // There is a bug in complication that right after the app with complication was installed, which is for configurations every time, if
+      // you try immediately launch it for debug it fails with error, work around is launch and immediately stop before launching for debug.
+      complicationLaunchOptions.chosenSlots.first().let { slot -> setComplicationOnWatchFace(app, slot, AppComponent.Mode.RUN, indicator, device) }
+      getStopCallback(console, applicationContext.applicationId, false).invoke(device)
+    }
+
+    indicator.text = "Setting up complication..."
     complicationLaunchOptions.chosenSlots.forEach { slot ->
       setComplicationOnWatchFace(app, slot, mode, indicator, device)
     }
@@ -130,6 +138,7 @@ class AndroidComplicationConfigurationExecutor(
 
     val apkInfo = ApkInfo(File(watchFaceInfo.apk), watchFaceInfo.appId)
     console.println("Installing test WatchFace...")
+    indicator.text = "Installing test WatchFace"
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
     return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, containsMakeBeforeRun,  indicator).app

@@ -16,8 +16,8 @@
 package com.android.tools.idea.projectsystem.gradle.autosync
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
+import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getSyncManager
@@ -44,12 +44,12 @@ class GradleProjectSystemAutoSyncTest {
   @After
   fun cleanUp() {
     StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.clearOverride()
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Default
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
   }
 
   @Test
   fun `Auto-sync disabled and request does not come from user directly`() {
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     val failure = assertFailsWith<RuntimeException> {
       projectRule.project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED).get()
     }
@@ -59,7 +59,7 @@ class GradleProjectSystemAutoSyncTest {
 
   @Test
   fun `Auto-sync disabled and request comes from user directly`() {
-    GradleExperimentalSettings.getInstance().AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Manual
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
     assertThat(projectRule.project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get()).isEqualTo(
       SyncResult.SUCCESS)
   }

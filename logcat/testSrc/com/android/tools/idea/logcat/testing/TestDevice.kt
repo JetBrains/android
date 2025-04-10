@@ -53,10 +53,9 @@ internal class TestDevice(
           serialNumber,
           state == ONLINE,
           release,
-          sdk,
+          AndroidVersion(sdk, 0),
           avdName,
           AVD_ROOT.resolve("$avdName.avd").pathString,
-          sdk,
           type,
         )
       else ->
@@ -64,10 +63,9 @@ internal class TestDevice(
           serialNumber,
           state == ONLINE,
           release,
-          sdk,
+          AndroidVersion(sdk, 0),
           manufacturer,
           model,
-          sdk,
           type,
         )
     }
@@ -75,7 +73,7 @@ internal class TestDevice(
     when {
       serialNumber.isEmulatorSerial() ->
         LocalEmulatorProperties.build(
-          makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk))
+          makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk, 0))
         ) {
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
           deviceType = type
@@ -86,7 +84,7 @@ internal class TestDevice(
           manufacturer = this@TestDevice.manufacturer
           model = this@TestDevice.model
           androidRelease = release
-          androidVersion = AndroidVersion(sdk)
+          androidVersion = AndroidVersion(sdk, 0)
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
           deviceType = type
         }

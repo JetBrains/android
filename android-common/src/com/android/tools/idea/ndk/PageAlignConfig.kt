@@ -58,6 +58,18 @@ object PageAlignConfig {
     ServerFlagService.instance.getProtoOrNull<PageAlign16kb>("cxx/page_align_16kb", PROTO_TEMPLATE)
 
   /**
+   * Create a one-line message for when the .so files and APK are already known to the user by context.
+   */
+  fun createShortSoUnalignedLoadSegmentsMessage() : String {
+    val flag = readServerFlag() ?: error("Check isPageAlignMessageEnabled() before calling create*Message() functions")
+    val date = flag.playStoreDeadlineDate
+    val url = "<a href=\"https://${flag.messageUrl}\">${flag.messageUrl}</a>"
+    return flag.messagePostscript
+      .replace("[DATE]", date)
+      .replace("[URL]", url)
+  }
+
+  /**
    * Create a warning message given a list of SO files that have alignment problems.
    */
   fun createMessage(apkFile: File, soFiles: List<String>, type: Type): String {

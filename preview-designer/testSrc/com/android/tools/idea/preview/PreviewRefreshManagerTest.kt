@@ -581,13 +581,18 @@ class PreviewRefreshManagerTest {
   fun testRenderingTopicIsCancelled_AfterAutomaticCancellation() = runBlocking {
     val waitingLatch = CountDownLatch(1)
     val renderTopicCancelledLatch = CountDownLatch(1)
+
+    // Block the render service
+    val blockerActionStarted = CountDownLatch(1)
     RenderService.getRenderAsyncActionExecutor().runAsyncAction(myTopic) {
       try {
+        blockerActionStarted.countDown()
         waitingLatch.await()
       } catch (e: InterruptedException) {
         renderTopicCancelledLatch.countDown()
       }
     }
+    blockerActionStarted.await()
 
     TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
     refreshManager.requestRefreshSync(

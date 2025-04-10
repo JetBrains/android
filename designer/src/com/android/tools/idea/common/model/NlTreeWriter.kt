@@ -32,6 +32,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Helper function to wrapped [NlTreeWriter.addComponents] to select the added [NlComponent]s when
@@ -73,6 +74,7 @@ fun NlTreeWriter.addComponentsAndSelectedIfCreated(
  *
  * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
  */
+@TestOnly
 @JvmOverloads
 fun NlTreeWriter.createAndSelectComponents(
   toAdd: List<NlComponent>,

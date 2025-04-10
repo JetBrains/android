@@ -205,8 +205,10 @@ class ObjectNavigatorOnAuxFiles(
   }
 
   private val directByteBufferClass = classStore.getClassIfExists("java.nio.DirectByteBuffer")
+  private val editorImplClass = classStore.getClassIfExists("com.intellij.openapi.editor.impl.EditorImpl")
 
-  private fun isExtraDataPresent(classDefinition: ClassDefinition): Boolean = classDefinition == directByteBufferClass
+  private fun isExtraDataPresent(classDefinition: ClassDefinition): Boolean =
+    classDefinition == directByteBufferClass || classDefinition == editorImplClass
 
   private fun preloadExtraData() {
     extraData = aux.readNonNegativeLEB128Int()

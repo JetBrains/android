@@ -15,7 +15,34 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.components.Service
+
 enum class AutoSyncBehavior(val labelBundleKey: String) {
-  Default("gradle.settings.autoSync.behavior.default"),
-  Manual("gradle.settings.autoSync.behavior.manual")
+  Default("gradle.settings.autoSync.behavior.default"), Manual("gradle.settings.autoSync.behavior.manual")
+}
+
+private const val AUTO_SYNC_SETTING_KEY = "gradle.sync.auto.key"
+
+@Service(Service.Level.APP)
+object AutoSyncSettingStore {
+
+  var autoSyncBehavior: AutoSyncBehavior
+    get() = readAutoSyncPreference().takeUnless { isAutoSyncControlDisabled() } ?: AutoSyncBehavior.Default
+    set(behavior) {
+      storeAutoSyncPreference(behavior)
+    }
+
+  private fun isAutoSyncControlDisabled(): Boolean = !StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.get()
+
+  private fun readAutoSyncPreference(): AutoSyncBehavior? {
+    return PropertiesComponent.getInstance().getValue(AUTO_SYNC_SETTING_KEY)?.let { stored ->
+      AutoSyncBehavior.entries.find { it.name == stored }
+    }
+  }
+
+  private fun storeAutoSyncPreference(behavior: AutoSyncBehavior) {
+    PropertiesComponent.getInstance().setValue(AUTO_SYNC_SETTING_KEY, behavior.name)
+  }
 }

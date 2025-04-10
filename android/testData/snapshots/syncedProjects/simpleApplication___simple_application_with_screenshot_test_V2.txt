@@ -129,7 +129,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : 1.9
                 languageVersion               : 1.9
-            Platform                      : JVM (21)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -323,7 +323,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : 1.9
                 languageVersion               : 1.9
-            Platform                      : JVM (21)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -602,7 +602,7 @@ PROJECT                       : project
             MergedCompilerArguments
                 apiVersion                    : 1.9
                 languageVersion               : 1.9
-            Platform                      : JVM (21)
+            Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]

@@ -55,7 +55,6 @@ import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
-import com.android.tools.idea.insights.experiments.Experiment
 import com.android.tools.idea.insights.zeroCounts
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
@@ -607,8 +606,7 @@ class VitalsClientTest {
               "class Library {}",
               Language.KOTLIN,
             ),
-          ),
-          Experiment.TOP_SOURCE,
+          )
         ),
       )
 
@@ -669,11 +667,9 @@ class VitalsClientTest {
       ISSUE1.issueDetails.fatality,
       ISSUE1.sampleEvent,
       TimeIntervalFilter.ONE_DAY,
-      CodeContextData.UNASSIGNED,
+      CodeContextData.DISABLED,
     )
-    assertThat(
-        cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id, null, DEFAULT_AI_INSIGHT.experiment)
-      )
+    assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id, null, CodeContextData.DISABLED))
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
@@ -699,7 +695,7 @@ class VitalsClientTest {
           ISSUE1.issueDetails.fatality,
           ISSUE1.sampleEvent,
           TimeIntervalFilter.ONE_DAY,
-          CodeContextData.UNASSIGNED,
+          CodeContextData.DISABLED,
         )
       )
       .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(isCached = true)))
@@ -725,7 +721,7 @@ class VitalsClientTest {
         FailureType.ANR,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData.UNASSIGNED,
+        CodeContextData.DISABLED,
       )
 
     assertThat(insight)
@@ -784,44 +780,13 @@ class VitalsClientTest {
         FailureType.FATAL,
         Event(stacktraceGroup = stackTraceGroup),
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData.UNASSIGNED,
+        CodeContextData.DISABLED,
       )
 
     assertThat(insight)
       .isEqualTo(
         LoadingState.UnsupportedOperation("Insights are currently not available for native crashes")
       )
-  }
-
-  @Test
-  fun `fetch insight returns AiInsight with experiment set`() = runBlocking {
-    val fakeAiClient =
-      object : AiInsightClient {
-        override suspend fun fetchCrashInsight(projectId: String, additionalContextMsg: Message) =
-          DEFAULT_AI_INSIGHT
-      }
-    val client =
-      VitalsClient(
-        projectRule.project,
-        projectRule.disposable,
-        AppInsightsCacheImpl(),
-        ForwardingInterceptor,
-        TestVitalsGrpcClient(),
-        fakeAiClient,
-      )
-
-    val insight =
-      client.fetchInsight(
-        TEST_CONNECTION_1,
-        ISSUE1.id,
-        null,
-        ISSUE1.issueDetails.fatality,
-        ISSUE1.sampleEvent,
-        TimeIntervalFilter.ONE_DAY,
-        CodeContextData(emptyList(), Experiment.TOP_SOURCE),
-      )
-    assertThat(insight)
-      .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(experiment = Experiment.TOP_SOURCE)))
   }
 
   @Test
@@ -856,7 +821,7 @@ class VitalsClientTest {
         FailureType.FATAL,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData.UNASSIGNED,
+        CodeContextData.DISABLED,
       )
 
     assertThat(insight).isInstanceOf(LoadingState.PermissionDenied::class.java)

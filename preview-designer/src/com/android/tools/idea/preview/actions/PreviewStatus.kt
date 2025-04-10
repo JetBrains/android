@@ -17,19 +17,15 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.idea.common.error.IssuePanelService
-import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
 import com.intellij.ui.AnimatedIcon
-import com.intellij.ui.EditorNotifications
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import javax.swing.Icon
@@ -101,16 +97,6 @@ sealed class PreviewStatus(
       true,
     )
 
-  /** The Preview has failed to compile a fast change. */
-  object FastPreviewFailed :
-    PreviewStatus(
-      AllIcons.General.InspectionsPause,
-      message("notification.preview.fast.disabled.reason.compiler.error.title"),
-      message("notification.preview.fast.disabled.reason.compiler.error.description"),
-      IdeStatus.Presentation.Error,
-      true,
-    )
-
   /** The Preview is fully up to date. */
   object UpToDate :
     PreviewStatus(
@@ -118,28 +104,6 @@ sealed class PreviewStatus(
       message("notification.preview.up.to.date.title"),
       message("notification.preview.up.to.date.description"),
     )
-}
-
-/** [AnAction] that will show the Event Log. */
-class ShowEventLogAction : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project ?: return
-    ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
-  }
-}
-
-/** [AnAction] that re-enable the Fast Preview if disabled. */
-class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnAction() {
-  override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project ?: return
-    if (!allowAutoDisable) {
-      project.fastPreviewManager.allowAutoDisable = false
-    }
-    project.fastPreviewManager.enable()
-    PlatformCoreDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let {
-      EditorNotifications.getInstance(project).updateNotifications(it)
-    }
-  }
 }
 
 /**

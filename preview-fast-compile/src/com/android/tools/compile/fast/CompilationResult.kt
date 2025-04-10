@@ -64,9 +64,3 @@ sealed class CompilationResult {
  */
 val CompilationResult.isSuccess: Boolean
   get() = this == CompilationResult.Success
-
-/**
- * True if this is not a success result. [isSuccess] will be false.
- */
-val CompilationResult.isError: Boolean
-  get() = !isSuccess

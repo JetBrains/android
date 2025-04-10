@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.intellij.execution.ConsoleFolding
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.FoldRegion
 import com.intellij.openapi.project.Project
 
 private val consoleView = ConsoleViewForFolding()
@@ -78,13 +79,14 @@ internal class EditorFoldingDetector(
   consoleFoldings: List<ConsoleFolding> = ConsoleFolding.EP_NAME.extensionList + ExceptionFolding(),
 ) : FoldingDetector {
   private val document = editor.document
+  private val foldingModel = editor.foldingModel
   private val activeConsoleFoldings = consoleFoldings.filter { it.isEnabledForConsole(consoleView) }
 
   @UiThread
   override fun detectFoldings(startLine: Int, endLine: Int) {
     if (activeConsoleFoldings.isEmpty()) return
 
-    editor.foldingModel.runBatchFoldingOperation {
+    foldingModel.runBatchFoldingOperation {
       for (folding in activeConsoleFoldings) {
         var line = startLine
         while (line <= endLine) {
@@ -93,7 +95,19 @@ internal class EditorFoldingDetector(
             line++
             continue
           }
-          val foldStartLine = line
+          val previousRegion = findPreviousRegion(folding, line, startLine)
+          val foldStartLine =
+            if (previousRegion != null) {
+              foldingModel.removeFoldRegion(previousRegion)
+              val startOffset =
+                when (folding.shouldBeAttachedToThePreviousLine()) {
+                  true -> previousRegion.startOffset + 1
+                  false -> previousRegion.startOffset
+                }
+              document.getLineNumber(startOffset)
+            } else {
+              line
+            }
           line++
           while (line <= endLine && shouldFoldLine(folding, line)) {
             // Inner loop finds last folding line
@@ -103,6 +117,15 @@ internal class EditorFoldingDetector(
         }
       }
     }
+  }
+
+  private fun findPreviousRegion(folding: ConsoleFolding, line: Int, startLine: Int): FoldRegion? {
+    if (line == startLine && line > 0 && shouldFoldLine(folding, line - 1)) {
+      // regions are sorted by offset so the last one should be it
+      val region = foldingModel.allFoldRegions.lastOrNull() ?: return null
+      return region.takeIf { document.getLineNumber(region.endOffset) == line - 1 }
+    }
+    return null
   }
 
   private fun shouldFoldLine(folding: ConsoleFolding, line: Int) =

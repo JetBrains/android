@@ -228,6 +228,18 @@ VirtualTouchscreen& Controller::GetVirtualTouchscreen(int32_t display_id, int32_
   return *iter->second;
 }
 
+VirtualTablet& Controller::GetVirtualTablet(int32_t display_id, int32_t width, int32_t height) {
+  auto iter = virtual_tablets_.find(display_id);
+  if (iter == virtual_tablets_.end() || iter->second->screen_width() != width || iter->second->screen_height() != height) {
+    if (iter != virtual_tablets_.end()) {
+      InputManager::RemovePortAssociation(jni_, iter->second->phys());
+    }
+    iter = virtual_tablets_.insert_or_assign(display_id, make_unique<VirtualTablet>(width, height)).first;
+    InputManager::AddPortAssociation(jni_, iter->second->phys(), display_id);
+  }
+  return *iter->second;
+}
+
 void Controller::Run() {
   Log::D("Controller::Run");
   Initialize();
@@ -374,39 +386,56 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   if (!display_info.IsValid()) {
     return;
   }
-  int32_t tool = message.is_mouse() ? AMOTION_EVENT_TOOL_TYPE_MOUSE : AMOTION_EVENT_TOOL_TYPE_FINGER;
+  int32_t tool = message.is_mouse() ? AMOTION_EVENT_TOOL_TYPE_STYLUS : AMOTION_EVENT_TOOL_TYPE_FINGER;
 
-  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 30 &&
-      // TODO: Handle hover and scroll motion events using uinput.
-      action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_ENTER &&
-      action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL &&
-      message.action_button() == 0 && message.button_state() == 0) {
-    auto& touchscreen = GetVirtualTouchscreen(display_id, display_info.logical_size.width, display_info.logical_size.height);
-    if (action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_UP || action == AMOTION_EVENT_ACTION_MOVE) {
-      int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualTouchscreen::MAX_PRESSURE;
-      int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
-      for (auto& pointer : message.pointers()) {
-        bool success = touchscreen.WriteTouchEvent(pointer.pointer_id, tool, action, pointer.x, pointer.y, pressure, major_axis_size,
-                                                   event_time);
-        if (!success) {
-          Log::E("Error writing touch event");
+  if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 35 &&
+      action != AMOTION_EVENT_ACTION_SCROLL) {
+    if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || action == AMOTION_EVENT_ACTION_HOVER_ENTER ||
+        action == AMOTION_EVENT_ACTION_HOVER_EXIT) {
+      if (action == AMOTION_EVENT_ACTION_HOVER_MOVE) {
+        auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
+        for (auto& pointer : message.pointers()) {
+          bool success = tablet.WriteMotionEvent(
+              pointer.pointer_id, AMOTION_EVENT_TOOL_TYPE_STYLUS, AMOTION_EVENT_ACTION_MOVE, pointer.x, pointer.y, event_time);
+          if (!success) {
+            Log::E("Error writing hover move event");
+          }
         }
+      } else if (action == AMOTION_EVENT_ACTION_HOVER_ENTER) {
+        auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
+        tablet.StartHovering(event_time);
+      } else if (action == AMOTION_EVENT_ACTION_HOVER_EXIT) {
+        auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
+        tablet.StopHovering(event_time);
       }
     } else {
-      auto action_code = action & AMOTION_EVENT_ACTION_MASK;
-      if (action_code == AMOTION_EVENT_ACTION_POINTER_DOWN || action_code == AMOTION_EVENT_ACTION_POINTER_UP) {
-        auto pointer_id = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-        action = action_code == AMOTION_EVENT_ACTION_POINTER_DOWN ? AMOTION_EVENT_ACTION_DOWN : AMOTION_EVENT_ACTION_UP;
-        int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualTouchscreen::MAX_PRESSURE;
+      auto& tablet = GetVirtualTablet(display_id, display_info.logical_size.width, display_info.logical_size.height);
+      if (action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_UP || action == AMOTION_EVENT_ACTION_MOVE) {
+        int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualInputDevice::MAX_PRESSURE;
         int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
         for (auto& pointer : message.pointers()) {
-          if (pointer.pointer_id == pointer_id) {
-            bool success = touchscreen.WriteTouchEvent(pointer_id, tool, action, pointer.x, pointer.y, pressure, major_axis_size,
-                                                       event_time);
-            if (!success) {
-              Log::E("Error writing touch event");
+          bool success = tablet.WriteTouchEvent(pointer.pointer_id, AMOTION_EVENT_TOOL_TYPE_STYLUS, action, pointer.x, pointer.y,
+                                                pressure, major_axis_size, event_time);
+          if (!success) {
+            Log::E("Error writing touch event");
+          }
+        }
+      } else {
+        auto action_code = action & AMOTION_EVENT_ACTION_MASK;
+        if (action_code == AMOTION_EVENT_ACTION_POINTER_DOWN || action_code == AMOTION_EVENT_ACTION_POINTER_UP) {
+          auto pointer_id = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+          action = action_code == AMOTION_EVENT_ACTION_POINTER_DOWN ? AMOTION_EVENT_ACTION_DOWN : AMOTION_EVENT_ACTION_UP;
+          int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualInputDevice::MAX_PRESSURE;
+          int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
+          for (auto& pointer : message.pointers()) {
+            if (pointer.pointer_id == pointer_id) {
+              bool success = tablet.WriteTouchEvent(pointer_id, AMOTION_EVENT_TOOL_TYPE_STYLUS, action, pointer.x, pointer.y,
+                                                    pressure, major_axis_size, event_time);
+              if (!success) {
+                Log::E("Error writing touch event");
+              }
+              break;
             }
-            break;
           }
         }
       }

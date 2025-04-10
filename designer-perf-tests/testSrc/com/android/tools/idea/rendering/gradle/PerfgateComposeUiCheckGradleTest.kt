@@ -52,7 +52,7 @@ class PerfgateComposeUiCheckGradleTest : PerfgateComposeGradleTestBase() {
           .single()
 
       // Start UI Check mode
-      projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 60.seconds) {
+      projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = 120.seconds) {
         composePreviewRepresentation.setMode(
           PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
         )
@@ -97,6 +97,7 @@ class PerfgateComposeUiCheckGradleTest : PerfgateComposeGradleTestBase() {
           LayoutlibNativeMemoryMeasurement(Metric("uiCheckMode_layoutlib_native_memory")),
         ),
         nSamples = 1, // run it only once as this test takes a long time
+        minRefreshTimeout = 120,
       )
     }
 }

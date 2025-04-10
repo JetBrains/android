@@ -34,7 +34,7 @@ class DesignToolsTroubleInfoCollectorTest {
       """
         LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN)
 
-        FastPreviewStatus: available=true disableReason=null
+        FastPreviewStatus: available=true
 
         Project:
         Module(light_idea_test_case): isLoaded=true type=TYPE_NON_ANDROID isDisposed=false
@@ -61,7 +61,7 @@ class DesignToolsTroubleInfoCollectorTest {
       """
         LastBuildResult: BuildResult(mode=UNKNOWN, status=UNKNOWN)
 
-        FastPreviewStatus: available=true disableReason=null
+        FastPreviewStatus: available=true
 
         Project:
         Module(light_idea_test_case): isLoaded=true type=TYPE_APP isDisposed=false

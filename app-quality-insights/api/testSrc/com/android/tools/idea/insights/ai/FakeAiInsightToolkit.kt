@@ -32,9 +32,6 @@ open class FakeAiInsightToolkit(
   override val insightDeprecationData: DevServicesDeprecationData
     get() = DevServicesDeprecationData("", "", "", false, DevServicesDeprecationStatus.SUPPORTED)
 
-  override suspend fun getSource(
-    conn: Connection,
-    stack: StacktraceGroup,
-    overrideSourceLimit: Boolean,
-  ): CodeContextData = codeContextResolver.getSource(conn, stack, overrideSourceLimit)
+  override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData =
+    codeContextResolver.getSource(conn, stack)
 }

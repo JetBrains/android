@@ -54,7 +54,6 @@ import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
-import com.android.tools.idea.flags.StudioFlags.PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
@@ -251,8 +250,7 @@ fun configureLayoutlibSceneManager(
       // When the cache successful render image is enabled, the scene manager will retain the last
       // valid image even if subsequent renders fail. But do not cache in interactive mode as it
       // does not help, and it would make unnecessary copies of the bitmap.
-      config.cacheSuccessfulRenderImage =
-        StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get() && !isInteractive
+      config.cacheSuccessfulRenderImage = !isInteractive
       config.classesToPreload = if (isInteractive) INTERACTIVE_CLASSES_TO_PRELOAD else emptyList()
       config.usePrivateClassLoader = requestPrivateClassLoader
       config.showDecorations = showDecorations
@@ -392,6 +390,9 @@ class ComposePreviewRepresentation(
     ComposePreviewNavigationHandler().apply {
       Disposer.register(this@ComposePreviewRepresentation, this)
     }
+
+  /** Blank panel to display on top of the surface when transitioning between two [PreviewMode]s */
+  private val blankTransitionPanel = JPanel()
 
   private val emptyUiCheckPanel =
     object : JPanel() {
@@ -701,7 +702,6 @@ class ComposePreviewRepresentation(
       composeWorkBench.mainSurface,
       navigationHandler,
       isSelectionEnabled = true,
-      isPopUpEnabled = { StudioFlags.COMPOSE_PREVIEW_COMPONENT_POP_UP.get() },
     )
 
   @VisibleForTesting
@@ -1396,8 +1396,7 @@ class ComposePreviewRepresentation(
       launch(uiThread) {
         if (
           !composeWorkBench.isMessageBeingDisplayed &&
-            (refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY ||
-              PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME.get())
+            refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY
         ) {
           // Only notify the preview refresh time if there are previews to show.
           val durationString =
@@ -1566,10 +1565,13 @@ class ComposePreviewRepresentation(
       }
     }
     surface.background = mode.backgroundColor
+    surface.layeredPane.remove(blankTransitionPanel)
   }
 
   /** Performs cleanup for [mode] when leaving this mode to go to a mode of a different class. */
   private suspend fun onExit(mode: PreviewMode) {
+    // Show blank surface while performing exit cleanup
+    surface.layeredPane.add(blankTransitionPanel, JLayeredPane.DRAG_LAYER, 0)
     when (mode) {
       is PreviewMode.Default -> {}
       is PreviewMode.Interactive -> {

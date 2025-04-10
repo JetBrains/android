@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.flags.junit.FlagRule
 import com.android.ide.common.gradle.Version
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -36,18 +34,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -78,8 +72,6 @@ internal class FastPreviewManagerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
-
-  @get:Rule val autoDisableFlagRule = FlagRule(COMPOSE_FAST_PREVIEW_AUTO_DISABLE)
 
   private val testTracker = TestFastPreviewTrackerManager(showTimes = false)
 
@@ -467,138 +459,6 @@ internal class FastPreviewManagerTest {
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val result = manager.compileRequest(file, BuildTargetReference.from(file)!!).first
     assertTrue(result.toString(), result is CompilationResult.DaemonError)
-  }
-
-  @Test
-  fun `auto disable on failure`(): Unit = runBlocking {
-    COMPOSE_FAST_PREVIEW_AUTO_DISABLE.override(true)
-
-    val file =
-      projectRule.fixture.addFileToProject(
-        "test.kt",
-        """
-      fun empty() {}
-    """
-          .trimIndent()
-      )
-    val manager =
-      FastPreviewManager.getTestInstance(
-          project,
-          daemonFactory = { _, _, _, _ ->
-            object : CompilerDaemonClient by NopCompilerDaemonClient {
-              override suspend fun compileRequest(
-                applicationLiveEditServices: ApplicationLiveEditServices,
-                files: Collection<PsiFile>,
-                contextBuildTargetReference: BuildTargetReference,
-                outputDirectory: Path,
-                indicator: ProgressIndicator
-              ): CompilationResult {
-                throw IllegalStateException("Unable to process request")
-              }
-            }
-          },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
-        )
-        .also { Disposer.register(projectRule.testRootDisposable, it) }
-    assertNull(manager.disableReason)
-    assertTrue(manager.isEnabled)
-    manager.compileRequest(file, BuildTargetReference.from(file)!!).first.also { result ->
-      assertTrue(result.toString(), result is CompilationResult.RequestException)
-      assertFalse("FastPreviewManager should have been disable after a failure", manager.isEnabled)
-      assertTrue(
-        "Auto disable should not be persisted",
-        FastPreviewConfiguration.getInstance().isEnabled
-      )
-      assertEquals(
-        "DisableReason(title=Unable to compile using Preview Live Edit, description=Unable to process request, throwable=java.lang.IllegalStateException: Unable to process request)",
-        manager.disableReason.toString()
-      )
-      manager.enable()
-      assertNull(manager.disableReason)
-    }
-
-    manager.allowAutoDisable = false
-    // Repeat the failure but set autoDisable to false
-    manager.compileRequest(file, BuildTargetReference.from(file)!!).first.also { result ->
-      assertTrue(result.toString(), result is CompilationResult.RequestException)
-      assertTrue(manager.isEnabled)
-      assertTrue(FastPreviewConfiguration.getInstance().isEnabled)
-      assertNull(manager.disableReason)
-    }
-    assertEquals(
-      """
-        autoDisabled
-        compilationFailed (compiledFiles=1)
-        userEnabled
-        compilationFailed (compiledFiles=1)
-     """
-        .trimIndent(),
-      testTracker.logOutput()
-    )
-  }
-
-  @Test
-  fun `do not auto disable on syntax error`(): Unit = runBlocking {
-    COMPOSE_FAST_PREVIEW_AUTO_DISABLE.override(true)
-
-    val file =
-      projectRule.fixture.addFileToProject(
-        "test.kt",
-        """
-      fun empty) { // Syntax error
-    """
-          .trimIndent()
-      )
-    // Utility method that allows to optionally wrap the exception before throwing it
-    var optionallyThrow: () -> Unit = {}
-    val compilationError: CompilationResult =
-      CompilationResult.CompilationError(java.lang.IllegalStateException())
-    val manager =
-      FastPreviewManager.getTestInstance(
-          project,
-          daemonFactory = { _, _, _, _ ->
-            object : CompilerDaemonClient by NopCompilerDaemonClient {
-              override suspend fun compileRequest(
-                applicationLiveEditServices: ApplicationLiveEditServices,
-                files: Collection<PsiFile>,
-                contextBuildTargetReference: BuildTargetReference,
-                outputDirectory: Path,
-                indicator: ProgressIndicator
-              ): CompilationResult {
-                val inputs = files.filterIsInstance<KtFile>()
-                assertTrue(inputs.isNotEmpty())
-                optionallyThrow()
-                return compilationError
-              }
-            }
-          },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
-        )
-        .also { Disposer.register(projectRule.testRootDisposable, it) }
-    assertNull(manager.disableReason)
-    assertTrue(manager.isEnabled)
-    manager.compileRequest(file, BuildTargetReference.from(file)!!).first.also { result ->
-      assertTrue(result.toString(), result is CompilationResult.CompilationError)
-      assertTrue("FastPreviewManager should remain enabled after a syntax error", manager.isEnabled)
-      assertNull(manager.disableReason)
-    }
-
-    optionallyThrow = { throw ExecutionException(null) }
-    manager.invalidateRequestsCache()
-    manager.compileRequest(file, BuildTargetReference.from(file)!!).first.also { result ->
-      assertTrue(result.toString(), result is CompilationResult.RequestException)
-      assertFalse("FastPreviewManager should disabled after a request exception", manager.isEnabled)
-      assertNotNull(manager.disableReason)
-    }
-    assertEquals(
-      """
-        compilationFailed (compiledFiles=1)
-        autoDisabled
-        compilationFailed (compiledFiles=1)
-     """
-        .trimIndent(),
-      testTracker.logOutput()
-    )
   }
 
   // Regression test for http://b/222838793

@@ -252,25 +252,34 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     // Check version
     assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
-    // Set debug app.
-    assertThat(receivedAmCommands[1]).isEqualTo(setDebugAppAm)
-    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppBroadcast)
-    // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
-    assertThat(receivedAmCommands[3]).isEqualTo(setComplicationSlot1)
+    //Run and stop one complication
+    run {
+      // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
+      assertThat(receivedAmCommands[1]).isEqualTo(setComplicationSlot1)
+      // Unset complication
+      assertThat(receivedAmCommands[2]).isEqualTo(unsetComplication)
+      // Unset debug watchFace
+      assertThat(receivedAmCommands[3]).isEqualTo(unsetWatchFace)
+    }
     // Set debug app.
     assertThat(receivedAmCommands[4]).isEqualTo(setDebugAppAm)
     assertThat(receivedAmCommands[5]).isEqualTo(setDebugAppBroadcast)
+    // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
+    assertThat(receivedAmCommands[6]).isEqualTo(setComplicationSlot1)
+    // Set debug app.
+    assertThat(receivedAmCommands[7]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[8]).isEqualTo(setDebugAppBroadcast)
     // ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE).
-    assertThat(receivedAmCommands[6]).isEqualTo(setComplicationSlot3)
+    assertThat(receivedAmCommands[9]).isEqualTo(setComplicationSlot3)
     // Show watch face
-    assertThat(receivedAmCommands[7]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[10]).isEqualTo(showWatchFace)
     // Unset complication
-    assertThat(receivedAmCommands[8]).isEqualTo(unsetComplication)
+    assertThat(receivedAmCommands[11]).isEqualTo(unsetComplication)
     // Unset debug watchFace
-    assertThat(receivedAmCommands[9]).isEqualTo(unsetWatchFace)
+    assertThat(receivedAmCommands[12]).isEqualTo(unsetWatchFace)
     // Clear debug app
-    assertThat(receivedAmCommands[10]).isEqualTo(clearDebugAppBroadcast)
-    assertThat(receivedAmCommands[11]).isEqualTo(clearDebugAppAm)
+    assertThat(receivedAmCommands[13]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(receivedAmCommands[14]).isEqualTo(clearDebugAppAm)
   }
 
   @Test

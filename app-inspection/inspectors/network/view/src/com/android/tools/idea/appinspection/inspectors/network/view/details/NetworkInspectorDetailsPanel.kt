@@ -26,7 +26,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.connections
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleVariablesStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -39,8 +38,7 @@ internal class NetworkInspectorDetailsPanel(
   usageTracker: NetworkInspectorTracker,
 ) : JPanel(BorderLayout()) {
 
-  @VisibleForTesting val connectionDataDetailsView: ConnectionDataDetailsView
-
+  val connectionDataDetailsView: ConnectionDataDetailsView
   val ruleDetailsView: RuleDetailsView
 
   private val cardLayout = CardLayout()

@@ -167,12 +167,10 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @Override
   public void applyChanges() {
-    PostprocessReformattingAspect.getInstance(myBuildModelContext.getProject())
-      .postponeFormattingInside(() ->
-                                  runOverProjectTree(file -> {
-                                    file.applyChanges();
-                                    file.saveAllChanges();
-                                  }));
+    runOverProjectTree(file -> {
+      file.applyChanges();
+      file.saveAllChanges();
+    });
   }
 
   @Override

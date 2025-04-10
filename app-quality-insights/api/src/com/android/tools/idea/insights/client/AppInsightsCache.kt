@@ -26,7 +26,7 @@ import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.experiments.Experiment
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.SortedSet
@@ -88,7 +88,7 @@ interface AppInsightsCache {
     connection: Connection,
     issueId: IssueId,
     variantId: String?,
-    experiment: Experiment,
+    codeContextData: CodeContextData,
   ): AiInsight?
 
   /**
@@ -119,7 +119,7 @@ private data class IssueDetailsValue(
   fun toIssue() = AppInsightsIssue(issueDetails, sampleEvents.first(), state)
 }
 
-private data class AiInsightKey(val variantId: String?, val codeContextExperiment: Experiment)
+private data class AiInsightKey(val variantId: String?, val codeContextData: CodeContextData)
 
 private data class CacheValue(
   val issueDetails: IssueDetailsValue?,
@@ -247,13 +247,13 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
     connection: Connection,
     issueId: IssueId,
     variantId: String?,
-    experiment: Experiment,
+    codeContextData: CodeContextData,
   ): AiInsight? {
     return compositeIssuesCache
       .getIfPresent(connection)
       ?.getIfPresent(issueId)
       ?.aiInsights
-      ?.get(AiInsightKey(variantId, experiment))
+      ?.get(AiInsightKey(variantId, codeContextData))
       ?.copy(isCached = true)
   }
 
@@ -265,10 +265,12 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
   ) {
     val issuesCache = getOrCreateIssuesCache(connection).asMap()
     issuesCache.compute(issueId) { _, oldValue ->
-      var cacheValue = oldValue ?: CacheValue(null, null, emptyMap())
+      val cacheValue = oldValue ?: CacheValue(null, null, emptyMap())
       cacheValue.copy(
         aiInsights =
-          cacheValue.aiInsights.plus(AiInsightKey(variantId, aiInsight.experiment) to aiInsight)
+          cacheValue.aiInsights.plus(
+            AiInsightKey(variantId, aiInsight.codeContextData) to aiInsight
+          )
       )
     }
   }

@@ -16,8 +16,8 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl
 import com.android.tools.idea.gradle.util.LocalProperties
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.markup.GutterIconRenderer
@@ -71,7 +71,7 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
   }
 
   fun testNavigationHandlerSdkDirLocalProperties() {
-    val mockService = mock<AndroidProjectSettingsServiceImpl>()
+    val mockService = mock<AndroidProjectSettingsService>()
     replaceProjectService(ProjectSettingsService::class.java, mockService)
 
     createPropertiesFileMarkersInfo(
@@ -85,7 +85,7 @@ class AndroidPropertiesLineMarkerProviderTest : AndroidTestCase() {
   }
 
   fun testNavigationHandlerNdkDirLocalProperties() {
-    val mockService = mock<AndroidProjectSettingsServiceImpl>()
+    val mockService = mock<AndroidProjectSettingsService>()
     replaceProjectService(ProjectSettingsService::class.java, mockService)
 
     createPropertiesFileMarkersInfo(

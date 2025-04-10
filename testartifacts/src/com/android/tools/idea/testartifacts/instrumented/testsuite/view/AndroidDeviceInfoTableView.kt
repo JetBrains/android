@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
-import com.android.sdklib.displayApiString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
@@ -68,7 +67,7 @@ private class AndroidDeviceInfoTableViewModel :
   fun setAndroidDevice(device: AndroidDevice) {
     val itemsBuilder = mutableListOf(
       AndroidDeviceInfoItem("Device Name", device.getName()),
-      AndroidDeviceInfoItem("OS Version", device.version.displayApiString))
+      AndroidDeviceInfoItem("OS Version", device.version.getApiStringWithExtension()))
     itemsBuilder.addAll(device.additionalInfo.asSequence()
       .map { (key, value) -> AndroidDeviceInfoItem(key, value) })
     items = itemsBuilder

@@ -16,19 +16,20 @@
 package com.android.tools.idea.projectsystem;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 
-public interface AndroidProjectSettingsService {
+public abstract class AndroidProjectSettingsService extends ProjectSettingsService {
 
-  void openSdkSettings();
+  abstract public void openSdkSettings();
 
-  void chooseJdkLocation(@Nullable @SystemIndependent String gradleRootProjectPath);
+  abstract public void chooseJdkLocation(@Nullable @SystemIndependent String gradleRootProjectPath);
 
-  void openAndSelectDependency(@NotNull Module module, @NotNull String dependencyString);
+  abstract public void openAndSelectDependency(@NotNull Module module, @NotNull String dependencyString);
 
-  void openAndSelectDependenciesEditor(@NotNull Module module);
+  abstract public void openAndSelectDependenciesEditor(@NotNull Module module);
 
-  void openSuggestions();
+  abstract public void openSuggestions();
 }

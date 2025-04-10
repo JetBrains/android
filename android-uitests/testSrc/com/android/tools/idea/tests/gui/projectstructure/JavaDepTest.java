@@ -76,9 +76,10 @@ public class JavaDepTest {
       .clickFinishAndWaitForSyncToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    editor.open("/lib/build.gradle.kts")
+    editor.open("/lib/build.gradle.kts").waitForFileToActivate();
+    editor.waitUntilErrorAnalysisFinishes()
       .moveBetween("", "java {")
-      .enterText("dependencies {\n   api(\"com.google.code.gson:gson:2.6.2\")\n}\n\n");
+      .enterText("dependencies {\n   api(\"com.google.code.gson:gson:2.11.0\")\n}\n\n");
 
     ideFrame.getProjectView()
       .selectAndroidPane()

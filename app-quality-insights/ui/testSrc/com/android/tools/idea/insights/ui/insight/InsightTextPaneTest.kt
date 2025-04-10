@@ -48,7 +48,7 @@ class InsightTextPaneTest {
     val pane = InsightTextPane(projectRule.project)
     pane.text = markdownText
 
-    pane.select(149, 178)
+    pane.select(151, 180)
     pane.performCopy(DataContext.EMPTY_CONTEXT)
     assertThat(CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor))
       .isEqualTo("such as:\nNullPointerException")
@@ -108,7 +108,7 @@ class InsightTextPaneTest {
   </ul>
   <p>Paragraph of text</p>
   <p><b>Header4:</b>
-   Another paragraph</p>
+  Another paragraph</p>
 """
           .trimIndent()
           .replace("\n", "")
@@ -117,7 +117,7 @@ class InsightTextPaneTest {
 
   private fun String.stripSpaceAndNonTextHtmlTags(): String {
     var text = this
-    listOf("<html>", "<head>", "</head>", "<body>", "</body>", "</html>").forEach {
+    listOf("<html>", "<head>", "</head>", "<body>", "</body>", "</html>", "<wbr>").forEach {
       text = text.replace(it, "")
     }
     return text.lines().filter { it.isNotBlank() }.joinToString("") { it.trim() }.trim()

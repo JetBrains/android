@@ -68,9 +68,11 @@
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-geometry-desktop/1.7.3/ui-geometry-desktop-1.7.3.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.7.3/ui-desktop-1.7.3.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt/0.8.18/skiko-awt-0.8.18.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-linux-arm64/0.8.18/skiko-awt-runtime-linux-arm64-0.8.18.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-linux-x64/0.8.18/skiko-awt-runtime-linux-x64-0.8.18.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-arm64/0.8.18/skiko-awt-runtime-macos-arm64-0.8.18.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-x64/0.8.18/skiko-awt-runtime-macos-x64-0.8.18.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-windows-arm64/0.8.18/skiko-awt-runtime-windows-arm64-0.8.18.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-windows-x64/0.8.18/skiko-awt-runtime-windows-x64-0.8.18.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.8.3/lifecycle-runtime-compose-desktop-2.8.3.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/androidx/collection/collection-jvm/1.4.0/collection-jvm-1.4.0.jar!/" />

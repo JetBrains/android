@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsMutableCollection
 import com.android.tools.idea.gradle.structure.model.empty.PsEmptyModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
@@ -55,7 +56,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
       }
     }
     parent.parsedModel.modules.forEach { path ->
-      val buildModel = projectParsedModel.getModuleByGradlePath(path)
+      val buildModel = projectParsedModel.getBuildModelByGradlePath(path)
       val moduleType = buildModel?.parsedModelModuleType()
       val moduleKey = when (moduleType) {
         PsModuleType.JAVA -> ModuleKey(ModuleKind.JAVA, path)
@@ -97,7 +98,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
     val projectParsedModel = parent.parsedModel
     val gradlePathName = key.gradlePath.substringAfterLast(':')
     val moduleName = if (gradlePathName.isNotEmpty()) gradlePathName
-                     else parent.ideProject.getModuleByGradlePath(key.gradlePath)?.name ?: "Unknown"
+                     else parent.ideProject.getHolderModuleByGradlePath(key.gradlePath)?.name ?: "Unknown"
 
     val moduleResolvedModel =
         parent.getResolvedModuleModelsByGradlePath()[key.gradlePath]
@@ -138,7 +139,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
         ?.buildFile
         ?.let { buildFilePath -> LocalFileSystem.getInstance().findFileByIoFile(File(buildFilePath)) }
         ?.let { virtualFile -> projectParsedModel.getModuleBuildModel(virtualFile) }
-    ?: projectParsedModel.takeIf { it.modules.contains(gradlePath) }?.getModuleByGradlePath(gradlePath)
+    ?: projectParsedModel.takeIf { it.modules.contains(gradlePath) }?.getBuildModelByGradlePath(gradlePath)
 
   override fun instantiateNew(key: ModuleKey) = throw UnsupportedOperationException()
 
@@ -176,14 +177,14 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
   }
 }
 
-fun Project.getModuleByGradlePath(gradlePath: String) =
+fun Project.getHolderModuleByGradlePath(gradlePath: String) =
     // TODO(b/149203281): Fix support for composite builds.
     ModuleManager
         .getInstance(this)  // Use ideProject to find the name of the module.
         .modules
-        .firstOrNull { it.getGradleProjectPath()?.path == gradlePath }
+        .firstOrNull { it.getGradleProjectPath().run { this is GradleHolderProjectPath && path == gradlePath } }
 
-private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleBuildModel? =
+private fun ProjectBuildModel.getBuildModelByGradlePath(gradlePath: String): GradleBuildModel? =
     when {
       projectSettingsModel == null && gradlePath == ":" -> projectBuildModel
       else -> {
@@ -191,7 +192,7 @@ private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleB
           projectSettingsModel
               .buildFile(gradlePath)
               ?.let { relativeFile ->
-                (projectSettingsModel.moduleDirectory(":") ?: return@getModuleByGradlePath null).resolve(relativeFile)
+                (projectSettingsModel.moduleDirectory(":") ?: return@getBuildModelByGradlePath null).resolve(relativeFile)
               }
               ?.let { absoluteFile -> LocalFileSystem.getInstance().findFileByIoFile(absoluteFile) }
               ?.let { virtualFile -> this.getModuleBuildModel(virtualFile) }

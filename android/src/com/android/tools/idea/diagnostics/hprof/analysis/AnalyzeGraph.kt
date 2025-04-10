@@ -304,6 +304,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
 
     val cleanerObjects = IntArrayList()
     val sunMiscCleanerClass = classStore.getClassIfExists("sun.misc.Cleaner")
+    val jdkInternalRefCleanerClass = classStore.getClassIfExists("jdk.internal.ref.Cleaner")
     val finalizerClass = classStore.getClassIfExists("java.lang.ref.Finalizer")
 
     val disposedReferencedNonRootSet = IntOpenHashSet()
@@ -330,10 +331,12 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
         nav.goTo(id.toLong(), ObjectNavigator.ReferenceResolution.ALL_REFERENCES)
         val currentObjectClass = nav.getClass()
 
-        if ((currentObjectClass == sunMiscCleanerClass || currentObjectClass == finalizerClass)
+        if ((currentObjectClass == sunMiscCleanerClass ||
+             currentObjectClass == jdkInternalRefCleanerClass ||
+             currentObjectClass == finalizerClass)
             && phase < WalkGraphPhase.CleanerFinalizerReferences) {
           if (!onlyStrongReferences) {
-            // Postpone visiting sun.misc.Cleaner and java.lang.ref.Finalizer objects until later phase
+            // Postpone visiting sun.misc.Cleaner, jdk.internal.ref.Cleaner and java.lang.ref.Finalizer objects until later phase
             cleanerObjects.add(id)
           }
           continue

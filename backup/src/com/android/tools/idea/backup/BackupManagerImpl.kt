@@ -26,7 +26,6 @@ import com.android.backup.BackupResult.Error
 import com.android.backup.BackupResult.Success
 import com.android.backup.BackupService
 import com.android.backup.BackupType
-import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode.APP_NOT_INSTALLED
 import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
 import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
@@ -94,14 +93,31 @@ internal constructor(
     DialogFactoryImpl(),
   )
 
-  @UiThread
-  override fun showBackupDialog(
+  override suspend fun showBackupDialog(
     serialNumber: String,
     applicationId: String,
     source: Source,
     notify: Boolean,
   ) {
-    val dialog = BackupDialog(project, applicationId)
+    val isBackupEnabled =
+      withContext(Dispatchers.Default) {
+        backupService.isBackupEnabled(serialNumber, applicationId)
+      }
+    withContext(Dispatchers.EDT) {
+      showBackupDialog(serialNumber, applicationId, source, notify, isBackupEnabled)
+    }
+  }
+
+  @VisibleForTesting
+  @UiThread
+  fun showBackupDialog(
+    serialNumber: String,
+    applicationId: String,
+    source: Source,
+    notify: Boolean,
+    isBackupEnabled: Boolean,
+  ) {
+    val dialog = BackupDialog(project, applicationId, isBackupEnabled)
     val ok = dialog.showAndGet()
     if (ok) {
       doBackup(serialNumber, dialog.applicationId, dialog.type, dialog.backupPath, source, notify)
@@ -228,7 +244,7 @@ internal constructor(
           is Success -> virtualFileManager.refreshAndFindFileByNioPath(backupFile)
           is Error -> logger.warn(message("notification.error", operation), result.throwable)
         }
-        BackupUsageTracker.logBackup(DEVICE_TO_DEVICE, source, result)
+        BackupUsageTracker.logBackup(type, source, result)
         result
       }
     }

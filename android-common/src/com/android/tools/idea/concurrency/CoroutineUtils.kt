@@ -137,16 +137,16 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
  *
  * @param dispatcher The dispatcher to use when creating the scope. Defaults to [Dispatchers.Default].
  * @param extraContext The context to append to the scope's context. Can be used to provide
- *      a [CoroutineName], for example. Defaults to [EmptyCoroutineContext].
+ *   a [CoroutineName], for example. Defaults to [EmptyCoroutineContext].
+ * @see androidCoroutineExceptionHandler
  */
 fun Disposable.createCoroutineScope(
   dispatcher: CoroutineDispatcher = Dispatchers.Default,
   extraContext: CoroutineContext = EmptyCoroutineContext,
 ): CoroutineScope {
   val job = SupervisorJob()
-  val scopeDisposable = Disposable { job.cancel("Disposing") }
-  Disposer.register(this, scopeDisposable)
-  return CoroutineScope(job + dispatcher + extraContext)
+  cancelJobOnDispose(this, job)
+  return CoroutineScope(job + dispatcher + androidCoroutineExceptionHandler + extraContext)
 }
 
 /**
@@ -172,6 +172,10 @@ fun SupervisorJob(disposable: Disposable): Job {
  * to create a [CoroutineScope] to create a child scope that is tied to both a [Disposable]
  * and a parent scope.
  */
+@Deprecated(
+  "Use Disposable.createCoroutineScope(dispatcher, extraContext) instead",
+  ReplaceWith("disposable.createCoroutineScope(context)"),
+)
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
   return CoroutineScope(SupervisorJob() + workerThread + androidCoroutineExceptionHandler + context).apply {
@@ -180,7 +184,7 @@ fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = Em
 }
 
 /**
- * Ensure [job] is cancelled if it is still active when [disposable] is disposed.
+ * Ensure [job] is canceled if it is still active when [disposable] is disposed.
  */
 private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
   val disposableId = disposable.toString() // Don't capture the parent disposable inside the lambda.
