@@ -1,5 +1,3 @@
-load("@rules_android//rules:rules.bzl", "android_binary")
-
 package(default_visibility = ["//visibility:private"])
 
 PACKAGE = "com.android.tools.screensharing.testapp"

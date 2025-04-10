@@ -1,5 +1,3 @@
-load("@rules_android//rules:rules.bzl", "android_library")
-
 package(default_visibility = ["//tools/adt/idea/streaming/testSrc/testApp/src/main:__subpackages__"])
 
 android_library(
