@@ -29,7 +29,6 @@ import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.testutils.ProcessHandleProviderRule
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
@@ -80,7 +79,6 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
@@ -99,7 +97,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -114,7 +111,7 @@ import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JViewport
 import javax.swing.SwingConstants
-import kotlin.test.expect
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -399,14 +396,14 @@ class StreamingToolWindowManagerTest {
     val bottomContentManager = bottomContent.manager!!
     assertThat(bottomContentManager.contents).hasLength(1)
 
-    var action = triggerAddDevicePopup().actions.find { it.templateText == emulator2.avdName }!!
+    var action = waitForAction(2.seconds, emulator2.avdName)
     executeStreamingAction(action, toolWindow.component, project,
                            extra = DataSnapshotProvider { it.set(PlatformDataKeys.CONTENT_MANAGER, bottomContentManager) })
     waitForCondition(15.seconds) { bottomContentManager.contents.size == 2 }
     assertThat(bottomContentManager.contents[1].displayName).isEqualTo(emulator2.avdName)
 
     val device2Name = "${device2.deviceState.model} API ${device2.deviceState.buildVersionSdk}"
-    action = triggerAddDevicePopup().actions.find { it.templateText == device2Name }!!
+    action = waitForAction(2.seconds, device2Name)
     executeStreamingAction(action, toolWindow.component, project,
                            extra = DataSnapshotProvider { it.set(PlatformDataKeys.CONTENT_MANAGER, topContentManager) })
     waitForCondition(15.seconds) { topContentManager.contents.size == 2 }
@@ -827,6 +824,15 @@ class StreamingToolWindowManagerTest {
   private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return displayView.frameNumber
+  }
+
+  private fun waitForAction(timeout: Duration, actionName: String): AnAction {
+    var action: AnAction? = null
+    waitForCondition(timeout) {
+      action = triggerAddDevicePopup().actions.find { it.templateText == actionName }
+      action != null
+    }
+    return action!!
   }
 
   private fun triggerAddDevicePopup(): FakeListPopup<Any> {
