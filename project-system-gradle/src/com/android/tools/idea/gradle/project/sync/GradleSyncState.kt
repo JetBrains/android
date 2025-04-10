@@ -72,10 +72,6 @@ interface GradleSyncState {
     }
 
     @JvmStatic
-    @Deprecated("use a subscribe method with an explicit Disposable argument")
-    fun subscribe(project: Project, listener: GradleSyncListener): MessageBusConnection = subscribe(project, listener, project)
-
-    @JvmStatic
     fun subscribe(project: Project, listener: GradleSyncListener, disposable: Disposable): MessageBusConnection {
       return subscribe(
         project = project,
