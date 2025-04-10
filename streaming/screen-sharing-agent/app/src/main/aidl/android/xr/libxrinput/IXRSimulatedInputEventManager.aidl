@@ -3,8 +3,6 @@
  */
 package android.xr.libxrinput;
 
-// TODO: Figure out how to make aidl_library accept this file when building in Bazel.
-//       and move it the the aidl directory.
 import android.view.MotionEvent;
 
 interface IXRSimulatedInputEventManager {
