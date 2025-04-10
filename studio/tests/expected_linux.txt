@@ -2284,7 +2284,6 @@ android-studio/plugins/android/lib/libagp-version.jar
 android-studio/plugins/android/lib/libam-instrumentation-data-proto.jar
 android-studio/plugins/android/lib/libandroid-core-proto.jar
 android-studio/plugins/android/lib/libcommon_proto.jar
-android-studio/plugins/android/lib/libgemini_java_proto.jar
 android-studio/plugins/android/lib/libjava_sites.jar
 android-studio/plugins/android/lib/libjava_version.jar
 android-studio/plugins/android/lib/liblint-checks-proto.lib.jar
@@ -3010,7 +3009,6 @@ android-studio/plugins/firebase/lib/firebase.jar
 android-studio/plugins/firebase/lib/firebase.so.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 android-studio/plugins/firebase/lib/libfirebase_java_proto.jar
-android-studio/plugins/firebase/lib/libgemini_java_proto.jar
 android-studio/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
 android-studio/plugins/gemini/lib/aida_grpc.jar
 android-studio/plugins/gemini/lib/aida_proto.jar

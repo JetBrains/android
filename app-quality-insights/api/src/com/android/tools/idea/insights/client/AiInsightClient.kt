@@ -16,7 +16,14 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
-import com.google.protobuf.Message
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+
+data class GeminiCrashInsightRequest(
+  val deviceName: String,
+  val apiLevel: String,
+  val stackTrace: String,
+  val codeSnippets: List<CodeContext>,
+)
 
 interface AiInsightClient {
 
@@ -27,5 +34,5 @@ interface AiInsightClient {
    * @param additionalContextMsg - Additional context required by the insight client to get insights
    *   for the crash
    */
-  suspend fun fetchCrashInsight(projectId: String, additionalContextMsg: Message): AiInsight
+  suspend fun fetchCrashInsight(projectId: String, request: GeminiCrashInsightRequest): AiInsight
 }

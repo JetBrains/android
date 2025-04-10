@@ -31,17 +31,9 @@ iml_module(
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
     ],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "libgemini_java_proto",
-    jars = ["//tools/adt/idea/app-quality-insights/api/proto:libgemini_java_proto.jar"],
-    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build

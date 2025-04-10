@@ -24,8 +24,6 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.testing.disposable
-import com.google.android.studio.gemini.CodeSnippet
-import com.google.android.studio.gemini.GeminiInsightsRequest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
@@ -59,13 +57,12 @@ class GeminiAiInsightClientTest {
     val client = GeminiAiInsightClient.create(projectRule.project)
 
     val request =
-      GeminiInsightsRequest.newBuilder()
-        .apply {
-          deviceName = "DeviceName"
-          apiLevel = "ApiLevel"
-          stackTrace = "stack\n  Trace"
-        }
-        .build()
+      GeminiCrashInsightRequest(
+        deviceName = "DeviceName",
+        apiLevel = "ApiLevel",
+        stackTrace = "stack\n  Trace",
+        codeSnippets = emptyList(),
+      )
 
     expectedPromptText =
       """
@@ -94,45 +91,40 @@ class GeminiAiInsightClientTest {
     val client = GeminiAiInsightClient.create(projectRule.project)
 
     val request =
-      GeminiInsightsRequest.newBuilder()
-        .apply {
-          deviceName = "DeviceName"
-          apiLevel = "ApiLevel"
-          stackTrace = "stack\n  Trace"
-          addAllCodeSnippets(
-            listOf(
-              CodeSnippet.newBuilder()
-                .apply {
-                  codeSnippet =
-                    """
-                  package a.b.c
-                  
-                  fun helloWorld() {
-                    println("Hello World")
-                  }
-                """
-                      .trimIndent()
-                  filePath = "a/b/c/HelloWorld1.kt"
-                }
-                .build(),
-              CodeSnippet.newBuilder()
-                .apply {
-                  codeSnippet =
-                    """
-                  package a.b.c
-                  
-                  fun helloWorld2() {
-                    println("Hello World 2")
-                  }
-                """
-                      .trimIndent()
-                  filePath = "a/b/c/HelloWorld2.kt"
-                }
-                .build(),
-            )
-          )
-        }
-        .build()
+      GeminiCrashInsightRequest(
+        deviceName = "DeviceName",
+        apiLevel = "ApiLevel",
+        stackTrace = "stack\n  Trace",
+        codeSnippets =
+          listOf(
+            CodeContext(
+              "classA",
+              "a/b/c/HelloWorld1.kt",
+              """
+              |package a.b.c
+              |
+              |fun helloWorld() {
+              |  println("Hello World")
+              |}
+              """
+                .trimMargin(),
+              Language.KOTLIN,
+            ),
+            CodeContext(
+              "classB",
+              "a/b/c/HelloWorld2.kt",
+              """
+              |package a.b.c
+              |
+              |fun helloWorld2() {
+              |  println("Hello World 2")
+              |}
+              """
+                .trimMargin(),
+              Language.KOTLIN,
+            ),
+          ),
+      )
 
     expectedPromptText =
       """

@@ -2305,7 +2305,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/libagp-version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libam-instrumentation-data-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libandroid-core-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libcommon_proto.jar
-Android Studio Preview.app/Contents/plugins/android/lib/libgemini_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
@@ -3029,7 +3028,6 @@ Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/libfirebase_java_proto.jar
-Android Studio Preview.app/Contents/plugins/firebase/lib/libgemini_java_proto.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar

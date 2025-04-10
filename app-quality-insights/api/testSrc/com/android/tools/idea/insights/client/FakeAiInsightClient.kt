@@ -16,14 +16,13 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
-import com.google.common.io.BaseEncoding
-import com.google.protobuf.Message
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 
 object FakeAiInsightClient : AiInsightClient {
   override suspend fun fetchCrashInsight(
     projectId: String,
-    additionalContextMsg: Message,
+    request: GeminiCrashInsightRequest,
   ): AiInsight {
-    return AiInsight(BaseEncoding.base64().encode(additionalContextMsg.toByteArray()))
+    return AiInsight(request.toString(), codeContextData = CodeContextData(request.codeSnippets))
   }
 }

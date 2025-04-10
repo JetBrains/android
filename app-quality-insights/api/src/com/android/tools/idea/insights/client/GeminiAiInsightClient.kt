@@ -22,9 +22,6 @@ import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.google.android.studio.gemini.CodeSnippet
-import com.google.android.studio.gemini.GeminiInsightsRequest
-import com.google.protobuf.Message
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.toList
@@ -68,9 +65,8 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
 
   override suspend fun fetchCrashInsight(
     projectId: String,
-    additionalContextMsg: Message,
+    request: GeminiCrashInsightRequest,
   ): AiInsight {
-    val request = GeminiInsightsRequest.parser().parseFrom(additionalContextMsg.toByteArray())
     val prompt =
       buildLlmPrompt(project) {
         systemMessage { text(GEMINI_PREAMBLE, emptyList()) }
@@ -87,10 +83,10 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
     }
   }
 
-  private fun createPrompt(request: GeminiInsightsRequest): String {
+  private fun createPrompt(request: GeminiCrashInsightRequest): String {
     val initialPrompt =
       String.format(
-          if (request.codeSnippetsList.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT
+          if (request.codeSnippets.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT
           else GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT,
           request.deviceName,
           request.apiLevel,
@@ -100,14 +96,14 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
     var availableContextSpace =
       GeminiPluginApi.getInstance().MAX_QUERY_CHARS - CONTEXT_WINDOW_PADDING - initialPrompt.count()
     val codeContextPrompt =
-      request.codeSnippetsList
+      request.codeSnippets
         .takeWhile { codeSnippet ->
-          val nextContextString = "\n${codeSnippet.filePath}:\n```\n${codeSnippet.codeSnippet}\n```"
+          val nextContextString = "\n${codeSnippet.filePath}:\n```\n${codeSnippet.content}\n```"
           availableContextSpace -= nextContextString.count()
           availableContextSpace >= 0
         }
         .fold("") { acc, codeSnippet ->
-          "$acc\n${codeSnippet.filePath}:\n```\n${codeSnippet.codeSnippet}\n```"
+          "$acc\n${codeSnippet.filePath}:\n```\n${codeSnippet.content}\n```"
         }
     return "$initialPrompt$codeContextPrompt"
   }
@@ -118,28 +114,12 @@ class GeminiAiInsightClient private constructor(private val project: Project) : 
 }
 
 fun createGeminiInsightRequest(event: Event, codeContextData: CodeContextData) =
-  GeminiInsightsRequest.newBuilder()
-    .apply {
-      val device = event.eventData.device.let { "${it.manufacturer} ${it.model}" }
-      val api = event.eventData.operatingSystemInfo.displayVersion
-      val eventStackTrace = event.prettyStackTrace()
-
-      deviceName = device
-      apiLevel = api
-      stackTrace = eventStackTrace
-
-      addAllCodeSnippets(
-        codeContextData.codeContext.map { context ->
-          CodeSnippet.newBuilder()
-            .apply {
-              codeSnippet = context.content
-              filePath = context.filePath
-            }
-            .build()
-        }
-      )
-    }
-    .build()
+  GeminiCrashInsightRequest(
+    deviceName = event.eventData.device.let { "${it.manufacturer} ${it.model}" },
+    apiLevel = event.eventData.operatingSystemInfo.displayVersion,
+    stackTrace = event.prettyStackTrace(),
+    codeSnippets = codeContextData.codeContext,
+  )
 
 private fun Event.prettyStackTrace() =
   buildString {
