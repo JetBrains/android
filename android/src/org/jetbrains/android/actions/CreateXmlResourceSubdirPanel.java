@@ -164,14 +164,12 @@ public class CreateXmlResourceSubdirPanel {
   }
 
   public void updateDirectories(boolean updateFileCombo, VirtualFile resourceDir) {
-    List<VirtualFile> directories;
-    if (resourceDir == null) {
-      directories = Collections.emptyList();
+    List<VirtualFile> directories = Collections.emptyList();
+    if (resourceDir != null) {
+      directories = IdeResourcesUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
     }
-    else {
-      directories = new ArrayList<>(IdeResourcesUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir)));
-      Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
-    }
+
+    Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
 
     final Map<String, JCheckBox> oldCheckBoxes = myCheckBoxes;
     final int selectedIndex = myDirectoriesList.getSelectedIndex();
