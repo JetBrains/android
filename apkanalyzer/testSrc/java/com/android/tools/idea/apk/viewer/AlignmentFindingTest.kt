@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.apk.viewer
 
-import com.android.tools.apk.analyzer.ZipEntryInfo
 import com.android.tools.idea.apk.viewer.pagealign.getAlignmentFinding
 import org.junit.Test
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import com.android.tools.apk.analyzer.ZipEntryInfo.Alignment
 
 private const val PAGE_ALIGN_2B = 2L
 private const val PAGE_ALIGN_4KB = 4L * 1024
@@ -34,7 +34,7 @@ class AlignmentFindingTest {
        path = "/path/to/my.so",
        elfMinimumLoadSectionAlignment = PAGE_ALIGN_16KB,
        selfOrChildLoadSectionIncompatible = false,
-       zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_16K.text)
+       zipAlignment = Alignment.ALIGNMENT_16K)
      assertEquals("16 KB", result.text)
      assertFalse(result.hasWarning)
    }
@@ -45,8 +45,19 @@ class AlignmentFindingTest {
       path = "/path/to/my.so",
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_4KB,
       selfOrChildLoadSectionIncompatible = true,
-      zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_16K.text)
-    assertEquals("4 KB, but 16 KB is required", result.text)
+      zipAlignment = Alignment.ALIGNMENT_16K)
+    assertEquals("4 KB LOAD section alignment, but 16 KB is required", result.text)
+    assertTrue(result.hasWarning)
+  }
+
+  @Test
+  fun `ELF with 4 KB zip alignment and it's a problem`() {
+    val result = getAlignmentFinding(
+      path = "/path/to/my.so",
+      elfMinimumLoadSectionAlignment = PAGE_ALIGN_16KB,
+      selfOrChildLoadSectionIncompatible = true,
+      zipAlignment = Alignment.ALIGNMENT_4K)
+    assertEquals("4 KB zip alignment, but 16 KB is required", result.text)
     assertTrue(result.hasWarning)
   }
 
@@ -56,7 +67,7 @@ class AlignmentFindingTest {
       path = "/lib",
       elfMinimumLoadSectionAlignment = -1L,
       selfOrChildLoadSectionIncompatible = true,
-      zipAlignText = "")
+      zipAlignment = Alignment.ALIGNMENT_NONE)
     assertEquals("", result.text)
     assertFalse(result.hasWarning)
   }
@@ -68,7 +79,7 @@ class AlignmentFindingTest {
       path = "/path/to/my.so",
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_4KB,
       selfOrChildLoadSectionIncompatible = false,
-      zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_16K.text)
+      zipAlignment = Alignment.ALIGNMENT_16K)
     assertEquals("16 KB zip|4 KB LOAD section", result.text)
     assertFalse(result.hasWarning)
   }
@@ -79,7 +90,7 @@ class AlignmentFindingTest {
       path = "/",
       elfMinimumLoadSectionAlignment = -1,
       selfOrChildLoadSectionIncompatible = true,
-      zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_NONE.text)
+      zipAlignment = Alignment.ALIGNMENT_NONE)
     assertEquals("APK does not support 16 KB devices", result.text)
     assertTrue(result.hasWarning)
   }
@@ -90,7 +101,7 @@ class AlignmentFindingTest {
       path = "/lib/arm64-v8a",
       elfMinimumLoadSectionAlignment = -1,
       selfOrChildLoadSectionIncompatible = true,
-      zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_NONE.text)
+      zipAlignment = Alignment.ALIGNMENT_NONE)
     assertEquals("", result.text)
     assertFalse(result.hasWarning)
   }
@@ -101,7 +112,7 @@ class AlignmentFindingTest {
       path = "/path/to/my.so",
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_16KB,
       selfOrChildLoadSectionIncompatible = false,
-      zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_4K.text)
+      zipAlignment = Alignment.ALIGNMENT_4K)
     assertEquals("4 KB zip|16 KB LOAD section", result.text)
     assertFalse(result.hasWarning)
   }
@@ -112,7 +123,7 @@ class AlignmentFindingTest {
       path = "/path/to/my.so",
       elfMinimumLoadSectionAlignment = -1,
       selfOrChildLoadSectionIncompatible = false,
-      zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_4K.text)
+      zipAlignment = Alignment.ALIGNMENT_4K)
     assertEquals("4 KB", result.text)
     assertFalse(result.hasWarning)
   }
@@ -124,9 +135,20 @@ class AlignmentFindingTest {
       path = "/path/to/my.so",
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_2B,
       selfOrChildLoadSectionIncompatible = false,
-      zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_16K.text)
+      zipAlignment = Alignment.ALIGNMENT_16K)
     assertEquals("16 KB zip|2 B LOAD section", result.text)
     assertFalse(result.hasWarning)
+  }
+
+  @Test
+  fun `both zip align and LOAD align are too low`() {
+    val result = getAlignmentFinding(
+      path = "/path/to/my.so",
+      elfMinimumLoadSectionAlignment = PAGE_ALIGN_4KB,
+      selfOrChildLoadSectionIncompatible = true,
+      zipAlignment = Alignment.ALIGNMENT_4K)
+    assertEquals("4 KB zip and 4 KB LOAD section, but 16 KB is required for both", result.text)
+    assertTrue(result.hasWarning)
   }
 
   // It shouldn't be possible to have a page alignment but not a zip alignment.
@@ -137,7 +159,7 @@ class AlignmentFindingTest {
         path = "/lib/arm64-v8a/lib.so",
         elfMinimumLoadSectionAlignment = PAGE_ALIGN_16KB,
         selfOrChildLoadSectionIncompatible = true,
-        zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_NONE.text)
+        zipAlignment = Alignment.ALIGNMENT_NONE)
     assertEquals("", result.text)
     assertFalse(result.hasWarning)
   }
@@ -150,7 +172,7 @@ class AlignmentFindingTest {
         path = "/",
         elfMinimumLoadSectionAlignment = PAGE_ALIGN_4KB,
         selfOrChildLoadSectionIncompatible = false,
-        zipAlignText = ZipEntryInfo.Alignment.ALIGNMENT_NONE.text)
+        zipAlignment = Alignment.ALIGNMENT_NONE)
     assertEquals("", result.text)
     assertFalse(result.hasWarning)
   }
@@ -162,24 +184,40 @@ class AlignmentFindingTest {
         "",
         "4 KB",
         "16 KB",
-        "4 KB, but 16 KB is required",
+        "4 KB zip and 4 KB LOAD section, but 16 KB is required for both",
+        "4 KB LOAD section alignment, but 16 KB is required",
+        "4 KB zip alignment, but 16 KB is required",
         "4 KB zip|16 KB LOAD section",
         "16 KB zip|4 KB LOAD section",
         "4 KB zip|32 KB LOAD section",
         "16 KB zip|32 KB LOAD section",
       )
+    val seen = mutableSetOf<String>()
     for(path in listOf("/", "/lib", "/lib/arm64-v8a", "/lib/arm64-v8a/lib.so", "/random"))
       for(elfMinimumLoadSectionAlignment in listOf(-1L, PAGE_ALIGN_4KB, PAGE_ALIGN_16KB, PAGE_ALIGN_32KB))
         for(selfOrChildLoadSectionIncompatible in listOf(true, false))
-          for(zipAlign in ZipEntryInfo.Alignment.entries) {
+          for(zipAlign in Alignment.entries) {
             val result = getAlignmentFinding(
               path,
               elfMinimumLoadSectionAlignment,
               selfOrChildLoadSectionIncompatible,
-              zipAlignText = zipAlign.text)
+              zipAlignment = zipAlign)
+            seen.add(result.text)
             if (!allowedFieldText.contains(result.text)) {
               error(result.text)
             }
+            val lookLikeWarning = result.text.contains("required")
+                                  || result.text.contains("does not support")
+            if (result.hasWarning && !lookLikeWarning) {
+              error(result.text)
+            }
+            if (!result.hasWarning && lookLikeWarning) {
+              error(result.text)
+            }
           }
+    val unused = allowedFieldText subtract seen
+    if (unused.isNotEmpty()) {
+      error(unused)
+    }
   }
 }
