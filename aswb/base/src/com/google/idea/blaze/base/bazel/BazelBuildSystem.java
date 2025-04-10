@@ -15,13 +15,10 @@
  */
 package com.google.idea.blaze.base.bazel;
 
-import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
-import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
-import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
@@ -37,7 +34,7 @@ class BazelBuildSystem implements BuildSystem {
 
   @Override
   public Optional<BuildInvoker> getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
-    return Optional.of(new LocalInvoker(project, this, BuildBinaryType.BAZEL));
+    return Optional.of(new LocalInvoker(project, this));
   }
 
   @Override
