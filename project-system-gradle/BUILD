@@ -42,6 +42,7 @@ iml_module(
         "//tools/adt/idea/android-navigator:intellij.android.navigator",
         "//tools/adt/idea/mlkit:intellij.android.mlkit",
         "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
+        "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
         "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/vendor/google/firebase:firebase",

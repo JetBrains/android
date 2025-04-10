@@ -755,6 +755,7 @@ studio_plugin(
         "aiplugin.jar": [
             "//tools/vendor/google/ml/aiplugin/core:aiplugin.core",
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
+            "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
             "//tools/vendor/google/ml/aiplugin/android/enterprise:aiplugin.android.enterprise",
             "//tools/vendor/google/ml/aiplugin/android/journeys:aiplugin.android.journeys",
             "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
