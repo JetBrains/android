@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.settingssync.onboarding
 
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -24,6 +25,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.settingssync.FakeCommunicatorProvider
 import com.android.tools.idea.settingssync.FakeRemoteCommunicator
 import com.android.tools.idea.settingssync.PushResult
+import com.android.tools.idea.settingssync.SAMPLE_SNAPSHOT
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
@@ -36,6 +38,7 @@ import com.intellij.settingsSync.core.ServerState
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings.State
+import com.intellij.settingsSync.core.UpdateResult
 import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -43,12 +46,13 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
 @RunsInEdt
-class WizardFlowCheck {
+class WizardFlowTest {
   private val applicationRule = ApplicationRule()
   private val disposableRule = DisposableRule()
   private val composeTestRule = createStudioComposeTestRule()
@@ -66,8 +70,9 @@ class WizardFlowCheck {
   private lateinit var communicatorProvider: FakeCommunicatorProvider
 
   private val step1 = EnableOrSkipStepPage()
+  private val step2 = PushOrPullStepPage()
   private val step3 = ChooseCategoriesStepPage()
-  private val pages = listOf(step1, step3)
+  private val pages = listOf(step1, step2, step3)
 
   @Before
   fun setup() {
@@ -159,7 +164,7 @@ class WizardFlowCheck {
   }
 
   // This covers the onboarding flow: step3 only
-  // @Test (b/410589934)
+  @Ignore("b/410589934")
   fun `test sync categories selection wizard page, disable plugins`() {
     // Prepare
     val wizardState =
@@ -270,6 +275,107 @@ class WizardFlowCheck {
     // Verify
     assertThat(wizardState.getOrCreateState { SyncConfigurationState() }.configurationOption)
       .isEqualTo(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
+  }
+
+  // This covers the onboarding flow: step2 -> step3
+  @Test
+  fun `pull remote settings and apply to the local IDE`() {
+    // Prepare
+    communicator.prepareFileOnServer(SAMPLE_SNAPSHOT)
+
+    val wizardState =
+      WizardState().apply {
+        // Make sure we won't skip the page
+        getOrCreateState { GoogleSignInWizard.SignInState() }
+          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+      }
+    initWizard(pages, wizardState, expectedInitialPage = step2)
+
+    // Ensure status
+    assertThat(SettingsSyncSettings.getInstance().syncEnabled).isFalse()
+
+    // Action
+    // 1. click to use the settings from the remote.
+    composeTestRule
+      .onNodeWithText("Use the settings from your Google account storage", substring = true)
+      .assertIsDisplayed()
+      .performClick()
+    // 2. click "Next" to proceed.
+    composeTestRule.onNodeWithText("Next").assertIsDisplayed().performClick()
+
+    // Verify
+    with(wizardState.getOrCreateState { SyncConfigurationState() }) {
+      assertThat(pushOrPull).isEqualTo(PushOrPull.PULL)
+
+      assertThat(cloudStatusCache.size).isEqualTo(1)
+      assertThat((cloudStatusCache[USER_EMAIL] as UpdateResult.Success).settingsSnapshot)
+        .isEqualTo(SAMPLE_SNAPSHOT)
+
+      syncCategoryStates.checkSynCategories(
+        listOf(
+          NodeState(name = "UI settings", state = ToggleableState.On),
+          NodeState(name = "Editor font", state = ToggleableState.On),
+          NodeState(name = "Keymaps", state = ToggleableState.On),
+          NodeState(name = "Code settings", state = ToggleableState.On),
+          NodeState(name = "Plugins", state = ToggleableState.On),
+          NodeState(name = "Bundled plugins", state = ToggleableState.On),
+          NodeState(name = "Tools", state = ToggleableState.On),
+          NodeState(name = "System settings", state = ToggleableState.On),
+        )
+      )
+    }
+  }
+
+  // This covers the onboarding flow: step2 -> step3
+  @Test
+  fun `push local settings to cloud`() {
+    // Prepare
+    communicator.prepareFileOnServer(SAMPLE_SNAPSHOT)
+
+    val wizardState =
+      WizardState().apply {
+        // Make sure we won't skip the page
+        getOrCreateState { GoogleSignInWizard.SignInState() }
+          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+      }
+    initWizard(pages, wizardState, expectedInitialPage = step2)
+
+    // Ensure status
+    assertThat(SettingsSyncSettings.getInstance().syncEnabled).isFalse()
+
+    // Action
+    // 1. click to use the settings from the remote.
+    composeTestRule
+      .onNodeWithText(
+        "Use the local settings and upload them to your Google account storage",
+        substring = true,
+      )
+      .assertIsDisplayed()
+      .performClick()
+    // 2. click "Next" to proceed.
+    composeTestRule.onNodeWithText("Next").assertIsDisplayed().performClick()
+
+    // Verify
+    with(wizardState.getOrCreateState { SyncConfigurationState() }) {
+      assertThat(pushOrPull).isEqualTo(PushOrPull.PUSH)
+
+      assertThat(cloudStatusCache.size).isEqualTo(1)
+      assertThat((cloudStatusCache[USER_EMAIL] as UpdateResult.Success).settingsSnapshot)
+        .isEqualTo(SAMPLE_SNAPSHOT)
+
+      syncCategoryStates.checkSynCategories(
+        listOf(
+          NodeState(name = "UI settings", state = ToggleableState.On),
+          NodeState(name = "Editor font", state = ToggleableState.On),
+          NodeState(name = "Keymaps", state = ToggleableState.On),
+          NodeState(name = "Code settings", state = ToggleableState.On),
+          NodeState(name = "Plugins", state = ToggleableState.On),
+          NodeState(name = "Bundled plugins", state = ToggleableState.On),
+          NodeState(name = "Tools", state = ToggleableState.On),
+          NodeState(name = "System settings", state = ToggleableState.On),
+        )
+      )
+    }
   }
 
   private fun List<CheckboxNode>.toLocallyStoredState(syncEnabled: Boolean): State {

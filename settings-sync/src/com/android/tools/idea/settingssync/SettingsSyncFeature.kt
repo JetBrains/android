@@ -23,6 +23,7 @@ import androidx.compose.ui.text.withStyle
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.settingssync.onboarding.ChooseCategoriesStepPage
 import com.android.tools.idea.settingssync.onboarding.EnableOrSkipStepPage
+import com.android.tools.idea.settingssync.onboarding.PushOrPullStepPage
 import com.google.gct.login2.LoginFeature
 import com.google.gct.wizard.WizardPage
 import com.intellij.openapi.actionSystem.AnAction
@@ -72,7 +73,7 @@ class SettingsSyncFeature : LoginFeature {
           "across your workstations so that your Android Studio experience is just the way you like it." // TODO: update wording
 
       override fun getPages(): List<WizardPage> {
-        return listOf(EnableOrSkipStepPage(), ChooseCategoriesStepPage())
+        return listOf(EnableOrSkipStepPage(), PushOrPullStepPage(), ChooseCategoriesStepPage())
       }
     }
 }
