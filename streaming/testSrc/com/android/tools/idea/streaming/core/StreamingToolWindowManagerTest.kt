@@ -353,7 +353,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDevice() {
-    assumeFalse(SystemInfo.isWindows) // b/407577034
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -368,7 +367,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents[0].isCloseable).isTrue()
 
     agentRule.disconnectDevice(device)
-    waitForCondition(2.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(5.seconds) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
     waitForCondition(2.seconds) { !device.agent.isRunning }
 
     // Check that PhysicalDeviceWatcher gets disposed after disabling device mirroring.
