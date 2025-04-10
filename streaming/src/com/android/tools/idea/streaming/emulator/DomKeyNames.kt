@@ -193,7 +193,7 @@ val VK_TO_DOM_KEY_NAME: Map<Int, String> = mapOf(
   KeyEvent.VK_SEMICOLON to ";",
   KeyEvent.VK_SHIFT to "Shift",
   KeyEvent.VK_SLASH to "/",
-  KeyEvent.VK_SPACE to "Space",
+  KeyEvent.VK_SPACE to " ",
   KeyEvent.VK_STOP to "MediaStop",
   KeyEvent.VK_SUBTRACT to "-",
   KeyEvent.VK_T to "t",
