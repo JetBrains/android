@@ -139,6 +139,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myLeakCanaryEnabled = false;
 
   /**
+   * Whether the V2 of Task Title should be used.
+   */
+  private boolean myTaskTitleV2Enabled = false;
+
+  /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
    * which graph display style will be used for the power and battery tracks.
    */
@@ -296,6 +301,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isLeakCanaryEnabled() {
         return myLeakCanaryEnabled;
+      }
+
+      @Override
+      public boolean isTaskTitleV2Enabled() {
+        return myTaskTitleV2Enabled;
       }
     };
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.task
 
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.ProfilerTaskType.Companion.getNthRankedTask
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * This class serves as the model for the list/grid of Profiler tasks a user can select from. Each task is represented via a TaskGridItem
  * which shows the name and icon of the respective task.
  */
-class TaskGridModel {
+class TaskGridModel(val profilers: StudioProfilers) {
   /**
    * The first ranked task type is selected by default.
    */
