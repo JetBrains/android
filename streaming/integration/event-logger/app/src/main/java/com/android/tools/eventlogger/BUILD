@@ -1,3 +1,8 @@
+load(
+    "@rules_android//android:rules.bzl",
+    "android_library",
+)
+
 package(default_visibility = ["//tools/adt/idea/streaming/integration/event-logger:__pkg__"])
 
 android_library(
