@@ -1,0 +1,7 @@
+directories:
+  simple_compose/main
+
+derive_targets_from_directories: true
+
+workspace_type: android
+android_sdk_platform: android-34

@@ -18,6 +18,52 @@ maven.install(
     ],
 )
 use_repo(maven, "maven")
+maven.install(
+    name = "rules_compose_maven",
+    aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+    artifacts = [
+        "androidx.activity:activity:1.10.1",
+        "androidx.activity:activity-compose:1.10.1",
+        "androidx.activity:activity-ktx:1.10.1",
+        "androidx.collection:collection:1.5.0-alpha06",
+        "androidx.collection:collection-ktx:1.5.0-alpha06",
+        "androidx.compose.foundation:foundation-layout",
+        "androidx.compose.material3:material3",
+        "androidx.compose.runtime:runtime",
+        "androidx.compose.ui:ui",
+        "androidx.compose.ui:ui-tooling",
+        "androidx.core:core:1.16.0",
+        "androidx.core:core-ktx:1.16.0",
+        "androidx.lifecycle:lifecycle-common:2.8.7",
+        "androidx.lifecycle:lifecycle-common-java8:2.8.7",
+        "androidx.lifecycle:lifecycle-common-jvm:2.8.7",
+        "androidx.lifecycle:lifecycle-compiler:2.8.7",
+        "androidx.lifecycle:lifecycle-livedata:2.8.7",
+        "androidx.lifecycle:lifecycle-livedata-core:2.8.7",
+        "androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.7",
+        "androidx.lifecycle:lifecycle-livedata-ktx:2.8.7",
+        "androidx.lifecycle:lifecycle-process:2.8.7",
+        "androidx.lifecycle:lifecycle-reactivestreams:2.8.7",
+        "androidx.lifecycle:lifecycle-reactivestreams-ktx:2.8.7",
+        "androidx.lifecycle:lifecycle-runtime:2.8.7",
+        "androidx.lifecycle:lifecycle-runtime-compose:2.8.7",
+        "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7",
+        "androidx.lifecycle:lifecycle-service:2.8.7",
+        "androidx.lifecycle:lifecycle-viewmodel:2.8.7",
+        "androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7",
+        "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7",
+        "androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7",
+        "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:2.1.0",
+    ],
+    boms = [
+        "androidx.compose:compose-bom:2024.09.00",
+    ],
+    repositories = [
+        # "file://m2", # <-- Replaced by the test framework.
+    ],
+    use_starlark_android_rules = True,
+)
+use_repo(maven, "rules_compose_maven")
 
 # This is a copy of the list from th rules_android repository but artifacts are fetched from a local repository.
 maven.install(
@@ -98,6 +144,12 @@ bazel_dep(
     name = "rules_kotlin",
     version = "2.1.3",
 )
+single_version_override(
+    module_name = "rules_kotlin",
+    patch_strip = 1,
+    patches = ["//:rules_kotlin.patch"],
+)  # seems to be an known issue, follow https://yaqs.corp.google.com/eng/q/4684749665604730880#a1n3 to bypass it
+
 bazel_dep(
     name = "rules_java",
     version = "8.11.0",

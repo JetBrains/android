@@ -1,0 +1,13 @@
+diff --git a/third_party/BUILD.release.bazel b/third_party/BUILD.release.bazel
+index 7e5be6a..49ef858 100644
+--- a/third_party/BUILD.bazel
++++ b/third_party/BUILD.bazel
+@@ -29,7 +29,7 @@ java_binary(
+
+ java_import(
+     name = "android_sdk",
+-    jars = ["@bazel_tools//tools/android:android_jar"],
++    jars = ["@rules_android//tools/android:android_jar"],
+     neverlink = True,
+     visibility = ["//visibility:public"],
+ )
