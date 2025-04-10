@@ -66,6 +66,7 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/base/journeys/journeys-gradle-plugin:journeys-gradle-plugin.zip",
     ] + glob(["testData/**"]),
     # do not sort: must match IML order
     test_deps = [

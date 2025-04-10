@@ -2450,6 +2450,11 @@ public final class StudioFlags {
     "Enable triggering Journeys with Gemini run configurations",
     enabledUpTo(DEV)
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_TEMPLATE = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.template", "Enable Journeys with Gemini template",
+    "Enable creating Journeys with Gemini templates",
+    enabledUpTo(DEV)
+  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
     "Enable recording of Journeys with Gemini",

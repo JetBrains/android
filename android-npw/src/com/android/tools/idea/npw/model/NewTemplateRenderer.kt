@@ -254,6 +254,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
     "Gemini API Starter" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY
     "Basic Headset Activity" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY_2
     "Navigation UI Activity" -> TemplateRenderer.COMPOSE_NAVIGATION_UI_ACTIVITY
+    "Journey File" -> TemplateRenderer.JOURNEY_XML_FILE
     else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
   }
 
@@ -327,6 +328,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.EXPERIMENTAL_ACTIVITY -> TemplateType.EXPERIMENTAL_ACTIVITY
     TemplateRenderer.EXPERIMENTAL_ACTIVITY_2 -> TemplateType.EXPERIMENTAL_ACTIVITY_2
     TemplateRenderer.COMPOSE_NAVIGATION_UI_ACTIVITY -> TemplateType.COMPOSE_NAVIGATION_UI_ACTIVITY
+    TemplateRenderer.JOURNEY_XML_FILE -> TemplateType.JOURNEY_XML_FILE
     TemplateRenderer.BLANK_ACTIVITY,
     TemplateRenderer.ANDROID_MODULE,
     TemplateRenderer.ANDROID_PROJECT,
