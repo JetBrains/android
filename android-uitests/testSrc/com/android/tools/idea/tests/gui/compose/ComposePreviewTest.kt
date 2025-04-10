@@ -81,7 +81,7 @@ class ComposePreviewTest {
     guiTest
       .importProjectAndWaitForProjectSyncToFinishWithSpecificSdk(
         "SimpleComposeApplication-ui",
-        "35",
+        "36",
       )
       .also {
         it.buildToolWindow.activate()
