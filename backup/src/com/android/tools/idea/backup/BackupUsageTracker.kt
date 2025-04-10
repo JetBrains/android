@@ -16,6 +16,8 @@
 package com.android.tools.idea.backup
 
 import com.android.backup.BackupResult
+import com.android.backup.BackupResult.Success
+import com.android.backup.BackupResult.WithoutAppData
 import com.android.backup.BackupType
 import com.android.backup.ErrorCode
 import com.android.tools.analytics.UsageTracker
@@ -63,5 +65,6 @@ internal object BackupUsageTracker {
 private fun BackupResult.getErrorCode() =
   when (this) {
     is BackupResult.Error -> this.errorCode.name
-    BackupResult.Success -> ErrorCode.SUCCESS.name
+    Success -> ErrorCode.SUCCESS.name
+    WithoutAppData -> "WithoutAppData"
   }

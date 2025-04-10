@@ -19,7 +19,6 @@ package com.android.tools.idea.backup
 import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -80,7 +79,7 @@ internal class BackupDialog(
       isVisible = !isBackupEnabled
       addHyperlinkListener { it ->
         if (it.eventType == ACTIVATED) {
-          BrowserUtil.browse("https://developer.android.com/identity/sign-in/restore-credentials")
+          BackupManagerImpl.openBackupDisabledLearnMoreLink()
         }
       }
     }
