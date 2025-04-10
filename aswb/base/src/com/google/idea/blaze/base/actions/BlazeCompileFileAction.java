@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.actions;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.build.BlazeBuildService;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
@@ -69,14 +70,11 @@ class BlazeCompileFileAction extends BlazeProjectAction {
     }
 
     if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-      BuildDependenciesHelper buildDependenciesHelper =
-          new BuildDependenciesHelper(project, DepsBuildType.SELF);
+      BuildDependenciesHelper buildDependenciesHelper = new BuildDependenciesHelper(project, DepsBuildType.SELF);
       buildDependenciesHelper.determineTargetsAndRun(
-          virtualFile,
-          popup -> popup.showCenteredInCurrentWindow(project),
-          labels ->
-              BlazeBuildService.getInstance(project)
-                  .buildFileForLabels(virtualFile.getName(), labels));
+        virtualFile,
+        popup -> popup.showCenteredInCurrentWindow(project),
+        labels -> BlazeBuildService.getInstance(project).buildFileForLabels(virtualFile.getName(), labels), ImmutableSet.of());
       return;
     }
 

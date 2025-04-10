@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
@@ -76,18 +77,21 @@ public class BuildDependenciesForOpenFilesAction extends BlazeProjectAction {
       helper.enableAnalysis(disambiguator.unambiguousTargets, querySyncActionStats);
     } else if (ambiguousTargets.size() == 1) {
       // there is a single ambiguous target set. Show the UI to disambiguate it.
+
       TargetsToBuild ambiguousOne = Iterables.getOnlyElement(ambiguousTargets);
+      String displayFileName =
+        WorkspaceRoot.fromProject(project).path().resolve(ambiguousOne.sourceFilePath().orElseThrow()).toString();
       helper.chooseTargetToBuildFor(
-          ambiguousOne.sourceFilePath().orElseThrow(),
-          ambiguousOne,
-          PopupPositioner.showAtMousePointerOrCentered(event),
-          chosen ->
-              helper.enableAnalysis(
-                  ImmutableSet.<Label>builder()
-                      .addAll(disambiguator.unambiguousTargets)
-                      .add(chosen)
-                      .build(),
-                  querySyncActionStats));
+        displayFileName,
+        ambiguousOne,
+        PopupPositioner.showAtMousePointerOrCentered(event),
+        chosen ->
+                helper.enableAnalysis(
+                    ImmutableSet.<Label>builder()
+                        .addAll(disambiguator.unambiguousTargets)
+                        .add(chosen)
+                        .build(),
+                    querySyncActionStats));
     } else {
       logger.warn(
           "Multiple ambiguous target sets for open files; not building them: "

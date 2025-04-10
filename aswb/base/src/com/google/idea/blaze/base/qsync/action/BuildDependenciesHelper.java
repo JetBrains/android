@@ -179,11 +179,6 @@ public class BuildDependenciesHelper {
   }
 
   public void determineTargetsAndRun(
-      VirtualFile vf, PopupPositioner positioner, Consumer<ImmutableSet<Label>> consumer) {
-    determineTargetsAndRun(vf, positioner, consumer, ImmutableSet.of());
-  }
-
-  public void determineTargetsAndRun(
       VirtualFile vf,
       PopupPositioner positioner,
       Consumer<ImmutableSet<Label>> consumer,
@@ -231,25 +226,13 @@ public class BuildDependenciesHelper {
   }
 
   public void chooseTargetToBuildFor(
-      Path workspaceRelativePath,
-      TargetsToBuild toBuild,
-      PopupPositioner positioner,
-      Consumer<Label> chosenConsumer) {
-    chooseTargetToBuildFor(
-        WorkspaceRoot.fromProject(project).path().resolve(workspaceRelativePath).toString(),
-        toBuild,
-        positioner,
-        chosenConsumer);
-  }
-
-  public void chooseTargetToBuildFor(
-      String fileName,
+      String displayFileName,
       TargetsToBuild toBuild,
       PopupPositioner positioner,
       Consumer<Label> chosenConsumer) {
     JBPopupFactory factory = JBPopupFactory.getInstance();
     ListPopup popup =
-        factory.createListPopup(SelectTargetPopupStep.create(toBuild, fileName, chosenConsumer));
+        factory.createListPopup(SelectTargetPopupStep.create(toBuild, displayFileName, chosenConsumer));
     positioner.showInCorrectPosition(popup);
   }
 
