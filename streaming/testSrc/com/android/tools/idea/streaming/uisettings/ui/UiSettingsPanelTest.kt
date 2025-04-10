@@ -17,31 +17,23 @@ package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.getDescendant
-import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.DANISH_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.RUSSIAN_LANGUAGE
-import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.ui.components.ActionLink
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 import java.awt.Dimension
-import java.awt.event.KeyEvent.VK_RIGHT
-import java.awt.event.KeyEvent.VK_SHIFT
-import java.awt.event.KeyEvent.VK_SPACE
-import java.awt.event.KeyEvent.VK_TAB
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JLabel
@@ -49,15 +41,14 @@ import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
 
 class UiSettingsPanelTest {
-  private val popupRule = JBPopupRule()
-  private val projectRule = ProjectRule()
   private val nameRule = TestName()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val ruleChain = RuleChain(projectRule, popupRule, nameRule)
+  val ruleChain = RuleChain(nameRule, disposableRule)
 
-  private var _panel: UiSettingsPanel? = null
   private lateinit var model: UiSettingsModel
+  private lateinit var panel: UiSettingsPanel
   private lateinit var ui: FakeUi
   private var lastCommand: String = ""
   private val deviceTypeFromTestName: DeviceType
@@ -68,20 +59,17 @@ class UiSettingsPanelTest {
       nameRule.methodName.endsWith("Desktop") -> DeviceType.DESKTOP
       else -> DeviceType.HANDHELD
     }
-  private val panel: UiSettingsPanel
-    get() {
-      if (_panel == null) {
-        val deviceType = deviceTypeFromTestName
-        _panel = UiSettingsPanel(model, deviceType)
-        ui = FakeUi(_panel!!, createFakeWindow = true, parentDisposable = projectRule.disposable)
-      }
-      return _panel!!
-    }
 
   @Before
   fun before() {
+    model = createModel()
+    panel = UiSettingsPanel(model, deviceTypeFromTestName)
+    ui = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
+  }
+
+  private fun createModel(): UiSettingsModel {
     val deviceType = deviceTypeFromTestName
-    model = UiSettingsModel(Dimension(1344, 2992), 480, 34, deviceType)
+    val model = UiSettingsModel(Dimension(1344, 2992), 480, 34, deviceType)
     model.appLanguage.addElement(DEFAULT_LANGUAGE)
     model.appLanguage.addElement(DANISH_LANGUAGE)
     model.appLanguage.addElement(RUSSIAN_LANGUAGE)
@@ -100,6 +88,7 @@ class UiSettingsPanelTest {
     model.screenDensity.uiChangeListener = ChangeListener { lastCommand = "density=$it" }
     model.debugLayout.uiChangeListener = ChangeListener { lastCommand = "debugLayout=$it" }
     model.resetAction = { lastCommand = "reset" }
+    return model
   }
 
   @Test
@@ -118,7 +107,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testGestureOverlayNotInstalled() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, projectRule.disposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, disposableRule.disposable)
     model.gestureOverlayInstalled.setFromController(false)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
     assertThat(comboBox.accessibleContext.accessibleName).isEqualTo(GESTURE_NAVIGATION_TITLE)
@@ -127,7 +116,7 @@ class UiSettingsPanelTest {
 
   @Test
   fun testSetGestureNavigationFromUi() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, projectRule.disposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, disposableRule.disposable)
     model.gestureOverlayInstalled.setFromController(true)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
     assertThat(comboBox.isShowing).isTrue()
@@ -223,18 +212,6 @@ class UiSettingsPanelTest {
   }
 
   @Test
-  fun testResetButton() {
-    val link = panel.getDescendant<ActionLink> { it.name == RESET_TITLE }
-    assertThat(link.accessibleContext.accessibleName).isEqualTo(RESET_TITLE)
-    model.differentFromDefault.setFromController(false)
-    assertThat(link.isShowing).isFalse()
-    model.differentFromDefault.setFromController(true)
-    assertThat(link.isShowing).isTrue()
-    link.doClick()
-    waitForCondition(1.seconds) { lastCommand == "reset" }
-  }
-
-  @Test
   fun testControlsForWear() {
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
     assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
@@ -284,8 +261,8 @@ class UiSettingsPanelTest {
 
   @Test
   fun testControlsForOemWithPermissionMonitoring() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, projectRule.disposable)
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, projectRule.disposable)
+    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, disposableRule.disposable)
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, disposableRule.disposable)
     model.gestureOverlayInstalled.setFromController(true)
     model.talkBackInstalled.setFromController(true)
 
@@ -315,110 +292,5 @@ class UiSettingsPanelTest {
     assertThat(panel.getDescendant<JCheckBox> { it.name == DEBUG_LAYOUT_TITLE }.isShowing).isTrue()
     assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE1 }.isShowing).isFalse()
     assertThat(panel.getDescendant<JLabel> { it.text == PERMISSION_HINT_LINE2 }.isShowing).isFalse()
-  }
-
-  @Test
-  fun testKeyboardAccessibility() {
-    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
-    focusManager.focusOwner = panel
-    panel.transferFocus()
-
-    assertThat(focusManager.focusOwner?.name).isEqualTo(DARK_THEME_TITLE)
-    ui.keyboard.pressAndRelease(VK_SPACE)
-    waitForCondition(1.seconds) { lastCommand == "dark=true" }
-    ui.keyboard.pressAndRelease(VK_TAB)
-    model.differentFromDefault.setFromController(true)
-
-    if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
-      assertThat(focusManager.focusOwner?.name).isEqualTo(GESTURE_NAVIGATION_TITLE)
-      val navigationComboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
-      // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
-      navigationComboBox.selectedItem = true
-      waitForCondition(1.seconds) { lastCommand == "gestures=true" }
-      ui.keyboard.pressAndRelease(VK_TAB)
-    }
-
-    assertThat(focusManager.focusOwner?.name).isEqualTo(APP_LANGUAGE_TITLE)
-    val comboBox = panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }
-    // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
-    comboBox.selectedIndex = 1
-    waitForCondition(1.seconds) { lastCommand == "locale=da" }
-    // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
-    comboBox.selectedIndex = 2
-    waitForCondition(1.seconds) { lastCommand == "locale=ru" }
-    ui.keyboard.pressAndRelease(VK_TAB)
-
-    assertThat(focusManager.focusOwner?.name).isEqualTo(TALKBACK_TITLE)
-    ui.keyboard.pressAndRelease(VK_SPACE)
-    waitForCondition(1.seconds) { lastCommand == "talkBackOn=true" }
-    ui.keyboard.pressAndRelease(VK_TAB)
-
-    assertThat(focusManager.focusOwner?.name).isEqualTo(SELECT_TO_SPEAK_TITLE)
-    ui.keyboard.pressAndRelease(VK_SPACE)
-    waitForCondition(1.seconds) { lastCommand == "selectToSpeakOn=true" }
-    ui.keyboard.pressAndRelease(VK_TAB)
-
-    assertThat(focusManager.focusOwner?.name).isEqualTo(FONT_SCALE_TITLE)
-    ui.keyboard.pressAndRelease(VK_RIGHT)
-    waitForCondition(1.seconds) { lastCommand == "fontScale=115" }
-    ui.keyboard.pressAndRelease(VK_RIGHT)
-    waitForCondition(1.seconds) { lastCommand == "fontScale=130" }
-    ui.keyboard.pressAndRelease(VK_TAB)
-
-    assertThat(focusManager.focusOwner?.name).isEqualTo(DENSITY_TITLE)
-    ui.keyboard.pressAndRelease(VK_RIGHT)
-    waitForCondition(1.seconds) { lastCommand == "density=544" }
-    ui.keyboard.pressAndRelease(VK_RIGHT)
-    waitForCondition(1.seconds) { lastCommand == "density=608" }
-    ui.keyboard.pressAndRelease(VK_TAB)
-
-    if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
-      ui.keyboard.pressAndRelease(VK_SPACE)
-      waitForCondition(1.seconds) { lastCommand == "debugLayout=true" }
-      ui.keyboard.pressAndRelease(VK_TAB)
-    }
-
-    assertThat(focusManager.focusOwner?.name).isEqualTo(RESET_TITLE)
-    ui.keyboard.pressAndRelease(VK_SPACE)
-    waitForCondition(1.seconds) { lastCommand == "reset" }
-    model.differentFromDefault.setFromController(false)
-
-    // Activating the reset button should disable the reset button, and the focus will transfer to the next control:
-    assertThat(focusManager.focusOwner?.name).isEqualTo(DARK_THEME_TITLE)
-
-    // Back tab will now skip the reset button:
-    ui.keyboard.press(VK_SHIFT)
-    ui.keyboard.pressAndRelease(VK_TAB)
-    ui.keyboard.release(VK_SHIFT)
-
-    // Back tab to skip the debug layout control:
-    if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
-      ui.keyboard.press(VK_SHIFT)
-      ui.keyboard.pressAndRelease(VK_TAB)
-      ui.keyboard.release(VK_SHIFT)
-    }
-    assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.hasFocus()).isTrue()
-  }
-
-  @Test
-  fun testFirstFocusedComponentWithActiveResetLink() {
-    model.screenDensity.setFromController(560)
-    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
-    focusManager.focusOwner = panel
-    panel.transferFocus()
-
-    // The Reset link should not be selected as the first focused component:
-    assertThat(focusManager.focusOwner?.name).isEqualTo(DARK_THEME_TITLE)
-  }
-
-  @Test
-  fun testFirstFocusedComponentWithActiveResetLinkForWear() {
-    model.screenDensity.setFromController(560)
-    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
-    focusManager.focusOwner = panel
-    panel.transferFocus()
-
-    // The Reset link should not be selected as the first focused component, and Wear does not have Dark Mode:
-    assertThat(focusManager.focusOwner?.name).isEqualTo(APP_LANGUAGE_TITLE)
   }
 }

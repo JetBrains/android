@@ -33,18 +33,11 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import java.awt.Component
-import java.awt.Container
-import java.awt.KeyboardFocusManager
 import javax.swing.AbstractButton
-import javax.swing.JComponent
 import javax.swing.JSlider
-import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ListCellRenderer
-import javax.swing.SwingUtilities
 import javax.swing.plaf.UIResource
 
-private const val TITLE = "Device Settings Shortcuts"
 private const val LANGUAGE_WIDTH = 200
 internal const val DARK_THEME_TITLE = "Dark Theme:"
 internal const val GESTURE_NAVIGATION_TITLE = "Navigation Mode:"
@@ -78,15 +71,6 @@ internal class UiSettingsPanel(
   init {
     add(panel {
       customizeSpacingConfiguration(SPACING) {
-        row(title(TITLE)) {
-          link(RESET_TITLE) { model.resetAction() }
-            .accessibleName(RESET_TITLE)
-            .apply { component.name = RESET_TITLE }
-            .visibleIf(model.differentFromDefault)
-            .align(AlignX.RIGHT)
-        }
-        separator()
-
         if (deviceType != DeviceType.WEAR) {
           row(JBLabel(DARK_THEME_TITLE)) {
             checkBox("")
@@ -176,25 +160,8 @@ internal class UiSettingsPanel(
         }.visibleIf(model.permissionMonitoringDisabled.not())
       }
     })
-    updateBackground()
-
-    isFocusCycleRoot = true
-    isFocusTraversalPolicyProvider = true
-    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
-      override fun getFirstComponent(container: Container): Component? {
-        val first = super.getFirstComponent(container) ?: return null
-        val from = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
-        val fromOutside = from == null || !SwingUtilities.isDescendingFrom(from, container)
-        return if (first.name == RESET_TITLE && fromOutside) super.getComponentAfter(container, first) else first
-      }
-    }
+//    updateBackground()
   }
-
-  /**
-   * Create a label for the title of the panel.
-   */
-  private fun title(title: String): JBLabel =
-    JBLabel(title).apply { foreground = UIUtil.getInactiveTextColor() }
 
   /**
    * Bind a [Boolean] property to an [AbstractButton] cell.
@@ -231,12 +198,6 @@ internal class UiSettingsPanel(
   }
 
   private fun Row.visibleIf(predicate: ReadOnlyProperty<Boolean>): Row {
-    visible(predicate.value)
-    predicate.addControllerListener { visible(it) }
-    return this
-  }
-
-  private fun <T : JComponent> Cell<T>.visibleIf(predicate: ReadOnlyProperty<Boolean>): Cell<T> {
     visible(predicate.value)
     predicate.addControllerListener { visible(it) }
     return this
