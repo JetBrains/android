@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.folding
 import com.android.annotations.concurrency.UiThread
 import com.intellij.execution.ConsoleFolding
 import com.intellij.execution.impl.EditorHyperlinkSupport
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.FoldRegion
 import com.intellij.openapi.project.Project
@@ -86,34 +87,36 @@ internal class EditorFoldingDetector(
   override fun detectFoldings(startLine: Int, endLine: Int) {
     if (activeConsoleFoldings.isEmpty()) return
 
-    foldingModel.runBatchFoldingOperation {
-      for (folding in activeConsoleFoldings) {
-        var line = startLine
-        while (line <= endLine) {
-          // Outer loop finds first folded line
-          if (!shouldFoldLine(folding, line)) {
-            line++
-            continue
-          }
-          val previousRegion = findPreviousRegion(folding, line, startLine)
-          val foldStartLine =
-            if (previousRegion != null) {
-              foldingModel.removeFoldRegion(previousRegion)
-              val startOffset =
-                when (folding.shouldBeAttachedToThePreviousLine()) {
-                  true -> previousRegion.startOffset + 1
-                  false -> previousRegion.startOffset
-                }
-              document.getLineNumber(startOffset)
-            } else {
-              line
+    WriteAction.run<Throwable> {
+      foldingModel.runBatchFoldingOperation {
+        for (folding in activeConsoleFoldings) {
+          var line = startLine
+          while (line <= endLine) {
+            // Outer loop finds first folded line
+            if (!shouldFoldLine(folding, line)) {
+              line++
+              continue
             }
-          line++
-          while (line <= endLine && shouldFoldLine(folding, line)) {
-            // Inner loop finds last folding line
+            val previousRegion = findPreviousRegion(folding, line, startLine)
+            val foldStartLine =
+              if (previousRegion != null) {
+                foldingModel.removeFoldRegion(previousRegion)
+                val startOffset =
+                  when (folding.shouldBeAttachedToThePreviousLine()) {
+                    true -> previousRegion.startOffset + 1
+                    false -> previousRegion.startOffset
+                  }
+                document.getLineNumber(startOffset)
+              } else {
+                line
+              }
             line++
+            while (line <= endLine && shouldFoldLine(folding, line)) {
+              // Inner loop finds last folding line
+              line++
+            }
+            addFoldRegion(folding, foldStartLine, line - 1)
           }
-          addFoldRegion(folding, foldStartLine, line - 1)
         }
       }
     }
