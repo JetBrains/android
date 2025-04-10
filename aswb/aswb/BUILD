@@ -21,16 +21,6 @@ load(
     "repackaged_files",
     "stamped_plugin_xml",
 )
-
-# BEGIN-REPO
-load(
-    "//tools/adt/idea/aswb/build_defs:restrictions.bzl",
-    "ALLOWED_EXTERNAL_TEST_DEPENDENCIES",
-    "EXISTING_EXTERNAL_TEST_VIOLATIONS",
-    "validate_test_dependencies",
-)
-
-# END-REPO
 load(
     "//tools/adt/idea/aswb/testing:test_defs.bzl",
     "intellij_integration_test_suite",
@@ -329,22 +319,6 @@ genrule(
     outs = ["tools/adt/idea/android/annotations/empty_file"],
     cmd = "echo \"No contents\" > $@",
 )
-
-# BEGIN-REPO
-validate_test_dependencies(
-    name = "validate_test_dependencies",
-    allowed_external_dependencies = ALLOWED_EXTERNAL_TEST_DEPENDENCIES,
-    existing_external_violations = EXISTING_EXTERNAL_TEST_VIOLATIONS,
-    deps = [
-        "//tools/adt/idea/aswb:aswb_tests",
-        "//tools/adt/idea/aswb/aswb:aswb_bazel_build_test",
-        "//tools/adt/idea/aswb/common/experiments:unit_tests",
-        "//tools/adt/idea/aswb/common/ui/properties:unit_tests",
-        "//tools/adt/idea/aswb/common/util:CommandLineTaskTest",
-        "//tools/adt/idea/aswb/shared:tests",
-    ],
-)
-# END-REPO
 
 # Dump the plugin version to a file to be used in stamping the plugin xml
 genrule(
