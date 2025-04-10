@@ -60,10 +60,7 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
       }
     })
 
-    // TODO need to migrate to getVersionCatalogFiles(element.module) call instead of
-    //  using `project` as an argument. Need this to support composite projects.
-    //  Currently element.module is null - b/405161686
-    val aliases = getVersionCatalogFiles(element.project).keys
+    val aliases = element.module?.let{ getVersionCatalogFiles(it).keys } ?: listOf()
     if(aliases.isEmpty() || !aliases.contains(fileIdentifier.name)) return arrayOf()
 
     val identifiers: MutableList<DeclarativeIdentifier> = mutableListOf()
@@ -178,8 +175,10 @@ class DeclarativeVersionCatalogReferenceProvider : PsiReferenceProvider() {
 
   companion object {
     fun DeclarativeIdentifier.getVersionCatalogFile(): PsiFile? =
-      getVersionCatalogFiles(project)[name]?.let { virtualFile ->
-        PsiManager.getInstance(project).findFile(virtualFile)
+      module?.let {
+        getVersionCatalogFiles(it)[name]?.let { virtualFile ->
+          PsiManager.getInstance(project).findFile(virtualFile)
+        }
       }
   }
 

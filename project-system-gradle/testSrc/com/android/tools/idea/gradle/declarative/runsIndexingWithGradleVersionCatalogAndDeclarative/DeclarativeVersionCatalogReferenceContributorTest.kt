@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.declarative.runsGradleVersionCatalogAndDeclarative
+package com.android.tools.idea.gradle.declarative.runsIndexingWithGradleVersionCatalogAndDeclarative
 
-import com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiReference
 import com.intellij.psi.util.findParentOfType
@@ -33,6 +34,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.toml.lang.psi.TomlKeyValue
+import java.io.File
 
 @RunsInEdt
 class DeclarativeVersionCatalogReferenceContributorTest {
@@ -129,12 +131,20 @@ class DeclarativeVersionCatalogReferenceContributorTest {
     Truth.assertWithMessage("The text must include ^ somewhere to point to reference").that(caret).isNotEqualTo(-1)
     val withoutCaret = text.substring(0, caret) + text.substring(caret + 1)
 
-    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
-    val file = projectRule.fixture.addFileToProject("app/$FN_BUILD_GRADLE_DECLARATIVE", withoutCaret).virtualFile
-    projectRule.fixture.openFileInEditor(file)
+    val project = projectRule.project
+
+    val buildFileName = "app/${SdkConstants.FN_BUILD_GRADLE_DECLARATIVE}"
+
+    val file = File(File(project.basePath!!), buildFileName)
+
+    projectRule.projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG) {
+      file.writeText(withoutCaret)
+    }
+
+    val buildFile = VfsUtil.findFileByIoFile(file, false)
 
     runReadAction {
-      val psiFile = PsiManager.getInstance(projectRule.project).findFile(file)!!
+      val psiFile = PsiManager.getInstance(project).findFile(buildFile!!)!!
       val referee = psiFile.findElementAt(caret)!!.findTopmostParentOfType<DeclarativeProperty>()!!
       val reference = referee.references.singleOrNull { it.absoluteRange.contains(caret) }
       assert(reference)
