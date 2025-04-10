@@ -45,7 +45,7 @@ public class OpenExistingProjectTest {
   protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
   protected static final String APP_NAME = "TestApp";
   protected static final String PACKAGE_NAME = "com.google.testapp";
-  protected static final int MIN_SDK_API = SdkVersionInfo.HIGHEST_SUPPORTED_API;
+  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
 
   /**
    * Verifies that existing projects can be opened and build without errors.

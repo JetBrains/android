@@ -38,7 +38,7 @@ public class NameWithSpaceAndDollarTest {
   private static final String TEMPLATE = "Empty Views Activity";
   private static final String APP_NAME = "\'Test\' Application$";
   private static final String PACKAGE_NAME = "android.com.app";
-  private static final int MIN_SDK_API = SdkVersionInfo.HIGHEST_SUPPORTED_API;;
+  private static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;;
 
   /**
    * Verify able to create a new project with name containing a space and a dollar.

@@ -42,7 +42,7 @@ public class NavGraphSanityTest {
   protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
-  protected static final int MIN_SDK_API = SdkVersionInfo.HIGHEST_SUPPORTED_API;
+  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
 
   NlEditorFixture myNlEditorFixture;
   private EditorFixture myEditorFixture;
