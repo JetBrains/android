@@ -15,8 +15,11 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import com.google.common.collect.Sets;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.OperationType;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.base.qsync.action.PopupPositioner;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider;
@@ -30,6 +33,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
@@ -99,8 +103,14 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      buildDepsHelper.enableAnalysis(
-          getClass(), e, PopupPositioner.showUnderneathClickedComponentOrCentered(e));
+      VirtualFile vfile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+      QuerySyncActionStatsScope querySyncActionStats =
+        QuerySyncActionStatsScope.createForFile(getClass(), e, vfile);
+      buildDepsHelper.determineTargetsAndRun(
+        vfile,
+        PopupPositioner.showUnderneathClickedComponentOrCentered(e),
+        labels -> buildDepsHelper.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats),
+        new TargetDisambiguationAnchors.WorkingSet(buildDepsHelper));
     }
 
     @Override

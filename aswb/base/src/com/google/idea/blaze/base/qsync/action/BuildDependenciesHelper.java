@@ -30,9 +30,6 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
@@ -41,7 +38,9 @@ import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -112,10 +111,6 @@ public class BuildDependenciesHelper {
     return Optional.of(relative);
   }
 
-  public static VirtualFile getVirtualFile(AnActionEvent e) {
-    return e.getData(CommonDataKeys.VIRTUAL_FILE);
-  }
-
   public ImmutableSet<Path> getWorkingSet() throws BuildException {
     // TODO: Any output from the context here is not shown in the console.
     return syncManager.getLoadedProject().orElseThrow().getWorkingSet(BlazeContext.create());
@@ -140,54 +135,46 @@ public class BuildDependenciesHelper {
     return disambiguator.unambiguousTargets;
   }
 
-  public void enableAnalysis(
-      Class<? extends AnAction> actionClass, AnActionEvent e, PopupPositioner popupPositioner) {
-    ImmutableSet<Label> additionalTargets;
-    if (QuerySyncSettings.getInstance().buildWorkingSet()) {
-      try {
-        additionalTargets = getAffectedTargetsForPaths(getWorkingSet());
-      } catch (BuildException be) {
-        syncManager.notifyWarning(
-            "Could not obtain working set",
-            String.format("Error trying to obtain working set. Not including it in build: %s", be));
-        additionalTargets = ImmutableSet.of();
-      }
-    } else {
-      additionalTargets = ImmutableSet.of();
-    }
-    enableAnalysis(actionClass, e, popupPositioner, additionalTargets);
-  }
+  /**
+   * Additional targets to consider when disambiguating targets to build for a file.
+   */
+  public sealed interface TargetDisambiguationAnchors {
+    ImmutableSet<Label> anchorTargets();
 
-  public void enableAnalysis(
-      Class<? extends AnAction> actionClass,
-      AnActionEvent e,
-      PopupPositioner positioner,
-      ImmutableSet<Label> additionalTargetsToBuild) {
-    VirtualFile vfile = getVirtualFile(e);
-    determineTargetsAndRun(
-        vfile,
-        positioner,
-        labels -> {
-          if (labels.isEmpty()) {
-            return;
-          }
-          QuerySyncActionStatsScope querySyncActionStats =
-              QuerySyncActionStatsScope.createForFile(actionClass, e, vfile);
-          enableAnalysis(labels, querySyncActionStats);
-        },
-        additionalTargetsToBuild);
+    /**
+     * A set of specific targets to consider when disambiguating targets to build for a file.
+     */
+    record Targets(ImmutableSet<Label> anchorTargets) implements TargetDisambiguationAnchors {}
+    TargetDisambiguationAnchors NONE = new Targets(ImmutableSet.of());
+
+    /**
+     * An anchor requesting that the working set be considered when disambiguating targets to build for a file.
+     */
+    final class WorkingSet implements TargetDisambiguationAnchors {
+      private final BuildDependenciesHelper helper;
+
+      public WorkingSet(BuildDependenciesHelper helper) {
+        this.helper = helper;
+      }
+
+      @Override
+      public ImmutableSet<Label> anchorTargets() {
+        return helper.getWorkingSetTargetsIfEnabled();
+      }
+    }
   }
 
   public void determineTargetsAndRun(
       VirtualFile vf,
       PopupPositioner positioner,
       Consumer<ImmutableSet<Label>> consumer,
-      ImmutableSet<Label> additionalTargetsToBuild) {
+      TargetDisambiguationAnchors targetDisambiguationAnchors) {
     TargetsToBuild toBuild = getTargetsToEnableAnalysisFor(vf);
+    final var additionalTargets = targetDisambiguationAnchors.anchorTargets();
 
-    if (toBuild.overlapsWith(additionalTargetsToBuild)
-        || (toBuild.isEmpty() && !additionalTargetsToBuild.isEmpty())) {
-      consumer.accept(additionalTargetsToBuild);
+    if (toBuild.overlapsWith(additionalTargets)
+        || (toBuild.isEmpty() && !additionalTargets.isEmpty())) {
+      consumer.accept(additionalTargets);
       return;
     }
 
@@ -197,11 +184,7 @@ public class BuildDependenciesHelper {
     }
 
     if (!toBuild.isAmbiguous()) {
-      consumer.accept(
-          ImmutableSet.<Label>builder()
-              .addAll(toBuild.targets())
-              .addAll(additionalTargetsToBuild)
-              .build());
+      consumer.accept(toBuild.targets());
       return;
     }
 
@@ -209,12 +192,13 @@ public class BuildDependenciesHelper {
         vf.getName(),
         toBuild,
         positioner,
-        label ->
-            consumer.accept(
-                ImmutableSet.<Label>builder().add(label).addAll(additionalTargetsToBuild).build()));
+        label -> consumer.accept(ImmutableSet.of(label)));
   }
 
-  void enableAnalysis(ImmutableSet<Label> targets, QuerySyncActionStatsScope querySyncActionStats) {
+  public void enableAnalysis(Set<Label> targets, QuerySyncActionStatsScope querySyncActionStats) {
+    if (targets.isEmpty()) {
+      return;
+    }
     switch (depsBuildType) {
       case SELF:
         syncManager.enableAnalysis(targets, querySyncActionStats, TaskOrigin.USER_ACTION);
@@ -261,6 +245,25 @@ public class BuildDependenciesHelper {
         onChosen.accept(selectedValue);
       }
       return FINAL_CHOICE;
+    }
+  }
+
+  /**
+   * Returns the set of targets affected by files in the current working set if automatic building of the dependencies
+   * in the working set is enabled.
+   */
+  public ImmutableSet<Label> getWorkingSetTargetsIfEnabled() {
+    return QuerySyncSettings.getInstance().buildWorkingSet() ? getWorkingSetTargets() : ImmutableSet.of();
+  }
+
+  private ImmutableSet<Label> getWorkingSetTargets() {
+    try {
+      return getAffectedTargetsForPaths(getWorkingSet());
+    } catch (BuildException be) {
+      this.syncManager.notifyWarning(
+        "Could not obtain working set",
+        String.format("Error trying to obtain working set. Not including it in build: %s", be));
+      return ImmutableSet.of();
     }
   }
 }

@@ -17,11 +17,11 @@ package com.google.idea.blaze.base.actions;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.build.BlazeBuildService;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
@@ -74,7 +74,8 @@ class BlazeCompileFileAction extends BlazeProjectAction {
       buildDependenciesHelper.determineTargetsAndRun(
         virtualFile,
         popup -> popup.showCenteredInCurrentWindow(project),
-        labels -> BlazeBuildService.getInstance(project).buildFileForLabels(virtualFile.getName(), labels), ImmutableSet.of());
+        labels -> BlazeBuildService.getInstance(project).buildFileForLabels(virtualFile.getName(), labels),
+        TargetDisambiguationAnchors.NONE);
       return;
     }
 

@@ -15,8 +15,11 @@
  */
 package com.google.idea.blaze.base.qsync.action;
 
+import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -63,7 +66,13 @@ public class BuildDependenciesForDirectReverseDepsAction extends BlazeProjectAct
     if (relativePath.isEmpty()) {
       return;
     }
-    helper.enableAnalysis(getClass(), e, PopupPositioner.showAtMousePointerOrCentered(e));
+    VirtualFile vfile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+    QuerySyncActionStatsScope querySyncActionStats = QuerySyncActionStatsScope.createForFile(getClass(), e, vfile);
+    helper.determineTargetsAndRun(
+      vfile,
+      PopupPositioner.showAtMousePointerOrCentered(e),
+      labels -> helper.enableAnalysis(Sets.union(labels, helper.getWorkingSetTargetsIfEnabled()), querySyncActionStats),
+      new TargetDisambiguationAnchors.WorkingSet(helper));
   }
 
   private BuildDependenciesHelper createHelper(Project project) {

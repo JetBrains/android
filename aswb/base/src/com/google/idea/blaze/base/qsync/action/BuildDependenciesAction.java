@@ -15,8 +15,11 @@
  */
 package com.google.idea.blaze.base.qsync.action;
 
+import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.qsync.QuerySync;
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
@@ -85,6 +88,12 @@ public class BuildDependenciesAction extends BlazeProjectAction {
   @Override
   protected void actionPerformedInBlazeProject(Project project, AnActionEvent e) {
     BuildDependenciesHelper helper = new BuildDependenciesHelper(project, DepsBuildType.SELF);
-    helper.enableAnalysis(getClass(), e, PopupPositioner.showAtMousePointerOrCentered(e));
+    VirtualFile vfile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+    QuerySyncActionStatsScope querySyncActionStats = QuerySyncActionStatsScope.createForFile(getClass(), e, vfile);
+    helper.determineTargetsAndRun(
+      vfile,
+      PopupPositioner.showAtMousePointerOrCentered(e),
+      labels -> helper.enableAnalysis(Sets.union(labels, helper.getWorkingSetTargetsIfEnabled()), querySyncActionStats),
+      new TargetDisambiguationAnchors.WorkingSet(helper));
   }
 }
