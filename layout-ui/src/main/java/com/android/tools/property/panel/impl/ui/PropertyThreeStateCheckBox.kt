@@ -25,6 +25,7 @@ import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ThreeStateCheckBox
 
 /** A standard control for editing a boolean property value with 3 states: on/off/unset. */
@@ -32,6 +33,10 @@ class PropertyThreeStateCheckBox(
   model: ThreeStateBooleanPropertyEditorModel,
   context: EditorContext,
 ) : PropertyTextFieldWithLeftButton(model, context, CustomThreeStateCheckBox(model)) {
+
+  init {
+    border = JBUI.Borders.empty()
+  }
 
   private val checkBox = leftComponent as CustomThreeStateCheckBox
 
