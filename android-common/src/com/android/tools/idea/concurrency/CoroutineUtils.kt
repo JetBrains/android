@@ -85,18 +85,29 @@ object AndroidDispatchers {
    *
    * @see AndroidExecutors.uiThreadExecutor
    */
-  @Deprecated("Prefer using Dispatchers.EDT. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html")
-  val uiThread: CoroutineDispatcher get() =
-    Executor { block ->
-      AndroidExecutors.getInstance().uiThreadExecutor(ModalityState.defaultModalityState(), block)
-    }.asCoroutineDispatcher()
+  @Deprecated(
+    "Prefer using Dispatchers.EDT. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
+    replaceWith = ReplaceWith(
+      expression = "Dispatchers.EDT",
+      imports = ["kotlinx.coroutines.Dispatchers", "com.intellij.openapi.application.EDT"]
+    ))
+  val uiThread: CoroutineDispatcher
+    get() =
+      Executor { block ->
+        AndroidExecutors.getInstance().uiThreadExecutor(ModalityState.defaultModalityState(), block)
+      }.asCoroutineDispatcher()
 
   /**
    * [CoroutineDispatcher] that dispatches to a background worker thread.
    *
    * @see AndroidExecutors.workerThreadExecutor
    */
-  @Deprecated("Prefer using Dispatchers.Default. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html")
+  @Deprecated(
+    "Prefer using Dispatchers.Default. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
+    replaceWith = ReplaceWith(
+      expression = "Dispatchers.Default",
+      imports = ["kotlinx.coroutines.Dispatchers"]
+    ))
   val workerThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().workerThreadExecutor.asCoroutineDispatcher()
 
   /**
@@ -106,7 +117,12 @@ object AndroidDispatchers {
    *
    * @see AndroidExecutors.diskIoThreadExecutor
    */
-  @Deprecated("Prefer using Dispatchers.IO. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html")
+  @Deprecated(
+    "Prefer using Dispatchers.IO. See https://plugins.jetbrains.com/docs/intellij/coroutine-dispatchers.html",
+    replaceWith = ReplaceWith(
+      expression = "Dispatchers.IO",
+      imports = ["kotlinx.coroutines.Dispatchers"]
+    ))
   val diskIoThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().diskIoThreadExecutor.asCoroutineDispatcher()
 }
 
@@ -174,7 +190,7 @@ fun SupervisorJob(disposable: Disposable): Job {
  */
 @Deprecated(
   "Use Disposable.createCoroutineScope(dispatcher, extraContext) instead",
-  ReplaceWith("disposable.createCoroutineScope(context)"),
+  ReplaceWith("disposable.createCoroutineScope(extraContext = context)"),
 )
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
 fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
