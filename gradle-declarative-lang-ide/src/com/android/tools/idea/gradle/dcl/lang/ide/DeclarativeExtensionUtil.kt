@@ -21,9 +21,9 @@ import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.ENUM
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_BLOCK
-import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.OBJECT_VALUE
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.INTEGER
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.LONG
+import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.PROPERTY
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.STRING
 import com.android.tools.idea.gradle.dcl.lang.psi.AssignmentType
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
@@ -58,7 +58,6 @@ enum class ElementType(val str: String) {
   ENUM("Enum"),
   BLOCK("Block element"),
   FACTORY_BLOCK("Factory block"),
-  OBJECT_VALUE("Factory value"),
   FACTORY("Factory"),
   PROPERTY("Property"),
   ENUM_CONSTANT("Enum Constant"),
@@ -66,25 +65,22 @@ enum class ElementType(val str: String) {
   EXPRESSION("Expression")
 }
 
-fun getType(type: DataTypeReference, rootFunction: List<PlainFunction>, resolve: (FullName) -> ClassType?): ElementType = when (type) {
-  is DataClassRef -> getDataClassType(resolve, type.fqName, rootFunction)
+fun getType(type: DataTypeReference, resolve: (FullName) -> ClassType?): ElementType = when (type) {
+  is DataClassRef -> getDataClassType(resolve, type.fqName)
   is SimpleTypeRef -> getSimpleType(type.dataType)
-  is DataClassRefWithTypes ->  getDataClassType(resolve, type.fqName, rootFunction)
+  is DataClassRefWithTypes ->  getDataClassType(resolve, type.fqName)
   is GenericTypeRef -> ElementType.GENERIC_TYPE
 }
 
 private fun getDataClassType(
   resolve: (FullName) -> ClassType?,
   fullName: FullName,
-  rootFunction: List<PlainFunction>
 ) = when (val resolvedType = resolve(fullName)) {
-    is ClassModel ->
-      if (resolvedType.isObjectValue(rootFunction)) OBJECT_VALUE
-      else ElementType.PROPERTY
+    is ClassModel -> ElementType.PROPERTY
 
     is EnumModel -> ENUM
     // this is Gradle external class like Array or List
-    is ParameterizedClassModel -> OBJECT_VALUE
+    is ParameterizedClassModel -> ElementType.PROPERTY
     else -> BLOCK
   }
 
@@ -106,10 +102,10 @@ fun getType(type: SchemaFunction): ElementType = when (type.semantic) {
   is BlockFunction -> if (type.parameters.isNotEmpty()) FACTORY_BLOCK else BLOCK
 }
 
-fun getType(entry: EntryWithContext, rootFunction: List<PlainFunction>): ElementType = when (entry.entry) {
+fun getType(entry: EntryWithContext): ElementType = when (entry.entry) {
   is SchemaMemberFunction -> getType(entry.entry)
   is SchemaFunction -> getType(entry.entry)
-  is DataProperty -> getType(entry.entry.valueType, rootFunction, entry::resolveRef)
+  is DataProperty -> getType(entry.entry.valueType, entry::resolveRef)
 }
 
 fun getEnumConstants(entryWithContext: EntryWithContext?): List<String> {
@@ -127,7 +123,7 @@ fun getSimpleType(type: SimpleDataType): ElementType = when (type) {
   SimpleDataType.LONG -> LONG
   SimpleDataType.STRING -> STRING
   SimpleDataType.BOOLEAN -> BOOLEAN
-  else -> ElementType.PROPERTY
+  else -> PROPERTY
 }
 
 fun PsiElement.getElementType(): ElementTypeWithAugmentation? = when (this) {
@@ -146,7 +142,7 @@ fun PsiElement.getElementType(): ElementTypeWithAugmentation? = when (this) {
           else -> ElementTypeWithAugmentation(ENUM, augmented)
         }
 
-      is DeclarativeAbstractFactory -> ElementTypeWithAugmentation(OBJECT_VALUE, augmented)
+      is DeclarativeAbstractFactory -> ElementTypeWithAugmentation(PROPERTY, augmented)
       else -> null
     }
   }

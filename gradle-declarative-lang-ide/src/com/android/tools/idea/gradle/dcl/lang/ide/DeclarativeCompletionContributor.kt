@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.ENUM
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.EXPRESSION
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_BLOCK
-import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.OBJECT_VALUE
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.INTEGER
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.LONG
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.PROPERTY
@@ -381,7 +380,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
               .map {
                 val suggestion = it.second
                 LookupElementBuilder.create(suggestion.name)
-                  .withTypeText(suggestion.type.name, null, true)
+                  .withTypeText(suggestion.type.str, null, true)
                   .withInsertHandler(insert(suggestion.type))
               })
         }
@@ -482,54 +481,52 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     val element = file?.findElementAt(offset)
     context.commitDocument()
     when (suggestion.type) {
-      // object type property
-      OBJECT_VALUE -> {
-        if (element?.skipWhitespaces()?.nextLeaf(true)?.text == "=") return@InsertHandler
-        val rootFunctions = getRootFunctions(parent, schemas).distinct()
-          .filter {
-            // reason is that function type has generic type T and data property has concrete type argument (like String)
-            (it.semantic as? PlainFunction)?.returnValue?.compareIgnoringGeneric((entry as? DataProperty)?.valueType) == true
-          }
-
-        if (rootFunctions.size == 1) {
-          val function = rootFunctions.first()
-          if (function.parameters.size == 1 && function.parameters.first().type == SimpleTypeRef(SimpleDataType.STRING)) {
-            document.insertString(context.tailOffset, " = ${function.name}(\"\")")
-            editor.caretModel.moveToOffset(context.tailOffset - 2)
-          }
-          else {
-            // single function but with unknown parameter(s)
-            document.insertString(context.tailOffset, " = ${function.name}()")
-            editor.caretModel.moveToOffset(context.tailOffset - 1)
-          }
-        }
-        else {
-          document.insertString(context.tailOffset, " = ")
-          editor.caretModel.moveToOffset(context.tailOffset)
-        }
-      }
-      // rootProject completion
       PROPERTY -> {
         val nextLeafText = element?.skipWhitespaces()?.nextLeaf(true)?.text
         if (nextLeafText == "=" || nextLeafText == ".") return@InsertHandler
         val path = getPath(parent, false) + suggestion.name
         val nextSuggestion = getSuggestionEntries(path, parent.containingFile.name, schemas)
-        if (nextSuggestion.size == 1) {
-          val nextEntry = nextSuggestion.first().entry
-          (nextEntry as? DataProperty)?.let {
-            if (it.valueType == SimpleTypeRef(SimpleDataType.STRING)) {
-              document.insertString(context.tailOffset, ".${it.name} = \"\"")
-              editor.caretModel.moveToOffset(context.tailOffset - 1)
+        val rootFunctions = getRootFunctions(parent, schemas).distinct()
+          .filter {
+            // reason is that function type has generic type T and data property has concrete type argument (like String)
+            (it.semantic as? PlainFunction)?.returnValue?.compareIgnoringGeneric((entry as? DataProperty)?.valueType) == true
+          }
+        if (nextSuggestion.isNotEmpty() && rootFunctions.isEmpty()) {
+          // try property as next suggestion first
+          if (nextSuggestion.size == 1) {
+            val nextEntry = nextSuggestion.first().entry
+            (nextEntry as? DataProperty)?.let {
+              if (it.valueType == SimpleTypeRef(SimpleDataType.STRING)) {
+                document.insertString(context.tailOffset, ".${it.name} = \"\"")
+                editor.caretModel.moveToOffset(context.tailOffset - 1)
+              }
+              else {
+                document.insertString(context.tailOffset, ".${it.name} = ")
+                editor.caretModel.moveToOffset(context.tailOffset)
+              }
             }
-            else {
-              document.insertString(context.tailOffset, ".${it.name} = ")
-              editor.caretModel.moveToOffset(context.tailOffset)
-            }
-
+          }
+          else {
+            document.insertString(context.tailOffset, ".")
+            editor.caretModel.moveToOffset(context.tailOffset)
           }
         }
-        else {
-          document.insertString(context.tailOffset, ".")
+        else if (nextSuggestion.isEmpty() && rootFunctions.isNotEmpty()) {
+          if (rootFunctions.size == 1) {
+            val function = rootFunctions.first()
+            if (function.parameters.size == 1 && function.parameters.first().type == SimpleTypeRef(SimpleDataType.STRING)) {
+              // single function but string as parameter
+              document.insertString(context.tailOffset, " = ${function.name}(\"\")")
+              editor.caretModel.moveToOffset(context.tailOffset - 2)
+            }
+            else {
+              // single function but with unknown parameter(s)
+              document.insertString(context.tailOffset, " = ${function.name}()")
+              editor.caretModel.moveToOffset(context.tailOffset - 1)
+            }
+          }
+        } else {
+          document.insertString(context.tailOffset, " = ")
           editor.caretModel.moveToOffset(context.tailOffset)
         }
       }
@@ -559,20 +556,18 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   }
 
 
-  private fun EntryWithContext.toSuggestionPair(rootFunction: List<PlainFunction>) =
-    this.entry to Suggestion(entry.simpleName, getType(this, rootFunction))
+  private fun EntryWithContext.toSuggestionPair() =
+    this.entry to Suggestion(entry.simpleName, getType(this))
 
   private fun getMaybeEnumList(identifier: DeclarativeIdentifier, schemas: BuildDeclarativeSchemas): List<Suggestion> {
     val suggestions = getSuggestionEntries(identifier, schemas)
-    val rootFunctions = getRootPlainFunctions(identifier, schemas)
-    val enum = suggestions.find { it.entry.simpleName == identifier.name && getType(it, rootFunctions) == ENUM }
+    val enum = suggestions.find { it.entry.simpleName == identifier.name && getType(it) == ENUM }
     return getEnumConstants(enum).map { Suggestion(it, ElementType.ENUM_CONSTANT) }
   }
 
   private fun getMaybeBooleanList(identifier: DeclarativeIdentifier, schemas: BuildDeclarativeSchemas): List<Suggestion> {
     val suggestions = getSuggestionEntries(identifier, schemas)
-    val rootFunctions = getRootPlainFunctions(identifier, schemas)
-    return if (suggestions.any { it.entry.simpleName == identifier.name && getType(it, rootFunctions) == BOOLEAN })
+    return if (suggestions.any { it.entry.simpleName == identifier.name && getType(it) == BOOLEAN })
       listOf(Suggestion("true", BOOLEAN), Suggestion("false", BOOLEAN))
     else
       listOf()
@@ -639,7 +634,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   private fun getSuggestionList(parent: PsiElement,
                                 schemas: BuildDeclarativeSchemas,
                                 includeCurrent: Boolean = false): List<Pair<Entry, Suggestion>> =
-    getSuggestionEntries(parent, schemas, includeCurrent).map { it.toSuggestionPair(getRootPlainFunctions(parent, schemas)) }.distinct()
+    getSuggestionEntries(parent, schemas, includeCurrent).map { it.toSuggestionPair() }.distinct()
 
   // create path - list of identifiers from root element to parent
   private fun getPath(parent: PsiElement, includeCurrent: Boolean): List<String> {
