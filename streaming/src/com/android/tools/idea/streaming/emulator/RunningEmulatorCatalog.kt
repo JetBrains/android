@@ -44,6 +44,7 @@ import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.CancellationException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -83,8 +84,16 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private var pendingUpdateResults: MutableList<CompletableDeferred<Set<EmulatorController>>> = mutableListOf()
   @GuardedBy("dataLock")
   private var registrationDirectory: Path? = computeRegistrationDirectory()
-  private val runningAvdTracker
-    get() = service<RunningAvdTracker>()
+  private val runningAvdTracker: RunningAvdTracker
+    get() {
+      try {
+        return service<RunningAvdTracker>()
+      }
+      catch (e: IllegalStateException) {
+        // May happen if the application is being disposed.
+        throw CancellationException(e.message)
+      }
+    }
 
   /**
    * Adds a listener that will be notified when new emulators start and running emulators shut down.
