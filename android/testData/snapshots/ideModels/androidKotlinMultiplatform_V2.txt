@@ -1066,6 +1066,174 @@ MODULE                        : Kotlin_Multiplatform
                 buildFile                     : <ROOT>/kmpSecondLib/build.gradle.kts
                 externalSystemId              : GRADLE
                 sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : 11
+                    targetCompatibility           : 11
+                    - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
+                    - taskArtifacts               : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                    configurationArtifacts
+                        allSourceSetsCompileDependenciesMetadata          : <empty>
+                        allTestSourceSetsCompileDependenciesMetadata      : <empty>
+                        androidApiElements            : <empty>
+                        - androidApiElements-published          : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
+                        androidApis                   : <empty>
+                        androidCompilationApi         : <empty>
+                        androidCompilationCompileOnly : <empty>
+                        androidCompilationImplementation        : <empty>
+                        androidCompilationRuntimeOnly : <empty>
+                        androidCompileClasspath       : <empty>
+                        androidJdkImage               : <empty>
+                        androidMainApi                : <empty>
+                        androidMainApiDependenciesMetadata      : <empty>
+                        androidMainCompileOnly        : <empty>
+                        androidMainCompileOnlyDependenciesMetadata        : <empty>
+                        androidMainImplementation     : <empty>
+                        androidMainImplementationDependenciesMetadata     : <empty>
+                        androidMainIntransitiveDependenciesMetadata       : <empty>
+                        androidMainResolvableDependenciesMetadata         : <empty>
+                        androidMainRuntimeOnly        : <empty>
+                        androidResourcesElements-published      : <empty>
+                        androidRuntimeClasspath       : <empty>
+                        androidRuntimeElements        : <empty>
+                        - androidRuntimeElements-published      : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
+                        androidSourcesElements        : <empty>
+                        - androidSourcesElements-published      : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-android-sources.jar [-]
+                        androidTestUtil               : <empty>
+                        - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
+                        commonMainApi                 : <empty>
+                        commonMainApiDependenciesMetadata       : <empty>
+                        commonMainCompileOnly         : <empty>
+                        commonMainCompileOnlyDependenciesMetadata         : <empty>
+                        commonMainImplementation      : <empty>
+                        commonMainImplementationDependenciesMetadata      : <empty>
+                        commonMainIntransitiveDependenciesMetadata        : <empty>
+                        commonMainResolvableDependenciesMetadata          : <empty>
+                        commonMainRuntimeOnly         : <empty>
+                        commonTestApi                 : <empty>
+                        commonTestApiDependenciesMetadata       : <empty>
+                        commonTestCompileOnly         : <empty>
+                        commonTestCompileOnlyDependenciesMetadata         : <empty>
+                        commonTestImplementation      : <empty>
+                        commonTestImplementationDependenciesMetadata      : <empty>
+                        commonTestIntransitiveDependenciesMetadata        : <empty>
+                        commonTestResolvableDependenciesMetadata          : <empty>
+                        commonTestRuntimeOnly         : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        default                       : <empty>
+                        - jvmApiElements              : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - jvmApiElements-published    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        jvmCompilationApi             : <empty>
+                        jvmCompilationCompileOnly     : <empty>
+                        jvmCompilationImplementation  : <empty>
+                        jvmCompilationRuntimeOnly     : <empty>
+                        jvmCompileClasspath           : <empty>
+                        jvmMainAnnotationProcessor    : <empty>
+                        jvmMainApi                    : <empty>
+                        jvmMainApiDependenciesMetadata          : <empty>
+                        jvmMainCompileClasspath       : <empty>
+                        jvmMainCompileOnly            : <empty>
+                        jvmMainCompileOnlyDependenciesMetadata  : <empty>
+                        jvmMainImplementation         : <empty>
+                        jvmMainImplementationDependenciesMetadata         : <empty>
+                        jvmMainIntransitiveDependenciesMetadata : <empty>
+                        jvmMainResolvableDependenciesMetadata   : <empty>
+                        jvmMainRuntimeClasspath       : <empty>
+                        jvmMainRuntimeOnly            : <empty>
+                        jvmRuntimeClasspath           : <empty>
+                        - jvmRuntimeElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - jvmRuntimeElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                        - jvmSourcesElements          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
+                        - jvmSourcesElements-published          : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm-sources.jar [-]
+                        jvmTestAnnotationProcessor    : <empty>
+                        jvmTestApi                    : <empty>
+                        jvmTestApiDependenciesMetadata          : <empty>
+                        jvmTestCompilationApi         : <empty>
+                        jvmTestCompilationCompileOnly : <empty>
+                        jvmTestCompilationImplementation        : <empty>
+                        jvmTestCompilationRuntimeOnly : <empty>
+                        jvmTestCompileClasspath       : <empty>
+                        jvmTestCompileOnly            : <empty>
+                        jvmTestCompileOnlyDependenciesMetadata  : <empty>
+                        jvmTestImplementation         : <empty>
+                        jvmTestImplementationDependenciesMetadata         : <empty>
+                        jvmTestIntransitiveDependenciesMetadata : <empty>
+                        jvmTestResolvableDependenciesMetadata   : <empty>
+                        jvmTestRuntimeClasspath       : <empty>
+                        jvmTestRuntimeOnly            : <empty>
+                        kotlinBuildToolsApiClasspath  : <empty>
+                        kotlinCompilerClasspath       : <empty>
+                        kotlinCompilerPluginClasspath : <empty>
+                        kotlinCompilerPluginClasspathAndroidMain          : <empty>
+                        kotlinCompilerPluginClasspathJvmMain    : <empty>
+                        kotlinCompilerPluginClasspathJvmTest    : <empty>
+                        kotlinCompilerPluginClasspathMetadataMain         : <empty>
+                        kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeCompilerPluginClasspath     : <empty>
+                        kotlinScriptDef               : <empty>
+                        kotlinScriptDefExtensions     : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        - metadataApiElements         : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
+                        metadataCompilationApi        : <empty>
+                        metadataCompilationCompileOnly          : <empty>
+                        metadataCompilationImplementation       : <empty>
+                        metadataCompilationRuntimeOnly          : <empty>
+                        metadataCompileClasspath      : <empty>
+                        - metadataSourcesElements     : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-kotlin-sources.jar [-]
+                        testKotlinScriptDef           : <empty>
+                        testKotlinScriptDefExtensions : <empty>
+                    sourceSets
+                        jvmMain
+                            sourceCompatibility           : 11
+                            targetCompatibility           : 11
+                            jdkInstallationPath           : <JDK_PATH-11>
+                            - artifacts                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
+                                - files                       : <ROOT>/kmpSecondLib/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpSecondLib/src/jvmMain/java [-]
+                                    outputDir                     : <ROOT>/kmpSecondLib/out/jvmMain/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpSecondLib/src/jvmMain/resources [-]
+                                    outputDir                     : <ROOT>/kmpSecondLib/out/jvmMain/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/processedResources/jvm/main [-]
+                                    patterns                      : FilePatternSetImpl
+                        jvmTest
+                            sourceCompatibility           : 11
+                            targetCompatibility           : 11
+                            jdkInstallationPath           : <JDK_PATH-11>
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmMain [-]
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/java/jvmTest [-]
+                                - files                       : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
+                                - files                       : <ROOT>/kmpSecondLib/build/processedResources/jvm/test [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/kmpSecondLib/build/processedResources/jvm/main [-]
+                            sources
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpSecondLib/src/jvmTest/java [-]
+                                    outputDir                     : <ROOT>/kmpSecondLib/out/jvmTest/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/classes/java/jvmTest [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/classes/kotlin/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/kmpSecondLib/src/jvmTest/resources [-]
+                                    outputDir                     : <ROOT>/kmpSecondLib/out/jvmTest/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/kmpSecondLib/build/processedResources/jvm/test [-]
+                                    patterns                      : FilePatternSetImpl
                 taskModel                     : DefaultGradleTaskModel
                     tasks
                         jvmTest                       : jvmTest (DefaultExternalTask)
@@ -3095,6 +3263,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
             commonTest
                 - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : :kmpSecondLib::kmpSecondLib/jvmMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
             jvmMain
                 - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
@@ -3103,6 +3273,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : :kmpSecondLib::kmpSecondLib/commonTest
                 - dependency                  : :kmpSecondLib::kmpSecondLib/jvmMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion
