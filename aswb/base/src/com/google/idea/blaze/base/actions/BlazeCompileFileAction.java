@@ -22,7 +22,6 @@ import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
-import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
@@ -70,7 +69,7 @@ class BlazeCompileFileAction extends BlazeProjectAction {
     }
 
     if (Blaze.getProjectType(project).equals(ProjectType.QUERY_SYNC)) {
-      BuildDependenciesHelper buildDependenciesHelper = new BuildDependenciesHelper(project, DepsBuildType.SELF);
+      BuildDependenciesHelper buildDependenciesHelper = new BuildDependenciesHelper(project);
       buildDependenciesHelper.determineTargetsAndRun(
         virtualFile,
         popup -> popup.showCenteredInCurrentWindow(project),

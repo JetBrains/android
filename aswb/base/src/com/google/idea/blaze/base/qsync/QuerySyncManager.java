@@ -15,6 +15,8 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import static com.google.common.util.concurrent.Futures.immediateFuture;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -393,11 +395,6 @@ public class QuerySyncManager implements Disposable {
                     }));
   }
 
-  @Nullable
-  public DependencyTracker getDependencyTracker() {
-    return loadedProject == null ? null : loadedProject.getDependencyTracker();
-  }
-
   public TargetsToBuild getTargetsToBuild(VirtualFile virtualFile) {
     if (loadedProject == null) {
       return TargetsToBuild.NONE;
@@ -425,6 +422,9 @@ public class QuerySyncManager implements Disposable {
   public ListenableFuture<Boolean> enableAnalysis(
       Set<Label> targets, QuerySyncActionStatsScope querySyncActionStats, TaskOrigin taskOrigin) {
     assertProjectLoaded();
+    if (targets.isEmpty()) {
+      return immediateFuture(true);
+    }
     return runBuild(
         "Building dependencies",
         "Building...",
@@ -437,6 +437,9 @@ public class QuerySyncManager implements Disposable {
   public ListenableFuture<Boolean> enableAnalysisForReverseDeps(
       Set<Label> targets, QuerySyncActionStatsScope querySyncActionStats, TaskOrigin taskOrigin) {
     assertProjectLoaded();
+    if (targets.isEmpty()) {
+      return immediateFuture(true);
+    }
     return runBuild(
         "Building dependencies for affected targets",
         "Building...",

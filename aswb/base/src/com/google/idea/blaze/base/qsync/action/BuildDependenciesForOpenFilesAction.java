@@ -24,7 +24,7 @@ import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -36,6 +36,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /** Action to build dependencies and enable analysis for all open editor tabs. */
@@ -56,7 +57,7 @@ public class BuildDependenciesForOpenFilesAction extends BlazeProjectAction {
 
   @Override
   protected void actionPerformedInBlazeProject(Project project, AnActionEvent event) {
-    BuildDependenciesHelper helper = new BuildDependenciesHelper(project, DepsBuildType.SELF);
+    BuildDependenciesHelper helper = new BuildDependenciesHelper(project);
     if (!helper.canEnableAnalysisNow()) {
       return;
     }
@@ -72,9 +73,10 @@ public class BuildDependenciesForOpenFilesAction extends BlazeProjectAction {
     QuerySyncActionStatsScope querySyncActionStats =
         QuerySyncActionStatsScope.createForFiles(getClass(), event, openFiles);
 
+    QuerySyncManager syncManager = QuerySyncManager.getInstance(project);
     if (ambiguousTargets.isEmpty()) {
-      // there are no ambiguous targets that could not be automatically disambiguated.
-      helper.enableAnalysis(disambiguator.unambiguousTargets, querySyncActionStats);
+      syncManager
+        .enableAnalysis(disambiguator.unambiguousTargets, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION);
     } else if (ambiguousTargets.size() == 1) {
       // there is a single ambiguous target set. Show the UI to disambiguate it.
 
@@ -86,12 +88,10 @@ public class BuildDependenciesForOpenFilesAction extends BlazeProjectAction {
         ambiguousOne,
         PopupPositioner.showAtMousePointerOrCentered(event),
         chosen ->
-                helper.enableAnalysis(
-                    ImmutableSet.<Label>builder()
-                        .addAll(disambiguator.unambiguousTargets)
-                        .add(chosen)
-                        .build(),
-                    querySyncActionStats));
+          syncManager.enableAnalysis(ImmutableSet.<Label>builder()
+              .addAll(disambiguator.unambiguousTargets)
+              .add(chosen)
+              .build(), querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION));
     } else {
       logger.warn(
           "Multiple ambiguous target sets for open files; not building them: "
@@ -101,7 +101,7 @@ public class BuildDependenciesForOpenFilesAction extends BlazeProjectAction {
                   .map(Path::toString)
                   .collect(joining(", ")));
       if (!disambiguator.unambiguousTargets.isEmpty()) {
-        helper.enableAnalysis(disambiguator.unambiguousTargets, querySyncActionStats);
+        syncManager.enableAnalysis(disambiguator.unambiguousTargets, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION);
       } else {
         // TODO(mathewi) show an error?
         // or should we show multiple popups in parallel? (doesn't seem great if there are lots)

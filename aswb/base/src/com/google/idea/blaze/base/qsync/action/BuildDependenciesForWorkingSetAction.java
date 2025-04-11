@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -27,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * Action to build dependencies and enable analysis for the working set and it's reverse
@@ -46,13 +46,9 @@ public class BuildDependenciesForWorkingSetAction extends BlazeProjectAction {
     return QuerySyncStatus.REQUIRED;
   }
 
-  private BuildDependenciesHelper createHelper(Project project) {
-    return new BuildDependenciesHelper(project, DepsBuildType.REVERSE_DEPS);
-  }
-
   @Override
   protected void actionPerformedInBlazeProject(Project project, AnActionEvent e) {
-    BuildDependenciesHelper helper = createHelper(project);
+    BuildDependenciesHelper helper = new BuildDependenciesHelper(project);
     if (!helper.canEnableAnalysisNow()) {
       return;
     }
@@ -74,7 +70,8 @@ public class BuildDependenciesForWorkingSetAction extends BlazeProjectAction {
 
     QuerySyncActionStatsScope querySyncActionStats =
         QuerySyncActionStatsScope.createForPaths(getClass(), e, workingSet);
-    helper.enableAnalysis(affectedTargets, querySyncActionStats);
+    QuerySyncManager.getInstance(project)
+      .enableAnalysisForReverseDeps(affectedTargets, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION);
   }
 
   private void notifyFailureWorkingSet(Project project, Throwable e) {

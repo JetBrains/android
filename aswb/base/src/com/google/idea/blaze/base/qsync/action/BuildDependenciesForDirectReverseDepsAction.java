@@ -18,8 +18,9 @@ package com.google.idea.blaze.base.qsync.action;
 import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
-import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
+import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -27,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 
 /** Action to build dependencies and enable analysis for a file and it's reverse dependencies */
 public class BuildDependenciesForDirectReverseDepsAction extends BlazeProjectAction {
@@ -71,11 +73,12 @@ public class BuildDependenciesForDirectReverseDepsAction extends BlazeProjectAct
     helper.determineTargetsAndRun(
       vfile,
       PopupPositioner.showAtMousePointerOrCentered(e),
-      labels -> helper.enableAnalysis(Sets.union(labels, helper.getWorkingSetTargetsIfEnabled()), querySyncActionStats),
+      labels -> QuerySyncManager.getInstance(project).enableAnalysisForReverseDeps(
+        Sets.union(labels, helper.getWorkingSetTargetsIfEnabled()), querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION),
       new TargetDisambiguationAnchors.WorkingSet(helper));
   }
 
   private BuildDependenciesHelper createHelper(Project project) {
-    return new BuildDependenciesHelper(project, DepsBuildType.REVERSE_DEPS);
+    return new BuildDependenciesHelper(project);
   }
 }

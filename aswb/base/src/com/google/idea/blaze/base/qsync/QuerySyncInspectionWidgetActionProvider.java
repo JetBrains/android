@@ -20,12 +20,12 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsSc
 import com.google.idea.blaze.base.qsync.QuerySyncManager.OperationType;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
-import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.base.qsync.action.PopupPositioner;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.intellij.icons.AllIcons.Actions;
 import com.intellij.ide.HelpTooltip;
@@ -58,6 +58,7 @@ import java.awt.event.HierarchyBoundsListener;
 import java.awt.event.HierarchyEvent;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -89,11 +90,13 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
 
     private final Editor editor;
     private final BuildDependenciesHelper buildDepsHelper;
+    public final QuerySyncManager syncManager;
 
     public BuildDependencies(@NotNull Editor editor) {
       super("");
       this.editor = editor;
-      buildDepsHelper = new BuildDependenciesHelper(editor.getProject(), DepsBuildType.SELF);
+      buildDepsHelper = new BuildDependenciesHelper(editor.getProject());
+      syncManager = QuerySyncManager.getInstance(editor.getProject());
     }
 
     @Override
@@ -109,7 +112,8 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
       buildDepsHelper.determineTargetsAndRun(
         vfile,
         PopupPositioner.showUnderneathClickedComponentOrCentered(e),
-        labels -> buildDepsHelper.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats),
+        labels -> syncManager.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats,
+                                             QuerySyncManager.TaskOrigin.USER_ACTION),
         new TargetDisambiguationAnchors.WorkingSet(buildDepsHelper));
     }
 

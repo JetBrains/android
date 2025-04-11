@@ -19,9 +19,10 @@ import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.qsync.QuerySync;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
-import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import com.ibm.icu.lang.UCharacter;
 import com.ibm.icu.text.BreakIterator;
@@ -36,6 +37,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -72,7 +74,7 @@ public class BuildDependenciesAction extends BlazeProjectAction {
       presentation.setText(NAME);
     }
     VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
-    BuildDependenciesHelper helper = new BuildDependenciesHelper(project, DepsBuildType.SELF);
+    BuildDependenciesHelper helper = new BuildDependenciesHelper(project);
     Optional<Path> relativePath = helper.getRelativePathToEnableAnalysisFor(virtualFile);
     if (relativePath.isEmpty()) {
       presentation.setEnabled(false);
@@ -87,13 +89,15 @@ public class BuildDependenciesAction extends BlazeProjectAction {
 
   @Override
   protected void actionPerformedInBlazeProject(Project project, AnActionEvent e) {
-    BuildDependenciesHelper helper = new BuildDependenciesHelper(project, DepsBuildType.SELF);
+    BuildDependenciesHelper helper = new BuildDependenciesHelper(project);
     VirtualFile vfile = e.getData(CommonDataKeys.VIRTUAL_FILE);
     QuerySyncActionStatsScope querySyncActionStats = QuerySyncActionStatsScope.createForFile(getClass(), e, vfile);
     helper.determineTargetsAndRun(
       vfile,
       PopupPositioner.showAtMousePointerOrCentered(e),
-      labels -> helper.enableAnalysis(Sets.union(labels, helper.getWorkingSetTargetsIfEnabled()), querySyncActionStats),
+      labels -> QuerySyncManager.getInstance(project)
+        .enableAnalysis(Sets.union(labels, helper.getWorkingSetTargetsIfEnabled()), querySyncActionStats,
+                        QuerySyncManager.TaskOrigin.USER_ACTION),
       new TargetDisambiguationAnchors.WorkingSet(helper));
   }
 }

@@ -20,10 +20,8 @@ import static java.util.stream.Collectors.joining;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
@@ -40,7 +38,6 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -48,23 +45,12 @@ import java.util.function.Consumer;
  * shared.
  */
 public class BuildDependenciesHelper {
-
-  /** Enum specifying which target(s) dependencies are built for */
-  public enum DepsBuildType {
-    /** Build dependencies of the specified target(s) */
-    SELF,
-    /** Build dependencies of the reverse dependencies of the specified target(s) */
-    REVERSE_DEPS,
-  }
-
   private final Project project;
   private final QuerySyncManager syncManager;
-  private final DepsBuildType depsBuildType;
 
-  public BuildDependenciesHelper(Project project, DepsBuildType buildType) {
+  public BuildDependenciesHelper(Project project) {
     this.project = project;
     this.syncManager = QuerySyncManager.getInstance(project);
-    this.depsBuildType = buildType;
   }
 
   boolean canEnableAnalysisNow() {
@@ -193,20 +179,6 @@ public class BuildDependenciesHelper {
         toBuild,
         positioner,
         label -> consumer.accept(ImmutableSet.of(label)));
-  }
-
-  public void enableAnalysis(Set<Label> targets, QuerySyncActionStatsScope querySyncActionStats) {
-    if (targets.isEmpty()) {
-      return;
-    }
-    switch (depsBuildType) {
-      case SELF:
-        syncManager.enableAnalysis(targets, querySyncActionStats, TaskOrigin.USER_ACTION);
-        break;
-      case REVERSE_DEPS:
-        syncManager.enableAnalysisForReverseDeps(
-            targets, querySyncActionStats, TaskOrigin.USER_ACTION);
-    }
   }
 
   public void chooseTargetToBuildFor(
