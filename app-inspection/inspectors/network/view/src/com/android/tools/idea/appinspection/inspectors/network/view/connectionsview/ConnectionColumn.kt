@@ -68,22 +68,22 @@ internal enum class ConnectionColumn(
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
   },
-  REQUEST_SIZE("Request Size", 0.05, java.lang.Integer::class.java, visible = false) {
+  REQUEST_SIZE("Request Size", 0.05, Integer::class.java, visible = false) {
     override fun getValueFrom(data: ConnectionData) = data.requestPayload.size()
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = sizeRenderer
   },
-  SIZE("Size", 0.05, java.lang.Integer::class.java, visible = true) {
+  SIZE("Size", 0.05, Integer::class.java, visible = true) {
     override fun getValueFrom(data: ConnectionData) = data.responsePayload.size()
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = sizeRenderer
   },
-  REQUEST_HEADERS("Request Headers", 0.05, java.lang.Integer::class.java, visible = false) {
+  REQUEST_HEADERS("Request Headers", 0.05, Integer::class.java, visible = false) {
     override fun getValueFrom(data: ConnectionData) = data.requestHeaders.size
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
   },
-  RESPONSE_HEADERS("Response Headers", 0.05, java.lang.Integer::class.java, visible = false) {
+  RESPONSE_HEADERS("Response Headers", 0.05, Integer::class.java, visible = false) {
     override fun getValueFrom(data: ConnectionData) = data.responseHeaders.size
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
