@@ -31,14 +31,12 @@ import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 private const val WRITE_COMMAND = "Psi Parameter Modification"
 
@@ -47,20 +45,16 @@ private const val WRITE_COMMAND = "Psi Parameter Modification"
  *
  * @param project the [Project] the PSI belongs to.
  * @param model the [PsiCallPropertiesModel] managing this property.
- * @param resolvedCall the parent [ResolvedCall] that contains this parameter.
- * @param descriptor the [ValueParameterDescriptor] of this parameter, containing the parameter
- *   metadata.
- * @param argumentExpression the initial [KtExpression] for the argument when this parameter was
+ * @param addNewArgumentToResolvedCall A lambda that updates the current [KtValueArgument] with the
+ *   new inserted one.
+ * @param parameterName The name of the property item.
+ * @param parameterTypeNameIfStandard The name of the type of the property (for example "String",
+ *   "Boolean", ...)
+ * @param argumentExpression The initial [KtExpression] for the argument when this parameter was
  *   initialized.
- * @param defaultValue the default value string for the parameter, this is the value that the
+ * @param defaultValue The default value string for the parameter, this is the value that the
  *   parameter takes when it does not have a
- *
- * ```
- *          user-assigned value
- * @param validation
- * ```
- *
- * function used for input validation
+ * @param validation A function used for input validation
  */
 internal open class PsiCallParameterPropertyItem(
   protected val project: Project,
