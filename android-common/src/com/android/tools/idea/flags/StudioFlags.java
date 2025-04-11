@@ -1098,7 +1098,7 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.horizontal.scrollable.component.tree",
     "Horizontal scroll for layout inspector component tree",
     "When this flag is enabled, we enable horizontal scrolling for the Layout Inspector's component tree.",
-    enabledUpTo(DEV));
+    enabledUpTo(STABLE));
   //endregion
 
   //region Embedded Emulator
