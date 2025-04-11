@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
+import com.android.tools.idea.gradle.project.sync.BasicAndroidProjectModelProvider
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
@@ -659,8 +660,11 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     throw UnsupportedOperationException("getExtraProjectModelClasses() is not used when getModelProvider() is overridden.")
   }
 
-  override fun getModelProvider(): ProjectImportModelProvider? {
-    return resolverCtx.configureAndGetExtraModelProvider()
+  override fun getModelProviders(): List<ProjectImportModelProvider> {
+    val extraModelProvider = resolverCtx.configureAndGetExtraModelProvider() ?: error("Couldn't get extra model provider.")
+    return listOf<ProjectImportModelProvider>(extraModelProvider) + if (resolverCtx.isPhasedSyncEnabled) listOf(
+      BasicAndroidProjectModelProvider()
+    ) else emptyList()
   }
 
   override fun preImportCheck() {

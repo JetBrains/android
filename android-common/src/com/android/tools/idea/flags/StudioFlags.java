@@ -1029,6 +1029,30 @@ public final class StudioFlags {
   );
 
   //endregion
+  //region Gradle Phased Sync
+  private static final FlagGroup PHASED_SYNC = new FlagGroup(FLAGS, "phased.sync", "Gradle Phased Sync");
+
+  public static final Flag<Boolean> PHASED_SYNC_ENABLED = new BooleanFlag(
+    PHASED_SYNC,
+    "enabled",
+    "Enables phased sync",
+    "Enables the new sync mode where the models are streamed back to IDE as they become available in phases. These APIs also" +
+    " allow direct interaction with the workspace model via new APIs",
+    enabledUpTo(DEV)
+  );
+
+  public static final Flag<Boolean> PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED = new BooleanFlag(
+    PHASED_SYNC,
+    "disable.bridge.data.service",
+    "Disables bridge data service for phased sync",
+    "Entities set up by phased sync are not completely trusted by the IntelliJ platform and is later being replaced by what's " +
+    "populated by the data services. To enable this a 'bridge data service' is used to completely remove entities set up by phased sync. " +
+    "However we've done extensive feasibility work to make sure we don't actually need this replacement behaviour, meaning we can disable " +
+    "this behaviour completely. This flag is a fail-safe to make sure we can switch this behaviour back to platform's default, if needed.",
+    enabledUpTo(DEV)
+  );
+  //endregion
+
   //region Apk Project System
   private static final FlagGroup APK_IDE = new FlagGroup(FLAGS, "apk.ide", "APK Project System");
 
