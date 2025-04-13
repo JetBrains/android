@@ -193,9 +193,11 @@ class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
     }
 
     override fun onFailure(failureMessage: String) {
-      ApplicationManager.getApplication().invokeLater {
-        NotificationGroupManager.getInstance().getNotificationGroup("DeviceMirrorBenchmarking")
-          .createNotification(ERROR_TITLE, failureMessage, NotificationType.ERROR).notify(project)
+      if (failureMessage.isNotEmpty()) {
+        ApplicationManager.getApplication().invokeLater {
+          NotificationGroupManager.getInstance().getNotificationGroup("DeviceMirrorBenchmarking")
+            .createNotification(ERROR_TITLE, failureMessage, NotificationType.ERROR).notify(project)
+        }
       }
     }
 

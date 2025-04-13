@@ -46,8 +46,10 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
+import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.image.BufferedImage
@@ -74,6 +76,7 @@ class DeviceAdapterTest {
   private val deviceDisplaySize = Dimension(WIDTH, HEIGHT)
   private val displayRectangle = Rectangle(deviceDisplaySize)
   private val mousePressedLocations = mutableListOf<Point>()
+  private val mouseDraggedLocations = mutableListOf<Point>()
   private val mouseReleasedLocations = mutableListOf<Point>()
   private val keyEvents = mutableListOf<Pair<Int, Any>>()
   private val testTimeSource = TestTimeSource()
@@ -151,12 +154,41 @@ class DeviceAdapterTest {
   }
 
   @Test
-  fun dispatch_clicksMouse() {
+  fun dispatch_pressMouse() {
+    adapter.ready()
+    view.notifyFrame(INITIALIZED_FRAME)
+
+    waitForCondition(2.seconds) {
+      testScope.testScheduler.advanceUntilIdle()
+      view.notifyFrame(TOUCHABLE_AREA_FRAME)
+      onReadyCalls == 1
+    }
+    adapter.prepareForInputs()
+    UIUtil.pump()
+
+    assertThat(mousePressedLocations).hasSize(1)
+    assertThat(mousePressedLocations[0]).isEqualTo(Point(1, 50))
+  }
+
+  @Test
+  fun dispatch_dragMouse() {
+    adapter.ready()
+    view.notifyFrame(INITIALIZED_FRAME)
+
+    waitForCondition(2.seconds) {
+      testScope.testScheduler.advanceUntilIdle()
+      view.notifyFrame(TOUCHABLE_AREA_FRAME)
+      onReadyCalls == 1
+    }
+    adapter.prepareForInputs()
+    UIUtil.pump()
     adapter.dispatch(p)
     UIUtil.pump()
 
     assertThat(mousePressedLocations).hasSize(1)
-    assertThat(mousePressedLocations[0]).isEqualTo(p)
+    assertThat(mousePressedLocations[0]).isEqualTo(Point(1, 50))
+    assertThat(mouseDraggedLocations).hasSize(1)
+    assertThat(mouseDraggedLocations[0]).isEqualTo(p)
   }
 
   @Test
@@ -318,7 +350,7 @@ class DeviceAdapterTest {
 
   @Test
   fun onlyTouchableAreaReturned() {
-    val allPointsAdapter = createAdapter(maxTouches = Int.MAX_VALUE)
+    val allPointsAdapter = createAdapter(maxTouches = 20_000)
     allPointsAdapter.ready()
     allPointsAdapter.frameRendered(INITIALIZED_FRAME)
     waitForCondition(30.seconds) {
@@ -434,11 +466,15 @@ class DeviceAdapterTest {
     init {
       displayRectangle = Rectangle(deviceDisplaySize)
       val mouseListener =
-        object : MouseListener {
+        object : MouseAdapter() {
           override fun mouseClicked(e: MouseEvent) {}
 
           override fun mousePressed(e: MouseEvent) {
             mousePressedLocations.add(e.location)
+          }
+
+          override fun mouseDragged(e: MouseEvent) {
+            mouseDraggedLocations.add(e.location)
           }
 
           override fun mouseReleased(e: MouseEvent) {
@@ -450,8 +486,9 @@ class DeviceAdapterTest {
           override fun mouseExited(e: MouseEvent) {}
         }
       addMouseListener(mouseListener)
+      addMouseMotionListener(mouseListener)
       val keyListener =
-        object : KeyListener {
+        object : KeyAdapter() {
           override fun keyTyped(e: KeyEvent) {
             keyEvents.add(KeyEvent.KEY_TYPED to e.keyChar)
           }
