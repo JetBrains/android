@@ -42,11 +42,14 @@ import com.intellij.ui.components.JBScrollBar
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.Component
 import java.awt.Font
+import java.awt.KeyboardFocusManager
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.ScrollPaneConstants
 
 private const val TITLE_SEPARATOR_HEIGHT = 4
@@ -66,7 +69,10 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
       resizeSupported = true,
     )
   private val inspector = InspectorPanelImpl(inspectorModel, nameColumnFraction, parentDisposable)
+  private val scrollPane = createScrollPane(inspector)
   private var previousTableEditor: TableEditor? = null
+  private var lastFocusedEditor: Component? = null
+  private var lastFocusedEditorOffset: Int? = null
 
   init {
     nameColumnFraction.listeners.add(
@@ -78,9 +84,10 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
           .setValue(LEFT_FRACTION_KEY, nameColumnFraction.value, 0.4f)
       }
     )
+    inspector.afterLayout = { scrollToFocusEditorOffset() }
   }
 
-  val component = createScrollPane(inspector)
+  val component: JComponent = scrollPane
 
   var filter
     get() = inspectorModel.filter
@@ -101,9 +108,12 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     previousTableEditor = null
     lastAddedLine = null
     lastTitleLine = null
+    lastFocusedEditor = null
+    lastFocusedEditorOffset = null
   }
 
   fun propertyValuesChanged() {
+    storeFocusOffset()
     inspectorModel.propertyValuesChanged()
   }
 
@@ -116,7 +126,43 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     addSeparatorBeforeTitle()
   }
 
-  private fun createScrollPane(component: JComponent): JComponent {
+  /*
+   * Store the offset of the last focused editor before the editors had a change to update.
+   */
+  private fun storeFocusOffset() {
+    val focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+    lastFocusedEditorOffset = offsetInInspector(focusOwner)
+    lastFocusedEditor = if (lastFocusedEditorOffset != null) focusOwner else null
+  }
+
+  /**
+   * Scroll to the offset of the last focused editor (if still focused) the editors have changed.
+   */
+  private fun scrollToFocusEditorOffset() {
+    val focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+    val lastOffset = lastFocusedEditorOffset
+    if (focusOwner == lastFocusedEditor && lastOffset != null) {
+      val offset = offsetInInspector(focusOwner)
+      if (offset != null && offset != lastOffset) {
+        val pos = scrollPane.viewport.viewPosition
+        pos.y = maxOf(pos.y + offset - lastOffset, 0)
+        scrollPane.viewport.viewPosition = pos
+        lastFocusedEditorOffset = offsetInInspector(focusOwner)
+      }
+    }
+  }
+
+  private fun offsetInInspector(ofComponent: Component?): Int? {
+    var offset = 0
+    var component: Component? = ofComponent
+    while (component != null && component != inspector) {
+      offset += component.y
+      component = component.parent
+    }
+    return if (component == inspector) offset else null
+  }
+
+  private fun createScrollPane(component: JComponent): JScrollPane {
     val scrollPane =
       ScrollPaneFactory.createScrollPane(
         component,
@@ -161,7 +207,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     label.innerBorder = JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, 0)
     label.border =
       JBUI.Borders.merge(
-        JBUI.Borders.empty(0, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, 0, 0),
+        JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE),
         SideBorder(JBColor.border(), SideBorder.BOTTOM),
         true,
       )
@@ -184,7 +230,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     label.innerBorder = JBUI.Borders.empty(SUBTITLE_SEPARATOR_HEIGHT, 0)
     label.border =
       JBUI.Borders.merge(
-        JBUI.Borders.empty(0, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, 0, 0),
+        JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE),
         SideBorder(JBColor.border(), SideBorder.BOTTOM),
         true,
       )

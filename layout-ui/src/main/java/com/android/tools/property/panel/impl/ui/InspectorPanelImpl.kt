@@ -45,6 +45,13 @@ class InspectorPanelImpl(
     model.addValueChangedListener(this)
   }
 
+  var afterLayout: () -> Unit = {}
+
+  override fun doLayout() {
+    super.doLayout()
+    afterLayout()
+  }
+
   fun addLineElement(component: JComponent) {
     add(component, Placement.LINE)
   }

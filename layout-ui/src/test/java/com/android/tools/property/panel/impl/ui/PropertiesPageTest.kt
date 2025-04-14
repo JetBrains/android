@@ -17,7 +17,8 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
-import com.android.testutils.MockitoCleanerRule
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
@@ -38,23 +39,29 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import java.awt.Dimension
+import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.JTextField
 import org.junit.After
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 
 class PropertiesPageTest {
-  companion object {
-    @JvmField @ClassRule val rule = ApplicationRule()
-  }
+  private val disposableRule = DisposableRule()
 
-  @get:Rule val cleaner = MockitoCleanerRule()
+  @get:Rule val chain = RuleChain(ApplicationRule(), disposableRule, EdtRule())
 
   private var disposable: Disposable? = null
   private var page: PropertiesPage? = null
@@ -67,7 +74,7 @@ class PropertiesPageTest {
     val controlTypeProvider =
       mock(ControlTypeProvider::class.java) as ControlTypeProvider<PropertyItem>
     val editorProvider = mock(EditorProvider::class.java) as EditorProvider<PropertyItem>
-    disposable = Disposer.newDisposable()
+    disposable = disposableRule.disposable
     ApplicationManager.getApplication()
       .registerOrReplaceServiceInstance(
         PropertiesComponent::class.java,
@@ -373,6 +380,48 @@ class PropertiesPageTest {
     ) // Second editor
   }
 
+  @RunsInEdt
+  @Test
+  fun testFocusedEditorDoesNotScrollAway() {
+    page!!.component.size = Dimension(200, 1000)
+    val scrollPane = page!!.component as JScrollPane
+
+    // Disable blitting while scrolling:
+    (scrollPane.viewport.view as? JComponent)?.isOpaque = false
+
+    // Set up the properties panel with 4 editors:
+    //   title
+    //     A small line editor (label height)
+    //     A larger editor (height 2000)
+    //     An editor we set focus to
+    //     A larger editor (height 2000)
+    val title = page!!.addTitle("Title1") as TitleLineModel
+    title.makeExpandable(true)
+    val line = page!!.addEditor(makeEditor(), title)
+    val editorBefore = JPanel().apply { preferredSize = Dimension(200, 2000) }
+    page!!.addEditor(makeEditor(editorBefore), title)
+    val editor = JTextField()
+    page!!.addEditor(makeEditor(editor), title)
+    val editorAfter = JPanel().apply { preferredSize = Dimension(200, 2000) }
+    page!!.addEditor(makeEditor(editorAfter), title)
+    val ui = FakeUi(page!!.component, createFakeWindow = true, parentDisposable = disposable)
+
+    // Set focus on editor and scroll the editor in view:
+    FakeKeyboardFocusManager(disposable!!).setFocusOwner(editor)
+    scrollPane.viewport.viewPosition = Point(0, 1800)
+    val yPosInViewPort = editor.y - scrollPane.viewport.viewPosition.y
+
+    // Hide the small line editor:
+    line.visible = false
+
+    // Emulate an update:
+    page!!.propertyValuesChanged()
+    ui.layoutAndDispatchEvents()
+
+    // Expect the visible location of the editor in the viewport to be unchanged:
+    assertThat(editor.y - scrollPane.viewport.viewPosition.y).isEqualTo(yPosInViewPort)
+  }
+
   private fun checkLineModels(lines: List<InspectorLineModel>?, vararg classes: Class<*>) {
     val linesToCheck = lines ?: error("Expected non null lines")
     for ((index, line) in linesToCheck.withIndex()) {
@@ -381,9 +430,8 @@ class PropertiesPageTest {
     assertThat(lines).hasSize(classes.size)
   }
 
-  private fun makeEditor(): Pair<PropertyEditorModel, JComponent> {
+  private fun makeEditor(editor: JComponent = JLabel()): Pair<PropertyEditorModel, JComponent> {
     val model = mock(PropertyEditorModel::class.java)
-    val editor = JLabel()
     val property = FakePropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
     whenever(model.property).thenReturn(property)
     return Pair(model, editor)
