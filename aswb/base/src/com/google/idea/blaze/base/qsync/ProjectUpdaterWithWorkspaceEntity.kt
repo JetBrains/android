@@ -62,12 +62,20 @@ class ProjectUpdaterWithWorkspaceEntity(
     val libraryShardsExperiment = IntExperiment("query.sync.library.shards", 10)
   }
 
+  private var lastProjectProtoSnapshot: ProjectProto.Project = ProjectProto.Project.getDefaultInstance()
+
   override fun onNewProjectSnapshot(
     context: Context<*>,
     graph: QuerySyncProjectSnapshot,
   ) {
-    EntityWorker(project, graph.project(), context).updateProjectModel()
-    updateProjectModel(graph.project(), context)
+    val newProjectProtoSnapshot = graph.project()
+    if (lastProjectProtoSnapshot == newProjectProtoSnapshot) {
+      context.output(PrintOutput.output("IDE project structure up-to-date"))
+      return
+    }
+    EntityWorker(project, newProjectProtoSnapshot, context).updateProjectModel()
+    updateProjectModel(newProjectProtoSnapshot, context)
+    lastProjectProtoSnapshot = newProjectProtoSnapshot
   }
 
   data class ModuleData(val name: String) {

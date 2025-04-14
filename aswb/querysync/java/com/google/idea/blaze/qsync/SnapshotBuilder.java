@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
@@ -25,9 +24,7 @@ import com.google.idea.blaze.qsync.java.WorkspaceResolvingPackageReader;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
-import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.nio.file.Path;
-import java.util.function.Supplier;
 
 /**
  * Project refresher creates an appropriate {@link RefreshOperation} based on the project and
@@ -38,17 +35,14 @@ public class SnapshotBuilder {
   private final ListeningExecutorService executor;
   private final PackageReader workspaceRelativePackageReader;
   private final Path workspaceRoot;
-  private final ImmutableSet<String> handledRuleKinds;
 
   public SnapshotBuilder(
       ListeningExecutorService executor,
       PackageReader workspaceRelativePackageReader,
-      Path workspaceRoot,
-      ImmutableSet<String> handledRuleKinds) {
+      Path workspaceRoot) {
     this.executor = executor;
     this.workspaceRelativePackageReader = workspaceRelativePackageReader;
     this.workspaceRoot = workspaceRoot;
-    this.handledRuleKinds = handledRuleKinds;
   }
 
   /**
@@ -57,10 +51,11 @@ public class SnapshotBuilder {
    * applies transformations required to account for any currently synced(i.e. built) dependencies.
    */
   public QuerySyncProjectSnapshot createBlazeProjectSnapshot(
-      Context<?> context,
-      PostQuerySyncData postQuerySyncData,
-      ArtifactTracker.State artifactTrackerState,
-      ProjectProtoTransform projectProtoTransform)
+    Context<?> context,
+    PostQuerySyncData postQuerySyncData,
+    BuildGraphData graph,
+    ArtifactTracker.State artifactTrackerState,
+    ProjectProtoTransform projectProtoTransform)
       throws BuildException {
     Path effectiveWorkspaceRoot =
         postQuerySyncData.vcsState().flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot);
@@ -73,11 +68,9 @@ public class SnapshotBuilder {
             context,
             postQuerySyncData.projectDefinition(),
             executor);
-    QuerySummary querySummary = postQuerySyncData.querySummary();
-    BuildGraphData graph = new BlazeQueryParser(querySummary, context, handledRuleKinds).parse();
     Project project =
         projectProtoTransform.apply(
-            graphToProjectConverter.createProject(graph), graph, artifactTrackerState, context);
+          graphToProjectConverter.createProject(graph), graph, artifactTrackerState, context);
     return QuerySyncProjectSnapshot.builder()
         .queryData(postQuerySyncData)
         .graph(graph)

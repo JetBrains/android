@@ -116,7 +116,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                      DependencyTracker dependencyTracker,
                                      SnapshotBuilder snapshotBuilder,
                                      ProjectQuerier projectQuerier,
-                                     QuerySyncSourceToTargetMap sourceToTargetMap) {
+                                     QuerySyncSourceToTargetMap sourceToTargetMap,
+                                     ImmutableSet<String> handledRuleKinds) {
   }
 
   public ProjectLoaderImpl(Project project) {
@@ -167,7 +168,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.workspaceLanguageSettings(),
           result.sourceToTargetMap(),
           result.buildSystem(),
-          result.projectTransformRegistry());
+          result.projectTransformRegistry(),
+          result.handledRuleKinds());
     QuerySyncProjectListenerProvider.registerListenersFor(querySyncProject);
     result.projectTransformRegistry().addAll(ProjectProtoTransformProvider.getAll(result.latestProjectDef()));
 
@@ -280,8 +282,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
         new SnapshotBuilder(
             executor,
             createWorkspaceRelativePackageReader(),
-            workspaceRoot.path(),
-            handledRules);
+            workspaceRoot.path()
+        );
     QueryRunner queryRunner = createQueryRunner(buildSystem);
     ProjectQuerier projectQuerier =
         createProjectQuerier(
@@ -295,8 +297,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                     workspaceLanguageSettings, latestProjectDef, snapshotFilePath, projectPathResolver, projectTransformRegistry,
                                     graph, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
                                     renderJarTracker, appInspectorTracker, artifactStore, dependencyBuilder, dependencyTracker, snapshotBuilder,
-                                    projectQuerier,
-                                    sourceToTargetMap);
+                                    projectQuerier, sourceToTargetMap, handledRules);
   }
 
   public static Path getBuildCachePath(Project project) {

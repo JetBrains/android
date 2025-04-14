@@ -18,7 +18,6 @@ package com.google.idea.blaze.qsync.cc;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -52,7 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /** Updates the project proto with the output from a CC dependencies build. */
 public class CcWorkspaceBuilder {
 
-  private static final AtomicInteger nextFlagSetId = new AtomicInteger(0);
+  private final AtomicInteger nextFlagSetId = new AtomicInteger(0);
 
   private final CcDependenciesInfo ccDependenciesInfo;
   private final BuildGraphData graph;
