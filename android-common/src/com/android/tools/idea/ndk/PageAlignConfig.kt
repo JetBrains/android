@@ -44,12 +44,12 @@ object PageAlignConfig {
    * Create the text body of a message to alert the user that their APK has some SO files that aren't aligned at a 16 KB boundary within
    * the APK.
    */
-  fun createSoNotAlignedInZipMessage(apkFile: File, files: List<String>) = createMessage(apkFile, files, SO_UNALIGNED_IN_APK)
+  fun createSoNotAlignedInZipMessage(apkLink: String, files: List<String>) = createMessage(apkLink, files, SO_UNALIGNED_IN_APK)
 
   /**
    * Create the text body of a message to alert the user that the APK has some SO files that have LOAD segments that aren't aligned on 16 KB boundaries.
    */
-  fun createSoUnalignedLoadSegmentsMessage(apkFile: File, files: List<String>) = createMessage(apkFile, files, SO_UNALIGNED_LOAD_SEGMENTS)
+  fun createSoUnalignedLoadSegmentsMessage(apkLink: String, files: List<String>) = createMessage(apkLink, files, SO_UNALIGNED_LOAD_SEGMENTS)
 
   /**
    * Helper to read the server flag. Will return null if 16 KB alignment feature is not enabled on this build.
@@ -72,12 +72,11 @@ object PageAlignConfig {
   /**
    * Create a warning message given a list of SO files that have alignment problems.
    */
-  fun createMessage(apkFile: File, soFiles: List<String>, type: Type): String {
+  fun createMessage(apkLink: String, soFiles: List<String>, type: Type): String {
     if (soFiles.isEmpty()) error("Don't call create*Message() functions with empty SO-file list")
     val flag = readServerFlag() ?: error("Check isPageAlignMessageEnabled() before calling create*Message() functions")
     val date = flag.playStoreDeadlineDate
     val url = "<a href=\"https://${flag.messageUrl}\">${flag.messageUrl}</a>"
-    val shortApk = StringUtil.shortenPathWithEllipsis(apkFile.path, 80)
 
     val prefix = when(type) {
       SO_UNALIGNED_IN_APK -> flag.soUnalignedInApkMessage
@@ -90,7 +89,7 @@ object PageAlignConfig {
     | </ul>
     |$postscript
     """.trimMargin()
-      .replace("[APK]", shortApk)
+      .replace("[APK]", apkLink)
       .replace("[DATE]", date)
       .replace("[URL]", url)
   }

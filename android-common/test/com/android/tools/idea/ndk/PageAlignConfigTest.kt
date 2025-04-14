@@ -64,7 +64,7 @@ class PageAlignConfigTest {
 
     assertThat(PageAlignConfig.isPageAlignMessageEnabled()).isTrue()
     val message = PageAlignConfig.createSoNotAlignedInZipMessage(
-      File("example.apk"),
+      "example.apk",
       listOf("example.so"))
     assertThat(message).contains("November 2026")
     assertThat(message).contains("example.apk")
