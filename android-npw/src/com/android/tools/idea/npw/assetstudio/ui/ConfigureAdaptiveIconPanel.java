@@ -18,6 +18,8 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getBundledImage;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR;
+import static com.android.tools.idea.npw.assetstudio.ui.SliderUtils.bindTwoWay;
+import static com.android.tools.idea.npw.assetstudio.ui.SliderUtils.inRange;
 
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
@@ -49,13 +51,11 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
-import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.ui.ColorProperty;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
-import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.rendering.DrawableRenderer;
@@ -153,6 +153,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private JRadioButton myForegroundTrimNoRadioButton;
   private JPanel myForegroundTrimOptionsPanel;
   private JSlider myForegroundResizeSlider;
+  private JTextField myForegroundResizeValueTextField;
   private JLabel myForegroundResizeValueLabel;
   private JPanel myForegroundAssetRadioButtonsPanel;
   private JPanel myForegroundResizeSliderPanel;
@@ -184,6 +185,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private JRadioButton myBackgroundTrimYesRadioButton;
   private JPanel myBackgroundTrimOptionsPanel;
   private JSlider myBackgroundResizeSlider;
+  private JTextField myBackgroundResizeValueTextField;
   private JLabel myBackgroundResizeValueLabel;
   private JPanel myBackgroundAssetRadioButtonsPanel;
   private JPanel myBackgroundResizeSliderPanel;
@@ -506,13 +508,9 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myForegroundTrimmed = new SelectedProperty(myForegroundTrimYesRadioButton);
     myBackgroundTrimmed = new SelectedProperty(myBackgroundTrimYesRadioButton);
 
-    myForegroundResizePercent = new SliderValueProperty(myForegroundResizeSlider);
-    StringProperty foregroundResizeValueString = new TextProperty(myForegroundResizeValueLabel);
-    myGeneralBindings.bind(foregroundResizeValueString, new FormatExpression("%d %%", myForegroundResizePercent));
+    myForegroundResizePercent = bindTwoWay(myGeneralBindings, myForegroundResizeSlider, myForegroundResizeValueTextField);
 
-    myBackgroundResizePercent = new SliderValueProperty(myBackgroundResizeSlider);
-    StringProperty backgroundResizeValueString = new TextProperty(myBackgroundResizeValueLabel);
-    myGeneralBindings.bind(backgroundResizeValueString, new FormatExpression("%d %%", myBackgroundResizePercent));
+    myBackgroundResizePercent = bindTwoWay(myGeneralBindings, myBackgroundResizeSlider, myBackgroundResizeValueTextField);
 
     myForegroundColor = new ColorProperty(myForegroundColorPanel);
     myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
@@ -688,9 +686,14 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                   "Background layer must have a name distinct from the icon name");
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myForegroundLayerName, myBackgroundLayerName),
                                   "Background and foreground layers must have distinct names");
-
     myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> validity);
     myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> validity);
+    myValidatorPanel.registerValidator(
+      new TextProperty(myForegroundResizeValueTextField), inRange(myForegroundResizeSlider, "Foreground scale")
+    );
+    myValidatorPanel.registerValidator(
+      new TextProperty(myBackgroundResizeValueTextField), inRange(myBackgroundResizeSlider, "Background scale")
+    );
   }
 
   private void setupUI() {
@@ -957,7 +960,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                     new Dimension(70, -1), null, null, 1, false));
     myForegroundResizeSliderPanel = new JPanel();
-    myForegroundResizeSliderPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myForegroundResizeSliderPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
     myForegroundResizePanel.add(myForegroundResizeSliderPanel,
                                 new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -978,13 +981,20 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                       new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundResizeValueTextField = new JTextField();
+    myForegroundResizeValueTextField.setHorizontalAlignment(4);
+    myForegroundResizeValueTextField.setText("100");
+    myForegroundResizeSliderPanel.add(myForegroundResizeValueTextField,
+                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               new Dimension(30, -1), null, 0, false));
     myForegroundResizeValueLabel = new JLabel();
     myForegroundResizeValueLabel.setHorizontalAlignment(4);
-    myForegroundResizeValueLabel.setText("100 %");
+    myForegroundResizeValueLabel.setText("%");
     myForegroundResizeSliderPanel.add(myForegroundResizeValueLabel,
-                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                      new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                          new Dimension(40, -1), null, 0, false));
+                                                          new Dimension(-1, -1), null, 0, false));
     final Spacer spacer2 = new Spacer();
     myForegroundAllOptionsPanel.add(spacer2,
                                     new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
@@ -1176,7 +1186,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                        GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                        new Dimension(70, -1), null, null, 1, false));
     myBackgroundResizeSliderPanel = new JPanel();
-    myBackgroundResizeSliderPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myBackgroundResizeSliderPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
     myBackgroundResizeRowPanel.add(myBackgroundResizeSliderPanel,
                                    new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -1196,13 +1206,20 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                       new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundResizeValueTextField = new JTextField();
+    myBackgroundResizeValueTextField.setHorizontalAlignment(4);
+    myBackgroundResizeValueTextField.setText("100");
+    myBackgroundResizeSliderPanel.add(myBackgroundResizeValueTextField,
+                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               new Dimension(30, -1), null, 0, false));
     myBackgroundResizeValueLabel = new JLabel();
     myBackgroundResizeValueLabel.setHorizontalAlignment(4);
-    myBackgroundResizeValueLabel.setText("100 %");
+    myBackgroundResizeValueLabel.setText("%");
     myBackgroundResizeSliderPanel.add(myBackgroundResizeValueLabel,
-                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                      new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                          new Dimension(40, -1), null, 0, false));
+                                                          new Dimension(-1, -1), null, 0, false));
     final Spacer spacer4 = new Spacer();
     myBackgroundAllOptionsPanel.add(spacer4,
                                     new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
