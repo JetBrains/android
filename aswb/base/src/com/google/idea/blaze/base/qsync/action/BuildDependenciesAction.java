@@ -74,9 +74,12 @@ public class BuildDependenciesAction extends BlazeProjectAction {
       presentation.setText(NAME);
     }
     VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+    if (virtualFile == null) {
+      presentation.setEnabled(false);
+      return;
+    }
     BuildDependenciesHelper helper = new BuildDependenciesHelper(project);
-    Optional<Path> relativePath = helper.getRelativePathToEnableAnalysisFor(virtualFile);
-    if (relativePath.isEmpty()) {
+    if (!helper.canEnableAnalysisFor(virtualFile)) {
       presentation.setEnabled(false);
       return;
     }

@@ -64,8 +64,7 @@ public class BuildDependenciesForDirectReverseDepsAction extends BlazeProjectAct
       return;
     }
 
-    Optional<Path> relativePath = helper.getRelativePathToEnableAnalysisFor(virtualFile);
-    if (relativePath.isEmpty()) {
+    if (!helper.canEnableAnalysisFor(virtualFile)) {
       return;
     }
     VirtualFile vfile = e.getData(CommonDataKeys.VIRTUAL_FILE);

@@ -54,14 +54,12 @@ data class TargetDisambiguator(val unambiguousTargets: Set<Label>, val ambiguous
           .map { workspaceRoot.relativize(it) }
           .toSet())
     }
-
-    @JvmStatic
-    @JvmName("createForPaths")
-    fun BuildDependenciesHelper.createDisambiguatorForPaths(workspaceRelativePaths: Set<Path>): TargetDisambiguator {
-      // Find the targets to build per source file, and de-dupe then such that if several source files
-      // are built by the same set of targets, we consider them as one. Map these results back to an
-      // original source file to so we can show it in the UI:
-      return TargetDisambiguator(workspaceRelativePaths.map { getTargetsToEnableAnalysisFor(it) }.toSet())
-    }
   }
+}
+
+fun BuildDependenciesHelper.createDisambiguatorForPaths(workspaceRelativePaths: Set<Path>): TargetDisambiguator {
+  // Find the targets to build per source file, and de-dupe then such that if several source files
+  // are built by the same set of targets, we consider them as one. Map these results back to an
+  // original source file to so we can show it in the UI:
+  return TargetDisambiguator(workspaceRelativePaths.map { getTargetsToEnableAnalysisFor(it) }.toSet())
 }

@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * Action to build dependencies and enable analysis for the working set and it's reverse
@@ -51,7 +52,7 @@ public class BuildDependenciesForWorkingSetAction extends BlazeProjectAction {
     if (!helper.canEnableAnalysisNow()) {
       return;
     }
-    ImmutableSet<Path> workingSet;
+    Set<Path> workingSet;
 
     try {
       workingSet = helper.getWorkingSet();
@@ -61,14 +62,14 @@ public class BuildDependenciesForWorkingSetAction extends BlazeProjectAction {
       return;
     }
 
-    ImmutableSet<Label> affectedTargets = helper.getAffectedTargetsForPaths(workingSet);
+    Set<Label> affectedTargets = helper.getAffectedTargetsForPaths(workingSet);
     if (affectedTargets.isEmpty()) {
       notifyEmptyWorkingSet(project);
       return;
     }
 
     QuerySyncActionStatsScope querySyncActionStats =
-        QuerySyncActionStatsScope.createForPaths(getClass(), e, workingSet);
+        QuerySyncActionStatsScope.createForPaths(getClass(), e, ImmutableSet.copyOf(workingSet));
     QuerySyncManager.getInstance(project)
       .enableAnalysisForReverseDeps(affectedTargets, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION);
   }
