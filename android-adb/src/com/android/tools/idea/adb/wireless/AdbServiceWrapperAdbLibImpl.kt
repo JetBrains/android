@@ -23,6 +23,7 @@ import com.android.adblib.DeviceInfo
 import com.android.adblib.DeviceList
 import com.android.adblib.DeviceSelector
 import com.android.adblib.DeviceState
+import com.android.adblib.MdnsServices
 import com.android.adblib.ServerStatus
 import com.android.adblib.deviceProperties
 import com.android.tools.idea.adblib.AdbLibService
@@ -31,6 +32,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.LineSeparator
 import java.net.InetAddress
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -55,6 +57,10 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
         throw IllegalArgumentException("Unsupported ADB command")
       }
     }
+  }
+
+  override fun trackMdnsServices(): Flow<MdnsServices> {
+    return AdbLibService.getSession(project).hostServices.trackMdnsServices()
   }
 
   private suspend fun mdnsCheck(): AdbCommandResult {
@@ -130,6 +136,11 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
     }
 
     return session.hostServices.serverStatus()
+  }
+
+  override suspend fun getHostFeatures(): List<String> {
+    val session = AdbLibService.getSession(project)
+    return session.hostServices.hostFeatures()
   }
 
   private fun DeviceList.getPairedDevice(pairingResult: PairingResult): DeviceInfo? {

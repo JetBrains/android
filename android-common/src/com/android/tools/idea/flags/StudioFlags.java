@@ -2560,6 +2560,17 @@ public final class StudioFlags {
       enabledUpTo(CANARY));
   // endregion PROJECT_TOOL_WINDOW
 
+  // region Wifi 2.0
+  private static final FlagGroup WIFI_V2 = new FlagGroup(FLAGS, "wifiv2", "Wifi V2");
+  public static final Flag<Boolean> WIFI_V2_ENABLED =
+    new BooleanFlag(
+      WIFI_V2,
+      "enable",
+      "Enable Wifi 2.0",
+      "Enable Wifi 2.0 feature",
+      false);
+  // endregion Wifi 2.0
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {

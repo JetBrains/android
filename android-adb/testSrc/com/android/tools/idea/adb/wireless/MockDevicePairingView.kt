@@ -24,7 +24,8 @@ class MockDevicePairingView(
   override val model: WiFiPairingModel,
 ) : WiFiPairingView {
   val hyperlinkListener = MockWiFiPairingHyperlinkListener()
-  private val viewImpl = WiFiPairingViewImpl(project, notificationService, model, hyperlinkListener)
+  private val viewImpl =
+    WiFiPairingViewImpl(project, notificationService, model, hyperlinkListener, null)
   val showDialogTracker = FutureValuesTracker<Unit>()
   val startMdnsCheckTracker = FutureValuesTracker<Unit>()
   val showMdnsCheckSuccessTracker = FutureValuesTracker<Unit>()

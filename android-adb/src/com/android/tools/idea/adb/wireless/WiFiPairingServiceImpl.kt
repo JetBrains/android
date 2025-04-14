@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.adblib.AdbFeatures.TRACK_MDNS_SERVICE
+import com.android.adblib.MdnsServices
 import com.android.adblib.ServerStatus.Companion.UNKNOWN
 import com.android.annotations.concurrency.AnyThread
 import com.android.repository.Revision
@@ -30,6 +32,7 @@ import com.intellij.util.LineSeparator
 import java.awt.Color
 import java.net.InetAddress
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 @AnyThread
@@ -92,6 +95,10 @@ class WiFiPairingServiceImpl(
       }
     LOG.info("Checking if mDNS is supportState result: ${supportState}")
     return supportState
+  }
+
+  override suspend fun isTrackMdnsServiceAvailable(): Boolean {
+    return adbService.getHostFeatures().contains(TRACK_MDNS_SERVICE)
   }
 
   /** On Mac, the only mdns client able to work is openscreen starting with ADB 35.0.2 */
@@ -177,6 +184,10 @@ class WiFiPairingServiceImpl(
         }
       }
     }
+  }
+
+  override fun trackMdnsServices(): Flow<MdnsServices> {
+    return adbService.trackMdnsServices()
   }
 
   override suspend fun pairMdnsService(mdnsService: MdnsService, password: String): PairingResult {

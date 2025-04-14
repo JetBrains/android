@@ -36,4 +36,5 @@ object StudioDefaultDeviceActionPresentation : DeviceAction.DefaultPresentation 
   override val reservationAction = Presentation("Reserve", AllIcons.Actions.Resume, true)
   override val templateActivationAction = Presentation("Start", StudioIcons.Avd.RUN, true)
   override val repairDeviceAction = Presentation("Start", StudioIcons.Misc.BUILD_TYPE, true)
+  override val pairDeviceAction = Presentation("Pair", StudioIcons.Avd.PAIR_OVER_WIFI, true)
 }
