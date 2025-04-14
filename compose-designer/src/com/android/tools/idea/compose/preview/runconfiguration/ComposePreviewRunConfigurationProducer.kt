@@ -37,7 +37,6 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -69,8 +68,6 @@ open class ComposePreviewRunConfigurationProducer :
     context: ConfigurationContext,
     sourceElement: Ref<PsiElement>,
   ): Boolean {
-    if (suppressAndroidPlugin()) return false
-
     if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     val module = context.module ?: context.location?.module ?: return false
     configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
