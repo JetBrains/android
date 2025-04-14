@@ -44,7 +44,7 @@ class KnownGradlePluginsServiceImplTest {
 
     assertThat(data).isNotEqualTo(GradlePluginsData.emptyData)
     assertThat(data.pluginsInfo).hasSize(44)
-    assertThat(data.pluginsInfo.filter { it.configurationCachingCompatibleFrom == null }).hasSize(6)
+    assertThat(data.pluginsInfo.filter { it.configurationCachingCompatibleFrom == null }).hasSize(3)
     assertThat(data.pluginsInfo.filter { it.pluginArtifact == null }).isEmpty()
   }
 
