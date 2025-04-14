@@ -29,7 +29,6 @@ import com.google.common.io.MoreFiles;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
-import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
@@ -62,16 +61,13 @@ import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.google.protobuf.CodedOutputStream;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -371,14 +367,6 @@ public class QuerySyncProject {
     onNewSnapshot(context, newSnapshot);
   }
 
-  public void buildRenderJar(BlazeContext parentContext, List<Path> wps)
-      throws IOException, BuildException {
-    try (BlazeContext context = BlazeContext.create(parentContext)) {
-      context.push(new BuildDepsStatsScope());
-      renderJarTracker.buildRenderJarForFile(context, wps);
-    }
-  }
-
   public ImmutableCollection<Path> buildAppInspector(
       BlazeContext parentContext, Label inspector) throws IOException, BuildException {
     try (BlazeContext context = BlazeContext.create(parentContext)) {
@@ -414,22 +402,6 @@ public class QuerySyncProject {
 
   public boolean canEnableAnalysisFor(Path workspacePath) {
     return !getProjectTargets(BlazeContext.create(), ImmutableList.of(workspacePath)).isEmpty();
-  }
-
-  public void enableRenderJar(BlazeContext context, PsiFile psiFile, Set<Label> targets)
-      throws BuildException {
-    try {
-      // Building render jar also requires building dependencies and resolving/analysis
-      // (b/309154453#comment5), so we invoke both actions
-      // TODO(b/336628891): Combine both aspects (build render jars, build dependencies) into a
-      // single build
-      enableAnalysis(context, targets);
-      Path path = Paths.get(psiFile.getVirtualFile().getPath());
-      String rel = workspaceRoot.path().relativize(path).toString();
-      buildRenderJar(context, ImmutableList.of(WorkspacePath.createIfValid(rel).asPath()));
-    } catch (IOException e) {
-      throw new BuildException("Failed to build render jar", e);
-    }
   }
 
   public boolean isReadyForAnalysis(Path path) {
