@@ -31,17 +31,17 @@ void XrSimulatedInputEventManager::InitializeStatics(Jni jni) {
     xr_simulated_input_event_manager_ = ServiceManager::GetServiceAsInterface(
         jni, "xrsimulatedinputeventmanagerservice", "android/xr/libxrinput/IXRSimulatedInputEventManager");
     JClass manager_class = xr_simulated_input_event_manager_.GetClass();
-    inject_xr_simulated_motion_event_method_ = manager_class.GetMethod("injectXRSimulatedMotionEvent", "(Landroid/view/MotionEvent;)V");
+    inject_motion_event_method_ = manager_class.GetMethod("injectXRSimulatedJavaMotionEvent", "(Landroid/view/MotionEvent;)V");
     xr_simulated_input_event_manager_.MakeGlobal();
   }
 }
 
-void XrSimulatedInputEventManager::InjectXrSimulatedMotionEvent(Jni jni, const JObject& input_event) {
+void XrSimulatedInputEventManager::InjectMotionEvent(Jni jni, const JObject& motion_event) {
   InitializeStatics(jni);
-  xr_simulated_input_event_manager_.CallVoidMethod(jni, inject_xr_simulated_motion_event_method_, input_event.ref());
+  xr_simulated_input_event_manager_.CallVoidMethod(jni, inject_motion_event_method_, motion_event.ref());
 }
 
 JObject XrSimulatedInputEventManager::xr_simulated_input_event_manager_;
-jmethodID XrSimulatedInputEventManager::inject_xr_simulated_motion_event_method_ = nullptr;
+jmethodID XrSimulatedInputEventManager::inject_motion_event_method_ = nullptr;
 
 }  // namespace screensharing
