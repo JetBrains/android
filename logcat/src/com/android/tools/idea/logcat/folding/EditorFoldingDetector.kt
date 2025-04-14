@@ -28,15 +28,11 @@ private val consoleView = ConsoleViewForFolding()
 /**
  * A [FoldingDetector] that adds [com.intellij.openapi.editor.FoldRegion] to an [Editor].
  *
- * This code is based on ConsoleViewImpl.updateFoldings() but simplified considerably due to
- * additional assumptions that can be made about the text being processed.
+ * This code is based on ConsoleViewImpl.updateFoldings()
  *
- * The original code seems to have been designed to handle folding regions that can span between
- * consecutive calls to the updateFoldings() method. However, this code can safely assume that
- * folding regions are contained in a single call to [detectFoldings] because Logcat messages are
- * always added as a whole piece of text and never split.
+ * It was rewritten to allow better folding of Stack Traces since the new Logcat appends stack
+ * traces in their entirety which allows for better foldings.
  *
- * The simplified code also has a side effect of handling nested folding better than the original.
  * For example, given the following stack trace:
  * ```
  * java.lang.RuntimeException: Fail
