@@ -31,7 +31,6 @@ import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiNameValuePair
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -131,8 +130,6 @@ class KtDeviceSpecInjectionPerformer : LanguageInjectionPerformer {
     injection: Injection,
     context: PsiElement,
   ): Boolean {
-    if (suppressAndroidPlugin()) return false
-
     val containingExpression =
       context.parentOfType<KtValueArgument>()?.getArgumentExpression() ?: return false
 

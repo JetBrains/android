@@ -38,7 +38,6 @@ import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.lexer.KtTokens
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -66,8 +65,6 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     element: PsiElement,
     result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
   ) {
-    if (suppressAndroidPlugin()) return
-
     val metricsType: DaggerEditorEvent.ElementType
     val lineMarkerInfo: RelatedItemLineMarkerInfo<PsiElement>
 
