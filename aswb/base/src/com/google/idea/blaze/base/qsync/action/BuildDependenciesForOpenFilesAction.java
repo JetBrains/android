@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
@@ -34,8 +33,6 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.nio.file.Path;
-import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,8 +64,7 @@ public class BuildDependenciesForOpenFilesAction extends BlazeProjectAction {
         stream(FileEditorManager.getInstance(project).getAllEditors())
             .map(FileEditor::getFile)
             .collect(toImmutableSet());
-    TargetDisambiguator disambiguator =
-        TargetDisambiguator.createForFiles(helper, project, openFiles);
+    TargetDisambiguator disambiguator = TargetDisambiguator.createForFiles(helper, openFiles);
     Set<TargetsToBuild> ambiguousTargets = disambiguator.calculateUnresolvableTargets();
     QuerySyncActionStatsScope querySyncActionStats =
         QuerySyncActionStatsScope.createForFiles(getClass(), event, openFiles);
@@ -82,7 +78,7 @@ public class BuildDependenciesForOpenFilesAction extends BlazeProjectAction {
 
       TargetsToBuild ambiguousOne = Iterables.getOnlyElement(ambiguousTargets);
       String displayFileName = ambiguousOne.getDisplayLabel();
-      helper.chooseTargetToBuildFor(
+      BuildDependenciesHelperSelectTargetPopup.chooseTargetToBuildFor(
         displayFileName,
         ambiguousOne,
         PopupPositioner.showAtMousePointerOrCentered(event),

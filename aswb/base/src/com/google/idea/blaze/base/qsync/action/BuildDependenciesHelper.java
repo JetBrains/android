@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.qsync.action;
 
 import static java.util.stream.Collectors.joining;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
@@ -28,14 +27,8 @@ import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.ListPopup;
-import com.intellij.openapi.ui.popup.PopupStep;
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -51,6 +44,10 @@ public class BuildDependenciesHelper {
   public BuildDependenciesHelper(Project project) {
     this.project = project;
     this.syncManager = QuerySyncManager.getInstance(project);
+  }
+
+  public Project getProject() {
+    return project;
   }
 
   boolean canEnableAnalysisNow() {
@@ -171,50 +168,11 @@ public class BuildDependenciesHelper {
       return;
     }
 
-    chooseTargetToBuildFor(
+    BuildDependenciesHelperSelectTargetPopup.chooseTargetToBuildFor(
         vf.getName(),
         toBuild,
         positioner,
         label -> consumer.accept(ImmutableSet.of(label)));
-  }
-
-  public void chooseTargetToBuildFor(
-      String displayFileName,
-      TargetsToBuild toBuild,
-      PopupPositioner positioner,
-      Consumer<Label> chosenConsumer) {
-    JBPopupFactory factory = JBPopupFactory.getInstance();
-    ListPopup popup =
-        factory.createListPopup(SelectTargetPopupStep.create(toBuild, displayFileName, chosenConsumer));
-    positioner.showInCorrectPosition(popup);
-  }
-
-  static class SelectTargetPopupStep extends BaseListPopupStep<Label> {
-    static SelectTargetPopupStep create(
-        TargetsToBuild toBuild, String fileName, Consumer<Label> onChosen) {
-      ImmutableList<Label> rows =
-          ImmutableList.sortedCopyOf(Comparator.comparing(Label::toString), toBuild.getTargets());
-
-      return new SelectTargetPopupStep(rows, fileName, onChosen);
-    }
-
-    private final Consumer<Label> onChosen;
-
-    SelectTargetPopupStep(ImmutableList<Label> rows, String forFileName, Consumer<Label> onChosen) {
-      super("Select target to build for " + forFileName, rows);
-      this.onChosen = onChosen;
-    }
-
-    @Override
-    public PopupStep<?> onChosen(Label selectedValue, boolean finalChoice) {
-      if (selectedValue == null) {
-        return FINAL_CHOICE;
-      }
-      if (finalChoice) {
-        onChosen.accept(selectedValue);
-      }
-      return FINAL_CHOICE;
-    }
   }
 
   /**

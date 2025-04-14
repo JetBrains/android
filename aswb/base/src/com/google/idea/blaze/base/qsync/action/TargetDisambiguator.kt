@@ -45,7 +45,7 @@ data class TargetDisambiguator(val unambiguousTargets: Set<Label>, val ambiguous
   companion object {
     @JvmStatic
     @JvmName("createForFiles")
-    fun BuildDependenciesHelper.createDisambiguatorForFiles(project: Project, files: Set<VirtualFile>): TargetDisambiguator {
+    fun BuildDependenciesHelper.createDisambiguatorForFiles(files: Set<VirtualFile>): TargetDisambiguator {
       val workspaceRoot = WorkspaceRoot.fromProject(project).path()
       return createDisambiguatorForPaths(
         files
