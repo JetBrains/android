@@ -26,7 +26,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
-import java.util.Set;
 
 /**
  * Action to build dependencies and enable analysis for the working set and it's reverse

@@ -152,10 +152,10 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
       }
 
       presentation.setEnabled(true);
-      if (toBuild.type() == TargetsToBuild.Type.SOURCE_FILE
+      if (toBuild instanceof TargetsToBuild.SourceFile sourceFile
           && QuerySyncSettings.getInstance().showDetailedInformationInEditor()) {
 
-        int missing = buildDepsHelper.getSourceFileMissingDepsCount(toBuild);
+        int missing = buildDepsHelper.getSourceFileMissingDepsCount(sourceFile);
         if (missing > 0) {
           String dependency = StringUtil.pluralize("dependency", missing);
           presentation.setText(

@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.qsync.action;
 
 import static java.util.stream.Collectors.joining;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
@@ -38,6 +37,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -59,25 +59,24 @@ public class BuildDependenciesHelper {
 
   public TargetsToBuild getTargetsToEnableAnalysisFor(VirtualFile virtualFile) {
     if (!syncManager.isProjectLoaded() || syncManager.operationInProgress()) {
-      return TargetsToBuild.NONE;
+      return TargetsToBuild.None.INSTANCE;
     }
     return syncManager.getTargetsToBuild(virtualFile);
   }
 
   public TargetsToBuild getTargetsToEnableAnalysisFor(Path workspaceRelativeFile) {
     if (!syncManager.isProjectLoaded() || syncManager.operationInProgress()) {
-      return TargetsToBuild.NONE;
+      return TargetsToBuild.None.INSTANCE;
     }
     return syncManager.getTargetsToBuild(workspaceRelativeFile);
   }
 
-  public int getSourceFileMissingDepsCount(TargetsToBuild toBuild) {
-    Preconditions.checkState(toBuild.type() == TargetsToBuild.Type.SOURCE_FILE);
+  public int getSourceFileMissingDepsCount(TargetsToBuild.SourceFile toBuild) {
     QuerySyncProjectSnapshot snapshot = syncManager.getCurrentSnapshot().orElse(null);
     if (snapshot == null) {
       return 0;
     }
-    return snapshot.getPendingExternalDeps(toBuild.targets()).size();
+    return snapshot.getPendingExternalDeps(toBuild.getTargets()).size();
   }
 
   public Optional<Path> getRelativePathToEnableAnalysisFor(VirtualFile virtualFile) {
@@ -104,21 +103,19 @@ public class BuildDependenciesHelper {
 
   public ImmutableSet<Label> getAffectedTargetsForPaths(ImmutableSet<Path> paths) {
 
-    TargetDisambiguator disambiguator = TargetDisambiguator.createForPaths(paths, this);
-    ImmutableSet<TargetsToBuild> ambiguousTargets = disambiguator.calculateUnresolvableTargets();
+    TargetDisambiguator disambiguator = TargetDisambiguator.createForPaths(this, paths);
+    Set<TargetsToBuild> ambiguousTargets = disambiguator.calculateUnresolvableTargets();
     if (!ambiguousTargets.isEmpty()) {
       QuerySyncManager.getInstance(project)
           .notifyWarning(
               "Ambiguous target sets found",
-              "Ambiguous target sets for some files; not building them: "
+              "Ambiguous target sets found; not building them: "
                   + ambiguousTargets.stream()
-                      .map(TargetsToBuild::sourceFilePath)
-                      .flatMap(Optional::stream)
-                      .map(Path::toString)
+                      .map(TargetsToBuild::getDisplayLabel)
                       .collect(joining(", ")));
     }
 
-    return disambiguator.unambiguousTargets;
+    return ImmutableSet.copyOf(disambiguator.getUnambiguousTargets());
   }
 
   /**
@@ -170,7 +167,7 @@ public class BuildDependenciesHelper {
     }
 
     if (!toBuild.isAmbiguous()) {
-      consumer.accept(toBuild.targets());
+      consumer.accept(ImmutableSet.copyOf(toBuild.getTargets()));
       return;
     }
 
@@ -196,7 +193,7 @@ public class BuildDependenciesHelper {
     static SelectTargetPopupStep create(
         TargetsToBuild toBuild, String fileName, Consumer<Label> onChosen) {
       ImmutableList<Label> rows =
-          ImmutableList.sortedCopyOf(Comparator.comparing(Label::toString), toBuild.targets());
+          ImmutableList.sortedCopyOf(Comparator.comparing(Label::toString), toBuild.getTargets());
 
       return new SelectTargetPopupStep(rows, fileName, onChosen);
     }

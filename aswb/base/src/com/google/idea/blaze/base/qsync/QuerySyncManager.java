@@ -397,15 +397,15 @@ public class QuerySyncManager implements Disposable {
 
   public TargetsToBuild getTargetsToBuild(VirtualFile virtualFile) {
     if (loadedProject == null) {
-      return TargetsToBuild.NONE;
+      return TargetsToBuild.None.INSTANCE;
     }
     if (virtualFile == null || !virtualFile.isInLocalFileSystem()) {
-      return TargetsToBuild.NONE;
+      return TargetsToBuild.None.INSTANCE;
     }
     Path workspaceRoot = WorkspaceRoot.fromProject(project).path();
     Path filePath = virtualFile.toNioPath();
     if (!filePath.startsWith(workspaceRoot)) {
-      return TargetsToBuild.NONE;
+      return TargetsToBuild.None.INSTANCE;
     }
     return getTargetsToBuild(workspaceRoot.relativize(filePath));
   }
@@ -517,7 +517,7 @@ public class QuerySyncManager implements Disposable {
         querySyncActionStats,
         context ->
             loadedProject.enableRenderJar(
-                context, psiFile, getTargetsToBuild(psiFile.getVirtualFile()).targets()),
+                context, psiFile, getTargetsToBuild(psiFile.getVirtualFile()).getTargets()),
         taskOrigin);
   }
 

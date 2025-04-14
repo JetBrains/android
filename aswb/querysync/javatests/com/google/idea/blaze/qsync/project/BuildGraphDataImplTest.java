@@ -444,8 +444,7 @@ public class BuildGraphDataImplTest {
                     TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY
                         .getOnlySourcePath()
                         .resolve(Path.of("TestClassExternalDep.java")))
-                .getUnambiguousTargets()
-                .orElseThrow());
+                .getUnambiguousTargets());
     assertThat(targets.buildTargets())
         .containsExactly(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY.getAssumedOnlyLabel());
     assertThat(targets.expectedDependencyTargets())
@@ -468,8 +467,7 @@ public class BuildGraphDataImplTest {
                     TestData.JAVA_LIBRARY_MULTI_TARGETS
                         .getOnlySourcePath()
                         .resolve(Path.of("BUILD")))
-                .getUnambiguousTargets()
-                .orElseThrow());
+                .getUnambiguousTargets());
     assertThat(targets.buildTargets())
         .containsExactly(
             TestData.JAVA_LIBRARY_MULTI_TARGETS
@@ -497,8 +495,7 @@ public class BuildGraphDataImplTest {
                     TestData.JAVA_LIBRARY_NESTED_PACKAGE
                         .getOnlySourcePath()
                         .resolve(Path.of("BUILD")))
-                .getUnambiguousTargets()
-                .orElseThrow());
+                .getUnambiguousTargets());
     assertThat(targets.buildTargets())
         .containsExactly(TestData.JAVA_LIBRARY_NESTED_PACKAGE.getAssumedOnlyLabel());
     assertThat(targets.expectedDependencyTargets())
@@ -518,8 +515,7 @@ public class BuildGraphDataImplTest {
             graph
                 .getProjectTargets(
                     NOOP_CONTEXT, TestData.JAVA_LIBRARY_NESTED_PACKAGE.getOnlySourcePath())
-                .getUnambiguousTargets()
-                .orElseThrow());
+                .getUnambiguousTargets());
     assertThat(targets.buildTargets())
         .containsExactly(
             TestData.JAVA_LIBRARY_NESTED_PACKAGE.getAssumedOnlyLabel(),
@@ -544,8 +540,7 @@ public class BuildGraphDataImplTest {
                 .getProjectTargets(
                     NOOP_CONTEXT,
                     TestData.CC_EXTERNAL_DEP_QUERY.getOnlySourcePath().resolve("TestClass.cc"))
-                .getUnambiguousTargets()
-                .orElseThrow());
+                .getUnambiguousTargets());
     assertThat(targets.buildTargets())
         .containsExactly(TestData.CC_EXTERNAL_DEP_QUERY.getAssumedOnlyLabel());
     assertThat(targets.expectedDependencyTargets()).isEmpty();

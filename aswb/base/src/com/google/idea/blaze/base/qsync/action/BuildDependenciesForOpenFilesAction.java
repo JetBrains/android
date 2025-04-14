@@ -68,40 +68,37 @@ public class BuildDependenciesForOpenFilesAction extends BlazeProjectAction {
             .map(FileEditor::getFile)
             .collect(toImmutableSet());
     TargetDisambiguator disambiguator =
-        TargetDisambiguator.createForFiles(project, openFiles, helper);
-    ImmutableSet<TargetsToBuild> ambiguousTargets = disambiguator.calculateUnresolvableTargets();
+        TargetDisambiguator.createForFiles(helper, project, openFiles);
+    Set<TargetsToBuild> ambiguousTargets = disambiguator.calculateUnresolvableTargets();
     QuerySyncActionStatsScope querySyncActionStats =
         QuerySyncActionStatsScope.createForFiles(getClass(), event, openFiles);
 
     QuerySyncManager syncManager = QuerySyncManager.getInstance(project);
     if (ambiguousTargets.isEmpty()) {
       syncManager
-        .enableAnalysis(disambiguator.unambiguousTargets, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION);
+        .enableAnalysis(disambiguator.getUnambiguousTargets(), querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION);
     } else if (ambiguousTargets.size() == 1) {
       // there is a single ambiguous target set. Show the UI to disambiguate it.
 
       TargetsToBuild ambiguousOne = Iterables.getOnlyElement(ambiguousTargets);
-      String displayFileName =
-        WorkspaceRoot.fromProject(project).path().resolve(ambiguousOne.sourceFilePath().orElseThrow()).toString();
+      String displayFileName = ambiguousOne.getDisplayLabel();
       helper.chooseTargetToBuildFor(
         displayFileName,
         ambiguousOne,
         PopupPositioner.showAtMousePointerOrCentered(event),
         chosen ->
           syncManager.enableAnalysis(ImmutableSet.<Label>builder()
-              .addAll(disambiguator.unambiguousTargets)
+              .addAll(disambiguator.getUnambiguousTargets())
               .add(chosen)
               .build(), querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION));
     } else {
       logger.warn(
           "Multiple ambiguous target sets for open files; not building them: "
               + ambiguousTargets.stream()
-                  .map(TargetsToBuild::sourceFilePath)
-                  .flatMap(Optional::stream)
-                  .map(Path::toString)
+                  .map(TargetsToBuild::getDisplayLabel)
                   .collect(joining(", ")));
-      if (!disambiguator.unambiguousTargets.isEmpty()) {
-        syncManager.enableAnalysis(disambiguator.unambiguousTargets, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION);
+      if (!disambiguator.getUnambiguousTargets().isEmpty()) {
+        syncManager.enableAnalysis(disambiguator.getUnambiguousTargets(), querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION);
       } else {
         // TODO(mathewi) show an error?
         // or should we show multiple popups in parallel? (doesn't seem great if there are lots)

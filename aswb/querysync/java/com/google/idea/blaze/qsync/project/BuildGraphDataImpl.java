@@ -513,7 +513,7 @@ public record BuildGraphDataImpl(
               "If this is a newly added supported rule, please re-sync your project."));
       context.setHasWarnings();
     }
-    return TargetsToBuild.NONE;
+    return TargetsToBuild.None.INSTANCE;
   }
 
   /**

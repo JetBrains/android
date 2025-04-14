@@ -295,7 +295,7 @@ public class QuerySyncProject {
     return snapshotHolder
         .getCurrent()
         .map(snapshot -> snapshot.graph().getProjectTargets(context, workspaceRelativePath))
-        .orElse(TargetsToBuild.NONE);
+        .orElse(TargetsToBuild.None.INSTANCE);
   }
 
   /** Returns the set of targets with direct dependencies on {@code targets}. */
