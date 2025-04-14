@@ -62,6 +62,7 @@ iml_module(
         "Benchmark2000CpuLatestGradleTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuLatestGradleTest",
             "exec_properties": LARGE_MACHINE,
+            "additional_jvm_args": ["-Xmx6g"],
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -84,6 +85,7 @@ iml_module(
         "Benchmark2000CpuLatestKotlinTest": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuLatestKotlinTest",
             "exec_properties": LARGE_MACHINE,
+            "additional_jvm_args": ["-Xmx6g"],
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
