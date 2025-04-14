@@ -1856,6 +1856,15 @@ public final class StudioFlags {
       true
     );
 
+  public static final Flag<Boolean> GEMINI_ASSISTED_CONTEXT_FETCH =
+    new BooleanFlag(
+      APP_INSIGHTS,
+      "gemini.assisted.context.fetch",
+      "Ask Gemini for context files",
+      "Ask Gemini for the context files it needs to generate an insight.",
+      enabledUpTo(CANARY)
+    );
+
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,

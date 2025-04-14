@@ -19,7 +19,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
-import com.android.tools.idea.insights.ai.codecontext.Language
 import java.time.Duration
 import java.time.Instant
 
@@ -432,7 +431,7 @@ val AI_INSIGHT_WITH_CODE_CONTEXT =
     "context",
     codeContextData =
       CodeContextData(
-        listOf(CodeContext("className", "filePath", "content", Language.KOTLIN)),
+        listOf(CodeContext("filePath", "content")),
         contextSharingState = ContextSharingState.ALLOWED,
       ),
   )

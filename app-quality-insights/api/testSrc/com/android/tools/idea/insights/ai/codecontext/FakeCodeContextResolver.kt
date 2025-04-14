@@ -18,12 +18,14 @@ package com.android.tools.idea.insights.ai.codecontext
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
 
-open class FakeCodeContextResolver(private var codeContext: List<CodeContext>) :
-  CodeContextResolver {
+open class FakeCodeContextResolver(var codeContext: List<CodeContext>) : CodeContextResolver {
   override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
-
     if (!conn.isMatchingProject()) return CodeContextData.DISABLED
 
+    return CodeContextData(codeContext)
+  }
+
+  override suspend fun getSource(fileNames: List<String>): CodeContextData {
     return CodeContextData(codeContext)
   }
 }

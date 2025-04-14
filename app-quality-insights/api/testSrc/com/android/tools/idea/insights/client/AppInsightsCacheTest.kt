@@ -40,7 +40,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
-import com.android.tools.idea.insights.ai.codecontext.Language
 import com.google.common.truth.Truth.assertThat
 import java.time.Duration
 import java.time.Instant
@@ -564,7 +563,7 @@ class AppInsightsCacheTest {
     val cache = AppInsightsCacheImpl()
     val context =
       CodeContextData(
-        listOf(CodeContext("abc", "/path", "abc", Language.JAVA)),
+        listOf(CodeContext("/path", "abc")),
         contextSharingState = ContextSharingState.ALLOWED,
       )
     cache.populateIssues(connection, listOf(ISSUE1))

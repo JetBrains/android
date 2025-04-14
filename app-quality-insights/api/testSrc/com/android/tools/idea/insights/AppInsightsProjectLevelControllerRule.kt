@@ -22,7 +22,6 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.FakeGeminiPluginApi
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppConnection
@@ -405,7 +404,6 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
-    codeContextData: CodeContextData,
   ): LoadingState.Done<AiInsight> = fetchInsightCall.initiateCall()
 
   suspend fun completeFetchInsightCallWith(value: LoadingState.Done<AiInsight>) =

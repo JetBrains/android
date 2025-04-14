@@ -261,38 +261,28 @@ private val STACKTRACE =
 
 private val EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT =
   CodeContext(
-    "com.example.mylibrary.AndroidLibraryClass",
     "/src/src/com/example/mylibrary/AndroidLibraryClass.kt",
     ANDROID_LIBRARY_CLASS_CONTENT,
-    Language.KOTLIN,
   )
 private val EXPECTED_MAIN_ACTIVITY_CONTEXT =
-  CodeContext(
-    "com.example.myapp.MainActivity",
-    "/src/src/com/example/myapp/MainActivity.kt",
-    MAIN_ACTIVITY_CONTENT,
-    Language.KOTLIN,
-  )
+  CodeContext("/src/src/com/example/myapp/MainActivity.kt", MAIN_ACTIVITY_CONTENT)
 private val EXPECTED_PARTIAL_ACTIVITY_CONTEXT =
-  CodeContext(
-    "com.example.myapp.PartialActivity",
-    "/src/src/com/example/myapp/PartialActivity.kt",
-    PARTIAL_ACTIVITY_CONTENT,
-    Language.KOTLIN,
-  )
+  CodeContext("/src/src/com/example/myapp/PartialActivity.kt", PARTIAL_ACTIVITY_CONTENT)
 private val EXPECTED_CIRCLE_ACTIVITY_CONTEXT =
-  CodeContext(
-    "com.example.myapp.CircleActivity",
-    "/src/src/com/example/myapp/CircleActivity.kt",
-    CIRCLE_ACTIVITY_CONTENT,
-    Language.KOTLIN,
-  )
+  CodeContext("/src/src/com/example/myapp/CircleActivity.kt", CIRCLE_ACTIVITY_CONTENT)
 private val EXCLUDED_ACTIVITY_CONTEXT =
-  CodeContext(
-    "com.example.myapp.ExcludedActivity",
-    "/src/src/com/example/myapp/ExcludedActivity.kt",
-    EXCLUDED_ACTIVITY_CONTENT,
-    Language.KOTLIN,
+  CodeContext("/src/src/com/example/myapp/ExcludedActivity.kt", EXCLUDED_ACTIVITY_CONTENT)
+
+private val EXPECTED_CONTEXT =
+  CodeContextData(
+    listOf(
+      EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
+      EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
+      EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
+      EXPECTED_MAIN_ACTIVITY_CONTEXT,
+    ),
+    CodeContextTrackingInfo(4, 53, 1309),
+    ContextSharingState.ALLOWED,
   )
 
 class CodeContextResolverTest {
@@ -330,18 +320,7 @@ class CodeContextResolverTest {
     val conn = mock<Connection>().apply { doReturn(true).whenever(this).isMatchingProject() }
     val contexts = resolver.getSource(conn, STACKTRACE)
 
-    val expected =
-      CodeContextData(
-        listOf(
-          EXPECTED_ANDROID_LIBRARY_CLASS_CONTEXT,
-          EXPECTED_PARTIAL_ACTIVITY_CONTEXT,
-          EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
-          EXPECTED_MAIN_ACTIVITY_CONTEXT,
-        ),
-        CodeContextTrackingInfo(4, 53, 1309),
-      )
-
-    assertThat(contexts).isEqualTo(expected)
+    assertThat(contexts).isEqualTo(EXPECTED_CONTEXT)
   }
 
   @Test
@@ -352,4 +331,21 @@ class CodeContextResolverTest {
 
       assertThat(contexts.codeContext).isEmpty()
     }
+
+  @Test
+  fun `resolve context from file names`() = runBlocking {
+    val resolver = CodeContextResolverImpl(projectRule.project)
+    val contextData =
+      resolver.getSource(
+        listOf(
+          "/src/src/com/example/mylibrary/AndroidLibraryClass.kt",
+          "/src/src/com/example/myapp/PartialActivity.kt",
+          "/src/src/com/example/myapp/CircleActivity.kt",
+          "/src/src/com/example/myapp/ExcludedActivity.kt",
+          "/src/src/com/example/myapp/MainActivity.kt",
+        )
+      )
+
+    assertThat(contextData).isEqualTo(EXPECTED_CONTEXT)
+  }
 }

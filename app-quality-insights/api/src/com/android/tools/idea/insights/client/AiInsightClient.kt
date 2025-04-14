@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.insights.client
 
+import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.codecontext.CodeContext
 
 data class GeminiCrashInsightRequest(
+  val connection: Connection,
+  val issueId: IssueId,
+  val variantId: String?,
   val deviceName: String,
   val apiLevel: String,
-  val stackTrace: String,
-  val codeSnippets: List<CodeContext>,
+  val event: Event,
 )
 
 interface AiInsightClient {
@@ -30,9 +34,8 @@ interface AiInsightClient {
   /**
    * Gets AI generated insight for this issue
    *
-   * @param projectId - cloud project id
-   * @param additionalContextMsg - Additional context required by the insight client to get insights
-   *   for the crash
+   * @param request - Additional context required by the insight client to get insights for the
+   *   crash
    */
-  suspend fun fetchCrashInsight(projectId: String, request: GeminiCrashInsightRequest): AiInsight
+  suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight
 }

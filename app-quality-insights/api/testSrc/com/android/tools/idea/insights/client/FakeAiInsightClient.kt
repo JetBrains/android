@@ -16,13 +16,9 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 
 object FakeAiInsightClient : AiInsightClient {
-  override suspend fun fetchCrashInsight(
-    projectId: String,
-    request: GeminiCrashInsightRequest,
-  ): AiInsight {
-    return AiInsight(request.toString(), codeContextData = CodeContextData(request.codeSnippets))
+  override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
+    return AiInsight(request.toString())
   }
 }

@@ -46,7 +46,6 @@ import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -583,18 +582,8 @@ class VitalsClientTest {
 
     val codeContext =
       listOf(
-        CodeContext(
-          "com.example.MainActivity",
-          "src/com/example/MainActivity.kt",
-          "class MainActivity {}",
-          Language.KOTLIN,
-        ),
-        CodeContext(
-          "com.example.lib.Library",
-          "src/com/example/lib/Library.kt",
-          "class Library {}",
-          Language.KOTLIN,
-        ),
+        CodeContext("src/com/example/MainActivity.kt", "class MainActivity {}"),
+        CodeContext("src/com/example/lib/Library.kt", "class Library {}"),
       )
     val insight =
       client.fetchInsight(
@@ -604,19 +593,17 @@ class VitalsClientTest {
         ISSUE1.issueDetails.fatality,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData(codeContext),
       )
 
     val rawInsight = (insight as LoadingState.Ready).value.rawInsight
     val expectedRequest =
       GeminiCrashInsightRequest(
+        connection = TEST_CONNECTION_1,
+        issueId = ISSUE1.id,
+        variantId = null,
         deviceName = "Google Pixel 4a",
         apiLevel = "12",
-        stackTrace =
-          "retrofit2.HttpException: HTTP 401 " +
-            "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)" +
-            "\n\tdev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)",
-        codeSnippets = codeContext,
+        event = ISSUE1.sampleEvent,
       )
     assertThat(rawInsight).isEqualTo(expectedRequest.toString())
   }
@@ -626,10 +613,7 @@ class VitalsClientTest {
     val cache = AppInsightsCacheImpl()
     val fakeAiClient =
       object : AiInsightClient {
-        override suspend fun fetchCrashInsight(
-          projectId: String,
-          request: GeminiCrashInsightRequest,
-        ): AiInsight {
+        override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
           return DEFAULT_AI_INSIGHT
         }
       }
@@ -650,38 +634,9 @@ class VitalsClientTest {
       ISSUE1.issueDetails.fatality,
       ISSUE1.sampleEvent,
       TimeIntervalFilter.ONE_DAY,
-      CodeContextData.DISABLED,
     )
     assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id, null, CodeContextData.DISABLED))
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
-  }
-
-  @Test
-  fun `fetch insight uses cached insight when cached value is available`() = runBlocking {
-    val cache = AppInsightsCacheImpl()
-    cache.putAiInsight(TEST_CONNECTION_1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    val client =
-      VitalsClient(
-        projectRule.project,
-        projectRule.disposable,
-        cache,
-        ForwardingInterceptor,
-        TestVitalsGrpcClient(),
-        FakeAiInsightClient,
-      )
-
-    assertThat(
-        client.fetchInsight(
-          TEST_CONNECTION_1,
-          ISSUE1.id,
-          null,
-          ISSUE1.issueDetails.fatality,
-          ISSUE1.sampleEvent,
-          TimeIntervalFilter.ONE_DAY,
-          CodeContextData.DISABLED,
-        )
-      )
-      .isEqualTo(LoadingState.Ready(DEFAULT_AI_INSIGHT.copy(isCached = true)))
   }
 
   @Test
@@ -704,7 +659,6 @@ class VitalsClientTest {
         FailureType.ANR,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData.DISABLED,
       )
 
     assertThat(insight)
@@ -763,7 +717,6 @@ class VitalsClientTest {
         FailureType.FATAL,
         Event(stacktraceGroup = stackTraceGroup),
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData.DISABLED,
       )
 
     assertThat(insight)
@@ -776,10 +729,7 @@ class VitalsClientTest {
   fun `test fetch insight throws 403 forbidden error`() = runBlocking {
     val fakeAiInsightClient =
       object : AiInsightClient {
-        override suspend fun fetchCrashInsight(
-          projectId: String,
-          request: GeminiCrashInsightRequest,
-        ): AiInsight {
+        override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
           throw GoogleJsonResponseException(
             HttpResponseException.Builder(403, "Forbidden", HttpHeaders()),
             GoogleJsonError(),
@@ -804,7 +754,6 @@ class VitalsClientTest {
         FailureType.FATAL,
         ISSUE1.sampleEvent,
         TimeIntervalFilter.ONE_DAY,
-        CodeContextData.DISABLED,
       )
 
     assertThat(insight).isInstanceOf(LoadingState.PermissionDenied::class.java)
