@@ -338,7 +338,7 @@ internal abstract class AbstractXrInputController : Disposable {
     const val MOUSE_WHEEL_NAVIGATION_FACTOR = 0.25F
 
     /** Distance of translational movement in meters when moving mouse across the device display. */
-    const val TRANSLATION_SCALE = 5f
+    const val TRANSLATION_SCALE = 4f
     /** Angle of rotation in radians when moving mouse across the device display. */
     const val ROTATION_SCALE = PI.toFloat()
     /** Translational velocity in meters per second. */
