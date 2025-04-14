@@ -41,14 +41,14 @@ class TestBasePreviewElement<T>(
   override val hasAnimations = false
   override val displaySettings =
     PreviewDisplaySettings(
-      displayName,
-      baseName,
-      parameterName,
-      groupName,
-      showDecorations,
-      showBackground,
-      backgroundColor,
-      displayPositioning,
+      name = displayName,
+      baseName = baseName,
+      parameterName = parameterName,
+      group = groupName,
+      showDecoration = showDecorations,
+      showBackground = showBackground,
+      backgroundColor = backgroundColor,
+      displayPositioning = displayPositioning,
     )
   override val previewBody = null
 

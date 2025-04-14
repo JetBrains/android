@@ -48,13 +48,13 @@ class AnimationUtilsKtTest {
     WearTilePreviewElement(
       displaySettings =
         PreviewDisplaySettings(
-          "some name",
-          "some base name",
-          "parameter name",
-          "some group",
-          false,
-          false,
-          "0xffabcd",
+          name = "some name",
+          baseName = "some base name",
+          parameterName = "parameter name",
+          group = "some group",
+          showDecoration = false,
+          showBackground = false,
+          backgroundColor = "0xffabcd",
         ),
       previewElementDefinition = mock<SmartPsiElementPointer<PsiElement>>(),
       previewBody = mock<SmartPsiElementPointer<PsiElement>>(),

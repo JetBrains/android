@@ -27,13 +27,13 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement<Int>(
         displaySettings =
           PreviewDisplaySettings(
-            "some name",
-            "some base name",
-            "parameter name",
-            "some group",
-            false,
-            false,
-            "0xffabcd",
+            name =  "some name",
+            baseName =   "some base name",
+            parameterName =  "parameter name",
+            group =  "some group",
+            showDecoration =   false,
+            showBackground =  false,
+            backgroundColor =  "0xffabcd",
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -45,13 +45,13 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            "some name",
-            "some base name",
-            "parameter name",
-            "some group",
-            false,
-            false,
-            "0xffabcd",
+            name =  "some name",
+            baseName =   "some base name",
+            parameterName =  "parameter name",
+            group =  "some group",
+            showDecoration =   false,
+            showBackground =  false,
+            backgroundColor =  "0xffabcd",
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -68,13 +68,13 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            "some name",
-            "some base name",
-            "parameter name",
-            "some group",
-            false,
-            false,
-            "0xffabcd",
+            name =  "some name",
+            baseName =   "some base name",
+            parameterName =  "parameter name",
+            group =  "some group",
+            showDecoration =   false,
+            showBackground =  false,
+            backgroundColor =  "0xffabcd",
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -84,13 +84,13 @@ class WearTilePreviewElementTest {
 
     val newPreviewDisplaySettings =
       PreviewDisplaySettings(
-        "derived name",
-        "derived base name",
-        "parameter name",
-        "derived group",
-        true,
-        true,
-        "0xffffff",
+       name =   "derived name",
+        baseName =  "derived base name",
+       parameterName =  "parameter name",
+       group =  "derived group",
+       showDecoration =  true,
+      showBackground =   true,
+        backgroundColor = "0xffffff",
       )
     val newConfig =
       PreviewConfiguration.Companion.cleanAndGet(
@@ -120,13 +120,13 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            "some name",
-            "some base name",
-            "parameter name",
-            "some group",
-            false,
-            false,
-            "0xffabcd",
+            name =  "some name",
+            baseName =   "some base name",
+            parameterName =  "parameter name",
+            group =  "some group",
+            showDecoration =   false,
+            showBackground =  false,
+            backgroundColor =  "0xffabcd",
           ),
         previewElementDefinition = null,
         previewBody = null,
@@ -157,13 +157,13 @@ class WearTilePreviewElementTest {
       WearTilePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            "some name",
-            "some base name",
-            "parameter name",
-            "some group",
-            false,
-            false,
-            backgroundColor = null,
+            name =  "some name",
+            baseName =   "some base name",
+            parameterName =  "parameter name",
+            group =  "some group",
+            showDecoration =   false,
+            showBackground =  false,
+            backgroundColor =  null,
           ),
         previewElementDefinition = null,
         previewBody = null,
