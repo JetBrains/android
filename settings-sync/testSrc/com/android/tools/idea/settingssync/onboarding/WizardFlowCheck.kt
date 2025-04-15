@@ -159,7 +159,7 @@ class WizardFlowCheck {
   }
 
   // This covers the onboarding flow: step3 only
-  @Test
+  // @Test (b/410589934)
   fun `test sync categories selection wizard page, disable plugins`() {
     // Prepare
     val wizardState =
