@@ -460,13 +460,15 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     mockitoCleaner.setup()
 
     userHome = System.getProperty("user.home")
-    val testSpecificName =
-      UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')
-    // Reset user home directory.
-    System.setProperty(
-      "user.home",
-      FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"),
-    )
+    // this leads to "File accessed outside allowed roots" exception in many test cases,
+    // since it doesn't allow us to access files in ~/.m2/repository, by overriding the user.home property.
+    //val testSpecificName =
+    //  UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')
+    //// Reset user home directory.
+    //System.setProperty(
+    //  "user.home",
+    //  FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"),
+    //)
 
     // Disable antivirus checks on Windows.
     StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, flagsDisposable)
