@@ -385,25 +385,25 @@ class WearTilePreviewRepresentationTest {
       assertEquals(
         """
           TestKt.preview
-          PreviewDisplaySettings(name=preview, baseName=preview, parameterName=null, group=null, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=preview, baseName=preview, parameterName=null, group=null, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.preview, organizationName=preview)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 1, baseName=multiPreview, parameterName=1, group=2, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=multiPreview - 1, baseName=multiPreview, parameterName=1, group=2, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.multiPreview, organizationName=multiPreview)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 2, baseName=multiPreview, parameterName=2, group=2, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=multiPreview - 2, baseName=multiPreview, parameterName=2, group=2, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.multiPreview, organizationName=multiPreview)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 3, baseName=multiPreview, parameterName=3, group=3, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=multiPreview - 3, baseName=multiPreview, parameterName=3, group=3, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.multiPreview, organizationName=multiPreview)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 4, baseName=multiPreview, parameterName=4, group=3, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=multiPreview - 4, baseName=multiPreview, parameterName=4, group=3, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.multiPreview, organizationName=multiPreview)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 5, baseName=multiPreview, parameterName=5, group=1, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=multiPreview - 5, baseName=multiPreview, parameterName=5, group=1, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.multiPreview, organizationName=multiPreview)
 
           TestKt.multiPreview
-          PreviewDisplaySettings(name=multiPreview - 6, baseName=multiPreview, parameterName=6, group=1, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
+          PreviewDisplaySettings(name=multiPreview - 6, baseName=multiPreview, parameterName=6, group=1, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.multiPreview, organizationName=multiPreview)
 
         """
           .trimIndent(),

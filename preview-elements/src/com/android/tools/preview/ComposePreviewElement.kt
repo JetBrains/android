@@ -195,7 +195,8 @@ class SingleComposePreviewElementInstance<T>(
           showBackground = showBackground,
           backgroundColor = backgroundColor,
           displayPositioning = displayPositioning,
-          organizationGroup = null,
+          organizationGroup = "",
+          organizationName = "",
         ),
         null,
         null,
@@ -247,6 +248,7 @@ class ParametrizedComposePreviewElementInstance<T>(
       backgroundColor = basePreviewElement.displaySettings.backgroundColor,
       displayPositioning = basePreviewElement.displaySettings.displayPositioning,
       organizationGroup = basePreviewElement.displaySettings.organizationGroup,
+      organizationName = basePreviewElement.displaySettings.organizationName,
     )
 
   override fun toPreviewXml(): PreviewXmlBuilder {
@@ -395,7 +397,10 @@ open class ParametrizedComposePreviewElementTemplate<T>(
           showDecoration = false,
           showBackground = false,
           backgroundColor = null,
-          organizationGroup = null,
+          organizationGroup =
+            basePreviewElement.displaySettings.baseName +
+              basePreviewElement.displaySettings.parameterName,
+          organizationName = basePreviewElement.displaySettings.organizationName,
         ),
         null,
         null,

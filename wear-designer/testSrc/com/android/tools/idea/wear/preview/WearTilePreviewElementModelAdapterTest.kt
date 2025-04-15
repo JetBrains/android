@@ -56,6 +56,8 @@ private fun simplestDisplaySettings(name: String = "") =
     showDecoration = false,
     showBackground = false,
     backgroundColor = null,
+    organizationName = "organizationName",
+    organizationGroup = "organizationGroup",
   )
 
 class WearTilePreviewElementModelAdapterTest {

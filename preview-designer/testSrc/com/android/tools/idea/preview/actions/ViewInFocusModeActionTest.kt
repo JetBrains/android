@@ -274,6 +274,8 @@ class ViewInFocusModeActionTest {
         showDecoration = false,
         showBackground = false,
         backgroundColor = null,
+        organizationGroup = "",
+        organizationName = "",
       ),
       null,
       null,

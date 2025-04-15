@@ -93,6 +93,8 @@ class PreviewElementSortingTest {
           showDecoration = false,
           showBackground = false,
           backgroundColor = null,
+          organizationGroup = "",
+          organizationName = "",
         ),
       previewElementDefinition = null,
       previewBody = null,

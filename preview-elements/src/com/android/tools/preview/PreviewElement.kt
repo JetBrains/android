@@ -38,6 +38,7 @@ enum class DisplayPositioning {
  * @param organizationGroup an Organization group this [PreviewElement] belongs to. If not
  *   specified - default grouping method is used. Could be used to override default grouping method,
  *   for example for UI Check - grouping is done by UI Check type (Screen sizes, Font scales, etc).
+ * @param organizationName display name for the Organization group this [PreviewElement] belongs to.
  */
 data class PreviewDisplaySettings(
   val name: String,
@@ -49,6 +50,7 @@ data class PreviewDisplaySettings(
   val backgroundColor: String?,
   val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
   val organizationGroup: String? = null,
+  val organizationName: String? = null,
 )
 
 /**

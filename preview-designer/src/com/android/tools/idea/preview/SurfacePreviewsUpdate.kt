@@ -216,35 +216,34 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           // groupId - "fully qualified name of composable PreviewDisplaySettings.organizationGroup"
           // displayName - "name of composable - PreviewDisplaySettings.organizationGroup" for
           // example "MyComposableName - Font sizes"
-          val groupId =
-            methodPreviewElement.methodFqn +
-              (methodPreviewElement.displaySettings.organizationGroup ?: "")
           val displayName =
-            methodPreviewElement.displaySettings.baseName +
-              (methodPreviewElement.displaySettings.organizationGroup?.let { " - $it" } ?: "")
+            methodPreviewElement.displaySettings.organizationName
+              ?: methodPreviewElement.displaySettings.name
           val fileAndDisplayName =
             newModel.displaySettings.fileName.value?.let { "$it.$displayName" } ?: displayName
-          newModel.organizationGroup =
-            groups.getOrCreate(groupId) {
-              OrganizationGroup(
-                  groupId,
-                  fileAndDisplayName,
-                  newModel.displaySettings.groupType.value,
-                ) {
-                  // Everytime state is changed we need to save it.
-                  isOpened ->
-                  getInstance(project)
-                    .surfaceState
-                    .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
-                }
-                .apply {
-                  // Load previously saved state or use default state.
-                  setOpened(
-                    previousOrganizationState[groupId]
-                      ?: newModel.displaySettings.groupType.value.defaultGroupState
-                  )
-                }
-            }
+          methodPreviewElement.displaySettings.organizationGroup?.let { groupId ->
+            newModel.organizationGroup =
+              groups.getOrCreate(groupId) {
+                OrganizationGroup(
+                    groupId,
+                    fileAndDisplayName,
+                    newModel.displaySettings.groupType.value,
+                  ) {
+                    // Everytime state is changed we need to save it.
+                    isOpened ->
+                    getInstance(project)
+                      .surfaceState
+                      .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
+                  }
+                  .apply {
+                    // Load previously saved state or use default state.
+                    setOpened(
+                      previousOrganizationState[it]
+                        ?: newModel.displaySettings.groupType.value.defaultGroupState
+                    )
+                  }
+              }
+          }
         }
         val offset = runReadAction {
           previewElement.previewElementDefinition?.element?.textOffset ?: 0

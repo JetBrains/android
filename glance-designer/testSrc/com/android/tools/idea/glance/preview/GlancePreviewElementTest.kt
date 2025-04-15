@@ -67,6 +67,8 @@ class GlancePreviewElementTest {
             showDecoration = false,
             showBackground = false,
             backgroundColor = "0xffabcd",
+            organizationGroup = "organization group",
+            organizationName = "organization name",
           ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
@@ -86,6 +88,8 @@ class GlancePreviewElementTest {
             showDecoration = false,
             showBackground = false,
             backgroundColor = "0xffabcd",
+            organizationGroup = "organization group",
+            organizationName = "organization name",
           ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
@@ -110,6 +114,8 @@ class GlancePreviewElementTest {
             showDecoration = false,
             showBackground = false,
             backgroundColor = "0xffabcd",
+            organizationGroup = "organization group",
+            organizationName = "organization name",
           ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
@@ -126,6 +132,8 @@ class GlancePreviewElementTest {
         showDecoration = true,
         showBackground = true,
         backgroundColor = "0xffffff",
+        organizationGroup = "organization group",
+        organizationName = "organization name",
       )
     val newConfig =
       PreviewConfiguration.cleanAndGet(

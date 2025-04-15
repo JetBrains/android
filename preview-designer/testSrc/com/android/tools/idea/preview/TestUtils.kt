@@ -87,4 +87,6 @@ internal fun someDisplaySettings(name: String = "") =
     showDecoration = false,
     showBackground = false,
     backgroundColor = null,
+    organizationGroup = "",
+    organizationName = "",
   )
