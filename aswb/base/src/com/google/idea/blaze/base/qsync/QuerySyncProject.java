@@ -259,13 +259,8 @@ public class QuerySyncProject {
           syncListener.onQuerySyncStart(project, context);
         }
 
-        SaveUtil.saveAllFiles();
-        PostQuerySyncData postQuerySyncData =
-            lastQuery.isEmpty()
-                ? projectQuerier.fullQuery(projectDefinition, context)
-                : projectQuerier.update(projectDefinition, lastQuery.get(), context);
-        BuildGraphData graph = getBuildGraphData(postQuerySyncData, context);
-        final var newSnapshopt = updateProjectSnapshot(context, postQuerySyncData, graph);
+        CoreSyncResult coreSyncResult = syncCore(context, lastQuery);
+        final var newSnapshot = updateProjectSnapshot(context, coreSyncResult.postQuerySyncData(), coreSyncResult.graph());
 
         // TODO: Revisit SyncListeners once we switch fully to qsync
         for (SyncListener syncListener : SyncListener.EP_NAME.getExtensions()) {
@@ -276,18 +271,43 @@ public class QuerySyncProject {
               importSettings,
               projectViewSet,
               ImmutableSet.of(),
-              new QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings).withSnapshot(newSnapshopt),
+              new QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings).withSnapshot(newSnapshot),
               SyncMode.FULL,
               SyncResult.SUCCESS);
         }
-      } catch (IOException e) {
-        throw new BuildException(e);
       } finally {
         for (SyncListener syncListener : SyncListener.EP_NAME.getExtensions()) {
           // A query sync specific callback.
           syncListener.afterQuerySync(project, context);
         }
       }
+    }
+  }
+
+  public void syncQueryData(BlazeContext parentContext, Optional<PostQuerySyncData> lastQuery) throws BuildException {
+    try (BlazeContext context = BlazeContext.create(parentContext)) {
+      context.push(new SyncQueryStatsScope());
+      QuerySyncProject.CoreSyncResult coreSyncResult = syncCore(context, lastQuery);
+      snapshotHolder.setCurrent(context,
+                                getSnapshotHolder().getCurrent().orElseThrow().toBuilder()
+                                  .queryData(coreSyncResult.postQuerySyncData)
+                                  .graph(coreSyncResult.graph)
+                                  .build());
+    }
+  }
+
+  private record CoreSyncResult(PostQuerySyncData postQuerySyncData, BuildGraphData graph) { }
+  private CoreSyncResult syncCore(BlazeContext context, Optional<PostQuerySyncData> lastQuery) throws BuildException {
+    try {
+      SaveUtil.saveAllFiles();
+      PostQuerySyncData postQuerySyncData =
+        lastQuery.isEmpty()
+        ? projectQuerier.fullQuery(projectDefinition, context)
+        : projectQuerier.update(projectDefinition, lastQuery.get(), context);
+      BuildGraphData graph = getBuildGraphData(postQuerySyncData, context);
+      return new CoreSyncResult(postQuerySyncData, graph);
+    } catch (IOException e) {
+      throw new BuildException(e);
     }
   }
 
