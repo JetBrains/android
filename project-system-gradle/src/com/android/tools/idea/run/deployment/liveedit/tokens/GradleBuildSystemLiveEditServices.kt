@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.psi.KtFile
+import java.nio.file.Path
 
 class GradleBuildSystemLiveEditServices :
   BuildSystemLiveEditServices<GradleProjectSystem, FacetBasedApplicationProjectContext>,
@@ -51,7 +52,7 @@ class GradleBuildSystemLiveEditServices :
   }
 }
 
-internal class GradleApplicationLiveEditServices(module: Module): ApplicationLiveEditServices {
+internal class GradleApplicationLiveEditServices(private val module: Module): ApplicationLiveEditServices {
   val classFileFinder = GradleClassFileFinder.createWithoutTests(module)
 
   override fun getClassContent(
@@ -82,4 +83,11 @@ internal class GradleApplicationLiveEditServices(module: Module): ApplicationLiv
     }
     return compilerConfiguration
   }
+
+  override fun getDesugarConfigs() =
+    if (module.getModuleSystem().desugarLibraryConfigFilesKnown) {
+      DesugarConfigs.Known(module.getModuleSystem().desugarLibraryConfigFiles)
+    } else {
+      DesugarConfigs.NotKnown(module.getModuleSystem().desugarLibraryConfigFilesNotKnownUserMessage)
+    }
 }

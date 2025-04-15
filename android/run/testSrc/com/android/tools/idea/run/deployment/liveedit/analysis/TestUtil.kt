@@ -17,7 +17,10 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
 import com.android.tools.idea.run.deployment.liveedit.MutableIrClassCache
+import com.android.tools.idea.run.deployment.liveedit.PsiState
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.Differ
@@ -32,12 +35,17 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.toClassNode
+import com.android.tools.idea.run.deployment.liveedit.compile
+import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.android.tools.idea.run.deployment.liveedit.getCompilerConfiguration
+import com.android.tools.idea.run.deployment.liveedit.getPsiValidationState
 import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.withClasses
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiDocumentManager
@@ -141,6 +149,42 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFil
       output
     }
   })
+}
+
+
+fun AndroidProjectRule.Typed<*, Nothing>.postDeploymentStateCompiler(file: KtFile) : LiveEditCompiler {
+  val cache = MutableIrClassCache()
+  val apk = this.directApiCompileByteArray(file)
+  return LiveEditCompiler(this.project, cache).withClasses(apk)
+}
+
+/**
+ * Helper to compile a given file. It will behave like the .class of that given file exists from the build system's cache but
+ * not our differ cache since it will be the first time it gets compiled.
+ */
+fun AndroidProjectRule.Typed<*, Nothing>.postDeploymentStateCompile(file: KtFile, modification: String? = null, apiVersions: Set<MinApiLevel> = emptySet()): LiveEditCompilerOutput {
+  val compiler = this.postDeploymentStateCompiler(file)
+  if (modification != null) {
+    this.modifyKtFile(file, modification)
+  }
+  val state = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
+  return compile(listOf(LiveEditCompilerInput(file, state)), compiler, apiVersions)
+}
+
+/**
+ * Helper to compile a given file multiple times given some multiple modifications.
+ *
+ * Unlike postDeploymentStateCompile. The modifications are not optional. If none is given, we will not perform any compilations.
+ */
+fun AndroidProjectRule.Typed<*, Nothing>.postDeploymentStateCompiles(file: KtFile, vararg modifications : String): List<LiveEditCompilerOutput> {
+  val cache = MutableIrClassCache()
+  val apk = this.directApiCompileByteArray(file)
+  val compiler = LiveEditCompiler(this.project, cache).withClasses(apk)
+  val state = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
+  return modifications.map { modification ->
+    this.modifyKtFile(file, modification)
+    compile(listOf(LiveEditCompilerInput(file, state)), compiler).also { cache.update(it.irClasses) }
+  }
 }
 
 fun ByteArray.toIrClass(): IrClass = IrClass(toClassNode())

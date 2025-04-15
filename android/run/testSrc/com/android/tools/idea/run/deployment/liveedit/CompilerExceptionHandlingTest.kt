@@ -44,7 +44,7 @@ class CompilerExceptionHandlingTest {
     Mockito.`when`(cache["AKt"]).thenThrow(ProcessCanceledException())
     val output =
       LiveEditCompiler(file.project, cache)
-        .also { it.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(mapOf())) }
+        .also { it.resetState(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(mapOf())) }
         .compile(listOf(input))
     assert(output.isEmpty)
   }
@@ -58,7 +58,7 @@ class CompilerExceptionHandlingTest {
 
     try {
       LiveEditCompiler(file.project, cache)
-        .also { it.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(mapOf())) }
+        .also { it.resetState(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(mapOf())) }
         .compile(listOf(input))
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (e: LiveEditUpdateException) {

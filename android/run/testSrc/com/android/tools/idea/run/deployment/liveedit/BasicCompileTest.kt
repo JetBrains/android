@@ -16,24 +16,17 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.internal.FakeAdbTestRule
-import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
-import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
-import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
-import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.run.deployment.liveedit.analysis.postDeploymentStateCompile
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.ReadAction
-import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
 import org.junit.Assert
-import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -183,11 +176,7 @@ class BasicCompileTest {
         return test.go()
       }
     """)
-    val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileByteArray(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
-    val state = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
-    val output = compile(listOf(LiveEditCompilerInput(file, state)), compiler)
+    val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(1, output.supportClassesMap.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.
   }
@@ -256,11 +245,7 @@ class BasicCompileTest {
   fun crossFileReference() {
     projectRule.createKtFile("A.kt", "fun foo() = \"\"")
     val fileCallA = projectRule.createKtFile("CallA.kt", "fun callA() = foo()")
-    val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileByteArray(fileCallA)
-    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
-    val state = getPsiValidationState(fileCallA)
-    compile(listOf(LiveEditCompilerInput(fileCallA, state)), compiler)
+    projectRule.postDeploymentStateCompile(fileCallA)
   }
 
   @Test

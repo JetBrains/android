@@ -30,6 +30,7 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
+import java.nio.file.Path
 
 interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationProjectContext> : Token {
   fun isApplicable(applicationProjectContext: ApplicationProjectContext): Boolean
@@ -69,9 +70,15 @@ interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationPr
   }
 }
 
+sealed interface DesugarConfigs {
+  class NotKnown(val message: String?): DesugarConfigs
+  class Known(val configs: List<Path>): DesugarConfigs
+}
+
 interface ApplicationLiveEditServices {
   fun getClassContent(file: VirtualFile, className: String): ClassContent?
   fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration
+  fun getDesugarConfigs(): DesugarConfigs
 
   @TestOnly
   class LegacyForTests(private val project: Project): ApplicationLiveEditServices {
@@ -84,6 +91,8 @@ interface ApplicationLiveEditServices {
     override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
       return getCompilerConfiguration(ktFile.module!!, ktFile)
     }
+
+    override fun getDesugarConfigs() = DesugarConfigs.NotKnown("Desugar config not set up in unit tests yet.")
   }
 
   @TestOnly
@@ -96,5 +105,7 @@ interface ApplicationLiveEditServices {
       return ktFile.module?.let { module -> getCompilerConfiguration(module, ktFile) }
         ?: error("Cannot get kotlin compiler configuration for $ktFile")
     }
+
+    override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")
   }
 }
