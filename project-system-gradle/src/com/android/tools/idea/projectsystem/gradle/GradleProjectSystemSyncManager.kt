@@ -75,6 +75,9 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     if (reason == SyncReason.USER_REQUEST) {
       return false
     }
+    if(reason == SyncReason.AGENT_REQUESTED) {
+      return false
+    }
     val isMigration = listOf(TRIGGER_AGP_VERSION_UPDATED, TRIGGER_AGP_VERSION_UPDATE_ROLLED_BACK).contains(reason.forStats)
     return !isMigration
   }
