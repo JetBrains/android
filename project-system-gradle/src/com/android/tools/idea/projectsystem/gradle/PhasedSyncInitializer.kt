@@ -72,5 +72,3 @@ internal class FixSyncContributorIssues : GradleSyncExtension {
     }
   }
 }
-
-
