@@ -23,10 +23,8 @@ import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.project.Project
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
-import com.intellij.platform.workspace.jps.entities.ExternalSystemModuleOptionsEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
-import com.intellij.platform.workspace.jps.entities.modifyExternalSystemModuleOptionsEntity
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.entities
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
@@ -56,8 +54,6 @@ class FixSyncContributorIssues: GradleSyncContributor {
     }
 
     if (phase == GradleModelFetchPhase.PROJECT_MODEL_PHASE) {
-      // This is needed due to a bug in platform sync contributor implementation which marks the holder modules as source set modules.
-      removeSourceSetMarkerFromHolderModules(storage)
 
       // Keep the root module as an iml based entity, because many things go wrong if there isn't at least one .iml based module
       removeGradleBasedEntitiesForRootModule(storage)
@@ -132,24 +128,6 @@ class FixSyncContributorIssues: GradleSyncContributor {
            (it.entitySource as GradleProjectEntitySource).projectRootUrl
     }.forEach {
       storage.removeEntity(it)
-    }
-  }
-
-  /**
-   * This is needed due to a bug in platform sync contributor implementation which marks the holder modules as source set modules.
-   *
-   * See [org.jetbrains.plugins.gradle.service.syncContributor.GradleContentRootSyncContributor.configureExModuleOptionsEntity] for where
-   * the error is.
-   *
-   * TODO(b/384022658): Remove this after fixing up stream
-   */
-  private fun removeSourceSetMarkerFromHolderModules(storage: MutableEntityStorage) {
-    storage.entities<ExternalSystemModuleOptionsEntity>().filter {
-      it.entitySource is GradleProjectEntitySource
-    }.forEach {
-      storage.modifyExternalSystemModuleOptionsEntity(it) {
-        externalSystemModuleType = null
-      }
     }
   }
 }
