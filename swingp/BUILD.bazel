@@ -37,7 +37,6 @@ jvm_test(
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
     "@lib//:junit4",
-    "@lib//:jet-sign",
     "@lib//:truth",
     "@lib//:mockito",
     "@lib//:asm",
