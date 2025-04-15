@@ -157,7 +157,15 @@ class ComposePreviewElementConfigurationTest {
 
     SingleComposePreviewElementInstance(
         "NoSize",
-        PreviewDisplaySettings("Name", "BaseName", "ParameterName", null, false, false, null),
+        PreviewDisplaySettings(
+          name = "Name",
+          baseName = "BaseName",
+          parameterName = "ParameterName",
+          group = null,
+          showDecoration = false,
+          showBackground = false,
+          backgroundColor = null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(),
@@ -175,7 +183,15 @@ class ComposePreviewElementConfigurationTest {
       }
     SingleComposePreviewElementInstance(
         "WithSize",
-        PreviewDisplaySettings("Name", "BaseName", "ParameterName", null, false, false, null),
+        PreviewDisplaySettings(
+          name = "Name",
+          baseName = "BaseName",
+          parameterName = "ParameterName",
+          group = null,
+          showDecoration = false,
+          showBackground = false,
+          backgroundColor = null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
@@ -194,7 +210,15 @@ class ComposePreviewElementConfigurationTest {
 
     SingleComposePreviewElementInstance(
         "WithSizeAndDecorations",
-        PreviewDisplaySettings("Name", "BaseName", "ParameterName", null, true, false, null),
+        PreviewDisplaySettings(
+          name = "Name",
+          baseName = "BaseName",
+          parameterName = "ParameterName",
+          group = null,
+          showDecoration = true,
+          showBackground = false,
+          backgroundColor = null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
@@ -213,7 +237,15 @@ class ComposePreviewElementConfigurationTest {
 
     SingleComposePreviewElementInstance(
         "WithSizeAndCustomDensity",
-        PreviewDisplaySettings("Name", "BaseName", "ParameterName", null, false, false, null),
+        PreviewDisplaySettings(
+          name = "Name",
+          baseName = "BaseName",
+          parameterName = "ParameterName",
+          group = null,
+          showDecoration = false,
+          showBackground = false,
+          backgroundColor = null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
@@ -238,7 +270,15 @@ class ComposePreviewElementConfigurationTest {
 
     SingleComposePreviewElementInstance(
         "WearOs",
-        PreviewDisplaySettings("Name", "BaseName", "ParameterName", null, false, false, null),
+        PreviewDisplaySettings(
+          name = "Name",
+          baseName = "BaseName",
+          parameterName = "ParameterName",
+          group = null,
+          showDecoration = false,
+          showBackground = false,
+          backgroundColor = null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null),
@@ -255,7 +295,15 @@ class ComposePreviewElementConfigurationTest {
 
     SingleComposePreviewElementInstance(
         "Pixel",
-        PreviewDisplaySettings("Name", "BaseName", "ParameterName", null, false, false, null),
+        PreviewDisplaySettings(
+          name = "Name",
+          baseName = "BaseName",
+          parameterName = "ParameterName",
+          group = null,
+          showDecoration = false,
+          showBackground = false,
+          backgroundColor = null,
+        ),
         null,
         null,
         PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null),

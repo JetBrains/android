@@ -34,7 +34,15 @@ internal class TestModel(override var dataProvider: NlDataProvider?) : NlDataPro
 }
 
 private fun simplestDisplaySettings(name: String = "") =
-  PreviewDisplaySettings(name, name, null, null, false, false, null)
+  PreviewDisplaySettings(
+    name = name,
+    baseName = name,
+    parameterName = null,
+    group = null,
+    showDecoration = false,
+    showBackground = false,
+    backgroundColor = null,
+  )
 
 private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {
   override fun toXml(previewElement: PsiGlancePreviewElement) = ""

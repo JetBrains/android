@@ -50,7 +50,15 @@ class ComposeAnimationToolbarUpdaterTest {
   val composable =
     SingleComposePreviewElementInstance(
       "composableMethodName",
-      PreviewDisplaySettings("A name", "BaseName", "ParameterName", null, false, false, null),
+      PreviewDisplaySettings(
+        name = "a name",
+        baseName = "BaseName",
+        parameterName = "ParameterName",
+        group = null,
+        showDecoration = false,
+        showBackground = false,
+        backgroundColor = null,
+      ),
       null,
       null,
       PreviewConfiguration.cleanAndGet(),
