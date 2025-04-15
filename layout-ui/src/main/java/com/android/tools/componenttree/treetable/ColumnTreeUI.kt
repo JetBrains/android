@@ -89,14 +89,41 @@ class ColumnTreeUI(
               return
             }
             val row = getRowForPath(table.tree, e.path)
-            // Scroll vertically.
-            table.scrollRectToVisible(table.getCellRect(row, 0, true))
+            autoScrollVertically(e.path)
             autoScrollHorizontally(row)
           }
         }
     }
     scrollPane.addMouseWheelListener(mouseWheelListener)
     table.tree.addTreeSelectionListener(treeSelectionListener)
+  }
+
+  /** Attempt to scroll the tree vertically so that the selected row is centered vertically. */
+  private fun autoScrollVertically(path: TreePath?) {
+    val viewPosition = scrollPane.viewport.viewPosition
+    val rowBounds = table.tree.getPathBounds(path)
+
+    if (
+      rowBounds == null ||
+        (rowBounds.y + rowBounds.height >= viewPosition.y &&
+          rowBounds.y <= viewPosition.y + scrollPane.viewport.extentSize.height)
+    ) {
+      // Don't scroll if the selected node is already visible.
+      return
+    }
+    val viewportHeight = scrollPane.viewport.extentSize.height
+
+    // Scroll to center the selected node vertically.
+    if (rowBounds.y < viewPosition.y) {
+      // When scrolling down, scrollRectToVisible function would make
+      // the element appear at the top.
+      // Subtracting half the viewport height shifts the scroll position
+      // to bring the element into the middle of the visible area.
+      rowBounds.y -= viewportHeight / 2
+    } else {
+      rowBounds.y += viewportHeight / 2
+    }
+    table.scrollRectToVisible(rowBounds)
   }
 
   private fun autoScrollHorizontally(selectedRow: Int) {
