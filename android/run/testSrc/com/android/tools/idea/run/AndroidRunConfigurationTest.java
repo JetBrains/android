@@ -56,7 +56,7 @@ public class AndroidRunConfigurationTest {
   public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
   private AndroidRunConfiguration myRunConfiguration;
 
-  private Path dataPath = TestUtils.getWorkspaceRoot().resolve("tools/adt/idea/android/testData/runConfiguration/");
+  private Path dataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/runConfiguration/");
 
   /*
    * WARNING:
