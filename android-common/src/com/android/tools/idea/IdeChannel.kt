@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea
 
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
+import org.jetbrains.annotations.TestOnly
 import java.util.regex.Pattern
 
 object IdeChannel {
@@ -54,7 +54,7 @@ object IdeChannel {
   val channel: Channel
     get() = _channel ?: computeChannel().also { _channel = it }
 
-  @VisibleForTesting
+  @TestOnly
   fun setChannel(versionName: String?) {
     _channel = versionName?.let { getChannelFromVersionName(it) }
   }
