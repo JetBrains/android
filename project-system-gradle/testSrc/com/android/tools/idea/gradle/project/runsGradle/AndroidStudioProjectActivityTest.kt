@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.runsGradle
 
+import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -22,7 +23,6 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.JdkConstants
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
-import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -44,10 +44,7 @@ class AndroidStudioProjectActivityTest {
   fun `Given invalid Daemon JVM criteria When import project Then project doesn't restore configuration`() =
     jdkIntegrationTest.run(
       project = JdkTestProject.SimpleApplication(
-        gradleDaemonJvmCriteria = GradleDaemonJvmCriteria(
-          version = "invalid",
-          vendor = null
-        ),
+        gradleDaemonToolchain = GradleDaemonToolchain("invalid")
       ),
       environment = JdkIntegrationTest.TestEnvironment(
         studioFlags = JdkIntegrationTest.StudioFeatureFlags(restoreInvalidGradleJdkConfiguration = true)

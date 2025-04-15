@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.utils
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElement
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElementName
+import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.util.GradleProperties
@@ -34,7 +35,6 @@ import org.jetbrains.plugins.gradle.properties.GRADLE_FOLDER
 import org.jetbrains.plugins.gradle.properties.GRADLE_JAVA_HOME_PROPERTY
 import org.jetbrains.plugins.gradle.properties.GRADLE_PROPERTIES_FILE_NAME
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
-import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
 import java.nio.file.Paths
@@ -52,15 +52,26 @@ object ProjectJdkUtils {
     }
   }
 
-  fun setProjectGradleDaemonJvmCriteria(projectRoot: File, jvmCriteria: GradleDaemonJvmCriteria) = createProjectFile(
-    projectRoot = projectRoot,
-    relativePath = Paths.get(GRADLE_FOLDER, GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME).toString(),
-    text = GradleUtils.buildDamonJvmCriteriaProperties(jvmCriteria)
-  )
+  fun setProjectGradleDaemonJvmCriteria(projectRoot: File, gradleDaemonToolchain: GradleDaemonToolchain) {
+    createProjectFile(
+      projectRoot = projectRoot,
+      relativePath = Paths.get(GRADLE_FOLDER, GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME).toString(),
+      text = GradleUtils.buildDamonJvmCriteriaProperties(gradleDaemonToolchain)
+    )
+
+    val gradlePropertiesFile = projectRoot.resolve(GRADLE_PROPERTIES_FILE_NAME)
+    addPropertiesToFile(
+      propertiesFile = gradlePropertiesFile,
+      "org.gradle.java.installations.auto-detect" to gradleDaemonToolchain.autoDetectionEnabled.toString(),
+      "org.gradle.java.installations.auto-download" to gradleDaemonToolchain.autoProvisioningEnabled.toString(),
+      "org.gradle.java.installations.paths" to gradleDaemonToolchain.customToolchainInstallationsPath.joinToString(","),
+      "org.gradle.java.installations.fromEnv" to gradleDaemonToolchain.customToolchainInstallationsEnv?.joinToString(",")
+    )
+  }
 
   fun setProjectGradlePropertiesJavaHome(projectRoot: File, javaHome: String) {
     val gradlePropertiesFile = projectRoot.resolve(GRADLE_PROPERTIES_FILE_NAME)
-    setGradlePropertiesJdk(gradlePropertiesFile, javaHome)
+    addPropertiesToFile(gradlePropertiesFile, GRADLE_JAVA_HOME_PROPERTY to javaHome)
   }
 
   fun setProjectIdeaGradleJdk(projectRoot: File, gradleRoots: List<GradleRoot>) = createProjectFile(
@@ -110,7 +121,7 @@ object ProjectJdkUtils {
 
   fun setUserHomeGradlePropertiesJdk(jdkPath: String, disposable: Disposable) {
     val gradlePropertiesFile = GradleUtils.getUserGradlePropertiesFile()
-    setGradlePropertiesJdk(gradlePropertiesFile, jdkPath)
+    addPropertiesToFile(gradlePropertiesFile, GRADLE_JAVA_HOME_PROPERTY to jdkPath)
     Disposer.register(disposable) {
       clearUserHomeGradleProperties()
     }
@@ -130,10 +141,12 @@ object ProjectJdkUtils {
     FileUtil.writeToFile(projectRoot.resolve(relativePath), text)
   }
 
-  private fun setGradlePropertiesJdk(gradlePropertiesFile: File, jdkPath: String) {
-    FileUtil.createIfNotExists(gradlePropertiesFile)
-    GradleProperties(gradlePropertiesFile).run {
-      properties.setProperty(GRADLE_JAVA_HOME_PROPERTY, jdkPath)
+  private fun addPropertiesToFile(propertiesFile: File, vararg newProperties: Pair<String, String?>) {
+    FileUtil.createIfNotExists(propertiesFile)
+    GradleProperties(propertiesFile).run {
+      newProperties.forEach { (key, value) ->
+        value?.let { properties.setProperty(key, it) }
+      }
       save()
     }
   }

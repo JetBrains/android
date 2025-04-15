@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
@@ -26,7 +27,6 @@ import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.util.PathUtil
 import org.apache.commons.io.FileUtils
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import java.io.File
 import java.nio.file.Files
 
@@ -60,7 +60,7 @@ sealed class JdkTestProject(
     ideaProjectJdk: String? = null,
     gradleLocalJavaHome: String? = null,
     gradlePropertiesJavaHome: String? = null,
-    gradleDaemonJvmCriteria: GradleDaemonJvmCriteria? = null,
+    gradleDaemonToolchain: GradleDaemonToolchain? = null,
   ) : JdkTestProject(
     agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
@@ -81,7 +81,7 @@ sealed class JdkTestProject(
       gradlePropertiesJavaHome?.let {
         ProjectJdkUtils.setProjectGradlePropertiesJavaHome(projectRoot, it)
       }
-      gradleDaemonJvmCriteria?.let {
+      gradleDaemonToolchain?.let {
         ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it)
       }
     }
