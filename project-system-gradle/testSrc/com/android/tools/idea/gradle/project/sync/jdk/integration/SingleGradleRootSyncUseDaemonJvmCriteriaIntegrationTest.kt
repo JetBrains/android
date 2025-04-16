@@ -22,9 +22,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.T
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
+import com.android.tools.idea.testing.JdkConstants.JDK_17
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
-import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_VERSION
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
@@ -73,16 +72,14 @@ class SingleGradleRootSyncUseDaemonJvmCriteriaIntegrationTest {
     }
 
   @Test
-  fun `Given valid Daemon Jvm criteria using JDK_EMBEDDED version When import project Then projectJdk is configured with JDK_EMBEDDED`() =
+  fun `Given valid Daemon Jvm criteria as 17 version and Jetbrains vendor When import project Then projectJdk is configured with matching criteria JDK`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
-        gradleDaemonToolchain = GradleDaemonToolchain(JDK_EMBEDDED_VERSION)
+        gradleDaemonToolchain = GradleDaemonToolchain("17", "Jetbrains")
       )
     ) {
       syncWithAssertion(
-        expectedGradleJdkName = JDK_EMBEDDED,
-        expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkName = JDK_17
       )
     }
 }

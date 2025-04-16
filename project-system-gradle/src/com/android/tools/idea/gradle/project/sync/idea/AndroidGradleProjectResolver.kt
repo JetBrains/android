@@ -117,6 +117,7 @@ import com.intellij.util.SystemProperties
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.android.configure.patchFromMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
@@ -127,6 +128,7 @@ import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
@@ -137,6 +139,7 @@ import java.io.IOException
 import java.util.IdentityHashMap
 import java.util.function.Function
 import java.util.zip.ZipException
+import kotlin.io.path.Path
 
 private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
 
@@ -173,7 +176,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     if (project != null) {
       removeExternalSourceSetsAndReportWarnings(project, gradleProject)
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode)
-      alignProjectJdkWithGradleSyncJdk(project, projectDataNode)
     }
     val buildMap = resolverCtx.getRootModel(IdeCompositeBuildMap::class.java)
     if (buildMap != null) {
@@ -211,8 +213,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     super.populateProjectExtraModels(gradleProject, projectDataNode)
 
     if (IdeInfo.getInstance().isAndroidStudio) {
-      // Remove platform ProjectSdkDataService data node overwritten by our ProjectJdkUpdateService
-      ExternalSystemApiUtil.find(projectDataNode, ProjectSdkData.KEY)?.clear(true)
+      alignProjectJdkWithGradleJvmConfiguration(gradleProject, projectDataNode)
     }
   }
 
@@ -292,6 +293,23 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
           moduleData.targetBytecodeVersion = externalSourceSet.targetCompatibility
         }
       }
+    }
+  }
+
+  fun alignProjectJdkWithGradleJvmConfiguration(gradleProject: IdeaProject, projectDataNode: DataNode<ProjectData>) {
+    val project = project ?: return
+    val gradleVersion = GradleVersion.version(resolverCtx.projectGradleVersion)
+    val linkedExternalProjectPath = Path(projectDataNode.getData().linkedExternalProjectPath)
+
+    // Remove platform ProjectSdkDataService data node overwritten by our ProjectJdkUpdateService
+    ExternalSystemApiUtil.find(projectDataNode, ProjectSdkData.KEY)?.clear(true)
+
+    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(linkedExternalProjectPath, gradleVersion)) {
+      gradleProject.javaLanguageSettings.jdk.javaHome.absolutePath
+    } else {
+      JdkUtils.getMaxVersionJdkPathFromAllGradleRoots(project)
+    } ?.let { gradleJdkPath ->
+      projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(gradleJdkPath))
     }
   }
 
@@ -1056,12 +1074,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       val projectUserData = project.getUserData(VARIANTS_SAVED_FROM_PREVIOUS_SYNCS)
       if (projectUserData != null) {
         projectDataNode.createChild(CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, projectUserData)
-      }
-    }
-
-    fun alignProjectJdkWithGradleSyncJdk(project: Project, projectDataNode: DataNode<ProjectData>) {
-      JdkUtils.getMaxVersionJdkPathFromAllGradleRoots(project)?.let {
-        projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(it))
       }
     }
 

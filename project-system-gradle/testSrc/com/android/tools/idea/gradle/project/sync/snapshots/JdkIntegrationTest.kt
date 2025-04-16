@@ -162,9 +162,9 @@ class JdkIntegrationTest(
     }
 
     fun syncWithAssertion(
-      expectedGradleJdkName: String,
-      expectedProjectJdkName: String,
-      expectedProjectJdkPath: String,
+      expectedGradleJdkName: String? = null,
+      expectedProjectJdkName: String? = null,
+      expectedProjectJdkPath: String? = null,
       expectedGradleLocalJavaHome: String? = null,
       expectedException: KClass<out Exception>? = null,
     ) {
@@ -184,20 +184,26 @@ class JdkIntegrationTest(
 
     fun syncWithAssertion(
       expectedGradleRoots: Map<String, ExpectedGradleRoot>,
-      expectedProjectJdkName: String,
-      expectedProjectJdkPath: String,
+      expectedProjectJdkName: String?,
+      expectedProjectJdkPath: String?,
       expectedException: KClass<out Exception>? = null,
     ) {
       sync(
         assertInMemoryConfig = {
           assertGradleRoots(expectedGradleRoots)
-          assertProjectJdk(expectedProjectJdkName)
-          assertProjectJdkTablePath(expectedProjectJdkPath)
-          assertProjectJdkTableEntryIsValid(expectedProjectJdkName)
+          expectedProjectJdkName?.let {
+            assertProjectJdkTableEntryIsValid(it)
+            assertProjectJdk(it)
+          }
+          expectedProjectJdkPath?.let {
+            assertProjectJdkTablePath(it)
+          }
         },
         assertOnDiskConfig = {
           assertGradleRoots(expectedGradleRoots)
-          assertProjectJdk(expectedProjectJdkName)
+          expectedProjectJdkName?.let {
+            assertProjectJdk(it)
+          }
         },
         assertOnFailure = { syncException ->
           expectedException?.let {
