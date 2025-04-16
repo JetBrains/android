@@ -1251,6 +1251,7 @@ iml_module(
         "@intellij//:com.jetbrains.performancePlugin",
         "@intellij//:com.jetbrains.sh",
         "@intellij//:hg4idea",
+        "@intellij//:intellij.git.commit.modal",
         "@intellij//:intellij.grid",
         "@intellij//:intellij.grid.core.impl",
         "@intellij//:intellij.grid.csv.core.impl",

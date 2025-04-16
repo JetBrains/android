@@ -74,6 +74,7 @@ class StartUpSafeModeTest {
       "Gemini",
       "Git for App Insights",
       "Git",
+      "Git Modal Commit Interface",
       "GitHub",
       "GitLab",
       "Google Cloud Tools For Android Studio",

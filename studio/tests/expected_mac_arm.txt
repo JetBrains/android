@@ -713,8 +713,6 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/META-INF/MANIFEST.MF
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/bin/kapt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/bin/kapt.bat
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/bin/kotlin
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/bin/kotlin-dce-js
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/bin/kotlin-dce-js.bat
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/bin/kotlin.bat
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/bin/kotlinc
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/bin/kotlinc-js
@@ -728,7 +726,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/android-extension
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/android-extensions-runtime.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/annotations-13.0.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/assignment-compiler-plugin.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/compose-compiler.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/compose-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/js.engines.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
@@ -3565,6 +3563,7 @@ Android Studio Preview.app/Contents/plugins/turboComplete/lib/turboComplete.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/url-assistant.so.jar
 Android Studio Preview.app/Contents/plugins/url-assistant/lib/urlassistant_proto.jar
+Android Studio Preview.app/Contents/plugins/vcs-git-commit-modal/lib/vcs-git-commit-modal.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/git4idea-rt.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/vcs-git.jar
 Android Studio Preview.app/Contents/plugins/vcs-github-IC/lib/vcs-github.jar
