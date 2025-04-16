@@ -2,8 +2,9 @@ load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 package(default_visibility = [
+    "//tools/adt/idea/aswb/javatests:__subpackages__",
     "//tools/adt/idea/aswb/querysync:__subpackages__",
-    "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
+    "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
 ])
 
 java_proto_library(
