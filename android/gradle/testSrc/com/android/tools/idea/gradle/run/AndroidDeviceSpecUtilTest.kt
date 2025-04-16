@@ -21,15 +21,10 @@ import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API
 import com.android.sdklib.devices.Abi
-import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.ConfigKey.DEVICE_NAME
-import com.android.sdklib.internal.avd.HardwareProperties
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidDevice
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import org.junit.After
-import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
@@ -45,14 +40,8 @@ class AndroidDeviceSpecUtilTest {
 
   private var myFile: File? = null
 
-  @Before
-  fun setUp() {
-    StudioFlags.RISC_V.override(true)
-  }
-
   @After
   fun cleanUp() {
-    StudioFlags.RISC_V.clearOverride()
     myFile?.delete()
   }
 
@@ -186,16 +175,11 @@ class AndroidDeviceSpecUtilTest {
   fun densityOptimizationDisabledForResizableAndMultipleDevices() {
     val lowDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.LOW)
     val highDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.HIGH)
-    val unsupportedResizableDevice = FakeAvdDevice(
-      mockAvdInfo(AndroidVersion.DEFAULT, "resizable"))
-    val supportedResizableDevice = FakeAvdDevice(
-      mockAvdInfo(AndroidVersion(MIN_RESIZABLE_DEVICE_API), "resizable"))
+    val resizableDevice = mockDevice(AndroidVersion(MIN_RESIZABLE_DEVICE_API), resizeable = true)
 
     assertThat(createSpec(listOf(highDensityDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNotNull()
-    assertThat(createSpec(listOf(unsupportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNotNull()
-    assertThat(createSpec(listOf(supportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
-    assertThat(createSpec(listOf(highDensityDevice, supportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
-    assertThat(createSpec(listOf(highDensityDevice, unsupportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
+    assertThat(createSpec(listOf(resizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
+    assertThat(createSpec(listOf(highDensityDevice, resizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
     assertThat(createSpec(listOf(highDensityDevice, lowDensityDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNull()
   }
 
@@ -251,27 +235,6 @@ class AndroidDeviceSpecUtilTest {
     return spec!!.writeToJsonTempFile(fetchLanguages)
   }
 
-  private fun mockAvdInfo(
-    version: AndroidVersion,
-    name: String = "name",
-    displayName: String = "device",
-    density: Density = Density.create(260)
-  ): AvdInfo {
-    val avdInfo = mock(AvdInfo::class.java)
-    whenever(avdInfo.androidVersion).thenReturn(version)
-    whenever(avdInfo.id).thenReturn("id")
-    whenever(avdInfo.name).thenReturn(name)
-    whenever(avdInfo.displayName).thenReturn(displayName)
-    whenever(avdInfo.properties).thenReturn(
-      mapOf(
-        Pair(HardwareProperties.HW_LCD_DENSITY, density.dpiValue.toString()),
-        Pair(DEVICE_NAME, name)
-      )
-    )
-    whenever(avdInfo.userSettings).thenReturn(mapOf())
-    return avdInfo
-  }
-
   private fun mockDevice(
     version: AndroidVersion,
     density: Density = Density.create(260),
@@ -292,9 +255,9 @@ class AndroidDeviceSpecUtilTest {
     whenever(launchedDevice.version).thenReturn(version)
     if (config.isNotEmpty()) {
       whenever(launchedDevice.executeShellCommand(Mockito.anyString(),
-                                                Mockito.any(),
-                                                Mockito.anyLong(),
-                                                Mockito.any())).thenAnswer {
+                                                  Mockito.any(),
+                                                  Mockito.anyLong(),
+                                                  Mockito.any())).thenAnswer {
         // get the 2nd arg (the receiver to feed it the lines).
         val receiver = it.arguments[1] as IShellOutputReceiver
         val byteArray = "$config\n".toByteArray(Charsets.UTF_8)
