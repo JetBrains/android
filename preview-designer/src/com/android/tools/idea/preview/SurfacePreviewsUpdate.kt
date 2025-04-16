@@ -17,6 +17,7 @@ package com.android.tools.idea.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.common.model.DisplaySettings
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
@@ -38,7 +39,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibCallbacksConfig
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.findAndroidModule
-import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.Disposable
@@ -195,56 +195,48 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
             facet,
           )
         newModel.configuration.startBulkEditing()
-        // Common configuration steps for new and reused models
-        newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
-        newModel.displaySettings.setBaseName(previewElement.displaySettings.baseName)
-        newModel.displaySettings.setParameterName(previewElement.displaySettings.parameterName)
-        // TODO(b/407525144) Set correct icon and do not set file name if preview opened from the
-        // same file.
-        if (StudioFlags.PREVIEW_SOURCESET_UI.get()) {
-          newModel.displaySettings.setFileName(psiFile.name)
-          newModel.displaySettings.setGroupType(OrganizationGroupType.Test)
-        }
+
+        copySettingsInto(
+          from = previewElement.displaySettings,
+          to = newModel.displaySettings,
+          psiFile,
+        )
+
         newModel.dataProvider = previewElementModelAdapter.createDataProvider(previewElement)
         newModel.setModelUpdater(modelUpdater)
-        (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
-          // PreviewDisplaySettings.organizationGroup is optional, if present it defines subgroups.
-          // Without PreviewDisplaySettings.organizationGroup present
-          // groupId - "fully qualified name of composable"
-          // displayName - "name of composable" for example "MyComposableName"
-          // With PreviewDisplaySettings.organizationGroup present
-          // groupId - "fully qualified name of composable PreviewDisplaySettings.organizationGroup"
-          // displayName - "name of composable - PreviewDisplaySettings.organizationGroup" for
-          // example "MyComposableName - Font sizes"
-          val displayName =
-            methodPreviewElement.displaySettings.organizationName
-              ?: methodPreviewElement.displaySettings.name
-          val fileAndDisplayName =
-            newModel.displaySettings.fileName.value?.let { "$it.$displayName" } ?: displayName
-          methodPreviewElement.displaySettings.organizationGroup?.let { groupId ->
-            newModel.organizationGroup =
-              groups.getOrCreate(groupId) {
-                OrganizationGroup(
-                    groupId,
-                    fileAndDisplayName,
-                    newModel.displaySettings.groupType.value,
-                  ) {
-                    // Everytime state is changed we need to save it.
-                    isOpened ->
-                    getInstance(project)
-                      .surfaceState
-                      .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
-                  }
-                  .apply {
-                    // Load previously saved state or use default state.
-                    setOpened(
-                      previousOrganizationState[it]
-                        ?: newModel.displaySettings.groupType.value.defaultGroupState
-                    )
-                  }
-              }
-          }
+
+        // groupId - fully qualified name of composable
+        // displayName - name of composable for example "MyComposableName - Font sizes" or
+        // "MyComposableName"
+        previewElement.displaySettings.organizationGroup?.let { groupId ->
+          newModel.organizationGroup =
+            groups.getOrCreate(groupId) {
+              val displayName =
+                previewElement.displaySettings.organizationName
+                  ?: previewElement.displaySettings.name
+              val fileAndDisplayName =
+                newModel.displaySettings.fileName.value?.let { "$it.$displayName" } ?: displayName
+              OrganizationGroup(
+                  groupId = groupId,
+                  displayName = fileAndDisplayName,
+                  groupType = newModel.displaySettings.groupType.value,
+                ) {
+                  // Everytime state is changed we need to save it.
+                  isOpened ->
+                  getInstance(project)
+                    .surfaceState
+                    .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
+                }
+                .apply {
+                  // Load previously saved state or use default state.
+                  setOpened(
+                    previousOrganizationState[it]
+                      ?: newModel.displaySettings.groupType.value.defaultGroupState
+                  )
+                }
+            }
         }
+
         val offset = runReadAction {
           previewElement.previewElementDefinition?.element?.textOffset ?: 0
         }
@@ -297,6 +289,20 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   debugLogger?.logRenderComplete(this)
   log.info("Render completed")
   return elementsToSceneManagers.map { it.first }
+}
+
+fun copySettingsInto(from: PreviewDisplaySettings, to: DisplaySettings, psiFile: PsiFile) {
+  // Common configuration steps for new and reused models
+  to.setDisplayName(from.name)
+  to.setBaseName(from.baseName)
+  to.setParameterName(from.parameterName)
+
+  // TODO(b/407525144) Set correct icon and do not set file name if preview opened from the
+  // same file.
+  if (StudioFlags.PREVIEW_SOURCESET_UI.get()) {
+    to.setFileName(psiFile.name)
+    to.setGroupType(OrganizationGroupType.Test)
+  }
 }
 
 /**
