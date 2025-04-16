@@ -217,23 +217,19 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
               val fileAndDisplayName =
                 newModel.displaySettings.fileName.value?.let { "$it.$displayName" } ?: displayName
               OrganizationGroup(
-                  groupId = groupId,
-                  displayName = fileAndDisplayName,
-                  groupType = newModel.displaySettings.groupType.value,
-                ) {
-                  // Everytime state is changed we need to save it.
-                  isOpened ->
-                  getInstance(project)
-                    .surfaceState
-                    .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
-                }
-                .apply {
-                  // Load previously saved state or use default state.
-                  setOpened(
-                    previousOrganizationState[it]
-                      ?: newModel.displaySettings.groupType.value.defaultGroupState
-                  )
-                }
+                groupId = groupId,
+                displayName = fileAndDisplayName,
+                groupType = newModel.displaySettings.groupType.value,
+                defaultOpenedState =
+                  previousOrganizationState[it]
+                    ?: newModel.displaySettings.groupType.value.defaultGroupState,
+              ) {
+                // Everytime state is changed we need to save it.
+                isOpened ->
+                getInstance(project)
+                  .surfaceState
+                  .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
+              }
             }
         }
 
