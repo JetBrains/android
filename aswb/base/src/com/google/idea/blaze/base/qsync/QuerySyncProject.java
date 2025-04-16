@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest.multiTarget;
 import static com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest.wholeProject;
 
@@ -61,7 +62,6 @@ import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.google.protobuf.CodedOutputStream;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.io.File;
 import java.io.FileInputStream;
@@ -70,6 +70,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -284,18 +285,20 @@ public class QuerySyncProject {
   /**
    * Returns the list of project targets related to the given workspace file.
    *
-   * @param context Context
-   * @param workspaceRelativePath Workspace relative file path to find targets for. This may be a
-   *     source file, directory or BUILD file.
+   * @param context               Context
+   * @param workspaceRelativePaths Workspace relative file paths to find targets for. A path may be a
+   *                              path to a source file, directory or BUILD file.
    * @return Corresponding project targets. For a source file, this is the targets that build that
-   *     file. For a BUILD file, it's the set or targets defined in that file. For a directory, it's
-   *     the set of all targets defined in all build packages within the directory (recursively).
+   * file. For a BUILD file, it's the set or targets defined in that file. For a directory, it's
+   * the set of all targets defined in all build packages within the directory (recursively).
    */
-  public TargetsToBuild getProjectTargets(BlazeContext context, Path workspaceRelativePath) {
+  public ImmutableSet<TargetsToBuild> getProjectTargets(BlazeContext context, Collection<Path> workspaceRelativePaths) {
     return snapshotHolder
         .getCurrent()
-        .map(snapshot -> snapshot.graph().getProjectTargets(context, workspaceRelativePath))
-        .orElse(TargetsToBuild.None.INSTANCE);
+        .stream()
+        .flatMap(snapshot -> workspaceRelativePaths.stream()
+          .map(path -> snapshot.graph().getProjectTargets(context, path)))
+      .collect(toImmutableSet());
   }
 
   /** Returns the set of targets with direct dependencies on {@code targets}. */
@@ -410,7 +413,7 @@ public class QuerySyncProject {
   }
 
   public boolean canEnableAnalysisFor(Path workspacePath) {
-    return !getProjectTargets(BlazeContext.create(), workspacePath).isEmpty();
+    return !getProjectTargets(BlazeContext.create(), ImmutableList.of(workspacePath)).isEmpty();
   }
 
   public void enableRenderJar(BlazeContext context, PsiFile psiFile, Set<Label> targets)

@@ -488,6 +488,7 @@ public record BuildGraphDataImpl(
    */
   @Override
   public TargetsToBuild getProjectTargets(Context<?> context, Path workspaceRelativePath) {
+    // TODO: relativize here.
     if (workspaceRelativePath.endsWith("BUILD")) {
       Path packagePath = workspaceRelativePath.getParent();
       return TargetsToBuild.targetGroup(storage.allTargets().get(packagePath));

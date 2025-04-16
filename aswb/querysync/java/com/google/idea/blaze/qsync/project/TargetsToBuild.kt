@@ -23,6 +23,7 @@ sealed class TargetsToBuild() {
   abstract val displayLabel: String
   abstract val targets: Set<Label>
   abstract fun isAmbiguous(): Boolean
+  open fun autoDisambiguate(anchors: Set<Label>): TargetsToBuild? = null
 
   /**
    * Represents a group of targets that should be built as per a user's request.
@@ -43,6 +44,10 @@ sealed class TargetsToBuild() {
   data class SourceFile(override val targets: Set<Label>, private val sourceFile: Path): TargetsToBuild() {
     override val displayLabel: String get() = sourceFile.toString()
     override fun isAmbiguous(): Boolean = targets.size > 1
+    override fun autoDisambiguate(anchors: Set<Label>): TargetsToBuild? {
+      if (!isAmbiguous()) return null
+      return targets.find { anchors.contains(it)}?.let { copy(targets = setOf(it)) }
+    }
   }
 
   object None: TargetsToBuild() {
@@ -54,9 +59,6 @@ sealed class TargetsToBuild() {
   fun isEmpty() = targets.isEmpty()
   fun getUnambiguousTargets() = if (isAmbiguous()) setOf() else targets
 
-  /** Returns true if `labels` overlaps with any of the targets to build  */
-  fun overlapsWith(targets: Set<Label>): Boolean = (targets intersect this.targets).isNotEmpty()
-
   companion object {
     @JvmStatic
     fun targetGroup(targets: Collection<Label>) = TargetGroup(targets.toSet())
@@ -66,10 +68,3 @@ sealed class TargetsToBuild() {
   }
 }
 
-fun Collection<TargetsToBuild>.getAllUnambiguous(): Set<Label> {
-  return asSequence().filter { it.isAmbiguous() }.flatMap { it.targets }.toSet()
-}
-
-fun Collection<TargetsToBuild>.getAllAmbiguous(): Set<TargetsToBuild> {
-  return asSequence().filter { it.isAmbiguous() }.toSet()
-}

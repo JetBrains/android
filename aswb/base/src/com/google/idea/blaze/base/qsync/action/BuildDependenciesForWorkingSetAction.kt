@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.base.actions.BlazeProjectAction
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.qsync.QuerySyncManager
-import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin
 import com.google.idea.blaze.exception.BuildException
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,21 +50,23 @@ class BuildDependenciesForWorkingSetAction : BlazeProjectAction() {
       notifyFailureWorkingSet(project, be)
       return
     }
-
-    val affectedTargets = helper.getAffectedTargetsForPaths(workingSet)
-    if (affectedTargets.isEmpty()) {
+    if (workingSet.isEmpty()) {
+      logger.error("Empty working set")
       notifyEmptyWorkingSet(project)
       return
     }
 
     val querySyncActionStats =
       QuerySyncActionStatsScope.createForPaths(javaClass, e, ImmutableSet.copyOf(workingSet))
-    QuerySyncManager.getInstance(project)
-      .enableAnalysisForReverseDeps(
-        affectedTargets,
-        querySyncActionStats,
-        TaskOrigin.USER_ACTION
-      )
+
+    helper.determineTargetsAndRun(
+      workspaceRelativePaths = workingSet,
+      positioner = PopupPositioner.showAtMousePointerOrCentered(e),
+      targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE
+    ) { labels ->
+      QuerySyncManager.getInstance(project)
+        .enableAnalysisForReverseDeps(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
+    }
   }
 
   private fun notifyFailureWorkingSet(project: Project, e: Throwable) {

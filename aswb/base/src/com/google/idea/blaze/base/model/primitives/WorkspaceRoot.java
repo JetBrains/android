@@ -15,6 +15,9 @@
  */
 package com.google.idea.blaze.base.model.primitives;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.ideinfo.ProtoWrapper;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
@@ -23,6 +26,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Objects;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
@@ -72,6 +77,19 @@ public class WorkspaceRoot implements ProtoWrapper<String> {
       throw new IllegalStateException("null BlazeImportSettings.");
     }
     return fromImportSettings(importSettings);
+  }
+
+  public static ImmutableSet<Path> virtualFilesToWorkspaceRelativePaths(Project project, Collection<VirtualFile> virtualFiles) {
+    final var workspaceRoot = fromProject(project).path();
+    ImmutableSet<Path> paths = virtualFiles
+      .stream()
+      .filter(VirtualFile::isInLocalFileSystem)
+      .map(it -> it.getFileSystem().getNioPath(it))
+      .filter(Objects::nonNull)
+      .filter(it -> it.startsWith(workspaceRoot))
+      .map(workspaceRoot::relativize)
+      .collect(toImmutableSet());
+    return paths;
   }
 
   public File fileForPath(WorkspacePath workspacePath) {

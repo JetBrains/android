@@ -91,12 +91,12 @@ public class BlazeBuildService {
   }
 
   public void buildFileForLabels(
-      String fileName, ImmutableSet<com.google.idea.blaze.common.Label> labels) {
-    buildFile(fileName, labels.stream().map(Label::create).collect(toImmutableSet()));
+      String displayFileName, ImmutableSet<com.google.idea.blaze.common.Label> labels) {
+    buildFile(displayFileName, labels.stream().map(Label::create).collect(toImmutableSet()));
   }
 
-  public void buildFile(String fileName, ImmutableCollection<Label> targets) {
-    if (!Blaze.isBlazeProject(project) || fileName == null) {
+  public void buildFile(String displayFileName, ImmutableCollection<Label> targets) {
+    if (!Blaze.isBlazeProject(project) || displayFileName == null) {
       return;
     }
     ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
@@ -106,7 +106,7 @@ public class BlazeBuildService {
       return;
     }
 
-    String title = "Make " + fileName;
+    String title = "Make " + displayFileName;
     buildTargetExpressions(
         project,
         projectView,

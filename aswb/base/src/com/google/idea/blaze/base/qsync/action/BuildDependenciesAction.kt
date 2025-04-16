@@ -15,9 +15,10 @@
  */
 package com.google.idea.blaze.base.qsync.action
 
-import com.google.common.collect.Sets
+import com.google.common.collect.ImmutableList
 import com.google.idea.blaze.base.actions.BlazeProjectAction
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySync
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.ibm.icu.lang.UCharacter
@@ -25,10 +26,8 @@ import com.ibm.icu.text.BreakIterator
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
 import java.util.Locale
-import java.util.function.Consumer
 
 /**
  * Action to build dependencies and enable analysis.
@@ -44,12 +43,14 @@ class BuildDependenciesAction : BlazeProjectAction() {
     val presentation = e.presentation
     presentation.setIcon(AllIcons.Actions.Compile)
     presentation.setText(if (e.place == ActionPlaces.MAIN_MENU) "$NAME for Current File" else NAME)
-    val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: let {
+    val vfs = e.getVirtualFiles() ?: let {
       presentation.setEnabled(false)
       return
     }
     val helper = BuildDependenciesHelper(project)
-    if (!helper.canEnableAnalysisFor(virtualFile)) {
+    // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
+    // they should automatically trigger sync.
+    if (vfs.all { !helper.canEnableAnalysisFor(it) }) {
       presentation.setEnabled(false)
       return
     }
@@ -62,24 +63,19 @@ class BuildDependenciesAction : BlazeProjectAction() {
 
   override fun actionPerformedInBlazeProject(project: Project, e: AnActionEvent) {
     val helper = BuildDependenciesHelper(project)
-    val vfile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-    val querySyncActionStats = QuerySyncActionStatsScope.createForFile(javaClass, e, vfile)
+    val vfs = e.getVirtualFiles() ?: return
+    val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(javaClass, e, ImmutableList.copyOf(vfs))
     helper.determineTargetsAndRun(
-      vfile,
-      PopupPositioner.showAtMousePointerOrCentered(e),
-      Consumer { labels ->
-        QuerySyncManager.getInstance(project)
-          .enableAnalysis(
-            Sets.union(labels, helper.workingSetTargetsIfEnabled), querySyncActionStats,
-            QuerySyncManager.TaskOrigin.USER_ACTION
-          )
-      },
-      BuildDependenciesHelper.TargetDisambiguationAnchors.WorkingSet(helper)
-    )
+      workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs),
+      positioner = PopupPositioner.showAtMousePointerOrCentered(e),
+      targetDisambiguationAnchors = TargetDisambiguationAnchors.WorkingSet(helper)
+    ) { labels ->
+      QuerySyncManager.getInstance(project)
+        .enableAnalysis(labels + helper.workingSetTargetsIfEnabled, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
+    }
   }
 
   companion object {
-    @JvmField
     val NAME: String = UCharacter.toTitleCase(
       Locale.US, QuerySync.BUILD_DEPENDENCIES_ACTION_NAME, BreakIterator.getWordInstance()
     )

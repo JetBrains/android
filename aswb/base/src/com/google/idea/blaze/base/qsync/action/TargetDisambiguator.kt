@@ -15,51 +15,55 @@
  */
 package com.google.idea.blaze.base.qsync.action
 
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.qsync.project.TargetsToBuild
-import com.google.idea.blaze.qsync.project.getAllAmbiguous
-import com.google.idea.blaze.qsync.project.getAllUnambiguous
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import java.nio.file.Path
 
-/** Utility for identifying ambiguities in targets to build for files  */
-data class TargetDisambiguator(val unambiguousTargets: Set<Label>, val ambiguousTargetSets: Set<TargetsToBuild>) {
-  constructor(targetsToPath: Set<TargetsToBuild>): this(
-    targetsToPath.getAllUnambiguous(),
-    targetsToPath.getAllAmbiguous(),
-  )
+/**
+ * Additional targets to consider when disambiguating targets to build for a file.
+ */
+sealed interface TargetDisambiguationAnchors {
+  val anchorTargets: Set<Label>
 
   /**
-   * Finds the sets of targets that cannot be unambiguously resolved.
-   *
-   *
-   * The is the set of ambiguous targets sets which contain no targets that overlap with the
-   * unambiguous set of targets.
+   * A set of specific targets to consider when disambiguating targets to build for a file.
    */
-  fun calculateUnresolvableTargets(): Set<TargetsToBuild> {
-    return ambiguousTargetSets.filter { (it.targets intersect unambiguousTargets).isEmpty() }.toSet()
+  data class Targets(override val anchorTargets: Set<Label>) : TargetDisambiguationAnchors
+
+  /**
+   * An anchor requesting that the working set be considered when disambiguating targets to build for a file.
+   */
+  class WorkingSet(private val helper: BuildDependenciesHelper) : TargetDisambiguationAnchors {
+    override val anchorTargets: Set<Label> get() = helper.workingSetTargetsIfEnabled
   }
 
   companion object {
-    @JvmStatic
-    @JvmName("createForFiles")
-    fun BuildDependenciesHelper.createDisambiguatorForFiles(files: Set<VirtualFile>): TargetDisambiguator {
-      val workspaceRoot = WorkspaceRoot.fromProject(project).path()
-      return createDisambiguatorForPaths(
-        files
-          .mapNotNull{ it.fileSystem.getNioPath(it) }
-          .filter { it.startsWith(workspaceRoot) }
-          .map { workspaceRoot.relativize(it) }
-          .toSet())
-    }
+    @JvmField val NONE: TargetDisambiguationAnchors = Targets(emptySet())
   }
 }
 
-fun BuildDependenciesHelper.createDisambiguatorForPaths(workspaceRelativePaths: Set<Path>): TargetDisambiguator {
-  // Find the targets to build per source file, and de-dupe then such that if several source files
-  // are built by the same set of targets, we consider them as one. Map these results back to an
-  // original source file to so we can show it in the UI:
-  return TargetDisambiguator(workspaceRelativePaths.map { getTargetsToEnableAnalysisFor(it) }.toSet())
+/** Utility for identifying ambiguities in targets to build for files  */
+data class TargetDisambiguator(
+  val unambiguousTargets: Set<Label>,
+  val ambiguousTargetSets: Set<TargetsToBuild>
+) {
+
+  companion object {
+    @JvmStatic
+    @JvmName("createForGroups")
+    fun createDisambiguatorForTargetGroups(
+      groups: Set<TargetsToBuild>,
+      anchors: TargetDisambiguationAnchors,
+    ): TargetDisambiguator {
+      // Note: This implementation does not take into account the dependency graph and it might be useful to do so.
+      val unambiguousTargets = groups.asSequence().filter { !it.isAmbiguous() }.flatMap { it.targets }.toSet()
+      val ambiguousTargets = groups.asSequence().filter { it.isAmbiguous() }.toSet()
+      val allAnchors = anchors.anchorTargets + unambiguousTargets
+      val disambiguated = ambiguousTargets
+        .mapNotNull { it to (it.autoDisambiguate(allAnchors) ?: return@mapNotNull null) }
+      return TargetDisambiguator(
+        unambiguousTargets = unambiguousTargets + disambiguated.map { it.second }.flatMap { it.targets },
+        ambiguousTargetSets = ambiguousTargets - disambiguated.map { it.first }
+      )
+    }
+  }
 }

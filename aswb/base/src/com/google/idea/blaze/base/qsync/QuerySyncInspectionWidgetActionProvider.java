@@ -15,17 +15,21 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.idea.blaze.base.qsync.action.ActionUtil.getVirtualFiles;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.OperationType;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
-import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.TargetDisambiguationAnchors;
+import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.qsync.action.PopupPositioner;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
-import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.intellij.icons.AllIcons.Actions;
 import com.intellij.ide.HelpTooltip;
@@ -33,7 +37,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
@@ -56,6 +59,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyBoundsListener;
 import java.awt.event.HierarchyEvent;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +67,7 @@ import javax.swing.JComponent;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.FontUIResource;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,15 +111,19 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      VirtualFile vfile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+      List<VirtualFile> vfs = getVirtualFiles(e);
       QuerySyncActionStatsScope querySyncActionStats =
-        QuerySyncActionStatsScope.createForFile(getClass(), e, vfile);
+        QuerySyncActionStatsScope.createForFiles(getClass(), e, ImmutableList.copyOf(vfs));
       buildDepsHelper.determineTargetsAndRun(
-        vfile,
+        WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.getProject(), vfs),
         PopupPositioner.showUnderneathClickedComponentOrCentered(e),
-        labels -> syncManager.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats,
-                                             QuerySyncManager.TaskOrigin.USER_ACTION),
-        new TargetDisambiguationAnchors.WorkingSet(buildDepsHelper));
+        new TargetDisambiguationAnchors.WorkingSet(buildDepsHelper),
+        labels -> {
+          syncManager.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats,
+                                     QuerySyncManager.TaskOrigin.USER_ACTION);
+          return Unit.INSTANCE;
+        }
+      );
     }
 
     @Override
@@ -144,15 +153,18 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
                 : "Building dependencies...");
         return;
       }
-      TargetsToBuild toBuild = buildDepsHelper.getTargetsToEnableAnalysisFor(vf);
+      Set<TargetsToBuild> toBuild = buildDepsHelper.getTargetsToEnableAnalysisForPaths(
+        WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.getProject(), ImmutableList.of(vf)));
 
       if (toBuild.isEmpty()) {
+        // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
+        // they should automatically trigger sync.
         presentation.setEnabled(false);
         return;
       }
 
       presentation.setEnabled(true);
-      if (toBuild instanceof TargetsToBuild.SourceFile sourceFile
+      if (toBuild.size() == 1 &&  getOnlyElement(toBuild) instanceof TargetsToBuild.SourceFile sourceFile
           && QuerySyncSettings.getInstance().showDetailedInformationInEditor()) {
 
         int missing = buildDepsHelper.getSourceFileMissingDepsCount(sourceFile);
@@ -226,7 +238,8 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
       if (vf != null
           && querySyncManager.isProjectLoaded()
           && !querySyncManager.operationInProgress()) {
-        TargetsToBuild toBuild = buildDepsHelper.getTargetsToEnableAnalysisFor(vf);
+        Set<TargetsToBuild> toBuild = buildDepsHelper.getTargetsToEnableAnalysisForPaths(
+          WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, ImmutableList.of(vf)));
         return toBuild.isEmpty();
       }
       return false;
