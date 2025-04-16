@@ -1068,13 +1068,13 @@ public class Scene implements SelectionListener, Disposable {
     mNeedsLayout = type;
   }
 
-  public long getDisplayListVersion() {
+  public synchronized long getDisplayListVersion() {
     return myDisplayListVersion;
   }
 
   // TODO: reduce visibility? Probably the modified SceneComponents should do this rather than
   // requiring it to be done explicitly by the code that's modifying them.
-  public void needsRebuildList() {
+  public synchronized void needsRebuildList() {
     myDisplayListVersion++;
   }
 
