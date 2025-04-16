@@ -92,7 +92,7 @@ abstract class PageAlignNotifier(
       if (isWear || isAutomotive) continue
 
       // Show a warning balloon for the SO files that aren't aligned at a 16 KB boundary within the APK
-      val apkLink = "<a href='$apkFile'>${apkFile.name.substringBeforeLast(".apk")}</a>"
+      val apkLink = "<a href='$apkFile'>${apkFile.name}</a>"
       problems.filter { it.value.contains(ElfNot16kAlignedInZip) }.map { it.key }.let { files ->
         if (files.isNotEmpty()) {
           logEvent(ALIGN_NATIVE_BUBBLE_ZIP_OFFSET_DEPLOYED)
