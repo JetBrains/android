@@ -23,7 +23,6 @@ import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
-import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
@@ -39,7 +38,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
-import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.utils.executeWithRetries
@@ -49,7 +47,6 @@ import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.TestDataProvider
@@ -143,7 +140,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     ignoreAllThreadLeaks()
   }
 
-  internal fun openUiSettings(): UiSettingsPanel {
+  internal fun openUiSettings(): UiSettingsDialog {
     waitForCondition(60.seconds) {
       fakeUi.updateToolbarsIfNecessary()
       val button = fakeUi.findComponent<ActionButton> {
@@ -154,8 +151,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     }
     val button = fakeUi.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
     button.click()
-    val dialog = waitForDialog()
-    return dialog.contentPanel.findDescendant<UiSettingsPanel>()!!
+    return waitForDialog()
   }
 
   private fun initAdb(): Adb {
@@ -260,12 +256,12 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     )
   }
 
-  private fun waitForDialog(): DialogWrapper {
-    waitForCondition(10.seconds) { findDialog() != null }
+  private fun waitForDialog(): UiSettingsDialog {
+    waitForCondition(30.seconds) { findDialog() != null }
     return findDialog()!!
   }
 
-  private fun findDialog() = findModelessDialog { it is UiSettingsDialog && it.isShowing }
+  private fun findDialog() = findModelessDialog { it is UiSettingsDialog && it.isShowing } as? UiSettingsDialog
 
   // Emulate a disconnect of the device
   fun cutConnectionToAgent() {
