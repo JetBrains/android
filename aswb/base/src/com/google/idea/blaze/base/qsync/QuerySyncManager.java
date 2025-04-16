@@ -281,6 +281,30 @@ public class QuerySyncManager implements Disposable {
         taskOrigin);
   }
 
+  public ListenableFuture<Boolean> syncQueryDataIfNeeded(QuerySyncActionStatsScope querySyncActionStats, TaskOrigin taskOrigin) {
+    assertProjectLoaded();
+    return runSync(
+        "Updating build structure",
+        "Refreshing build structure",
+        querySyncActionStats,
+        context -> {
+          if (getFileListener().hasModifiedBuildFiles()) {
+            Optional<PostQuerySyncData> lastQuery = Optional.ofNullable(loadedProject)
+              .flatMap(it ->
+                         it.getSnapshotHolder().getCurrent().map(QuerySyncProjectSnapshot::queryData));
+            if (projectDefinitionHasChanged(context)) {
+              context.output(PrintOutput.log("Project definition has changed, reloading."));
+              QuerySyncProject newlyLoadedProject = loader.loadProject(context);
+              if (!context.hasErrors()) {
+                loadedProject = newlyLoadedProject;
+              }
+            }
+            loadedProject.syncQueryData(context, lastQuery);
+          }
+        },
+        taskOrigin);
+  }
+
   public ListenableFuture<Boolean> runBuild(
       String title,
       String subTitle,

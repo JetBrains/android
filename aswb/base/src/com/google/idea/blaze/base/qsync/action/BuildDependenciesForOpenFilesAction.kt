@@ -47,7 +47,8 @@ class BuildDependenciesForOpenFilesAction : BlazeProjectAction() {
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, openFiles),
       disambiguateTargetPrompt = createDisambiguateTargetPrompt(PopupPositioner.showAtMousePointerOrCentered(event)),
-      targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE
+      targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
+      querySyncActionStats = querySyncActionStats,
     ) { labels ->
       syncManager
         .enableAnalysis(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)

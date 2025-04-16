@@ -51,7 +51,8 @@ class BuildDependenciesForDirectReverseDepsAction : BlazeProjectAction() {
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs),
       disambiguateTargetPrompt = createDisambiguateTargetPrompt(PopupPositioner.showAtMousePointerOrCentered(e)),
-      targetDisambiguationAnchors = TargetDisambiguationAnchors.WorkingSet(helper)
+      targetDisambiguationAnchors = TargetDisambiguationAnchors.WorkingSet(helper),
+      querySyncActionStats = querySyncActionStats,
     ) { labels ->
       QuerySyncManager.getInstance(project).enableAnalysisForReverseDeps(
         labels,

@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.base.build.BlazeBuildService
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
@@ -72,10 +73,12 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
 
     if (Blaze.getProjectType(project) == BlazeImportSettings.ProjectType.QUERY_SYNC) {
       val buildDependenciesHelper = BuildDependenciesHelper(project)
+      val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(javaClass, e, ImmutableList.copyOf(files))
       buildDependenciesHelper.determineTargetsAndRun(
         workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
         disambiguateTargetPrompt = createDisambiguateTargetPrompt({ popup -> popup.showCenteredInCurrentWindow(project) }),
         targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
+        querySyncActionStats = querySyncActionStats,
       ) { labels ->
         BlazeBuildService.getInstance(project)
           .buildFileForLabels(files.joinToString(", ", limit = 2), ImmutableSet.copyOf(labels))

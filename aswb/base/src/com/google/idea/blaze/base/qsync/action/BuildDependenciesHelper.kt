@@ -18,8 +18,10 @@ package com.google.idea.blaze.base.qsync.action
 import com.android.tools.idea.concurrency.coroutineScope
 import com.google.common.collect.Iterables.getOnlyElement
 import com.google.common.util.concurrent.SettableFuture.create
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin
 import com.google.idea.blaze.base.qsync.QuerySyncManager.getInstance
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings
 import com.google.idea.blaze.base.scope.BlazeContext
@@ -94,11 +96,23 @@ class BuildDependenciesHelper(val project: Project) {
     workspaceRelativePaths: Collection<Path>,
     disambiguateTargetPrompt: DisambiguateTargetPrompt,
     targetDisambiguationAnchors: TargetDisambiguationAnchors,
+    querySyncActionStats: QuerySyncActionStatsScope,
     consumer: (Set<Label>) -> Deferred<Boolean>
   ): Deferred<Boolean> {
     return project.coroutineScope.async(Dispatchers.Default) {
       // semi sync - without updating project
       if (!canEnableAnalysisNow()) return@async false
+      val syncResult =
+        withContext(Dispatchers.EDT) {
+          syncManager.syncQueryDataIfNeeded(querySyncActionStats, TaskOrigin.AUTOMATIC)
+        }
+          .asDeferred()
+          .await()
+      if (!syncResult) {
+        QuerySyncManager.getInstance(project)
+          .notifyError("Refreshing build structure failed",
+                       "Refreshing build structure failed. Check the sync console for details. Proceeding with the last known project structure.")
+      }
       val groupsToBuild = getTargetsToEnableAnalysisForPaths(workspaceRelativePaths)
       val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(groupsToBuild, targetDisambiguationAnchors)
       val ambiguousTargets = disambiguator.ambiguousTargetSets

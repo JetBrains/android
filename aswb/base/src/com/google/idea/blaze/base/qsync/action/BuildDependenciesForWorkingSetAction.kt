@@ -64,7 +64,8 @@ class BuildDependenciesForWorkingSetAction : BlazeProjectAction() {
     helper.determineTargetsAndRun(
       workspaceRelativePaths = workingSet,
       disambiguateTargetPrompt = createDisambiguateTargetPrompt(PopupPositioner.showAtMousePointerOrCentered(e)),
-      targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE
+      targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
+      querySyncActionStats = querySyncActionStats,
     ) { labels ->
       QuerySyncManager.getInstance(project)
         .enableAnalysisForReverseDeps(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)

@@ -119,6 +119,7 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
         WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.getProject(), vfs),
         createDisambiguateTargetPrompt(PopupPositioner.showUnderneathClickedComponentOrCentered(e)),
         new TargetDisambiguationAnchors.WorkingSet(buildDepsHelper),
+        querySyncActionStats,
         labels ->
           asDeferred(
             syncManager.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats,
