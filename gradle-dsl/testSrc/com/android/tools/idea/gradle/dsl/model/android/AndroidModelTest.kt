@@ -1889,6 +1889,36 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyCompileSdkWithMinor() {
+    // TODO(b/411099168): Add additional test case for the new DSL once ready
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-36.1")
+    assertEquals("compileSdkVersion", "android-36.1", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_WITH_MINOR_EXPECTED);
+  }
+
+  @Test
+  fun testAddAndApplyCompileSdkWithExtension() {
+    // TODO(b/411099168): Add additional test case for the new DSL once ready
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-34-ext14")
+    assertEquals("compileSdkVersion", "android-34-ext14", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_WITH_EXTENSION_EXPECTED);
+  }
+
+  @Test
   fun testAddAndApplyStringSdkElements() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
@@ -2505,6 +2535,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS("addAndApplyIntegerLiteralElements"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED("addAndApplyIntegerLiteralElementsExpected"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400("addAndApplyIntegerLiteralElementsExpected400"),
+    ADD_AND_APPLY_COMPILE_SDK_WITH_MINOR_EXPECTED("addAndApplyCompileSdkWithMinorExpected"),
+    ADD_AND_APPLY_COMPILE_SDK_WITH_EXTENSION_EXPECTED("addAndApplyCompileSdkWithExtensionExpected"),
     ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED("addAndApplyStringSdkElementsExpected"),
     ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400("addAndApplyStringSdkElementsExpected400"),
     REPLACE_AND_APPLY_LIST_ELEMENTS("replaceAndApplyListElements"),

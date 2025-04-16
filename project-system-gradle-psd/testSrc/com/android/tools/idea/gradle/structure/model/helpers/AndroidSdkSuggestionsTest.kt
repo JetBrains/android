@@ -20,19 +20,21 @@ import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage
+import com.android.sdklib.AndroidApiLevel
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.internal.androidTarget.MockAddonTarget
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations.initMocks
 import org.mockito.kotlin.whenever
 
-class InstalledEnvironmentsTest {
+class AndroidSdkSuggestionsTest {
 
   @Mock private lateinit var sdkManager: RepoManager
 
@@ -57,8 +59,14 @@ class InstalledEnvironmentsTest {
   private val target2: IAndroidTarget = MockAddonTarget("ADDON", target1, 0)
   private val target3: IAndroidTarget = MockPlatformTarget(26, 0)
   private val target4: IAndroidTarget = MockPlatformTarget(27, 0)
+  private val target5: IAndroidTarget = MockPlatformTarget(AndroidVersion(AndroidApiLevel(35, 0), null,14, false), 0)
+  private val target6: IAndroidTarget = MockPlatformTarget(AndroidVersion(35, "Baklava"), 0)
+  private val target7: IAndroidTarget = MockPlatformTarget(36, 0)
+  private val target8: IAndroidTarget = MockPlatformTarget(AndroidVersion(36, 1), 0)
 
   private lateinit var targets: Collection<IAndroidTarget>
+
+  private val staticallyKnownAndroidVersions = setOf(AndroidVersion(34, 0), AndroidVersion(36, 0), AndroidVersion(36, 1))
 
   @Before
   fun setUp() {
@@ -68,27 +76,58 @@ class InstalledEnvironmentsTest {
             RepositoryPackages(
                 listOf(localPackage1, localPackage2, localPackage3, localPackage4),
                 listOf()))
-    targets = listOf(target1, target2, target3, target4)
+    targets = listOf(target1, target2, target3, target4, target5, target6, target7, target8)
   }
 
   @Test
-  fun installedEnvironment_androidSdks() {
+  fun installedEnvironment_minSdks() {
     assertThat(
-        installedEnvironments(sdkManager, targets).androidSdks,
-        equalTo(
+      androidSdkSuggestions(sdkManager, targets, staticallyKnownAndroidVersions).minSdks,
+      equalTo(
             listOf(
                 ValueDescriptor("24", "API 24 (\"Nougat\"; Android 7.0)"),
                 ValueDescriptor("26", "API 26 (\"Oreo\"; Android 8.0)"),
-                ValueDescriptor("27", "API 27 (\"Oreo\"; Android 8.1)")
+                ValueDescriptor("27", "API 27 (\"Oreo\"; Android 8.1)"),
+                ValueDescriptor("34", "API 34 (\"UpsideDownCake\"; Android 14.0)"),
+                ValueDescriptor("android-Baklava", "API Baklava Preview"),
+                ValueDescriptor("36", "API 36 (\"Baklava\"; Android 16.0)"),
             )))
+  }
 
+  @Test
+  fun installedEnvironment_targetSdks() {
+    assertThat(
+      androidSdkSuggestions(sdkManager, targets, staticallyKnownAndroidVersions).targetSdks,
+      equalTo(
+        listOf(
+          ValueDescriptor("24", "API 24 (\"Nougat\"; Android 7.0)"),
+          ValueDescriptor("26", "API 26 (\"Oreo\"; Android 8.0)"),
+          ValueDescriptor("27", "API 27 (\"Oreo\"; Android 8.1)"),
+          ValueDescriptor("34", "API 34 (\"UpsideDownCake\"; Android 14.0)"),
+          ValueDescriptor("android-Baklava", "API Baklava Preview"),
+          ValueDescriptor("36", "API 36 (\"Baklava\"; Android 16.0)"),
+        )))
+  }
+
+  @Test
+  fun installedEnvironment_maxSdks() {
+    assertThat(
+      androidSdkSuggestions(sdkManager, targets, staticallyKnownAndroidVersions).maxSdks,
+      equalTo(
+        listOf(
+          ValueDescriptor(24, "API 24 (\"Nougat\"; Android 7.0)"),
+          ValueDescriptor(26, "API 26 (\"Oreo\"; Android 8.0)"),
+          ValueDescriptor(27, "API 27 (\"Oreo\"; Android 8.1)"),
+          ValueDescriptor(34, "API 34 (\"UpsideDownCake\"; Android 14.0)"),
+          ValueDescriptor(36, "API 36 (\"Baklava\"; Android 16.0)"),
+        )))
   }
 
   @Test
   fun installedEnvironment_buildTools() {
     assertThat(
-        installedEnvironments(sdkManager, targets).buildTools,
-        equalTo(
+      androidSdkSuggestions(sdkManager, targets, setOf()).buildTools,
+      equalTo(
             listOf(
                 ValueDescriptor("24.0.3", null),
                 ValueDescriptor("27.0.0", null),
@@ -98,15 +137,19 @@ class InstalledEnvironmentsTest {
   }
 
   @Test
-  fun installedEnvironment_compiledApis() {
+  fun installedEnvironment_compileSdks() {
     assertThat(
-        installedEnvironments(sdkManager, targets).compiledApis,
-        equalTo(
+      androidSdkSuggestions(sdkManager, targets, setOf()).compileSdks,
+      equalTo(
             listOf(
                 ValueDescriptor("24", "API 24 (\"Nougat\"; Android 7.0)"),
                 ValueDescriptor("vendor 24:ADDON:24", "ADDON (API 24)"),
                 ValueDescriptor("26", "API 26 (\"Oreo\"; Android 8.0)"),
-                ValueDescriptor("27", "API 27 (\"Oreo\"; Android 8.1)")
+                ValueDescriptor("27", "API 27 (\"Oreo\"; Android 8.1)"),
+                ValueDescriptor("android-35-ext14", "API 35 ext. 14 (\"VanillaIceCream\"; Android 15.0)"),
+                ValueDescriptor("android-Baklava", "API Baklava Preview"),
+                ValueDescriptor("36", "API 36.0 (\"Baklava\"; Android 16.0)"),
+                ValueDescriptor("android-36.1", "API 36.1 (\"Baklava\"; Android 16.0)"),
             )))
 
   }
