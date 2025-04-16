@@ -3,5 +3,5 @@ visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//t
 
 STUDIO_CODENAME = "Meerkat Feature Drop"
 STUDIO_VERSION = "RC"
-STUDIO_MICRO_PATCH = "2.11"
-STUDIO_RELEASE_NUMBER = 2
+STUDIO_MICRO_PATCH = "2.12"
+STUDIO_RELEASE_NUMBER = 3
