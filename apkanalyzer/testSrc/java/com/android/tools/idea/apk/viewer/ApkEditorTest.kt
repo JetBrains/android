@@ -26,11 +26,13 @@ import com.android.tools.idea.apk.viewer.arsc.ArscViewer
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer
 import com.android.tools.idea.apk.viewer.testing.FakeAndroidApplicationInfoProvider
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
 import com.google.devrel.gmscore.tools.apk.arsc.ChunkWithChunks
 import com.intellij.diff.util.FileEditorBase
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
@@ -39,9 +41,14 @@ import com.intellij.openapi.ui.asSequence
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.readText
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -54,6 +61,11 @@ import org.junit.runners.JUnit4
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
@@ -72,12 +84,14 @@ class ApkEditorTest {
   private val projectRule = ProjectRule()
   private val project get() = projectRule.project
   private val disposableRule = DisposableRule()
+  val temporaryDirectoryRule = TemporaryDirectoryRule()
 
   @get:Rule
   val rule = RuleChain(
     projectRule,
     disposableRule,
     ApplicationServiceRule(FileEditorProviderManager::class.java, mockFileEditorProviderManager()),
+    temporaryDirectoryRule,
     EdtRule()
   )
 
@@ -103,6 +117,42 @@ class ApkEditorTest {
       "/res/anim",
       "/res/anim/fade.xml"
     )
+  }
+
+  @Test
+  fun newEditor_apkChanged_reloaded() {
+    val apk1 = TestResources.getFile("/2.apk").toPath()
+    val apk = temporaryDirectoryRule.newPath("file.apk")
+    Files.copy(apk1, apk)
+    val apkEditor = apkEditor(apk.pathString, isResource = false)
+    assertThat(apkEditor.getNodes()).containsExactly(
+      "/",
+      "/AndroidManifest.xml",
+      "/instant-run",
+      "/instant-run.zip",
+      "/instant-run/classes1.dex",
+      "/res",
+      "/res/anim",
+      "/res/anim/fade.xml",
+    )
+
+    val apk2 = TestResources.getFile("/1.apk").toPath()
+    Files.copy(apk2, apk, REPLACE_EXISTING)
+    val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apk.toFile()) ?: fail("Can't find file")
+    @Suppress("UnstableApiUsage")
+    ApplicationManager.getApplication().messageBus.syncPublisher(VirtualFileManager.VFS_CHANGES).after(
+      listOf(VFileContentChangeEvent(this, virtualFile, 0, 0)))
+
+    waitForCondition {
+      println(apkEditor.getNodes().sorted())
+      apkEditor.getNodes().sorted() == listOf(
+        "/",
+        "/AndroidManifest.xml",
+        "/res",
+        "/res/anim",
+        "/res/anim/fade.xml"
+        )
+    }
   }
 
   @Test
@@ -132,7 +182,7 @@ class ApkEditorTest {
     val editor = apkEditor.getEditor<DexFileViewer>(
       apkEditor.getNode("/classes2.dex"),
       apkEditor.getNode("/classes4.dex"),
-      )
+    )
 
     assertThat(editor.getClassCount()).isEqualTo(112)
   }
@@ -206,8 +256,8 @@ class ApkEditorTest {
     assertThat(editor).isInstanceOf(EmptyPanel::class.java)
   }
 
-  private fun apkEditor(path: String): ApkEditor {
-    val file = TestResources.getFile(path)
+  private fun apkEditor(path: String, isResource: Boolean = true): ApkEditor {
+    val file = if (isResource) TestResources.getFile(path) else File(path)
     val archive = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) ?: fail("File not found: $path")
     val root = ApkFileSystem().getRootByLocal(archive) ?: fail("Invalid archive: $path")
     val apkEditor = ApkEditor(project, archive, root, FakeAndroidApplicationInfoProvider())
@@ -248,7 +298,7 @@ class ApkEditorTest {
    *
    * Exposes information needed for verification and doesn't interfere with disposal.
    */
-  private class TestFileEditor(virtualFile: VirtualFile): FileEditorBase() {
+  private class TestFileEditor(virtualFile: VirtualFile) : FileEditorBase() {
     val fileType = virtualFile.fileType.name
 
     val fileContents = virtualFile.readText()
@@ -320,12 +370,12 @@ private fun BinaryResourceFile.getAllChunks(): Sequence<Any> {
 
 private fun ChunkWithChunks.getAllChunks(): Sequence<Chunk> {
   return sequence {
-     chunks.values.forEach {
+    chunks.values.forEach {
       yield(it)
-       if (it is ChunkWithChunks) {
-         // recursive call
-         yieldAll(it.getAllChunks())
-       }
+      if (it is ChunkWithChunks) {
+        // recursive call
+        yieldAll(it.getAllChunks())
+      }
     }
   }
 }
