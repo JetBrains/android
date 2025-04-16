@@ -16,6 +16,7 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.componenttree.api.ComponentTreeBuildResult
@@ -24,6 +25,7 @@ import com.android.tools.componenttree.api.createIntColumn
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.StyleNodeType
+import com.android.tools.idea.flags.StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -36,6 +38,8 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ColumnTreeUITest {
+  @get:Rule
+  val flagRule = FlagRule(DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE, true)
 
   companion object {
     @JvmField @ClassRule val rule = ApplicationRule()
