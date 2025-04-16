@@ -561,7 +561,7 @@ internal data class XrVelocityMessage(val x: Float, val y: Float, val z: Float) 
   }
 }
 
-/** Requests a display screenshot. */
+/** Asks the agent to send back configuration of all device displays, [DisplayConfigurationResponse]. */
 internal data class DisplayConfigurationRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
@@ -605,8 +605,11 @@ internal data class ErrorResponse(override val requestId: Int, val errorMessage:
   }
 }
 
-/** Screenshot of a device display. */
-internal data class DisplayConfigurationResponse(override val requestId: Int, val displays: List<DisplayDescriptor>): CorrelatedMessage(TYPE) {
+/** Parameters of all device displays. Sent in response to [DisplayConfigurationRequest]. */
+internal data class DisplayConfigurationResponse(
+  override val requestId: Int,
+  val displays: List<DisplayDescriptor>,
+) : CorrelatedMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -621,7 +624,7 @@ internal data class DisplayConfigurationResponse(override val requestId: Int, va
   }
 
   override fun toString(): String {
-    return "ScreenshotResponse(requestId=$requestId, displays=$displays)"
+    return "DisplayConfigurationResponse(requestId=$requestId, displays=$displays)"
   }
 
   companion object : Deserializer {
