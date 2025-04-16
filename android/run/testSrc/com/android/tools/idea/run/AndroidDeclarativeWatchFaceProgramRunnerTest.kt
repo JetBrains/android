@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.run
 
+import com.android.flags.junit.FlagRule
+import com.android.test.testutils.EnsureAndroidProjectRule
+import com.android.tools.idea.flags.StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.junit.Before
@@ -28,9 +32,11 @@ import org.junit.Rule
 import org.junit.Test
 
 class AndroidDeclarativeWatchFaceProgramRunnerTest {
-
+  private val ensureAndroidProjectRule = EnsureAndroidProjectRule()
+  private val flagRule = FlagRule(WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION, true)
+  private val projectRule = ProjectRule()
   @get:Rule
-  val projectRule = ProjectRule()
+  val ruleChain = RuleChain(flagRule, projectRule, ensureAndroidProjectRule)
 
   private lateinit var declarativeWatchFaceRunConfiguration: RunConfiguration
   private lateinit var programRunner: AndroidDeclarativeWatchFaceProgramRunner
