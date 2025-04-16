@@ -36,6 +36,7 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.testFramework.PlatformTestUtil
@@ -165,6 +166,19 @@ class JdkIntegrationTest(
         project
       }
       assertOnDiskConfig(AssertOnDiskConfig(project, expect))
+    }
+
+    fun syncAssertingUndefinedGradleJdK() {
+      sync(
+        assertInMemoryConfig = {
+          // The #USE_PROJECT_JDK macro represents the default when gradleJvm isn't defined
+          assertGradleJdk(ExternalSystemJdkUtil.USE_PROJECT_JDK)
+        },
+        assertOnDiskConfig = {
+          // The #USE_PROJECT_JDK macro isn't stored in the .idea/gradle.xml being this the default
+          assertGradleJdk(null)
+        }
+      )
     }
 
     fun syncWithAssertion(
