@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
 import java.io.File
+import kotlinx.coroutines.guava.asDeferred
 
 internal class BlazeCompileFileAction : BlazeProjectAction() {
   override fun querySyncSupport(): QuerySyncStatus = QuerySyncStatus.SUPPORTED
@@ -76,6 +77,7 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
       ) { labels ->
         BlazeBuildService.getInstance(project)
           .buildFileForLabels(files.joinToString(", ", limit = 2), ImmutableSet.copyOf(labels))
+          .asDeferred()
       }
       return
     }

@@ -15,7 +15,9 @@
  */
 package com.google.idea.blaze.base.qsync.action
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.google.common.collect.Iterables
+import com.google.common.util.concurrent.SettableFuture
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings
@@ -23,11 +25,18 @@ import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.project.TargetsToBuild
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.guava.asDeferred
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 private val logger = Logger.getInstance(BuildDependenciesHelper::class.java)
 
@@ -79,44 +88,61 @@ class BuildDependenciesHelper(val project: Project) {
     workspaceRelativePaths: Collection<Path>,
     positioner: PopupPositioner,
     targetDisambiguationAnchors: TargetDisambiguationAnchors,
-    consumer: (Set<Label>) -> Unit
+    consumer: (Set<Label>) -> Deferred<Boolean>
   ) {
-    // semi sync - without updating project
-    if (!canEnableAnalysisNow()) return
-    val groupsToBuild = getTargetsToEnableAnalysisForPaths(workspaceRelativePaths)
-    val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(groupsToBuild, targetDisambiguationAnchors)
-    val ambiguousTargets = disambiguator.ambiguousTargetSets
+    project.coroutineScope.launch(Dispatchers.Default) {
+      // semi sync - without updating project
+      if (!canEnableAnalysisNow()) return@launch
+      val groupsToBuild = getTargetsToEnableAnalysisForPaths(workspaceRelativePaths)
+      val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(groupsToBuild, targetDisambiguationAnchors)
+      val ambiguousTargets = disambiguator.ambiguousTargetSets
 
-    when {
-      ambiguousTargets.isEmpty() -> consumer(disambiguator.unambiguousTargets)
-      ambiguousTargets.size == 1 -> {
-        // there is a single ambiguous target set. Show the UI to disambiguate it.
-        val ambiguousOne: TargetsToBuild = Iterables.getOnlyElement<TargetsToBuild?>(ambiguousTargets)!!
-        val displayFileName = ambiguousOne.displayLabel
-        BuildDependenciesHelperSelectTargetPopup.chooseTargetToBuildFor(
-          displayFileName,
-          ambiguousOne,
-          positioner
-        ) { consumer(setOf(it) + disambiguator.unambiguousTargets) }
-      }
-      else -> {
-        logger.warn(
-          "Multiple ambiguous target sets for open files; not building them: " +
-          ambiguousTargets.joinToString(",  ", limit = 3) { it.displayLabel })
+      val targetsToBuild = when {
+        ambiguousTargets.isEmpty() -> disambiguator.unambiguousTargets
+        ambiguousTargets.size == 1 -> {
+          // there is a single ambiguous target set. Show the UI to disambiguate it.
+          val ambiguousOne: TargetsToBuild = Iterables.getOnlyElement<TargetsToBuild?>(ambiguousTargets)!!
+          val displayFileName = ambiguousOne.displayLabel
+          val selection = SettableFuture.create<Label?>()
+          launch(Dispatchers.EDT) {
+            BuildDependenciesHelperSelectTargetPopup.chooseTargetToBuildFor(
+              displayFileName,
+              ambiguousOne,
+              positioner,
+              { runBlocking { selection.set(it) } },
+              { runBlocking { selection.set(null) } }
+            )
+          }
+
+          val selectedLabel = selection.asDeferred().await() ?: return@launch // Cancelled.
+
+          setOf(selectedLabel) + disambiguator.unambiguousTargets
+        }
+
+        else -> {
+          logger.warn(
+            "Multiple ambiguous target sets; not building them: " +
+            ambiguousTargets.joinToString(",  ", limit = 3) { it.displayLabel })
           QuerySyncManager.getInstance(project)
             .notifyWarning(
               "Ambiguous target sets found",
               "Ambiguous target sets found; not building them: "
               + ambiguousTargets.joinToString(", ", limit = 3) { it.displayLabel }
             )
-        if (disambiguator.unambiguousTargets.isNotEmpty()) {
-          consumer(disambiguator.unambiguousTargets)
-        }
-        else {
-          // TODO(mathewi) show an error?
-          // or should we show multiple popups in parallel? (doesn't seem great if there are lots)
+          when {
+            disambiguator.unambiguousTargets.isNotEmpty() -> disambiguator.unambiguousTargets
+            else -> {
+              // TODO(mathewi) show an error?
+              // or should we show multiple popups in parallel? (doesn't seem great if there are lots)
+              emptySet()
+            }
+          }
         }
       }
+      val buildProcess = withContext(Dispatchers.EDT) {
+        consumer(targetsToBuild)
+      }
+      val ignoredResult = buildProcess.await()
     }
   }
 

@@ -23,6 +23,7 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.guava.asDeferred
 
 /**
  * Action to build dependencies and enable analysis for all open editor tabs.
@@ -47,7 +48,9 @@ class BuildDependenciesForOpenFilesAction : BlazeProjectAction() {
       positioner = PopupPositioner.showAtMousePointerOrCentered(event),
       targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE
     ) { labels ->
-      syncManager.enableAnalysis(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
+      syncManager
+        .enableAnalysis(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
+        .asDeferred()
     }
   }
 }

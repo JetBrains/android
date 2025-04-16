@@ -23,6 +23,7 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.guava.asDeferred
 
 private val NAME = BuildDependenciesAction.NAME + " for Reverse Dependencies"
 /** Action to build dependencies and enable analysis for a file and it's reverse dependencies  */
@@ -56,6 +57,7 @@ class BuildDependenciesForDirectReverseDepsAction : BlazeProjectAction() {
         querySyncActionStats,
         QuerySyncManager.TaskOrigin.USER_ACTION
       )
+        .asDeferred()
     }
   }
 }

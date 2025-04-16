@@ -21,6 +21,7 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsSc
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySync
 import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin
 import com.ibm.icu.lang.UCharacter
 import com.ibm.icu.text.BreakIterator
 import com.intellij.icons.AllIcons
@@ -28,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import java.util.Locale
+import kotlinx.coroutines.guava.asDeferred
 
 /**
  * Action to build dependencies and enable analysis.
@@ -71,7 +73,8 @@ class BuildDependenciesAction : BlazeProjectAction() {
       targetDisambiguationAnchors = TargetDisambiguationAnchors.WorkingSet(helper)
     ) { labels ->
       QuerySyncManager.getInstance(project)
-        .enableAnalysis(labels + helper.workingSetTargetsIfEnabled, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
+        .enableAnalysis(labels + helper.workingSetTargetsIfEnabled, querySyncActionStats, TaskOrigin.USER_ACTION)
+        .asDeferred()
     }
   }
 

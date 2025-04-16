@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.guava.asDeferred
 
 /**
  * Action to build dependencies and enable analysis for the working set and it's reverse
@@ -66,6 +67,7 @@ class BuildDependenciesForWorkingSetAction : BlazeProjectAction() {
     ) { labels ->
       QuerySyncManager.getInstance(project)
         .enableAnalysisForReverseDeps(labels, querySyncActionStats, QuerySyncManager.TaskOrigin.USER_ACTION)
+        .asDeferred()
     }
   }
 

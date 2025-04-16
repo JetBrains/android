@@ -30,18 +30,23 @@ import java.util.function.Consumer;
  */
 class BuildDependenciesHelperSelectTargetPopup extends BaseListPopupStep<Label> {
   static BuildDependenciesHelperSelectTargetPopup create(
-    TargetsToBuild toBuild, String fileDisplayLabel, Consumer<Label> onChosen) {
+    TargetsToBuild toBuild, String fileDisplayLabel, Consumer<Label> onChosen, Runnable onCancelled) {
     ImmutableList<Label> rows =
       ImmutableList.sortedCopyOf(Comparator.comparing(Label::toString), toBuild.getTargets());
 
-    return new BuildDependenciesHelperSelectTargetPopup(rows, fileDisplayLabel, onChosen);
+    return new BuildDependenciesHelperSelectTargetPopup(rows, fileDisplayLabel, onChosen, onCancelled);
   }
 
   private final Consumer<Label> onChosen;
+  private final Runnable onCancelled;
 
-  BuildDependenciesHelperSelectTargetPopup(ImmutableList<Label> rows, String fileDisplayLabel, Consumer<Label> onChosen) {
+  BuildDependenciesHelperSelectTargetPopup(ImmutableList<Label> rows,
+                                           String fileDisplayLabel,
+                                           Consumer<Label> onChosen,
+                                           Runnable cancelled) {
     super("Select target to build for " + fileDisplayLabel, rows);
     this.onChosen = onChosen;
+    onCancelled = cancelled;
   }
 
   /**
@@ -53,10 +58,11 @@ class BuildDependenciesHelperSelectTargetPopup extends BaseListPopupStep<Label> 
     String fileDisplayLabel,
     TargetsToBuild toBuild,
     PopupPositioner positioner,
-    Consumer<Label> chosenConsumer) {
+    Consumer<Label> chosenConsumer,
+    Runnable onCancelled) {
     JBPopupFactory factory = JBPopupFactory.getInstance();
     ListPopup popup =
-        factory.createListPopup(create(toBuild, fileDisplayLabel, chosenConsumer));
+        factory.createListPopup(create(toBuild, fileDisplayLabel, chosenConsumer, onCancelled));
     positioner.showInCorrectPosition(popup);
   }
 
@@ -69,5 +75,10 @@ class BuildDependenciesHelperSelectTargetPopup extends BaseListPopupStep<Label> 
       onChosen.accept(selectedValue);
     }
     return FINAL_CHOICE;
+  }
+
+  @Override
+  public void canceled() {
+    onCancelled.run();
   }
 }

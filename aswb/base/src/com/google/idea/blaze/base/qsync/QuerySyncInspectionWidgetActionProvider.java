@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.idea.blaze.base.qsync.action.ActionUtil.getVirtualFiles;
+import static kotlinx.coroutines.guava.ListenableFutureKt.asDeferred;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -24,8 +25,8 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsSc
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.OperationType;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
-import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.qsync.action.PopupPositioner;
+import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -67,7 +68,6 @@ import javax.swing.JComponent;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.FontUIResource;
-import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,11 +118,10 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
         WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.getProject(), vfs),
         PopupPositioner.showUnderneathClickedComponentOrCentered(e),
         new TargetDisambiguationAnchors.WorkingSet(buildDepsHelper),
-        labels -> {
-          syncManager.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats,
-                                     QuerySyncManager.TaskOrigin.USER_ACTION);
-          return Unit.INSTANCE;
-        }
+        labels ->
+          asDeferred(
+            syncManager.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats,
+                                       QuerySyncManager.TaskOrigin.USER_ACTION))
       );
     }
 
