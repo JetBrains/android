@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.IdeInfo
@@ -206,7 +207,7 @@ class LogcatMainPanelFactory {
      * development.
      */
     class NoopHyperlinkDetector : HyperlinkDetector {
-      override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {}
+      override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: AndroidApiLevel?) {}
     }
 
     class GameToolsAndroidProjectDetector : AndroidProjectDetector {
@@ -688,7 +689,7 @@ constructor(
       hyperlinkDetector.detectHyperlinks(
         startLine,
         endLine,
-        deviceComboBox.getSelectedDevice()?.sdk,
+        deviceComboBox.getSelectedDevice()?.let { AndroidApiLevel(it.sdk, it.sdkMinor) },
       )
       foldingDetector.detectFoldings(startLine, endLine)
 

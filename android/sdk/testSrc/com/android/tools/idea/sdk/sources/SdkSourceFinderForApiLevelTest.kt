@@ -20,6 +20,7 @@ import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoPackage
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider.Companion.REQUIRED_SOURCES_KEY
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
@@ -36,20 +37,18 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.runInEdtAndWait
+import kotlin.test.fail
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.fail
 
-/**
- * Tests for [SdkSourceFinderForApiLevel]
- */
+/** Tests for [SdkSourceFinderForApiLevel] */
 class SdkSourceFinderForApiLevelTest {
 
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.withSdk()
+  @get:Rule val androidProjectRule = AndroidProjectRule.withSdk()
 
-  private val project get() = androidProjectRule.project
+  private val project
+    get() = androidProjectRule.project
 
   private val fileEditorManager by lazy { FileEditorManager.getInstance(project) }
 
@@ -64,7 +63,7 @@ class SdkSourceFinderForApiLevelTest {
   fun sourcePosition_targetSourcesAvailable() {
     val target = getFile("android.view.View")
 
-    val finder = SdkSourceFinderForApiLevel(project, apiLevel = 27)
+    val finder = SdkSourceFinderForApiLevel(project, apiLevel = AndroidApiLevel(27))
 
     val sourcePosition = finder.getSourcePosition(target, lineNumber = 12)
 
@@ -77,33 +76,35 @@ class SdkSourceFinderForApiLevelTest {
   fun sourcePosition_targetSourcesNotAvailable() {
     val target = getFile("android.view.View")
     removeLocalTargetSdkPackages(30)
-    val finder = SdkSourceFinderForApiLevel(project, apiLevel = 30)
+    val finder = SdkSourceFinderForApiLevel(project, apiLevel = AndroidApiLevel(30))
 
     val sourcePosition = finder.getSourcePosition(target, lineNumber = 12)
 
     assertThat(sourcePosition.file.fileType).isEqualTo(JavaFileType.INSTANCE)
     assertThat(sourcePosition.file.virtualFile.path).isEqualTo("/android-30/UnavailableSource")
     assertThat(sourcePosition.file.virtualFile).isInstanceOf(LightVirtualFile::class.java)
-    assertThat(sourcePosition.file.virtualFile.getContent()).contains("device under debug has API level 30.")
+    assertThat(sourcePosition.file.virtualFile.getContent())
+      .contains("device under debug has API level 30.")
     assertThat(sourcePosition.file.name).isEqualTo("android-30/UnavailableSource")
     assertThat(sourcePosition.line).isEqualTo(-1)
 
-    val apiLevel = sourcePosition.file.virtualFile.getUserData(REQUIRED_SOURCES_KEY)!!
-    assertThat(apiLevel).isEqualTo(30)
+    val apiLevel = sourcePosition.file.virtualFile.getUserData(REQUIRED_SOURCES_KEY)
+    assertThat(apiLevel).isEqualTo(AndroidApiLevel(30))
   }
 
   @Test
   fun sourcePosition_becomesAvailable() {
     val target = getFile("android.view.View")
     removeLocalTargetSdkPackages(28)
-    val finder = SdkSourceFinderForApiLevel(project, apiLevel = 28)
+    val finder = SdkSourceFinderForApiLevel(project, apiLevel = AndroidApiLevel(28))
     val sourcePosition = finder.getSourcePosition(target, lineNumber = 121)
     assertThat(sourcePosition.file.name).isEqualTo("android-28/UnavailableSource")
 
     restoreLocalTargetSdkPackages()
     val newSourcePosition = finder.getSourcePosition(target, lineNumber = 121)
 
-    assertThat(newSourcePosition.file.virtualFile.path).endsWith("android-28/android/view/View.java")
+    assertThat(newSourcePosition.file.virtualFile.path)
+      .endsWith("android-28/android/view/View.java")
     assertThat(newSourcePosition.line).isEqualTo(121)
   }
 
@@ -111,34 +112,36 @@ class SdkSourceFinderForApiLevelTest {
   fun afterDownload_missingSourcesFileDeleted() {
     val target = getFile("android.view.View")
     removeLocalTargetSdkPackages(28)
-    val finder = SdkSourceFinderForApiLevel(project, apiLevel = 28)
+    val finder = SdkSourceFinderForApiLevel(project, apiLevel = AndroidApiLevel(28))
     val sourcePosition = finder.getSourcePosition(target, lineNumber = 121)
-    runInEdtAndWait {
-      fileEditorManager.openFile(sourcePosition.file.virtualFile, false)
-    }
+    runInEdtAndWait { fileEditorManager.openFile(sourcePosition.file.virtualFile, false) }
     val installedPackage = UpdatablePackage(FakeRemotePackage("sources;android-28"))
     assertThat(fileEditorManager.isFileOpen(sourcePosition.file.virtualFile)).isTrue()
 
-    project.messageBus.syncPublisher(SdkInstallListener.TOPIC).installCompleted(listOf(installedPackage), emptyList())
+    project.messageBus
+      .syncPublisher(SdkInstallListener.TOPIC)
+      .installCompleted(listOf(installedPackage), emptyList())
 
-    runInEdt {
-      assertThat(fileEditorManager.isFileOpen(sourcePosition.file.virtualFile)).isFalse()
-    }
+    runInEdt { assertThat(fileEditorManager.isFileOpen(sourcePosition.file.virtualFile)).isFalse() }
   }
 
   private fun removeLocalTargetSdkPackages(apiLevel: Int) {
-    val packagesToRemove = setOf(
-      "${SdkConstants.FD_ANDROID_SOURCES}${RepoPackage.PATH_SEPARATOR}android-$apiLevel",
-      "${SdkConstants.FD_PLATFORMS}${RepoPackage.PATH_SEPARATOR}android-$apiLevel"
-    )
+    val packagesToRemove =
+      setOf(
+        "${SdkConstants.FD_ANDROID_SOURCES}${RepoPackage.PATH_SEPARATOR}android-$apiLevel",
+        "${SdkConstants.FD_PLATFORMS}${RepoPackage.PATH_SEPARATOR}android-$apiLevel",
+      )
 
-    val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
-      .packages
+    val packages =
+      AndroidSdks.getInstance()
+        .tryToChooseSdkHandler()
+        .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
+        .packages
     val localPackages = packages.localPackages.values
 
     if (originalLocalPackages == null) {
-      // This won't get reset at the end of each test automatically. Store original list to restore it later.
+      // This won't get reset at the end of each test automatically. Store original list to restore
+      // it later.
       originalLocalPackages = localPackages
     }
 
@@ -148,9 +151,11 @@ class SdkSourceFinderForApiLevelTest {
 
   private fun restoreLocalTargetSdkPackages() {
     if (originalLocalPackages != null) {
-      val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
-        .packages
+      val packages =
+        AndroidSdks.getInstance()
+          .tryToChooseSdkHandler()
+          .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
+          .packages
       packages.setLocalPkgInfos(originalLocalPackages!!)
 
       originalLocalPackages = null
@@ -159,7 +164,9 @@ class SdkSourceFinderForApiLevelTest {
 
   @Suppress("SameParameterValue")
   private fun getFile(fqName: String): PsiFile {
-    val psiClass = runReadAction { PositionManagerImpl.findClass(project, fqName, GlobalSearchScope.allScope(project), true) }
+    val psiClass = runReadAction {
+      PositionManagerImpl.findClass(project, fqName, GlobalSearchScope.allScope(project), true)
+    }
     return psiClass?.containingFile ?: fail("Failed to get file for $fqName")
   }
 }

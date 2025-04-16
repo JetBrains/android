@@ -93,8 +93,8 @@ class AndroidPositionManagerTest {
   private val mockClassPrepareRequestor: ClassPrepareRequestor = mock()
   private val mockRequestManagerImpl: RequestManagerImpl = mock()
 
-  private val targetDeviceAndroidVersion: AndroidVersion = AndroidVersion(30)
-  private val installedPackage = UpdatablePackage(FakeRemotePackage("sources;android-${targetDeviceAndroidVersion.apiLevel}"))
+  private val targetDeviceAndroidVersion: AndroidVersion = AndroidVersion(30, 0)
+  private val installedPackage = UpdatablePackage(FakeRemotePackage("sources;${targetDeviceAndroidVersion.platformHashString}"))
   private lateinit var myPositionManager: AndroidPositionManager
   private val allVirtualMachineClasses = mutableListOf<ReferenceType>()
   private val androidSdkClassLocation: Location
@@ -218,7 +218,7 @@ class AndroidPositionManagerTest {
 
     val lineNumber = androidSdkClassLocation.lineNumber()
     verify(mockSdkSourcePositionFinder)
-      .getSourcePosition(eq(targetDeviceAndroidVersion.apiLevel), any(), eq(lineNumber - 1))
+      .getSourcePosition(eq(targetDeviceAndroidVersion.androidApiLevel), any(), eq(lineNumber - 1))
   }
 
   @Test

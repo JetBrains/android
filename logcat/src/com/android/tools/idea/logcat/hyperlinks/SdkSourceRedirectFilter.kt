@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.sdklib.AndroidApiLevel
 import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.HyperlinkInfo
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 internal class SdkSourceRedirectFilter(private val project: Project, vararg filters: Filter) :
   Filter {
-  var apiLevel: Int? = null
+  var apiLevel: AndroidApiLevel? = null
   @VisibleForTesting
   val compositeFilter =
     CompositeFilter(project, filters.toList()).apply { setForceUseAllFilters(true) }
@@ -45,11 +46,11 @@ internal class SdkSourceRedirectFilter(private val project: Project, vararg filt
     compositeFilter.addFilter(filter)
   }
 
-  private fun Filter.Result.convert(sdk: Int): Filter.Result =
+  private fun Filter.Result.convert(sdk: AndroidApiLevel): Filter.Result =
     Filter.Result(resultItems.map { it.convert(sdk) })
 
   @Suppress("UnstableApiUsage") // MultipleFilesHyperlinkInfo is marked as @ApiStatus.Internal
-  private fun Filter.ResultItem.convert(sdk: Int): Filter.ResultItem {
+  private fun Filter.ResultItem.convert(sdk: AndroidApiLevel): Filter.ResultItem {
     return when (val info = hyperlinkInfo) {
       is MultipleFilesHyperlinkInfo ->
         Filter.ResultItem(highlightStartOffset, highlightEndOffset, info.convert(sdk))
@@ -60,14 +61,14 @@ internal class SdkSourceRedirectFilter(private val project: Project, vararg filt
   }
 
   @Suppress("UnstableApiUsage") // MultipleFilesHyperlinkInfo is marked as @ApiStatus.Internal
-  private fun MultipleFilesHyperlinkInfo.convert(sdk: Int): HyperlinkInfo {
+  private fun MultipleFilesHyperlinkInfo.convert(sdk: AndroidApiLevel): HyperlinkInfo {
     // If there's no descriptor, MultipleFilesHyperlinkInfo won't be able to navigate anyway so
     // there's nothing more we need to do
     val descriptor = descriptor ?: return this
     return SdkSourceRedirectLinkInfo(project, filesVariants, descriptor, sdk)
   }
 
-  private fun OpenFileHyperlinkInfo.convert(sdk: Int): HyperlinkInfo {
+  private fun OpenFileHyperlinkInfo.convert(sdk: AndroidApiLevel): HyperlinkInfo {
     // If there's no descriptor, OpenFileHyperlinkInfo won't be able to navigate anyway so there's
     // nothing more we need to do
     val descriptor = descriptor ?: return this // should not happen
