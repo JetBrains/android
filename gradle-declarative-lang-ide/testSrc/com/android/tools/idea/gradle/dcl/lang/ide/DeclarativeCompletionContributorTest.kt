@@ -287,7 +287,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "layout", "listOf"
+        "layout", "listOf", "mapOf"
       )
     }
   }
@@ -340,7 +340,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         $caret
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp", "androidLibrary", "listOf"
+        "androidApp", "androidLibrary", "listOf", "mapOf"
       )
     }
   }
@@ -439,7 +439,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "layout", "listOf"
+        "layout", "listOf", "mapOf"
       )
     }
 
@@ -704,7 +704,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
     """, "settings.gradle.dcl") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("layout", "listOf", "rootProject", "uri")
+      Truth.assertThat(suggestions.toList()).containsExactly("layout", "listOf", "mapOf", "rootProject", "uri")
     }
   }
 
@@ -720,7 +720,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
     """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "proguardFile")
+        "buildConfigField", "layout", "listOf", "mapOf", "proguardFile")
     }
   }
 
@@ -736,7 +736,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
     """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "proguardFile")
+        "buildConfigField", "layout", "mapOf", "listOf", "proguardFile")
     }
   }
 
@@ -753,7 +753,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
     """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "proguardFile")
+        "buildConfigField", "layout", "listOf", "mapOf", "proguardFile")
     }
   }
 
@@ -769,7 +769,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
     """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "proguardFile")
+        "buildConfigField", "layout", "listOf", "mapOf", "proguardFile")
     }
   }
 
