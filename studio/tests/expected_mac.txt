@@ -335,6 +335,8 @@ Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Light.ttf
 Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Medium.ttf
 Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Regular.ttf
 Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Retina.ttf
+Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/GoogleSansCode-Italic.ttf
+Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/GoogleSansCode.ttf
 Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/Inconsolata.ttf
 Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/Inter-Italic.otf
 Android Studio.app/Contents/jbr/Contents/Home/lib/fonts/Inter-Regular.otf
