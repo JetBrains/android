@@ -23,6 +23,8 @@ import com.google.idea.blaze.base.model.primitives.Label
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt
 import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeImportSettings
@@ -72,7 +74,7 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
       val buildDependenciesHelper = BuildDependenciesHelper(project)
       buildDependenciesHelper.determineTargetsAndRun(
         workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
-        positioner = { popup -> popup.showCenteredInCurrentWindow(project) },
+        disambiguateTargetPrompt = createDisambiguateTargetPrompt({ popup -> popup.showCenteredInCurrentWindow(project) }),
         targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
       ) { labels ->
         BlazeBuildService.getInstance(project)

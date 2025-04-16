@@ -17,22 +17,23 @@ package com.google.idea.blaze.base.qsync.action;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A UI popup promting the user to choose a target to build for a file when multiple alternatives are available.
  */
-class BuildDependenciesHelperSelectTargetPopup extends BaseListPopupStep<Label> {
+public class BuildDependenciesHelperSelectTargetPopup extends BaseListPopupStep<Label> {
   static BuildDependenciesHelperSelectTargetPopup create(
-    TargetsToBuild toBuild, String fileDisplayLabel, Consumer<Label> onChosen, Runnable onCancelled) {
+    String fileDisplayLabel, Consumer<Label> onChosen, Runnable onCancelled, @NotNull Set<@NotNull Label> targets) {
     ImmutableList<Label> rows =
-      ImmutableList.sortedCopyOf(Comparator.comparing(Label::toString), toBuild.getTargets());
+      ImmutableList.sortedCopyOf(Comparator.comparing(Label::toString), targets);
 
     return new BuildDependenciesHelperSelectTargetPopup(rows, fileDisplayLabel, onChosen, onCancelled);
   }
@@ -54,16 +55,13 @@ class BuildDependenciesHelperSelectTargetPopup extends BaseListPopupStep<Label> 
    *
    * <p><em>Note:</em> This is a non-blocking method. It has to be invoked in the EDT.
    */
-  public static void chooseTargetToBuildFor(
-    String fileDisplayLabel,
-    TargetsToBuild toBuild,
-    PopupPositioner positioner,
-    Consumer<Label> chosenConsumer,
-    Runnable onCancelled) {
-    JBPopupFactory factory = JBPopupFactory.getInstance();
-    ListPopup popup =
-        factory.createListPopup(create(toBuild, fileDisplayLabel, chosenConsumer, onCancelled));
-    positioner.showInCorrectPosition(popup);
+  public static BuildDependenciesHelper.DisambiguateTargetPrompt createDisambiguateTargetPrompt(PopupPositioner positioner) {
+    return (fileDisplayLabel, targets, chosenConsumer, onCancelled) -> {
+      JBPopupFactory factory = JBPopupFactory.getInstance();
+      ListPopup popup =
+        factory.createListPopup(create(fileDisplayLabel, chosenConsumer::invoke, onCancelled::invoke, targets));
+      positioner.showInCorrectPosition(popup);
+    };
   }
 
   @Override

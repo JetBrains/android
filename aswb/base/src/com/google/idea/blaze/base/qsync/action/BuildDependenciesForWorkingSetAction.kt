@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.base.actions.BlazeProjectAction
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt
 import com.google.idea.blaze.exception.BuildException
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -62,7 +63,7 @@ class BuildDependenciesForWorkingSetAction : BlazeProjectAction() {
 
     helper.determineTargetsAndRun(
       workspaceRelativePaths = workingSet,
-      positioner = PopupPositioner.showAtMousePointerOrCentered(e),
+      disambiguateTargetPrompt = createDisambiguateTargetPrompt(PopupPositioner.showAtMousePointerOrCentered(e)),
       targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE
     ) { labels ->
       QuerySyncManager.getInstance(project)

@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.idea.blaze.base.qsync.action.ActionUtil.getVirtualFiles;
+import static com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt;
 import static kotlinx.coroutines.guava.ListenableFutureKt.asDeferred;
 
 import com.google.common.collect.ImmutableList;
@@ -116,7 +117,7 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
         QuerySyncActionStatsScope.createForFiles(getClass(), e, ImmutableList.copyOf(vfs));
       buildDepsHelper.determineTargetsAndRun(
         WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.getProject(), vfs),
-        PopupPositioner.showUnderneathClickedComponentOrCentered(e),
+        createDisambiguateTargetPrompt(PopupPositioner.showUnderneathClickedComponentOrCentered(e)),
         new TargetDisambiguationAnchors.WorkingSet(buildDepsHelper),
         labels ->
           asDeferred(

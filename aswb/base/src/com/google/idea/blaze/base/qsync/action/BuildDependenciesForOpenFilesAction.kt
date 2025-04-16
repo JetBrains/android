@@ -20,6 +20,7 @@ import com.google.idea.blaze.base.actions.BlazeProjectAction
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -45,7 +46,7 @@ class BuildDependenciesForOpenFilesAction : BlazeProjectAction() {
 
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, openFiles),
-      positioner = PopupPositioner.showAtMousePointerOrCentered(event),
+      disambiguateTargetPrompt = createDisambiguateTargetPrompt(PopupPositioner.showAtMousePointerOrCentered(event)),
       targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE
     ) { labels ->
       syncManager

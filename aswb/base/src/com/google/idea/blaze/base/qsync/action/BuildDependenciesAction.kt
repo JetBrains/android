@@ -22,6 +22,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySync
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt
 import com.ibm.icu.lang.UCharacter
 import com.ibm.icu.text.BreakIterator
 import com.intellij.icons.AllIcons
@@ -69,7 +70,7 @@ class BuildDependenciesAction : BlazeProjectAction() {
     val querySyncActionStats = QuerySyncActionStatsScope.createForFiles(javaClass, e, ImmutableList.copyOf(vfs))
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs),
-      positioner = PopupPositioner.showAtMousePointerOrCentered(e),
+      disambiguateTargetPrompt = createDisambiguateTargetPrompt(PopupPositioner.showAtMousePointerOrCentered(e)),
       targetDisambiguationAnchors = TargetDisambiguationAnchors.WorkingSet(helper)
     ) { labels ->
       QuerySyncManager.getInstance(project)
