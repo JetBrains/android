@@ -15,8 +15,21 @@
  */
 package com.android.tools.idea.preview.focus
 
+import com.android.tools.preview.PreviewDisplaySettings
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.toImmutableSet
+
 /** A key for each element in [FocusModeTabs]. */
-interface TitledKey {
-  /** A title of the element in [FocusModeTabs]. */
-  val title: String
+interface FocusKey {
+  /** A [PreviewDisplaySettings] corresponding to this [FocusKey]. */
+  val settings: PreviewDisplaySettings
 }
+
+/** Find organizationGroups for target list of [FocusKey], each group should have size > 1. */
+fun Collection<FocusKey>.findOrganizationGroups(): ImmutableSet<String> =
+  this.mapNotNull { it.settings.organizationGroup }
+    .groupingBy { it }
+    .eachCount()
+    .filterValues { count -> count > 1 }
+    .map { it.key }
+    .toImmutableSet()

@@ -34,6 +34,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
+import com.intellij.ui.AnActionButton
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBThinOverlappingScrollBar
 import com.intellij.util.ui.JBUI
@@ -60,7 +61,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * @param tabChangeListener is called when new [Key] is selected. [FocusModeTabs] insures
  *   [tabChangeListener] is not called twice if same [Key] set twice.
  */
-internal class FocusModeTabs<Key : TitledKey>(
+internal class FocusModeTabs<Key : FocusKey>(
   private val root: JComponent,
   private val selectedProvider: (DataContext) -> Key?,
   private val keysProvider: (DataContext) -> Set<Key>,
@@ -79,8 +80,8 @@ internal class FocusModeTabs<Key : TitledKey>(
     }
   }
 
-  private inner class TabLabelAction(val key: Key) :
-    ToggleAction(key.title.truncate()), CustomComponentAction {
+  inner class TabLabelAction(val key: Key, val partOfOrganizationGroup: Boolean) :
+    ToggleAction(), CustomComponentAction {
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
       object :
           ActionButtonWithText(
@@ -111,6 +112,17 @@ internal class FocusModeTabs<Key : TitledKey>(
             }
           )
         }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.text =
+        key.settings
+          .let {
+            it.parameterName.takeIf { e.place == ActionPlaces.POPUP && partOfOrganizationGroup }
+              ?: it.name
+          }
+          .truncate()
+    }
 
     override fun actionPerformed(e: AnActionEvent) {
       updateSelectedKey(e, key)
@@ -177,13 +189,7 @@ internal class FocusModeTabs<Key : TitledKey>(
       }
       popup =
         JBPopupFactory.getInstance()
-          .createActionGroupPopup(
-            null,
-            DefaultActionGroup(labelActions.values.toList()),
-            e.dataContext,
-            null,
-            true,
-          )
+          .createActionGroupPopup(null, moreActionGroup, e.dataContext, null, true)
           .also {
             val location: Point = allTabToolbar.locationOnScreen
             location.translate(0, allTabToolbar.height)
@@ -216,6 +222,7 @@ internal class FocusModeTabs<Key : TitledKey>(
 
   private val allTabDropdown = AllTabsDropdown()
   private val labelActions: MutableMap<Key, TabLabelAction> = mutableMapOf()
+  private var moreActionGroup: DefaultActionGroup = DefaultActionGroup()
   private val centerPanel = JPanel(BorderLayout())
   private val scrollBar = JBThinOverlappingScrollBar(Adjustable.HORIZONTAL)
   private val allTabToolbar: JComponent =
@@ -266,8 +273,11 @@ internal class FocusModeTabs<Key : TitledKey>(
 
     // Only update toolbar if there are any changes.
     if (needsUpdate) {
+      val allGroups = keys.findOrganizationGroups()
       labelActions.clear()
-      keys.forEach { labelActions[it] = TabLabelAction(it) }
+      keys.forEach {
+        labelActions[it] = TabLabelAction(it, allGroups.contains(it.settings.organizationGroup))
+      }
       // Remove previous toolbar if exists.
       previousToolbar?.let { centerPanel.remove(it) }
       // Create new toolbar.
@@ -280,6 +290,35 @@ internal class FocusModeTabs<Key : TitledKey>(
           .component
           .apply { background = Colors.DEFAULT_BACKGROUND_COLOR }
 
+      // Update "More" action group.
+      moreActionGroup =
+        DefaultActionGroup().apply {
+          val groupsToAdd = allGroups.toMutableSet()
+          var addSeparator = false
+          labelActions.forEach {
+            // Add header first if needed.
+            if (groupsToAdd.contains(it.key.settings.organizationGroup)) {
+              addSeparator = true
+              groupsToAdd.remove(it.key.settings.organizationGroup)
+              this.addSeparator()
+              this.add(HeaderAction(it.key.settings.organizationName ?: it.key.settings.name))
+            }
+            // Add element within the group.
+            if (allGroups.contains(it.key.settings.organizationGroup)) {
+              addSeparator = true
+              this.add(it.value)
+            }
+            // Add element outside the group.
+            else {
+              if (addSeparator) {
+                this.addSeparator()
+              }
+              addSeparator = false
+              this.add(it.value)
+            }
+          }
+        }
+
       updateToolbarExecutor.execute {
         centerPanel.add(toolbar, BorderLayout.CENTER)
         previousToolbar = toolbar
@@ -290,6 +329,19 @@ internal class FocusModeTabs<Key : TitledKey>(
   @TestOnly
   fun setUpdateToolbarExecutorForTests(executor: Executor) {
     updateToolbarExecutor = executor
+  }
+
+  class HeaderAction(label: String) : AnActionButton(label) {
+    override fun actionPerformed(e: AnActionEvent) {}
+
+    override fun updateButton(e: AnActionEvent) {
+      super.updateButton(e)
+      e.presentation.isEnabled = false
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT
+    }
   }
 
   private inner class FocusModeActionGroup(actions: List<AnAction>) : DefaultActionGroup(actions) {
@@ -311,4 +363,6 @@ internal class FocusModeTabs<Key : TitledKey>(
       return ActionUpdateThread.EDT
     }
   }
+
+  @TestOnly fun getMoreActionsForTests() = moreActionGroup.childActionsOrStubs
 }
