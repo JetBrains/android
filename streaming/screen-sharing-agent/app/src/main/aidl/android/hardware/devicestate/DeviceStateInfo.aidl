@@ -16,31 +16,8 @@
 
 // Stub replacement for the hidden DeviceStateInfo class used only for compilation.
 // See https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/hardware/devicestate/DeviceStateInfo.java
+
 package android.hardware.devicestate;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-public final class DeviceStateInfo implements Parcelable {
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-      throw new RuntimeException("Stub!");
-    }
-
-    @Override
-    public int describeContents() {
-      throw new RuntimeException("Stub!");
-    }
-
-    public static final Creator<DeviceStateInfo> CREATOR = new Creator<DeviceStateInfo>() {
-        @Override
-        public DeviceStateInfo createFromParcel(Parcel source) {
-            throw new RuntimeException("Stub!");
-        }
-
-        @Override
-        public DeviceStateInfo[] newArray(int size) {
-          throw new RuntimeException("Stub!");
-        }
-    };
+parcelable DeviceStateInfo {
 }
