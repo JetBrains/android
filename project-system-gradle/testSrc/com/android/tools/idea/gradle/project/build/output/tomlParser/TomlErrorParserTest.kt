@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.EP_NAME
 import com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
-import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
+import com.android.tools.idea.gradle.project.build.output.LinesBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
@@ -85,7 +85,7 @@ class TomlErrorParserTest {
     val buildOutput = getVersionCatalogLibsBuildOutput()
 
     val parser = TomlErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList(), "Test Id")
     val consumer = TestMessageEventConsumer()
 
     val line = reader.readLine()!!
@@ -106,7 +106,7 @@ class TomlErrorParserTest {
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
     val parser = TomlErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList(), "Test Id")
     val consumer = TestMessageEventConsumer()
 
     val line = reader.readLine()!!
@@ -129,7 +129,7 @@ class TomlErrorParserTest {
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
     val wrappedParser = BuildOutputParserWrapper(TomlErrorParser(), ID)
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList(), "Test Id")
     val consumer = TestMessageEventConsumer()
 
     val line = reader.readLine()!!
@@ -140,7 +140,8 @@ class TomlErrorParserTest {
       Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
       Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml") + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription(
+        "/arbitrary/path/to/file.versions.toml") + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
       Truth.assertThat(it.getNavigatable(project)).isNull()
     }
   }
@@ -281,7 +282,7 @@ class TomlErrorParserTest {
       val buildOutput = getVersionCatalogDuplicationAliasBuildOutput(project.basePath!!)
 
       val parser = TomlErrorParser()
-      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+      val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList(), "Test Id")
       val consumer = TestMessageEventConsumer()
 
       val line = reader.readLine()!!
@@ -330,7 +331,7 @@ class TomlErrorParserTest {
     val buildOutput = getVersionCatalogTableMisspelOutput2()
 
     val parser = TomlErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList(), "Test Id")
     val consumer = TestMessageEventConsumer()
 
     val line = reader.readLine()!!
@@ -370,7 +371,7 @@ class TomlErrorParserTest {
       val absolutePath = file!!.toNioPath().toAbsolutePath().toString()
 
       val parser = TomlErrorParser()
-      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput(absolutePath)).toList())
+      val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput(absolutePath)).toList(), "Test Id")
       val consumer = TestMessageEventConsumer()
 
       val line = reader.readLine()!!
@@ -424,7 +425,7 @@ class TomlErrorParserTest {
     """.trimIndent()
 
     val parser = TomlErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+    val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList(), "Test Id")
     val consumer = TestMessageEventConsumer()
 
     val line = reader.readLine()!!

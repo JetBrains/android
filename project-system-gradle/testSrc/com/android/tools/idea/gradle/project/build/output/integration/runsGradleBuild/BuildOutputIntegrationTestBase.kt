@@ -103,12 +103,14 @@ abstract class BuildOutputIntegrationTestBase {
     return joinToString(separator = "\n") { it.toFullPathWithMessage() }
   }
   fun BuildEvent.toFullPathWithMessage(): String {
-    val parentPath = when (val parentId = parentId) {
-      null, is ExternalSystemTaskId -> "root"
-      else -> "root > ${parentId.toString().substringAfter(" > ")}"
-    }
+    val parentPath = parentPath()
     val kind = if (this is MessageEvent) "$kind:" else ""
     return "$parentPath > $kind'${message}'"
+  }
+
+  fun BuildEvent.parentPath(): String = when (val parentId = parentId) {
+    null, is ExternalSystemTaskId -> "root"
+    else -> "root > ${parentId.toString().substringAfter(" > ")}"
   }
 
   fun List<BuildEvent>.findBuildEvent(eventPath: String): BuildEvent {

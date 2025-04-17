@@ -1395,10 +1395,10 @@ class ClangOutputParserTest {
   private fun runParser(lines : List<InstantReaderLine>, block: List<MessageEventImpl>.() -> Unit) {
     val parser = ClangOutputParser()
     val consumer = TestMessageEventConsumer()
-    val readerMap = mutableMapOf<String, TestBuildOutputInstantReader>()
+    val readerMap = mutableMapOf<String, LinesBuildOutputInstantReader>()
     for((parentId, _) in lines) {
       val reader = readerMap.computeIfAbsent(parentId) {
-        TestBuildOutputInstantReader(
+        LinesBuildOutputInstantReader(
           lines.filter { it.parentId == parentId }.map { it.text },
           parentId
         )

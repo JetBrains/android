@@ -19,12 +19,13 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.build.output.JavacOutputParser
+import org.jetbrains.plugins.gradle.execution.build.output.GradleCompilationReportParser
 import java.util.function.Consumer
 
 /**
  * This parser delegates work to original [JavacOutputParser] but allows to filter some of the generated messages.
  */
-class JavacFilteringOutputParser : BuildOutputParser {
+class FilteringJavacOutputParser : BuildOutputParser {
   private val myJavacParser = JavacOutputParser()
 
   private var buildFailedWithExceptionLineSeen = false
@@ -41,5 +42,22 @@ class JavacFilteringOutputParser : BuildOutputParser {
       messageConsumer.accept(event)
     }
     return myJavacParser.parse(line, reader, wrappedConsumer)
+  }
+}
+
+/**
+ * This parser delegates work to original [GradleCompilationReportParser] but allows to filter some of the generated messages.
+ */
+class FilteringGradleCompilationReportParser : BuildOutputParser {
+  private val myCompilationParser = GradleCompilationReportParser()
+
+  override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
+    val wrappedConsumer = Consumer<BuildEvent> { event ->
+      if (JavaLanguageLevelDeprecationOutputParser.notSupportedMessagePattern.matcher(event.message).matches()) {
+        return@Consumer
+      }
+      messageConsumer.accept(event)
+    }
+    return myCompilationParser.parse(line, reader, wrappedConsumer)
   }
 }
