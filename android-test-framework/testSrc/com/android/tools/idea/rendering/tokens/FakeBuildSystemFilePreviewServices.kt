@@ -106,10 +106,6 @@ class FakeBuildSystemFilePreviewServices(
     override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
       return FakeBuildTargetReference(module)
     }
-
-    override fun fromModuleOnly(module: Module): BuildTargetReference {
-      return FakeBuildTargetReference(module)
-    }
   }
 
   inner class FakeBuildServices: BuildServices<BuildTargetReference> {
