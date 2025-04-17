@@ -43,12 +43,9 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.readText
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -63,8 +60,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -139,20 +134,21 @@ class ApkEditorTest {
     val apk2 = TestResources.getFile("/1.apk").toPath()
     Files.copy(apk2, apk, REPLACE_EXISTING)
     val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apk.toFile()) ?: fail("Can't find file")
+    val launchedTasks = apkEditor.launchedTasks
     @Suppress("UnstableApiUsage")
     ApplicationManager.getApplication().messageBus.syncPublisher(VirtualFileManager.VFS_CHANGES).after(
       listOf(VFileContentChangeEvent(this, virtualFile, 0, 0)))
 
-    waitForCondition {
-      println(apkEditor.getNodes().sorted())
-      apkEditor.getNodes().sorted() == listOf(
-        "/",
-        "/AndroidManifest.xml",
-        "/res",
-        "/res/anim",
-        "/res/anim/fade.xml"
-        )
-    }
+    waitForCondition { apkEditor.launchedTasks == launchedTasks + 1 }
+    waitForCondition { apkEditor.completedTasks == apkEditor.launchedTasks }
+
+    assertThat(apkEditor.getNodes()).containsExactly(
+      "/",
+      "/AndroidManifest.xml",
+      "/res",
+      "/res/anim",
+      "/res/anim/fade.xml"
+    )
   }
 
   @Test
@@ -338,7 +334,12 @@ private fun ApkEditor.getNode(path: String): ArchiveTreeNode {
   return nodes.first { it.getFilePath() == path } as ArchiveTreeNode
 }
 
-private fun DefaultMutableTreeNode.getFilePath() = (userObject as ArchivePathEntry).path.pathString
+private fun DefaultMutableTreeNode.getFilePath(): String {
+  return when (userObject) {
+    is ArchivePathEntry -> (userObject as ArchivePathEntry).path.pathString
+    else -> userObject.toString()
+  }
+}
 
 private inline fun <reified T : JComponent> JComponent.findComponent(name: String): T {
   return TreeWalker(this).descendants().filterIsInstance<T>().find { it.name == name }

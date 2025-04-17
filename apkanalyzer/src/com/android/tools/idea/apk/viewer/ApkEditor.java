@@ -45,7 +45,6 @@ import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
@@ -71,12 +70,14 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JComponent;
 import javax.swing.LayoutFocusTraversalPolicy;
 import kotlin.io.FilesKt;
 import kotlin.text.Charsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
@@ -92,6 +93,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   private final JBSplitter mySplitter;
   private ApkFileEditorComponent myCurrentEditor;
   private ProguardMappings myProguardMapping;
+  private AtomicInteger myLaunchedTasks = new AtomicInteger(0);
+  private AtomicInteger myCompletedTasks = new AtomicInteger(0);
 
   public ApkEditor(
     @NotNull Project project,
@@ -149,6 +152,16 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     mySplitter.setSecondComponent(new EmptyPanel().getComponent());
   }
 
+  @TestOnly
+  int getLaunchedTasks() {
+    return myLaunchedTasks.get();
+  }
+
+  @TestOnly
+  int getCompletedTasks() {
+    return myCompletedTasks.get();
+  }
+
   @Nullable
   private static String generateHash(Path path) {
     try {
@@ -173,7 +186,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   private void refreshApk(@NotNull VirtualFile apkVirtualFile) {
-    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Reading APK contents") {
+    Task.Backgroundable task = new Task.Backgroundable(myProject, "Reading APK contents") {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         disposeArchive();
@@ -204,7 +217,14 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           mySplitter.setFirstComponent(new JBLabel(e.toString()));
         }
       }
-    });
+
+      @Override
+      public void onFinished() {
+        myCompletedTasks.incrementAndGet();
+      }
+    };
+    myLaunchedTasks.incrementAndGet();
+    task.queue();
   }
 
   /**
