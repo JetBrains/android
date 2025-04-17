@@ -116,7 +116,7 @@ class LogcatServiceImplTest {
     val service = logcatServiceImpl()
     val logcatHandler = CheckFormatLogcatHandler()
     fakeAdb.addDeviceCommandHandler(logcatHandler)
-    fakeAdb.connectTestDevice(device.serialNumber, sdk = "")
+    fakeAdb.connectTestDevice(device.serialNumber, sdk = "30")
 
     val job = launch { service.readLogcat(device).collect {} }
     yieldUntil { logcatHandler.lastDeviceId == device.serialNumber }
@@ -131,7 +131,7 @@ class LogcatServiceImplTest {
     val service = logcatServiceImpl()
     val logcatHandler = CheckFormatLogcatHandler()
     fakeAdb.addDeviceCommandHandler(logcatHandler)
-    fakeAdb.connectTestDevice(device.serialNumber, sdk = "")
+    fakeAdb.connectTestDevice(device.serialNumber, sdk = "23")
 
     val job = launch {
       try {
@@ -197,7 +197,7 @@ class LogcatServiceImplTest {
   fun readLogcat_50000SimpleLines() = runBlocking {
     val logcat = TestResources.getFile("/logcatFiles/logcat-50000.txt").readText()
     val service = logcatServiceImpl()
-    val (_, deviceState) = fakeAdb.connectTestDevice(device30.serialNumber, sdk = "")
+    val (_, deviceState) = fakeAdb.connectTestDevice(device30.serialNumber, sdk = "30")
     // Break up the logcat into chunks to put more pressure of the code that collects them.
     logcat.chunked(10000).forEach { deviceState.addLogcatMessage(it) }
     deviceState.addLogcatMessage(LAST_MESSAGE)
@@ -219,7 +219,7 @@ class LogcatServiceImplTest {
   @Test
   fun readLogcat_withTimeout() = runBlocking {
     val service = logcatServiceImpl()
-    val (_, deviceState) = fakeAdb.connectTestDevice(device30.serialNumber, sdk = "")
+    val (_, deviceState) = fakeAdb.connectTestDevice(device30.serialNumber, sdk = "30")
     deviceState.addLogcatMessage(rawLogcatMessage(Instant.EPOCH, "Message1"))
 
     val (messages, duration) =
@@ -242,7 +242,7 @@ class LogcatServiceImplTest {
   fun readLogcat_actualLogcatFromDevice() = runBlocking {
     val logcat = TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readText()
     val service = logcatServiceImpl()
-    val (_, deviceState) = fakeAdb.connectTestDevice(device30.serialNumber, sdk = "")
+    val (_, deviceState) = fakeAdb.connectTestDevice(device30.serialNumber, sdk = "30")
     // Break up the logcat into chunks to put more pressure of the code that collects them.
     logcat.chunked(10000).forEach { deviceState.addLogcatMessage(it) }
     deviceState.addLogcatMessage(LAST_MESSAGE)
@@ -297,7 +297,7 @@ class LogcatServiceImplTest {
         lastMessageDelayMs = SECONDS.toMillis(10),
         fakeAdb.createAdbSession(closeables),
       )
-    val (_, deviceState) = fakeAdb.connectTestDevice(device30.serialNumber, sdk = "")
+    val (_, deviceState) = fakeAdb.connectTestDevice(device30.serialNumber, sdk = "30")
     deviceState.addLogcatMessage(logcat)
 
     val messages = mutableListOf<LogcatMessage>()
@@ -338,11 +338,11 @@ class LogcatServiceImplTest {
 
   @Test
   fun clearLogcat_launchesLogcat() = runBlocking {
-    val device = device30
+    val device = device23
     val service = logcatServiceImpl()
     val logcatHandler = CheckFormatLogcatHandler()
     fakeAdb.addDeviceCommandHandler(logcatHandler)
-    fakeAdb.connectTestDevice(device.serialNumber, sdk = "")
+    fakeAdb.connectTestDevice(device.serialNumber, sdk = "23")
 
     val job = launch { service.clearLogcat(device.serialNumber) }
     yieldUntil { logcatHandler.lastDeviceId == device.serialNumber }
