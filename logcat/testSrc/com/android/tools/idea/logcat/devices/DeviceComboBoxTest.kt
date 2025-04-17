@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.TreeWalker
@@ -217,9 +218,19 @@ class DeviceComboBoxTest {
   fun renderer_minorVersion() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(deviceComboBox.getRenderedText(DeviceItem(device1.copy(sdk = 36).online()), false))
+    assertThat(
+        deviceComboBox.getRenderedText(
+          DeviceItem(device1.copy(apiLevel = AndroidApiLevel(36)).online()),
+          false,
+        )
+      )
       .isEqualTo("Google Pixel 2 (device1) Android 11, API 36.0 [ ]")
-    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.copy(sdk = 36).online()), false))
+    assertThat(
+        deviceComboBox.getRenderedText(
+          DeviceItem(emulator.copy(apiLevel = AndroidApiLevel(36)).online()),
+          false,
+        )
+      )
       .isEqualTo("AVD (emulator-5555) Android 11, API 36.0 [ ]")
   }
 

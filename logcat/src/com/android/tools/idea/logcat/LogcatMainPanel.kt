@@ -689,7 +689,7 @@ constructor(
       hyperlinkDetector.detectHyperlinks(
         startLine,
         endLine,
-        deviceComboBox.getSelectedDevice()?.let { AndroidApiLevel(it.sdk, it.sdkMinor) },
+        deviceComboBox.getSelectedDevice()?.apiLevel,
       )
       foldingDetector.detectFoldings(startLine, endLine)
 
