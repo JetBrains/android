@@ -29,7 +29,6 @@
 #include "base128_output_stream.h"
 #include "common.h"
 #include "geom.h"
-#include "xr_environment.h"
 
 namespace screensharing {
 
@@ -568,13 +567,13 @@ private:
 // Sets the virtual environment on an XR device.
 class XrSetEnvironmentMessage : ControlMessage {
 public:
-  explicit XrSetEnvironmentMessage(XrEnvironment environment)
+  explicit XrSetEnvironmentMessage(int32_t environment)
       : ControlMessage(TYPE),
         environment_(environment) {
   }
   ~XrSetEnvironmentMessage() override = default;
 
-  [[nodiscard]] XrEnvironment environment() const { return environment_; }
+  [[nodiscard]] int32_t environment() const { return environment_; }
 
   static constexpr int TYPE = 19;
 
@@ -583,7 +582,7 @@ private:
 
   static XrSetEnvironmentMessage* Deserialize(Base128InputStream& stream);
 
-  XrEnvironment environment_;
+  int32_t environment_;
 
   DISALLOW_COPY_AND_ASSIGN(XrSetEnvironmentMessage);
 };
@@ -817,13 +816,13 @@ private:
 // Notification of a virtual environment change on an XR device.
 class XrEnvironmentChangedNotification : ControlMessage {
 public:
-  explicit XrEnvironmentChangedNotification(XrEnvironment environment)
+  explicit XrEnvironmentChangedNotification(int32_t environment)
       : ControlMessage(TYPE),
         environment_(environment) {
   }
   ~XrEnvironmentChangedNotification() override = default;
 
-  [[nodiscard]] XrEnvironment environment() const { return environment_; }
+  [[nodiscard]] int32_t environment() const { return environment_; }
 
   void Serialize(Base128OutputStream& stream) const override;
 
@@ -832,7 +831,7 @@ public:
 private:
   friend class ControlMessage;
 
-  XrEnvironment environment_;
+  int32_t environment_;
 
   DISALLOW_COPY_AND_ASSIGN(XrEnvironmentChangedNotification);
 };

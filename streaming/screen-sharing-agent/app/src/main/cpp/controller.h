@@ -29,6 +29,7 @@
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
 #include "accessors/pointer_helper.h"
+#include "accessors/xr_simulated_input_manager.h"
 #include "base128_input_stream.h"
 #include "common.h"
 #include "control_messages.h"
@@ -40,7 +41,8 @@
 namespace screensharing {
 
 // Processes control socket commands.
-class Controller : private DisplayManager::DisplayListener {
+class Controller : private DisplayManager::DisplayListener, ClipboardManager::ClipboardListener, DeviceStateManager::DeviceStateListener,
+                           XrSimulatedInputManager::EnvironmentListener {
 public:
   explicit Controller(int socket_fd);
   virtual ~Controller();
@@ -55,28 +57,6 @@ public:
   static bool ControlDisplayPower(Jni jni, int state);
 
 private:
-  struct ClipboardListener : public ClipboardManager::ClipboardListener {
-    explicit ClipboardListener(Controller* controller)
-        : controller_(controller) {
-    }
-    virtual ~ClipboardListener();
-
-    void OnPrimaryClipChanged() override;
-
-    Controller* controller_;
-  };
-
-  struct DeviceStateListener : public DeviceStateManager::DeviceStateListener {
-    explicit DeviceStateListener(Controller* controller)
-        : controller_(controller) {
-    }
-    virtual ~DeviceStateListener();
-
-    void OnDeviceStateChanged(int32_t device_state) override;
-
-    Controller* controller_;
-  };
-
   struct DisplayEvent {
     enum Type { ADDED, CHANGED, REMOVED };
 
@@ -115,7 +95,7 @@ private:
 
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
-  void OnPrimaryClipChanged();
+  virtual void OnPrimaryClipChanged() override;
   void SendClipboardChangedNotification();
 
   void ProcessXrRotation(const XrRotationMessage& message);
@@ -125,10 +105,13 @@ private:
   void XrRecenter(const XrRecenterMessage& message);
   void XrSetPassthroughCoefficient(const XrSetPassthroughCoefficientMessage& message);
   void XrSetEnvironment(const XrSetEnvironmentMessage& message);
+  virtual void OnPassthroughCoefficientChanged(float passthrough_coefficient) override;
+  virtual void OnEnvironmentChanged(int32_t environment) override;
+  void SendXrEnvironmentNotification();
   void InjectXrMotionEvent(const JObject& motion_event);
 
   void RequestDeviceState(const RequestDeviceStateMessage& message);
-  void OnDeviceStateChanged(int32_t device_state);
+  virtual void OnDeviceStateChanged(int32_t device_state) override;
   void SendDeviceStateNotification();
 
   void SendDisplayConfigurations(const DisplayConfigurationRequest& request);
@@ -165,15 +148,18 @@ private:
   int64_t motion_event_start_time_ = 0;
   KeyCharacterMap* key_character_map_ = nullptr;  // Owned.
 
-  ClipboardListener clipboard_listener_;
   int max_synced_clipboard_length_ = 0;
   std::string last_clipboard_text_;
   std::atomic_bool clipboard_changed_ = false;
 
-  DeviceStateListener device_state_listener_;
   bool device_supports_multiple_states_ = false;
   std::atomic_int32_t device_state_identifier_ = DeviceStateManager::INVALID_DEVICE_STATE_IDENTIFIER;
-  int32_t previous_device_state_ = DeviceStateManager::INVALID_DEVICE_STATE_IDENTIFIER;
+  int32_t sent_device_state_ = DeviceStateManager::INVALID_DEVICE_STATE_IDENTIFIER;
+
+  std::atomic<float> xr_passthrough_coefficient_ = XrSimulatedInputManager::UNKNOWN_PASSTHROUGH_COEFFICIENT;
+  float sent_xr_passthrough_coefficient_ = XrSimulatedInputManager::UNKNOWN_PASSTHROUGH_COEFFICIENT;
+  std::atomic_int32_t xr_environment_ = XrSimulatedInputManager::UNKNOWN_ENVIRONMENT;
+  int32_t sent_xr_environment_ = XrSimulatedInputManager::UNKNOWN_ENVIRONMENT;
 
   std::mutex display_events_mutex_;
   std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)

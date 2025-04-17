@@ -239,10 +239,10 @@ XrSetPassthroughCoefficientMessage* XrSetPassthroughCoefficientMessage::Deserial
 
 XrSetEnvironmentMessage* XrSetEnvironmentMessage::Deserialize(Base128InputStream& stream) {
   int32_t environment = stream.ReadInt32();
-  if (environment < 0 || environment >= static_cast<int32_t>(XrEnvironment::VALUE_RANGE)) {
+  if (environment < 0) {
     Log::Fatal(INVALID_CONTROL_MESSAGE, "Invalid environment value %d", environment);
   }
-  return new XrSetEnvironmentMessage(static_cast<XrEnvironment>(environment));
+  return new XrSetEnvironmentMessage(environment);
 }
 
 DisplayConfigurationRequest* DisplayConfigurationRequest::Deserialize(Base128InputStream& stream) {

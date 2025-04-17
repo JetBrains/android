@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.screensharing;
 
-#pragma once
+import android.services.xr.simulatedinputmanager.IXrSimulatedInputStateCallback;
 
-namespace screensharing {
+public class XrSimulatedInputStateCallback extends IXrSimulatedInputStateCallback.Stub {
+  @Override
+  public native void onPassthroughCoefficientChange(float passthrough_coefficient);
 
-enum class XrEnvironment {
-  LIVING_ROOM_DAY = 0,
-  LIVING_ROOM_NIGHT = 1,
-  // The range of XrEnvironment values. Must be the last item.
-  VALUE_RANGE
-};
-
-}  // namespace screensharing
+  @Override
+  public native void onEnvironmentChange(byte environment);
+}

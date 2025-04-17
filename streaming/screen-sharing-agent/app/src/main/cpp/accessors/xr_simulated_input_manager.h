@@ -16,7 +16,11 @@
 
 #pragma once
 
+#include <mutex>
+#include <vector>
+
 #include "common.h"
+#include "concurrent_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -25,10 +29,28 @@ namespace screensharing {
 // Can only be used by the thread that created the object.
 class XrSimulatedInputManager {
 public:
+  static constexpr float UNKNOWN_PASSTHROUGH_COEFFICIENT = -1;
+  static constexpr int32_t UNKNOWN_ENVIRONMENT = -1;
+
+  struct EnvironmentListener {
+    virtual ~EnvironmentListener() = default;
+    virtual void OnPassthroughCoefficientChanged(float passthrough_coefficient) = 0;
+    virtual void OnEnvironmentChanged(int32_t environment) = 0;
+  };
+
   static void InjectHeadRotation(Jni jni, const float data[3]);
   static void InjectHeadMovement(Jni jni, const float data[3]);
   static void InjectHeadAngularVelocity(Jni jni, const float data[3]);
   static void InjectHeadMovementVelocity(Jni jni, const float data[3]);
+  static void Recenter(Jni jni);
+  static void SetPassthroughCoefficient(Jni jni, float passthrough);
+  static void SetEnvironment(Jni jni, int32_t environment);
+
+  static void AddEnvironmentListener(EnvironmentListener* listener);
+  static void RemoveEnvironmentListener(EnvironmentListener* listener);
+
+  static void OnPassthroughCoefficientChanged(float passthrough_coefficient);
+  static void OnEnvironmentChanged(int32_t environment);
 
 private:
   static void InitializeStatics(Jni jni);
@@ -38,6 +60,14 @@ private:
   static jmethodID inject_head_movement_method_;
   static jmethodID inject_head_angular_velocity_method_;
   static jmethodID inject_head_movement_velocity_method_;
+  static jmethodID recenter_method_;
+  static jmethodID set_passthrough_coefficient_method_;
+  static jmethodID set_environment_method_;
+  // List of environment listeners.
+  static ConcurrentList<EnvironmentListener> environment_listeners_;
+  static std::mutex environment_mutex_;
+  static float passthrough_coefficient_;
+  static int32_t environment_;
 
   DISALLOW_COPY_AND_ASSIGN(XrSimulatedInputManager);
 };
