@@ -21,8 +21,12 @@ import com.android.ide.common.gradle.Module
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
+import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
 import com.android.ide.common.repository.GoogleMavenRepositoryV2
+import com.android.ide.common.repository.GoogleMavenRepositoryV2Host
+import com.android.ide.common.repository.IdeNetworkCacheUtils
 import com.android.ide.common.repository.MavenRepositories
+import com.android.ide.common.repository.NetworkCache
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.io.CancellableFileIo
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -31,11 +35,13 @@ import com.android.tools.idea.gradle.util.GradleLocalCache
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.GradleDetector.Companion.getLatestVersionFromRemoteRepo
 import com.android.tools.lint.client.api.LintClient
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
@@ -45,6 +51,7 @@ import java.io.File
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Predicate
 
@@ -69,8 +76,34 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   internal constructor() : this(
     IdeGoogleMavenRepository,
     OfflineIdeGoogleMavenRepository,
-    GoogleMavenRepositoryV2.create(),
-    GoogleMavenRepositoryV2.create(),
+    GoogleMavenRepositoryV2.create(object : GoogleMavenRepositoryV2Host {
+      override val cacheDir: Path? =
+        if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) null
+        else Paths.get(PathManager.getSystemPath()).normalize().resolve(MAVEN_GOOGLE_CACHE_DIR_KEY)
+
+      override fun readUrlData(url: String,
+                               timeout: Int,
+                               lastModified: Long): NetworkCache.ReadUrlDataResult = IdeNetworkCacheUtils.readHttpUrlData(url, timeout,
+                                                                                                                          lastModified)
+
+      override fun error(throwable: Throwable, message: String?) = Logger.getInstance(RepositoryUrlManager::class.java).warn(message,
+                                                                                                                             throwable)
+
+    }),
+    GoogleMavenRepositoryV2.create(object : GoogleMavenRepositoryV2Host {
+      override val cacheDir: Path? =
+        if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) null
+        else Paths.get(PathManager.getSystemPath()).normalize().resolve(MAVEN_GOOGLE_CACHE_DIR_KEY)
+
+      override fun readUrlData(url: String,
+                               timeout: Int,
+                               lastModified: Long): NetworkCache.ReadUrlDataResult = throw UnsupportedOperationException(
+        "Should not be called as it is supposed to be an offline repository")
+
+      override fun error(throwable: Throwable, message: String?) = Logger.getInstance(RepositoryUrlManager::class.java).warn(message,
+                                                                                                                             throwable)
+
+    }),
     false
   )
 
