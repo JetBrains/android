@@ -30,6 +30,7 @@ import com.android.fakeadbserver.shellcommandhandlers.LogcatCommandHandler
 import com.android.flags.junit.FlagRule
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestResources
 import com.android.tools.idea.adblib.AdbLibService
@@ -153,7 +154,9 @@ class LogcatServiceImplTest {
     fakeAdb.addDeviceCommandHandler(logcatHandler)
     fakeAdb.connectTestDevice("device", sdk = "21")
 
-    val job = launch { service.readLogcat("device", 21, newMessagesOnly = true).collect {} }
+    val job = launch {
+      service.readLogcat("device", AndroidApiLevel(21), newMessagesOnly = true).collect {}
+    }
     yieldUntil { logcatHandler.lastDeviceId == "device" }
     job.cancel()
 
@@ -168,7 +171,9 @@ class LogcatServiceImplTest {
     fakeAdb.addDeviceCommandHandler(logcatHandler)
     fakeAdb.connectTestDevice("device", sdk = "35")
 
-    val job = launch { service.readLogcat("device", 35, newMessagesOnly = false).collect {} }
+    val job = launch {
+      service.readLogcat("device", AndroidApiLevel(35), newMessagesOnly = false).collect {}
+    }
     yieldUntil { logcatHandler.lastDeviceId == "device" }
     job.cancel()
 
@@ -182,7 +187,9 @@ class LogcatServiceImplTest {
     fakeAdb.addDeviceCommandHandler(logcatHandler)
     fakeAdb.connectTestDevice("device", sdk = "35")
 
-    val job = launch { service.readLogcat("device", 35, newMessagesOnly = true).collect {} }
+    val job = launch {
+      service.readLogcat("device", AndroidApiLevel(35), newMessagesOnly = true).collect {}
+    }
     yieldUntil { logcatHandler.lastDeviceId == "device" }
     job.cancel()
 

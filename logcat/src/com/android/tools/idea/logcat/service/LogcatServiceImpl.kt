@@ -5,6 +5,7 @@ import com.android.adblib.LineBatchShellCollector
 import com.android.adblib.shellAsText
 import com.android.adblib.shellCommand
 import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.flags.StudioFlags
@@ -43,11 +44,11 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
 
   override suspend fun readLogcat(
     serialNumber: String,
-    sdk: Int,
+    sdk: AndroidApiLevel,
     duration: Duration,
     newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
-    return when (sdk >= 35 && StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()) {
+    return when (sdk.majorVersion >= 35 && StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()) {
       true -> readLogcatProtobuf(serialNumber, duration, newMessagesOnly)
       false -> readLogcatText(serialNumber, sdk, duration, newMessagesOnly)
     }
@@ -55,14 +56,14 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
 
   private suspend fun readLogcatText(
     serialNumber: String,
-    sdk: Int,
+    sdk: AndroidApiLevel,
     duration: Duration,
     newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
     return channelFlow {
       val logcatFormat = logcatFormat(sdk)
-      val cutoffTimeSupported = sdk >= 21
+      val cutoffTimeSupported = sdk.majorVersion >= 21
 
       /** [AndroidVersion.VersionCodes.LOLLIPOP] */
       val command = buildString {
@@ -173,8 +174,5 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
   }
 }
 
-private fun logcatFormat(sdk: Int) =
-  if (sdk >= 24
-  /** [AndroidVersion.VersionCodes.N] */
-  ) EPOCH_FORMAT
-  else STANDARD_FORMAT
+private fun logcatFormat(sdk: AndroidApiLevel) =
+  if (sdk.majorVersion >= AndroidVersion.VersionCodes.N) EPOCH_FORMAT else STANDARD_FORMAT
