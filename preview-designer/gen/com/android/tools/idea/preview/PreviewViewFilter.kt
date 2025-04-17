@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.intellij.openapi.actionSystem.DataContext
 
-/** The interface for implementing the filtering logic of [ComposeFilterTextAction]. */
-interface ComposeViewFilter {
+/**
+ * The interface for implementing the filtering logic of
+ * [com.android.tools.idea.preview.actions.PreviewFilterTextAction].
+ *
+ * TODO: redesign the filter feature to be applied to existing flows. See
+ *   [com.android.tools.idea.preview.flow.PreviewFlowManager]
+ */
+interface PreviewViewFilter {
   fun filter(query: String?, dataContext: DataContext?)
 }
 
@@ -30,7 +36,7 @@ interface ComposeViewFilter {
  * visible only when its model name contains the searched text, otherwise it is invisible. If the
  * query is blank or null, all [com.android.tools.idea.common.surface.SceneView] would be visible.
  */
-class ComposeViewSingleWordFilter : ComposeViewFilter {
+class PreviewViewSingleWordFilter : PreviewViewFilter {
   override fun filter(query: String?, dataContext: DataContext?) {
     val surface = dataContext?.getData(DESIGN_SURFACE) ?: return
     if (query.isNullOrBlank()) {

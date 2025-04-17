@@ -64,9 +64,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalid
 
   fun status(): Status
 
-  /** Flag to indicate if the preview filter is enabled or not. */
-  var isFilterEnabled: Boolean
-
   /** Flag to indicate if the UI Check filter is enabled or not. */
   var isUiCheckFilterEnabled: Boolean
 }

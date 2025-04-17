@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.DisplaySettings
@@ -21,18 +21,18 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.preview.PreviewViewSingleWordFilter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.Mockito
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-class ComposeViewSingleWordFilterTest {
+class PreviewViewSingleWordFilterTest {
 
-  @Rule @JvmField val rule = AndroidProjectRule.inMemory()
+  @Rule @JvmField val rule = AndroidProjectRule.Companion.inMemory()
 
   @Test
   fun testOnlyShowMatchedViews() {
@@ -43,30 +43,30 @@ class ComposeViewSingleWordFilterTest {
 
     val surface = createTestSurface(myView1, myView2, yourView1, yourView2)
     val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface)
-    val filter = ComposeViewSingleWordFilter()
+    val filter = PreviewViewSingleWordFilter()
     filter.filter("My", dataContext)
-    verify(myView1, times(1)).isVisible = true
-    verify(myView2, times(1)).isVisible = true
-    verify(yourView1, times(1)).isVisible = false
-    verify(yourView2, times(1)).isVisible = false
+    Mockito.verify(myView1, Mockito.times(1)).isVisible = true
+    Mockito.verify(myView2, Mockito.times(1)).isVisible = true
+    Mockito.verify(yourView1, Mockito.times(1)).isVisible = false
+    Mockito.verify(yourView2, Mockito.times(1)).isVisible = false
 
     filter.filter("Your", dataContext)
-    verify(myView1, times(1)).isVisible = false
-    verify(myView2, times(1)).isVisible = false
-    verify(yourView1, times(1)).isVisible = true
-    verify(yourView2, times(1)).isVisible = true
+    Mockito.verify(myView1, Mockito.times(1)).isVisible = false
+    Mockito.verify(myView2, Mockito.times(1)).isVisible = false
+    Mockito.verify(yourView1, Mockito.times(1)).isVisible = true
+    Mockito.verify(yourView2, Mockito.times(1)).isVisible = true
 
     filter.filter("View", dataContext)
-    verify(myView1, times(2)).isVisible = true
-    verify(myView2, times(2)).isVisible = true
-    verify(yourView1, times(2)).isVisible = true
-    verify(yourView2, times(2)).isVisible = true
+    Mockito.verify(myView1, Mockito.times(2)).isVisible = true
+    Mockito.verify(myView2, Mockito.times(2)).isVisible = true
+    Mockito.verify(yourView1, Mockito.times(2)).isVisible = true
+    Mockito.verify(yourView2, Mockito.times(2)).isVisible = true
 
     filter.filter("XXX", dataContext)
-    verify(myView1, times(2)).isVisible = false
-    verify(myView2, times(2)).isVisible = false
-    verify(yourView1, times(2)).isVisible = false
-    verify(yourView2, times(2)).isVisible = false
+    Mockito.verify(myView1, Mockito.times(2)).isVisible = false
+    Mockito.verify(myView2, Mockito.times(2)).isVisible = false
+    Mockito.verify(yourView1, Mockito.times(2)).isVisible = false
+    Mockito.verify(yourView2, Mockito.times(2)).isVisible = false
   }
 
   @Test
@@ -78,24 +78,24 @@ class ComposeViewSingleWordFilterTest {
 
     val surface = createTestSurface(myView1, myView2, yourView1, yourView2)
     val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface)
-    val filter = ComposeViewSingleWordFilter()
+    val filter = PreviewViewSingleWordFilter()
     filter.filter("", dataContext)
-    verify(myView1, times(1)).isVisible = true
-    verify(myView2, times(1)).isVisible = true
-    verify(yourView1, times(1)).isVisible = true
-    verify(yourView2, times(1)).isVisible = true
+    Mockito.verify(myView1, Mockito.times(1)).isVisible = true
+    Mockito.verify(myView2, Mockito.times(1)).isVisible = true
+    Mockito.verify(yourView1, Mockito.times(1)).isVisible = true
+    Mockito.verify(yourView2, Mockito.times(1)).isVisible = true
 
     filter.filter("  ", dataContext)
-    verify(myView1, times(2)).isVisible = true
-    verify(myView2, times(2)).isVisible = true
-    verify(yourView1, times(2)).isVisible = true
-    verify(yourView2, times(2)).isVisible = true
+    Mockito.verify(myView1, Mockito.times(2)).isVisible = true
+    Mockito.verify(myView2, Mockito.times(2)).isVisible = true
+    Mockito.verify(yourView1, Mockito.times(2)).isVisible = true
+    Mockito.verify(yourView2, Mockito.times(2)).isVisible = true
 
     filter.filter(null, dataContext)
-    verify(myView1, times(3)).isVisible = true
-    verify(myView2, times(3)).isVisible = true
-    verify(yourView1, times(3)).isVisible = true
-    verify(yourView2, times(3)).isVisible = true
+    Mockito.verify(myView1, Mockito.times(3)).isVisible = true
+    Mockito.verify(myView2, Mockito.times(3)).isVisible = true
+    Mockito.verify(yourView1, Mockito.times(3)).isVisible = true
+    Mockito.verify(yourView2, Mockito.times(3)).isVisible = true
   }
 
   @Test
@@ -105,11 +105,11 @@ class ComposeViewSingleWordFilterTest {
 
     val surface = createTestSurface(view1, view2)
     val dataContext = SimpleDataContext.getSimpleContext(DESIGN_SURFACE, surface)
-    val filter = ComposeViewSingleWordFilter()
+    val filter = PreviewViewSingleWordFilter()
     filter.filter("  View1  ", dataContext)
 
-    verify(view1, times(1)).isVisible = true
-    verify(view2, times(1)).isVisible = false
+    Mockito.verify(view1, Mockito.times(1)).isVisible = true
+    Mockito.verify(view2, Mockito.times(1)).isVisible = false
   }
 
   private fun createTestSurface(vararg views: SceneView): DesignSurface<*> {

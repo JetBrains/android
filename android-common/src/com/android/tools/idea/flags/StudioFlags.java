@@ -1425,6 +1425,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> PREVIEW_FILTER = new BooleanFlag(
+    PREVIEW_COMMON, "filter",
+    "Support filtering the previews",
+    "If enabled, the user can find the filter actions to filter the visible previews",
+    false
+  );
+
   //endregion
 
   //region Compose
@@ -1507,13 +1514,6 @@ public final class StudioFlags {
     "Enable resizing for Compose Preview",
     "If enabled, the user can resize the Compose Preview",
     enabledUpTo(CANARY)
-  );
-
-  public static final Flag<Boolean> COMPOSE_VIEW_FILTER = new BooleanFlag(
-    COMPOSE, "view.filter",
-    "Support filter the previews in Compose",
-    "If enabled, the user can find the filter actions to filter the visible previews in compose preview",
-    false
   );
 
   public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = new IntFlag(
