@@ -29,6 +29,7 @@
 #include "base128_output_stream.h"
 #include "common.h"
 #include "geom.h"
+#include "xr_environment.h"
 
 namespace screensharing {
 
@@ -414,7 +415,7 @@ private:
 // the corresponding axis. Z rotation is not used.
 class XrRotationMessage : ControlMessage {
 public:
-  explicit XrRotationMessage(float x, float y)
+  XrRotationMessage(float x, float y)
       : ControlMessage(TYPE),
         x_(x),
         y_(y) {
@@ -440,7 +441,7 @@ private:
 // Translation in a 3D space. Each component is the distance in meters along the corresponding axis.
 class XrTranslationMessage : ControlMessage {
 public:
-  explicit XrTranslationMessage(float x, float y, float z)
+  XrTranslationMessage(float x, float y, float z)
       : ControlMessage(TYPE),
         x_(x),
         y_(y),
@@ -470,7 +471,7 @@ private:
 // around the corresponding axis. Z rotation is not used.
 class XrAngularVelocityMessage : ControlMessage {
 public:
-  explicit XrAngularVelocityMessage(float x, float y)
+  XrAngularVelocityMessage(float x, float y)
       : ControlMessage(TYPE),
         x_(x),
         y_(y) {
@@ -497,7 +498,7 @@ private:
 // axis.
 class XrVelocityMessage : ControlMessage {
 public:
-  explicit XrVelocityMessage(float x, float y, float z)
+  XrVelocityMessage(float x, float y, float z)
       : ControlMessage(TYPE),
         x_(x),
         y_(y),
@@ -523,6 +524,70 @@ private:
   DISALLOW_COPY_AND_ASSIGN(XrVelocityMessage);
 };
 
+// Resets view on an XR device to its initial state.
+class XrRecenterMessage : ControlMessage {
+public:
+  XrRecenterMessage()
+      : ControlMessage(TYPE) {
+  }
+  ~XrRecenterMessage() override = default;
+
+  static constexpr int TYPE = 17;
+
+private:
+  friend class ControlMessage;
+
+  static XrRecenterMessage* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(XrRecenterMessage);
+};
+
+// Sets the passthrough coefficient on an XR device.
+class XrSetPassthroughCoefficientMessage : ControlMessage {
+public:
+  explicit XrSetPassthroughCoefficientMessage(int passthrough_coefficient)
+      : ControlMessage(TYPE),
+        passthrough_coefficient_(passthrough_coefficient) {
+  }
+  ~XrSetPassthroughCoefficientMessage() override = default;
+
+  [[nodiscard]] float passthrough_coefficient() const { return passthrough_coefficient_; }
+
+  static constexpr int TYPE = 18;
+
+private:
+  friend class ControlMessage;
+
+  static XrSetPassthroughCoefficientMessage* Deserialize(Base128InputStream& stream);
+
+  float passthrough_coefficient_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrSetPassthroughCoefficientMessage);
+};
+
+// Sets the virtual environment on an XR device.
+class XrSetEnvironmentMessage : ControlMessage {
+public:
+  explicit XrSetEnvironmentMessage(XrEnvironment environment)
+      : ControlMessage(TYPE),
+        environment_(environment) {
+  }
+  ~XrSetEnvironmentMessage() override = default;
+
+  [[nodiscard]] XrEnvironment environment() const { return environment_; }
+
+  static constexpr int TYPE = 19;
+
+private:
+  friend class ControlMessage;
+
+  static XrSetEnvironmentMessage* Deserialize(Base128InputStream& stream);
+
+  XrEnvironment environment_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrSetEnvironmentMessage);
+};
+
 // Asks the agent to send back configurations of all displays.
 class DisplayConfigurationRequest : public CorrelatedMessage {
 public:
@@ -531,7 +596,7 @@ public:
   }
   ~DisplayConfigurationRequest() override = default;
 
-  static constexpr int TYPE = 17;
+  static constexpr int TYPE = 20;
 
 private:
   friend class ControlMessage;
@@ -560,7 +625,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 18;
+  static constexpr int TYPE = 21;
 
 private:
   friend class ControlMessage;
@@ -583,7 +648,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 19;
+  static constexpr int TYPE = 22;
 
 private:
   friend class ControlMessage;
@@ -610,7 +675,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 20;
+  static constexpr int TYPE = 23;
 
 private:
   friend class ControlMessage;
@@ -635,7 +700,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 21;
+  static constexpr int TYPE = 24;
 
 private:
   friend class ControlMessage;
@@ -660,7 +725,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 22;
+  static constexpr int TYPE = 25;
 
 private:
   friend class ControlMessage;
@@ -690,7 +755,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 23;
+  static constexpr int TYPE = 26;
 
 private:
   friend class ControlMessage;
@@ -716,7 +781,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 24;
+  static constexpr int TYPE = 27;
 
 private:
   friend class ControlMessage;
@@ -724,6 +789,52 @@ private:
   int32_t display_id_;
 
   DISALLOW_COPY_AND_ASSIGN(DisplayRemovedNotification);
+};
+
+// Notification of a passthrough coefficient change on an XR device.
+class XrPassthroughCoefficientChangedNotification : ControlMessage {
+public:
+  explicit XrPassthroughCoefficientChangedNotification(float passthrough_coefficient)
+      : ControlMessage(TYPE),
+        passthrough_coefficient_(passthrough_coefficient) {
+  }
+  ~XrPassthroughCoefficientChangedNotification() override = default;
+
+  [[nodiscard]] float passthrough_coefficient() const { return passthrough_coefficient_; }
+
+  void Serialize(Base128OutputStream& stream) const override;
+
+  static constexpr int TYPE = 28;
+
+private:
+  friend class ControlMessage;
+
+  float passthrough_coefficient_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrPassthroughCoefficientChangedNotification);
+};
+
+// Notification of a virtual environment change on an XR device.
+class XrEnvironmentChangedNotification : ControlMessage {
+public:
+  explicit XrEnvironmentChangedNotification(XrEnvironment environment)
+      : ControlMessage(TYPE),
+        environment_(environment) {
+  }
+  ~XrEnvironmentChangedNotification() override = default;
+
+  [[nodiscard]] XrEnvironment environment() const { return environment_; }
+
+  void Serialize(Base128OutputStream& stream) const override;
+
+  static constexpr int TYPE = 29;
+
+private:
+  friend class ControlMessage;
+
+  XrEnvironment environment_;
+
+  DISALLOW_COPY_AND_ASSIGN(XrEnvironmentChangedNotification);
 };
 
 // Queries the current UI settings from the device.
@@ -736,7 +847,7 @@ public:
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  static constexpr int TYPE = 25;
+  static constexpr int TYPE = 30;
 
 private:
   friend class ControlMessage;
@@ -877,7 +988,7 @@ public:
     return gesture_overlay_installed_;
   }
 
-  static constexpr int TYPE = 26;
+  static constexpr int TYPE = 31;
 
 private:
   friend class ControlMessage;
@@ -967,7 +1078,7 @@ public:
     return locale_;
   }
 
-  static constexpr int TYPE = 27;
+  static constexpr int TYPE = 32;
 
 private:
   friend class ControlMessage;
@@ -1012,7 +1123,7 @@ public:
   [[nodiscard]] bool original_values() const {
     return original_values_;
   }
-  static constexpr int TYPE = 28;
+  static constexpr int TYPE = 33;
 
 private:
   friend class ControlMessage;
@@ -1030,7 +1141,7 @@ public:
   }
   ~ResetUiSettingsRequest() override = default;
 
-  static constexpr int TYPE = 29;
+  static constexpr int TYPE = 34;
 
 private:
   friend class ControlMessage;

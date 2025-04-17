@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.xr
 
 import com.android.annotations.concurrency.UiThread
-import com.android.emulator.control.XrOptions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.intellij.ide.ActivityTracker
@@ -47,7 +46,7 @@ import kotlin.math.PI
  */
 internal abstract class AbstractXrInputController : Disposable {
 
-  @Volatile var environment: XrOptions.Environment? = null
+  @Volatile var environment: XrEnvironment? = null
     set(value) {
       requireNotNull(value)
       if (field != value) {

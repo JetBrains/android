@@ -1118,10 +1118,13 @@ class FakeScreenSharingAgent(
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
         is RequestDeviceStateMessage -> requestDeviceState(message)
-        is XrRotationMessage -> produceNewFrame()
-        is XrTranslationMessage -> produceNewFrame()
-        is XrAngularVelocityMessage -> produceNewFrame()
-        is XrVelocityMessage -> produceNewFrame()
+        is XrRotationMessage,
+        is XrTranslationMessage,
+        is XrAngularVelocityMessage,
+        is XrVelocityMessage,
+        is XrRecenterMessage,
+        is XrSetPassthroughCoefficientMessage,
+        is XrSetEnvironmentMessage -> produceNewFrame()
         is DisplayConfigurationRequest -> sendDisplayConfigurations(message)
         is UiSettingsRequest -> sendUiSettings(message)
         is UiSettingsChangeRequest<*> -> sendUiSettingsCommand(message)

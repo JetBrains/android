@@ -122,6 +122,9 @@ private:
   void ProcessXrTranslation(const XrTranslationMessage& message);
   void ProcessXrAngularVelocity(const XrAngularVelocityMessage& message);
   void ProcessXrVelocity(const XrVelocityMessage& message);
+  void XrRecenter(const XrRecenterMessage& message);
+  void XrSetPassthroughCoefficient(const XrSetPassthroughCoefficientMessage& message);
+  void XrSetEnvironment(const XrSetEnvironmentMessage& message);
   void InjectXrMotionEvent(const JObject& motion_event);
 
   void RequestDeviceState(const RequestDeviceStateMessage& message);

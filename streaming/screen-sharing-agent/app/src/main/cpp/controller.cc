@@ -356,6 +356,18 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       ProcessXrVelocity((const XrVelocityMessage&) message);
       break;
 
+    case XrRecenterMessage::TYPE:
+      XrRecenter((const XrRecenterMessage&) message);
+      break;
+
+    case XrSetPassthroughCoefficientMessage::TYPE:
+      XrSetPassthroughCoefficient((const XrSetPassthroughCoefficientMessage&) message);
+      break;
+
+    case XrSetEnvironmentMessage::TYPE:
+      XrSetEnvironment((const XrSetEnvironmentMessage&) message);
+      break;
+
     case DisplayConfigurationRequest::TYPE:
       SendDisplayConfigurations((const DisplayConfigurationRequest&) message);
       break;
@@ -781,6 +793,18 @@ void Controller::ProcessXrAngularVelocity(const XrAngularVelocityMessage& messag
 void Controller::ProcessXrVelocity(const XrVelocityMessage& message) {
   float data[3] = { message.x(), message.y(), message.z() };
   XrSimulatedInputManager::InjectHeadMovementVelocity(jni_, data);
+}
+
+void Controller::XrRecenter(const XrRecenterMessage& message) {
+  //TODO: Implement.
+}
+
+void Controller::XrSetPassthroughCoefficient(const XrSetPassthroughCoefficientMessage& message) {
+  //TODO: Implement.
+}
+
+void Controller::XrSetEnvironment(const XrSetEnvironmentMessage& message) {
+  //TODO: Implement.
 }
 
 void Controller::InjectXrMotionEvent(const JObject& motion_event) {
