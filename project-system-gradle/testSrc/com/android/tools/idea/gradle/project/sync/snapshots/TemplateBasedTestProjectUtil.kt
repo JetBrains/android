@@ -99,21 +99,21 @@ internal fun patchMppProject(
             id 'kotlin-multiplatform'
         }
         kotlin {
-            android()
+            androidTarget()
         }
      """.trimIndent(),
     )
   }
   for (module in addJvmTo) {
     projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
-      "android()",
-      "android()\njvm()"
+      "androidTarget()",
+      "androidTarget()\njvm()"
     )
   }
   for (module in addIosTo) {
     projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
-      "android()",
-      "android()\niosX64()\niosSimulatorArm64()\niosArm64()"
+      "androidTarget()",
+      "androidTarget()\niosX64()\niosSimulatorArm64()\niosArm64()"
     )
   }
   for (module in addIntermediateTo) {

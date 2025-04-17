@@ -325,9 +325,9 @@ enum class TestProject(
     patch = { projectRoot ->
       patchMppProject(projectRoot, convertAppToKmp = true)
       projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
-        "android()",
+        "androidTarget()",
         """
-          android()
+          androidTarget()
             sourceSets {
               androidTest
               androidAndroidTest {
