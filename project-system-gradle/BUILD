@@ -30,6 +30,7 @@ iml_module(
         "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
         "//tools/adt/idea/databinding/gradle:intellij.android.databinding.gradle",
         "//tools/adt/idea/screenshot-testing/gradle:intellij.android.screenshot-test.gradle",
+        "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:aiplugin.android.journeys.gradle",
         # Templates and Wizards
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
