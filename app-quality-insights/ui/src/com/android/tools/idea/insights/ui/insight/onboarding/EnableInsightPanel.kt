@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.insight.onboarding
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ai.InsightsOnboardingProvider
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
@@ -47,18 +46,12 @@ class EnableInsightPanel(
         )
       }
 
-  private val isStudioBotBackend: Boolean
-    get() = !StudioFlags.CRASHLYTICS_TITAN_INSIGHT_PROVIDER.get()
-
   val button =
     JButton("Enable Insights").apply {
       addActionListener {
         selectedConnectionStateFlow.value?.let {
           insightsOnboardingProvider.performOnboardingAction(it)
         }
-      }
-      if (!isStudioBotBackend) {
-        isFocusable = false
       }
     }
 

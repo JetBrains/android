@@ -725,11 +725,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun panelClosed(panel: DeviceToolWindowPanel) {
-    if (!isLocalEmulator(panel.deviceSerialNumber)) {
-      val deviceHandle = panel.deviceHandle
-      val deactivationAction = deviceHandle.deactivationAction
-      deactivationAction?.let { CoroutineScope(Dispatchers.IO).launch { it.deactivate() } } ?: stopMirroring(panel.deviceSerialNumber)
+    val deactivationAction = when {
+      isLocalEmulator(panel.deviceSerialNumber) -> null // Don't stop the mirrored standalone emulator.
+      else -> panel.deviceHandle.deactivationAction
     }
+    deactivationAction?.let { CoroutineScope(Dispatchers.IO).launch { it.deactivate() } } ?: stopMirroring(panel.deviceSerialNumber)
   }
 
   private fun deactivateMirroring(serialNumber: String) {

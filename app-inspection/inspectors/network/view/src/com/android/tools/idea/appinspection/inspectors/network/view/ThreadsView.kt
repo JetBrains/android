@@ -160,7 +160,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
     override fun getColumnCount() = 2
 
-    override fun getColumnName(column: Int) = Column.values()[column].displayName
+    override fun getColumnName(column: Int) = Column.entries[column].displayName
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
       return if (columnIndex == Column.NAME.ordinal) {

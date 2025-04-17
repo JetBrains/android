@@ -26,7 +26,6 @@ import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
-import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ToolWindowManager
@@ -89,7 +88,7 @@ class AiInsightToolkitTest {
       AiInsightToolkitImpl(
         projectRule.project,
         StubInsightsOnboardingProvider(),
-        FakeCodeContextResolver(listOf(CodeContext("class", "a/b/c", "blah", Language.KOTLIN))),
+        FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))),
       )
 
     fakeGeminiPluginApi.contextAllowed = false
@@ -107,7 +106,7 @@ class AiInsightToolkitTest {
         AiInsightToolkitImpl(
           projectRule.project,
           StubInsightsOnboardingProvider(),
-          FakeCodeContextResolver(listOf(CodeContext("class", "a/b/c", "blah", Language.KOTLIN))),
+          FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))),
         )
       fakeGeminiPluginApi.contextAllowed = true
 

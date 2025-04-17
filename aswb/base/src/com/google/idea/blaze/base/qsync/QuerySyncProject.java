@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest.multiTarget;
 import static com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest.wholeProject;
 
@@ -28,7 +29,6 @@ import com.google.common.io.MoreFiles;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
-import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
@@ -42,35 +42,36 @@ import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.common.AtomicFileWriter;
+import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.BlazeQueryParser;
 import com.google.idea.blaze.qsync.ProjectProtoTransform;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.SnapshotBuilder;
 import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
+import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectPath;
+import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.SnapshotDeserializer;
 import com.google.idea.blaze.qsync.project.SnapshotSerializer;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
 import com.google.protobuf.CodedOutputStream;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -113,33 +114,35 @@ public class QuerySyncProject {
 
   private final BuildSystem buildSystem;
   private final ProjectProtoTransform.Registry projectProtoTransforms;
-
-  private volatile QuerySyncProjectData projectData;
+  private final WorkspaceLanguageSettings workspaceLanguageSettings;
+  private final ImmutableSet<String> handledRuleKinds;
 
   public QuerySyncProject(
-      Project project,
-      Path snapshotFilePath,
-      SnapshotHolder snapshotHolder,
-      BlazeImportSettings importSettings,
-      WorkspaceRoot workspaceRoot,
-      ArtifactTracker<?> artifactTracker,
-      BuildArtifactCache buildArtifactCache,
-      ProjectArtifactStore artifactStore,
-      RenderJarArtifactTracker renderJarArtifactTracker,
-      AppInspectorArtifactTracker appInspectorArtifactTracker,
-      DependencyTracker dependencyTracker,
-      RenderJarTracker renderJarTracker,
-      AppInspectorTracker appInspectorTracker,
-      ProjectQuerier projectQuerier,
-      SnapshotBuilder snapshotBuilder,
-      ProjectDefinition projectDefinition,
-      ProjectViewSet projectViewSet,
-      WorkspacePathResolver workspacePathResolver,
-      ProjectPath.Resolver projectPathResolver,
-      WorkspaceLanguageSettings workspaceLanguageSettings,
-      QuerySyncSourceToTargetMap sourceToTargetMap,
-      BuildSystem buildSystem,
-      ProjectProtoTransform.Registry projectProtoTransforms) {
+    Project project,
+    Path snapshotFilePath,
+    SnapshotHolder snapshotHolder,
+    BlazeImportSettings importSettings,
+    WorkspaceRoot workspaceRoot,
+    ArtifactTracker<?> artifactTracker,
+    BuildArtifactCache buildArtifactCache,
+    ProjectArtifactStore artifactStore,
+    RenderJarArtifactTracker renderJarArtifactTracker,
+    AppInspectorArtifactTracker appInspectorArtifactTracker,
+    DependencyTracker dependencyTracker,
+    RenderJarTracker renderJarTracker,
+    AppInspectorTracker appInspectorTracker,
+    ProjectQuerier projectQuerier,
+    SnapshotBuilder snapshotBuilder,
+    ProjectDefinition projectDefinition,
+    ProjectViewSet projectViewSet,
+    WorkspacePathResolver workspacePathResolver,
+    ProjectPath.Resolver projectPathResolver,
+    WorkspaceLanguageSettings workspaceLanguageSettings,
+    QuerySyncSourceToTargetMap sourceToTargetMap,
+    BuildSystem buildSystem,
+    ProjectProtoTransform.Registry projectProtoTransforms,
+    ImmutableSet<String> handledRuleKinds
+  ) {
     this.project = project;
     this.snapshotFilePath = snapshotFilePath;
     this.snapshotHolder = snapshotHolder;
@@ -159,10 +162,11 @@ public class QuerySyncProject {
     this.projectViewSet = projectViewSet;
     this.workspacePathResolver = workspacePathResolver;
     this.projectPathResolver = projectPathResolver;
+    this.workspaceLanguageSettings = workspaceLanguageSettings;
     this.sourceToTargetMap = sourceToTargetMap;
     this.buildSystem = buildSystem;
     this.projectProtoTransforms = projectProtoTransforms;
-    projectData = new QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings);
+    this.handledRuleKinds = handledRuleKinds;
   }
 
   public Project getIdeProject() {
@@ -186,6 +190,11 @@ public class QuerySyncProject {
   }
 
   public QuerySyncProjectData getProjectData() {
+    QuerySyncProjectData projectData = new QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings);
+    Optional<QuerySyncProjectSnapshot> snapshot = getSnapshotHolder().getCurrent();
+    if (snapshot.isPresent()) {
+      projectData = projectData.withSnapshot(snapshot.get());
+    }
     return projectData;
   }
 
@@ -250,12 +259,8 @@ public class QuerySyncProject {
           syncListener.onQuerySyncStart(project, context);
         }
 
-        SaveUtil.saveAllFiles();
-        PostQuerySyncData postQuerySyncData =
-            lastQuery.isEmpty()
-                ? projectQuerier.fullQuery(projectDefinition, context)
-                : projectQuerier.update(projectDefinition, lastQuery.get(), context);
-        updateProjectSnapshot(context, postQuerySyncData);
+        CoreSyncResult coreSyncResult = syncCore(context, lastQuery);
+        final var newSnapshot = updateProjectSnapshot(context, coreSyncResult.postQuerySyncData(), coreSyncResult.graph());
 
         // TODO: Revisit SyncListeners once we switch fully to qsync
         for (SyncListener syncListener : SyncListener.EP_NAME.getExtensions()) {
@@ -266,12 +271,10 @@ public class QuerySyncProject {
               importSettings,
               projectViewSet,
               ImmutableSet.of(),
-              projectData,
+              new QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings).withSnapshot(newSnapshot),
               SyncMode.FULL,
               SyncResult.SUCCESS);
         }
-      } catch (IOException e) {
-        throw new BuildException(e);
       } finally {
         for (SyncListener syncListener : SyncListener.EP_NAME.getExtensions()) {
           // A query sync specific callback.
@@ -281,21 +284,50 @@ public class QuerySyncProject {
     }
   }
 
+  public void syncQueryData(BlazeContext parentContext, Optional<PostQuerySyncData> lastQuery) throws BuildException {
+    try (BlazeContext context = BlazeContext.create(parentContext)) {
+      context.push(new SyncQueryStatsScope());
+      QuerySyncProject.CoreSyncResult coreSyncResult = syncCore(context, lastQuery);
+      snapshotHolder.setCurrent(context,
+                                getSnapshotHolder().getCurrent().orElseThrow().toBuilder()
+                                  .queryData(coreSyncResult.postQuerySyncData)
+                                  .graph(coreSyncResult.graph)
+                                  .build());
+    }
+  }
+
+  private record CoreSyncResult(PostQuerySyncData postQuerySyncData, BuildGraphData graph) { }
+  private CoreSyncResult syncCore(BlazeContext context, Optional<PostQuerySyncData> lastQuery) throws BuildException {
+    try {
+      SaveUtil.saveAllFiles();
+      PostQuerySyncData postQuerySyncData =
+        lastQuery.isEmpty()
+        ? projectQuerier.fullQuery(projectDefinition, context)
+        : projectQuerier.update(projectDefinition, lastQuery.get(), context);
+      BuildGraphData graph = getBuildGraphData(postQuerySyncData, context);
+      return new CoreSyncResult(postQuerySyncData, graph);
+    } catch (IOException e) {
+      throw new BuildException(e);
+    }
+  }
+
   /**
    * Returns the list of project targets related to the given workspace file.
    *
-   * @param context Context
-   * @param workspaceRelativePath Workspace relative file path to find targets for. This may be a
-   *     source file, directory or BUILD file.
+   * @param context               Context
+   * @param workspaceRelativePaths Workspace relative file paths to find targets for. A path may be a
+   *                              path to a source file, directory or BUILD file.
    * @return Corresponding project targets. For a source file, this is the targets that build that
-   *     file. For a BUILD file, it's the set or targets defined in that file. For a directory, it's
-   *     the set of all targets defined in all build packages within the directory (recursively).
+   * file. For a BUILD file, it's the set or targets defined in that file. For a directory, it's
+   * the set of all targets defined in all build packages within the directory (recursively).
    */
-  public TargetsToBuild getProjectTargets(BlazeContext context, Path workspaceRelativePath) {
+  public ImmutableSet<TargetsToBuild> getProjectTargets(BlazeContext context, Collection<Path> workspaceRelativePaths) {
     return snapshotHolder
         .getCurrent()
-        .map(snapshot -> snapshot.graph().getProjectTargets(context, workspaceRelativePath))
-        .orElse(TargetsToBuild.NONE);
+        .stream()
+        .flatMap(snapshot -> workspaceRelativePaths.stream()
+          .map(path -> snapshot.graph().getProjectTargets(context, path)))
+      .collect(toImmutableSet());
   }
 
   /** Returns the set of targets with direct dependencies on {@code targets}. */
@@ -330,7 +362,9 @@ public class QuerySyncProject {
     } catch (IOException e) {
       throw new BuildException("Failed to clear dependency info", e);
     }
-    updateProjectSnapshot(context, snapshotHolder.getCurrent().orElseThrow().queryData());
+    PostQuerySyncData postQuerySyncData = snapshotHolder.getCurrent().orElseThrow().queryData();
+    BuildGraphData graph = getBuildGraphData(postQuerySyncData, context);
+    updateProjectSnapshot(context, postQuerySyncData, graph);
   }
 
   public void resetQuerySyncState(BlazeContext context) throws BuildException {
@@ -352,28 +386,28 @@ public class QuerySyncProject {
     try (BlazeContext context = BlazeContext.create(parentContext)) {
       context.push(new BuildDepsStatsScope());
       if (getDependencyTracker().buildDependenciesForTargets(context, request)) {
-        updateProjectSnapshot(context, snapshotHolder.getCurrent().orElseThrow().queryData());
+        PostQuerySyncData postQuerySyncData = snapshotHolder.getCurrent().orElseThrow().queryData();
+        BuildGraphData graph = getBuildGraphData(postQuerySyncData, context);
+        updateProjectSnapshot(context, postQuerySyncData, graph);
       }
     }
   }
 
-  private void updateProjectSnapshot(BlazeContext context, PostQuerySyncData queryData)
+  private BuildGraphData getBuildGraphData(PostQuerySyncData postQuerySyncData, Context<?> context) {
+    return new BlazeQueryParser(postQuerySyncData.querySummary(), context, handledRuleKinds).parse();
+  }
+
+  private QuerySyncProjectSnapshot updateProjectSnapshot(BlazeContext context, PostQuerySyncData queryData, BuildGraphData graph)
     throws BuildException {
     QuerySyncProjectSnapshot newSnapshot =
       snapshotBuilder.createBlazeProjectSnapshot(
         context,
         queryData,
+        graph,
         artifactTracker.getStateSnapshot(),
         projectProtoTransforms.getComposedTransform());
     onNewSnapshot(context, newSnapshot);
-  }
-
-  public void buildRenderJar(BlazeContext parentContext, List<Path> wps)
-      throws IOException, BuildException {
-    try (BlazeContext context = BlazeContext.create(parentContext)) {
-      context.push(new BuildDepsStatsScope());
-      renderJarTracker.buildRenderJarForFile(context, wps);
-    }
+    return newSnapshot;
   }
 
   public ImmutableCollection<Path> buildAppInspector(
@@ -410,23 +444,7 @@ public class QuerySyncProject {
   }
 
   public boolean canEnableAnalysisFor(Path workspacePath) {
-    return !getProjectTargets(BlazeContext.create(), workspacePath).isEmpty();
-  }
-
-  public void enableRenderJar(BlazeContext context, PsiFile psiFile, Set<Label> targets)
-      throws BuildException {
-    try {
-      // Building render jar also requires building dependencies and resolving/analysis
-      // (b/309154453#comment5), so we invoke both actions
-      // TODO(b/336628891): Combine both aspects (build render jars, build dependencies) into a
-      // single build
-      enableAnalysis(context, targets);
-      Path path = Paths.get(psiFile.getVirtualFile().getPath());
-      String rel = workspaceRoot.path().relativize(path).toString();
-      buildRenderJar(context, ImmutableList.of(WorkspacePath.createIfValid(rel).asPath()));
-    } catch (IOException e) {
-      throw new BuildException("Failed to build render jar", e);
-    }
+    return !getProjectTargets(BlazeContext.create(), ImmutableList.of(workspacePath)).isEmpty();
   }
 
   public boolean isReadyForAnalysis(Path path) {
@@ -531,7 +549,8 @@ public class QuerySyncProject {
   private void onNewSnapshot(BlazeContext context, QuerySyncProjectSnapshot newSnapshot)
       throws BuildException {
     // update the artifact store for the new snapshot
-    ProjectArtifactStore.UpdateResult result = artifactStore.update(context, newSnapshot);
+    ProjectProto.ArtifactDirectories newArtifactDirectoriesSnapshot = newSnapshot.project().getArtifactDirectories();
+    ProjectArtifactStore.UpdateResult result = artifactStore.update(newArtifactDirectoriesSnapshot, context);
     if (!result.incompleteTargets().isEmpty()) {
       final int limit = 20;
       logger.warn(
@@ -550,7 +569,6 @@ public class QuerySyncProject {
     newSnapshot = newSnapshot.toBuilder().incompleteTargets(result.incompleteTargets()).build();
 
     snapshotHolder.setCurrent(context, newSnapshot);
-    projectData = projectData.withSnapshot(newSnapshot);
     try {
       writeToDisk(newSnapshot);
     } catch (IOException e) {

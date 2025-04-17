@@ -23,16 +23,21 @@ import com.android.tools.idea.ndk.PageAlignConfig.createSoNotAlignedInZipMessage
 import com.android.tools.idea.ndk.PageAlignConfig.createSoUnalignedLoadSegmentsMessage
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.stats.AnonymizerUtil
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.Align16kbEvent
 import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType
-import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APP_DEPLOYED
-import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APP_DEPLOYED
 import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType.ALIGN_NATIVE_BUBBLE_LOAD_SECTIONS_DEPLOYED
 import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType.ALIGN_NATIVE_BUBBLE_ZIP_OFFSET_DEPLOYED
+import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType.ALIGN_NATIVE_COMPLIANT_APP_DEPLOYED
+import com.google.wireless.android.sdk.stats.Align16kbEvent.AlignNative16kbEventType.ALIGN_NATIVE_NON_COMPLIANT_APP_DEPLOYED
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
+import java.io.File
 import javax.swing.event.HyperlinkEvent
 
 /**
@@ -87,10 +92,11 @@ abstract class PageAlignNotifier(
       if (isWear || isAutomotive) continue
 
       // Show a warning balloon for the SO files that aren't aligned at a 16 KB boundary within the APK
+      val apkLink = "<a href='$apkFile'>${apkFile.name}</a>"
       problems.filter { it.value.contains(ElfNot16kAlignedInZip) }.map { it.key }.let { files ->
         if (files.isNotEmpty()) {
           logEvent(ALIGN_NATIVE_BUBBLE_ZIP_OFFSET_DEPLOYED)
-          val message = createSoNotAlignedInZipMessage(apkFile, files)
+          val message = createSoNotAlignedInZipMessage(apkLink, files)
           showBalloon(message)
         }
       }
@@ -99,23 +105,29 @@ abstract class PageAlignNotifier(
       problems.filter { it.value.contains(ElfLoadSectionsNot16kAligned) }.map { it.key }.let { files ->
         if (files.isNotEmpty()) {
           logEvent(ALIGN_NATIVE_BUBBLE_LOAD_SECTIONS_DEPLOYED)
-          val message = createSoUnalignedLoadSegmentsMessage(apkFile, files)
+          val message = createSoUnalignedLoadSegmentsMessage(apkLink, files)
           showBalloon(message)
         }
       }
     }
   }
 
-
-
   /**
-   * Listen for hyperlink activations and open a browser with the url from href.
+   * Listen for hyperlink activations and open a browser with the url from href
+   * or the referenced APK.
    */
-  val hyperlinkListener : NotificationListener = object : NotificationListener.Adapter() {
+  class HyperlinkListener(private val project : Project): NotificationListener.Adapter() {
     override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
       if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-        e.url?.let {
-          BrowserUtil.browse(it)
+        val url = e.url
+        val description = e.description
+        if (description != null && description.endsWith(".apk")) {
+          val apkFile = File(description)
+          val apkVirtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apkFile) ?: return
+          val openFileDescriptor = OpenFileDescriptor(project, apkVirtualFile)
+          FileEditorManager.getInstance(project).openEditor(openFileDescriptor, true)
+        } else if (url != null) {
+          BrowserUtil.browse(url)
         }
       }
     }

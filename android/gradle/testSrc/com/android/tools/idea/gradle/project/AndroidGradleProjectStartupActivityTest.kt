@@ -34,6 +34,8 @@ import com.intellij.mock.MockModule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.TestDialog
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -81,6 +83,7 @@ class AndroidGradleProjectStartupActivityTest {
     ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myProjectRule.testRootDisposable)
     myInfo = mock()
     myStartupActivity = AndroidGradleProjectStartupActivity()
+    TestDialogManager.setTestDialog(TestDialog.NO)
   }
 
   @After
@@ -89,6 +92,7 @@ class AndroidGradleProjectStartupActivityTest {
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
     StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.clearOverride()
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN)
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT)
   }
 
   @Test

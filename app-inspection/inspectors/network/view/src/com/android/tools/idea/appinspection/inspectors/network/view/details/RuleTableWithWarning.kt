@@ -36,6 +36,7 @@ import com.intellij.util.ui.ListTableModel
 import icons.StudioIcons
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 internal class RuleTableWithWarning(
   private val model: ListTableModel<TransformationRuleData>,
@@ -107,7 +108,7 @@ internal class RuleTableWithWarning(
           .ask(table)
       if (isConfirmed) {
         if (TableUtil.doRemoveSelectedItems(table, model, null)) {
-          IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
+          SwingUtilities.invokeLater {
             IdeFocusManager.getGlobalInstance().requestFocus(table, true)
           }
           TableUtil.updateScroller(table)

@@ -124,6 +124,7 @@ import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
+import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
@@ -738,6 +739,7 @@ class EmulatorViewTest {
     view = emulatorViewRule.newEmulatorView()
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
     assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, VK_M, VK_M.toChar()))).isTrue()
+    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, VK_SPACE, VK_SPACE.toChar()))).isTrue()
   }
 
   @Test

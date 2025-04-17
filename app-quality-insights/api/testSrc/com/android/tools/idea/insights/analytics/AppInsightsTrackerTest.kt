@@ -48,7 +48,6 @@ import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextTrackingInfo
-import com.android.tools.idea.insights.ai.codecontext.Language
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.AiInsightFetched
@@ -356,10 +355,7 @@ class AppInsightsTrackerTest {
   @Test
   fun `track insight fetch`() = runBlocking {
     val context =
-      CodeContextData(
-        listOf(CodeContext("abc", "path", "dklsjfsds", Language.JAVA)),
-        CodeContextTrackingInfo(1, 1, 15),
-      )
+      CodeContextData(listOf(CodeContext("path", "dklsjfsds")), CodeContextTrackingInfo(1, 1, 15))
     val testState =
       AppInsightsState(
         Selection(CONNECTION1, listOf(CONNECTION1)),

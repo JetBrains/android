@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiModeWithNightMaskEnumValue
+import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
@@ -41,6 +42,7 @@ import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.ComposeProjectRule
+import org.jetbrains.android.compose.stubConfigurationAsLibrary
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -292,6 +294,103 @@ class PreviewPickerTests {
     checkFontScaleChange("6f", "6.0")
     checkFontScaleChange("7d", "7.0")
     checkFontScaleChange("8.f", "8.0")
+  }
+
+  @RunsInEdt
+  @Test
+  fun testUiModeImports() = runInK2Only {
+    runBlocking {
+      @Language("kotlin")
+      val fileContent =
+        """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+
+      @Composable
+      @Preview
+      fun Preview() {
+      }
+      """
+          .trimIndent()
+
+      fixture.stubConfigurationAsLibrary()
+      val model = getFirstModel(fileContent)
+
+      val uiModeProperty = model.properties["", "uiMode"]
+      val nightModeOption = UiModeWithNightMaskEnumValue.NormalNightEnumValue
+      val notNightOption = UiModeWithNightMaskEnumValue.NormalNotNightEnumValue
+
+      notNightOption.select(uiModeProperty) {}
+
+      assertEquals(
+        """
+          import android.content.res.Configuration
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+
+          @Composable
+          @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+          fun Preview() {
+          }
+        """
+          .trimIndent(),
+        fixture.file.text,
+      )
+
+      nightModeOption.select(uiModeProperty) {}
+      assertEquals(
+        """
+          import android.content.res.Configuration
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+
+          @Composable
+          @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
+          fun Preview() {
+          }
+        """
+          .trimIndent(),
+        fixture.file.text,
+      )
+    }
+  }
+
+  @RunsInEdt
+  @Test
+  fun testWallpaperImports() = runInK2Only {
+    runBlocking {
+      @Language("kotlin")
+      val fileContent =
+        """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+
+      @Composable
+      @Preview
+      fun Preview() {
+      }
+      """
+          .trimIndent()
+
+      val model = getFirstModel(fileContent)
+
+      Wallpaper.BLUE.select(model.properties["", "wallpaper"]) {}
+
+      assertEquals(
+        """
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+          import androidx.compose.ui.tooling.preview.Wallpapers
+
+          @Composable
+          @Preview(wallpaper = Wallpapers.BLUE_DOMINATED_EXAMPLE)
+          fun Preview() {
+          }
+        """
+          .trimIndent(),
+        fixture.file.text,
+      )
+    }
   }
 
   @RunsInEdt

@@ -24,10 +24,12 @@ import com.android.backup.BackupProgressListener.Step
 import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Error
 import com.android.backup.BackupResult.Success
+import com.android.backup.BackupResult.WithoutAppData
 import com.android.backup.BackupService
 import com.android.backup.BackupType
 import com.android.backup.ErrorCode.APP_NOT_INSTALLED
 import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
+import com.android.backup.ErrorCode.BACKUP_NOT_ENABLED
 import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
@@ -45,6 +47,7 @@ import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.notification.Notifications
@@ -242,6 +245,7 @@ internal constructor(
         }
         when (result) {
           is Success -> virtualFileManager.refreshAndFindFileByNioPath(backupFile)
+          is WithoutAppData -> virtualFileManager.refreshAndFindFileByNioPath(backupFile)
           is Error -> logger.warn(message("notification.error", operation), result.throwable)
         }
         BackupUsageTracker.logBackup(type, source, result)
@@ -257,6 +261,7 @@ internal constructor(
   ) {
     when (this) {
       is Success -> notifySuccess(message("notification.success", operation), backupFile)
+      is WithoutAppData -> notifySuccessWithoutAppData(backupFile)
       is Error -> notifyError(message("notification.error", operation), throwable, serialNumber)
     }
   }
@@ -266,6 +271,19 @@ internal constructor(
     if (backupFile != null) {
       notification.addAction(ShowPostBackupDialogAction(project, backupFile))
     }
+    Notifications.Bus.notify(notification, project)
+  }
+
+  private fun notifySuccessWithoutAppData(backupFile: Path?) {
+    val notification =
+      Notification(
+        NOTIFICATION_GROUP,
+        message("notification.success", message("backup")),
+        message("notification.without.app.data"),
+        INFORMATION,
+      )
+    notification.addAction(ShowPostBackupDialogAction(project, backupFile!!))
+    notification.addAction(BackupDisabledLearnMoreAction())
     Notifications.Bus.notify(notification, project)
   }
 
@@ -282,14 +300,24 @@ internal constructor(
           }
         )
       }
-      if (
-        (throwable as? BackupException)?.errorCode == GMSCORE_IS_TOO_OLD &&
-          backupService.isPlayStoreInstalled(serialNumber)
-      ) {
-        add(DialogButton(message("notification.update.gms")) { sendUpdateGmsIntent(serialNumber) })
+      val errorCode = (throwable as? BackupException)?.errorCode
+      when (errorCode) {
+        GMSCORE_IS_TOO_OLD -> addUpdateGmsCoreButton(serialNumber)
+        BACKUP_NOT_ENABLED -> addBackupNotEnabledButton()
+        else -> {}
       }
     }
     dialogFactory.showDialog(project, title, content, buttons)
+  }
+
+  private suspend fun MutableList<DialogButton>.addUpdateGmsCoreButton(serialNumber: String) {
+    if (backupService.isPlayStoreInstalled(serialNumber)) {
+      add(DialogButton(message("notification.update.gms")) { sendUpdateGmsIntent(serialNumber) })
+    }
+  }
+
+  private fun MutableList<DialogButton>.addBackupNotEnabledButton() {
+    add(DialogButton(message("learn.more")) { openBackupDisabledLearnMoreLink() })
   }
 
   private class ShowPostBackupDialogAction(val project: Project, private val backupPath: Path) :
@@ -305,6 +333,7 @@ internal constructor(
       BACKUP_NOT_SUPPORTED -> false
       BACKUP_NOT_ACTIVATED -> false
       APP_NOT_INSTALLED -> false
+      BACKUP_NOT_ENABLED -> false
       else -> true
     }
   }
@@ -323,6 +352,18 @@ internal constructor(
           Messages.showErrorDialog(project, message, message("open.play.store.error.title"))
         }
       }
+    }
+  }
+
+  companion object {
+    fun openBackupDisabledLearnMoreLink() {
+      BrowserUtil.browse("https://developer.android.com/identity/sign-in/restore-credentials")
+    }
+  }
+
+  private class BackupDisabledLearnMoreAction : AnAction(message("learn.more")) {
+    override fun actionPerformed(e: AnActionEvent) {
+      openBackupDisabledLearnMoreLink()
     }
   }
 }

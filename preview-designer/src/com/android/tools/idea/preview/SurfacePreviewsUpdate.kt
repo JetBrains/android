@@ -21,11 +21,12 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurfaceSettings.Companion.getInstance
-import com.android.tools.idea.common.surface.organization.DEFAULT_ORGANIZATION_GROUP_STATE
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
+import com.android.tools.idea.common.surface.organization.OrganizationGroupType
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
@@ -119,7 +120,6 @@ suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElemen
  * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
  */
 suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
-  tryReusingModels: Boolean,
   reinflate: Boolean,
   previewElements: Collection<T>,
   log: Logger,
@@ -148,9 +148,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   val existingModels = models
   val previewElementsList = previewElements.toList()
   val modelIndices =
-    if (tryReusingModels) {
-      matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
-    } else List(previewElementsList.size) { -1 }
+    matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
 
   // First, remove and dispose pre-existing models that won't be reused.
   // This will happen for example if the user removes one or more previews.
@@ -176,7 +174,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   val groups =
     elementsToReusableModels
       .mapNotNull { (_, model) -> model?.organizationGroup }
-      .associateBy { it.methodFqn }
+      .associateBy { it.groupId }
       .toMutableMap()
 
   // Second, reorder the models to reuse and create the new models needed,
@@ -201,6 +199,12 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         newModel.displaySettings.setDisplayName(previewElement.displaySettings.name)
         newModel.displaySettings.setBaseName(previewElement.displaySettings.baseName)
         newModel.displaySettings.setParameterName(previewElement.displaySettings.parameterName)
+        // TODO(b/407525144) Set correct icon and do not set file name if preview opened from the
+        // same file.
+        if (StudioFlags.PREVIEW_SOURCESET_UI.get()) {
+          newModel.displaySettings.setFileName(psiFile.name)
+          newModel.displaySettings.setGroupType(OrganizationGroupType.Test)
+        }
         newModel.dataProvider = previewElementModelAdapter.createDataProvider(previewElement)
         newModel.setModelUpdater(modelUpdater)
         (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
@@ -218,9 +222,15 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           val displayName =
             methodPreviewElement.displaySettings.baseName +
               (methodPreviewElement.displaySettings.organizationGroup?.let { " - $it" } ?: "")
+          val fileAndDisplayName =
+            newModel.displaySettings.fileName.value?.let { "$it.$displayName" } ?: displayName
           newModel.organizationGroup =
             groups.getOrCreate(groupId) {
-              OrganizationGroup(groupId, displayName) {
+              OrganizationGroup(
+                  groupId,
+                  fileAndDisplayName,
+                  newModel.displaySettings.groupType.value,
+                ) {
                   // Everytime state is changed we need to save it.
                   isOpened ->
                   getInstance(project)
@@ -228,8 +238,11 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
                     .saveOrganizationGroupState(psiFile.virtualFile, groupId, isOpened)
                 }
                 .apply {
-                  // Load previously saved state.
-                  setOpened(previousOrganizationState[groupId] ?: DEFAULT_ORGANIZATION_GROUP_STATE)
+                  // Load previously saved state or use default state.
+                  setOpened(
+                    previousOrganizationState[groupId]
+                      ?: newModel.displaySettings.groupType.value.defaultGroupState
+                  )
                 }
             }
         }

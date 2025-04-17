@@ -57,6 +57,7 @@ class Benchmarker<InputType>(
       State.SENDING_INPUTS {
         transitionsTo(State.WAITING_FOR_OUTSTANDING_INPUTS, State.STOPPED)
         onEnter {
+          adapter.prepareForInputs()
           timer.scheduleAtFixedRate(delay = 0, period = frameDurationMillis) { dispatchNextInput() }
         }
         onExit {
@@ -145,7 +146,7 @@ class Benchmarker<InputType>(
 
   @Synchronized
   fun stop() {
-    failureMsg = "Benchmarking was canceled."
+    failureMsg = ""
     state = State.STOPPED
   }
 
@@ -206,6 +207,9 @@ class Benchmarker<InputType>(
 
     /** Returns the object being benchmarked into a state where it is ready to receive inputs. */
     fun ready()
+
+    /** Prepares for sending inputs. */
+    fun prepareForInputs()
 
     /** Indicates no further inputs will be dispatched. */
     fun finalizeInputs()

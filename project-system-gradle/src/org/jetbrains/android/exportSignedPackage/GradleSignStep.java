@@ -16,6 +16,7 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType.BUNDLE;
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
@@ -34,15 +35,22 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Insets;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.DefaultListModel;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.DefaultListCellRenderer;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -61,6 +69,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   private final ExportSignedPackageWizard myWizard;
   private final DefaultListModel<String> myBuildVariantsListModel = new DefaultListModel<>();
+  private final Set<String> disabledItems = new HashSet<>();
 
   private GradleAndroidModel myAndroidModel;
 
@@ -69,6 +78,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     myWizard = exportSignedPackageWizard;
 
     myBuildVariantsList.setModel(myBuildVariantsListModel);
+    myBuildVariantsList.setSelectionModel(new DisabledItemSelectionModel());
+    myBuildVariantsList.setCellRenderer(new DisabledItemListCellRenderer());
     myBuildVariantsList.setEmptyText(AndroidBundle.message("android.apk.sign.gradle.no.variants"));
     ListSpeedSearch.installOn(myBuildVariantsList);
     myApkPathField.addBrowseFolderListener(myWizard.getProject(), FileChooserDescriptorFactory.createSingleFolderDescriptor()
@@ -91,6 +102,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     if (myAndroidModel != null) {
       buildVariants.addAll(myAndroidModel.getFilteredVariantNames());
       Collections.sort(buildVariants);
+
+      disabledItems.addAll(myAndroidModel.getFilteredDebuggableVariants());
     }
 
     IntList lastSelectedIndices = new IntArrayList(buildVariants.size());
@@ -100,7 +113,6 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     for (int i = 0; i < buildVariants.size(); i++) {
       String variant = buildVariants.get(i);
       myBuildVariantsListModel.addElement(variant);
-
       if (lastSelectedVariants.contains(variant)) {
         lastSelectedIndices.add(i);
       }
@@ -203,8 +215,62 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
                                                           null, null, 0, false));
-    myBuildVariantsList = new JBList();
+    myBuildVariantsList = new JBList() {
+      public String getToolTipText(MouseEvent e) {
+        int row = locationToIndex(e.getPoint());
+        String name = getModel().getElementAt(row).toString();
+        if (shouldDisableDebuggable() && disabledItems.contains(name)) {
+          return "Variant `" + name + "` is debuggable so cannot be signed";
+        }
+        else {
+          return super.getToolTipText(e);
+        }
+      }
+    };
     jBScrollPane1.setViewportView(myBuildVariantsList);
     jBLabel1.setLabelFor(myApkPathField);
   }
+
+  private boolean shouldDisableDebuggable() {
+    return myWizard.getTargetType() == BUNDLE;
+  }
+
+  private class DisabledItemSelectionModel extends DefaultListSelectionModel {
+    private boolean isEnabled(int index) {
+      return !disabledItems.contains(myBuildVariantsListModel.get(index));
+    }
+
+    @Override
+    public void setSelectionInterval(int index0, int index1) {
+      if (shouldDisableDebuggable()) {
+        for (int i = index0; i <= index1; i++) {
+          if (isEnabled(i)) {
+            // call default selection behavior to actually enable row i for selection
+            super.setSelectionInterval(i, i);
+          }
+        }
+      }
+      else {
+        super.setSelectionInterval(index0, index1);
+      }
+    }
+  }
+
+  private class DisabledItemListCellRenderer extends DefaultListCellRenderer {
+    @Override
+    public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+      String txt = (String)value;
+      setText(txt);
+
+      if (shouldDisableDebuggable() && disabledItems.contains(myBuildVariantsListModel.get(index))) {
+        setForeground(Color.GRAY);
+      }
+      else {
+        setForeground(list.getForeground());
+      }
+
+      return this;
+    }
+  }
+
 }

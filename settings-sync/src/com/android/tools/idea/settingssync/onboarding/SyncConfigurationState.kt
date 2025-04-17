@@ -55,7 +55,7 @@ private val LOG = Logger.getInstance(SyncConfigurationState::class.java)
 
 internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.Listener {
   private val syncEnabler = SettingsSyncEnabler()
-  private val activeSyncUser =
+  val activeSyncUser =
     SettingsSyncLocalSettings.getInstance().userId.takeIf {
       SettingsSyncSettings.getInstance().syncEnabled
     }

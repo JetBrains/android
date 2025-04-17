@@ -20,18 +20,23 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.PopupBorder
 import com.intellij.ui.WindowMoveListener
 import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import java.awt.event.MouseEvent
+import java.awt.Component
+import java.awt.Container
+import java.awt.KeyboardFocusManager
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JRootPane
+import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.SwingUtilities
 
+private const val HORIZONTAL_MARGIN = 20
+private const val VERTICAL_MARGIN = 8
+private const val SEPARATOR_MARGIN = 4
 /**
  * Displays a dialog with setting shortcuts.
  */
@@ -40,7 +45,8 @@ internal class UiSettingsDialog(
   model: UiSettingsModel,
   deviceType: DeviceType,
   parentDisposable: Disposable
-) : DialogWrapper(project, false, IdeModalityType.MODELESS) {
+) : DialogWrapper(project, null, false, IdeModalityType.MODELESS, false) {
+  private val header = UiSettingsHeader(model)
   private val panel = UiSettingsPanel(model, deviceType)
 
   init {
@@ -55,7 +61,23 @@ internal class UiSettingsDialog(
     setUndecorated(true)
     rootPane.windowDecorationStyle = JRootPane.NONE
     rootPane.border = JBUI.Borders.empty()
-    panel.border = PopupBorder.Factory.create(true, true)
+    header.border = JBUI.Borders.compound(
+      JBUI.Borders.customLineBottom(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
+      JBUI.Borders.empty(VERTICAL_MARGIN, HORIZONTAL_MARGIN, SEPARATOR_MARGIN, HORIZONTAL_MARGIN)
+    )
+    panel.border = JBUI.Borders.empty(SEPARATOR_MARGIN, HORIZONTAL_MARGIN, VERTICAL_MARGIN, HORIZONTAL_MARGIN)
+    with(contentPanel) {
+      isFocusCycleRoot = true
+      isFocusTraversalPolicyProvider = true
+      focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
+        override fun getFirstComponent(container: Container): Component? {
+          val first = super.getFirstComponent(container) ?: return null
+          val from = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
+          val fromOutside = from == null || !SwingUtilities.isDescendingFrom(from, container)
+          return if (first.name == RESET_TITLE && fromOutside) super.getComponentAfter(container, first) else first
+        }
+      }
+    }
     WindowRoundedCornersManager.configure(this)
 
     // Close the dialog if the dialog loses focus:
@@ -69,10 +91,12 @@ internal class UiSettingsDialog(
     // WindowMoveListener allows the window to be moved by dragging the panel.
     val moveListener = WindowMoveListener(contentPanel)
     moveListener.installTo(panel)
+    moveListener.installTo(header)
 
     Disposer.register(disposable) {
       window.removeWindowFocusListener(windowListener)
       moveListener.uninstallFrom(panel)
+      moveListener.uninstallFrom(header)
     }
 
     pack()
@@ -82,12 +106,8 @@ internal class UiSettingsDialog(
     close(OK_EXIT_CODE)
   }
 
-  private fun isInsideDialog(event: MouseEvent): Boolean {
-    if (!isShowing) return true
-    val component = event.component ?: return false
-    return UIUtil.isDescendingFrom(component, window)
-  }
-
+  override fun createContentPaneBorder() = JBUI.Borders.empty()
+  override fun createNorthPanel(): JComponent = header
   override fun createCenterPanel(): JComponent = panel
   override fun createActions(): Array<Action> = emptyArray()
 }

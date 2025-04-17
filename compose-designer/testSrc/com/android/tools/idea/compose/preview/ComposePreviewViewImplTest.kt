@@ -321,7 +321,6 @@ class ComposePreviewViewImplTest {
       }
     runBlocking(Dispatchers.Default) {
       surface.updatePreviewsAndRefresh(
-        tryReusingModels = true,
         reinflate = true,
         previewProvider.previewElements().toList(),
         Logger.getInstance(ComposePreviewViewImplTest::class.java),

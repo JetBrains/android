@@ -373,11 +373,6 @@ class ActionDispatcher(
             else -> {
               val timeFilter =
                 state.filters.timeInterval.selected ?: state.filters.timeInterval.items.last()
-              val codeContextData =
-                aiInsightToolkit.getSource(
-                  state.connections.selected!!,
-                  action.event.stacktraceGroup,
-                )
               appInsightsClient.fetchInsight(
                 connection,
                 action.id,
@@ -385,7 +380,6 @@ class ActionDispatcher(
                 action.issueFatality,
                 action.event,
                 timeFilter,
-                codeContextData,
               )
             }
           }

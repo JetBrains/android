@@ -96,9 +96,6 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:libplay_vitals_java_proto",
-        "//tools/adt/idea/app-quality-insights/play-vitals/model:libgemini_java_proto",
-        "//tools/adt/idea/app-quality-insights/api:libgemini_java_proto",
-        "//tools/adt/idea/app-quality-insights/api:libtitan_java_proto",
         "//tools/adt/idea/app-quality-insights/api:libandroid-core-proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/logcat:logcat-proto",
@@ -553,7 +550,6 @@ studio_plugin(
     directory = "firebase",
     libs = [
         "//tools/vendor/google/firebase:libfirebase_java_proto",
-        "//tools/vendor/google/firebase:libgemini_java_proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
         "//prebuilts/tools/common/m2:protobuf-java-util-3.22.3",
     ],
@@ -759,6 +755,7 @@ studio_plugin(
         "aiplugin.jar": [
             "//tools/vendor/google/ml/aiplugin/core:aiplugin.core",
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
+            "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
             "//tools/vendor/google/ml/aiplugin/android/enterprise:aiplugin.android.enterprise",
             "//tools/vendor/google/ml/aiplugin/android/journeys:aiplugin.android.journeys",
             "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",

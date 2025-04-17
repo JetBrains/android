@@ -14,11 +14,13 @@ intellij_plugin = _intellij_plugin
 intellij_plugin_library = _intellij_plugin_library
 optional_plugin_xml = _optional_plugin_xml
 
-def aswb_library(name, **kwargs):
+def aswb_library(name, testonly = False, **kwargs):
     """A regular ASwB target."""
     kotlin_library(
         name = name,
+        testonly = testonly,
         jvm_target = "17",
+        lint_is_test_sources = testonly,
         **kwargs
     )
 

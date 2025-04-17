@@ -18,6 +18,7 @@ package com.android.tools.idea.lint
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
 import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.ide.common.repository.GoogleMavenRepositoryV2
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.StubGoogleMavenRepository
 import com.android.sdklib.AndroidVersion
@@ -1058,11 +1059,12 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           "</com.android.support>\n",
       )
     val repository = StubGoogleMavenRepository(cache)
+    val repositoryV2 = GoogleMavenRepositoryV2.create()
     val disposable = Disposer.newDisposable()
     IdeComponents(null, disposable)
       .replaceApplicationService(
         RepositoryUrlManager::class.java,
-        RepositoryUrlManager(repository, repository, false),
+        RepositoryUrlManager(repository, repository, repositoryV2, repositoryV2, false),
       )
     doTestWithFix(
       AndroidLintGradleDynamicVersionInspection(),

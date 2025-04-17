@@ -130,6 +130,7 @@ import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.debug
@@ -990,7 +991,9 @@ constructor(
 
   @UiThread
   private fun clearDocument() {
-    document.setText("")
+    WriteAction.run<Throwable> {
+      document.setText("") // write data
+    }
     messageFormatter.reset()
   }
 

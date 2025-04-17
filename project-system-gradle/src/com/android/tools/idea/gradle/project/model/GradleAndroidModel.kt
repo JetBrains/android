@@ -100,7 +100,10 @@ class GradleAndroidModel(
       .groupBy({ it.first }, { it.second })
   val filteredVariantNames: Collection<String> get() = androidProject.filteredVariantNames
   val variants: List<IdeVariant> get() = myCachedResolvedVariantsByName.values.toList()
-
+  val filteredDebuggableVariants: Set<String> get() =
+    androidProject.basicVariants.mapNotNull {
+      if (myBuildTypesByName[it.buildType]?.buildType?.isDebuggable == true && !it.hideInStudio ) it.name else null
+    }.toSet()
   fun findBasicVariantByName(variantName: String): IdeBasicVariant? = myCachedBasicVariantsByName[variantName]
   fun findVariantByName(variantName: String): IdeVariant? = myCachedResolvedVariantsByName[variantName]
 

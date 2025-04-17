@@ -32,7 +32,7 @@ internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspe
 
   @XCollection(style = v2)
   var columns: MutableList<ColumnInfo> =
-    ConnectionColumn.values().map { it.toColumnInfo() }.toMutableList()
+    ConnectionColumn.entries.map { it.toColumnInfo() }.toMutableList()
 
   companion object {
     fun getInstance(): NetworkInspectorViewState =
@@ -48,10 +48,10 @@ internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspe
       columns.forEach { it.name = StringUtil.capitalize(it.name.lowercase()) }
     }
     val configNames = columns.mapTo(HashSet()) { it.name }
-    val enumNames = ConnectionColumn.values().mapTo(HashSet()) { it.displayString }
+    val enumNames = ConnectionColumn.entries.mapTo(HashSet()) { it.displayString }
 
     if (configNames != enumNames) {
-      ConnectionColumn.values().forEachIndexed { i, value ->
+      ConnectionColumn.entries.forEachIndexed { i, value ->
         if (!configNames.contains(value.displayString)) {
           if (i < configNames.size) {
             columns.add(i, value.toColumnInfo())

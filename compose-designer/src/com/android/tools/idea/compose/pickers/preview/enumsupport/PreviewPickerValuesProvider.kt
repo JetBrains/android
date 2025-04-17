@@ -40,12 +40,8 @@ import com.android.tools.preview.config.PARAMETER_LOCALE
 import com.android.tools.preview.config.PARAMETER_UI_MODE
 import com.android.tools.preview.config.PARAMETER_WALLPAPER
 import com.android.tools.property.panel.api.EnumValue
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.impl.LibraryScopeCache
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
 import com.intellij.util.text.nullize
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.VisibleForTesting
@@ -170,16 +166,4 @@ private fun createLocaleEnumProvider(module: Module): EnumValuesProvider = local
       }
     }
   return@localesProvider enumValueLocales
-}
-
-private data class ClassEnumValueParams(
-  val value: String,
-  val displayName: String,
-  val resolvedValue: String,
-)
-
-private fun findClass(module: Module, fqClassName: String): PsiClass? {
-  val libraryScope = LibraryScopeCache.getInstance(module.project).librariesOnlyScope
-  val psiFacade = JavaPsiFacade.getInstance(module.project)
-  return runReadAction { psiFacade.findClass(fqClassName, libraryScope) }
 }

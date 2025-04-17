@@ -32,14 +32,14 @@ internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDa
 
   override fun getRowCount() = dataList.size
 
-  override fun getColumnCount() = ConnectionColumn.values().size
+  override fun getColumnCount() = ConnectionColumn.entries.size
 
-  override fun getColumnName(column: Int) = ConnectionColumn.values()[column].displayString
+  override fun getColumnName(column: Int) = ConnectionColumn.entries[column].displayString
 
   override fun getValueAt(rowIndex: Int, columnIndex: Int) =
-    ConnectionColumn.values()[columnIndex].getValueFrom(dataList[rowIndex])
+    ConnectionColumn.entries[columnIndex].getValueFrom(dataList[rowIndex])
 
-  override fun getColumnClass(columnIndex: Int) = ConnectionColumn.values()[columnIndex].type
+  override fun getColumnClass(columnIndex: Int) = ConnectionColumn.entries[columnIndex].type
 
   fun getConnectionData(rowIndex: Int): ConnectionData = dataList[rowIndex]
 

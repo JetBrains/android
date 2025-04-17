@@ -52,10 +52,15 @@ open class LabelPanel(
     fun updateUi() {
       val parameter = displaySettings.parameterName.value
       val display = displaySettings.modelDisplayName.value
-      val name = parameter?.takeIf { partOfOrganizationGroup.value } ?: display ?: ""
+      val name =
+        parameter?.takeIf { partOfOrganizationGroup.value }
+          ?: displaySettings.fileName.value?.let { "$it.$display" }
+          ?: display
+          ?: ""
       text = name
       toolTipText = displaySettings.tooltip.value ?: name
       isVisible = text.isNotBlank()
+      icon = if (partOfOrganizationGroup.value) null else displaySettings.groupType.value.icon
     }
 
     updateUi()
@@ -66,6 +71,8 @@ open class LabelPanel(
           displaySettings.parameterName,
           partOfOrganizationGroup,
           displaySettings.tooltip,
+          displaySettings.fileName,
+          displaySettings.groupType,
         )
         .conflate()
         .collect {

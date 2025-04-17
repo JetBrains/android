@@ -91,7 +91,6 @@ import java.awt.FlowLayout
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.Collections
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -447,8 +446,7 @@ internal class NetworkInspectorView(
     // list.get(i).x < range.getMin <= range.getMax < list.get(i + 1).x; and values at i and i+1 are
     // positive.
     val getInsertPoint: (Long) -> Int = { time ->
-      val index =
-        Collections.binarySearch(list, SeriesData(time, 0L)) { o1, o2 -> o1.x.compareTo(o2.x) }
+      val index = list.binarySearch(SeriesData(time, 0L), { o1, o2 -> o1.x.compareTo(o2.x) })
       if (index < 0) -(index + 1) else index
     }
     val minIndex = getInsertPoint(range.min.toLong())

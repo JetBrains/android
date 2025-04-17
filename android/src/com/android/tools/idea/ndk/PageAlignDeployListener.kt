@@ -35,7 +35,7 @@ class PageAlignDeployListener(private val project : Project) : ApplicationDeploy
   override fun beforeDeploy(device : IDevice, apkInfo: ApkInfo) {
     project.coroutineScope.launch {
       withBackgroundProgress(project, "Checking 16 KB alignment") {
-        Notifier(AndroidNotification.getInstance(project)).notify16kbAlignmentViolations(
+        Notifier(project, AndroidNotification.getInstance(project)).notify16kbAlignmentViolations(
           apkInfo,
           productCpuAbiList = device.abis,
           buildCharacteristics = device.getProperty("ro.build.characteristics")
@@ -44,8 +44,11 @@ class PageAlignDeployListener(private val project : Project) : ApplicationDeploy
     }
   }
 
-  private class Notifier(val notification : AndroidNotification) : PageAlignNotifier() {
-    override fun showBalloon(text: String) = notification.showBalloon("Android 16 KB Alignment", text, WARNING, hyperlinkListener)
+  private class Notifier(
+    val project : Project,
+    val notification : AndroidNotification) : PageAlignNotifier() {
+    override fun showBalloon(text: String) =
+      notification.showBalloon("Android 16 KB Alignment", text, WARNING, HyperlinkListener(project))
     override fun logUsage(event: AndroidStudioEvent.Builder) =  UsageTracker.log(event)
   }
 }

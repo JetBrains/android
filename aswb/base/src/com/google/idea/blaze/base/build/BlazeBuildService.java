@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.build;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
@@ -66,7 +67,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.List;
-import java.util.concurrent.Future;
 import javax.annotation.Nullable;
 
 /** Utility to build various collections of targets. */
@@ -90,24 +90,24 @@ public class BlazeBuildService {
     this.buildSystem = Blaze.getBuildSystemProvider(project).getBuildSystem();
   }
 
-  public void buildFileForLabels(
-      String fileName, ImmutableSet<com.google.idea.blaze.common.Label> labels) {
-    buildFile(fileName, labels.stream().map(Label::create).collect(toImmutableSet()));
+  public ListenableFuture<Boolean> buildFileForLabels(
+      String displayFileName, ImmutableSet<com.google.idea.blaze.common.Label> labels) {
+    return buildFile(displayFileName, labels.stream().map(Label::create).collect(toImmutableSet()));
   }
 
-  public void buildFile(String fileName, ImmutableCollection<Label> targets) {
-    if (!Blaze.isBlazeProject(project) || fileName == null) {
-      return;
+  public ListenableFuture<Boolean> buildFile(String displayFileName, ImmutableCollection<Label> targets) {
+    if (!Blaze.isBlazeProject(project) || displayFileName == null) {
+      return null;
     }
     ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
     BlazeProjectData projectData =
         BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
     if (projectView == null || projectData == null) {
-      return;
+      return null;
     }
 
-    String title = "Make " + fileName;
-    buildTargetExpressions(
+    String title = "Make " + displayFileName;
+    return buildTargetExpressions(
         project,
         projectView,
         projectData,
@@ -168,7 +168,7 @@ public class BlazeBuildService {
     project.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
   }
 
-  private static void buildTargetExpressions(
+  private static ListenableFuture<Boolean> buildTargetExpressions(
       Project project,
       ProjectViewSet projectView,
       BlazeProjectData projectData,
@@ -179,16 +179,15 @@ public class BlazeBuildService {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       // a gross hack to avoid breaking change detector tests. We had a few tests which relied on
       // this never being called *and* relied on PROJECT_LAST_BUILD_TIMESTAMP_KEY being set
-      return;
+      return immediateFuture(true);
     }
     FocusBehavior problemsViewFocus = BlazeUserSettings.getInstance().getShowProblemsViewOnRun();
-    @SuppressWarnings("unused") // go/futurereturn-lsc
-    Future<?> possiblyIgnoredError =
-        ProgressiveTaskWithProgressIndicator.builder(project, "Building targets")
+
+    return ProgressiveTaskWithProgressIndicator.builder(project, "Building targets")
             .submitTaskWithResult(
-                new ScopedTask<Void>() {
+                new ScopedTask<Boolean>() {
                   @Override
-                  public Void execute(BlazeContext context) {
+                  public Boolean execute(BlazeContext context) {
                     Task task = new Task(project, taskName, Task.Type.MAKE);
                     context
                         .push(
@@ -207,7 +206,7 @@ public class BlazeBuildService {
 
                     List<TargetExpression> targets = targetsFunction.execute(context);
                     if (targets == null) {
-                      return null;
+                      return true;
                     }
 
                     WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
@@ -227,7 +226,7 @@ public class BlazeBuildService {
                             buildInvoker,
                             SyncStrategy.SERIAL);
                     if (shardedTargets.buildResult.status == BuildResult.Status.FATAL_ERROR) {
-                      return null;
+                      return false;
                     }
                     BlazeBuildOutputs buildOutputs =
                         BlazeIdeInterface.getInstance()
@@ -249,7 +248,7 @@ public class BlazeBuildService {
                     if (buildOutputs.buildResult().status != BuildResult.Status.SUCCESS) {
                       context.setHasError();
                     }
-                    return null;
+                    return buildOutputs.buildResult().status == BuildResult.Status.SUCCESS;
                   }
                 });
   }

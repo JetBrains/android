@@ -52,11 +52,11 @@ import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
-  @get:Rule val guiTest = ComposeDesignerTestDataRule().withTimeout(10, TimeUnit.MINUTES)
+  @get:Rule val guiTest = ComposeDesignerTestDataRule().withTimeout(15, TimeUnit.MINUTES)
 
   @get:Rule val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
-  @get:Rule val adbRule: FakeAdbTestRule = FakeAdbTestRule("35")
+  @get:Rule val adbRule: FakeAdbTestRule = FakeAdbTestRule("36")
 
   private fun openComposePreview(
     fixture: IdeFrameFixture,
@@ -81,7 +81,7 @@ class ComposePreviewTest {
     guiTest
       .importProjectAndWaitForProjectSyncToFinishWithSpecificSdk(
         "SimpleComposeApplication-ui",
-        "35",
+        "36",
       )
       .also {
         it.buildToolWindow.activate()

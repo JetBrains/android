@@ -65,6 +65,20 @@ class OrganizationHeaderTest {
   }
 
   @Test
+  fun iconCreated() {
+    val group = OrganizationGroup("method", "Organization Display Name", OrganizationGroupType.Test)
+    composeTestRule.setContent(darkMode = false) { OrganizationHeader(group) }
+    composeTestRule.onNodeWithTag("groupIcon", true).assertExists()
+  }
+
+  @Test
+  fun noIconCreated() {
+    val group = OrganizationGroup("method", "Organization Display Name")
+    composeTestRule.setContent(darkMode = false) { OrganizationHeader(group) }
+    composeTestRule.onNodeWithTag("groupIcon", true).assertDoesNotExist()
+  }
+
+  @Test
   @Ignore("Visual test")
   fun previewHeader() {
     val group = OrganizationGroup("method", "Organization Group")

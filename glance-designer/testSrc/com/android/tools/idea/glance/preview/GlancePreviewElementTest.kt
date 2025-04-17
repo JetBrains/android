@@ -60,13 +60,13 @@ class GlancePreviewElementTest {
       GlancePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            "some name",
-            "some base name",
-            null,
-            "some group",
-            false,
-            false,
-            "0xffabcd",
+            name = "some name",
+            baseName = "some base name",
+            parameterName = null,
+            group = "some group",
+            showDecoration = false,
+            showBackground = false,
+            backgroundColor = "0xffabcd",
           ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
@@ -79,13 +79,13 @@ class GlancePreviewElementTest {
       GlancePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            "some name",
-            "some base name",
-            null,
-            "some group",
-            false,
-            false,
-            "0xffabcd",
+            name = "some name",
+            baseName = "some base name",
+            parameterName = null,
+            group = "some group",
+            showDecoration = false,
+            showBackground = false,
+            backgroundColor = "0xffabcd",
           ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
@@ -103,13 +103,13 @@ class GlancePreviewElementTest {
       GlancePreviewElement(
         displaySettings =
           PreviewDisplaySettings(
-            "some name",
-            "some base name",
-            null,
-            "some group",
-            false,
-            false,
-            "0xffabcd",
+            name = "some name",
+            baseName = "some base name",
+            parameterName = null,
+            group = "some group",
+            showDecoration = false,
+            showBackground = false,
+            backgroundColor = "0xffabcd",
           ),
         previewElementDefinition = runReadAction { SmartPointerManager.createPointer(psiFile) },
         previewBody = runReadAction { SmartPointerManager.createPointer(psiFile.lastChild) },
@@ -119,13 +119,13 @@ class GlancePreviewElementTest {
 
     val newPreviewDisplaySettings =
       PreviewDisplaySettings(
-        "derived name",
-        "derived base name",
-        null,
-        "derived group",
-        true,
-        true,
-        "0xffffff",
+        name = "derived name",
+        baseName = "derived base name",
+        parameterName = null,
+        group = "derived group",
+        showDecoration = true,
+        showBackground = true,
+        backgroundColor = "0xffffff",
       )
     val newConfig =
       PreviewConfiguration.cleanAndGet(

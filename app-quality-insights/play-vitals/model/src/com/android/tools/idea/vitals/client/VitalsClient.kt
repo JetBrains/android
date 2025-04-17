@@ -37,7 +37,6 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -63,10 +62,8 @@ import com.intellij.openapi.project.Project
 import io.grpc.ClientInterceptor
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.sync.Semaphore
 
 private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
-private const val MAX_CONCURRENT_CALLS = 10
 
 class VitalsClient(
   project: Project,
@@ -75,10 +72,8 @@ class VitalsClient(
   private val interceptor: ClientInterceptor,
   private val grpcClient: VitalsGrpcClient =
     VitalsGrpcClientImpl.create(parentDisposable, interceptor),
-  private val aiInsightClient: AiInsightClient = GeminiAiInsightClient.create(project),
+  private val aiInsightClient: AiInsightClient = GeminiAiInsightClient(project, cache),
 ) : AppInsightsClient {
-  private val concurrentCallLimit = Semaphore(MAX_CONCURRENT_CALLS)
-
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
     runGrpcCatchingWithSupervisorScope(LoadingState.Ready(emptyList())) {
       LoadingState.Ready(grpcClient.listAccessibleApps())
@@ -222,7 +217,6 @@ class VitalsClient(
     failureType: FailureType,
     event: Event,
     timeInterval: TimeIntervalFilter,
-    codeContextData: CodeContextData,
   ): LoadingState.Done<AiInsight> {
     when {
       failureType != FailureType.FATAL ->
@@ -232,19 +226,14 @@ class VitalsClient(
           "Insights are currently not available for native crashes"
         )
     }
-    val cachedInsight = cache.getAiInsight(connection, issueId, variantId, codeContextData)
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
     return runGrpcCatchingWithSupervisorScope(failure) {
-      if (cachedInsight == null) {
-        val insight =
-          aiInsightClient
-            .fetchCrashInsight("", createGeminiInsightRequest(event, codeContextData))
-            .copy(codeContextData = codeContextData)
-        cache.putAiInsight(connection, issueId, variantId, insight)
-        LoadingState.Ready(insight)
-      } else {
-        LoadingState.Ready(cachedInsight)
-      }
+      val insight =
+        aiInsightClient.fetchCrashInsight(
+          createGeminiInsightRequest(connection, issueId, variantId, event)
+        )
+      cache.putAiInsight(connection, issueId, variantId, insight)
+      LoadingState.Ready(insight)
     }
   }
 

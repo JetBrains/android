@@ -22,13 +22,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import com.google.common.io.MoreFiles;
-import com.google.idea.blaze.base.qsync.BazelDependencyBuilder;
 import com.google.idea.blaze.base.qsync.FileRefresher;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.artifacts.ArtifactDirectoryUpdate;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectories;
 import com.google.idea.blaze.qsync.project.ProjectProto.ArtifactDirectoryContents;
@@ -57,6 +56,8 @@ public class ProjectArtifactStore {
   private final BuildArtifactCache artifactCache;
   private final FileRefresher fileRefresher;
   private final Path projectDirectoriesFile;
+
+  private ArtifactDirectories lastArtifactDirectoriesSnapshot = ArtifactDirectories.getDefaultInstance();
 
   public ProjectArtifactStore(
       Path projectDir,
@@ -93,12 +94,15 @@ public class ProjectArtifactStore {
    */
   public record UpdateResult(ImmutableSet<Label> incompleteTargets) {}
 
-  public UpdateResult update(Context<?> context, QuerySyncProjectSnapshot graph)
-      throws BuildException {
+  public UpdateResult update(ArtifactDirectories newArtifactDirectoriesSnapshot, Context<?> context) throws BuildException {
+    if (newArtifactDirectoriesSnapshot.equals(lastArtifactDirectoriesSnapshot)) {
+      context.output(PrintOutput.output("Artifacts up-to-date"));
+      return new UpdateResult(ImmutableSet.of());
+    }
     List<IOException> exceptions = Lists.newArrayList();
     ImmutableSet.Builder<Path> updatedPaths = ImmutableSet.builder();
     Map<String, ArtifactDirectoryContents> toUpdate = Maps.newHashMap();
-    toUpdate.putAll(graph.project().getArtifactDirectories().getDirectoriesMap());
+    toUpdate.putAll(newArtifactDirectoriesSnapshot.getDirectoriesMap());
     // add empty contents for any dirs that are no longer present, to ensure they're cleaned up:
     readPreviousProjectDirectories()
         .forEach(dir -> toUpdate.putIfAbsent(dir, ArtifactDirectoryContents.getDefaultInstance()));
@@ -121,7 +125,7 @@ public class ProjectArtifactStore {
     }
     try {
       writeProjectDirectories(
-          graph.project().getArtifactDirectories().getDirectoriesMap().keySet());
+        newArtifactDirectoriesSnapshot.getDirectoriesMap().keySet());
     } catch (IOException e) {
       exceptions.add(e);
     }
@@ -131,6 +135,7 @@ public class ProjectArtifactStore {
       exceptions.stream().forEach(e::addSuppressed);
       throw e;
     }
+    lastArtifactDirectoriesSnapshot = newArtifactDirectoriesSnapshot;
     return new UpdateResult(incompleteTargets.build());
   }
 
@@ -148,6 +153,6 @@ public class ProjectArtifactStore {
 
   @VisibleForTesting
   public void purgeForTest(Context<?> context) throws BuildException {
-    update(context, QuerySyncProjectSnapshot.EMPTY);
+    update(ArtifactDirectories.getDefaultInstance(), context);
   }
 }

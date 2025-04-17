@@ -18,9 +18,9 @@ package com.android.tools.idea.compose.pickers.common.property
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
-import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
@@ -100,8 +100,10 @@ internal class ClassPsiCallParameter(
 
   private fun setValueAndShorten(fqValue: String, trackableValue: PreviewPickerValue) {
     writeNewValue(fqValue, true, trackableValue)
-    argumentExpression?.let {
-      runUndoTransparentWriteAction { ShortenReferencesFacility.getInstance().shorten(it) }
+    argumentExpression?.let { expression ->
+      WriteCommandAction.runWriteCommandAction<PsiElement>(project) {
+        ShortenReferencesFacility.getInstance().shorten(expression)
+      }
     }
   }
 }

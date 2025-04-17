@@ -50,8 +50,8 @@ internal class DeviceUiSettingsIntegrationTest {
   fun testUiSettings() = runBlocking {
     val tester = UiSettingsTester(rule.project, rule.serialNumber)
     tester.waitForLanguagesAppToRun()
-    val panel = runInEdtAndGet { rule.openUiSettings() }
-    tester.testSettings(panel)
+    val dialog = runInEdtAndGet { rule.openUiSettings() }
+    tester.testSettings(dialog)
 
     // Reset the settings by disconnecting from the "device".
     // The agent should reset all the changed UiSettings.

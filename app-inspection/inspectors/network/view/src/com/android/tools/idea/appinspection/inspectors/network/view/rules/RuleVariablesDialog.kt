@@ -24,7 +24,6 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.TableUtil
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.table.JBTable
 import com.intellij.util.text.UniqueNameGenerator
 import com.intellij.util.ui.ColumnInfo

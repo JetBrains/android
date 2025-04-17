@@ -22,12 +22,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.settingssync.onboarding.ChooseCategoriesStepPage
+import com.android.tools.idea.settingssync.onboarding.EnableOrSkipStepPage
 import com.google.gct.login2.LoginFeature
 import com.google.gct.wizard.WizardPage
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.options.ShowSettingsUtil
-import com.intellij.settingsSync.core.SettingsSyncBundle
+import com.intellij.openapi.options.ex.Settings
 import icons.StudioIllustrations
 import icons.StudioIllustrationsCompose
 import javax.swing.Icon
@@ -47,8 +47,8 @@ class SettingsSyncFeature : LoginFeature {
   override val settingsAction: AnAction =
     object : AnAction("Go to Backup and Sync") {
       override fun actionPerformed(e: AnActionEvent) {
-        ShowSettingsUtil.getInstance()
-          .showSettingsDialog(e.project, SettingsSyncBundle.message("title.settings.sync"))
+        val settings = e.getData(Settings.KEY)
+        settings?.select(settings.find("settings.sync"))
       }
     }
 
@@ -72,7 +72,7 @@ class SettingsSyncFeature : LoginFeature {
           "across your workstations so that your Android Studio experience is just the way you like it." // TODO: update wording
 
       override fun getPages(): List<WizardPage> {
-        return listOf(ChooseCategoriesStepPage())
+        return listOf(EnableOrSkipStepPage(), ChooseCategoriesStepPage())
       }
     }
 }

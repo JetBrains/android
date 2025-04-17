@@ -16,9 +16,7 @@ build_test(
         "//tools/adt/idea/aswb/aswb/testdata/projects/generated3:test_data_build",
         "//tools/adt/idea/aswb/aswb/testdata/projects/generated_tests:test_data_build",
         "//tools/adt/idea/aswb/aswb/testdata/projects/javabinaries:test_data_build",
-        "//tools/adt/idea/aswb/aswb/testdata/projects/kotlin1:test_data_build",
         "//tools/adt/idea/aswb/aswb/testdata/projects/sample1:test_data_build",
-        "//tools/adt/idea/aswb/aswb/testdata/projects/proto1/project:test_data_build",
         "//tools/adt/idea/aswb/aswb/testdata/projects/src_transform:test_data_build",
     ],
 )

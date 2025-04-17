@@ -31,6 +31,8 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginSuggestionProvider
+import com.intellij.util.application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.sdk.AndroidSdkUtils
@@ -69,6 +71,8 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     StudioCodeVersionAdapter.initialize()
 
     setupAndroidSdkForTests()
+    // these clutter the UX by suggesting paid JetBrains' products to users. As an example see b/409203679
+    removePluginSuggestionProviderExtension()
   }
 
   /** Sets up collection of Android Studio specific analytics.  */
@@ -93,5 +97,10 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     invokeLater {
       AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.toString())
     }
+  }
+
+  private fun removePluginSuggestionProviderExtension() {
+    val ep = application.extensionArea.getExtensionPoint<PluginSuggestionProvider>("com.intellij.pluginSuggestionProvider")
+    ep.unregisterExtensions({ _, _ -> false }, false)
   }
 }

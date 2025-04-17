@@ -45,7 +45,6 @@ import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationFactory
-import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
@@ -119,13 +118,7 @@ class AndroidRunConfigurations {
    * for the module, we don't want to create duplicates.
    */
   private fun createDeclarativeWatchFaceConfiguration(facet: AndroidFacet) {
-    val hasActivitiesOrServices = runReadAction {
-      val application = Manifest.getMainManifest(facet)?.application
-      application?.activities?.isNotEmpty() == true ||
-      application?.activityAliases?.isNotEmpty() == true ||
-      application?.services?.isNotEmpty() == true
-    }
-    if (!LaunchUtils.isWatchFeatureRequired(facet) || hasActivitiesOrServices) {
+    if (!LaunchUtils.isWatchFeatureRequired(facet)) {
       return
     }
     val module = facet.module
@@ -134,11 +127,21 @@ class AndroidRunConfigurations {
     for (configuration in configurations) {
       if (
         configuration is AndroidDeclarativeWatchFaceConfiguration &&
-        configuration.configurationModule.module == module
+          configuration.configurationModule.module == module
       ) {
         // There is already a run configuration for this module.
         return
       }
+    }
+
+    val hasActivitiesOrServices = runReadAction {
+      val application = Manifest.getMainManifest(facet)?.application
+      application?.activities?.isNotEmpty() == true ||
+        application?.activityAliases?.isNotEmpty() == true ||
+        application?.services?.isNotEmpty() == true
+    }
+    if (hasActivitiesOrServices) {
+      return
     }
 
     val watchFaceInfo =

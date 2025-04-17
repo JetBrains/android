@@ -58,6 +58,9 @@ import com.google.idea.blaze.base.sync.workspace.MockArtifactLocationDecoder;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.google.idea.blaze.base.targetmaps.TransitiveDependencyMap;
 import com.google.idea.blaze.java.AndroidBlazeRules;
+import com.intellij.codeInsight.multiverse.CodeInsightContext;
+import com.intellij.codeInsight.multiverse.CodeInsightContextManager;
+import com.intellij.codeInsight.multiverse.CodeInsightSession;
 import com.intellij.mock.MockFileTypeManager;
 import com.intellij.mock.MockModule;
 import com.intellij.mock.MockPsiFile;
@@ -74,6 +77,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.JvmPsiConversionHelper;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -81,7 +85,12 @@ import com.intellij.psi.impl.JvmPsiConversionHelperImpl;
 import com.intellij.psi.search.ProjectScopeBuilder;
 import com.intellij.psi.search.ProjectScopeBuilderImpl;
 import java.io.File;
+import java.util.List;
 import javax.annotation.Nullable;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+import kotlinx.coroutines.flow.Flow;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,7 +98,6 @@ import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link BlazeRenderErrorContributor}. */
 @RunWith(JUnit4.class)
-@Ignore("b/401277613")
 public class BlazeRenderErrorContributorTest extends BlazeTestCase {
   private static final String BLAZE_BIN = "blaze-out/crosstool/bin";
   private static final String GENERATED_RESOURCES_ERROR = "Generated resources";
@@ -115,6 +123,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
     projectServices.register(ProjectScopeBuilder.class, new ProjectScopeBuilderImpl(project));
     projectServices.register(AndroidResourceModuleRegistry.class, new AndroidResourceModuleRegistry());
     projectServices.register(EnvironmentContextFactory.class, new StudioEnvironmentContextFactory());
+    projectServices.register(CodeInsightContextManager.class, new MockCodeInsightContextManager());
 
     ExtensionPointImpl<Kind.Provider> kindProvider =
         registerExtensionPoint(Kind.Provider.EP_NAME, Kind.Provider.class);
@@ -778,6 +787,53 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
     @Override
     public ImmutableCollection<TargetKey> getRulesForSourceFile(File file) {
       return ImmutableList.of(sourceToTarget.get(file));
+    }
+  }
+
+  private static class MockCodeInsightContextManager implements CodeInsightContextManager {
+    @Override
+    public <Result> Result performCodeInsightSession(
+      @NotNull CodeInsightContext codeInsightContext,
+      @NotNull Function1<? super CodeInsightSession, ? extends Result> function1) {
+      return null;
+    }
+
+    @Override
+    public @org.jetbrains.annotations.Nullable CodeInsightSession getCurrentCodeInsightSession() {
+      return null;
+    }
+
+    @Override
+    public @NotNull List<CodeInsightContext> getCodeInsightContexts(
+      @NotNull VirtualFile virtualFile) {
+      return List.of();
+    }
+
+    @Override
+    public @NotNull CodeInsightContext getPreferredContext(@NotNull VirtualFile virtualFile) {
+      return null;
+    }
+
+    @Override
+    public @NotNull CodeInsightContext getCodeInsightContext(
+      @NotNull FileViewProvider fileViewProvider) {
+      return null;
+    }
+
+    @Override
+    public @NotNull CodeInsightContext getOrSetContext(@NotNull FileViewProvider fileViewProvider,
+                                                       @NotNull CodeInsightContext codeInsightContext) {
+      return null;
+    }
+
+    @Override
+    public @NotNull Flow<Unit> getChangeFlow() {
+      return null;
+    }
+
+    @Override
+    public boolean isSharedSourceSupportEnabled() {
+      return false;
     }
   }
 }

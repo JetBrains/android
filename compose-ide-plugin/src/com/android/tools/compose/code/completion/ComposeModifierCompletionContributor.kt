@@ -45,7 +45,6 @@ import org.jetbrains.kotlin.analysis.api.KaIdeApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaNamedSymbol
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -291,6 +290,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
    * In the meantime, this method checks whether the containing class/object of the function is
    * visible from the completion position. If not, then it will be filtered out from results.
    */
+  @OptIn(KaExperimentalApi::class)
   private fun KtFunction.isVisibleFromCompletionPosition(completionPosition: PsiElement): Boolean {
     // This is Compose, we should always be completing in a KtFile. If not, let's just assume things
     // are visible so as not to muck with
@@ -299,14 +299,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
-      val symbolWithVisibility = elementToAnalyze.symbol as? KaDeclarationSymbol ?: return true
-
-      @OptIn(KaExperimentalApi::class)
-      return isVisible(
-        symbolWithVisibility,
-        useSiteFile = ktFile.symbol,
-        position = completionPosition,
-      )
+      val visibilityChecker = createUseSiteVisibilityChecker(useSiteFile = ktFile.symbol, position = completionPosition)
+      return visibilityChecker.isVisible(elementToAnalyze.symbol)
     }
   }
 
@@ -409,6 +403,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       as KtSimpleNameExpression
   }
 
+  @OptIn(KaExperimentalApi::class)
   private fun KaSession.getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
     originalPosition: PsiElement,
@@ -422,16 +417,14 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.symbol
+    val visibilityChecker = createUseSiteVisibilityChecker(fileSymbol, receiverExpression, originalPosition)
 
     return KtSymbolFromIndexProvider(file)
       .getExtensionCallableSymbolsByNameFilter(
         { name -> prefixMatcher.prefixMatches(name.asString()) },
         listOf(receiverType),
       )
-      .filter {
-        @OptIn(KaExperimentalApi::class)
-        isVisible(it as KaDeclarationSymbol, fileSymbol, receiverExpression, originalPosition)
-      }
+      .filter(visibilityChecker::isVisible)
       .toList()
   }
 

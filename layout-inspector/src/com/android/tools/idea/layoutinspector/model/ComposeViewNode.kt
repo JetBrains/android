@@ -31,6 +31,10 @@ const val FLAG_HAS_MERGED_SEMANTICS =
 const val FLAG_HAS_UNMERGED_SEMANTICS =
   LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_UNMERGED_SEMANTICS_VALUE
 const val FLAG_IS_INLINED = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
+const val FLAG_HAS_DRAW_MODIFIER =
+  LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_DRAW_MODIFIER_VALUE
+const val FLAG_HAS_CHILD_DRAW_MODIFIER =
+  LayoutInspectorComposeProtocol.ComposableNode.Flags.HAS_CHILD_DRAW_MODIFIER_VALUE
 
 // Must match packageNameHash in androidx.ui.tooling.inspector.LayoutInspectorTree
 fun packageNameHash(packageName: String): Int =
@@ -140,6 +144,12 @@ class ComposeViewNode(
 
   override val isInlined: Boolean
     get() = composeFlags.hasFlag(FLAG_IS_INLINED)
+
+  override val hasComposeDrawModifier: Boolean
+    get() = composeFlags.hasFlag(FLAG_HAS_DRAW_MODIFIER)
+
+  override val hasChildComposeDrawModifier: Boolean
+    get() = composeFlags.hasFlag(FLAG_HAS_CHILD_DRAW_MODIFIER)
 
   override val hasSourceCodeInformation: Boolean
     get() = composePackageHash != -1

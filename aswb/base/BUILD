@@ -520,7 +520,10 @@ java_library(
 
 intellij_unit_test_suite(
     name = "unit_tests",
-    srcs = glob(["tests/unittests/**/*.java"]),
+    srcs = glob([
+        "tests/unittests/**/*.java",
+        "tests/unittests/**/*.kt",
+    ]),
     tags = ["noci:studio-win"],
     test_package_root = "com.google.idea.blaze.base",
     visibility = DEFAULT_TEST_VISIBILITY,

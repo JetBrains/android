@@ -46,6 +46,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
+import javax.swing.SwingUtilities
 import javax.swing.event.TableModelEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -90,7 +91,7 @@ class RulesTableView(
           }
           val ruleData = table.selectedObject ?: return@setRemoveAction
           if (TableUtil.doRemoveSelectedItems(table, tableModel, null)) {
-            IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
+            SwingUtilities.invokeLater {
               IdeFocusManager.getGlobalInstance().requestFocus(table, true)
             }
             TableUtil.updateScroller(table)

@@ -166,6 +166,7 @@ iml_module(
         "//tools/adt/idea/backup:intellij.android.backup.api",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
+        "//tools/adt/idea/.idea/libraries:layoutlib",
     ],
     test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
     test_jvm_flags = ["-Dcom.google.testing.junit.runner.shouldInstallTestSecurityManager=false"],

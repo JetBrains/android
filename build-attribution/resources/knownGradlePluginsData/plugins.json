@@ -224,7 +224,7 @@
         "io.realm.gradle.Realm"
       ],
       "pluginArtifact": "io.realm:realm-gradle-plugin",
-      "configurationCachingCompatibleFrom": "N/A"
+      "configurationCachingCompatibleFrom": "10.10.0"
     },
     {
       "name": "com.gorylenko.gradle-git-properties",
@@ -264,7 +264,7 @@
         "com.newrelic.agent.android.NewRelicGradlePlugin"
       ],
       "pluginArtifact": "com.newrelic.agent.android:agent-gradle-plugin",
-      "configurationCachingCompatibleFrom": "N/A"
+      "configurationCachingCompatibleFrom": "7.0.0"
     },
     {
       "name": "com.jaredsburrows.spoon",
@@ -296,7 +296,7 @@
         "ru.vyarus.gradle.plugin.animalsniffer.AnimalSnifferPlugin"
       ],
       "pluginArtifact": "ru.vyarus:gradle-animalsniffer-plugin",
-      "configurationCachingCompatibleFrom": "N/A"
+      "configurationCachingCompatibleFrom": "1.22"
     },
     {
       "name": "de.mannodermaus.android-junit5",

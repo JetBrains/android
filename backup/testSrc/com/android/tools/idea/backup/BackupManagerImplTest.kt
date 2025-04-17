@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Success
+import com.android.backup.BackupResult.WithoutAppData
 import com.android.backup.BackupService
 import com.android.backup.BackupType
 import com.android.backup.BackupType.CLOUD
+import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.SUCCESS
@@ -58,6 +61,7 @@ import com.intellij.ui.TextAccessor
 import java.nio.file.Path
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.deleteIfExists
+import kotlin.io.path.notExists
 import kotlin.io.path.relativeTo
 import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
@@ -145,7 +149,7 @@ internal class BackupManagerImplTest {
     }
 
     assertThat(usageTrackerRule.backupEvents())
-      .containsExactly(backupUsageEvent(CLOUD, RUN_CONFIG, SUCCESS))
+      .containsExactly(backupUsageEvent(CLOUD, RUN_CONFIG, "SUCCESS"))
     assertThat(notificationRule.notifications).hasSize(1)
     notificationRule.notifications
       .first()
@@ -188,6 +192,118 @@ internal class BackupManagerImplTest {
     backupManagerImpl.doBackup("serial", "com.app", CLOUD, backupFile, RUN_CONFIG, false)
 
     verify(mockProcessHandler).detachProcess()
+  }
+
+  @Test
+  fun backup_backupDisabled_withAuth(): Unit = runBlocking {
+    val backupFile =
+      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
+        ?: fail("Project base path unavailable")
+    backupFile.deleteIfExists()
+    val backupService =
+      BackupService.getInstance(
+        FakeAdbServicesFactory("app3") {
+          it.addCommandOverride(Output("dumpsys package app3", ""))
+          it.addContentOverride(
+            "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
+            "valid",
+          )
+        }
+      )
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("app3")
+        }
+      },
+      disposableRule.disposable,
+    )
+    val backupManagerImpl =
+      BackupManagerImpl(project, backupService, fakeDialogFactory, mockVirtualFileManager)
+    val serialNumber = "serial"
+
+    val result =
+      backupManagerImpl.doBackup(
+        serialNumber,
+        "app3",
+        DEVICE_TO_DEVICE,
+        backupFile,
+        RUN_CONFIG,
+        true,
+      )
+
+    assertThat(result).isEqualTo(WithoutAppData)
+    assertThat(usageTrackerRule.backupEvents())
+      .containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "WithoutAppData"))
+    assertThat(notificationRule.notifications).hasSize(1)
+    notificationRule.notifications
+      .first()
+      .assert(
+        title = "Backup completed successfully",
+        text =
+          "Only Restore Keys were backed up. App-data was not backed up since allowBackup property is false.",
+        INFORMATION,
+        "ShowPostBackupDialogAction",
+        "BackupDisabledLearnMoreAction",
+      )
+    assertThat(fakeDialogFactory.dialogs).isEmpty()
+    verify(mockVirtualFileManager).refreshAndFindFileByNioPath(backupFile)
+    backupFile.deleteExisting()
+  }
+
+  @Test
+  fun backup_backupDisabled_withoutAuth(): Unit = runBlocking {
+    val backupFile =
+      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
+        ?: fail("Project base path unavailable")
+    backupFile.deleteIfExists()
+    val backupService =
+      BackupService.getInstance(
+        FakeAdbServicesFactory("app3") {
+          it.addCommandOverride(Output("dumpsys package app3", ""))
+          it.addContentOverride(
+            "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
+            "",
+          )
+        }
+      )
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("app3")
+        }
+      },
+      disposableRule.disposable,
+    )
+    val backupManagerImpl =
+      BackupManagerImpl(project, backupService, fakeDialogFactory, mockVirtualFileManager)
+    val serialNumber = "serial"
+
+    val result =
+      backupManagerImpl.doBackup(
+        serialNumber,
+        "app3",
+        DEVICE_TO_DEVICE,
+        backupFile,
+        RUN_CONFIG,
+        true,
+      )
+
+    assertThat(result).isInstanceOf(BackupResult.Error::class.java)
+    assertThat(usageTrackerRule.backupEvents())
+      .containsExactly(backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "BACKUP_NOT_ENABLED"))
+    assertThat(notificationRule.notifications).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(
+        DialogData(
+          "Backup Failed",
+          "No data was generated in backup since allowBackup property is false",
+          listOf("Learn More"),
+        )
+      )
+    assertThat(backupFile.notExists()).isTrue()
   }
 
   @Test
@@ -317,13 +433,13 @@ internal class BackupManagerImplTest {
 }
 
 @Suppress("SameParameterValue")
-private fun backupUsageEvent(type: BackupType, source: BackupManager.Source, result: ErrorCode) =
+private fun backupUsageEvent(type: BackupType, source: BackupManager.Source, result: String) =
   BackupUsageEvent.newBuilder()
     .setBackup(
       BackupEvent.newBuilder()
         .setTypeString(type.name)
         .setSourceString(source.name)
-        .setResultString(result.name)
+        .setResultString(result)
     )
     .build()
 

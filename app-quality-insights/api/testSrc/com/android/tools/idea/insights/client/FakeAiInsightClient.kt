@@ -16,14 +16,9 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
-import com.google.common.io.BaseEncoding
-import com.google.protobuf.Message
 
 object FakeAiInsightClient : AiInsightClient {
-  override suspend fun fetchCrashInsight(
-    projectId: String,
-    additionalContextMsg: Message,
-  ): AiInsight {
-    return AiInsight(BaseEncoding.base64().encode(additionalContextMsg.toByteArray()))
+  override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
+    return AiInsight(request.toString())
   }
 }

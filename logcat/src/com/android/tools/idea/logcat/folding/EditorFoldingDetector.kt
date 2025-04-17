@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.folding
 import com.android.annotations.concurrency.UiThread
 import com.intellij.execution.ConsoleFolding
 import com.intellij.execution.impl.EditorHyperlinkSupport
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.FoldRegion
 import com.intellij.openapi.project.Project
@@ -27,15 +28,11 @@ private val consoleView = ConsoleViewForFolding()
 /**
  * A [FoldingDetector] that adds [com.intellij.openapi.editor.FoldRegion] to an [Editor].
  *
- * This code is based on ConsoleViewImpl.updateFoldings() but simplified considerably due to
- * additional assumptions that can be made about the text being processed.
+ * This code is based on ConsoleViewImpl.updateFoldings()
  *
- * The original code seems to have been designed to handle folding regions that can span between
- * consecutive calls to the updateFoldings() method. However, this code can safely assume that
- * folding regions are contained in a single call to [detectFoldings] because Logcat messages are
- * always added as a whole piece of text and never split.
+ * It was rewritten to allow better folding of Stack Traces since the new Logcat appends stack
+ * traces in their entirety which allows for better foldings.
  *
- * The simplified code also has a side effect of handling nested folding better than the original.
  * For example, given the following stack trace:
  * ```
  * java.lang.RuntimeException: Fail
@@ -86,34 +83,36 @@ internal class EditorFoldingDetector(
   override fun detectFoldings(startLine: Int, endLine: Int) {
     if (activeConsoleFoldings.isEmpty()) return
 
-    foldingModel.runBatchFoldingOperation {
-      for (folding in activeConsoleFoldings) {
-        var line = startLine
-        while (line <= endLine) {
-          // Outer loop finds first folded line
-          if (!shouldFoldLine(folding, line)) {
-            line++
-            continue
-          }
-          val previousRegion = findPreviousRegion(folding, line, startLine)
-          val foldStartLine =
-            if (previousRegion != null) {
-              foldingModel.removeFoldRegion(previousRegion)
-              val startOffset =
-                when (folding.shouldBeAttachedToThePreviousLine()) {
-                  true -> previousRegion.startOffset + 1
-                  false -> previousRegion.startOffset
-                }
-              document.getLineNumber(startOffset)
-            } else {
-              line
+    WriteAction.run<Throwable> {
+      foldingModel.runBatchFoldingOperation {
+        for (folding in activeConsoleFoldings) {
+          var line = startLine
+          while (line <= endLine) {
+            // Outer loop finds first folded line
+            if (!shouldFoldLine(folding, line)) {
+              line++
+              continue
             }
-          line++
-          while (line <= endLine && shouldFoldLine(folding, line)) {
-            // Inner loop finds last folding line
+            val previousRegion = findPreviousRegion(folding, line, startLine)
+            val foldStartLine =
+              if (previousRegion != null) {
+                foldingModel.removeFoldRegion(previousRegion)
+                val startOffset =
+                  when (folding.shouldBeAttachedToThePreviousLine()) {
+                    true -> previousRegion.startOffset + 1
+                    false -> previousRegion.startOffset
+                  }
+                document.getLineNumber(startOffset)
+              } else {
+                line
+              }
             line++
+            while (line <= endLine && shouldFoldLine(folding, line)) {
+              // Inner loop finds last folding line
+              line++
+            }
+            addFoldRegion(folding, foldStartLine, line - 1)
           }
-          addFoldRegion(folding, foldStartLine, line - 1)
         }
       }
     }

@@ -61,7 +61,7 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
     val referencePoint = mouseDragReferencePoint
     if (referencePoint != null) {
       val movementScale = if (inputMode == XrInputMode.VIEW_DIRECTION) ROTATION_SCALE else TRANSLATION_SCALE
-      val scale = movementScale * scaleFactor.toFloat() / min(deviceDisplaySize.width, deviceDisplaySize.height)
+      val scale = (movementScale / min(deviceDisplaySize.width, deviceDisplaySize.height) * scaleFactor).toFloat()
       val deltaX = event.x - referencePoint.x
       val deltaY = event.y - referencePoint.y
       mouseDragReferencePoint = event.point
@@ -76,10 +76,8 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
             XrTranslationMessage(0f, 0f, deltaY * scale) // Dragging mouse down moves forward in 3D space.
           }
           XrInputMode.VIEW_DIRECTION -> {
-            // Moving the mouse between opposite edges of the device display shifts the view direction by 180 degrees.
-            // Dragging mouse down rotates the direction of view up.
-            // Dragging mouse to the right rotates the direction of view to the left.
-            XrRotationMessage(deltaY * scale, deltaX * scale)
+            // View direction follows the direction of the mouse movement.
+            XrRotationMessage(-deltaY * scale, -deltaX * scale)
           }
           else -> throw Error("Internal error") // Unreachable due to the !isMouseUsedForNavigation check above.
         }

@@ -28,12 +28,13 @@ import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class CustomViewPreviewTest {
   @Rule
   @JvmField
-  val guiTest = ComposeDesignerTestDataRule()
+  val guiTest = ComposeDesignerTestDataRule().withTimeout(15, TimeUnit.MINUTES)
   @Rule
   @JvmField
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
@@ -53,7 +54,7 @@ class CustomViewPreviewTest {
   }
 
   private fun importProject(): IdeFrameFixture =
-    guiTest.importProjectAndWaitForProjectSyncToFinishWithSpecificSdk("SimpleComposeApplication-ui", "35")
+    guiTest.importProjectAndWaitForProjectSyncToFinishWithSpecificSdk("SimpleComposeApplication-ui", "36")
 
   @Throws(Exception::class)
   private fun openBuildAndClosePreview(fixture: IdeFrameFixture) {

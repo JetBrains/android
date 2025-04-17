@@ -120,6 +120,9 @@ interface ProjectSystemSyncManager {
       /** The user requested the sync directly (by pushing the button) */
       @JvmField
       val USER_REQUEST = SyncReason(Trigger.TRIGGER_USER_REQUEST)
+      /** An agent requested the sync */
+      @JvmField
+      val AGENT_REQUESTED = SyncReason(Trigger.TRIGGER_AGENT_REQUESTED)
     }
   }
 

@@ -67,6 +67,10 @@ class BenchmarkerTest {
         readyCalls++
       }
 
+      override fun prepareForInputs() {
+        prepareForInputCalls++
+      }
+
       override fun finalizeInputs() {
         finalizeInputsCalls++
       }
@@ -82,6 +86,7 @@ class BenchmarkerTest {
 
   private var readyCalls: Int = 0
   private var cleanUpCalls: Int = 0
+  private var prepareForInputCalls: Int = 0
   private var finalizeInputsCalls: Int = 0
   private var stopCallbackCalled = false
 
@@ -120,7 +125,7 @@ class BenchmarkerTest {
     verify(mockTimer).cancel()
     verifyNoMoreInteractions(mockTimer)
     assertThat(stopCallbackCalled).isTrue()
-    assertThat(failureMessages).containsExactly("Benchmarking was canceled.")
+    assertThat(failureMessages).containsExactly("")
   }
 
   @Test
@@ -141,7 +146,9 @@ class BenchmarkerTest {
   @Test
   fun finalizeInputsWhenBenchmarkingEnds() {
     benchmarker.start()
+    assertThat(prepareForInputCalls).isEqualTo(0)
     adapter.adapterCallbacks.onReady()
+    assertThat(prepareForInputCalls).isEqualTo(1)
     val taskCaptor = argumentCaptor<TimerTask>()
     verify(mockTimer).scheduleAtFixedRate(taskCaptor.capture(), anyLong(), anyLong())
     assertThat(dispatched).isEmpty()

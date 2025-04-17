@@ -21,10 +21,12 @@ import com.android.ide.common.gradle.Module
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
+import com.android.ide.common.repository.GoogleMavenRepositoryV2
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.io.CancellableFileIo
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.util.GradleLocalCache
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.lint.common.LintIdeSupport
@@ -53,12 +55,24 @@ import java.util.function.Predicate
 class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   private val googleMavenRepository: GoogleMavenRepository,
   private val cachedGoogleMavenRepository: GoogleMavenRepository,
+  private val googleMavenRepositoryV2: GoogleMavenRepositoryV2,
+  private val cachedGoogleMavenRepositoryV2: GoogleMavenRepositoryV2,
   private val useEmbeddedStudioRepo: Boolean = true) {
   private val pendingNetworkRequests: MutableSet<String> = ConcurrentHashMap.newKeySet()
   private val logger: Logger = thisLogger()
+  private val useGMavenV2: Boolean = StudioFlags.ENABLE_GMAVEN_REPOSITORY_V2.get()
+  private fun bestGoogleMavenRepository(): GoogleMavenRepository =
+    if (ApplicationManager.getApplication().isDispatchThread) cachedGoogleMavenRepository else googleMavenRepository
+  private fun bestGoogleMavenRepositoryV2(): GoogleMavenRepositoryV2 =
+    if (ApplicationManager.getApplication().isDispatchThread) cachedGoogleMavenRepositoryV2 else googleMavenRepositoryV2
 
-  internal constructor() : this(IdeGoogleMavenRepository,
-                                OfflineIdeGoogleMavenRepository, false)
+  internal constructor() : this(
+    IdeGoogleMavenRepository,
+    OfflineIdeGoogleMavenRepository,
+    GoogleMavenRepositoryV2.create(),
+    GoogleMavenRepositoryV2.create(),
+    false
+  )
 
   fun getArtifactComponent(artifactId: GoogleMavenArtifactId, preview: Boolean): Component? =
     getArtifactComponent(artifactId, null, preview)
@@ -91,14 +105,13 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   fun findVersion(
     groupId: String, artifactId: String, filter: Predicate<Version>?, includePreviews: Boolean, fileSystem: FileSystem
   ): Version? {
-    val version: Version?
-    // First check the Google maven repository, which has most versions.
-    if (ApplicationManager.getApplication().isDispatchThread) {
-      version = cachedGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews)
-      refreshCacheInBackground(groupId, artifactId)
+    val version: Version? = if (useGMavenV2) {
+      bestGoogleMavenRepositoryV2().findVersion(groupId, artifactId, filter, includePreviews)
+    } else {
+      bestGoogleMavenRepository().findVersion(groupId, artifactId, filter, includePreviews)
     }
-    else {
-      version = googleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews)
+    if (ApplicationManager.getApplication().isDispatchThread) {
+      refreshCacheInBackground(groupId, artifactId)
     }
     if (version != null) {
       logger.debug("Found dependency $groupId:$artifactId:$version in GMaven")
@@ -124,14 +137,13 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   }
 
   fun findCompileDependencies(groupId: String, artifactId: String, version: Version): List<Dependency> {
-    // First check the Google maven repository, which has most versions.
-    val result: List<Dependency>
-    if (ApplicationManager.getApplication().isDispatchThread) {
-      result = cachedGoogleMavenRepository.findCompileDependencies(groupId, artifactId, version)
-      refreshCacheInBackground(groupId, artifactId)
+    val result: List<Dependency> = if (useGMavenV2) {
+      bestGoogleMavenRepositoryV2().findCompileDependencies(groupId, artifactId, version)
+    } else {
+      bestGoogleMavenRepository().findCompileDependencies(groupId, artifactId, version)
     }
-    else {
-      result = googleMavenRepository.findCompileDependencies(groupId, artifactId, version)
+    if (ApplicationManager.getApplication().isDispatchThread) {
+      refreshCacheInBackground(groupId, artifactId)
     }
     return result
   }
@@ -204,23 +216,23 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       logger.debug("Couldn't resolve $dependency since it doesn't correspond to a Module")
       return null
     }
-    val bestAvailableGoogleMavenRepo: GoogleMavenRepository
-
-    // First check the Google maven repository, which has most versions.
     if (ApplicationManager.getApplication().isDispatchThread) {
-      bestAvailableGoogleMavenRepo = cachedGoogleMavenRepository
       refreshCacheInBackground(module.group, module.name)
     }
-    else {
-      bestAvailableGoogleMavenRepo = googleMavenRepository
+    val stableVersion = if (useGMavenV2) {
+      bestGoogleMavenRepositoryV2().findVersion(module.group, module.name, filter, false)
+    } else {
+      bestGoogleMavenRepository().findVersion(module.group, module.name, filter, false)
     }
-
-    val stableVersion = bestAvailableGoogleMavenRepo.findVersion(module.group, module.name, filter, false)
     if (stableVersion != null) {
       logger.debug("Resolved dependency stable ${module.group}:${module.name}:$stableVersion in GMaven")
       return stableVersion.toString()
     }
-    val previewVersion = bestAvailableGoogleMavenRepo.findVersion(module.group, module.name, filter, true)
+    val previewVersion = if (useGMavenV2) {
+      bestGoogleMavenRepositoryV2().findVersion(module.group, module.name, filter, true)
+    } else {
+      bestGoogleMavenRepository().findVersion(module.group, module.name, filter, true)
+    }
     if (previewVersion != null) {
       // Only had preview version; use that (for example, artifacts that haven't been released as stable yet).
       logger.debug("Resolved dependency preview ${module.group}:${module.name}:$previewVersion in GMaven")
@@ -280,7 +292,11 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
         try {
           // We don't care about the result, just the side effect of updating the cache.
           // This will only make a network request if there is no cache or it has expired.
-          googleMavenRepository.findVersion(groupId, artifactId, { true }, true)
+          if (useGMavenV2) {
+            googleMavenRepositoryV2.findVersion(groupId, artifactId, { true }, true)
+          } else {
+            googleMavenRepository.findVersion(groupId, artifactId, { true }, true)
+          }
         }
         finally {
           pendingNetworkRequests.remove(searchKey)

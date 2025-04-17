@@ -29,6 +29,9 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.tree.TreeUtil
+import java.awt.Dimension
+import java.awt.Point
+import javax.swing.JScrollPane
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
@@ -36,7 +39,6 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ColumnTreeUITest {
-
   companion object {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
@@ -82,16 +84,43 @@ class ColumnTreeUITest {
   }
 
   @Test
-  fun testScrollTreeHorizontallyOnSelection() {
+  fun testAutoScrollTreeHorizontallyOnSelection() {
     val result = createTree()
     val table = result.focusComponent as TreeTableImpl
+    val verticalScrollPane = result.vScrollPane as JScrollPane
+    table.columnModel.getColumn(0).apply {
+      preferredWidth = 80
+      minWidth = 80
+      maxWidth = 80
+    }
+    // Each item has a height of 16, which means the viewport only sees
+    // the last two items in the tree.
+    verticalScrollPane.viewport.viewPosition = Point(0, 20)
+    verticalScrollPane.viewport.extentSize = Dimension(32, 32)
 
     TreeUtil.expandAll(table.tree)
-    assertThat(table.tree.getRowBounds(0).x).isEqualTo(0)
+    table.setRowSelectionInterval(2, 2)
 
-    table.setRowSelectionInterval(1, 1)
+    val horizontalScrollPane = result.hScrollPanel as ColumnTreeScrollPanel
 
-    assertThat(table.tree.getRowBounds(0).x).isEqualTo(-2)
+    assertThat(horizontalScrollPane.getModel().value).isEqualTo(2)
+  }
+
+  @Test
+  fun testAutoScrollTreeVerticallyOnSelection() {
+    val result = createTree()
+    val table = result.focusComponent as TreeTableImpl
+    val verticalScrollPane = result.vScrollPane as JScrollPane
+
+    // Each item has a height of 16, which means the viewport only sees
+    // the last two items in the tree.
+    verticalScrollPane.viewport.viewPosition = Point(0, 0)
+    verticalScrollPane.viewport.extentSize = Dimension(16, 16)
+
+    TreeUtil.expandAll(table.tree)
+    table.setRowSelectionInterval(2, 2)
+
+    assertThat(verticalScrollPane.verticalScrollBar.model.value).isAtLeast(32)
   }
 
   private fun createTree(
@@ -117,6 +146,7 @@ class ColumnTreeUITest {
       .withInvokeLaterOption { it.run() }
       .withMultipleSelection()
       .customChange()
+      .withAutoScroll()
       .build()
   }
 }

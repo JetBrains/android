@@ -82,7 +82,6 @@ class ViewTreeCellRendererTest {
         model,
         contextPopup = { _, _, _, _ -> },
         doubleClick = {},
-        painter = null,
         installKeyboardActions = {},
         treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
         installTreeSearch = false,

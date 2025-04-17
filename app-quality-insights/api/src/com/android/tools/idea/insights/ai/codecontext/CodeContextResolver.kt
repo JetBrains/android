@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ai.codecontext
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.utils.associateWithNotNull
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
@@ -25,6 +26,8 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.readText
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 
 data class CodeContextTrackingInfo(val fileCount: Int, val lineCount: Int, val charCount: Int) {
@@ -61,11 +64,9 @@ data class CodeContextData(
 
 /** A simple value class for containing info related to a piece of code context. */
 data class CodeContext(
-  val className: String,
   // The fully qualified path of the source file.
   val filePath: String,
   val content: String,
-  val language: Language,
 )
 
 /** Pulls source code from the editor based on the provided stack trace. */
@@ -77,6 +78,12 @@ interface CodeContextResolver {
    * @param stack [StacktraceGroup] for which the files are needed.
    */
   suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData
+
+  /**
+   * Similar to the above function but works off of the response given by Gemini, which is a list of
+   * names.
+   */
+  suspend fun getSource(fileNames: List<String>): CodeContextData
 }
 
 class CodeContextResolverImpl(private val project: Project) : CodeContextResolver {
@@ -86,8 +93,39 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
       return CodeContextData(emptyList())
     }
     val sources = getSource(stack)
-    return CodeContextData(sources, getMetadata(sources))
+    return CodeContextData(sources, getMetadata(sources), getContextSharingState())
   }
+
+  override suspend fun getSource(fileNames: List<String>): CodeContextData {
+    val context =
+      fileNames
+        .associateWithNotNull { fileName ->
+          val scope = GlobalSearchScope.projectScope(project)
+          val name = fileName.substringAfterLast("/")
+          val candidates = readAction { FilenameIndex.getVirtualFilesByName(name, scope) }
+          if (candidates.isEmpty()) {
+            return@associateWithNotNull null
+          }
+          val candidate =
+            candidates.firstOrNull { it.path.endsWith(fileName) }
+              ?: return@associateWithNotNull null
+          if (GeminiPluginApi.getInstance().isFileExcluded(project, candidate)) {
+            null
+          } else {
+            candidate
+          }
+        }
+        .map { (file, virtFile) -> CodeContext(file, virtFile.readText()) }
+    return CodeContextData(context, getMetadata(context), getContextSharingState())
+  }
+
+  private fun getContextSharingState() =
+    if (
+      GeminiPluginApi.getInstance().isAvailable() &&
+        GeminiPluginApi.getInstance().isContextAllowed(project)
+    )
+      ContextSharingState.ALLOWED
+    else ContextSharingState.DISABLED
 
   private fun getMetadata(contexts: List<CodeContext>): CodeContextTrackingInfo =
     contexts.fold(CodeContextTrackingInfo.EMPTY) { acc, context ->
@@ -118,9 +156,7 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
               index.isInSource(it) || index.isInGeneratedSources(it)
             } ?: return@readAction null
           if (GeminiPluginApi.getInstance().isFileExcluded(project, file)) return@readAction null
-          val language =
-            file.extension?.let { Language.fromExtension(it) } ?: return@readAction null
-          CodeContext(className, file.path, file.readText(), language)
+          CodeContext(file.path, file.readText())
         }
       }
       .distinctBy { it.filePath }

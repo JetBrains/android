@@ -23,13 +23,13 @@ namespace screensharing {
 class XrSimulatedInputEventManager {
 public:
   // Injects an input event. May throw a Java exception if it fails.
-  static void InjectXrSimulatedMotionEvent(Jni jni, const JObject& input_event);
+  static void InjectMotionEvent(Jni jni, const JObject& motion_event);
 
 private:
   static void InitializeStatics(Jni jni);
 
   static JObject xr_simulated_input_event_manager_;
-  static jmethodID inject_xr_simulated_motion_event_method_;
+  static jmethodID inject_motion_event_method_;
 };
 
 }  // namespace screensharing

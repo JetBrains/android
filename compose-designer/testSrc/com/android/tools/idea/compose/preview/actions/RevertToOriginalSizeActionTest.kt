@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import android.view.View
+import android.view.ViewGroup
 import com.android.flags.junit.FlagRule
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
@@ -28,7 +30,6 @@ import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ConfigurationResizeListener
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.TestView
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
@@ -246,7 +247,9 @@ class RevertToOriginalSizeActionTest {
         callback.run()
         CompletableFuture.completedFuture(null)
       }
-      val testView = TestView()
+      val testView = org.mockito.kotlin.mock<View>()
+      val layoutParams = ViewGroup.LayoutParams(500, 600)
+      whenever(testView.layoutParams).thenReturn(layoutParams)
       whenever(sceneManager.viewObject).thenReturn(testView)
 
       val dataContext = createDataContext()
@@ -264,11 +267,8 @@ class RevertToOriginalSizeActionTest {
       advanceUntilIdle()
 
       verify(sceneManager).requestRenderWithNewSize(widthInPx, heightPx)
-      assertEquals(widthInPx, testView.getLayoutParams().width) // Check width changed by reflection
-      assertEquals(
-        heightPx,
-        testView.getLayoutParams().height,
-      ) // Check height changed by reflection
+      assertEquals(widthInPx, testView.layoutParams.width) // Check width changed by reflection
+      assertEquals(heightPx, testView.layoutParams.height) // Check height changed by reflection
       assertThat(sceneRenderConfiguration.clearOverrideRenderSize).isTrue()
     }
 

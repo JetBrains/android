@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.model
 
+import com.android.tools.idea.common.surface.organization.OrganizationGroupType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -64,5 +65,21 @@ class DisplaySettings {
 
   fun setTooltip(value: String?) {
     _tooltip.value = value
+  }
+
+  private val _fileName = MutableStateFlow<String?>(null)
+
+  val fileName = _fileName.asStateFlow()
+
+  fun setFileName(value: String?) {
+    _fileName.value = value
+  }
+
+  private val _groupType = MutableStateFlow<OrganizationGroupType>(OrganizationGroupType.Default)
+
+  val groupType = _groupType.asStateFlow()
+
+  fun setGroupType(iconType: OrganizationGroupType) {
+    _groupType.value = iconType
   }
 }

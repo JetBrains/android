@@ -882,16 +882,10 @@ class AnnotationFileComposePreviewElementFinderTest {
         // Override positioning for testing for those preview starting with Top
         object : PsiComposePreviewElement by it {
           override val displaySettings: PreviewDisplaySettings =
-            PreviewDisplaySettings(
-              it.displaySettings.name,
-              it.displaySettings.baseName,
-              it.displaySettings.parameterName,
-              it.displaySettings.group,
-              it.displaySettings.showDecoration,
-              it.displaySettings.showBackground,
-              it.displaySettings.backgroundColor,
-              if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP
-              else it.displaySettings.displayPositioning,
+            it.displaySettings.copy(
+              displayPositioning =
+                if (it.displaySettings.name.startsWith("Top")) DisplayPositioning.TOP
+                else it.displaySettings.displayPositioning
             )
         }
       }
@@ -976,16 +970,10 @@ class AnnotationFileComposePreviewElementFinderTest {
         // Override positioning for testing for those preview starting with Top
         object : PsiComposePreviewElement by it {
           override val displaySettings: PreviewDisplaySettings =
-            PreviewDisplaySettings(
-              it.displaySettings.name,
-              it.displaySettings.baseName,
-              it.displaySettings.parameterName,
-              it.displaySettings.group,
-              it.displaySettings.showDecoration,
-              it.displaySettings.showBackground,
-              it.displaySettings.backgroundColor,
-              if (it.displaySettings.name == "TopA") DisplayPositioning.TOP
-              else it.displaySettings.displayPositioning,
+            it.displaySettings.copy(
+              displayPositioning =
+                if (it.displaySettings.name == "TopA") DisplayPositioning.TOP
+                else it.displaySettings.displayPositioning
             )
         }
       }

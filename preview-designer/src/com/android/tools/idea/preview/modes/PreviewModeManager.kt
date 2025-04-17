@@ -64,6 +64,9 @@ sealed class PreviewMode {
   val isNormal: Boolean
     get() = this is Default || this is Focus
 
+  val isFocus: Boolean
+    get() = this is Focus
+
   /** Background color. */
   open val backgroundColor: Color = Colors.DEFAULT_BACKGROUND_COLOR
 

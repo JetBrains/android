@@ -18,6 +18,8 @@ package com.android.tools.idea.apk.viewer.pagealign
 import com.android.ide.common.pagealign.is16kAligned
 import com.android.tools.apk.analyzer.ArchiveEntry
 import com.android.tools.apk.analyzer.ArchiveNode
+import com.android.tools.apk.analyzer.ZipEntryInfo
+import com.android.tools.apk.analyzer.ZipEntryInfo.Alignment
 import com.android.tools.idea.ndk.PageAlignConfig.isPageAlignMessageEnabled
 import com.google.common.annotations.VisibleForTesting
 import javax.swing.tree.TreePath
@@ -53,8 +55,8 @@ private fun getHumanReadablePageSize(sizeInBytes: Long): String {
 fun ArchiveEntry.getAlignmentFinding() = getAlignmentFinding(
   "$path",
   elfMinimumLoadSectionAlignment,
-  selfOrChildLoadSectionIncompatible,
-  fileAlignment.text,
+  selfOrChild16kbIncompatible,
+  fileAlignment
 )
 
 @VisibleForTesting
@@ -62,22 +64,27 @@ fun getAlignmentFinding(
   path : String,
   elfMinimumLoadSectionAlignment : Long,
   selfOrChildLoadSectionIncompatible : Boolean,
-  zipAlignText : String
+  zipAlignment : Alignment
 ) : AlignmentFinding {
   val sb = StringBuilder()
   var hasWarning = false
   val pageAlignText = getHumanReadablePageSize(elfMinimumLoadSectionAlignment)
+  val zipAlignText = zipAlignment.text
 
   if (selfOrChildLoadSectionIncompatible) {
-    when {
-      elfMinimumLoadSectionAlignment != -1L && !is16kAligned(elfMinimumLoadSectionAlignment) -> {
-        sb.append("$pageAlignText, but 16 KB is required")
-        hasWarning = true
+    val isLoadSectionAligned = is16kAligned(elfMinimumLoadSectionAlignment)
+    val isZipAligned = zipAlignment != Alignment.ALIGNMENT_4K
+    val warning = when {
+        path == "/" -> "APK does not support 16 KB devices"
+        elfMinimumLoadSectionAlignment == -1L -> ""
+        !isLoadSectionAligned && !isZipAligned -> "$zipAlignText zip and $pageAlignText LOAD section, but 16 KB is required for both"
+        !isLoadSectionAligned -> "$pageAlignText LOAD section alignment, but 16 KB is required"
+        !isZipAligned -> "${zipAlignment.text} zip alignment, but 16 KB is required"
+        else -> ""
       }
-      path == "/" -> {
-        sb.append("APK does not support 16 KB devices")
-        hasWarning = true
-      }
+    if (warning.isNotEmpty()) {
+      sb.append(warning)
+      hasWarning = true
     }
   } else if (pageAlignText == zipAlignText || pageAlignText.isEmpty()) {
     // If there are no LOAD problems && zip alignment is the same as page alignment

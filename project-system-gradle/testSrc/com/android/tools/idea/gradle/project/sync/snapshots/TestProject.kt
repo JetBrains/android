@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.JdkConstants
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
@@ -78,6 +79,11 @@ enum class TestProject(
   ANDROID_KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.ANDROID_KOTLIN_MULTIPLATFORM,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_82 },
+    patch = { projectRoot ->
+      projectRoot.resolve("gradle.properties").replaceContent { content ->
+        content.plus("org.gradle.java.installations.paths=${JdkConstants.JDK_11_PATH}")
+      }
+    }
   ),
   SIMPLE_APPLICATION(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
   SIMPLE_APPLICATION_NO_PARALLEL_SYNC(

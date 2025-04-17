@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.resources.ScreenOrientation
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
+import com.android.tools.idea.common.util.updateLayoutParams
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.Disposable
@@ -71,22 +72,6 @@ class ConfigurationResizeListener(
       sceneManager.executeInRenderSession(false) { updateLayoutParams(viewObj, newDeviceSize) }
     }
     sceneManager.requestRenderWithNewSize(newDeviceSize.width, newDeviceSize.height)
-  }
-
-  /**
-   * Update the layout parameters of the given view object to the new size. It's needed to override
-   * any values(width/height) that were set in Preview annotation.
-   *
-   * View object is actual android.view.View (or child class) object. Uses reflection to access
-   * fields.
-   *
-   * @param viewObj the view object whose layout parameters will be updated.
-   * @param newDeviceSize the new size of the device.
-   */
-  private fun updateLayoutParams(viewObj: Any, newDeviceSize: Dimension) {
-    val layoutParams = viewObj.javaClass.getMethod("getLayoutParams").invoke(viewObj)
-    layoutParams.javaClass.getField("width").set(layoutParams, newDeviceSize.width)
-    layoutParams.javaClass.getField("height").set(layoutParams, newDeviceSize.height)
   }
 
   private fun calculateDimensions(

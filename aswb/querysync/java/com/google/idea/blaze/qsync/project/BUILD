@@ -46,7 +46,10 @@ java_proto_library(
 
 aswb_library(
     name = "project",
-    srcs = glob(["*.java"]),
+    srcs = glob([
+        "*.java",
+        "*.kt",
+    ]),
     deps = [
         ":language_class_java_proto",
         ":project_java_proto",

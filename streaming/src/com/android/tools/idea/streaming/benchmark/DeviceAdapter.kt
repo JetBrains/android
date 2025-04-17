@@ -43,8 +43,12 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import java.awt.event.MouseEvent.MOUSE_DRAGGED
+import java.awt.event.MouseEvent.MOUSE_PRESSED
+import java.awt.event.MouseEvent.MOUSE_RELEASED
 import java.awt.image.BufferedImage
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -113,9 +117,9 @@ fun Color.isGreenish() = red < 0x1F && green > 0xE0 && blue < 0x1F
 
 fun Color.isBluish() = red < 0x1F && green < 0x1F && blue > 0xE0
 
-private fun AbstractDisplayView.click(
+private fun AbstractDisplayView.dispatchMouseEvent(
   location: Point,
-  mouseEventType: Int = MouseEvent.MOUSE_PRESSED,
+  mouseEventType: Int = MOUSE_DRAGGED,
 ) {
   UIUtil.invokeLaterIfNeeded {
     dispatchEvent(
@@ -123,7 +127,7 @@ private fun AbstractDisplayView.click(
         this,
         mouseEventType,
         System.currentTimeMillis(),
-        0,
+        if (mouseEventType == MOUSE_PRESSED || mouseEventType == MOUSE_DRAGGED) BUTTON1_DOWN_MASK else 0,
         location.x,
         location.y,
         1,
@@ -244,19 +248,20 @@ internal class DeviceAdapter(
   @Volatile private lateinit var startedGettingReady: TimeMark
 
   private val pointsToTouch: Iterator<Point> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      touchableArea.scribble(maxTouches, step, spikiness).iterator()
-    }
+    touchableArea.scribble(maxTouches + 1, step, spikiness).iterator()
+  }
+  private val startPoint: Point by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { pointsToTouch.next() }
   private val numPointsToTouch by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      min(touchableArea.width * touchableArea.height, maxTouches)
-    }
+    min(touchableArea.width * touchableArea.height, maxTouches)
+  }
 
   private var lastPressed: Point? = null
 
   init {
-    require(maxTouches > 0) { "Must specify a positive value for maxTouches!" }
-    require(step > 0) { "Must specify a positive value for step!" }
-    require(spikiness >= 0) { "Must specify a non-negative value for spikiness!" }
-    require(bitsPerChannel in 0..8) { "Cannot extract $bitsPerChannel bits from a channel! Must be in [0,8]" }
+    require(maxTouches > 0) { "Must specify a positive value for maxTouches" }
+    require(step > 0) { "Must specify a positive value for step" }
+    require(spikiness >= 0) { "Must specify a non-negative value for spikiness" }
+    require(bitsPerChannel in 0..8) { "Cannot extract $bitsPerChannel bits from a channel. Must be in [0,8]" }
 
     coroutineScope.launch {
       for (keyEventDispatch in keyEventDispatchChannel) {
@@ -321,7 +326,7 @@ internal class DeviceAdapter(
 
   override fun dispatch(input: Point) {
     lastPressed = input
-    target.view.click(input)
+    target.view.dispatchMouseEvent(input)
   }
 
   override fun ready() {
@@ -341,8 +346,14 @@ internal class DeviceAdapter(
     }
   }
 
+  override fun prepareForInputs() {
+    val startPoint = pointsToTouch.next()
+    lastPressed = startPoint
+    target.view.dispatchMouseEvent(startPoint, MOUSE_PRESSED)
+  }
+
   override fun finalizeInputs() {
-    lastPressed?.let { target.view.click(it, MouseEvent.MOUSE_RELEASED) }
+    lastPressed?.let { target.view.dispatchMouseEvent(it, MOUSE_RELEASED) }
   }
 
   override fun cleanUp() {

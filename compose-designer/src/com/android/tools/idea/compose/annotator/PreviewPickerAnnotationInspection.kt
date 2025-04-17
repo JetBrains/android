@@ -54,7 +54,7 @@ class PreviewPickerAnnotationInspection :
     // PreviewPicker
     if (!isPreview(previewAnnotation)) return
 
-    if (previewAnnotation.getModuleSystem()?.isPreviewPickerEnabled() != true) return
+    if (previewAnnotation.getModuleSystem()?.usesCompose != true) return
 
     PreviewAnnotationCheck.checkAnnotation(previewAnnotation, holder.manager, holder.isOnTheFly)
       ?.let { holder.registerProblem(it) }

@@ -1098,7 +1098,7 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.horizontal.scrollable.component.tree",
     "Horizontal scroll for layout inspector component tree",
     "When this flag is enabled, we enable horizontal scrolling for the Layout Inspector's component tree.",
-    enabledUpTo(DEV));
+    enabledUpTo(STABLE));
   //endregion
 
   //region Embedded Emulator
@@ -1240,6 +1240,14 @@ public final class StudioFlags {
   public static final Flag<Boolean> INFER_ANNOTATIONS_REFACTORING_ENABLED = new BooleanFlag(
     REFACTORINGS, "infer.annotations.enabled", "Enable the Infer Annotations refactoring",
     "If enabled, show the action in the refactoring menu", false);
+
+  public static final Flag<Boolean> ENABLE_GMAVEN_REPOSITORY_V2 = new BooleanFlag(
+    REFACTORINGS,
+    "gmaven.repository.v2.enabled",
+    "Switches to GMaven Repository V2",
+    "If enabled, uses GMaven Repository V2 to pull data related to packages, artifacts, versions and their dependencies",
+    false
+  );
 
   //endregion
 
@@ -1409,6 +1417,14 @@ public final class StudioFlags {
     "If enabled, the process to find previews for a file will also search in its associated files from the preview-sourceset",
     false
   );
+
+  public static final Flag<Boolean> PREVIEW_SOURCESET_UI = new BooleanFlag(
+    PREVIEW_COMMON, "preview.sourceset.ui",
+    "Enable UI for preview-sourseset",
+    "If enabled, the UI specific to preview-sourceset will be enabled.",
+    false
+  );
+
   //endregion
 
   //region Compose
@@ -1484,13 +1500,6 @@ public final class StudioFlags {
     "Enable the debug bounds switch controls",
     "If enabled, the user can enable/disable the painting of debug bounds",
     false
-  );
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_ELEMENT_PICKER = new BooleanFlag(
-    COMPOSE, "preview.element.picker.enable",
-    "Enable @Preview picker",
-    "If enabled, the picker for @Preview elements will be available",
-    true
   );
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_RESIZING = new BooleanFlag(
@@ -1629,13 +1638,13 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION = new BooleanFlag(
     WEAR_DECLARATIVE_WATCH_FACE, "run.configuration.enabled", "Enable run configuration for Declarative Watch Faces",
     "If enabled, the Declarative Watch Face run configuration type will be available. Changing the value of this flag requires restarting Android Studio.",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT = new BooleanFlag(
     WEAR_DECLARATIVE_WATCH_FACE, "xml.editor.support.enabled", "Enable XML editor support for Declarative Watch Faces",
     "If enabled, the editor will support Watch Face Format in XML files",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
   // endregion
 
@@ -1664,7 +1673,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR = new BooleanFlag(
     APP_INSPECTION, "use.experimental.database.inspector", "Use experimental Database Inspector",
     "Use experimental Database Inspector",
-    false
+    enabledUpTo(CANARY)
   );
   // endregion
 
@@ -1847,6 +1856,15 @@ public final class StudioFlags {
       true
     );
 
+  public static final Flag<Boolean> GEMINI_ASSISTED_CONTEXT_FETCH =
+    new BooleanFlag(
+      APP_INSIGHTS,
+      "gemini.assisted.context.fetch",
+      "Ask Gemini for context files",
+      "Ask Gemini for the context files it needs to generate an insight.",
+      enabledUpTo(CANARY)
+    );
+
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,
@@ -1871,15 +1889,6 @@ public final class StudioFlags {
       "Show AI generated insights for Crashlytics issue in insight toolwindow",
       true
     );
-
-  // Must re-enable firebase onboarding flow should this be set to true.
-  public static final Flag<Boolean> CRASHLYTICS_TITAN_INSIGHT_PROVIDER = new BooleanFlag(
-    APP_INSIGHTS,
-    "crashlytics.titan.insight.provider",
-    "Use Titan to provide Crashlytics insights",
-    "Use Titan to provide Crashlytics insights",
-    false
-  );
 
   public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
     new StringFlag(
@@ -2125,6 +2134,13 @@ public final class StudioFlags {
                     "Enable @folder attachment.",
                     "When enabled, @folder can be used to attach folders as context.",
                     enabledUpTo(DEV));
+
+  public static final Flag<Long> STUDIOBOT_FOLDER_CONTEXT_MAX_INCLUDED_FILES =
+    new LongFlag(STUDIOBOT, "chat.folder.context.max.included.files",
+                 "The max number of files included by a @folder attachment.",
+                 "Specifies the max number of files included by a @folder attachment.",
+                 100L
+    );
 
   public static final Flag<Boolean> STUDIOBOT_DEPENDENCY_SUGGESTION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.suggest.dependencies.on.insert",

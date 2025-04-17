@@ -265,8 +265,8 @@ class OnDeviceRendererPanelImplTest {
           rootId = ROOT,
           bounds =
             listOf(
-              inspectorModel[VIEW1]!!.layoutBounds,
               inspectorModel[COMPOSE1]!!.layoutBounds,
+              inspectorModel[VIEW1]!!.layoutBounds,
               inspectorModel[ROOT]!!.layoutBounds,
             ),
           color = BASE_COLOR_ARGB,

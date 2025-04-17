@@ -15,10 +15,19 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.idea.blaze.base.qsync.action.ActionUtil.getVirtualFiles;
+import static com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt;
+import static kotlinx.coroutines.guava.ListenableFutureKt.asDeferred;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.OperationType;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
-import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper.DepsBuildType;
 import com.google.idea.blaze.base.qsync.action.PopupPositioner;
+import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.settings.Blaze;
@@ -52,8 +61,10 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyBoundsListener;
 import java.awt.event.HierarchyEvent;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -85,11 +96,13 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
 
     private final Editor editor;
     private final BuildDependenciesHelper buildDepsHelper;
+    public final QuerySyncManager syncManager;
 
     public BuildDependencies(@NotNull Editor editor) {
       super("");
       this.editor = editor;
-      buildDepsHelper = new BuildDependenciesHelper(editor.getProject(), DepsBuildType.SELF);
+      buildDepsHelper = new BuildDependenciesHelper(editor.getProject());
+      syncManager = QuerySyncManager.getInstance(editor.getProject());
     }
 
     @Override
@@ -99,8 +112,19 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      buildDepsHelper.enableAnalysis(
-          getClass(), e, PopupPositioner.showUnderneathClickedComponentOrCentered(e));
+      List<VirtualFile> vfs = getVirtualFiles(e);
+      QuerySyncActionStatsScope querySyncActionStats =
+        QuerySyncActionStatsScope.createForFiles(getClass(), e, ImmutableList.copyOf(vfs));
+      buildDepsHelper.determineTargetsAndRun(
+        WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.getProject(), vfs),
+        createDisambiguateTargetPrompt(PopupPositioner.showUnderneathClickedComponentOrCentered(e)),
+        new TargetDisambiguationAnchors.WorkingSet(buildDepsHelper),
+        querySyncActionStats,
+        labels ->
+          asDeferred(
+            syncManager.enableAnalysis(Sets.union(labels, buildDepsHelper.getWorkingSetTargetsIfEnabled()), querySyncActionStats,
+                                       QuerySyncManager.TaskOrigin.USER_ACTION))
+      );
     }
 
     @Override
@@ -130,18 +154,21 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
                 : "Building dependencies...");
         return;
       }
-      TargetsToBuild toBuild = buildDepsHelper.getTargetsToEnableAnalysisFor(vf);
+      Set<TargetsToBuild> toBuild = buildDepsHelper.getTargetsToEnableAnalysisForPaths(
+        WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.getProject(), ImmutableList.of(vf)));
 
       if (toBuild.isEmpty()) {
+        // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
+        // they should automatically trigger sync.
         presentation.setEnabled(false);
         return;
       }
 
       presentation.setEnabled(true);
-      if (toBuild.type() == TargetsToBuild.Type.SOURCE_FILE
+      if (toBuild.size() == 1 &&  getOnlyElement(toBuild) instanceof TargetsToBuild.SourceFile sourceFile
           && QuerySyncSettings.getInstance().showDetailedInformationInEditor()) {
 
-        int missing = buildDepsHelper.getSourceFileMissingDepsCount(toBuild);
+        int missing = buildDepsHelper.getSourceFileMissingDepsCount(sourceFile);
         if (missing > 0) {
           String dependency = StringUtil.pluralize("dependency", missing);
           presentation.setText(
@@ -212,7 +239,8 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
       if (vf != null
           && querySyncManager.isProjectLoaded()
           && !querySyncManager.operationInProgress()) {
-        TargetsToBuild toBuild = buildDepsHelper.getTargetsToEnableAnalysisFor(vf);
+        Set<TargetsToBuild> toBuild = buildDepsHelper.getTargetsToEnableAnalysisForPaths(
+          WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, ImmutableList.of(vf)));
         return toBuild.isEmpty();
       }
       return false;

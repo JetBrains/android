@@ -244,9 +244,6 @@ class InsightContentPanel(
               permissionDeniedHandler.handlePermissionDenied(aiInsight, emptyStateText)
               showEmptyCard()
             }
-            is LoadingState.TosNotAccepted -> {
-              showOnboardingCard()
-            }
             is LoadingState.UnsupportedOperation -> {
               emptyStateText.apply {
                 clear()

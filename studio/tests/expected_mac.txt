@@ -345,6 +345,8 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Light.t
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Medium.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Regular.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/FiraCode-Retina.ttf
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/GoogleSansCode-Italic.ttf
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/GoogleSansCode.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Inconsolata.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Inter-Italic.otf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Inter-Regular.otf
@@ -2305,7 +2307,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/libagp-version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libam-instrumentation-data-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libandroid-core-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libcommon_proto.jar
-Android Studio Preview.app/Contents/plugins/android/lib/libgemini_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
@@ -2313,7 +2314,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/libplay_vitals_java_prot
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
-Android Studio Preview.app/Contents/plugins/android/lib/libtitan_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-common-jvm-2.8.5.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-runtime-compose-desktop-2.8.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lifecycle-runtime-desktop-2.8.5.jar
@@ -3030,7 +3030,6 @@ Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.so.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/libfirebase_java_proto.jar
-Android Studio Preview.app/Contents/plugins/firebase/lib/libgemini_java_proto.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/protobuf-java-util-3.22.3.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar

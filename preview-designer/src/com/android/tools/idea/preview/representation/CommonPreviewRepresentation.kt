@@ -505,7 +505,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
     val showingPreviewElements =
       surface.updatePreviewsAndRefresh(
-        tryReusingModels = true,
         reinflate = true,
         filePreviewElements,
         LOG,

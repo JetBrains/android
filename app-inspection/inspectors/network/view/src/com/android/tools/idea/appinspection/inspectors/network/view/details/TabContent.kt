@@ -34,7 +34,7 @@ internal abstract class TabContent {
   abstract val title: String
 
   /**
-   * Populates the contents of this tab with information from the target `data`. This value might
+   * Populates the contents of this tab with information from the target `data`. This value might,
    * possibly be `null`, if the user cleared the current selection.
    */
   abstract fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory)

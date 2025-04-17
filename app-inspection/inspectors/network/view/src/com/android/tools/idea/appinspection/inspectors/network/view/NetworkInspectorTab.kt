@@ -32,10 +32,10 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.H4_FONT
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLBAR_HEIGHT
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
@@ -58,6 +58,7 @@ import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingConstants
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -71,6 +72,7 @@ private const val CLEAR_DATA = "Clear data"
 private const val EXPORT_CONNECTIONS = "Export connections"
 private const val ATTACH_LIVE = "Attach to live"
 private const val DETACH_LIVE = "Detach live"
+@Suppress("UnstableApiUsage")
 private val SHORTCUT_MODIFIER_MASK_NUMBER
   get() = if (ClientSystemInfo.isMac()) META_DOWN_MASK else CTRL_DOWN_MASK
 
@@ -122,7 +124,7 @@ class NetworkInspectorTab(
           val startTimeStampNs = response.timestamp
           (model.timeline as StreamingTimeline).reset(startTimeStampNs, startTimeStampNs)
         }
-        withContext(AndroidDispatchers.uiThread) {
+        withContext(Dispatchers.EDT) {
           if (!response.speedCollectionStarted) {
             services.ideServices.showNotification(
               "Failed to collect speed data. See device Logcat for more information",
