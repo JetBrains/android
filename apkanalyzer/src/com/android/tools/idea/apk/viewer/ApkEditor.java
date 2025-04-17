@@ -329,7 +329,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       // If there are multiple, then give precedence to other viewers.
       if (nodes.length == 1 && nodes[0] != null) {
         ArchiveEntry archiveEntry = nodes[0].getData();
-        AlignmentFinding alignment = AlignmentFindingKt.getAlignmentFinding(archiveEntry);
+        AlignmentFinding alignment = AlignmentFindingKt.getAlignmentFinding(
+          archiveEntry,
+          myApkViewPanel.getTreeModel().getExtractNativeLibs());
         if (alignment.getHasWarning()) {
           return new AlignmentWarningViewer();
         }
