@@ -31,6 +31,7 @@ import com.android.fakeadbserver.ShellProtocolType;
 import com.android.fakeadbserver.services.ShellCommandOutput;
 import com.android.fakeadbserver.services.StatusWriter;
 import com.android.fakeadbserver.shellcommandhandlers.ShellHandler;
+import com.android.sdklib.AndroidApiLevel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -118,7 +119,7 @@ public class NlEditorTest {
     AndroidDebugBridge debugBridge = AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS);
     assertNotNull(debugBridge);
     Wait.seconds(10).expecting("Bridge is initialized").until(() -> debugBridge.isConnected() && debugBridge.hasInitialDeviceList());
-    adbRule.attachDevice("emulator-test", "Google", "Pix3l", "versionX", "29");
+    adbRule.attachDevice("emulator-test", "Google", "Pix3l", "versionX", new AndroidApiLevel(29));
     CountDownLatch installedLatch = new CountDownLatch(1);
     adbRule.addDeviceCommandHandler(new ShellHandler(ShellProtocolType.EXEC) {
       @Override

@@ -15,6 +15,7 @@ iml_module(
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/base/common:studio.android.sdktools.common",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

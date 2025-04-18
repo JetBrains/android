@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -1218,7 +1219,7 @@ class ForegroundProcessDetectionTest {
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString(),
+        AndroidApiLevel(device.apiLevel),
       )
     }
   }

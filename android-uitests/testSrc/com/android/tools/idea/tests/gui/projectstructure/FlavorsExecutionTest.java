@@ -22,6 +22,7 @@ import com.android.fakeadbserver.ShellProtocolType;
 import com.android.fakeadbserver.services.ShellCommandOutput;
 import com.android.fakeadbserver.services.StatusWriter;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
+import com.android.sdklib.AndroidApiLevel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -68,7 +69,7 @@ public class FlavorsExecutionTest {
       "Google",
       "Nexus 5X",
       "9.0",
-      "28",
+      new AndroidApiLevel(28),
       DeviceState.HostConnectionType.LOCAL
     ).get();
     fakeDevice.setActivityManager((args, shellCommandOutput) -> {

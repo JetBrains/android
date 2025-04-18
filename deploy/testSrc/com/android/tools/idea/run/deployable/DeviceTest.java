@@ -29,6 +29,7 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler;
 import com.android.fakeadbserver.services.ShellCommandOutput;
 import com.android.fakeadbserver.services.StatusWriter;
+import com.android.sdklib.AndroidApiLevel;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -107,7 +108,7 @@ public class DeviceTest {
       "Google",
       "Nexus Gold",
       "7.1",
-      "25",
+      new AndroidApiLevel(25),
       DeviceState.HostConnectionType.USB).get();
 
     DeviceState oDeviceState = myAdbServer.connectDevice(
@@ -115,7 +116,7 @@ public class DeviceTest {
       "Google",
       "Nexus Gold",
       "10.0",
-      "26",
+      new AndroidApiLevel(26),
       DeviceState.HostConnectionType.USB).get();
 
     // Start server execution.

@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.flags.junit.FlagRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
@@ -114,7 +115,7 @@ class ComposeLayoutInspectorClientTest {
       processDescriptor.device.manufacturer,
       processDescriptor.device.model,
       processDescriptor.device.version,
-      processDescriptor.device.apiLevel.toString(),
+      AndroidApiLevel(processDescriptor.device.apiLevel),
       "arm64-v8a",
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,

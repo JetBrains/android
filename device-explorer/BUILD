@@ -56,6 +56,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common.tests",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/base/common:studio.android.sdktools.common",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

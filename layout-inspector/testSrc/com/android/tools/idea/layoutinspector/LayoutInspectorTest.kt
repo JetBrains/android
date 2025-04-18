@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -191,7 +192,7 @@ class LayoutInspectorTest {
         device.manufacturer,
         device.model,
         device.version,
-        device.apiLevel.toString(),
+        AndroidApiLevel(device.apiLevel),
       )
     }
   }

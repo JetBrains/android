@@ -24,6 +24,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.M
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.FakeAdbServer;
+import com.android.sdklib.AndroidApiLevel;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
@@ -44,7 +45,7 @@ import org.junit.runner.RunWith;
 public class TerminateAdbIfNotUsedTest {
   private static final String PROJECT_NAME = "simple";
   private static final String SERIAL = "test_device_001";
-  private static final String SDK = "29";
+  private static final AndroidApiLevel SDK = new AndroidApiLevel(29);
   private static final int WAIT_TIME = 30;
 
   @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
