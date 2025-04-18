@@ -48,6 +48,7 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
     // Obtain a fresh passthrough coefficient and environment after setting up the callback.
     passthrough_coefficient_ = xr_simulated_input_manager_.CallFloatMethod(jni, clazz.GetMethod("getPassthroughCoefficient", "()F"));
     environment_ = xr_simulated_input_manager_.CallByteMethod(jni, clazz.GetMethod("getEnvironment", "()B"));
+    Log::D("XrSimulatedInputManager::InitializeStatics: passthrough_coefficient_=%.3g environment=%d", passthrough_coefficient_, environment_);
     xr_simulated_input_manager_.MakeGlobal();
   }
 }
@@ -83,7 +84,7 @@ void XrSimulatedInputManager::Recenter(Jni jni) {
 }
 
 void XrSimulatedInputManager::SetPassthroughCoefficient(Jni jni, float passthrough) {
-  Log::D("XrSimulatedInputManager::SetPassthroughCoefficient(%f)", passthrough);
+  Log::D("XrSimulatedInputManager::SetPassthroughCoefficient(%.3g)", passthrough);
   InitializeStatics(jni);
   xr_simulated_input_manager_.CallVoidMethod(jni, set_passthrough_coefficient_method_, passthrough);
 }
@@ -95,6 +96,7 @@ void XrSimulatedInputManager::SetEnvironment(Jni jni, int32_t environment) {
 }
 
 void XrSimulatedInputManager::AddEnvironmentListener(Jni jni, EnvironmentListener* listener) {
+  Log::D("XrSimulatedInputManager::AddEnvironmentListener(%p)", listener);
   InitializeStatics(jni);
   environment_listeners_.Add(listener);
   unique_lock lock(environment_mutex_);
@@ -107,6 +109,7 @@ void XrSimulatedInputManager::AddEnvironmentListener(Jni jni, EnvironmentListene
 }
 
 void XrSimulatedInputManager::RemoveEnvironmentListener(EnvironmentListener* listener) {
+  Log::D("XrSimulatedInputManager::RemoveEnvironmentListener(%p)", listener);
   environment_listeners_.Remove(listener);
 }
 
@@ -147,6 +150,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_XrSimulatedInputStateCallback_onPassthroughCoefficientChange(
     JNIEnv* jni_env, jobject thiz, jfloat passthrough_coefficient) {
+  Log::D("XrSimulatedInputStateCallback.onPassthroughCoefficientChange(%.3g)", passthrough_coefficient);
   if (passthrough_coefficient >= 0 && passthrough_coefficient <= 1) {
     XrSimulatedInputManager::OnPassthroughCoefficientChanged(passthrough_coefficient);
   }
@@ -155,6 +159,7 @@ Java_com_android_tools_screensharing_XrSimulatedInputStateCallback_onPassthrough
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_android_tools_screensharing_XrSimulatedInputStateCallback_onEnvironmentChange(JNIEnv* jni_env, jobject thiz, jbyte environment) {
+  Log::D("XrSimulatedInputStateCallback.onEnvironmentChange(%d)", environment);
   if (environment >= 0) {
     XrSimulatedInputManager::OnEnvironmentChanged(environment);
   }

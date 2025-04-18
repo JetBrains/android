@@ -824,7 +824,7 @@ void Controller::OnEnvironmentChanged(int32_t environment) {
 void Controller::SendXrEnvironmentNotification() {
   float passthrough_coefficient = xr_passthrough_coefficient_;
   if (passthrough_coefficient != sent_xr_passthrough_coefficient_) {
-    Log::D("Sending XrPassthroughCoefficientChangedNotification(%f)", passthrough_coefficient);
+    Log::D("Sending XrPassthroughCoefficientChangedNotification(%.3g)", passthrough_coefficient);
     XrPassthroughCoefficientChangedNotification notification(passthrough_coefficient);
     notification.Serialize(output_stream_);
     output_stream_.Flush();
