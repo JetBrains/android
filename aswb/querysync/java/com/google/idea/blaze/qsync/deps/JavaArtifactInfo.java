@@ -42,6 +42,12 @@ public abstract class JavaArtifactInfo {
    */
   public abstract ImmutableSet<BuildArtifact> jars();
 
+
+  /**
+   * The jar that in target's java_output.
+   */
+  public abstract ImmutableSet<BuildArtifact> outputJars();
+
   /**
    * The aar artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in the
    * cache.
@@ -72,6 +78,7 @@ public abstract class JavaArtifactInfo {
         .setGenSrcs(BuildArtifact.addMetadata(genSrcs(), metadata))
         .setIdeAars(BuildArtifact.addMetadata(ideAars(), metadata))
         .setJars(BuildArtifact.addMetadata(jars(), metadata))
+        .setOutputJars(BuildArtifact.addMetadata(outputJars(), metadata))
         .build();
   }
 
@@ -85,6 +92,7 @@ public abstract class JavaArtifactInfo {
     return builder()
         .setLabel(target)
         .setJars(BuildArtifact.fromProtos(proto.getJarsList(), digestMap, target))
+        .setOutputJars(BuildArtifact.fromProtos(proto.getOutputJarsList(), digestMap, target))
         .setIdeAars(BuildArtifact.fromProtos(proto.getIdeAarsList(), digestMap, target))
         .setGenSrcs(BuildArtifact.fromProtos(proto.getGenSrcsList(), digestMap, target))
         .setSources(proto.getSrcsList().stream().map(Interners::pathOf).collect(toImmutableSet()))
@@ -98,6 +106,7 @@ public abstract class JavaArtifactInfo {
     return builder()
         .setLabel(target)
         .setJars(ImmutableList.of())
+        .setOutputJars(ImmutableList.of())
         .setIdeAars(ImmutableList.of())
         .setGenSrcs(ImmutableList.of())
         .setSources(ImmutableSet.of())
@@ -115,6 +124,10 @@ public abstract class JavaArtifactInfo {
     public abstract Builder setJars(ImmutableList<BuildArtifact> value);
 
     public abstract ImmutableSet.Builder<BuildArtifact> jarsBuilder();
+
+    public abstract Builder setOutputJars(ImmutableList<BuildArtifact> value);
+
+    public abstract ImmutableSet.Builder<BuildArtifact> outputJarsBuilder();
 
     public abstract Builder setIdeAars(ImmutableList<BuildArtifact> value);
 

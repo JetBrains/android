@@ -318,6 +318,7 @@ def _encode_target_info_proto(target_to_artifacts):
                 target = label,
                 dep_java_info_files = _encode_file_list(target_info["dep_java_info_files"] if "dep_java_info_files" in target_info else []),
                 jars = _encode_file_list(target_info["jars"]) if "jars" in target_info else [],
+                output_jars = _encode_file_list(target_info["output_jars"]) if "output_jars" in target_info else [],
                 ide_aars = _encode_file_list(target_info["ide_aars"]),
                 gen_srcs = _encode_file_list(target_info["gen_srcs"]),
                 srcs = target_info["srcs"],
@@ -534,6 +535,7 @@ def _collect_own_java_artifacts(
 
     own_jar_files = []
     own_jar_depsets = []
+    own_output_jar_files = []
     own_ide_aar_files = []
     own_gensrc_files = []
     own_src_files = []
@@ -557,6 +559,7 @@ def _collect_own_java_artifacts(
         # proto deps of the underlying proto_library.
         if java_info:
             own_jar_depsets.append(java_info.compile_jars)
+            own_output_jar_files = [java_output.compile_jar for java_output in java_info.java_outputs if java_output.compile_jar]
 
         if declares_android_resources(target, ctx):
             ide_aar = _get_ide_aar_file(target, ctx)
@@ -653,6 +656,7 @@ def _collect_own_java_artifacts(
         fail("Unexpected: " + str(own_jar_files) + " " + str(own_jar_depsets))
     return struct(
         jar_depset = own_jar_depset,
+        output_jar_depset = depset(own_output_jar_files),
         ide_aar_depset = depset(own_ide_aar_files),
         gensrc_depset = depset(own_gensrc_files),
         src_depset = depset(own_src_files),
@@ -663,6 +667,7 @@ def _collect_own_java_artifacts(
 def _target_to_artifact_entry(
         dep_java_info_files = [],
         jars = [],
+        output_jars = [],
         ide_aars = [],
         gen_srcs = [],
         srcs = [],
@@ -671,6 +676,7 @@ def _target_to_artifact_entry(
     return {
         "dep_java_info_files": dep_java_info_files,
         "jars": jars,
+        "output_jars": output_jars,
         "ide_aars": ide_aars,
         "gen_srcs": gen_srcs,
         "srcs": srcs,
@@ -710,11 +716,13 @@ def _collect_own_and_dependency_java_artifacts(
     # Flattening is fine here as these are files from a single target (maybe some are re-exported from a few of its depende3ncies).
     dep_java_info_files = [info.java_info_file for info in dependency_infos.values() if info.java_info_file]
     jars = own_files.jar_depset.to_list()
+    output_jars = own_files.output_jar_depset.to_list()
     ide_aars = own_files.ide_aar_depset.to_list()
     gen_srcs = own_files.gensrc_depset.to_list()  # Flattening is fine here (these are files from one target)
     target_to_artifacts[str(target.label)] = _target_to_artifact_entry(
         dep_java_info_files = dep_java_info_files,  # No flattening here. This is a list of direct dependencies only.
         jars = jars,
+        output_jars = output_jars,
         ide_aars = ide_aars,
         gen_srcs = gen_srcs,
         srcs = own_files.src_depset.to_list(),
@@ -722,7 +730,7 @@ def _collect_own_and_dependency_java_artifacts(
         android_resources_package = own_files.android_resources_package,
     )
 
-    own_and_transitive_jar_depsets = [own_files.jar_depset]  # Copy to prevent changes to own_files.jar_depset.
+    own_and_transitive_jar_depsets = [own_files.jar_depset, own_files.output_jar_depset]  # Copy to prevent changes to own_files.jar_depset.
     own_and_transitive_ide_aar_depsets = []
     own_and_transitive_gensrc_depsets = []
 
