@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
+import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.annotations.concurrency.UiThread
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.sdklib.AndroidVersionUtil
@@ -30,6 +31,7 @@ import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.putUInt
 import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
 import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.UiCommand
+import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
@@ -187,8 +189,12 @@ class FakeScreenSharingAgent(
 
   @Volatile
   private var deviceState: DeviceState? = supportedDeviceStates.find { it.name == "OPEN" }
-  private val deviceStateIdentifier
+  private val deviceStateIdentifier: Int
     get() = deviceState?.id ?: -1
+
+  private val isXr: Boolean = fakeDeviceState.properties[RO_BUILD_CHARACTERISTICS]?.contains("xr") == true
+  @Volatile var xrPassthroughCoefficient: Float = 0F
+  @Volatile var xrEnvironment: XrEnvironment = XrEnvironment.LIVING_ROOM_DAY
 
   @Volatile
   var maxVideoEncoderResolution = 2048 // Many phones, for example Galaxy Z Fold3, have VP8 encoder limited to 2048x2048 resolution.
@@ -584,6 +590,30 @@ class FakeScreenSharingAgent(
     displayStreamer.renderDisplay()
   }
 
+  private fun setPassthroughCoefficient(message: XrSetPassthroughCoefficientMessage) {
+    agentsScope.launch {
+      if (xrPassthroughCoefficient != message.passthroughCoefficient) {
+        xrPassthroughCoefficient = message.passthroughCoefficient
+        sendXrPassthroughCoefficientChangedNotification()
+        for (displayStreamer in displayStreamers.values) {
+          displayStreamer.renderDisplay()
+        }
+      }
+    }
+  }
+
+  private fun setEnvironment(message: XrSetEnvironmentMessage) {
+    agentsScope.launch {
+      if (xrEnvironment != message.environment) {
+        xrEnvironment = message.environment
+        sendNotificationOrResponse(XrEnvironmentChangedNotification(xrEnvironment))
+        for (displayStreamer in displayStreamers.values) {
+          displayStreamer.renderDisplay()
+        }
+      }
+    }
+  }
+
   private suspend fun produceNewFrame() {
     for (streamer in displayStreamers.values) {
       streamer.renderDisplay()
@@ -648,6 +678,14 @@ class FakeScreenSharingAgent(
 
   private fun sendDisplayConfigurations(message: DisplayConfigurationRequest) {
     sendNotificationOrResponse(DisplayConfigurationResponse(message.requestId, displays.withDeviceOrientation(deviceOrientation)))
+  }
+
+  private fun sendXrPassthroughCoefficientChangedNotification() {
+    sendNotificationOrResponse(XrPassthroughCoefficientChangedNotification(xrPassthroughCoefficient))
+  }
+
+  private fun sendXrEnvironmentChangedNotification() {
+    sendNotificationOrResponse(XrEnvironmentChangedNotification(xrEnvironment))
   }
 
   private fun sendUiSettings(message: UiSettingsRequest) {
@@ -1065,6 +1103,11 @@ class FakeScreenSharingAgent(
           sendDeviceStateNotification()
         }
 
+        if (isXr) {
+          sendXrPassthroughCoefficientChangedNotification()
+          sendXrEnvironmentChangedNotification()
+        }
+
         while (true) {
           if (codedInput.available() == 0) {
             input.waitForData(1)
@@ -1122,9 +1165,9 @@ class FakeScreenSharingAgent(
         is XrTranslationMessage,
         is XrAngularVelocityMessage,
         is XrVelocityMessage,
-        is XrRecenterMessage,
-        is XrSetPassthroughCoefficientMessage,
-        is XrSetEnvironmentMessage -> produceNewFrame()
+        is XrRecenterMessage -> produceNewFrame()
+        is XrSetPassthroughCoefficientMessage -> setPassthroughCoefficient(message)
+        is XrSetEnvironmentMessage -> setEnvironment(message)
         is DisplayConfigurationRequest -> sendDisplayConfigurations(message)
         is UiSettingsRequest -> sendUiSettings(message)
         is UiSettingsChangeRequest<*> -> sendUiSettingsCommand(message)

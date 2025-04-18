@@ -869,6 +869,9 @@ internal data class XrPassthroughCoefficientChangedNotification(val passthroughC
 
     override fun deserialize(stream: Base128InputStream): XrPassthroughCoefficientChangedNotification {
       val passthroughCoefficient = stream.readFloat()
+      if (passthroughCoefficient < 0 || passthroughCoefficient > 1) {
+        throw StreamFormatException("Invalid passthrough coefficient: $passthroughCoefficient")
+      }
       return XrPassthroughCoefficientChangedNotification(passthroughCoefficient)
     }
   }
