@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-#include "tools/adt/idea/aswb/aswb/testdata/projects/cc_genhdr/TestClass.h"
+#include "cc_genhdr/project/TestClass.h"
 
 TestClass::TestClass() { testString = "test"; }
