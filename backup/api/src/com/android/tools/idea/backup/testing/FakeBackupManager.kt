@@ -84,8 +84,6 @@ class FakeBackupManager : BackupManager {
 
   override suspend fun isDeviceSupported(serialNumber: String) = isDeviceSupported
 
-  override fun isAppSupported(applicationId: String) = true
-
   override fun getRestoreRunConfigSection(project: Project): RunConfigSection {
     return object : RunConfigSection {
       override fun getComponent(parentDisposable: Disposable) = JPanel()
@@ -101,6 +99,8 @@ class FakeBackupManager : BackupManager {
       override fun updateBasedOnInstantState(instantAppDeploy: Boolean) {}
     }
   }
+
+  override suspend fun getDebuggableApps(serialNumber: String): List<String> = emptyList()
 
   data class ShowBackupDialogInvocation(
     val serialNumber: String,

@@ -108,10 +108,11 @@ interface BackupManager {
   /** Returns a new [RunConfigSection] object */
   fun getRestoreRunConfigSection(project: Project): RunConfigSection
 
-  // Returns true if the applicationId is supported
-  fun isAppSupported(applicationId: String): Boolean
+  /** Get application ids of debuggable apps installed on the device */
+  suspend fun getDebuggableApps(serialNumber: String): List<String>
 
   companion object {
+
     const val NOTIFICATION_GROUP = "Backup"
 
     @JvmStatic

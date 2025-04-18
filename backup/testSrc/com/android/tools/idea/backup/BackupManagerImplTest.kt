@@ -132,6 +132,7 @@ internal class BackupManagerImplTest {
       backupManagerImpl.showBackupDialog(
         serialNumber,
         "app2",
+        emptyList(),
         RUN_CONFIG,
         notify = true,
         isBackupEnabled = true,

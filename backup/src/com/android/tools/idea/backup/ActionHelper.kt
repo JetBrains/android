@@ -36,7 +36,7 @@ internal interface ActionHelper {
   /**
    * Returns true if a compatible app is installed
    *
-   * A compatible app is an app that is part of the project
+   * A compatible app is a debuggable
    */
   suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean
 }

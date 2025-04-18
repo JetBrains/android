@@ -18,7 +18,6 @@ package com.android.tools.idea.backup
 
 import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -51,14 +50,15 @@ import org.jetbrains.annotations.VisibleForTesting
 internal class BackupDialog(
   private val project: Project,
   initialApplicationId: String,
+  debuggableApps: List<String>,
   private val isBackupEnabled: Boolean,
 ) : DialogWrapper(project) {
-  private val applicationIds = buildList {
-    if (StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get()) {
-      add(initialApplicationId)
-    }
-    addAll(project.getService(ProjectAppsProvider::class.java).getApplicationIds())
-  }
+  private val applicationIds =
+    buildList {
+        addAll(project.getService(ProjectAppsProvider::class.java).getApplicationIds())
+        addAll(debuggableApps)
+      }
+      .distinct()
 
   private val applicationIdComboBox =
     ComboBox(DefaultComboBoxModel(applicationIds.sorted().toTypedArray())).apply {
@@ -115,9 +115,11 @@ internal class BackupDialog(
   init {
     init()
     title = "Backup App Data"
-    if (applicationIds.contains(initialApplicationId)) {
-      applicationIdComboBox.item = initialApplicationId
-    }
+    applicationIdComboBox.item =
+      when {
+        applicationIds.contains(initialApplicationId) -> initialApplicationId
+        else -> applicationIds.firstOrNull()
+      }
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
 
