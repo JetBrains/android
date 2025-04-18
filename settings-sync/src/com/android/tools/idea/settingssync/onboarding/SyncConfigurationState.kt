@@ -41,7 +41,8 @@ import com.intellij.settingsSync.core.config.SettingsSyncEnabler
 import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 
-internal val feature = LoginFeature.feature<SettingsSyncFeature>()
+internal val feature
+  get() = LoginFeature.feature<SettingsSyncFeature>()
 
 internal enum class PushOrPull {
   /** push local settings to remote */

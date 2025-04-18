@@ -75,9 +75,17 @@ class GoogleAuthService : SettingsSyncAuthService {
   }
 
   override suspend fun login(parentComponent: Component?): SettingsSyncUserData? {
+    // TODO: ask JB to offer userId hint.
+    return login(preferredUser = PreferredUser.None, parentComponent = parentComponent)
+  }
+
+  suspend fun login(
+    preferredUser: PreferredUser,
+    parentComponent: Component?,
+  ): SettingsSyncUserData? {
     val loggedInUser =
       feature.logIn(
-        preferredUser = PreferredUser.ActiveUser, // TODO: ask JB to offer userId hint.
+        preferredUser = preferredUser,
         switchUserIfApplicable = false,
         parentComponent = parentComponent as? JComponent,
       )
