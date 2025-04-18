@@ -94,7 +94,8 @@ void XrSimulatedInputManager::SetEnvironment(Jni jni, int32_t environment) {
   xr_simulated_input_manager_.CallVoidMethod(jni, set_environment_method_, environment);
 }
 
-void XrSimulatedInputManager::AddEnvironmentListener(EnvironmentListener* listener) {
+void XrSimulatedInputManager::AddEnvironmentListener(Jni jni, EnvironmentListener* listener) {
+  InitializeStatics(jni);
   environment_listeners_.Add(listener);
   unique_lock lock(environment_mutex_);
   if (passthrough_coefficient_ >= 0) {

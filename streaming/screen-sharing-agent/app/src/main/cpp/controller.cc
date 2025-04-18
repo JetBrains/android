@@ -193,7 +193,7 @@ void Controller::Initialize() {
   current_displays_ = GetDisplays();
 
   if (Agent::device_type() == DeviceType::XR) {
-    XrSimulatedInputManager::AddEnvironmentListener(this);
+    XrSimulatedInputManager::AddEnvironmentListener(jni_, this);
   }
 }
 

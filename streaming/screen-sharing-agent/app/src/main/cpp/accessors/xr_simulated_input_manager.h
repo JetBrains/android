@@ -46,7 +46,7 @@ public:
   static void SetPassthroughCoefficient(Jni jni, float passthrough);
   static void SetEnvironment(Jni jni, int32_t environment);
 
-  static void AddEnvironmentListener(EnvironmentListener* listener);
+  static void AddEnvironmentListener(Jni jni, EnvironmentListener* listener);
   static void RemoveEnvironmentListener(EnvironmentListener* listener);
 
   static void OnPassthroughCoefficientChanged(float passthrough_coefficient);
