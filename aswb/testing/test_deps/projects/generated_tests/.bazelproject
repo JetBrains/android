@@ -1,0 +1,7 @@
+directories:
+  generated_tests/project
+
+test_sources:
+  generated_tests/project
+
+android_sdk_platform: android-34
