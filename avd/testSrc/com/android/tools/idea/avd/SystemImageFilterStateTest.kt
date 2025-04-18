@@ -117,6 +117,35 @@ class SystemImageFilterStateTest {
     assertEquals(listOf(image), state.filter(images))
   }
 
+  @Test
+  fun systemImageFilterStateMinorVersionBaseExtensionLevels() {
+    val api36 = mockSystemImage(AndroidVersion(36, 0, null, 17, true))
+    val api36ext = mockSystemImage(AndroidVersion(36, 0, null, 18, false))
+    val api36_1 = mockSystemImage(AndroidVersion(36, 1, null, 19, true))
+    val api36_1ext = mockSystemImage(AndroidVersion(36, 1, null, 20, false))
+
+    val images = listOf(api36, api36ext, api36_1, api36_1ext)
+
+    val stateWithoutExtensions =
+      SystemImageFilterState(
+        AndroidVersionSelection(null),
+        null,
+        showUnsupportedSystemImages = true,
+      )
+
+    assertEquals(listOf(api36, api36_1), stateWithoutExtensions.filter(images))
+
+    val state =
+      SystemImageFilterState(
+        AndroidVersionSelection(null),
+        null,
+        showSdkExtensionSystemImages = true,
+        showUnsupportedSystemImages = true,
+      )
+
+    assertEquals(images, state.filter(images))
+  }
+
   private companion object {
     private val API = AndroidVersionSelection(AndroidVersion(34).withBaseExtensionLevel())
 
