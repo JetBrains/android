@@ -17,6 +17,8 @@ package com.android.tools.idea.device.explorer.monitor.processes
 
 import com.android.adblib.serialNumber
 import com.android.adblib.tools.debugging.JdwpProcessInfo
+import com.android.adblib.tools.debugging.getOrDefault
+import com.android.adblib.tools.debugging.getOrNull
 import com.android.ddmlib.ClientData
 
 /**
@@ -62,16 +64,16 @@ internal fun JdwpProcessInfo.toProcessInfo() =
     deviceSerialNumber = device.serialNumber,
     pid = properties.pid,
     // JdwpProcess.packageName is only supported for R+, we need to default to processName for < R.
-    packageName = properties.packageName ?: properties.processName,
-    processName = properties.processName,
-    userId = properties.userId,
-    vmIdentifier = properties.vmIdentifier,
-    abi = properties.instructionSetDescription,
+    packageName = properties.packageName.getOrNull() ?: properties.processName.getOrNull(),
+    processName = properties.processName.getOrNull(),
+    userId = properties.userId.getOrNull(),
+    vmIdentifier = properties.vmIdentifier.getOrNull(),
+    abi = properties.instructionSetDescription.getOrNull(),
     debuggerStatus = toDebuggerStatus()
   )
 
 private fun JdwpProcessInfo.toDebuggerStatus(): ClientData.DebuggerStatus =  when  {
-  properties.isWaitingForDebugger -> ClientData.DebuggerStatus.WAITING
+  properties.isWaitingForDebugger.getOrDefault(false) -> ClientData.DebuggerStatus.WAITING
   proxyStatus.isExternalDebuggerAttached -> ClientData.DebuggerStatus.ATTACHED
   properties.exception != null -> ClientData.DebuggerStatus.ERROR
   else -> ClientData.DebuggerStatus.DEFAULT

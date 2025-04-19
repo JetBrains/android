@@ -21,6 +21,7 @@ import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.serialNumber
 import com.android.adblib.tools.debugging.JdwpProcess
 import com.android.adblib.tools.debugging.appProcessTracker
+import com.android.adblib.tools.debugging.getOrNull
 import com.android.adblib.tools.debugging.jdwpProcessTracker
 import com.android.adblib.tools.debugging.properties
 import com.android.adblib.tools.debugging.sendDdmsExit
@@ -79,7 +80,8 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) :
         false -> connectedDevice.jdwpProcessTracker.processesFlow.value
       }
     return processes.find {
-      it.pid == logcatHeader.pid || it.properties.processName == logcatHeader.processName
+      it.pid == logcatHeader.pid ||
+        it.properties.processName.getOrNull() == logcatHeader.processName
     }
   }
 
