@@ -31,7 +31,7 @@ class BitRateManagerTest {
   private val deviceProperties = DeviceProperties.buildForTest {
     manufacturer = "Google"
     model = "Pixel 3a"
-    androidVersion = AndroidVersion(30)
+    androidVersion = AndroidVersion(30, 0)
     abiList = listOf(ARM64_V8A)
     icon = EmptyIcon.ICON_16
   }

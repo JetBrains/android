@@ -153,7 +153,7 @@ class EmulatorAdbReadyServiceTest {
   }
 
   private fun createFakeEmulator(): FakeEmulator {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(34))
+    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(34, 0))
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     return emulator
