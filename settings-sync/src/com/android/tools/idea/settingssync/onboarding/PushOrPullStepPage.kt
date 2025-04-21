@@ -159,9 +159,7 @@ internal fun WizardState.PushOrPullComposableContent() {
                 append("Use the settings from your Google account storage\n\n")
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                   append("Last updated: ${extractDateFromCloudRecord()}\n")
-                  append(
-                    "Android Studio version: ${extractBuildInfoFromCloudRecord()}"
-                  ) // TODO: request JB to include full application name.
+                  append("Android Studio version: ${extractAppInfoFromCloudRecord()}")
                 }
               }
               .toAnnotatedString(),
@@ -212,7 +210,6 @@ private fun WizardState.extractDateFromCloudRecord(): String {
   return formatter.format(instant)
 }
 
-private fun WizardState.extractBuildInfoFromCloudRecord(): String? {
-  val buildInfo = getCachedServerData().settingsSnapshot.metaInfo.appInfo?.buildNumber
-  return buildInfo?.toString()
+private fun WizardState.extractAppInfoFromCloudRecord(): String? {
+  return getCachedServerData().settingsSnapshot.metaInfo.appInfo?.fullApplicationName
 }
