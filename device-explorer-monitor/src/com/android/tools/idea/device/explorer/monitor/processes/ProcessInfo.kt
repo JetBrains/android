@@ -75,7 +75,7 @@ internal fun JdwpProcessInfo.toProcessInfo() =
 private fun JdwpProcessInfo.toDebuggerStatus(): ClientData.DebuggerStatus =  when  {
   properties.isWaitingForDebugger.getOrDefault(false) -> ClientData.DebuggerStatus.WAITING
   proxyStatus.isExternalDebuggerAttached -> ClientData.DebuggerStatus.ATTACHED
-  properties.exception != null -> ClientData.DebuggerStatus.ERROR
+  !properties.processName.hasValue -> ClientData.DebuggerStatus.ERROR
   else -> ClientData.DebuggerStatus.DEFAULT
 }
 
