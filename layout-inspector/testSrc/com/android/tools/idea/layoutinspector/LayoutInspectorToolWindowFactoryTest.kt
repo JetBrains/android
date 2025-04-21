@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -146,7 +145,7 @@ class LayoutInspectorToolWindowFactoryTest {
         device.manufacturer,
         device.model,
         device.version,
-        AndroidApiLevel(device.apiLevel),
+        device.apiLevel,
       )
     }
   }
@@ -340,7 +339,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       device.manufacturer,
       device.model,
       device.version,
-      AndroidApiLevel(device.apiLevel),
+      device.apiLevel,
     )
     ApplicationManager.getApplication()
       .replaceService(AppInspectionDiscoveryService::class.java, mock(), disposableRule.disposable)

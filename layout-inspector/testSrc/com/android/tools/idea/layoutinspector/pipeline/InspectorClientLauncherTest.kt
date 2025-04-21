@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -70,7 +69,7 @@ class InspectorClientLauncherTest {
         device.manufacturer,
         device.model,
         device.version,
-        AndroidApiLevel(device.apiLevel),
+        device.apiLevel,
       )
     }
   }
@@ -622,7 +621,7 @@ class InspectorClientLauncherMetricsTest {
       device.manufacturer,
       device.model,
       device.version,
-      AndroidApiLevel(device.apiLevel),
+      device.apiLevel,
     )
   }
 

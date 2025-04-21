@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -304,8 +305,9 @@ class ForegroundProcessDetectionInitializerTest {
     return Common.Device.newBuilder()
       .setDeviceId(id)
       .setSerial(serial)
-      .setApiLevel(apiLevel)
-      .setFeatureLevel(apiLevel)
+      .setApiLevel(apiLevel.majorVersion)
+      .setApiLevelMinor(apiLevel.minorVersion)
+      .setFeatureLevel(apiLevel.majorVersion)
       .setModel(model)
       .setCpuAbi("arm64-v8a")
       .setState(Common.Device.State.ONLINE)
@@ -317,7 +319,7 @@ class ForegroundProcessDetectionInitializerTest {
     override val model: String = "model",
     override val serial: String = "serial",
     override val isEmulator: Boolean = false,
-    override val apiLevel: Int = 1,
+    override val apiLevel: AndroidApiLevel = AndroidApiLevel(1),
     override val version: String = "version",
     override val codename: String? = "codename",
   ) : DeviceDescriptor

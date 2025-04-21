@@ -38,7 +38,7 @@ class ComposeWarning(
     if (isRunningCurrentProject(client) && isUsingCompose()) {
       val apiLevel = client.process.device.apiLevel
       val message =
-        if (apiLevel < 29) {
+        if (apiLevel.majorVersion < 29) {
           LayoutInspectorBundle.message(COMPOSE_WARNING_V29_KEY)
         } else {
           LayoutInspectorBundle.message(COMPOSE_WARNING_KEY)

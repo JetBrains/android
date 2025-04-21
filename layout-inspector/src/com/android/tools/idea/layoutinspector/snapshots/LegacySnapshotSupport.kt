@@ -150,7 +150,7 @@ fun saveLegacySnapshot(
     metadata =
       SnapshotMetadata(
         snapshotVersion = ProtocolVersion.Version3,
-        apiLevel = process.device.apiLevel,
+        apiLevel = process.device.apiLevel.majorVersion,
         processName = process.name,
         source = Metadata.Source.STUDIO,
         sourceVersion = ApplicationInfo.getInstance().fullVersion,

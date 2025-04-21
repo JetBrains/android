@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.ide.common.gradle.Version
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -479,12 +480,12 @@ class AppInspectionInspectorClient(
 /** Check whether the current target's system image is compatible with app inspection. */
 fun checkSystemImageForAppInspectionCompatibility(
   isEmulator: Boolean,
-  apiLevel: Int,
+  apiLevel: AndroidApiLevel,
   serialNumber: String,
   project: Project,
   sdkHandler: AndroidSdkHandler,
 ): Compatibility {
-  if (!isEmulator || apiLevel != 29) {
+  if (!isEmulator || apiLevel.majorVersion != 29) {
     // We are interested in checking only emulators running API 29.
     return Compatibility.Compatible
   }

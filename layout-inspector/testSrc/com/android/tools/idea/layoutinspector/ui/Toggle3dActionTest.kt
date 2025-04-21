@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -101,7 +102,7 @@ class Toggle3dActionTest {
         override val streamId = 0L
       }
 
-    whenever(mockDevice.apiLevel).thenReturn(29)
+    whenever(mockDevice.apiLevel).thenReturn(AndroidApiLevel(29))
     whenever(client.process).thenReturn(process)
 
     val launcher: InspectorClientLauncher = mock()
@@ -182,7 +183,7 @@ class Toggle3dActionTest {
   fun testOldDevice() {
     val toggle3dAction = Toggle3dAction { renderModel }
     val fakeEvent = createFakeEvent(toggle3dAction)
-    whenever(mockDevice.apiLevel).thenReturn(28)
+    whenever(mockDevice.apiLevel).thenReturn(AndroidApiLevel(28))
     capabilities.clear()
     toggle3dAction.update(fakeEvent)
     assertThat(fakeEvent.presentation.isEnabled).isFalse()

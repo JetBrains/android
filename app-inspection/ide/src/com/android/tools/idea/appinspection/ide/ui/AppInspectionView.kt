@@ -86,7 +86,7 @@ import kotlinx.coroutines.withContext
  * provides debuggable processes, so there is no need to check.
  */
 private fun ProcessDescriptor.isInspectable(): Boolean {
-  return this.device.apiLevel >= AndroidVersion.VersionCodes.O
+  return this.device.apiLevel.majorVersion >= AndroidVersion.VersionCodes.O
 }
 
 class AppInspectionView

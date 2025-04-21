@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.sdklib.AndroidApiLevel
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.AdbServiceRule
@@ -142,7 +141,7 @@ class LegacyDeviceRule(
       device.manufacturer,
       device.model,
       device.version,
-      AndroidApiLevel(device.apiLevel),
+      device.apiLevel,
     )
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)

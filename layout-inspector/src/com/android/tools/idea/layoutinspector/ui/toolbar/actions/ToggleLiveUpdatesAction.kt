@@ -44,7 +44,8 @@ class ToggleLiveUpdatesAction(private val layoutInspector: LayoutInspector) :
     val isLiveInspector =
       !currentClient.isConnected ||
         currentClient.capabilities.contains(InspectorClient.Capability.SUPPORTS_CONTINUOUS_MODE)
-    val isLowerThenApi29 = currentClient.isConnected && currentClient.process.device.apiLevel < 29
+    val isLowerThenApi29 =
+      currentClient.isConnected && currentClient.process.device.apiLevel.majorVersion < 29
 
     event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
     super.update(event)

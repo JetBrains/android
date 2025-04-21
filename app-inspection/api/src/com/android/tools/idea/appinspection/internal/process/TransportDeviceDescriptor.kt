@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.internal.process
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.profiler.proto.Common
 
@@ -23,7 +24,7 @@ private data class TransportDeviceDescriptor(
   override val model: String,
   override val serial: String,
   override val isEmulator: Boolean,
-  override val apiLevel: Int,
+  override val apiLevel: AndroidApiLevel,
   override val version: String,
   override val codename: String?,
 ) : DeviceDescriptor {
@@ -34,7 +35,7 @@ private data class TransportDeviceDescriptor(
     device.model,
     device.serial,
     device.isEmulator,
-    device.apiLevel,
+    AndroidApiLevel(device.apiLevel, device.apiLevelMinor),
     device.version,
     device.codename.takeUnless { it.isNullOrBlank() },
   )

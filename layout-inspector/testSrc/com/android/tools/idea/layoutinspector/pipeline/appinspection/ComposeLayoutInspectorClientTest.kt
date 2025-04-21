@@ -86,7 +86,7 @@ class ComposeLayoutInspectorClientTest {
           override val model = "model"
           override val serial = "emulator-1234"
           override val isEmulator = true
-          override val apiLevel = 30
+          override val apiLevel = AndroidApiLevel(30)
           override val version = "10.0.0"
           override val codename: String? = null
         }
@@ -115,7 +115,7 @@ class ComposeLayoutInspectorClientTest {
       processDescriptor.device.manufacturer,
       processDescriptor.device.model,
       processDescriptor.device.version,
-      AndroidApiLevel(processDescriptor.device.apiLevel),
+      processDescriptor.device.apiLevel,
       "arm64-v8a",
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,

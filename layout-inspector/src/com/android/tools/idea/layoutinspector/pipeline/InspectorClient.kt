@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -259,7 +260,7 @@ object DisconnectedClient : InspectorClient {
           override val model: String = ""
           override val serial: String = ""
           override val isEmulator: Boolean = false
-          override val apiLevel: Int = 0
+          override val apiLevel: AndroidApiLevel = AndroidApiLevel(0)
           override val version: String = ""
           override val codename: String? = null
         }
