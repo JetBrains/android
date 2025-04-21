@@ -22,8 +22,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.google.gct.login2.ui.onboarding.compose.InnerWizardContentPage
@@ -38,6 +42,10 @@ import com.intellij.settingsSync.core.UpdateResult
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
+
+private const val BACKUP_AND_SYNC_LOCATION_URL =
+  "https://d.android.com/r/studio-ui/settings-sync/location"
 
 internal class PushOrPullStepPage : WizardPage() {
   override val description: String =
@@ -120,12 +128,24 @@ internal fun WizardState.PushOrPullComposableContent() {
   InnerWizardContentPage(syncConfigurationPageTitle) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
       Text(
-        "There already is an existing settings on this Google account." +
-          " Please choose which one you would like to use as the basis for sync going forward. \n\n" +
-          "The option you choose will become authoritative settings that will be kept in sync."
-        // TODO: add below once we have DAC link up.
-        // " The other settings will be backed up and can be retrieved via the instructions
-        // available here."
+        buildAnnotatedString {
+          append(
+            "There are already existing settings on this Google account." +
+              " Please choose which one you would like to use as the basis for sync going forward. \n\n" +
+              "The option you choose will become authoritative settings that will be kept in sync." +
+              " The other settings will be backed up and can be retrieved via the instructions available" +
+              " "
+          )
+          withLink(
+            LinkAnnotation.Url(
+              BACKUP_AND_SYNC_LOCATION_URL,
+              TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
+            )
+          ) {
+            append("here")
+          }
+          append(".")
+        }
       )
 
       Spacer(modifier = Modifier.height(12.dp))
