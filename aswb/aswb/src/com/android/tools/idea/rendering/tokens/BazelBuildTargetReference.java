@@ -18,15 +18,22 @@ package com.android.tools.idea.rendering.tokens;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class BazelBuildTargetReference implements BuildTargetReference {
   private final Module module;
+  private final @NotNull VirtualFile file;
 
-  BazelBuildTargetReference(Module module) {
+  BazelBuildTargetReference(@NotNull Module module, @NotNull VirtualFile file) {
     this.module = module;
+    this.file = file;
+  }
+
+  @NotNull VirtualFile getFile() {
+    return file;
   }
 
   @NotNull

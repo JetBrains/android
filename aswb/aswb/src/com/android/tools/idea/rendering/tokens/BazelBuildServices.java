@@ -15,16 +15,23 @@
  */
 package com.android.tools.idea.rendering.tokens;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static kotlinx.coroutines.CompletableDeferredKt.CompletableDeferred;
+
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices;
 import com.google.common.collect.MoreCollectors;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
-import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
-import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
+import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup;
+import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors.WorkingSet;
+import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.module.Module;
 import java.util.Collection;
+import java.util.Set;
+import kotlinx.coroutines.Deferred;
 import org.jetbrains.annotations.NotNull;
 
 final class BazelBuildServices implements BuildServices<BazelBuildTargetReference> {
@@ -45,18 +52,25 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
       .distinct()
       .collect(MoreCollectors.onlyElement());
 
-    // TODO: b/409388569 - Do you need to pass the file that contains the previews to this?
-    var scope = QuerySyncActionStatsScope.create(BazelBuildServices.class, null);
+    var helper = new BuildDependenciesHelper(project);
 
-    QuerySyncManager.getInstance(project)
-      .runBuild("Build & Refresh", null, scope, BazelBuildServices::buildAndRefresh, TaskOrigin.USER_ACTION);
+    var files = targets.stream()
+      .map(BazelBuildTargetReference::getFile)
+      .collect(toImmutableList());
+
+    helper.determineTargetsAndRun(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
+                                  BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(
+                                    popup -> popup.showCenteredInCurrentWindow(project)),
+                                  new WorkingSet(helper),
+                                  QuerySyncActionStatsScope.createForFiles(BazelBuildServices.class, null, files),
+                                  BazelBuildServices::invoke);
   }
 
   /**
-   * Executed by the Blaze executor
+   * Executed by the EDT
    */
-  private static void buildAndRefresh(@NotNull BlazeContext context) {
-    // TODO: b/409388814 - Implement this
-    throw new UnsupportedOperationException();
+  // TODO: b/412450450 - Give this a better name and implement it
+  private static @NotNull Deferred<@NotNull Boolean> invoke(@NotNull Set<@NotNull Label> labels) {
+    return CompletableDeferred(false);
   }
 }
