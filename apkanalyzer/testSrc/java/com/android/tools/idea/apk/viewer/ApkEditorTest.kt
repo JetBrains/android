@@ -134,21 +134,19 @@ class ApkEditorTest {
     val apk2 = TestResources.getFile("/1.apk").toPath()
     Files.copy(apk2, apk, REPLACE_EXISTING)
     val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(apk.toFile()) ?: fail("Can't find file")
-    val launchedTasks = apkEditor.launchedTasks
     @Suppress("UnstableApiUsage")
     ApplicationManager.getApplication().messageBus.syncPublisher(VirtualFileManager.VFS_CHANGES).after(
       listOf(VFileContentChangeEvent(this, virtualFile, 0, 0)))
 
-    waitForCondition { apkEditor.launchedTasks == launchedTasks + 1 }
-    waitForCondition { apkEditor.completedTasks == apkEditor.launchedTasks }
-
-    assertThat(apkEditor.getNodes()).containsExactly(
-      "/",
-      "/AndroidManifest.xml",
-      "/res",
-      "/res/anim",
-      "/res/anim/fade.xml"
-    )
+    waitForCondition {
+      apkEditor.getNodes().sorted() == listOf(
+        "/",
+        "/AndroidManifest.xml",
+        "/res",
+        "/res/anim",
+        "/res/anim/fade.xml"
+      )
+    }
   }
 
   @Test
