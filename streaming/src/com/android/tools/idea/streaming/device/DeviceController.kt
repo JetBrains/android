@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.idea.concurrency.applicationCoroutineScope
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
@@ -40,6 +39,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -220,9 +220,11 @@ internal class DeviceController(
   override fun dispose() {
     executor.shutdown()
     responseCallbacks.cancelAll()
-    applicationCoroutineScope.launch(Dispatchers.IO) { controlChannel.close() }
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { controlChannel.close() }
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
+    }
+    catch (_: InterruptedException) {
     }
     finally {
       deviceClipboardListeners.clear()
