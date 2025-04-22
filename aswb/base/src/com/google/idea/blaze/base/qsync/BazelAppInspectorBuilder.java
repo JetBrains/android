@@ -50,7 +50,7 @@ public class BazelAppInspectorBuilder implements AppInspectorBuilder {
   @Override
   public AppInspectorInfo buildAppInspector(BlazeContext context, Label buildTarget)
       throws BuildException {
-    BuildInvoker invoker = buildSystem.getDefaultInvoker(project);
+    BuildInvoker invoker = buildSystem.getBuildInvoker(project);
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     List<String> additionalBlazeFlags =
         BlazeFlags.blazeFlags(

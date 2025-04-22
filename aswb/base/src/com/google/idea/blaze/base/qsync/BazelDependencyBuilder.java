@@ -200,7 +200,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       prepareInvocationFiles(
           context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles());
 
-      BuildInvoker invoker = buildSystem.getDefaultInvoker(project);
+      BuildInvoker invoker = buildSystem.getBuildInvoker(project);
 
       Optional<BuildDepsStats.Builder> buildDepsStatsBuilder =
           BuildDepsStatsScope.fromContext(context);

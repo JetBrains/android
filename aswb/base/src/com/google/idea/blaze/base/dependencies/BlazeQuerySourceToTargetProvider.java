@@ -230,7 +230,7 @@ public class BlazeQuerySourceToTargetProvider implements SourceToTargetProvider 
       throws BuildException {
     return Blaze.getBuildSystemProvider(project)
         .getBuildSystem()
-        .getDefaultInvoker(project)
+        .getBuildInvoker(project)
         .invokeQuery(blazeCommand, context);
   }
 
@@ -245,7 +245,7 @@ public class BlazeQuerySourceToTargetProvider implements SourceToTargetProvider 
             ? null
             : BlazeQueryOutputBaseProvider.getInstance(project).getOutputBaseFlag();
     BuildInvoker buildInvoker =
-        Blaze.getBuildSystemProvider(project).getBuildSystem().getDefaultInvoker(project);
+        Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project);
     return BlazeCommand.builder(buildInvoker, BlazeCommandName.QUERY)
         .addBlazeFlags(additionalBlazeFlags)
         .addBlazeFlags("--keep_going")
