@@ -49,7 +49,7 @@ data class PreviewDisplaySettings(
   val showBackground: Boolean,
   val backgroundColor: String?,
   val displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
-  val organizationGroup: String? = null,
+  val organizationGroup: String,
   val organizationName: String? = null,
 )
 

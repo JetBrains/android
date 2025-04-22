@@ -208,7 +208,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         // groupId - fully qualified name of composable
         // displayName - name of composable for example "MyComposableName - Font sizes" or
         // "MyComposableName"
-        previewElement.displaySettings.organizationGroup?.let { groupId ->
+        previewElement.displaySettings.organizationGroup.let { groupId ->
           newModel.organizationGroup =
             groups.getOrCreate(groupId) {
               val displayName =
