@@ -28,6 +28,7 @@ import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.ChangeType;
 import com.android.tools.deployer.DeployMetric;
 import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.DeployerApplicationTerminator;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
@@ -88,15 +89,18 @@ public abstract class AbstractDeployTask {
   @NotNull private final Project myProject;
   @NotNull private final Collection<ApkInfo> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
+  protected DeployerApplicationTerminator myApplicationTerminator;
 
   public AbstractDeployTask(@NotNull Project project,
                             @NotNull Collection<ApkInfo> packages,
+                            DeployerApplicationTerminator applicationTerminator,
                             boolean rerunOnSwapFailure,
                             boolean alwaysInstallWithPm,
                             boolean allowAssumeVerified,
                             boolean hasMakeBeforeRun) {
     myProject = project;
     myPackages = packages;
+    myApplicationTerminator = applicationTerminator;
     myRerunOnSwapFailure = rerunOnSwapFailure;
     myAlwaysInstallWithPm = alwaysInstallWithPm;
     myAllowAssumeVerified = allowAssumeVerified;
@@ -154,10 +158,11 @@ public abstract class AbstractDeployTask {
       .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
       .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
       .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get())
-      .setMaxDeltaInstallPatchSize(StudioFlags.DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE.get()).build();
+      .setMaxDeltaInstallPatchSize(StudioFlags.DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE.get())
+      .build();
     Deployer deployer =
-      new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(), installer, null, uiService,
-                   metrics, logger, option); // TODO android-merge fix null terminator argument (this null is added to satisfy compiler)
+      new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(), installer,
+                   myApplicationTerminator, uiService, metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();
     List<Deployer.Result> results = new ArrayList<>();
     for (ApkInfo apkInfo : myPackages) {

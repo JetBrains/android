@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
+import com.android.tools.deployer.DeployerApplicationTerminator
 import com.android.tools.deployer.model.Apk
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.execution.common.ApplicationDeployer
@@ -72,6 +73,7 @@ class TestApplicationInstaller : ApplicationDeployer {
     deployOptions: DeployOptions,
     hasMakeBeforeRun: Boolean,
     indicator: ProgressIndicator,
+    terminator: DeployerApplicationTerminator?,
   ): Deployer.Result {
     val appId = app.applicationId
     return Deployer.Result(false, false, false, appIdToApp[appId]!!)

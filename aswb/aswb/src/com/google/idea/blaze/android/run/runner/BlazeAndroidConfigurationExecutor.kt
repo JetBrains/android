@@ -179,7 +179,7 @@ class BlazeAndroidConfigurationExecutor(
 
             LaunchUtils.initiateDismissKeyguard(device)
             LOG.info("Launching on device ${device.name}")
-            val launchContext = BlazeLaunchContext(env, device, console, processHandler, indicator)
+            val launchContext = BlazeLaunchContext(env, device, console, processHandler, indicator, applicationContext)
             getTasks(device, isDebug).forEach { it.run(launchContext) }
             LiveEditHelper()
               .invokeLiveEdit(
@@ -272,4 +272,5 @@ class BlazeLaunchContext(
   val consoleView: ConsoleView,
   val processHandler: ProcessHandler,
   val progressIndicator: ProgressIndicator,
+  val applicationContext: ApplicationProjectContext,
 )

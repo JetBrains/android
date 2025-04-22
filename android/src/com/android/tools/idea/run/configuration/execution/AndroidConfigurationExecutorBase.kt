@@ -31,6 +31,7 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.ProcessHandlerApplicationTerminator
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -74,6 +75,7 @@ abstract class AndroidConfigurationExecutorBase(
     RunStats.from(environment).setPackage(applicationId)
     val console = createConsole()
     val processHandler = AndroidProcessHandler(applicationId, getStopCallback(console, applicationId, false))
+    val terminator = ProcessHandlerApplicationTerminator(indicator, devices, applicationId)
 
     val onDevice = { device: IDevice ->
       LOG.info("Launching on device ${device.name}")
@@ -82,7 +84,7 @@ abstract class AndroidConfigurationExecutorBase(
         val app = apkProvider.getApks(device).single() // ApkProvider provides multiple ApkInfo only for instrumented tests.
         val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-        val result = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
+        val result = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator, terminator)
         launch(device, result.app, console, false, indicator)
       } catch (e: DeployerException) {
         throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
@@ -115,9 +117,11 @@ abstract class AndroidConfigurationExecutorBase(
     val app = apkProvider.getApks(device).single()
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
+    val terminator = ProcessHandlerApplicationTerminator(indicator, devices, applicationId)
     try {
       indicator.text = "Installing app..."
-      val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator)
+      val deployResult =
+        applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, containsMakeBeforeRun, indicator, terminator)
       val runContentDescriptorDeferred =
         async(Dispatchers.Default) { startDebugSession(device, applicationContext, console, indicator).runContentDescriptor }
       indicator.text = "Launching..."

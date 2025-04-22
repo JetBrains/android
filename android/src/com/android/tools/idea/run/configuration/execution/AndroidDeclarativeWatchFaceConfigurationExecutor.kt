@@ -100,8 +100,14 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
           // ApkProvider provides multiple ApkInfo only for instrumented tests.
           val app = apkProvider.getApks(device).single()
           val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
-
-          applicationDeployer.fullDeploy(device, app, deployOptions, containsMakeBeforeRun, indicator)
+          applicationDeployer.fullDeploy(
+            device,
+            app,
+            deployOptions,
+            containsMakeBeforeRun,
+            indicator,
+            null, /* Watch Face should not be terminated */
+          )
         } catch (e: DeployerException) {
           throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
         }

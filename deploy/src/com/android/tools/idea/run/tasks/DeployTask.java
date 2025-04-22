@@ -21,6 +21,7 @@ import static com.android.tools.idea.run.ApkInfo.AppInstallOption.GRANT_ALL_PERM
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.DeployerApplicationTerminator;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
 import com.android.tools.deployer.model.App;
@@ -52,12 +53,13 @@ public class DeployTask extends AbstractDeployTask {
    */
   public DeployTask(@NotNull Project project,
                     @NotNull Collection<ApkInfo> packages,
+                    DeployerApplicationTerminator applicationTerminator,
                     String userInstallOptions,
                     boolean installOnAllUsers,
                     boolean alwaysInstallWithPm,
                     boolean allowAssumeVerified,
                     boolean hasMakeBeforeRun) {
-    super(project, packages, false, alwaysInstallWithPm, allowAssumeVerified, hasMakeBeforeRun);
+    super(project, packages, applicationTerminator, false,  alwaysInstallWithPm, allowAssumeVerified, hasMakeBeforeRun);
     if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
       userInstallOptions = userInstallOptions.trim();
       this.userInstallOptions = userInstallOptions.split("\\s");

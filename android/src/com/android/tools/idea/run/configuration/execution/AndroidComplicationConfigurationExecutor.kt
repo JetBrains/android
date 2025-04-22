@@ -143,7 +143,7 @@ class AndroidComplicationConfigurationExecutor(
     indicator.text = "Installing test WatchFace"
     val containsMakeBeforeRun = configuration.beforeRunTasks.any { it.isEnabled }
 
-    return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, containsMakeBeforeRun, indicator).app
+    return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, containsMakeBeforeRun, indicator, null).app
   }
 
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {

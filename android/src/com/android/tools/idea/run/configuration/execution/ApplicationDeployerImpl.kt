@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
+import com.android.tools.deployer.DeployerApplicationTerminator
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
@@ -46,6 +47,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
     deployOptions: DeployOptions,
     hasMakeBeforeRun: Boolean,
     indicator: ProgressIndicator,
+    terminator: DeployerApplicationTerminator?,
   ): Deployer.Result {
     LOG.info("Full deploy on $device")
     project.messageBus.syncPublisher(ApplicationDeployListener.TOPIC).beforeDeploy(device, app)
@@ -55,13 +57,13 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       DeployTask(
         project,
         listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
+        terminator,
         deployOptions.pmInstallFlags,
         deployOptions.installOnAllUsers,
         deployOptions.alwaysInstallWithPm,
         deployOptions.allowAssumeVerified,
         hasMakeBeforeRun,
       )
-
     return runDeployTask(app, deployTask, device, indicator)
   }
 

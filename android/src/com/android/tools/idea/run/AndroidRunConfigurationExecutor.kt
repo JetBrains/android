@@ -97,7 +97,14 @@ class AndroidRunConfigurationExecutor(
     val applicationId = applicationContext.applicationId
     val devices = getDevices(env, deviceFutures, indicator)
 
-    settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
+    devices.forEach { device ->
+      if (StudioFlags.INSTALL_USE_PM_TERMINATE.get() && device.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)) {
+        // If we are on an API33+ world, we just detach from here and let either PM handle it or IWI handle it on its own.
+        settings.getProcessHandlersForDevices(project, listOf(device)).forEach { it.detachProcess() }
+      } else {
+        settings.getProcessHandlersForDevices(project, listOf(device)).forEach { it.destroyProcess() }
+      }
+    }
 
     waitPreviousProcessTermination(devices, applicationId, indicator)
 
@@ -122,6 +129,8 @@ class AndroidRunConfigurationExecutor(
       deployAsInstantApp(devices, console)
     } else {
       indicator.text = "Launching on devices"
+      val terminator = ProcessHandlerApplicationTerminator(indicator, devices, applicationId)
+
       devices
         .map { device ->
           async {
@@ -136,9 +145,12 @@ class AndroidRunConfigurationExecutor(
               val deployResults =
                 deployAndHandleError(
                   env,
-                  { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
+                  {
+                    apks.map {
+                      applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator, terminator)
+                    }
+                  },
                 )
-
               val mainApp =
                 deployResults.find { it.app.appId == applicationId }
                   ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
@@ -251,6 +263,7 @@ class AndroidRunConfigurationExecutor(
     } else {
       indicator.text = "Launching on devices"
       LOG.info("Launching on device ${device.name}")
+      val terminator = ProcessHandlerApplicationTerminator(indicator, devices, applicationId)
 
       // Deploy
       if (configuration.DEPLOY) {
@@ -267,9 +280,12 @@ class AndroidRunConfigurationExecutor(
         val deployResults =
           deployAndHandleError(
             env,
-            { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator) } },
+            {
+              apks.map {
+                applicationDeployer.fullDeploy(device, it, configuration.deployOptions, containsMakeBeforeRun, indicator, terminator)
+              }
+            },
           )
-
         notifyLiveEditService(device, apks, applicationContext)
 
         val mainApp =

@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.ClassRedefiner;
 import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.DeployerApplicationTerminator;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.run.ApkInfo;
@@ -49,7 +50,7 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
                               boolean alwaysInstallWithPm,
                               boolean allowAssumeVerified,
                               boolean hasMakeBeforeRun) {
-    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified, hasMakeBeforeRun);
+    super(project, packages, null, rerunOnSwapFailure, alwaysInstallWithPm, allowAssumeVerified, hasMakeBeforeRun);
   }
 
   @NotNull
