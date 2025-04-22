@@ -41,12 +41,14 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,6 +60,8 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.projectStructure.module
+import org.jetbrains.uast.UFile
+import org.jetbrains.uast.toUElement
 
 /**
  * This represents the build status of the project artifacts used to render previews without taking
@@ -362,12 +366,18 @@ private class RenderingBuildStatusManagerImpl(
 
   private suspend fun editorHasExistingClassFile(): Boolean {
     val editorFile: PsiFile = runReadAction { editorFilePtr.element } ?: return false
-    val psiClassOwner = editorFile as? PsiClassOwner ?: return false
-    val classFileFinder = classFinderFactory(buildTargetReference)
 
-    return readAction { psiClassOwner.classes.mapNotNull { it.qualifiedName } }
-      .any() {
-        classFileFinder(it)
+    val fqNames = readAction {
+      val uFile = editorFile.toUElement(UFile::class.java)
+      val classes = when {
+        uFile != null -> uFile.classes.map { c -> c.javaPsi }
+        editorFile is PsiClassOwner -> editorFile.classes.asList()
+        else -> listOfNotNull(PsiTreeUtil.findChildOfType(editorFile, PsiClass::class.java))
       }
+      classes.mapNotNull { it.qualifiedName }
+    }
+
+    val classFileFinder = classFinderFactory(buildTargetReference)
+    return fqNames.any { classFileFinder(it) }
   }
 }
