@@ -198,7 +198,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk android:maxSdkVersion='21' />\n" +
+        "<uses-sdk android:maxSdkVersion='21'/>\n" +
         "</manifest>\n"
       );
 
@@ -302,7 +302,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk  android:targetSdkVersion='27'/>\n" +
+        "<uses-sdk android:targetSdkVersion='27'/>\n" +
         "</manifest>\n"
       );
 
@@ -311,7 +311,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk  android:targetSdkVersion='26'/>\n" +
+        "<uses-sdk android:targetSdkVersion='26'/>\n" +
         "</manifest>\n"
       );
 
