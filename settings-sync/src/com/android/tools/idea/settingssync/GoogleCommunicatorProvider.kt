@@ -31,6 +31,9 @@ import java.util.concurrent.atomic.AtomicReference
 internal const val PROVIDER_CODE_GOOGLE = "google"
 internal const val PROVIDER_NAME_GOOGLE = "Google"
 
+private const val BACKUP_AND_SYNC_HELP_URL = "https://d.android.com/r/studio-ui/settings-sync/help"
+private val helpLinkPair: Pair<String, String> = Pair("Learn more", BACKUP_AND_SYNC_HELP_URL)
+
 class GoogleCommunicatorProvider : SettingsSyncCommunicatorProvider {
   override val authService: SettingsSyncAuthService = GoogleAuthService()
 
@@ -43,6 +46,10 @@ class GoogleCommunicatorProvider : SettingsSyncCommunicatorProvider {
   override fun isAvailable(): Boolean {
     return StudioFlags.SETTINGS_SYNC_ENABLED.get()
   }
+
+  override val learnMoreLinkPair: Pair<String, String> = helpLinkPair
+
+  override val learnMoreLinkPair2: Pair<String, String> = helpLinkPair
 }
 
 private class UnauthorizedException(message: String) : RuntimeException(message)
