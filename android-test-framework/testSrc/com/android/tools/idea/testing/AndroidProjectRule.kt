@@ -37,6 +37,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -473,6 +474,15 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     // Disable antivirus checks on Windows.
     StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, flagsDisposable)
     StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.overrideForTest(false, flagsDisposable)
+
+    try {
+      ProjectDataService.EP_NAME.point.extensionList.firstOrNull {
+        it.javaClass.name == "com.intellij.javaee.web.gradle.WebDetectionExclusionModuleDataService"
+      }?.let { ep ->
+        ProjectDataService.EP_NAME.point.unregisterExtension(ep.javaClass)
+      }
+    } catch (_: Throwable) {
+    }
   }
 
   override fun after(description: Description) {
