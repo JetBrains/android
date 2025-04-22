@@ -16,13 +16,16 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.annotations.SystemDependent
+import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -65,8 +68,16 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
 
   @Before
   fun init() {
+    DeclarativeIdeSupport.override(false)
+    DeclarativeStudioSupport.override(false)
     whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
     whenever(mockProjectTemplateData.agpVersion).thenReturn(AgpVersion.parse("8.0.0"))
+  }
+
+  @After
+  fun cleanup() {
+    DeclarativeIdeSupport.clearOverride()
+    DeclarativeStudioSupport.clearOverride()
   }
 
   private fun deleteVersionCatalogFile() {

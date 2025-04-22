@@ -37,7 +37,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.Pa
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
 import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
@@ -46,7 +46,7 @@ import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleDeclarativeBuildModel;
@@ -330,7 +330,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected void createCatalogFile(String name) throws IOException {
     VirtualFile gradlePath = myProjectBasePath.findChild("gradle");
     runWriteAction(() ->
-      gradlePath.createChildData(this, name)
+                     gradlePath.createChildData(this, name)
     );
   }
 
