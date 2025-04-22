@@ -17,30 +17,33 @@ package com.android.tools.idea.run.configuration
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
-import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
 class AndroidDeclarativeWatchFaceConfigurationTypeTest {
   private val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION, true)
-  private val appRule = ApplicationRule()
+  private val appRule = AndroidProjectRule.inMemory()
+  private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(flagRule, appRule)
+  @get:Rule val rule = RuleChain(flagRule, appRule, disposableRule)
 
   @Test
   fun `the declarative watch face run configuration is available when the flag is enabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(true)
     assertThat(ConfigurationType.CONFIGURATION_TYPE_EP.extensionList.map { it.id })
       .contains(AndroidDeclarativeWatchFaceConfigurationType.ID)
   }
 
   @Test(expected = ExtensionNotApplicableException::class)
   fun `AndroidDeclarativeWatchFaceConfigurationType throws an ExtensionNotApplicableException when the flag is disabled`() {
-    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.override(false)
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.overrideForTest(false, disposableRule.disposable)
+
     AndroidDeclarativeWatchFaceConfigurationType()
   }
 }
