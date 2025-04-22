@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering.tokens;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static kotlinx.coroutines.CompletableDeferredKt.CompletableDeferred;
 
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus;
 import com.android.tools.idea.rendering.BuildTargetReference;
@@ -24,14 +23,17 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Bu
 import com.google.common.collect.MoreCollectors;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
+import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup;
 import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors.WorkingSet;
-import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import java.util.Collection;
-import java.util.Set;
 import kotlinx.coroutines.Deferred;
+import kotlinx.coroutines.guava.ListenableFutureKt;
 import org.jetbrains.annotations.NotNull;
 
 final class BazelBuildServices implements BuildServices<BazelBuildTargetReference> {
@@ -58,19 +60,32 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
       .map(BazelBuildTargetReference::getFile)
       .collect(toImmutableList());
 
+    var scope = QuerySyncActionStatsScope.createForFiles(BazelBuildServices.class, null, files);
+
     helper.determineTargetsAndRun(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
                                   BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(
                                     popup -> popup.showCenteredInCurrentWindow(project)),
                                   new WorkingSet(helper),
-                                  QuerySyncActionStatsScope.createForFiles(BazelBuildServices.class, null, files),
-                                  BazelBuildServices::invoke);
+                                  scope,
+                                  labels -> buildAndRefresh(project, scope));
   }
 
   /**
    * Executed by the EDT
    */
-  // TODO: b/412450450 - Give this a better name and implement it
-  private static @NotNull Deferred<@NotNull Boolean> invoke(@NotNull Set<@NotNull Label> labels) {
-    return CompletableDeferred(false);
+  // TODO: b/412450450 - Consume the labels
+  private static @NotNull Deferred<@NotNull Boolean> buildAndRefresh(@NotNull Project project, @NotNull QuerySyncActionStatsScope scope) {
+    var manager = QuerySyncManager.getInstance(project);
+    var future = manager.runBuild("Build & Refresh", null, scope, BazelBuildServices::buildAndRefresh, TaskOrigin.USER_ACTION);
+
+    return ListenableFutureKt.asDeferred(future);
+  }
+
+  /**
+   * Executed by the Blaze executor
+   */
+  private static void buildAndRefresh(@NotNull BlazeContext context) {
+    // TODO: b/409388814 - Implement this
+    throw new UnsupportedOperationException();
   }
 }
