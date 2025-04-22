@@ -29,7 +29,10 @@ import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
@@ -102,7 +105,7 @@ class GradleUtilAndroidGradleTest {
   }
 
   @Test
-  fun testUserGradlePropertiesFileDetectionForGradleHomeChangedInSettings() {
+  fun testUserGradlePropertiesFileDetectionForGradleHomeChangedInSettings() = underProgressIndicator {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       val gradleHome = Paths.get(projectRule.getBaseTestPath(), "gradleHome").toString()
@@ -124,7 +127,7 @@ class GradleUtilAndroidGradleTest {
     assertEquals(FileUtil.toSystemIndependentName(fullPath.toString()), modulePath)
   }
 
-  private fun verifyJdkPathFromProject(javaPath: String) {
+  private fun verifyJdkPathFromProject(javaPath: String) = underProgressIndicator {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       // Change value returned by IdeSdks.getJdkPath to Java 8
@@ -141,5 +144,12 @@ class GradleUtilAndroidGradleTest {
       assertThat(settingsPath).isNotEmpty()
       assertTrue(FileUtils.isSameFile(File(settingsPath), File(managerPath)))
     }
+  }
+
+  private fun underProgressIndicator(action: () -> Unit) {
+    ProgressManager.getInstance().runProcess(
+      Computable { action() },
+      EmptyProgressIndicator()
+    )
   }
 }
