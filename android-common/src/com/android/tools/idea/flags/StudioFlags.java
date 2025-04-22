@@ -2160,14 +2160,14 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
     new BooleanFlag(STUDIOBOT, "current.file.context",
-                    "Use the current file as context",
-                    "Attach the current file's path, contents, and selection with chat queries.",
-                    enabledUpTo(CANARY));
+                    "Enable the Current File macro in the context drawer",
+                    "This macro attaches the current file's path, contents, and selection with chat queries.",
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_RECENT_FILES_CONTEXT =
     new BooleanFlag(STUDIOBOT, "open.files.context",
-                    "Use the most recently opened files as context",
-                    "Attach the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.",
+                    "Enable the Recent Files macro in the context drawer",
+                    "This macro attaches the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.",
                     enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
