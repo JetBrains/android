@@ -20,6 +20,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.flags.junit.FlagRule
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.settingssync.FakeCommunicatorProvider
@@ -36,6 +37,7 @@ import com.google.gct.wizard.WizardState
 import com.intellij.openapi.components.SettingsCategory
 import com.intellij.settingsSync.core.ServerState
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
+import com.intellij.settingsSync.core.SettingsSyncPushResult
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings.State
 import com.intellij.settingsSync.core.UpdateResult
@@ -45,6 +47,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -102,6 +105,7 @@ class WizardFlowTest {
   private fun initCommunicatorFromClean() {
     SettingsSyncLocalSettings.getInstance().providerCode = communicatorProvider.providerCode
     SettingsSyncLocalSettings.getInstance().userId = USER_EMAIL
+    SettingsSyncLocalSettings.getInstance().knownAndAppliedServerId = null
 
     val status: ServerState = communicator.checkServerState()
     assertThat(status).isEqualTo(ServerState.FileNotExists)
@@ -156,11 +160,14 @@ class WizardFlowTest {
       .isEqualTo(communicatorProvider.providerCode)
     assertThat(SettingsSyncLocalSettings.getInstance().userId).isEqualTo(USER_EMAIL)
     assertThat(SettingsSyncLocalSettings.getInstance().isCrossIdeSyncEnabled).isFalse()
+
+    waitForCondition(1.seconds) {
+      SettingsSyncLocalSettings.getInstance().knownAndAppliedServerId != null
+    }
+
     // 2. check push result
-    assertThat(communicator.checkServerState())
-      .isEqualTo(ServerState.UpdateNeeded) // TODO: this doesn't seem right, confirming with JB.
-    assertThat(pushResult.result.toString())
-      .isEqualTo("SUCCESS") // TODO: check version id when available.
+    assertThat(communicator.checkServerState()).isEqualTo(ServerState.UpToDate)
+    assertThat(pushResult.result).isInstanceOf(SettingsSyncPushResult.Success::class.java)
   }
 
   // This covers the onboarding flow: step3 only
@@ -204,11 +211,13 @@ class WizardFlowTest {
       .isEqualTo(communicatorProvider.providerCode)
     assertThat(SettingsSyncLocalSettings.getInstance().userId).isEqualTo(USER_EMAIL)
     assertThat(SettingsSyncLocalSettings.getInstance().isCrossIdeSyncEnabled).isFalse()
+
+    waitForCondition(1.seconds) {
+      SettingsSyncLocalSettings.getInstance().knownAndAppliedServerId != null
+    }
     // 2. check push result
-    assertThat(communicator.checkServerState())
-      .isEqualTo(ServerState.UpdateNeeded) // TODO: this doesn't seem right, confirming with JB.
-    assertThat(pushResult.result.toString())
-      .isEqualTo("SUCCESS") // TODO: check version id when available.
+    assertThat(communicator.checkServerState()).isEqualTo(ServerState.UpToDate)
+    assertThat(pushResult.result).isInstanceOf(SettingsSyncPushResult.Success::class.java)
   }
 
   // This covers the onboarding flow: step1 only
