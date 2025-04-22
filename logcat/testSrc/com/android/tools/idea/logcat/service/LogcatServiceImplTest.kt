@@ -33,6 +33,7 @@ import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestResources
+import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.flags.StudioFlags.LOGCAT_PROTOBUF_ENABLED
@@ -78,6 +79,7 @@ private val LAST_MESSAGE =
 /** Tests for [LogcatServiceImpl] */
 class LogcatServiceImplTest {
   private val projectRule = ProjectRule()
+  private val preInitRule = PreInitAndroidDebugBridgeRule()
   private val fakeAdb = FakeAdbRule()
   private val closeables = CloseablesRule()
   private val disposableRule = DisposableRule()
@@ -86,6 +88,7 @@ class LogcatServiceImplTest {
   val rule =
     RuleChain(
       projectRule,
+      preInitRule,
       WaitForIndexRule(projectRule),
       fakeAdb,
       closeables,
