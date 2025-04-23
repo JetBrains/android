@@ -99,7 +99,7 @@ class JdkIntegrationTest(
 
   data class TestEnvironment(
     val userHomeGradlePropertiesJdkPath: String? = null,
-    val environmentVariables: Map<String, String?> = mapOf(),
+    val environmentVariables: Map<String, String> = mapOf(),
     val jdkTable: List<JdkTableUtils.Jdk> = emptyList(),
     val studioFlags: StudioFeatureFlags = StudioFeatureFlags()
   )

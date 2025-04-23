@@ -138,7 +138,7 @@ class GradleSyncInvalidJdkConfigurationIntegrationTest {
         ideaGradleJdk = USE_JAVA_HOME,
       ),
       environment = TestEnvironment(
-        environmentVariables = mapOf(JAVA_HOME to null)
+        environmentVariables = mapOf()
       )
     ) {
       sync(
@@ -178,7 +178,7 @@ class GradleSyncInvalidJdkConfigurationIntegrationTest {
         ideaGradleJdk = JDK_LOCATION_ENV_VARIABLE_NAME
       ),
       environment = TestEnvironment(
-        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to null)
+        environmentVariables = mapOf()
       )
     ) {
       sync(
