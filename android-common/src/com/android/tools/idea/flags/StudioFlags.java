@@ -2477,5 +2477,16 @@ public final class StudioFlags {
       false);
   // endregion Settings sync
 
+  // region PROJECT_TOOL_WINDOW
+  private static final FlagGroup PROJECT_TOOL_WINDOW = new FlagGroup(FLAGS, "project.tool.window", "Project Toolwindow");
+  public static final Flag<Boolean> SHOW_DEFAULT_PROJECT_VIEW_SETTINGS =
+    new BooleanFlag(
+      PROJECT_TOOL_WINDOW,
+      "default.project.view",
+      "Show UI for default project view in settings",
+      "Show UI for default project view in settings",
+      enabledUpTo(CANARY));
+  // endregion PROJECT_TOOL_WINDOW
+
   private StudioFlags() { }
 }
