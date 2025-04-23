@@ -1,25 +1,7 @@
-load(
-    "//tools/adt/idea/aswb/aswb/testdata/projects:test_projects.bzl",
-    "test_project_package",
-)
+load("@rules_java//java:defs.bzl", "java_library")
 
 package(
-    default_visibility = ["//src:__subpackages__"],
-)
-
-test_project_package(
-    name = "test_data",
-    all_targets = [
-        ":test1",
-        ":test2",
-        ":build_config_deb",
-        ":build_config_rel",
-    ],
-    visibility = [
-        "//tools/adt/idea/aswb/aswb/testdata/projects:__pkg__",
-        "//tools/adt/idea/aswb/aswb/testdata/projects/gensrc_conflict:__pkg__",
-        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
-    ],
+    default_visibility = ["//visibility:public"],
 )
 
 java_library(
