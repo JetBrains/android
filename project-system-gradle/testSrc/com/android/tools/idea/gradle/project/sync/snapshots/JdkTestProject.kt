@@ -103,6 +103,9 @@ sealed class JdkTestProject(
           gradleRoot.gradleLocalJavaHome?.let {
             ProjectJdkUtils.setProjectGradleLocalJavaHome(gradleRootFile, it)
           }
+          gradleRoot.gradleDaemonToolchain?.let {
+            ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(gradleRootFile, it)
+          }
         },
         configProjectRoot = {
           ProjectJdkUtils.setProjectIdeaGradleJdk(projectRoot, roots)

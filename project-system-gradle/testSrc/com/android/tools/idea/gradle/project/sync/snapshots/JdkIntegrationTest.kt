@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioProjectActivity
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.assertions.AssertInMemoryConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnDiskConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnFailure
@@ -98,11 +99,16 @@ class JdkIntegrationTest(
       JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
       EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)
     }
+    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
+      CapturePlatformModelsProjectResolverExtension.TestGradleModels(),
+      disposable
+    )
   }
 
   private fun cleanTestEnvironment() {
     StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.clearOverride()
     JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+    CapturePlatformModelsProjectResolverExtension.reset()
   }
 
   data class TestEnvironment(

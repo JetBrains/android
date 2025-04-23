@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.Simpl
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.JdkConstants.JDK_17
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
@@ -79,7 +80,8 @@ class SingleGradleRootSyncUseDaemonJvmCriteriaIntegrationTest {
       )
     ) {
       syncWithAssertion(
-        expectedProjectJdkName = JDK_17
+        expectedProjectJdkName = JDK_17,
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 }
