@@ -1,12 +1,7 @@
-load(
-    "//tools/adt/idea/aswb/aswb/testdata/projects:test_projects.bzl",
-    "external_sources_package",
-)
+load("@rules_java//java:defs.bzl", "java_library", "java_plugin")
 
 package(
-    default_visibility = [
-        "//tools/adt/idea/aswb/aswb/testdata/projects/gencode_twowaydeps:__subpackages__",
-    ],
+    default_visibility = ["//visibility:public"],
 )
 
 java_library(
@@ -26,12 +21,5 @@ java_plugin(
     srcs = ["java/com/example/external/processor/Processor.java"],
     generates_api = 1,
     processor_class = "com.example.external.processor.Processor",
-    deps = ["@maven//:com.google.guava.guava"],
-)
-
-external_sources_package(
-    name = "sources",
-    visibility = [
-        "//tools/adt/idea/aswb/aswb/testdata/projects/gencode_twowaydeps:__subpackages__",
-    ],
+    deps = ["@maven//:com_google_guava_guava"],
 )
