@@ -18,8 +18,10 @@ package com.android.tools.idea.gradle.project.library;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.ExistingLibraryEditor;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryRootsComponent;
@@ -38,7 +40,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.ui.JBUI.Borders.customLine;
@@ -122,6 +123,20 @@ public class LibraryPropertiesDialog extends DialogWrapper {
     if (myEditor != null) {
       executeProjectChanges(myProject, myEditor::commit);
     }
+  }
+
+  private static void executeProjectChanges(@NotNull Project project, @NotNull Runnable changes) {
+    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
+      if (!project.isDisposed()) {
+        changes.run();
+      }
+      return;
+    }
+    ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      if (!project.isDisposed()) {
+        ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
+      }
+    }));
   }
 
   @VisibleForTesting

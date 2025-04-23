@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -29,20 +27,6 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
  */
 public final class GradleProjects {
   private GradleProjects() {
-  }
-
-  public static void executeProjectChanges(@NotNull Project project, @NotNull Runnable changes) {
-    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
-      if (!project.isDisposed()) {
-        changes.run();
-      }
-      return;
-    }
-    ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(() -> {
-      if (!project.isDisposed()) {
-        ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
-      }
-    }));
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
