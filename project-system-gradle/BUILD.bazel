@@ -318,6 +318,7 @@ jvm_library(
     "//android/gradle-dsl-flags",
     "@lib//:mockito-kotlin",
     "//android/gradle-declarative-lang-sync",
+    "//android/testartifacts",
   ],
   runtime_deps = [
     ":projectSystem-gradle-tests_test_resources",

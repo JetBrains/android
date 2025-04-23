@@ -29,6 +29,7 @@ jvm_library(
     "//xml/xml-psi-api:psi",
     "//xml/dom-openapi:dom",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:gson",
   ],
   runtime_deps = [":android-core-editing-documentation_resources"]
 )
@@ -68,6 +69,7 @@ jvm_library(
     "//java/testFramework",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:jsoup",
+    "@lib//:gson",
   ],
   runtime_deps = [":android-core-editing-documentation_resources"]
 )

@@ -36,6 +36,7 @@ jvm_test(
     "//platform/util",
     "//platform/util/jdom",
     "//xml/dom-openapi:dom",
+    "//java/java-psi-api:psi",
   ]
 )
 ### auto-generated section `build intellij.android.core.project` end

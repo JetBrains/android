@@ -29,6 +29,8 @@ jvm_test(
     "//java/testFramework",
     "//android/preview-fast-compile",
     "//android/adt-testutils:adt-testutils_test_lib",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
+    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
   ]
 )
 ### auto-generated section `build intellij.android.core.editors.fast` end

@@ -1,0 +1,28 @@
+### auto-generated section `build intellij.android.apkanalyzer.gradle` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-apkanalyzer-gradle_resources",
+  files = glob(["src/META-INF/**/*"]),
+  strip_prefix = "src"
+)
+
+jvm_library(
+  name = "android-apkanalyzer-gradle",
+  module_name = "intellij.android.apkanalyzer.gradle",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//android/apkanalyzer",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "@lib//:kotlin-stdlib",
+    "//platform/projectModel-api:projectModel",
+    "//platform/analysis-api:analysis",
+    "//platform/util",
+  ],
+  runtime_deps = [":android-apkanalyzer-gradle_resources"]
+)
+### auto-generated section `build intellij.android.apkanalyzer.gradle` end

@@ -51,6 +51,7 @@ jvm_library(
   name = "rendering-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/rendering"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -65,7 +66,6 @@ jvm_library(
     "@lib//:kotlinx-coroutines-core",
     "@lib//:kxml2",
     "@lib//:truth",
-    "//android/rendering",
     "//android/render-resources",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",

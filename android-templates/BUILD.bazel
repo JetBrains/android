@@ -141,6 +141,8 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-provided",
     "@lib//:kotlinc-analysis-api-platform-interface-provided",
     "//platform/util-class-loader:util-classLoader",
+    "//android/gradle-declarative-lang-ide",
+    "//android/gradle-dsl-flags",
   ],
   runtime_deps = [":templates_resources"]
 )

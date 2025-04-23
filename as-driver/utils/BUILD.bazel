@@ -28,6 +28,7 @@ jvm_library(
     "//platform/core-api:core",
     "@lib//:gson",
     "@lib//:protobuf",
+    "//platform/lang-impl",
   ]
 )
 

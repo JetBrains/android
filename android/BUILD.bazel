@@ -232,6 +232,7 @@ jvm_library(
     "//plugins/kotlin/gradle/gradle:kotlin-gradle-gradle",
     "//android/completion",
     "@lib//:kotlinc-analysis-api-k2-provided",
+    "@lib//:jgoodies-forms",
     ":artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common:buildCommon"],
@@ -456,6 +457,10 @@ jvm_library(
     "//android/preview-fast-compile",
     "@lib//:mockito-kotlin",
     "@lib//:kotlinc-compose-compiler-plugin-provided",
+    "@lib//:kotlinc-analysis-api-platform-interface",
+    "@lib//:kotlinc-analysis-api",
+    "//plugins/kotlin/bundled-compiler-plugins-support",
+    "@lib//:kotlinc-kotlin-compiler-fe10",
   ],
   runtime_deps = [
     ":core-tests_test_resources",

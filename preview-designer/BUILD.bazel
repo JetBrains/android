@@ -124,6 +124,7 @@ jvm_library(
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
     "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/lang-impl",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
@@ -140,6 +141,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-provided",
     "//android/designer:designer-tests_test_lib",
     "@lib//:mockito-kotlin",
+    "@lib//:asm",
   ]
 )
 

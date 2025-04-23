@@ -97,6 +97,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
     "@lib//:truth",
+    "@lib//:kotlinx-coroutines-test",
   ],
   runtime_deps = [":wear-pairing_resources"]
 )

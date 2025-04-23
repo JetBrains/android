@@ -28,6 +28,7 @@ jvm_library(
     "//platform/util/base",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin",
     "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
+    "//android/android-common:common",
   ]
 )
 

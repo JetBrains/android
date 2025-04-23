@@ -33,6 +33,9 @@ jvm_library(
     "//android/gradle-declarative-lang",
     "//android/gradle-declarative-lang-sync",
     "//platform/code-style-impl:codeStyle-impl",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/gradle",
+    "//plugins/gradle/java",
   ],
   runtime_deps = [":gradle-declarative-lang-ide_resources"]
 )

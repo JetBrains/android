@@ -38,6 +38,7 @@ jvm_test(
     "//xml/xml-psi-api:psi",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//android/render-resources",
+    "@lib//:kotlinx-coroutines-test",
   ]
 )
 ### auto-generated section `build intellij.android.core.editors.strings` end
