@@ -431,8 +431,7 @@ public class StringResourceViewPanel implements Disposable {
     else {
       setTextAndEditable(myXmlTextField, data.getStringResource(key).getTagText(locale), false);
     }
-    // TODO: Keys are not editable; we want them to be refactor operations
-    setTextAndEditable(myKeyTextField, key.getName(), false);
+    setTextAndEditable(myKeyTextField, key.getName(), true);
 
     String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
     boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field
