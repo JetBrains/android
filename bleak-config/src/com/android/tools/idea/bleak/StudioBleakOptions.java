@@ -128,7 +128,7 @@ public class StudioBleakOptions {
   }).toList());
 
   private static final IgnoreList<DisposerLeakInfo> globalDisposerIgnorelist = new IgnoreList<>(Arrays.stream(new IgnoredDisposerRef[]{
-    new IgnoredDisposerRef("com.intellij.openapi.project.impl.ProjectImpl", "com.intellij.notification.Notifications$Bus$$Lambda", 0)
+    new IgnoredDisposerRef("com.intellij.openapi.project.impl.ProjectImpl", "com.intellij.notification.Notifications$Bus$$Lambda", 12)
   }).toList());
 
   private static final Supplier<List<Expander>> customExpanders = () -> List.of(new SmartListExpander(), new SmartFMapExpander());
