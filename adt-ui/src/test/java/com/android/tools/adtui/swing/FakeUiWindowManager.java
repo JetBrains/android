@@ -17,7 +17,7 @@ package com.android.tools.adtui.swing;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressModel;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
@@ -32,7 +32,6 @@ import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
-import com.intellij.openapi.wm.impl.DesktopLayout;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.ProjectFrameHelper;
 import java.awt.Color;
@@ -51,9 +50,9 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.event.HyperlinkListener;
 import kotlin.jvm.functions.Function0;
-import kotlinx.coroutines.CoroutineScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import kotlinx.coroutines.CoroutineScope;
 
 /**
  * Slightly modified copy of {@link com.intellij.openapi.wm.impl.TestWindowManager} that
@@ -108,6 +107,7 @@ public final class FakeUiWindowManager extends WindowManagerEx {
   @Override
   public void resetWindow(Window window) {}
 
+  @NotNull
   @Override
   public ProjectFrameHelper[] getAllProjectFrames() {
     return new ProjectFrameHelper[0];
@@ -231,7 +231,7 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     public void addProgress(@NotNull ProgressIndicatorEx indicator, @NotNull TaskInfo info) {}
 
     @Override
-    public List<Pair<TaskInfo, ProgressIndicator>> getBackgroundProcesses() {
+    public List<Pair<TaskInfo, ProgressModel>> getBackgroundProcessModels() {
       return Collections.emptyList();
     }
 

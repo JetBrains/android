@@ -27,8 +27,8 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
-import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
@@ -66,8 +66,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.swing.Action;
 import java.util.stream.Collectors;
+import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -78,6 +78,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -155,7 +156,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
   }
 
   @VisibleForTesting
-  static class ProfilingConfigurable implements Configurable {
+  public static class ProfilingConfigurable implements Configurable {
 
     private static final String ADD = "Add";
 
@@ -187,7 +188,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     private final DefaultListModel<ProfilingConfiguration> myConfigurationsModel;
 
     @VisibleForTesting
-    DefaultListModel<ProfilingConfiguration> getConfigurationModel() {
+    public DefaultListModel<ProfilingConfiguration> getConfigurationModel() {
       return this.myConfigurationsModel;
     }
 
@@ -328,12 +329,12 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     @Nls
     @Override
-    public String getDisplayName() {
-      if (isTaskBasedUxEnabled) {
-        return "Task Settings";
+  public String getDisplayName() {
+    if (isTaskBasedUxEnabled) {
+        return AndroidBundle.message("configurable.TaskSettings.display.name");
       }
-      return "CPU Recording Configurations";
-    }
+      return AndroidBundle.message("configurable.ProfilingConfigurable.display.name");
+  }
 
     @Nullable
     @Override

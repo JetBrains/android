@@ -16,15 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
-import com.intellij.ui.JBColor;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.util.List;
 import javax.swing.JEditorPane;
@@ -75,7 +71,7 @@ public class MotionAttributePanel implements AccessoryPanelInterface {
 
   @Override
   public void updateAccessoryPanelWithSelection(@NotNull AccessoryPanel.Type type, @NotNull List<NlComponent> selection) {
-    myEditorPane.setText(myEditorPane.getText() + "\n" + type + " " + ((selection.size() > 0) ? selection.get(0) : "null"));
+    myEditorPane.setText(myEditorPane.getText() + "\n" + type + " " + ((!selection.isEmpty()) ? selection.get(0) : "null"));
     if (DEBUG) {
       Debug.log("updateAccessoryPanelWithSelection");
     }

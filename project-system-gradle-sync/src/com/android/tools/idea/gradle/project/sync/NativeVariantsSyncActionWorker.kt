@@ -21,7 +21,6 @@ import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import org.gradle.tooling.BuildController
-import java.util.concurrent.locks.ReentrantLock
 
 internal class NativeVariantsSyncActionWorker(
   private val buildInfo: BuildInfo,

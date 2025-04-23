@@ -36,6 +36,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -43,6 +44,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 
+@Ignore("IDEA-369983")
 internal class LiveEditNotificationActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")

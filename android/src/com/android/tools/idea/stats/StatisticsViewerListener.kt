@@ -18,7 +18,6 @@ package com.android.tools.idea.stats
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.Disposable
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 
 /**
@@ -30,7 +29,7 @@ object StatisticsViewerListener {
   @JvmStatic
   fun register(disposable: Disposable, callback: (AndroidStudioEvent.Builder) -> Unit) {
     AndroidCoroutineScope((disposable)).launch {
-      AndroidStudioUsageTracker.channel.openSubscription().consumeEach {
+      AndroidStudioUsageTracker.eventLogFlow.collect {
         callback(it)
       }
     }

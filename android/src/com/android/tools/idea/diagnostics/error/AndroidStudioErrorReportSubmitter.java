@@ -22,19 +22,17 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.diagnostics.StudioCrashDetails;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReport;
-import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.SystemHealthEvent;
-import com.intellij.diagnostic.AbstractMessage;
-import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.KotlinCompilerCrash;
 import com.intellij.diagnostic.LogMessage;
-import com.intellij.diagnostic.ReportMessages;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.idea.IdeaLogger;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -55,7 +53,10 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
+import java.awt.Component;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -65,33 +66,30 @@ import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.util.List;
-import java.util.Map;
-
 public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
   private static final Logger LOG = Logger.getInstance(AndroidStudioErrorReportSubmitter.class);
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
   private static final long REPORT_ID_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 
-  @NotNull
   @Override
-  public String getReportActionText() {
+  public @NotNull String getReportActionText() {
     return AndroidBundle.message("error.report.to.google.action");
   }
 
   @Override
-  public boolean submit(@NotNull IdeaLoggingEvent[] events,
-                        @Nullable String description,
-                        @Nullable Component parentComponent,
-                        @NotNull Consumer<? super SubmittedReportInfo> callback) {
+  public boolean submit(
+    @NotNull IdeaLoggingEvent @NotNull [] events,
+    @Nullable String description,
+    @Nullable Component parentComponent,
+    @NotNull Consumer<? super SubmittedReportInfo> callback
+  ) {
     IdeaLoggingEvent event = events[0];
     ErrorBean bean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
 
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    IdeaPluginDescriptor plugin = IdeErrorsDialog.getPlugin(event);
+    IdeaPluginDescriptor plugin = event.getPlugin();
     if (plugin != null && (!plugin.isBundled() || plugin.allowBundledUpdate())) {
       bean.setPluginName(plugin.getName());
       bean.setPluginVersion(plugin.getVersion());
@@ -102,10 +100,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
       return true;
     }
 
-    Object data = event.getData();
-    if (data instanceof AbstractMessage) {
-      bean.setAttachments(((AbstractMessage)data).getIncludedAttachments());
-    }
+    bean.setAttachments(event.getAttachments());
 
     // Android Studio: SystemHealthMonitor is always calling submit with a null parentComponent. In order to determine the data context
     // associated with the currently-focused component, we run that query on the UI thread and delay the rest of the invocation below.
@@ -121,8 +116,7 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
         null, "Issue " + token, SubmittedReportInfo.SubmissionStatus.NEW_ISSUE);
       callback.consume(reportInfo);
 
-      ReportMessages.GROUP
-        .createNotification("Report Submitted", NotificationType.INFORMATION)
+      new Notification("Error Report", "Report Submitted", NotificationType.INFORMATION)
         .setImportant(false)
         .notify(project);
     };
@@ -130,16 +124,15 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     Consumer<Exception> errorCallback = e -> {
       String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
 
-      ReportMessages.GROUP
-        .createNotification(message, NotificationType.ERROR)
+      new Notification("Error Report", message, NotificationType.ERROR)
         .setListener(NotificationListener.URL_OPENING_LISTENER)
         .setImportant(false)
         .notify(project);
     };
 
     Task.Backgroundable feedbackTask;
-    if (data instanceof ErrorReportCustomizer) {
-      feedbackTask = ((ErrorReportCustomizer) data).makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
+    if (event.getData() instanceof ErrorReportCustomizer erc) {
+      feedbackTask = erc.makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
     } else {
       Map<String, String> errorDataMap = getPlatformErrorData(event, bean);
       feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), errorDataMap, successCallback, errorCallback);
@@ -320,14 +313,12 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
   @Nullable
   private static KotlinCompilerCrash getKotlinCompilerCrashOrNull(@NotNull IdeaLoggingEvent loggingEvent) {
     KotlinCompilerCrash kotlinCompilerCrash = null;
-    if (loggingEvent.getThrowable() instanceof KotlinCompilerCrash) {
-      kotlinCompilerCrash = (KotlinCompilerCrash)loggingEvent.getThrowable();
+    if (loggingEvent.getThrowable() instanceof KotlinCompilerCrash kcc) {
+      kotlinCompilerCrash = kcc;
     }
-    else if (loggingEvent.getData() instanceof LogMessage &&
-             ((LogMessage)loggingEvent.getData()).getThrowable() instanceof KotlinCompilerCrash) {
-      kotlinCompilerCrash = (KotlinCompilerCrash)((LogMessage)loggingEvent.getData()).getThrowable();
+    else if (loggingEvent.getData() instanceof LogMessage lm && lm.getThrowable() instanceof KotlinCompilerCrash kcc) {
+      kotlinCompilerCrash = kcc;
     }
     return kotlinCompilerCrash;
   }
-
 }

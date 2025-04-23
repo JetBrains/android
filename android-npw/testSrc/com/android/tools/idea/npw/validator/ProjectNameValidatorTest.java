@@ -19,7 +19,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.npw.validator.ProjectNameValidator;
 import org.junit.Before;
 import org.junit.Test;
 

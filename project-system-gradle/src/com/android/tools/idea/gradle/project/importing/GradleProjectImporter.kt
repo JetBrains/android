@@ -119,9 +119,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   private fun setUpLocalProperties(projectFolderPath: File) {
     try {
       val localProperties = LocalProperties(projectFolderPath)
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
-      }
+      mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
     }
     catch (e: Exception) {
       logger.info("Failed to sync SDKs", e)
@@ -208,8 +206,10 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
         ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
         GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
-        val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
-        projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
+        if (IdeInfo.getInstance().isAndroidStudio) {
+          val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
+          projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
+        }
       } else {
         projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
         ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)

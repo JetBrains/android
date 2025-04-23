@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
 import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -32,32 +33,45 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.registry.Registry;
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.util.ModalityUiUtil;
 import java.io.File;
 import java.io.IOException;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SdkSyncImpl implements SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
+  static final String ANDROID_MANIFEST_PATH = "/app/src/main/AndroidManifest.xml";
+
   @Override
   public void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties, @Nullable Project project) {
     syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), project);
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 
+  /**
+   * In IDEA, there are non-android gradle projects. IDEA should not create local.properties file and should not ask users to configure
+   * Android SDK unless we are sure that they are working with Android projects
+   * We assume that project is Android when local.properties or AndroidManifest.xml is present:
+   * <a href="https://developer.android.com/guide/topics/manifest/manifest-intro">manifest-intro</a>
+   */
   @VisibleForTesting
   void syncIdeAndProjectAndroidSdk(@NotNull LocalProperties localProperties,
                                    @NotNull FindValidSdkPathTask findSdkPathTask,
                                    @Nullable Project project) {
-    if (localProperties.hasAndroidDirProperty()) {
+    if (!projectIsAndroid(localProperties, project) || localProperties.hasAndroidDirProperty()) {
       // if android.dir is specified, we don't sync SDKs. User is working with SDK sources.
       return;
     }
@@ -217,6 +231,11 @@ public class SdkSyncImpl implements SdkSync {
   }
 
   private static void setProjectNdk(@NotNull LocalProperties localProperties, @Nullable File ndkPath) {
+    if (Registry.is("android.sdk.local.properties.update.disabled")) {
+      Logger.getInstance(SdkSync.class).warn("local.properties should be updated, but update is now disabled.");
+      return;
+    }
+
     File currentNdkPath = localProperties.getAndroidNdkPath();
     if (filesEqual(currentNdkPath, ndkPath)) {
       return;
@@ -231,6 +250,15 @@ public class SdkSyncImpl implements SdkSync {
       String msg = String.format("Unable to save '%1$s'. The file path is: ", FN_LOCAL_PROPERTIES);
       throw new ExternalSystemException(msg, e);
     }
+  }
+
+  private static boolean projectIsAndroid(@NotNull LocalProperties localProperties, @Nullable Project project) {
+    return IdeInfo.getInstance().isAndroidStudio()
+           || Strings.isNotEmpty(localProperties.getProperty(SDK_DIR_PROPERTY))
+           || project != null && ReadAction.nonBlocking(() -> ContainerUtil.exists(
+        ProjectRootManager.getInstance(project).getContentRoots(),
+        root -> root.findFileByRelativePath(ANDROID_MANIFEST_PATH) != null))
+      .executeSynchronously();
   }
 
   private void setIdeSdk(@NotNull LocalProperties localProperties, @NotNull File projectAndroidSdkPath) {

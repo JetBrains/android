@@ -70,7 +70,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The overview panel displays graphically the layout and the transitions and allows selection for ether.
  */
-class OverviewPanel extends JPanel {
+public class OverviewPanel extends JPanel {
   public static final boolean DEBUG = false;
   private static final int ROUND_SIZE = 5;
   private static final int MAX_OPTIMIZE_LINES = 7;
@@ -123,12 +123,12 @@ class OverviewPanel extends JPanel {
     repaint();
   }
 
-  static class DerivedSetLine {
+  public static class DerivedSetLine {
     public MTag mConstraintSet;
     public String mDerivedFrom;
-    int mSrcX;
-    int mDstX;
-    int mPathYOffset = 10;
+    public int mSrcX;
+    public int mDstX;
+    public int mPathYOffset = 10;
   }
 
   DerivedSetLine[] mDerivedLines = new DerivedSetLine[10];

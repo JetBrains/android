@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import org.junit.Ignore;
-
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 public class AndroidModularizeHandlerTest extends AndroidTestCase {
 

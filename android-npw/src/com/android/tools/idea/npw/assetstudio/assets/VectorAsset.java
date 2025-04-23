@@ -183,7 +183,7 @@ public final class VectorAsset extends BaseAsset {
     double originalHeight = 0;
     if (!Strings.isNullOrEmpty(xmlFileContent)) {
       // TODO: Use XML pull parser to make parsing faster.
-      Document document = parseXml(xmlFileContent, errors.length() == 0 ? errors : null);
+      Document document = parseXml(xmlFileContent, errors.isEmpty() ? errors : null);
       if (document == null) {
         xmlFileContent = null; // XML content is invalid, discard it.
       }
@@ -195,11 +195,11 @@ public final class VectorAsset extends BaseAsset {
     }
 
     boolean valid = originalWidth > 0 && originalHeight > 0;
-    if (!valid && errors.length() == 0) {
+    if (!valid && errors.isEmpty()) {
       return new VectorDrawableInfo("The specified asset could not be parsed. Please choose another asset.");
     }
 
-    Severity severity = !valid ? Severity.ERROR : errors.length() == 0 ? Severity.OK : Severity.WARNING;
+    Severity severity = !valid ? Severity.ERROR : errors.isEmpty() ? Severity.OK : Severity.WARNING;
     Validator.Result validityState = createValidatorResult(severity, errors.toString());
     return new VectorDrawableInfo(validityState, xmlFileContent, originalWidth, originalHeight);
   }
@@ -267,7 +267,7 @@ public final class VectorAsset extends BaseAsset {
       Logger.getInstance(VectorAsset.class).error(e);
     }
 
-    if (validityState.getSeverity() == Severity.OK && errors.length() != 0) {
+    if (validityState.getSeverity() == Severity.OK && !errors.isEmpty()) {
       validityState = image == null ?
                       new Validator.Result(Severity.ERROR, ERROR_EMPTY_PREVIEW) :
                       createValidatorResult(Severity.WARNING, errors.toString());

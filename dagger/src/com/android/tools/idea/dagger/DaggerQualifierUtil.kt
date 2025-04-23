@@ -138,7 +138,7 @@ private fun serializeAttrValueToString(value: JvmAnnotationAttributeValue?): Str
   }
 
 /**
- * Converts a [KtAnnotationValue] to a [String].
+ * Converts a [KaAnnotationValue] to a [String].
  *
  * Returns `null` if any attr value cannot be serialized.
  */

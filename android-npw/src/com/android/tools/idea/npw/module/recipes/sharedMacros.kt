@@ -218,11 +218,8 @@ fun RecipeExecutor.copyIcons(destination: File, minApi: Int) {
 }
 
 fun RecipeExecutor.copyMipmapFolder(destination: File) {
-  copy(resource("mipmap-hdpi"), destination.resolve("mipmap-hdpi"))
-  copy(resource("mipmap-mdpi"), destination.resolve("mipmap-mdpi"))
-  copy(resource("mipmap-xhdpi"), destination.resolve("mipmap-xhdpi"))
-  copy(resource("mipmap-xxhdpi"), destination.resolve("mipmap-xxhdpi"))
-  copy(resource("mipmap-xxxhdpi"), destination.resolve("mipmap-xxxhdpi"))
+  copyMipmapFile(destination, "ic_launcher.webp")
+  copyMipmapFile(destination, "ic_launcher_round.webp")
 }
 
 fun RecipeExecutor.copyMipmapFile(destination: File, file: String) {

@@ -28,11 +28,11 @@ import com.android.tools.idea.ui.resourcemanager.model.getAssetSets
 import com.android.tools.idea.ui.resourcemanager.nightModeMapper
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.ClassRule
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import java.util.regex.MatchResult

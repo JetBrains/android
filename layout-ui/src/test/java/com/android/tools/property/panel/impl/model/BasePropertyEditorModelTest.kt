@@ -31,6 +31,7 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Color
 import org.junit.Rule
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
@@ -110,6 +111,7 @@ class BasePropertyEditorModelTest {
     assertThat(listener.called).isTrue()
   }
 
+  @Ignore // AS Koala 2024.1.2 Canary 7 Merge: https://youtrack.jetbrains.com/issue/IDEA-355833
   @Test
   fun testDisplayedIcon() {
     IconLoader.activate()

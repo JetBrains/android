@@ -19,7 +19,7 @@ import static org.mockito.Mockito.mock;
 
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;

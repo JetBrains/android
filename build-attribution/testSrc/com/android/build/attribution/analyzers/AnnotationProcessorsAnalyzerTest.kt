@@ -17,7 +17,6 @@ package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.build.attribution.BuildAnalyzerStorageManager
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.getSuccessfulResult
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
@@ -27,7 +26,6 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 

@@ -15,11 +15,11 @@
  */
 package com.android.tools.preview.config;
 
+import com.android.annotations.NonNull;
 import com.android.resources.Density;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import com.android.annotations.NonNull;
 
 public class Densities {
   private static Density[] ourCommonDensities;

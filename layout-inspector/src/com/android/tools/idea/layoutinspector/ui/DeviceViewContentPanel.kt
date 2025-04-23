@@ -50,6 +50,8 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.StatusText
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
@@ -63,8 +65,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
-import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val MARGIN = 50
 

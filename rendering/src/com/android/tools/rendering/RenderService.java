@@ -273,7 +273,7 @@ final public class RenderService implements Disposable {
     @Nullable private RenderXmlFile myXmlFile;
     @NotNull private final RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
-    private boolean isSecurityManagerEnabled = true;
+    private boolean isSecurityManagerEnabled = false; // is not supported for JDK 21
     private float myQuality = 1f;
     private boolean showDecorations = true;
     private boolean showWithToolsVisibilityAndPosition = true;
@@ -296,6 +296,8 @@ final public class RenderService implements Disposable {
      * Force classes preloading in RenderTask right after creation.
      */
     private Collection<String> classesToPreload = Collections.emptyList();
+
+    private Collection<String> immediateClassesToPreload = Collections.emptyList();
 
     /**
      * Additional bytecode transform to apply to project classes when loaded.
@@ -351,6 +353,16 @@ final public class RenderService implements Disposable {
     @NotNull
     public RenderTaskBuilder preloadClasses(Collection<String> classesToPreload) {
       this.classesToPreload = classesToPreload;
+      return this;
+    }
+
+    /**
+     * Forces immediate preloading classes in RenderTask after creation.
+     * This is used to overcome an issue with the ClassNotFoundException.
+     */
+    @NotNull
+    public RenderTaskBuilder preloadImmediateClasses(Collection<String> immediateClassesToPreload) {
+      this.immediateClassesToPreload = immediateClassesToPreload;
       return this;
     }
 
@@ -606,7 +618,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener);
+                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener);
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);
           }

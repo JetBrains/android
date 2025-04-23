@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
 import com.google.common.collect.HashMultimap
-import java.util.Comparator
 
 class PsIssueCollection {
   private val lock = Any()

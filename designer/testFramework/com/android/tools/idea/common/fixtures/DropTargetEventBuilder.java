@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.common.fixtures;
 
-import com.android.tools.idea.common.LayoutTestUtilities;
-
-import java.awt.dnd.DropTargetContext;
-import java.awt.dnd.DropTargetEvent;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.common.LayoutTestUtilities;
+import java.awt.dnd.DropTargetContext;
+import java.awt.dnd.DropTargetEvent;
 
 public class DropTargetEventBuilder {
   private final DropTargetContext myDropTargetContext;

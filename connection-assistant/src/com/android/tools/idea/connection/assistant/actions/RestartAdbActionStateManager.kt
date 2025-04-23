@@ -18,6 +18,7 @@ package com.android.tools.idea.connection.assistant.actions
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.assistant.AssistActionState
 import com.android.tools.idea.assistant.AssistActionStateManager
@@ -25,7 +26,6 @@ import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
-import com.android.tools.analytics.withProjectId
 import com.android.utils.HtmlBuilder
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
@@ -60,14 +60,15 @@ class RestartAdbActionStateManager : AssistActionStateManager() {
 
     fun initDebugBridge() {
       val adb = AndroidSdkUtils.getAdb(project) ?: return
-      adbFuture = AdbService.getInstance().getDebugBridge(adb) ?: return
+      val adbFutureNotNull = AdbService.getInstance().getDebugBridge(adb) ?: return
+      adbFuture = adbFutureNotNull
 
-      Futures.addCallback(adbFuture, object : FutureCallback<AndroidDebugBridge> {
-        override fun onSuccess(bridge: AndroidDebugBridge?) {
+      Futures.addCallback(adbFutureNotNull, object : FutureCallback<AndroidDebugBridge> {
+        override fun onSuccess(bridge: AndroidDebugBridge) {
           refreshDependencyState(project)
         }
 
-        override fun onFailure(t: Throwable?) {
+        override fun onFailure(t: Throwable) {
           refreshDependencyState(project)
         }
       }, EdtExecutorService.getInstance())

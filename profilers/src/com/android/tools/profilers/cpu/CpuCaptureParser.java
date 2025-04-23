@@ -15,7 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CaptureStatus.*;
+import static com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CaptureStatus.UNKNOWN_STATUS;
+import static com.google.wireless.android.sdk.stats.CpuCaptureMetadata.CaptureStatus.valueOf;
 import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE;
 import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS;
 
@@ -38,6 +39,7 @@ import com.android.tools.profilers.tasks.TaskFinishedState;
 import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.FileInputStream;
@@ -69,7 +71,7 @@ public class CpuCaptureParser {
    * Users should be warned when traces are larger than this value and can opt not to parse them.
    */
   @VisibleForTesting
-  static final int MAX_SUPPORTED_TRACE_SIZE = 1024 * 1024 * 100; // 100MB
+  public static final int MAX_SUPPORTED_TRACE_SIZE = 1024 * 1024 * 100; // 100MB
 
   /**
    * Maps a trace id to a corresponding {@link CompletableFuture<CpuCapture>}.
@@ -370,9 +372,13 @@ public class CpuCaptureParser {
     }
 
     private void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
-      myServices.openYesNoDialog("The trace file generated is large, and Android Studio may become unresponsive while " +
+      myServices.openYesNoDialog("The trace file generated is large, and " +
+                                 ApplicationNamesInfo.getInstance().getFullProductName() +
+                                 " may become unresponsive while " +
                                  "it parses the data. Do you want to continue?\n\n" +
-                                 "Warning: If you select \"No\", Android Studio discards the trace data and you will need " +
+                                 "Warning: If you select \"No\", " +
+                                 ApplicationNamesInfo.getInstance().getFullProductName() +
+                                 " discards the trace data and you will need " +
                                  "to capture a new method trace.",
                                  "Trace File Too Large",
                                  yesCallback,
@@ -384,7 +390,7 @@ public class CpuCaptureParser {
    * This step contains the parse logic itself, including selecting (or detecting) the appropriate parser technology.
    */
   @VisibleForTesting
-  static final class ProcessTraceAction implements Function<Void, CpuCapture> {
+  public static final class ProcessTraceAction implements Function<Void, CpuCapture> {
     @NotNull
     private final File traceFile;
 
@@ -409,7 +415,7 @@ public class CpuCaptureParser {
       () -> new PerfettoParser(getMainProcessSelector(), getProfilerServices());
 
     @VisibleForTesting
-    ProcessTraceAction(
+    public ProcessTraceAction(
       @NotNull File traceFile, long traceId, @NotNull TraceType preferredProfilerType,
       int processIdHint, @Nullable String processNameHint, @NotNull IdeProfilerServices services) {
 

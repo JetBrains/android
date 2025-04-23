@@ -1,0 +1,31 @@
+### auto-generated section `build intellij.android.nav.editor.gradle` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-nav-editor-gradle_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-nav-editor-gradle",
+  module_name = "intellij.android.nav.editor.gradle",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/adt-ui",
+    "//android/android:core",
+    "//android/designer",
+    "//android/nav/editor:android-nav-editor",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/platform-api:ide",
+    "//platform/util",
+  ],
+  runtime_deps = [":android-nav-editor-gradle_resources"]
+)
+### auto-generated section `build intellij.android.nav.editor.gradle` end

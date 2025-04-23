@@ -119,7 +119,7 @@ enum class NlPropertyType {
       FONT_SIZE,
       DIMENSION_PIXEL,
       DIMENSION ->
-        error(DimensionConverter.INSTANCE.fromString(literal) == null) {
+        error(DimensionConverter.doFromString(literal) == null) {
           getDimensionError(literal)
         }
       DIMENSION_UNIT_LESS -> checkUnitLessDimension(literal)

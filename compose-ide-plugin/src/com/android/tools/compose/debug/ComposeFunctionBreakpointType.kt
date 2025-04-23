@@ -21,11 +21,16 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.xdebugger.breakpoints.XBreakpoint
 import org.jetbrains.java.debugger.breakpoints.properties.JavaMethodBreakpointProperties
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaTypeAliasSymbol
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.ApplicabilityResult
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.KotlinFunctionBreakpoint
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.KotlinFunctionBreakpointType
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.isBreakpointApplicable
 import org.jetbrains.kotlin.idea.debugger.core.breakpoints.isInlineOnly
+import org.jetbrains.kotlin.idea.references.mainReference
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiUtil
 
@@ -55,4 +60,30 @@ internal class ComposeFunctionBreakpointType :
         else -> ApplicabilityResult.UNKNOWN
       }
     }
+}
+// TODO Find a proper commit in Ultimate and apply change
+private val COMPOSABLE_CLASS_ID = ClassId.fromString("androidx/compose/runtime/Composable")
+
+
+/**
+ * Don't allow method breakpoints on Composable functions because we can't match their signature.
+ *
+ * This will be handled by the Compose plugin.
+ */
+private fun KtFunction.isComposable(): Boolean {
+  analyze(this) {
+    for (annotationEntry in annotationEntries) {
+      val classSymbol = when (val symbol = annotationEntry.typeReference?.mainReference?.resolveToSymbol()) {
+        is KaTypeAliasSymbol -> symbol.expandedType.expandedSymbol
+        is KaClassSymbol -> symbol
+        else -> null
+      }
+
+      if (classSymbol != null && classSymbol.classId == COMPOSABLE_CLASS_ID) {
+        return true
+      }
+    }
+
+    return false
+  }
 }

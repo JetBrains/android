@@ -23,12 +23,12 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.annotations.TestOnly
 import java.awt.Rectangle
 import java.awt.Shape
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import org.jetbrains.annotations.TestOnly
 
 // This must have the same value as WindowManager.FLAG_DIM_BEHIND
 @VisibleForTesting const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2

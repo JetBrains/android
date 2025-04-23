@@ -57,8 +57,8 @@ import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.preview.config.toDeviceConfig
 import com.android.tools.preview.config.toMutableConfig
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.util.concurrency.ThreadingAssertions
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -212,7 +212,7 @@ internal class DeviceParameterPropertyItem(
   private var lastValueToDevice: Pair<String, DeviceConfig>? = null
 
   private fun getCurrentDeviceConfig(): MutableDeviceConfig {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
     val currentValue = value ?: return defaultDeviceValues.toMutableConfig()
     val availableDevices = AvailableDevicesKey.getData(model) ?: emptyList()
 

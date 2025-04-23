@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.common.util;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APP_PREFIX;
+import static com.android.SdkConstants.AUTO_URI;
+
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 public class XmlTagUtil {
   /**

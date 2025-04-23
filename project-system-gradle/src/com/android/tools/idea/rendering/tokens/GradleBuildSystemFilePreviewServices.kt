@@ -96,7 +96,8 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
 
   private fun getBuildServicesStatus(buildTarget: GradleBuildTargetReference): GradleBuildServicesStatus {
     val module = buildTarget.module
-    return (module as UserDataHolderEx).getOrCreateUserData(GradleBuildServicesStatus.KEY) { GradleBuildServicesStatus(module) }
+    return (module as? UserDataHolderEx)?.getOrCreateUserData(GradleBuildServicesStatus.KEY) { GradleBuildServicesStatus(module) }
+           ?: GradleBuildServicesStatus(module)
   }
 
   override fun getRenderingServices(buildTargetReference: GradleBuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {

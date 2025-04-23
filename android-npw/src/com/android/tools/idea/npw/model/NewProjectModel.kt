@@ -177,40 +177,40 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object :
-        Task.Modal(
-          null,
-          message("android.compile.messages.generating.r.java.content.name"),
-          false,
-        ) {
-        override fun run(indicator: ProgressIndicator) {
-          val projectName = applicationName.get()
-          val projectBaseDirectory = File(projectLocation.get())
-          val newProject =
-            GradleProjectImporter.getInstance()
-              .createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
+      Task.Modal(
+        null,
+        message("android.compile.messages.generating.r.java.content.name"),
+        false,
+      ) {
+      override fun run(indicator: ProgressIndicator) {
+        val projectName = applicationName.get()
+        val projectBaseDirectory = File(projectLocation.get())
+        val newProject =
+          GradleProjectImporter.getInstance()
+            .createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
 
-          // Arguably some of these things should be in the OpenProjectTask's beforeOpen
-          newProject.service<ProjectSystemService>().setProviderId(GradleProjectSystemProvider.ID)
-          MakeBeforeRunTaskProviderUtil.ensureMakeBeforeRunTaskInConfigurationTemplate(newProject)
+        // Arguably some of these things should be in the OpenProjectTask's beforeOpen
+        newProject.service<ProjectSystemService>().setProviderId(GradleProjectSystemProvider.ID)
+        MakeBeforeRunTaskProviderUtil.ensureMakeBeforeRunTaskInConfigurationTemplate(newProject)
 
-          this@NewProjectModel.project = newProject
+        this@NewProjectModel.project = newProject
 
-          newProject
-            .service<AndroidNewProjectInitializationStartupActivity.StartupService>()
-            .setProjectInitializer {
-              logger.info("Rendering a new project.")
-              NonProjectFileWritingAccessProvider.disableChecksDuring { renderer(newProject) }
-            }
-
-          val openProjectTask = OpenProjectTask {
-            project = newProject
-            isNewProject = false
-            forceOpenInNewFrame = true
+        newProject
+          .service<AndroidNewProjectInitializationStartupActivity.StartupService>()
+          .setProjectInitializer {
+            logger.info("Rendering a new project.")
+            NonProjectFileWritingAccessProvider.disableChecksDuring { renderer(newProject) }
           }
-          ProjectManagerEx.getInstanceEx()
-            .openProject(projectBaseDirectory.toPath(), openProjectTask)
+
+        val openProjectTask = OpenProjectTask {
+          project = newProject
+          isNewProject = false
+          forceOpenInNewFrame = true
         }
+        ProjectManagerEx.getInstanceEx()
+          .openProject(projectBaseDirectory.toPath(), openProjectTask)
       }
+    }
       .queue()
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
@@ -253,7 +253,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         try {
           if (
             VfsUtil.createDirectoryIfMissing(projectLocation) != null &&
-              CancellableFileIo.isWritable(Paths.get(projectLocation))
+            CancellableFileIo.isWritable(Paths.get(projectLocation))
           ) {
             return@runWriteCommandAction true
           }
@@ -371,8 +371,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           val initialLanguageLevel: LanguageLevel? =
             LanguageLevel.JDK_1_7.takeIf {
               sdkData != null &&
-                sdk != null &&
-                jdk.getVersion(sdk)?.isAtLeast(JavaSdkVersion.JDK_1_7) == true
+              sdk != null &&
+              jdk.getVersion(sdk)?.isAtLeast(JavaSdkVersion.JDK_1_7) == true
             }
 
           val request =

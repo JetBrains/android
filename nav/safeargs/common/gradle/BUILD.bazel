@@ -1,0 +1,30 @@
+### auto-generated section `build intellij.android.nav.safeargs.common.gradle` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "android-nav-safeargs-common-gradle_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "android-nav-safeargs-common-gradle",
+  module_name = "intellij.android.nav.safeargs.common.gradle",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/android:core",
+    "//android/nav/safeargs/common:android-nav-safeargs-common",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+  ],
+  runtime_deps = [":android-nav-safeargs-common-gradle_resources"]
+)
+### auto-generated section `build intellij.android.nav.safeargs.common.gradle` end

@@ -23,6 +23,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -77,7 +78,7 @@ open class GradleFileModelTestCase {
 
   data class TestFileName(val path: String) {
     fun toFile(testDataPath: String, testDataExtension: String): File {
-      val path = FileUtil.toSystemDependentName(testDataPath) + File.separator + FileUtil.toSystemDependentName(path) + testDataExtension
+      val path = FileUtilRt.toSystemDependentName(testDataPath) + File.separator + FileUtilRt.toSystemDependentName(path) + testDataExtension
       return File(path)
     }
   }

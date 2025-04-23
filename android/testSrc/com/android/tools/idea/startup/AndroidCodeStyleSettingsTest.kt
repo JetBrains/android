@@ -20,7 +20,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.application.options.CodeStyle
 import com.intellij.lang.xml.XMLLanguage
-import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings.REARRANGE_ALWAYS
 import com.intellij.psi.codeStyle.JavaCodeStyleSettings
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings
@@ -39,7 +38,7 @@ class AndroidCodeStyleSettingsTest {
   fun initializedDefaultsInRealProjectInStudio() {
     // Note: this test is intentionally not an AndroidTestCase, because that applies the Android code style to all tests anyway.
     if (IdeInfo.getInstance().isAndroidStudio) {
-      val newSettings = CodeStyleSettings()
+      val newSettings = CodeStyle.createTestSettings()
       assertThat(AndroidXmlCodeStyleSettings.getInstance(newSettings).USE_CUSTOM_SETTINGS).isTrue()
       assertThat(newSettings.getCustomSettings(JavaCodeStyleSettings::class.java).CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND)
         .isEqualTo(99)

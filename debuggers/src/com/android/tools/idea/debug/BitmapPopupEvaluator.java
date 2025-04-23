@@ -21,12 +21,13 @@ import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.tree.render.CustomPopupFullValueEvaluator;
 import com.intellij.openapi.ui.Messages;
 import com.sun.jdi.Value;
+import java.awt.image.BufferedImage;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
 import org.intellij.images.editor.impl.ImageEditorManagerImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.image.BufferedImage;
 
 abstract class BitmapPopupEvaluator extends CustomPopupFullValueEvaluator<BufferedImage> {
   @Nullable private String myError;

@@ -15,10 +15,11 @@
  */
 package com.android.tools.adtui.chart.statechart;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementation of {@link StateChartReducer} which combines all rectangles that are strictly inside a pixel into one rectangle

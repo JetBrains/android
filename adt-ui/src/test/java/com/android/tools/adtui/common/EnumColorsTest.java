@@ -15,13 +15,12 @@
  */
 package com.android.tools.adtui.common;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.collect.ImmutableMap;
+import java.awt.Color;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.awt.*;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class EnumColorsTest {
   private Color COLOR_A_0 = Color.RED;

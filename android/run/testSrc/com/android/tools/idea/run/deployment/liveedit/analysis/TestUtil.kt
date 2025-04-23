@@ -114,6 +114,7 @@ fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileByteArray(inputFiles: L
 /**
  * Compile the given files without calling into [LiveEditCompiler]. Should only be used to set up for tests.
  */
+@OptIn(KaExperimentalApi::class)
 fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFile>): List<ByteArray> {
   return ApplicationManager.getApplication().runReadAction(Computable<List<ByteArray>> {
     runWithCompileLock {

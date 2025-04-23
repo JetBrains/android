@@ -47,7 +47,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
@@ -68,7 +67,7 @@ class MotionLayoutAttributesViewTest {
     val actionManager = projectRule.mockService(ActionManager::class.java)
     Mockito.doAnswer { invocation -> SomeAction(invocation.getArgument(0)) }
       .whenever(actionManager)
-      .getAction(ArgumentMatchers.anyString())
+      .getAction(Mockito.anyString())
   }
 
   @Test

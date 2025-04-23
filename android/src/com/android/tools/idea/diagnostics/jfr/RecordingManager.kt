@@ -21,7 +21,6 @@ import com.android.tools.idea.diagnostics.jfr.reports.JfrFreezeReports
 import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports
 import com.android.tools.idea.diagnostics.jfr.reports.JfrTypingLatencyReports
 import com.android.tools.idea.diagnostics.report.DiagnosticReport
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager

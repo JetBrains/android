@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.builders;
 
-import static com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.InheritedProperties.DEFAULT_OPACITY;
 import static com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.deserializers.SketchLayerDeserializer.RECTANGLE_CLASS_TYPE;
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.SketchLibrary;
@@ -55,39 +54,6 @@ import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.Ske
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.SketchLibrary;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.AreaModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.AssetModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.BorderModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ColorAssetModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.DrawableAssetModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.FillModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.GradientModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.GradientStopModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.InheritedProperties;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.PathModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ResizingConstraint;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ShapeModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.StudioResourcesModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.StyleModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.SymbolModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayerable;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchArtboard;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchBorder;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchCurvePoint;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchExportFormat;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchFill;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchGradient;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchGradientStop;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchGraphicsContextSettings;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapeGroup;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchShapePath;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchStyle;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolInstance;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
 import java.awt.Color;
 import java.awt.Rectangle;

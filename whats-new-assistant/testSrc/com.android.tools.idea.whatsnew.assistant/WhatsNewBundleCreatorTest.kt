@@ -16,19 +16,22 @@
 package com.android.tools.idea.whatsnew.assistant
 
 import com.android.repository.Revision
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.AndroidTestBase
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import java.net.URL
@@ -50,21 +53,21 @@ class WhatsNewBundleCreatorTest {
     mockUrlProvider = mock(WhatsNewURLProvider::class.java)
 
     val serverFile = getTestDataPath().resolve("whatsnewassistant/server-3.3.0.xml")
-    whenever(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString()))
+    whenever(mockUrlProvider.getWebConfig(Mockito.anyString()))
       .thenReturn(URL("file:$serverFile"))
 
     val resourceFile = getTestDataPath().resolve("whatsnewassistant/defaultresource-3.3.0.xml")
     whenever(
         mockUrlProvider.getResourceFileAsStream(
-          ArgumentMatchers.any(),
-          ArgumentMatchers.anyString()
+          Mockito.any(),
+          Mockito.anyString()
         )
       )
       .thenAnswer { URL("file:$resourceFile").openStream() }
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     localPath = tmpDir.resolve("local-3.3.0.xml")
-    whenever(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
+    whenever(mockUrlProvider.getLocalConfig(Mockito.anyString())).thenReturn(localPath)
   }
 
   @Test
@@ -98,7 +101,7 @@ class WhatsNewBundleCreatorTest {
    */
   @Test
   fun downloadDoesNotExist() {
-    whenever(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString()))
+    whenever(mockUrlProvider.getWebConfig(Mockito.anyString()))
       .thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
 
     // Expected bundle file is defaultresource-3.3.0.xml
@@ -127,7 +130,7 @@ class WhatsNewBundleCreatorTest {
     }
 
     // Change server file to one that doesn't exist, meaning no connection
-    whenever(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString()))
+    whenever(mockUrlProvider.getWebConfig(Mockito.anyString()))
       .thenReturn(URL("file:server-doesnotexist-3.3.0.xml"))
     // Expected bundle file is still server-3.3.0.xml because it was downloaded on the first fetch
     val newBundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
@@ -156,7 +159,7 @@ class WhatsNewBundleCreatorTest {
   fun downloadTimeout() {
     val mockConnectionOpener = mock(WhatsNewConnectionOpener::class.java)
     whenever(
-        mockConnectionOpener.openConnection(ArgumentMatchers.isNotNull(), ArgumentMatchers.anyInt())
+        mockConnectionOpener.openConnection(Mockito.isNotNull(), Mockito.anyInt())
       )
       .thenThrow(TimeoutException())
 

@@ -12,7 +12,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
@@ -61,6 +61,7 @@ import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.containers.ContainerUtil;
+import io.vavr.collection.Array;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -694,9 +695,12 @@ public class AndroidValueResourcesTest {
   @Test
   public void translatableAttributeCompletionDumbMode() {
     DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
+      if (!Registry.is("ide.dumb.mode.check.awareness")) {
+        toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
+        return;
+      }
       toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
     });
-    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 
   @Test

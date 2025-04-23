@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api.java;
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 

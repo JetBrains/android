@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.adb;
 
-import com.android.ddmlib.JdwpTrafficResponse;
 import com.android.ddmlib.JdwpTraffic;
+import com.android.ddmlib.JdwpTrafficResponse;
 import com.android.jdwpscache.SCacheResponse;
 import org.jetbrains.annotations.NotNull;
 

@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.apk.viewer;
 
-import com.android.SdkConstants;
-import org.apache.commons.compress.utils.IOUtils;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+import com.android.SdkConstants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.apache.commons.compress.utils.IOUtils;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class ProtoXmlPrettyPrinterTest {
 

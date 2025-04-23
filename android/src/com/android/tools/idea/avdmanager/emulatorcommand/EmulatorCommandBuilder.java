@@ -84,6 +84,7 @@ public class EmulatorCommandBuilder {
   public final @NotNull GeneralCommandLine build() {
     GeneralCommandLine command = new GeneralCommandLine();
     command.setExePath(myEmulator.toString());
+    command.setWorkDirectory(myEmulator.getParent().toString());
 
     if (myAvdHome != null) {
       command.getEnvironment().put("ANDROID_AVD_HOME", myAvdHome.toString());

@@ -1,10 +1,10 @@
 package com.android.tools.idea.res
 
 import com.android.resources.ResourceType
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.FieldVisitor
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.FieldVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 /**
  * For a given [packageName] it finds the R class (and other resource type classes) and returns

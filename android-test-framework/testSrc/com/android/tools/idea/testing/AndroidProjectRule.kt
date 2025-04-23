@@ -17,7 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoThreadLocalsCleaner
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdks
@@ -35,7 +35,6 @@ import com.intellij.facet.FacetType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
@@ -720,7 +719,7 @@ private fun createJavaCodeInsightTestFixtureAndModels(
     override fun setUp() {
       javaCodeInsightTestFixture.setUp()
       prepareSdksForTests(javaCodeInsightTestFixture)
-      invokeAndWaitIfNeeded {
+      ApplicationManager.getApplication().invokeAndWait {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and
         // cleaned after the test to behave
         // properly.
@@ -741,7 +740,7 @@ interface IntegrationTestEnvironmentRule : IntegrationTestEnvironment, TestRule 
 }
 
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :
-  TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
+  TestRule by RuleChain.outerRule(EdtRule()).around(projectRule)!! {
   val project: Project
     get() = projectRule.project
 

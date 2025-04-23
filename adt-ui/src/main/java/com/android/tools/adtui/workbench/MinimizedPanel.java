@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
  */
-class MinimizedPanel<T> extends JPanel implements SideModel.Listener<T> {
+public class MinimizedPanel<T> extends JPanel implements SideModel.Listener<T> {
   private final SideModel<T> myModel;
   private final Side mySide;
   private final Component myFiller;

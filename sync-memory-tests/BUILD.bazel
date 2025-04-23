@@ -1,0 +1,51 @@
+### auto-generated section `build intellij.android.sync-memory-tests` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "sync-memory-tests",
+  module_name = "intellij.android.sync-memory-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:gson",
+    "@lib//:kotlin-stdlib",
+  ]
+)
+
+jvm_test(
+  name = "sync-memory-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":sync-memory-tests"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:gson",
+    "@lib//:kotlin-stdlib",
+    "@lib//:gradle",
+    "@lib//:junit4",
+    "@lib//:javax-inject",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-datetime-jvm",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/android:core-tests_test_lib",
+    "//android/memory-usage",
+    "//android/memory-usage:memory-usage_test_lib",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system-gradle-sync:projectSystem-gradle-sync",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//plugins/gradle:gradle-common",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/external-system-api:externalSystem",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-ex",
+    "@lib//:truth",
+  ]
+)
+### auto-generated section `build intellij.android.sync-memory-tests` end

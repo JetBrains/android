@@ -41,7 +41,7 @@ class UpdateGradlePluginProcessor(
         "file${if (filesCount == 1) "" else "s"})"
     }
 
-  override fun findUsages(): Array<UsageInfo> {
+  protected override fun findUsages(): Array<UsageInfo> {
     return getIncludedBuilds(project).flatMap {
       getUsages(it)
     }.toTypedArray()

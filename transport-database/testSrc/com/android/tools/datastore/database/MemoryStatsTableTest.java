@@ -18,16 +18,17 @@ package com.android.tools.datastore.database;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Memory.*;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.idea.protobuf.ByteString;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
   private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setStreamId(1234).setPid(1).build();

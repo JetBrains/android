@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.util
 
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings
 import com.intellij.openapi.util.io.FileUtil
-import org.jetbrains.plugins.gradle.properties.GRADLE_CACHE_DIR_NAME
 import org.jetbrains.plugins.gradle.properties.GRADLE_LOCAL_JAVA_HOME_PROPERTY
-import org.jetbrains.plugins.gradle.properties.GRADLE_LOCAL_PROPERTIES_FILE_NAME
+import org.jetbrains.plugins.gradle.properties.GradleLocalPropertiesFile
 import java.io.File
-import java.nio.file.Paths
 
 /**
  * Utility methods related to a Gradle cache directory located under .gradle/config.properties
@@ -38,9 +36,7 @@ class GradleConfigProperties(
       isJavaHomeModified = true
       field = value
     }
-  val propertiesFilePath = projectFolderPath.resolve(
-    Paths.get(GRADLE_CACHE_DIR_NAME, GRADLE_LOCAL_PROPERTIES_FILE_NAME).toString()
-  )
+  val propertiesFilePath: File = GradleLocalPropertiesFile.getPropertyPath(projectFolderPath.toPath()).toFile()
   private var isJavaHomeModified = false
   private val properties = PropertiesFiles.getProperties(propertiesFilePath)
 

@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
-import com.android.tools.idea.diagnostics.hprof.util.FileBackedHashMap
 import com.android.tools.idea.diagnostics.hprof.util.FileBackedIntList
 import com.android.tools.idea.diagnostics.hprof.util.IntList
-import org.junit.Assert.*
-
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.nio.channels.FileChannel
-import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 
 class FileBackedIntListTest {

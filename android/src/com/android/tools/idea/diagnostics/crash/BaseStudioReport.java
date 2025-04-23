@@ -20,8 +20,8 @@ import com.android.annotations.Nullable;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.crash.CrashReport;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ui.NewUI;
 import java.util.Map;
+import com.intellij.ui.ExperimentalUI;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 
@@ -40,7 +40,7 @@ public abstract class BaseStudioReport extends CrashReport {
 
     String isNewUI = "Unknown";
     try {
-      isNewUI = Boolean.toString(NewUI.isEnabled());
+      isNewUI = Boolean.toString(ExperimentalUI.isNewUI());
     } catch (Throwable ignore) {
     }
     builder.addTextBody("isNewUI", isNewUI);

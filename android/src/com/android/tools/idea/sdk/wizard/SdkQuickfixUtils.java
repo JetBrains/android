@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionUiKind;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -306,6 +307,9 @@ public final class SdkQuickfixUtils {
   public static boolean checkPathIsAvailableForDownload(String path) {
     // Loading the manager below can require waiting for something on the EDT. If this code has a read lock, this can result in deadlock.
     ThreadingAssertions.assertNoOwnReadAccess();
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      ApplicationManager.getApplication().assertReadAccessNotAllowed();
+    }
 
     RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getRepoManager(REPO_LOGGER);
     mgr.loadSynchronously(

@@ -19,4 +19,5 @@
     <taskManager implementation="com.android.tools.utp.UtpAndroidGradleTaskManagerExtension" />
   </extensions>
 
+  <depends>com.intellij.gradle</depends>
 </idea-plugin>

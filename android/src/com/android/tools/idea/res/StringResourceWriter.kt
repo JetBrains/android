@@ -41,9 +41,9 @@ import com.intellij.refactoring.safeDelete.SafeDeleteDialog
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessor
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.util.IncorrectOperationException
-import java.io.IOException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
+import java.io.IOException
 
 /** An object that can carry out various write operations related to string resources. */
 interface StringResourceWriter {

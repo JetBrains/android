@@ -29,10 +29,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.util.PsiModificationTracker
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Interface for tracking build status. TODO(b/269723767): Use [PsiCodeFileChangeDetectorService]

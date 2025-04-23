@@ -18,8 +18,8 @@ package com.android.tools.property.panel.impl.table
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.panel.api.TableSupport
 import com.google.common.truth.Truth.assertThat
-import java.awt.Dimension
 import org.junit.Test
+import java.awt.Dimension
 
 class DefaultNameComponentTest {
 

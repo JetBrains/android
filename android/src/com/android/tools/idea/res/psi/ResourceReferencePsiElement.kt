@@ -64,9 +64,9 @@ import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.usageView.UsageViewLongNameLocation
 import com.intellij.usageView.UsageViewTypeLocation
 import icons.StudioIcons
-import javax.swing.Icon
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
+import javax.swing.Icon
 
 /**
  * A fake PsiElement that wraps a [ResourceReference].

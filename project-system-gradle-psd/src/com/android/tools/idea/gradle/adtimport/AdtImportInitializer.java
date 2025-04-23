@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.adtimport;
 
-import static com.intellij.icons.AllIcons.ToolbarDecorator.Import;
-
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.android.tools.idea.startup.Actions;

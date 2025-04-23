@@ -21,12 +21,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.ApplicationRule
-import javax.swing.SwingUtilities
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.SwingUtilities
 
 class ActivateTemplateButtonTest {
   @get:Rule val applicationRule = ApplicationRule()

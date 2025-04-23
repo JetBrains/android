@@ -17,7 +17,7 @@ package com.android.tools.idea.wearwhs.view
 
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.DropDownAction
@@ -104,19 +104,19 @@ class WearHealthServicesPanelTest {
 
     stateManager =
       WearHealthServicesStateManagerImpl(
-          deviceManager = deviceManager,
-          pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
-          workerScope = workerScope,
-          stateStalenessThreshold = TEST_STATE_STALENESS_THRESHOLD,
-        )
+        deviceManager = deviceManager,
+        pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
+        workerScope = workerScope,
+        stateStalenessThreshold = TEST_STATE_STALENESS_THRESHOLD,
+      )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
         .also { it.serialNumber = "some serial number" }
 
     val actionManager = spy(ActionManager.getInstance() as ActionManagerEx)
     doAnswer { invocation ->
-        fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
-        fakePopup
-      }
+      fakePopup = FakeActionPopupMenu(invocation.getArgument(1))
+      fakePopup
+    }
       .whenever(actionManager)
       .createActionPopupMenu(anyString(), any())
     ApplicationManager.getApplication()
@@ -425,7 +425,7 @@ class WearHealthServicesPanelTest {
     deviceManager.failState = true
     waitForCondition(5.seconds) {
       label.icon == StudioIcons.Common.WARNING &&
-        label.toolTipText == message("wear.whs.panel.stale.data")
+      label.toolTipText == message("wear.whs.panel.stale.data")
     }
 
     // when the sync succeeds again, then the state will no longer be warned as stale
@@ -466,8 +466,8 @@ class WearHealthServicesPanelTest {
       waitForCondition(5.seconds) {
         (locationLabel.labelFor as JPanel).components.filterIsInstance<JLabel>().any {
           it.icon == AllIcons.General.Note &&
-            it.toolTipText == message("wear.whs.capability.override.not.supported") &&
-            it.isVisible
+          it.toolTipText == message("wear.whs.capability.override.not.supported") &&
+          it.isVisible
         }
       }
     }
@@ -722,18 +722,18 @@ class WearHealthServicesPanelTest {
     if (whsPanelCreated) {
       throw IllegalStateException(
         "The WHS Panel should only be created once per test. " +
-          "This is because the coroutines will end up interfering with each other if there are more than one panel at a time."
+        "This is because the coroutines will end up interfering with each other if there are more than one panel at a time."
       )
     }
     return createWearHealthServicesPanel(
-        stateManager = stateManager,
-        uiScope = uiScope,
-        workerScope = workerScope,
-        informationLabelFlow = informationLabelFlow,
-        reset = { reset() },
-        applyChanges = { applyChanges() },
-        triggerEvent = { triggerEvent(it) },
-      )
+      stateManager = stateManager,
+      uiScope = uiScope,
+      workerScope = workerScope,
+      informationLabelFlow = informationLabelFlow,
+      reset = { reset() },
+      applyChanges = { applyChanges() },
+      triggerEvent = { triggerEvent(it) },
+    )
       .also { whsPanelCreated = true }
   }
 }

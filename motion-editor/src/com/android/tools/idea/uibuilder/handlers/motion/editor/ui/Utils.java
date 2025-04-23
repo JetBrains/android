@@ -50,7 +50,7 @@ public class Utils {
   }
 
   public static String formatTransition(String id, String start, String end) {
-    if (id == null || id.length() == 0) {
+    if (id == null || id.isEmpty()) {
       return start + "->" + end;
     }
     return id;

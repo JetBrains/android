@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.ProjectFiles;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,17 +30,10 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link ExternalSourceFolders}.

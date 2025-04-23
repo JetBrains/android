@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
+import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.util.io.FileUtil.copyDir;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.testing.FileSubject;
@@ -31,19 +42,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import java.io.File;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
-import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link SmaliFileNotificationProvider}.

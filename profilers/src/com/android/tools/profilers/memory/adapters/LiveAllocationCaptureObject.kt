@@ -40,7 +40,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.Type
 import java.io.OutputStream
 import java.util.TreeMap
 import java.util.concurrent.Executor
@@ -97,7 +97,7 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
     override fun getBatchEvents(startTimeNs: Long, endTimeNs: Long) =
       getEvents(startTimeNs, endTimeNs, Common.Event.Kind.MEMORY_ALLOC_EVENTS) { it.memoryAllocEvents.events }.apply {
         updateSeenTimestamp(Memory.BatchAllocationEvents::getTimestamp)
-    }
+      }
   }
 
   private val jniReferenceEventAdapter = object: EventAdapter<Memory.BatchJNIGlobalRefEvent, JNIGlobalReferenceEvent> {
@@ -125,7 +125,7 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
   override fun getInfoMessage() = infoMessage
 
   override fun getHeapSets() =
-    // Exclude DEFAULT_HEAP since it shouldn't show up in use in devices that support live allocation tracking.
+  // Exclude DEFAULT_HEAP since it shouldn't show up in use in devices that support live allocation tracking.
     // But handle the unexpected, just in case....
     if (heapSets[0].instancesCount > 0) heapSets else heapSets.subList(1, heapSets.size)
 
@@ -515,12 +515,12 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
   }
 
   private fun buildEventGroupRequest(kind: Common.Event.Kind, startTimeNs: Long, endTimeNs: Long) = GetEventGroupsRequest.newBuilder()
-      .setStreamId(session.streamId)
-      .setPid(session.pid)
-      .setKind(kind)
-      .setFromTimestamp(startTimeNs)
-      .setToTimestamp(endTimeNs)
-      .build()
+    .setStreamId(session.streamId)
+    .setPid(session.pid)
+    .setKind(kind)
+    .setFromTimestamp(startTimeNs)
+    .setToTimestamp(endTimeNs)
+    .build()
 
   private fun<T> List<T>.updateSeenTimestamp(timestamp: (T) -> Long) = stream().mapToLong(timestamp).max().ifPresent {
     lastSeenTimestampNs = max(lastSeenTimestampNs, it)

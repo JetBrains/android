@@ -19,10 +19,9 @@ import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.intellij.openapi.components.PersistentStateComponent;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.ActionListener;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 public interface ConfigureIconView extends PersistentStateComponent<PersistentState> {
   /**

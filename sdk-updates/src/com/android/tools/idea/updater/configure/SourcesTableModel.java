@@ -21,10 +21,10 @@ import com.android.repository.api.RepositorySourceProvider;
 import com.android.repository.api.SchemaModule;
 import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.sources.LocalSourceProvider;
-import com.android.tools.idea.sdk.AndroidAuthenticator;
-import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.AndroidAuthenticator;
+import com.android.tools.idea.sdk.StudioDownloader;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Table model representing the currently available {@link RepositorySource}s. Sources can be added, deleted, enabled, and disabled.
  */
-class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements EditableModel {
+public class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements EditableModel {
   /**
    * Sources originally loaded. Used to check whether any have been added or deleted.
    */
@@ -401,8 +401,8 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    * A row in our table.
    */
   @VisibleForTesting
-  class Row implements SdkUpdaterConfigPanel.MultiStateRow, Comparable<Row> {
-    RepositorySource mySource;
+  public class Row implements SdkUpdaterConfigPanel.MultiStateRow, Comparable<Row> {
+    public RepositorySource mySource;
     boolean myOriginalEnabled;
     String myOriginalName;
 

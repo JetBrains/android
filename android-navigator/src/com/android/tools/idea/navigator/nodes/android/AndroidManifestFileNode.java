@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import static com.android.SdkConstants.FD_MAIN;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.findByFile;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static java.util.Collections.emptyList;
+
 import com.android.tools.idea.navigator.AndroidViewNodes;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
@@ -29,13 +36,6 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.FD_MAIN;
-import static com.android.tools.idea.projectsystem.SourceProvidersKt.findByFile;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static java.util.Collections.emptyList;
 
 public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupNode {
   @NotNull private final AndroidFacet myAndroidFacet;

@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -22,11 +24,8 @@ import com.intellij.psi.PsiPackage;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidMultiModuleRenameTest extends AndroidTestCase {
   public static final String LIBRARY_MODULE = "library";

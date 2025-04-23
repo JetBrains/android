@@ -78,7 +78,6 @@ import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.prevLeafs
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import org.jetbrains.kotlin.idea.completion.or
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import kotlin.math.max
 

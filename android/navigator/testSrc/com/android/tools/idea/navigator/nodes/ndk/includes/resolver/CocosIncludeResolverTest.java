@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.utils.FileUtils;
-import org.junit.Test;
-
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class CocosIncludeResolverTest {
 

@@ -61,7 +61,7 @@ import com.android.tools.dom.attrs.AttributeDefinitionsImpl;
 import com.android.tools.dom.attrs.FilteredAttributeDefinitions;
 
 public class AndroidTargetData {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidTargetData");
+  private static final Logger LOG = Logger.getInstance(AndroidTargetData.class);
 
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;

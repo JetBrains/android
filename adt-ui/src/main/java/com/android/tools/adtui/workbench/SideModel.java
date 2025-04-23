@@ -18,13 +18,12 @@ package com.android.tools.adtui.workbench;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link SideModel} keeps track of all registered tool windows for a {@link WorkBench}.
@@ -36,7 +35,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> Specifies the type of data controlled by a {@link WorkBench}.
  */
-class SideModel<T> {
+public class SideModel<T> {
   private final List<AttachedToolWindow<T>> myAllTools;
   private final VisiblePair<T> myLeftVisibleTools;
   private final VisiblePair<T> myRightVisibleTools;

@@ -17,7 +17,6 @@ package com.android.tools.idea.observable.expressions.list;
 
 import com.android.tools.idea.observable.collections.ObservableList;
 import com.android.tools.idea.observable.expressions.Expression;
-
 import java.util.List;
 
 /**

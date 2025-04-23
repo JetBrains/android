@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-final class Utils {
+public final class Utils {
   private Utils() {
   }
 

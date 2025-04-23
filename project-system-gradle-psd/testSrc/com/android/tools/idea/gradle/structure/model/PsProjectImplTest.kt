@@ -22,13 +22,11 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
 import com.android.tools.idea.gradle.util.GradleWrapper
-import com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.testFramework.RunsInEdt
-import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNull.nullValue
 import org.junit.Assert.assertThat

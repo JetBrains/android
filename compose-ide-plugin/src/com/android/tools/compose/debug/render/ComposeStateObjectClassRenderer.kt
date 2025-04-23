@@ -259,7 +259,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
         // Or fallback to the default renderer.
         val found =
           renderers.firstOrNull()
-            ?: return@thenCompose (debugProcess as DebugProcessImpl).getAutoRendererAsync(type)
+          ?: return@thenCompose (debugProcess as DebugProcessImpl).getAutoRendererAsync(type)
 
         CompletableFuture.completedFuture(found)
       }

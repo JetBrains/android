@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * An InspectorBuilder for an informative line (or 2) in the top of the properties panel.
  */
-class SelectedTargetBuilder implements InspectorBuilder<NlPropertyItem> {
+public class SelectedTargetBuilder implements InspectorBuilder<NlPropertyItem> {
   private static final String UNNAMED_TARGET = "<unnamed>";
 
   @Override

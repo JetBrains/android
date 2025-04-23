@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.testutils.TestUtils.getSdk;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -25,10 +23,10 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
@@ -112,7 +110,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
       }
     }
 
-    return getSdk().toFile();
+    return TestUtils.getSdk().toFile();
   }
 
   @Override

@@ -28,12 +28,6 @@ import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.Sket
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ResizingConstraint;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfaces.SketchLayer;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.meta.SketchMeta;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPoint2D;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchFile;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;

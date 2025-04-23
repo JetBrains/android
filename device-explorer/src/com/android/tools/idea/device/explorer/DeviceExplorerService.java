@@ -17,14 +17,10 @@ package com.android.tools.idea.device.explorer;
 
 import static com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import java.util.Arrays;
-import java.util.Optional;
+
 import org.jetbrains.annotations.NotNull;
 
 /**

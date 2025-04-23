@@ -25,7 +25,6 @@ import com.android.tools.idea.compose.preview.animation.validation.IntValidation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.ui.ColorUtil
-import java.awt.Color
 import java.lang.reflect.Method
 
 /** Compose units represented as multi-dimensional properties. */

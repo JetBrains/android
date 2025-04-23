@@ -21,7 +21,6 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import javax.swing.Icon
 import javax.swing.JComponent
 

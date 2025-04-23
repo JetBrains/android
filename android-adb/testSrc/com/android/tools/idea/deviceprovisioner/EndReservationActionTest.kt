@@ -32,8 +32,6 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
-import java.time.Duration
-import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +39,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import org.junit.Rule
 import org.junit.Test
+import java.time.Duration
+import java.time.Instant
 
 private const val END_RESERVATION_ID = "android.device.reservation.end"
 private val defaultPresentation = DeviceAction.Presentation("", EmptyIcon.ICON_0, true)

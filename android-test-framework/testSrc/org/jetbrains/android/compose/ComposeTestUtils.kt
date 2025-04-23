@@ -16,7 +16,7 @@
 package org.jetbrains.android.compose
 
 import com.android.SdkConstants
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.fileTypes.FileType

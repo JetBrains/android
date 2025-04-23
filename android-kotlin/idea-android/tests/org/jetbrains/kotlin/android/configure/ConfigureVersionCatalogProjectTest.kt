@@ -15,8 +15,8 @@
  */
 package org.jetbrains.kotlin.android.configure
 
-import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
@@ -38,7 +38,6 @@ import org.jetbrains.kotlin.idea.configuration.ChangedConfiguratorFiles
 import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.junit.Assert
-import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -57,7 +56,7 @@ class ConfigureVersionCatalogProjectTest {
 
 
     companion object {
-        private const val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
+        private val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
         private const val GRADLE_CATALOG_DIR = "idea-android/testData/configuration/android-gradle/catalog"
     }
 

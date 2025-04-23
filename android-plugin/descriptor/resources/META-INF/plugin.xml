@@ -7,13 +7,19 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>2023.1.1 Canary 6</version>
   <vendor>JetBrains, Google</vendor>
+
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Narwhal Canary 3.
+
+    For detailed information, please refer to the release notes available at:
+    <a href="https://androidstudio.googleblog.com/2025/04/android-studio-narwhal-202511-canary-4.html">Android Studio Narwhal Canary 3</a>.]]>
+  </change-notes>
+
   <dependencies>
     <plugin id="com.intellij.platform.images"/>
-    <plugin id="com.intellij.modules.java"/>
     <plugin id="com.intellij.java"/>
-    <module name="intellij.json.split"/>
+    <module name="intellij.json.backend"/>
     <module name="intellij.platform.lvcs.impl"/>
     <module name="intellij.platform.vcs.impl"/>
     <module name="intellij.platform.vcs.dvcs.impl"/>
@@ -40,15 +46,15 @@
   <xi:include href="/META-INF/android-editing-metrics.xml"/>
   <xi:include href="/META-INF/android-lang.xml"/>
   <xi:include href="/META-INF/android-lang-databinding.xml"/>
-  <xi:include href="/META-INF/android-keys.xml"/>
+<!--  <xi:include href="/META-INF/android-keys.xml"/>-->
   <xi:include href="/META-INF/android-navigator.xml"/>
   <xi:include href="/META-INF/android-room.xml"/>
   <xi:include href="/META-INF/android-dagger.xml"/>
   <xi:include href="/META-INF/apkanalyzer.xml" />
   <xi:include href="/META-INF/apkanalyzer-gradle.xml" />
   <xi:include href="/META-INF/apkanalyzer-apk.xml" />
-  <xi:include href="/META-INF/app-insights-api.xml"/>
-  <xi:include href="/META-INF/app-insights.xml"/>
+<!--  <xi:include href="/META-INF/app-insights-api.xml"/>-->
+<!--  <xi:include href="/META-INF/app-insights.xml"/>-->
   <xi:include href="/META-INF/databinding.xml"/>
   <xi:include href="/META-INF/databinding-gradle.xml"/>
   <xi:include href="/META-INF/mlkit.xml"/>
@@ -57,7 +63,7 @@
   <xi:include href="/META-INF/backup.xml"/>
   <xi:include href="/META-INF/safeargs.xml"/>
   <xi:include href="/META-INF/pipeline.xml"/>
-  <xi:include href="/META-INF/play-vitals.xml"/>
+  <!-- <xi:include href="/META-INF/play-vitals.xml"/> -->
   <xi:include href="/META-INF/profilers.xml"/>
   <xi:include href="/META-INF/profilers-gradle.xml"/>
   <xi:include href="/META-INF/project-system-plugin.xml"/>
@@ -65,9 +71,9 @@
   <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml"/>
   <xi:include href="/META-INF/project-system-gradle-upgrade.xml"/>
-  <xi:include href="/META-INF/assistant.xml"/>
-  <xi:include href="/META-INF/connection-assistant.xml"/>
-  <xi:include href="/META-INF/whats-new-assistant.xml"/>
+  <!--<xi:include href="/META-INF/assistant.xml"/>-->
+  <!--<xi:include href="/META-INF/connection-assistant.xml"/>-->
+  <!--<xi:include href="/META-INF/whats-new-assistant.xml"/>-->
   <xi:include href="/META-INF/layout-inspector.xml"/>
   <xi:include href="/META-INF/layout-inspector-gradle.xml"/>
   <xi:include href="/META-INF/app-inspection.xml"/>
@@ -80,13 +86,12 @@
   <xi:include href="/META-INF/utp.xml"/>
   <xi:include href="/META-INF/backgroundtask-inspector.xml"/>
   <xi:include href="/META-INF/android-debuggers.xml"/>
-  <xi:include href="/META-INF/gradle-dsl.xml"/>
-  <xi:include href="/META-INF/gradle-dsl-groovy.xml"/>
-  <xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>
-  <xi:include href="/META-INF/gradle-dsl-declarative.xml"/>
-  <xi:include href="/META-INF/gradle-dsl-toml.xml"/>
-  <xi:include href="/META-INF/gradle-dsl-flags.xml"/>
-  <xi:include href="/META-INF/intellij.android.avd.xml"/>
+  <!--<xi:include href="/META-INF/gradle-dsl.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-kotlin.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-declarative.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-declarative-lang.xml"/>-->
+  <!--<xi:include href="/META-INF/gradle-dsl-toml.xml"/>-->
+  <xi:include href="/META-INF/android-avd.xml"/>
   <xi:include href="/META-INF/logcat.xml"/>
   <xi:include href="/META-INF/intellij.android.device-explorer.xml"/>
   <xi:include href="/META-INF/android-npw.xml"/>
@@ -100,14 +105,14 @@
   <xi:include href="/META-INF/wear-dwf.xml"/>
   <xi:include href="/META-INF/android-execution-common.xml"/>
   <xi:include href="/META-INF/android-deploy.xml"/>
-  <xi:include href="/META-INF/google-login.xml"/>
-  <xi:include href="/META-INF/samples-browser.xml"/>
+  <!--<xi:include href="/META-INF/google-login.xml"/>-->
+  <!--<xi:include href="/META-INF/samples-browser.xml"/>-->
   <xi:include href="/META-INF/native-symbolizer.xml"/>
   <xi:include href="/META-INF/native-symbolizer-gradle.xml"/>
   <xi:include href="/META-INF/aiplugin-api.xml"/>
   <xi:include href="/META-INF/server-flags.xml"/>
-  <xi:include href="/META-INF/studio-labs.xml" />
-  <xi:include href="/META-INF/settings-sync.xml" />
+<!--  <xi:include href="/META-INF/studio-labs.xml" />-->
+<!--  <xi:include href="/META-INF/settings-sync.xml" />-->
   <xi:include href="/META-INF/screenshot-testing.xml" />
   <xi:include href="/META-INF/screenshot-testing-gradle.xml" />
 </idea-plugin>

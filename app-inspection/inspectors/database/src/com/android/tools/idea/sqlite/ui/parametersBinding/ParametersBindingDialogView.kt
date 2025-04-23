@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.ui.parametersBinding
 
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
-import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView.Listener
 
 /**
  * Abstraction used by [com.android.tools.idea.sqlite.controllers.ParametersBindingController] to

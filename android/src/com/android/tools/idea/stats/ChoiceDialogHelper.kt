@@ -28,7 +28,7 @@ val Option.icon: Icon?
     if (path.isNullOrBlank()) {
       return null
     }
-    return IconLoader.getIcon(path, StudioIcons::class.java)
+    return IconLoader.getIcon(path, StudioIcons::class.java.classLoader)
   }
 
 fun createDialog(survey: Survey, choiceLogger: ChoiceLogger = ChoiceLoggerImpl, followupSurvey: Survey? = null): DialogWrapper {

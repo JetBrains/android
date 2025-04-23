@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import java.net.SocketException
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 
 class ConnectionPermissionDeniedIssueCheckerTest : AndroidGradleTestCase() {
   private val connectionPermissionDeniedIssueChecker = ConnectionPermissionDeniedIssueChecker()

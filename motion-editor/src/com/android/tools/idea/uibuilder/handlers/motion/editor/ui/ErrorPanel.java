@@ -29,6 +29,8 @@ import java.util.Locale;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 
 public class ErrorPanel extends JPanel {
   JLabel myBanner = new JLabel();
@@ -58,12 +60,12 @@ public class ErrorPanel extends JPanel {
     gbc.gridy++;
     gbc.weightx = 1;
     gbc.insets = MEUI.insets(10,10,10,10);
-    myLabel.setVerticalAlignment(JLabel.BOTTOM);
-    myLabel.setHorizontalAlignment(JLabel.CENTER);
+    myLabel.setVerticalAlignment(SwingConstants.BOTTOM);
+    myLabel.setHorizontalAlignment(SwingConstants.CENTER);
     Font font = myLabel.getFont();
     myLabel.setFont(font.deriveFont(font.getSize()*2f));
     myErrorLabel.setName("MotionEditorErrorLabel");
-    myErrorLabel.setVerticalAlignment(JLabel.TOP);
+    myErrorLabel.setVerticalAlignment(SwingConstants.TOP);
     myErrorLabel.setText(null);
     add(myErrorLabel, gbc);
     myErrorLabel.setForeground(MEUI.ourErrorColor);
@@ -203,7 +205,7 @@ public class ErrorPanel extends JPanel {
     frame.setBounds(100,100,500,800);
     frame.setTitle("JFrame");
 
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     frame.setVisible(true);
   }
 }

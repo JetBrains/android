@@ -15,8 +15,8 @@
  */
 package com.android.gmdcodecompletion
 
-import com.jetbrains.rd.util.Date
 import java.util.Calendar
+import java.util.Date
 
 /** Defines device catalog state that is persisted by GMD device catalog service across idea applications */
 abstract class GmdDeviceCatalogState(

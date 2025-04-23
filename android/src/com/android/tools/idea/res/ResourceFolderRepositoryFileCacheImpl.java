@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.res.CodeVersionAdapter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -23,6 +25,7 @@ import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionNotApplicableException;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -118,7 +121,7 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
 
   @VisibleForTesting
   @Nullable
-  Path getRootDir() {
+  public Path getRootDir() {
     if (!Files.isDirectory(myRootDir, LinkOption.NOFOLLOW_LINKS)) {
       try {
         Files.createDirectories(myRootDir);
@@ -224,7 +227,7 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
    * caches for projects that have been bumped out of the queue. This helps limit the storage
    * used to be up to only N projects at a time.
    */
-  static class ManageLruProjectFilesTask extends DumbModeTask {
+  public static class ManageLruProjectFilesTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
     private final static Object PROJECT_LRU_LOCK = new Object();
@@ -338,7 +341,7 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
    * Task that prunes unused resource directory caches within a given Project (which may come about
    * e.g., if one has moved a resource directory from one module to another).
    */
-  static class PruneTask extends DumbModeTask {
+  public static class PruneTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
     PruneTask(@NotNull Project project) {
@@ -405,6 +408,11 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
 
+      if (!IdeInfo.getInstance().isAndroidStudio()
+          && AndroidSdks.getInstance().getAllAndroidSdks().isEmpty()) {
+        return; // do not activate in IDEA without Android SDKs
+      }
+
       // Prune directories within the current project.
       PruneTask pruneTask = new PruneTask(project);
       pruneTask.queue(project);
@@ -416,9 +424,17 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
   }
 
   public static class PopulateCachesActivity implements StartupActivity.RequiredForSmartMode {
+    public PopulateCachesActivity() {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw ExtensionNotApplicableException.create();
+      }
+    }
+
     @Override
     public void runActivity(@NotNull Project project) {
-      if (ApplicationManager.getApplication().isUnitTestMode()) return;
+      if (!IdeInfo.getInstance().isAndroidStudio() && AndroidSdks.getInstance().getAllAndroidSdks().isEmpty()) {
+        return; // do not activate in IDEA without Android SDKs
+      }
 
       // Pre-populate the in-memory resource folder registry for the project.
       ResourceFolderRegistry.PopulateCachesTask task = new ResourceFolderRegistry.PopulateCachesTask(project);

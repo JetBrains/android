@@ -15,12 +15,11 @@
  */
 package com.android.tools.adtui.model;
 
-import org.junit.Test;
-
-import java.util.concurrent.CountDownLatch;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.CountDownLatch;
+import org.junit.Test;
 
 public class FpsTimerTest {
 

@@ -19,7 +19,7 @@ import com.android.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import org.jetbrains.annotations.NotNull;
 
-class HeapTraverseNode {
+public class HeapTraverseNode {
 
   @NotNull
   private final WeakReference<?> weakReference;

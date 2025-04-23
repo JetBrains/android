@@ -20,7 +20,6 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage

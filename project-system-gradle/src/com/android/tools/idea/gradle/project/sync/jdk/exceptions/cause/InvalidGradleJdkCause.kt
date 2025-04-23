@@ -16,7 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause
 
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason
-import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.*
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_ENVIRONMENT_VARIABLE_JAVA_HOME
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_ENVIRONMENT_VARIABLE_STUDIO_GRADLE_JDK
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_GRADLE_JVM_TABLE_ENTRY_JAVA_HOME
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_GRADLE_LOCAL_JAVA_HOME
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.INVALID_GRADLE_PROPERTIES_JAVA_HOME
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_ENVIRONMENT_VARIABLE_JAVA_HOME
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_ENVIRONMENT_VARIABLE_STUDIO_GRADLE_JDK
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_GRADLE_JVM_TABLE_ENTRY
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_GRADLE_JVM_TABLE_ENTRY_JAVA_HOME
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_GRADLE_LOCAL_JAVA_HOME
+import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason.UNDEFINED_GRADLE_PROPERTIES_JAVA_HOME
 import org.jetbrains.android.util.AndroidBundle
 import java.nio.file.Path
 

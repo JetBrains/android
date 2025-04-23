@@ -23,7 +23,7 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager

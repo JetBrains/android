@@ -25,7 +25,6 @@ import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.res.TransitiveAarRClass
-import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText

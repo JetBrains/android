@@ -15,7 +15,7 @@
  */
 package com.android.tools.fonts
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.res.SingleRepoResourceRepositoryManager
 import com.android.tools.res.apk.ApkResourceRepository
 import com.android.tools.res.apk.TEST_DATA_DIR

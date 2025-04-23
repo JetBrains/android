@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory.adapters
 
 import com.android.tools.perflib.heap.ClassInstance
-import java.lang.StringBuilder
 import com.android.tools.perflib.heap.ArrayInstance
 import com.android.tools.perflib.heap.ClassObj
 import com.android.tools.perflib.heap.Field

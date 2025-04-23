@@ -53,7 +53,7 @@ public final class HeapSnapshotStatistics {
   private static final int MAX_BYTES_FOR_REPORT_ATTACHMENT_FILE = 1_200_000;
   private static final int MAX_BYTES_FOR_HEAP_SUMMARY_FIELD = 250_000;
 
-  @NotNull final ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking totalStats =
+  public @NotNull final ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking totalStats =
     new ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking();
 
   @NotNull
@@ -64,13 +64,13 @@ public final class HeapSnapshotStatistics {
   @NotNull final Long2ObjectMap<SharedClusterStatistics> maskToSharedComponentStats =
     new Long2ObjectOpenHashMap<>();
 
-  int maxFieldsCacheSize = 0;
-  int maxObjectsQueueSize = 0;
+  public int maxFieldsCacheSize = 0;
+  public int maxObjectsQueueSize = 0;
   // number of objects that were enumerated during the first traverse, but GCed after that and were
   // not reached during the second pass
-  int enumeratedGarbageCollectedObjects = 0;
-  int unsuccessfulFieldAccessCounter = 0;
-  int heapObjectCount = 0;
+  public int enumeratedGarbageCollectedObjects = 0;
+  public int unsuccessfulFieldAccessCounter = 0;
+  public int heapObjectCount = 0;
   private short traverseSessionId;
   @NotNull
   private final HeapTraverseConfig config;
@@ -78,11 +78,11 @@ public final class HeapSnapshotStatistics {
   @Nullable
   private final ExtendedReportStatistics extendedReportStatistics;
 
-  HeapSnapshotStatistics(@NotNull final ComponentsSet componentsSet) {
+  public HeapSnapshotStatistics(@NotNull final ComponentsSet componentsSet) {
     this(new HeapTraverseConfig(componentsSet, /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
   }
 
-  HeapSnapshotStatistics(@NotNull final HeapTraverseConfig config) {
+  public HeapSnapshotStatistics(@NotNull final HeapTraverseConfig config) {
     this.config = config;
     for (ComponentsSet.Component component : config.getComponentsSet().getComponents()) {
       componentStats.add(new ComponentClusterObjectsStatistics(component));

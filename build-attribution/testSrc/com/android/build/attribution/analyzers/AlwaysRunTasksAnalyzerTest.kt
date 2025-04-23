@@ -16,19 +16,15 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAnalyzerStorageManager
-import com.android.build.attribution.BuildAttributionManagerImpl
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.getSuccessfulResult
 import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
-import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File

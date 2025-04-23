@@ -30,7 +30,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;

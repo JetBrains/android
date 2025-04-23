@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2023 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<idea-plugin>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <callHighlighterExtension implementation="com.android.tools.compose.aa.ComposableCallHighlighterExtension"/>
+    <codeinsight.quickfix.registrar implementation="com.android.tools.compose.aa.intentions.ComposeIdePluginQuickFixRegistrar"/>
+    <extractFunctionDescriptorModifier implementation="com.android.tools.compose.aa.ComposableFunctionExtractableAnalyser"/>
+    <bundledFirCompilerPluginProvider implementation="com.android.tools.compose.aa.Pre2Point0CompatableComposeCompilerPluginProviderForK2"/>
+    <firCompilerPluginConfigurationProvider implementation="com.android.tools.compose.aa.K2ComposeCompilerConfigurationProvider"/>
+    <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
+    <supportsKotlinPluginMode supportsK2="true"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <intentionAction>
+      <language>kotlin</language>
+      <className>com.android.tools.compose.intentions.ComposeCreatePreviewActionK2</className>
+      <category>Compose Android</category>
+    </intentionAction>
+  </extensions>
+</idea-plugin>

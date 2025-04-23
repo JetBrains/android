@@ -21,13 +21,13 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ThemeSelectionDialog extends DialogWrapper {
@@ -60,11 +60,6 @@ public class ThemeSelectionDialog extends DialogWrapper {
       }
     });
     return contentPanel;
-  }
-
-  @Override
-  protected void doOKAction() {
-    super.doOKAction();
   }
 
   @Override

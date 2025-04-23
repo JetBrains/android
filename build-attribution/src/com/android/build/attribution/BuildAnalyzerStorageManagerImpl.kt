@@ -22,8 +22,8 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.observable.properties.AtomicProperty
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.observable.properties.AtomicProperty
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
 import java.util.concurrent.CompletableFuture

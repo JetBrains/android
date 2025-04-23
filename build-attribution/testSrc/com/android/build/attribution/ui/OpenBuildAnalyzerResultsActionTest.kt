@@ -66,7 +66,7 @@ class OpenBuildAnalyzerResultsActionTest {
   @Test
   fun testActionIsRegistered() {
     val action = ActionManager.getInstance()
-      .getAction("com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction")
+      .getAction("Android.OpenBuildAnalyzerResultsAction")
     Truth.assertThat(action).isNotNull()
   }
 

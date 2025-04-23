@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.daemon
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.intellij.openapi.Disposable

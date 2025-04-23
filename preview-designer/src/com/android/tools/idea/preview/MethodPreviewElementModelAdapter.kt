@@ -27,7 +27,7 @@ import com.intellij.openapi.util.Disposer
 abstract class MethodPreviewElementModelAdapter<
   T : MethodPreviewElement<*>,
   M : NlDataProviderHolder,
->(private val elementKey: DataKey<T>) : PreviewElementModelAdapter<T, M> {
+  >(private val elementKey: DataKey<T>) : PreviewElementModelAdapter<T, M> {
   override fun calcAffinity(el1: T, el2: T?): Int {
     if (el2 == null) return 3
 

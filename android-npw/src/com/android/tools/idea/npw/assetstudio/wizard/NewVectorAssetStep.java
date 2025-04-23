@@ -71,6 +71,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.concurrency.SwingWorker;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -683,7 +684,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
      */
     @UiThread
     public void enqueueUpdate() {
-      ApplicationManager.getApplication().assertIsDispatchThread();
+      ThreadingAssertions.assertEventDispatchThread();
 
       int previewWidth = myImagePreview.getWidth();
       if (previewWidth <= 0) {
@@ -711,7 +712,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
       @UiThread
       Worker(int previewWidth) {
-        ApplicationManager.getApplication().assertIsDispatchThread();
+        ThreadingAssertions.assertEventDispatchThread();
         myPreviewWidth = previewWidth;
         myAsset = myActiveAsset.get();
         myAssetFile = myAsset.path().getValueOrNull();
@@ -738,7 +739,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       @UiThread
       @Override
       public void finished() {
-        ApplicationManager.getApplication().assertIsDispatchThread();
+        ThreadingAssertions.assertEventDispatchThread();
         assert myPreview != null;
 
         // Update the preview image if it corresponds to the current state.

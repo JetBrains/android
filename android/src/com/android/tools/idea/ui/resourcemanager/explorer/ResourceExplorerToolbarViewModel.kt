@@ -52,7 +52,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Comparing
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
@@ -168,7 +168,7 @@ class ResourceExplorerToolbarViewModel(
       }
     return FileChooser.chooseFiles(fileChooserDescriptor, facet.module.project, null)
       .map(VirtualFile::getPath)
-      .map(FileUtil::toSystemDependentName)
+      .map(FileUtilRt::toSystemDependentName)
   }
 
   private val customImporters get() = importersProvider.importers.filter { it.hasCustomImport }

@@ -50,7 +50,7 @@ class DeviceNamePropertiesFetcher
 @VisibleForTesting
 constructor(
   private val parent: Disposable,
-  private val uiCallback: FutureCallback<DeviceNameProperties>,
+  private val uiCallback: FutureCallback<DeviceNameProperties?>,
   private val isDisposed: (Disposable) -> Boolean,
 ) : Disposable by parent, DeviceNamePropertiesProvider {
   private val edtExecutor = EdtExecutorService.getInstance()
@@ -74,11 +74,11 @@ constructor(
 
   constructor(
     parent: Disposable,
-    uiCallback: FutureCallback<DeviceNameProperties>,
+    uiCallback: FutureCallback<DeviceNameProperties?>,
   ) : this(parent, uiCallback, Disposer::isDisposed)
 
   @VisibleForTesting
-  class DefaultCallback : FutureCallback<DeviceNameProperties> {
+  class DefaultCallback : FutureCallback<DeviceNameProperties?> {
     /** Does nothing. Use [DeviceNamePropertiesFetcher.get] to get the properties. */
     override fun onSuccess(properties: DeviceNameProperties?) {}
 

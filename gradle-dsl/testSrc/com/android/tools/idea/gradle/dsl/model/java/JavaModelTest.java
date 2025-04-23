@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.java;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import java.io.File;
@@ -255,6 +257,33 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_8, buildModel.java().sourceCompatibility().toLanguageLevel());
   }
 
+
+  /**
+   * to run this test, disable the first check in
+   * {@link com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase#before()}
+   */
+  @Test
+  public void testDeclarative() throws IOException {
+    isIrrelevantForGroovy("no reason");
+    isIrrelevantForKotlinScript("no reason");
+
+    DeclarativeStudioSupport.override(true);
+
+    writeToBuildFile(TestFile.DECLARATIVE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    assertEquals(LanguageLevel.JDK_17, buildModel.javaApplication().javaVersion().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_21, buildModel.javaApplication().testing().javaVersion().toLanguageLevel());
+
+    assertEquals("com.example.App", buildModel.javaApplication().mainClass());
+
+    DependenciesModel dependenciesModel = buildModel.javaApplication().dependencies();
+    assertEquals("com.google.guava:guava:32.1.3-jre", dependenciesModel.artifacts().get(0).compactNotation());
+    assertEquals("java-util", dependenciesModel.modules().get(0).name());
+    DependenciesModel testingDependenciesModel = buildModel.javaApplication().testing().dependencies();
+    assertEquals("org.junit.jupiter:junit-jupiter:5.10.2", testingDependenciesModel.artifacts().get(0).compactNotation());
+  }
+
   enum TestFile implements TestFileName {
     READ_JAVA_VERSIONS_AS_NUMBERS("readJavaVersionsAsNumbers"),
     READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS("readJavaVersionsAsSingleQuoteStrings"),
@@ -279,6 +308,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
     DELETE_LANGUAGE_LEVEL_AT_TOPLEVEL("deleteLanguageLevelAtTopLevel"),
     ADD_AFTER_PLUGINS("addAfterPlugins"),
     ADD_AFTER_PLUGINS_EXPECTED("addAfterPluginsExpected"),
+    DECLARATIVE("declarative"),
     ;
     @NotNull private @SystemDependent String path;
     TestFile(@NotNull @SystemDependent String path) {

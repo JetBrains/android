@@ -15,18 +15,19 @@
  */
 package com.android.tools.rendering.security;
 
+import static com.android.SdkConstants.DOT_CLASS;
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.SdkConstants.VALUE_FALSE;
+
 import com.android.annotations.Nullable;
 import com.android.tools.rendering.RenderService;
 import com.android.utils.ILogger;
-
-import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FilePermission;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Permission;
 import java.util.Arrays;
@@ -34,8 +35,6 @@ import java.util.PropertyPermission;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.*;
 
 /**
  * A {@link SecurityManager} which is used for layout lib rendering, to
@@ -334,6 +333,23 @@ public class RenderSecurityManager extends SecurityManager {
       if (!isWithinLogger) {
         throw RenderSecurityException.create("Property", null);
       }
+    }
+  }
+
+  @Override
+  public void checkLink(String lib) {
+    // Allow linking with relative paths
+    // Needed to for example load the "fontmanager" library from layout lib (from the
+    // BiDiRenderer's layoutGlyphVector call
+    if (isRelevant() && (lib.indexOf('/') != -1 || lib.indexOf('\\') != -1)) {
+      if (lib.startsWith(System.getProperty("java.home"))) {
+        return; // Allow loading JRE libraries
+      }
+      // Allow loading webp library
+      if (RenderPropertiesAccessUtil.isLibraryLinkingAllowed(lib)) {
+        return;
+      }
+      throw RenderSecurityException.create("Link", lib);
     }
   }
 

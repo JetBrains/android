@@ -621,11 +621,6 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public int getPreferenceLevel() {
-    return Target.ANCHOR_LEVEL;
-  }
-
-  @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     super.mouseDown(x, y);
 

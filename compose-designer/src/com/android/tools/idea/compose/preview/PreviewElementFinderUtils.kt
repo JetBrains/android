@@ -42,7 +42,11 @@ import com.android.tools.preview.PreviewNode
 import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.util.Computable
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import kotlinx.coroutines.flow.Flow
@@ -78,9 +82,13 @@ private fun UElement?.isPreviewAnnotation() = (this as? UAnnotation)?.isPreviewA
  * indirect annotations with MultiPreview.
  */
 @RequiresBackgroundThread
-internal fun UMethod?.hasPreviewElements() =
+internal fun UMethod?.hasPreviewElements(): Boolean =
   // TODO(b/381827960): avoid using runBlockingCancellable
-  this?.let { runBlockingCancellable { getPreviewElements(it).firstOrNull() } } != null
+  this?.let {
+    ProgressManager.getInstance().runProcess(Computable {
+      runBlockingCancellable { getPreviewElements(it).firstOrNull() }
+    }, EmptyProgressIndicator())
+  } != null
 
 /**
  * Returns true if this is not a Preview annotation, but a MultiPreview annotation, i.e. an
@@ -88,11 +96,13 @@ internal fun UMethod?.hasPreviewElements() =
  */
 @RequiresReadLock
 @RequiresBackgroundThread
-fun UAnnotation?.isMultiPreviewAnnotation() =
+fun UAnnotation?.isMultiPreviewAnnotation(): Boolean =
   this?.let {
     !it.isPreviewAnnotation() &&
-      // TODO(b/381827960): avoid using runBlockingCancellable
+    // TODO(b/381827960): avoid using runBlockingCancellable
+    ProgressManager.getInstance().runProcess(Computable {
       runBlockingCancellable { it.getPreviewNodes(includeAllNodes = false).firstOrNull() != null }
+    }, EmptyProgressIndicator())
   } == true
 
 /**
@@ -226,7 +236,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
     }
   // TODO(b/339615825): avoid running the whole previewAnnotationToPreviewElement method under the
   // read lock
-  return readAction {
+  return smartReadAction(project = composableMethod.project) {
     previewAnnotationToPreviewElement(
       attributesProvider,
       annotatedMethod,

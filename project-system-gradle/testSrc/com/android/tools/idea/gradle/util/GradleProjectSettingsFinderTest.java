@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
+
 public class GradleProjectSettingsFinderTest extends AndroidGradleTestCase {
   private GradleProjectSettingsFinder mySettingsFinder;
 

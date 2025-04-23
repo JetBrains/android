@@ -1,0 +1,24 @@
+### auto-generated section `build intellij.android.studio.integration` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "android-studio-integration_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:commons-io",
+    "@lib//:http-client",
+    "@lib//:truth",
+    "//android/as-driver/utils:android-as-driver-utils_test_lib",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+  ]
+)
+### auto-generated section `build intellij.android.studio.integration` end

@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property;
 
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.property.DefaultPropertyValueProvider;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE;
+import static com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel.getSubTag;
 
 /**
  * Default property value provider for Constraint tags in a motion scene file.
@@ -47,7 +49,7 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
     if (attr == null) {
       return null;
     }
-    if (attr.isCustomAttribute() != (MotionLayoutAttributesModel.getSubTag(property) == MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+    if (attr.isCustomAttribute() != (CUSTOM_ATTRIBUTE.equals(getSubTag(property)))) {
       return null;
     }
     return attr.getValue();

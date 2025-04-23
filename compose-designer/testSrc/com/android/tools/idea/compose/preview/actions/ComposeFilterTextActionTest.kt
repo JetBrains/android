@@ -19,13 +19,13 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
-import javax.swing.JTextField
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mockito.eq
+import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import javax.swing.JTextField
 import org.mockito.kotlin.mock
 
 class ComposeFilterTextActionTest {

@@ -1,0 +1,9 @@
+### auto-generated section `build intellij.android.nav.safeargs.tests.k2` start
+load("@rules_java//java:defs.bzl", "java_library")
+
+java_library(
+  name = "android-nav-safeargs-tests-k2",
+  visibility = ["//visibility:public"],
+  runtime_deps = ["@lib//:kotlin-stdlib"]
+)
+### auto-generated section `build intellij.android.nav.safeargs.tests.k2` end

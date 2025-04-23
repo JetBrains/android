@@ -68,6 +68,7 @@ class SyncAnalyzerManagerImpl(
   }
 
   private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, dataHolder: SyncAnalyzerDataManager.DataHolder) {
+    if (dataHolder.downloadsInfoDataModel == null) return // It is not created if flag is disabled.
     val gradleVersion = GradleVersions.getInstance().getGradleVersion(this)
     val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, dataHolder.buildDisposable, dataHolder.buildStartTimestampMs, gradleVersion, dataHolder.downloadsInfoDataModel)
     //dataHolder.downloadsInfoDataModel.longDownloadsNotifier =
@@ -111,7 +112,7 @@ class SyncAnalyzerExecutionHelperExtension : GradleExecutionHelperExtension {
 
   override fun prepareForExecution(id: ExternalSystemTaskId,
                                    operation: LongRunningOperation,
-                                   gradleExecutionSettings: GradleExecutionSettings,
+                                   settings: GradleExecutionSettings,
                                    buildEnvironment: BuildEnvironment?) {
     // Note: this method is called separately for buildSrc and project itself with the same `id` but with different operations.
     // This means we need to set up listener multiple times but with the same data accumulators.

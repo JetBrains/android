@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
 import com.android.resources.AarTestUtils;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.apk.analyzer.ResourceIdResolver;
 import com.android.tools.res.apk.ApkTestUtil;
 import java.nio.charset.StandardCharsets;

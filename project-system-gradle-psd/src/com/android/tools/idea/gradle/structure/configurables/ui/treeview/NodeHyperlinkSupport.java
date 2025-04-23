@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
+import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
+import static java.awt.Cursor.HAND_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
+import static java.awt.event.KeyEvent.KEY_PRESSED;
+import static java.awt.event.KeyEvent.KEY_RELEASED;
+import static javax.swing.SwingUtilities.convertPointFromScreen;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
@@ -28,28 +38,24 @@ import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.Tree;
-import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
-import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
-import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
-import static java.awt.Cursor.*;
-import static java.awt.event.KeyEvent.KEY_PRESSED;
-import static java.awt.event.KeyEvent.KEY_RELEASED;
-import static javax.swing.SwingUtilities.convertPointFromScreen;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
   @NotNull private final Tree myTree;
@@ -186,7 +192,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
       }
     }
     if (comparator != null && issues.size() > 1) {
-      Collections.sort(issues, comparator);
+      issues.sort(comparator);
     }
     return issues;
   }

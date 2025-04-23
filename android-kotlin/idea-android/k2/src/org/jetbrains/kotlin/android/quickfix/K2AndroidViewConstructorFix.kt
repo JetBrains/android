@@ -83,8 +83,9 @@ class K2AndroidViewConstructorFix(
             return K2AndroidViewConstructorFix(superTypeEntry, useThreeParameterConstructor)
         }
 
-        val FACTORY = KotlinQuickFixFactory.IntentionBased<SupertypeNotInitialized> { diagnostic ->
+        val FACTORY: KotlinQuickFixFactory.IntentionBased<SupertypeNotInitialized> = KotlinQuickFixFactory.IntentionBased { diagnostic: SupertypeNotInitialized ->
             listOfNotNull(createForDiagnostic(diagnostic))
+
         }
 
         private fun KaSession.classId(type: KaType): ClassId? = type.expandedSymbol?.classId

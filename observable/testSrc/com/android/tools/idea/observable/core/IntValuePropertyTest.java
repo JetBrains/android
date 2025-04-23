@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.observable.core;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.CountListener;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class IntValuePropertyTest {
   @Test

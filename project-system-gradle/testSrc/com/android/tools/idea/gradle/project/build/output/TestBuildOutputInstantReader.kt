@@ -24,7 +24,7 @@ import com.intellij.build.output.BuildOutputInstantReader
  * This reader simply takes an input and splits it around any newlines, omitting empty strings,
  * which mimics the behavior of [BuildOutputInstantReaderImpl]
  */
-class TestBuildOutputInstantReader(
+internal class TestBuildOutputInstantReader(
   private val lines: List<String>,
   private val parentEventId: String = "Dummy Id") : BuildOutputInstantReader {
   constructor(input: String) : this(Splitter.on("\n").omitEmptyStrings().split(input).toList())
