@@ -38,13 +38,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.ui.JBUI.Borders.customLine;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
-import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 
 public class LibraryPropertiesDialog extends DialogWrapper {
   @NotNull private final Project myProject;
@@ -89,16 +87,6 @@ public class LibraryPropertiesDialog extends DialogWrapper {
     myLibraryEditorComponent.updatePropertiesLabel();
 
     JComponent c = myLibraryEditorComponent.getComponent();
-
-    // Remove "Exclude" button. We don't support this in libraries.
-    List<ActionButton> actionButtons = findComponentsOfType(c, ActionButton.class);
-    for (ActionButton actionButton : actionButtons) {
-      String text = actionButton.getAction().getTemplatePresentation().getText();
-      if (text != null && text.startsWith("Exclude")) {
-        actionButton.setVisible(false);
-        break;
-      }
-    }
 
     MultiLineLabel propertiesLabel = findComponentOfType(c, MultiLineLabel.class);
     if (propertiesLabel != null) {
