@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -212,32 +213,47 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   public void testAndroidViewIsDefault() {
     myPane = createPane();
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
+    ProjectToolWindowSettings settings = new ProjectToolWindowSettings();
     Project project = getProject();
 
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(false);
-    assertThat(myPane.isDefaultPane(project, ideInfo)).named("isDefault").isFalse();
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault").isFalse();
 
     when(ideInfo.isAndroidStudio()).thenReturn(true);
     when(ideInfo.isGameTools()).thenReturn(false);
-    assertThat(myPane.isDefaultPane(project, ideInfo)).named("isDefault(AndroidStudio)").isTrue();
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio)").isTrue();
 
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(true);
-    assertThat(myPane.isDefaultPane(project, ideInfo)).named("isDefault(GameTools)").isTrue();
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools)").isTrue();
 
     System.setProperty("studio.projectview", "true");
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(false);
-    assertThat(myPane.isDefaultPane(project, ideInfo)).named("isDefault(property)").isFalse();
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(property)").isFalse();
 
     when(ideInfo.isAndroidStudio()).thenReturn(true);
     when(ideInfo.isGameTools()).thenReturn(false);
-    assertThat(myPane.isDefaultPane(project, ideInfo)).named("isDefault(AndroidStudio, property)").isFalse();
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio, property)").isFalse();
 
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(true);
-    assertThat(myPane.isDefaultPane(project, ideInfo)).named("isDefault(GameTools, property)").isFalse();
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools, property)").isFalse();
+
+    settings.setDefaultToProjectView(true);
+    System.setProperty("studio.projectview", "false");
+    when(ideInfo.isAndroidStudio()).thenReturn(false);
+    when(ideInfo.isGameTools()).thenReturn(false);
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(settings)").isFalse();
+
+    when(ideInfo.isAndroidStudio()).thenReturn(true);
+    when(ideInfo.isGameTools()).thenReturn(false);
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio, settings)").isFalse();
+
+    when(ideInfo.isAndroidStudio()).thenReturn(false);
+    when(ideInfo.isGameTools()).thenReturn(true);
+    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools, settings)").isFalse();
   }
 
   private static Set<List<String>> getAllNodes(TestAndroidTreeStructure structure) {

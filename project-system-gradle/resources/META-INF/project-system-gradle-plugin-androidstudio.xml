@@ -29,6 +29,9 @@
     <projectConfigurable groupId="build" id="build.tools"
                          instance="com.android.tools.idea.projectsystem.gradle.AndroidStudioBuildToolsConfigurable"
                          key="settings.build.tools.display.name" bundle="messages.ExternalSystemBundle"/>
+    <applicationConfigurable parentId="appearance" id="appearance.project.tool.window" bundle="messages.AndroidBundle"
+                         key="configurable.ProjectToolWindowConfigurable.displayName"
+                         provider="com.android.tools.idea.gradle.projectView.ProjectToolWindowConfigurableProvider"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState"/>
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
@@ -42,6 +45,7 @@
     <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
                         overrides="true"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings"/>
 
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFilesProjectActivity"/>

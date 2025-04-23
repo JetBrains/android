@@ -26,6 +26,7 @@ import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPa
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.Projects;
+import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings;
 import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
@@ -358,15 +359,15 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   @Override
   public boolean isDefaultPane(@NotNull Project project) {
-    return isDefaultPane(project, IdeInfo.getInstance());
+    return isDefaultPane(project, IdeInfo.getInstance(), ProjectToolWindowSettings.getInstance());
   }
 
   @VisibleForTesting
-  boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo) {
+  boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo, @NotNull ProjectToolWindowSettings settings) {
     if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
       return super.isDefaultPane(project);
     }
-    return !Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY);
+    return !settings.isProjectViewDefault();
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {
