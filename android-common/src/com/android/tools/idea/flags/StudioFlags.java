@@ -2286,6 +2286,12 @@ public final class StudioFlags {
                     "Enable support for GCA Enterprise tier",
                     enabledUpTo(CANARY));
 
+  public static Flag<Boolean> STUDIOBOT_SHIMMER_PLACEHOLDER =
+    new BooleanFlag(STUDIOBOT, "show.shimmer.placeholder",
+                    "Enable shimmering placeholder in chat timeline.",
+                    "When enabled, the compose chat timeline will show a shimmering placeholder while awaiting initial response content.",
+                    enabledUpTo(CANARY));
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
