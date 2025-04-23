@@ -39,7 +39,7 @@ import org.jetbrains.jewel.ui.component.items
  * An attribute of a table row that can be extracted and used for filtering; it may or may not be
  * represented in a column. [V] must have a toString() method that is suitable for display.
  */
-class RowAttribute<T, V>(val name: String, val comparator: Comparator<V>, val value: (T) -> V)
+class RowAttribute<T, V>(val name: String, val comparator: Comparator<in V>, val value: (T) -> V)
 
 fun <T, V> RowAttribute<T, V>.uniqueValuesOf(ts: Iterable<T>): List<V> =
   ts.mapTo(TreeSet(comparator)) { value(it) }.toList()
