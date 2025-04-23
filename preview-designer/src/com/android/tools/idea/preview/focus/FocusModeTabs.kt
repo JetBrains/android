@@ -331,7 +331,7 @@ internal class FocusModeTabs<Key : FocusKey>(
     updateToolbarExecutor = executor
   }
 
-  class HeaderAction(label: String) : AnActionButton(label) {
+  class HeaderAction(label: String) : AnActionButton(label.truncate()) {
     override fun actionPerformed(e: AnActionEvent) {}
 
     override fun updateButton(e: AnActionEvent) {
