@@ -92,10 +92,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.lint.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "lint-tests_test",
+jvm_library(
+  name = "lint-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -157,5 +158,10 @@ jvm_test(
     "//jvm/jvm-analysis-impl:analysis-impl",
     "//android/gradle-dsl-flags",
   ]
+)
+
+jvm_test(
+  name = "lint-tests_test",
+  runtime_deps = [":lint-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.lint.tests` end

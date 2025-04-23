@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.core.run` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "core-run_test",
+jvm_library(
+  name = "core-run_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/android:core"],
   deps = [
@@ -103,5 +104,10 @@ jvm_test(
     "//plugins/kotlin/code-insight/api:kotlin-code-insight-api",
     "//android/backup:backup-api",
   ]
+)
+
+jvm_test(
+  name = "core-run_test",
+  runtime_deps = [":core-run_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.run` end

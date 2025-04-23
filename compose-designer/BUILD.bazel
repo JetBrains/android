@@ -115,10 +115,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.compose-designer.integration` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "compose-designer-integration_test",
+jvm_library(
+  name = "compose-designer-integration_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["integrationTestSrc/**/*.kt", "integrationTestSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -129,6 +130,11 @@ jvm_test(
     "//android/execution/common:android-execution-common",
     "//android/as-driver/utils:android-as-driver-utils_test_lib",
   ]
+)
+
+jvm_test(
+  name = "compose-designer-integration_test",
+  runtime_deps = [":compose-designer-integration_test_lib"]
 )
 ### auto-generated section `build intellij.android.compose-designer.integration` end
 

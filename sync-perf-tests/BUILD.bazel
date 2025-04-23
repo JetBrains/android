@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.sync-perf-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "sync-perf-tests_test",
+jvm_library(
+  name = "sync-perf-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -30,5 +31,10 @@ jvm_test(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
   ]
+)
+
+jvm_test(
+  name = "sync-perf-tests_test",
+  runtime_deps = [":sync-perf-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.sync-perf-tests` end

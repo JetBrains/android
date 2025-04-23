@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.core.editors.strings` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "core-editors-strings_test",
+jvm_library(
+  name = "core-editors-strings_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/android:core"],
   deps = [
@@ -40,5 +41,10 @@ jvm_test(
     "//android/render-resources",
     "@lib//:kotlinx-coroutines-test",
   ]
+)
+
+jvm_test(
+  name = "core-editors-strings_test",
+  runtime_deps = [":core-editors-strings_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.editors.strings` end

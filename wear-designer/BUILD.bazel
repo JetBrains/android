@@ -62,10 +62,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.wear-designer.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "wear-designer-tests_test",
+jvm_library(
+  name = "wear-designer-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/wear-designer"],
   deps = [
@@ -117,5 +118,10 @@ jvm_test(
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/wear-preview-elements",
   ]
+)
+
+jvm_test(
+  name = "wear-designer-tests_test",
+  runtime_deps = [":wear-designer-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.wear-designer.tests` end

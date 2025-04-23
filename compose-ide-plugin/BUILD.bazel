@@ -119,10 +119,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.compose-ide-plugin.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "compose-ide-plugin-tests_test",
+jvm_library(
+  name = "compose-ide-plugin-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/compose-ide-plugin"],
   deps = [
@@ -214,5 +215,10 @@ jvm_test(
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
   ]
+)
+
+jvm_test(
+  name = "compose-ide-plugin-tests_test",
+  runtime_deps = [":compose-ide-plugin-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin.tests` end

@@ -58,10 +58,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.logcat.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "logcat-tests_test",
+jvm_library(
+  name = "logcat-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/logcat"],
   deps = [
@@ -110,5 +111,10 @@ jvm_test(
     "//platform/testFramework:testFramework_test_lib",
     "//xml/xml-parser:parser",
   ]
+)
+
+jvm_test(
+  name = "logcat-tests_test",
+  runtime_deps = [":logcat-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.logcat.tests` end

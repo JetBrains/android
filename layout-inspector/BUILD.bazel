@@ -205,7 +205,7 @@ jvm_test(
 
 ### auto-generated section `build intellij.android.layout-inspector.integration` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "layout-inspector-integration_test_resources",
@@ -213,8 +213,9 @@ jvm_resources(
   strip_prefix = "integration/testData"
 )
 
-jvm_test(
-  name = "layout-inspector-integration_test",
+jvm_library(
+  name = "layout-inspector-integration_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["integration/testSrc/**/*.kt", "integration/testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -230,11 +231,16 @@ jvm_test(
   ],
   runtime_deps = [":layout-inspector-integration_test_resources"]
 )
+
+jvm_test(
+  name = "layout-inspector-integration_test",
+  runtime_deps = [":layout-inspector-integration_test_lib"]
+)
 ### auto-generated section `build intellij.android.layout-inspector.integration` end
 
 ### auto-generated section `build intellij.android.layout-inspector.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "layout-inspector-tests_test_resources",
@@ -242,8 +248,9 @@ jvm_resources(
   strip_prefix = "testResources"
 )
 
-jvm_test(
-  name = "layout-inspector-tests_test",
+jvm_library(
+  name = "layout-inspector-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -336,5 +343,10 @@ jvm_test(
     "//android/device-manager-v2:device-manager-v2_test_lib",
   ],
   runtime_deps = [":layout-inspector-tests_test_resources"]
+)
+
+jvm_test(
+  name = "layout-inspector-tests_test",
+  runtime_deps = [":layout-inspector-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.layout-inspector.tests` end

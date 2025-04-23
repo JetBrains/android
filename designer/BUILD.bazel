@@ -216,10 +216,11 @@ jvm_test(
 
 ### auto-generated section `build intellij.android.designer.integration` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "designer-integration_test",
+jvm_library(
+  name = "designer-integration_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["integrationTestSrc/**/*.kt", "integrationTestSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -228,6 +229,11 @@ jvm_test(
     "@lib//:junit4",
     "//android/as-driver/utils:android-as-driver-utils_test_lib",
   ]
+)
+
+jvm_test(
+  name = "designer-integration_test",
+  runtime_deps = [":designer-integration_test_lib"]
 )
 ### auto-generated section `build intellij.android.designer.integration` end
 

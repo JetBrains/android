@@ -51,15 +51,16 @@ jvm_library(
 ### auto-generated section `build intellij.android.screenshot-test.tests` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 create_kotlinc_options(
   name = "custom_screenshot-test-tests",
   context_receivers = True
 )
 
-jvm_test(
-  name = "screenshot-test-tests_test",
+jvm_library(
+  name = "screenshot-test-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom_screenshot-test-tests",
   deps = [
@@ -85,5 +86,10 @@ jvm_test(
     "@lib//:studio-platform-provided",
   ],
   plugins = ["@lib//:compose-plugin"]
+)
+
+jvm_test(
+  name = "screenshot-test-tests_test",
+  runtime_deps = [":screenshot-test-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.screenshot-test.tests` end

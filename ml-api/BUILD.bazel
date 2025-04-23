@@ -25,10 +25,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.ml-api-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "ml-api-tests_test",
+jvm_library(
+  name = "ml-api-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["src/testSrc/kotlin/**/*.kt", "src/testSrc/kotlin/**/*.java"], allow_empty = True),
   associates = ["//android/ml-api"],
   deps = [
@@ -48,5 +49,10 @@ jvm_test(
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//android/adt-testutils:adt-testutils_test_lib",
   ]
+)
+
+jvm_test(
+  name = "ml-api-tests_test",
+  runtime_deps = [":ml-api-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.ml-api-tests` end

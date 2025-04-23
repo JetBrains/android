@@ -88,10 +88,11 @@ jvm_test(
 
 ### auto-generated section `build intellij.android.adb.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "adb-tests_test",
+jvm_library(
+  name = "adb-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/android-adb:adb"],
   deps = [
@@ -134,5 +135,10 @@ jvm_test(
     "//platform/util/jdom",
     "//platform/util:util-ui",
   ]
+)
+
+jvm_test(
+  name = "adb-tests_test",
+  runtime_deps = [":adb-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.adb.tests` end

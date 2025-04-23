@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.profilers.integration` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "profilers-integration_test",
+jvm_library(
+  name = "profilers-integration_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -13,5 +14,10 @@ jvm_test(
     "@lib//:truth",
     "//android/as-driver/utils:android-as-driver-utils_test_lib",
   ]
+)
+
+jvm_test(
+  name = "profilers-integration_test",
+  runtime_deps = [":profilers-integration_test_lib"]
 )
 ### auto-generated section `build intellij.android.profilers.integration` end

@@ -27,10 +27,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "projectSystem-gradle-repositorySearch-tests_test",
+jvm_library(
+  name = "projectSystem-gradle-repositorySearch-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -40,5 +41,10 @@ jvm_test(
     "@lib//:junit4",
     "//android/project-system-gradle-repository-search:projectSystem-gradle-repositorySearch",
   ]
+)
+
+jvm_test(
+  name = "projectSystem-gradle-repositorySearch-tests_test",
+  runtime_deps = [":projectSystem-gradle-repositorySearch-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch.tests` end

@@ -59,7 +59,7 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.apkanalyzer.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "apkanalyzer-tests_test_resources",
@@ -67,8 +67,9 @@ jvm_resources(
   strip_prefix = "testSrc/resources"
 )
 
-jvm_test(
-  name = "apkanalyzer-tests_test",
+jvm_library(
+  name = "apkanalyzer-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/java/**/*.kt", "testSrc/java/**/*.java"], allow_empty = True),
   associates = ["//android/apkanalyzer"],
   deps = [
@@ -95,5 +96,10 @@ jvm_test(
     "@lib//:commons-compress",
   ],
   runtime_deps = [":apkanalyzer-tests_test_resources"]
+)
+
+jvm_test(
+  name = "apkanalyzer-tests_test",
+  runtime_deps = [":apkanalyzer-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.apkanalyzer.tests` end

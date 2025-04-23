@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.studio.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "android-studio-tests_test",
+jvm_library(
+  name = "android-studio-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -13,5 +14,10 @@ jvm_test(
     "@lib//:kotlinx-coroutines-core",
     "//android/intellij.android.testutils:testutils_test_lib",
   ]
+)
+
+jvm_test(
+  name = "android-studio-tests_test",
+  runtime_deps = [":android-studio-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.studio.tests` end

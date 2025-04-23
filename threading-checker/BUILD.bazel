@@ -28,10 +28,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.threading-checker.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "threading-checker-tests_test",
+jvm_library(
+  name = "threading-checker-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/threading-checker"],
   deps = [
@@ -54,5 +55,10 @@ jvm_test(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util:util-ui",
   ]
+)
+
+jvm_test(
+  name = "threading-checker-tests_test",
+  runtime_deps = [":threading-checker-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.threading-checker.tests` end

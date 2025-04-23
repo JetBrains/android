@@ -42,10 +42,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.testartifacts.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "testartifacts-tests_test",
+jvm_library(
+  name = "testartifacts-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:kotlin-stdlib",
@@ -95,5 +96,10 @@ jvm_test(
     "//xml/dom-openapi:dom",
     "//android/intellij.android.testutils:testutils_test_lib",
   ]
+)
+
+jvm_test(
+  name = "testartifacts-tests_test",
+  runtime_deps = [":testartifacts-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.testartifacts.tests` end

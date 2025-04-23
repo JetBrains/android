@@ -28,10 +28,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.layoutlib.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "layoutlib-tests_test",
+jvm_library(
+  name = "layoutlib-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -44,5 +45,10 @@ jvm_test(
     "@lib//:layoutlib",
     "//android/layoutlib",
   ]
+)
+
+jvm_test(
+  name = "layoutlib-tests_test",
+  runtime_deps = [":layoutlib-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.layoutlib.tests` end

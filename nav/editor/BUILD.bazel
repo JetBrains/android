@@ -66,10 +66,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.nav.editor.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "android-nav-editor-tests_test",
+jvm_library(
+  name = "android-nav-editor-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/nav/editor:android-nav-editor"],
   deps = [
@@ -109,5 +110,10 @@ jvm_test(
     "//java/openapi:java",
     "//xml/dom-impl",
   ]
+)
+
+jvm_test(
+  name = "android-nav-editor-tests_test",
+  runtime_deps = [":android-nav-editor-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.nav.editor.tests` end

@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.core.gradle` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "core-gradle_test",
+jvm_library(
+  name = "core-gradle_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/android:core"],
   deps = [
@@ -82,5 +83,10 @@ jvm_test(
     "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
     "//android/gmaven",
   ]
+)
+
+jvm_test(
+  name = "core-gradle_test",
+  runtime_deps = [":core-gradle_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.gradle` end

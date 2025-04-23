@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.old-agp-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "old-agp-tests_test",
+jvm_library(
+  name = "old-agp-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -39,5 +40,10 @@ jvm_test(
     "//platform/service-container:serviceContainer_test_lib",
     "//platform/projectModel-impl",
   ]
+)
+
+jvm_test(
+  name = "old-agp-tests_test",
+  runtime_deps = [":old-agp-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.old-agp-tests` end

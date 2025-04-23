@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.avdmanager.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "avdmanager-tests_test",
+jvm_library(
+  name = "avdmanager-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -40,5 +41,10 @@ jvm_test(
     "//platform/util-ex",
     "@lib//:kotlinx-datetime-jvm",
   ]
+)
+
+jvm_test(
+  name = "avdmanager-tests_test",
+  runtime_deps = [":avdmanager-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.avdmanager.tests` end

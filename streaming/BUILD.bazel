@@ -68,10 +68,11 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.streaming.integration` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "streaming-integration_test",
+jvm_library(
+  name = "streaming-integration_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["integration/**/*.kt", "integration/**/*.java"], allow_empty = True, exclude = [
     "integration/event-logger/**/*",
     "integration/languages/**/*",
@@ -106,6 +107,11 @@ jvm_test(
     "@lib//:guava",
     "//java/testFramework",
   ]
+)
+
+jvm_test(
+  name = "streaming-integration_test",
+  runtime_deps = [":streaming-integration_test_lib"]
 )
 ### auto-generated section `build intellij.android.streaming.integration` end
 

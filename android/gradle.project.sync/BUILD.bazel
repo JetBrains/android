@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.core.gradle.project.sync` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "core-gradle-project-sync_test",
+jvm_library(
+  name = "core-gradle-project-sync_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -52,5 +53,10 @@ jvm_test(
     "//platform/util-rt:util-rt_test_lib",
     "//xml/dom-openapi:dom",
   ]
+)
+
+jvm_test(
+  name = "core-gradle-project-sync_test",
+  runtime_deps = [":core-gradle-project-sync_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.gradle.project.sync` end

@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.apkanalyzer.gradle.integration-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "android-apkanalyzer-gradle-integration-tests_test",
+jvm_library(
+  name = "android-apkanalyzer-gradle-integration-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -21,5 +22,10 @@ jvm_test(
     "//platform/util",
     "@lib//:guava",
   ]
+)
+
+jvm_test(
+  name = "android-apkanalyzer-gradle-integration-tests_test",
+  runtime_deps = [":android-apkanalyzer-gradle-integration-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.apkanalyzer.gradle.integration-tests` end

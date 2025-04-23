@@ -53,7 +53,7 @@ jvm_library(
 
 ### auto-generated section `build intellij.android.designer.customview.tests` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_resources", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "android-designer-customview-tests_test_resources",
@@ -61,8 +61,9 @@ jvm_resources(
   strip_prefix = "testData"
 )
 
-jvm_test(
-  name = "android-designer-customview-tests_test",
+jvm_library(
+  name = "android-designer-customview-tests_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -96,5 +97,10 @@ jvm_test(
     "//platform/util",
   ],
   runtime_deps = [":android-designer-customview-tests_test_resources"]
+)
+
+jvm_test(
+  name = "android-designer-customview-tests_test",
+  runtime_deps = [":android-designer-customview-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.designer.customview.tests` end

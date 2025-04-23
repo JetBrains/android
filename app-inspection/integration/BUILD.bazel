@@ -1,9 +1,10 @@
 ### auto-generated section `build intellij.android.app-inspection.integration` start
 load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-jvm_test(
-  name = "android-app-inspection-integration_test",
+jvm_library(
+  name = "android-app-inspection-integration_test_lib",
+  visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:studio-platform-provided",
@@ -14,5 +15,10 @@ jvm_test(
     "//android/as-driver/utils:android-as-driver-utils_test_lib",
     "//platform/util",
   ]
+)
+
+jvm_test(
+  name = "android-app-inspection-integration_test",
+  runtime_deps = [":android-app-inspection-integration_test_lib"]
 )
 ### auto-generated section `build intellij.android.app-inspection.integration` end
