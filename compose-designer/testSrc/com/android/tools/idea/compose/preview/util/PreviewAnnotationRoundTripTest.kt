@@ -221,7 +221,7 @@ class PreviewAnnotationRoundTripTest {
         .flatMap { it.resolve() }
     // Find the specific preview element for "small font"
     val smallFontPreviewElement =
-      previewElements.find { it.displaySettings.name == "MyComposable - small font" }!!
+      previewElements.find { it.displaySettings.name == "small font - MyComposable" }!!
 
     assertThat(smallFontPreviewElement).isNotNull()
 

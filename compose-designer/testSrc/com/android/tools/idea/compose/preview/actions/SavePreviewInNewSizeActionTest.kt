@@ -508,7 +508,7 @@ class SavePreviewInNewSizeActionTest {
       )
 
     val phonePreviewElement: PsiComposePreviewElement =
-      previewElements.find { it.displaySettings.name == "MyComposable - phone" }
+      previewElements.find { it.displaySettings.name == "phone - MyComposable" }
         as PsiComposePreviewElement
     assertThat(phonePreviewElement).isNotNull()
 
@@ -814,7 +814,7 @@ class SavePreviewInNewSizeActionTest {
         )
 
       val selectedPreviewElement =
-        previewElements.first { it.displaySettings.name == "MyComposable - small font" }
+        previewElements.first { it.displaySettings.name == "small font - MyComposable" }
           as PsiComposePreviewElement
       assertThat(selectedPreviewElement).isNotNull()
 
@@ -1144,7 +1144,7 @@ class SavePreviewInNewSizeActionTest {
       )
 
     val darkPreviewElement =
-      previewElements.first { it.displaySettings.name == "My2dContentPreview - Dark" }
+      previewElements.first { it.displaySettings.name == "Dark - My2dContentPreview" }
         as PsiComposePreviewElement
 
     modeManager.setMode(PreviewMode.Focus(darkPreviewElement))
@@ -1261,7 +1261,7 @@ class SavePreviewInNewSizeActionTest {
       )
 
     val darkPreviewElement =
-      previewElements.first { it.displaySettings.name == "My2dContentPreview - Dark" }
+      previewElements.first { it.displaySettings.name == "Dark - My2dContentPreview" }
         as PsiComposePreviewElement
 
     modeManager.setMode(PreviewMode.Focus(darkPreviewElement))

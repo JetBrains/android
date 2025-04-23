@@ -206,7 +206,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[1].let {
-      assertEquals("Preview2 - preview2", it.displaySettings.name)
+      assertEquals("preview2 - Preview2", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
       assertEquals(12, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
@@ -231,7 +231,10 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[2].let {
-      assertEquals("Preview3 - preview3", it.displaySettings.name)
+      assertEquals("preview3 - Preview3", it.displaySettings.name)
+      assertEquals("preview3", it.displaySettings.parameterName)
+      assertEquals("Preview3", it.displaySettings.organizationName)
+      assertEquals("Preview3", it.displaySettings.baseName)
       assertNull(it.displaySettings.group)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
@@ -256,7 +259,10 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[3].let {
-      assertEquals("Preview4 - preview4", it.displaySettings.name)
+      assertEquals("preview4 - Preview4", it.displaySettings.name)
+      assertEquals("preview4", it.displaySettings.parameterName)
+      assertEquals("Preview4", it.displaySettings.organizationName)
+      assertEquals("Preview4", it.displaySettings.baseName)
       assertEquals(3, it.configuration.uiMode)
       assertEquals("#baaaba", it.displaySettings.backgroundColor)
 
@@ -274,7 +280,10 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[4].let {
-      assertEquals("Preview5 - preview5", it.displaySettings.name)
+      assertEquals("preview5 - Preview5", it.displaySettings.name)
+      assertEquals("preview5", it.displaySettings.parameterName)
+      assertEquals("Preview5", it.displaySettings.organizationName)
+      assertEquals("Preview5", it.displaySettings.baseName)
       assertEquals(3, it.configuration.uiMode)
       assertEquals("#ffbaaaba", it.displaySettings.backgroundColor)
 
@@ -310,7 +319,10 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[6].let {
-      assertEquals("Preview7 - named multipreview", it.displaySettings.name)
+      assertEquals("named multipreview - Preview7", it.displaySettings.name)
+      assertEquals("named multipreview", it.displaySettings.parameterName)
+      assertEquals("Preview7", it.displaySettings.organizationName)
+      assertEquals("Preview7", it.displaySettings.baseName)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -328,7 +340,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[7].let {
-      assertEquals("Preview7 - MyAnnotation 1", it.displaySettings.name)
+      assertEquals("1 MyAnnotation - Preview7", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -346,7 +358,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[8].let {
-      assertEquals("Preview7 - preview7", it.displaySettings.name)
+      assertEquals("preview7 - Preview7", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -364,11 +376,11 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[9].let {
-      assertEquals("PreviewWithParameters - Preview with parameters", it.displaySettings.name)
+      assertEquals("Preview with parameters - PreviewWithParameters", it.displaySettings.name)
     }
 
     elements[10].let {
-      assertEquals("FullyQualifiedAnnotationPreview - FQN", it.displaySettings.name)
+      assertEquals("FQN - FullyQualifiedAnnotationPreview", it.displaySettings.name)
     }
   }
 
@@ -525,7 +537,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[1].let {
-      assertEquals("Preview1 - MyValidAnnotation1 1", it.displaySettings.name)
+      assertEquals("1 MyValidAnnotation1 - Preview1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -543,7 +555,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[2].let {
-      assertEquals("Preview1 - MyValidAnnotation2 1", it.displaySettings.name)
+      assertEquals("1 MyValidAnnotation2 - Preview1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -561,7 +573,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[3].let {
-      assertEquals("Preview1 - MyValidAnnotation3 1", it.displaySettings.name)
+      assertEquals("1 MyValidAnnotation3 - Preview1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -637,7 +649,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       AnnotationFilePreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
         .single()
     // Check that we keep the first element
-    assertEquals("Preview1 - preview", element.displaySettings.name)
+    assertEquals("preview - Preview1", element.displaySettings.name)
   }
 
   @Test
@@ -983,25 +995,25 @@ class AnnotationFileComposePreviewElementFinderTest {
         assertArrayEquals(
           arrayOf(
             "TopA", // Preview with top priority
-            "C - Annot1 1",
-            "C - Annot3 1",
+            "1 Annot1 - C",
+            "1 Annot3 - C",
             "C", // Previews of 'C'
-            "A - Annot2 1",
+            "1 Annot2 - A",
             "A",
-            "A - Annot1 1",
-            "A - Annot3 1", // Previews of 'A'
-            "TopA - Annot1 1",
-            "TopA - Annot3 1", // Previews of 'TopA'
-            "f - Many 01",
-            "f - Many 02",
-            "f - Many 03",
-            "f - Many 04",
-            "f - Many 05",
-            "f - Many 06",
-            "f - Many 07",
-            "f - Many 08",
-            "f - Many 09",
-            "f - Many 10", // Previews of 'f'
+            "1 Annot1 - A",
+            "1 Annot3 - A", // Previews of 'A'
+            "1 Annot1 - TopA",
+            "1 Annot3 - TopA", // Previews of 'TopA'
+            "01 Many - f",
+            "02 Many - f",
+            "03 Many - f",
+            "04 Many - f",
+            "05 Many - f",
+            "06 Many - f",
+            "07 Many - f",
+            "08 Many - f",
+            "09 Many - f",
+            "10 Many - f", // Previews of 'f'
           ),
           it,
         )
@@ -1043,7 +1055,7 @@ class AnnotationFileComposePreviewElementFinderTest {
         .toList()
     assertEquals(2, elements.size)
     elements[0].let {
-      assertEquals("Preview1 - preview1", it.displaySettings.name)
+      assertEquals("preview1 - Preview1", it.displaySettings.name)
       assertEquals(2, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
@@ -1061,7 +1073,7 @@ class AnnotationFileComposePreviewElementFinderTest {
     }
 
     elements[1].let {
-      assertEquals("Preview1 - preview2", it.displaySettings.name)
+      assertEquals("preview2 - Preview1", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)

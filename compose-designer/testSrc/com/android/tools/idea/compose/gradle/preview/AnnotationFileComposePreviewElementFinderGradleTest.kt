@@ -114,19 +114,19 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
         }
       )
 
-    assertEquals("MyNewTestFun - preview 1", previewElements[0].displaySettings.name)
+    assertEquals("preview 1 - MyNewTestFun", previewElements[0].displaySettings.name)
     assertEquals("group 1-2", previewElements[0].displaySettings.group)
     assertTrue(previewElements[0].displaySettings.showBackground)
     assertEquals("#FF00FF01", previewElements[0].displaySettings.backgroundColor!!.uppercase())
     assertEquals("id:pixel_5", previewElements[0].configuration.deviceSpec)
 
-    assertEquals("MyNewTestFun - preview 2", previewElements[1].displaySettings.name)
+    assertEquals("preview 2 - MyNewTestFun", previewElements[1].displaySettings.name)
     assertEquals("group 1-2", previewElements[1].displaySettings.group)
     assertTrue(previewElements[1].displaySettings.showBackground)
     assertEquals("#FF00FF02", previewElements[1].displaySettings.backgroundColor!!.uppercase())
     assertEquals("id:pixel_5", previewElements[1].configuration.deviceSpec)
 
-    assertEquals("MyNewTestFun - test name", previewElements[2].displaySettings.name)
+    assertEquals("test name - MyNewTestFun", previewElements[2].displaySettings.name)
     assertEquals("test group", previewElements[2].displaySettings.group)
     assertTrue(previewElements[2].displaySettings.showBackground)
     assertEquals("#FF00FF00", previewElements[2].displaySettings.backgroundColor!!.uppercase())

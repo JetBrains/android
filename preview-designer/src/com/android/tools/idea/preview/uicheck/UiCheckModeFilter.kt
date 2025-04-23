@@ -158,7 +158,7 @@ private fun <T : PreviewElementInstance<*>> wearDevicesPreviews(baseInstance: T)
           showDecoration = true,
           organizationGroup =
             baseDisplaySettings.organizationGroup + message("ui.check.mode.wear.group"),
-          organizationName = "${baseDisplaySettings.name} - ${message("ui.check.mode.wear.group")}",
+          organizationName = "${message("ui.check.mode.wear.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
@@ -187,7 +187,7 @@ private fun <T : PreviewElementInstance<*>> deviceSizePreviews(baseInstance: T):
           organizationGroup =
             baseDisplaySettings.organizationGroup + message("ui.check.mode.screen.size.group"),
           organizationName =
-            "${baseDisplaySettings.name} - ${message("ui.check.mode.screen.size.group")}",
+            "${message("ui.check.mode.screen.size.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
@@ -213,7 +213,7 @@ private fun <T : PreviewElementInstance<*>> fontSizePreviews(
           organizationGroup =
             baseDisplaySettings.organizationGroup + message("ui.check.mode.font.scale.group"),
           organizationName =
-            "${baseDisplaySettings.name} - ${message("ui.check.mode.font.scale.group")}",
+            "${message("ui.check.mode.font.scale.group")} - ${baseDisplaySettings.name}",
           showDecoration = isWearPreview || baseDisplaySettings.showDecoration,
         )
       baseInstance.createDerivedInstance(displaySettings, config)
@@ -237,7 +237,7 @@ private fun <T : PreviewElementInstance<*>> lightDarkPreviews(baseInstance: T): 
           organizationGroup =
             baseDisplaySettings.organizationGroup + message("ui.check.mode.light.dark.group"),
           organizationName =
-            "${baseDisplaySettings.name} - ${message("ui.check.mode.light.dark.group")}",
+            "${message("ui.check.mode.light.dark.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
@@ -265,7 +265,7 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(
             baseDisplaySettings.organizationGroup +
               message("ui.check.mode.screen.accessibility.group"),
           organizationName =
-            "${baseDisplaySettings.name} - ${message("ui.check.mode.screen.accessibility.group")}",
+            "${message("ui.check.mode.screen.accessibility.group")} - ${baseDisplaySettings.name}",
         )
       baseInstance.createDerivedInstance(displaySettings, colorFilterBaseConfig)
     }

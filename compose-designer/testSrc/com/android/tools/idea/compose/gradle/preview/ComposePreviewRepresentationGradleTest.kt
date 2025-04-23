@@ -303,9 +303,9 @@ class ComposePreviewRepresentationGradleTest {
         "DefaultPreview",
         "MyPreviewWithInline",
         "NavigatablePreview",
-        "NavigatablePreview - additional preview",
         "OnlyATextNavigation",
         "TwoElementsPreview",
+        "additional preview - NavigatablePreview",
       ),
       allSceneViewPeerPanels.filter { it.isShowing }.map { it.displayName }.sorted(),
     )
@@ -351,7 +351,7 @@ class ComposePreviewRepresentationGradleTest {
 
       assertEquals(
         """
-        DefaultPreview - MyAnnotation 1
+        1 MyAnnotation - DefaultPreview
         DefaultPreview
         TwoElementsPreview
         NavigatablePreview
@@ -380,13 +380,13 @@ class ComposePreviewRepresentationGradleTest {
       projectRule.validate()
       withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
       delayUntilCondition(100, 5.seconds) {
-        "DefaultPreview - newName" ==
+        "newName - DefaultPreview" ==
           fakeUi.findAllComponents<SceneViewPeerPanel>().first().displayName
       }
 
       assertEquals(
         """
-        DefaultPreview - newName
+        newName - DefaultPreview
         DefaultPreview
         TwoElementsPreview
         NavigatablePreview

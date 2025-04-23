@@ -196,7 +196,7 @@ class ComposePreviewElementFlowTest {
         previewElementsOnFileChangesFlow(projectRule.project) { previewElementProvider }
           .stateIn(flowScope)
       assertEquals(
-        "Preview1 - A,Preview1 - B",
+        "A - Preview1,B - Preview1",
         flow
           .map { it.asCollection() }
           .filter { it.size == 2 }
@@ -216,7 +216,7 @@ class ComposePreviewElementFlowTest {
       }
 
       assertEquals(
-        "Preview1 - A,Preview1 - B,Preview1 - C",
+        "A - Preview1,B - Preview1,C - Preview1",
         flow
           .map { it.asCollection() }
           .filter { it.size == 3 }

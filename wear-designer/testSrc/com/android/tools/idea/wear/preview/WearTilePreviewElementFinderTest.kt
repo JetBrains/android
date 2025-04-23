@@ -293,7 +293,7 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "namedTilePreview - some name",
+            name = "some name - namedTilePreview",
             baseName = "namedTilePreview",
             parameterName = "some name",
             organizationName = "namedTilePreview",
@@ -436,7 +436,7 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreviewWithMultipleAnnotations - some name",
+            name = "some name - tilePreviewWithMultipleAnnotations",
             baseName = "tilePreviewWithMultipleAnnotations",
             parameterName = "some name",
             organizationName = "tilePreviewWithMultipleAnnotations",
@@ -619,9 +619,9 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreview - AllWearDevices 1",
+            name = "1 AllWearDevices - tilePreview",
             baseName = "tilePreview",
-            parameterName = "AllWearDevices 1",
+            parameterName = "1 AllWearDevices",
             organizationGroup = "com.android.test.SrcKt.tilePreview",
             organizationName = "tilePreview",
           )
@@ -634,9 +634,9 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreview - AllWearDevices 2",
+            name = "2 AllWearDevices - tilePreview",
             baseName = "tilePreview",
-            parameterName = "AllWearDevices 2",
+            parameterName = "2 AllWearDevices",
             organizationName = "tilePreview",
             organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
@@ -649,9 +649,9 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreview - AllWearDevices 3",
+            name = "3 AllWearDevices - tilePreview",
             baseName = "tilePreview",
-            parameterName = "AllWearDevices 3",
+            parameterName = "3 AllWearDevices",
             organizationName = "tilePreview",
             organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
@@ -664,9 +664,9 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreview - AllWearDevices 4",
+            name = "4 AllWearDevices - tilePreview",
             baseName = "tilePreview",
-            parameterName = "AllWearDevices 4",
+            parameterName = "4 AllWearDevices",
             organizationName = "tilePreview",
             organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
@@ -679,7 +679,7 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreview - some preview",
+            name = "some preview - tilePreview",
             baseName = "tilePreview",
             parameterName = "some preview",
             organizationName = "tilePreview",
@@ -694,7 +694,7 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreview - multipreview level 1",
+            name = "multipreview level 1 - tilePreview",
             baseName = "tilePreview",
             parameterName = "multipreview level 1",
             organizationName = "tilePreview",
@@ -709,7 +709,7 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreview - multipreview level 2",
+            name = "multipreview level 2 - tilePreview",
             baseName = "tilePreview",
             parameterName = "multipreview level 2",
             organizationName = "tilePreview",
@@ -729,7 +729,7 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 1",
+            name = "multipreview level 1 - tileWithMultiPreviewAnnotationFromAnotherFile",
             baseName = "tileWithMultiPreviewAnnotationFromAnotherFile",
             parameterName = "multipreview level 1",
             organizationName = "tileWithMultiPreviewAnnotationFromAnotherFile",
@@ -750,7 +750,7 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 2",
+            name = "multipreview level 2 - tileWithMultiPreviewAnnotationFromAnotherFile",
             baseName = "tileWithMultiPreviewAnnotationFromAnotherFile",
             parameterName = "multipreview level 2",
             organizationName = "tileWithMultiPreviewAnnotationFromAnotherFile",
@@ -812,9 +812,9 @@ class WearTilePreviewElementFinderTest {
       assertThat(it)
         .hasDisplaySettings(
           defaultDisplaySettings(
-            name = "tilePreview - MultiPreview 1",
+            name = "1 MultiPreview - tilePreview",
             baseName = "tilePreview",
-            parameterName = "MultiPreview 1",
+            parameterName = "1 MultiPreview",
             organizationGroup = "com.android.test.SrcKt.tilePreview",
             organizationName = "tilePreview",
           )
@@ -971,23 +971,23 @@ class WearTilePreviewElementFinderTest {
       .let {
         assertArrayEquals(
           arrayOf(
-            "c - Annot1 1",
-            "c - Annot3 1",
+            "1 Annot1 - c",
+            "1 Annot3 - c",
             "c", // Previews of 'C'
-            "a - Annot2 1",
+            "1 Annot2 - a",
             "a",
-            "a - Annot1 1",
-            "a - Annot3 1", // Previews of 'a'
-            "f - Many 01",
-            "f - Many 02",
-            "f - Many 03",
-            "f - Many 04",
-            "f - Many 05",
-            "f - Many 06",
-            "f - Many 07",
-            "f - Many 08",
-            "f - Many 09",
-            "f - Many 10", // Previews of 'f'
+            "1 Annot1 - a",
+            "1 Annot3 - a", // Previews of 'a'
+            "01 Many - f",
+            "02 Many - f",
+            "03 Many - f",
+            "04 Many - f",
+            "05 Many - f",
+            "06 Many - f",
+            "07 Many - f",
+            "08 Many - f",
+            "09 Many - f",
+            "10 Many - f", // Previews of 'f'
           ),
           it,
         )

@@ -277,10 +277,10 @@ class ParametrizedPreviewTest {
           .toSet()
       )
       .containsExactly(
-        "TestWithProvider (name 0) - Screen sizes",
-        "TestWithProvider (name 0) - Font scales",
-        "TestWithProvider (name 0) - Light/Dark",
-        "TestWithProvider (name 0) - Colorblind filters",
+        "Screen sizes - TestWithProvider (name 0)",
+        "Font scales - TestWithProvider (name 0)",
+        "Light/Dark - TestWithProvider (name 0)",
+        "Colorblind filters - TestWithProvider (name 0)",
       )
       .inOrder()
 

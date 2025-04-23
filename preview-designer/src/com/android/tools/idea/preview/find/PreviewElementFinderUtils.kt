@@ -92,8 +92,8 @@ private constructor(
    * when available, or otherwise trying to use some information from the [ParentAnnotationInfo].
    */
   fun buildPreviewName(nameParameter: String? = null): String {
-    return if (nameParameter != null) "$methodName - $nameParameter"
-    else buildParentAnnotationInfo()?.let { "$methodName - $it" } ?: methodName
+    return if (nameParameter != null) "$nameParameter - $methodName"
+    else buildParentAnnotationInfo()?.let { "$it - $methodName" } ?: methodName
   }
 
   /**
@@ -105,7 +105,7 @@ private constructor(
 
   private fun buildParentAnnotationInfo(): String? =
     parentAnnotationInfo?.let {
-      "${it.annotationName} ${it.traversedPreviewChildrenCount.toString().padStart(it.directPreviewChildrenCount.toString().length, '0')}"
+      "${it.traversedPreviewChildrenCount.toString().padStart(it.directPreviewChildrenCount.toString().length, '0')} ${it.annotationName}"
     }
 
   companion object {

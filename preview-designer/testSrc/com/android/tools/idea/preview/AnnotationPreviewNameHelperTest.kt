@@ -103,7 +103,7 @@ class AnnotationPreviewNameHelperTest {
       val helper = AnnotationPreviewNameHelper.create(nodeInfo, "f") { isPreviewAnnotation() }
 
       assertEquals(
-        "f - someParameterName",
+        "someParameterName - f",
         helper.buildPreviewName(nameParameter = "someParameterName"),
       )
       assertEquals(
@@ -121,8 +121,8 @@ class AnnotationPreviewNameHelperTest {
       val nodeInfo = method.findAllAnnotationsInGraph { it.isPreviewAnnotation() }.take(1).single()
       val helper = AnnotationPreviewNameHelper.create(nodeInfo, "f") { isPreviewAnnotation() }
 
-      assertEquals("f - Many 01", helper.buildPreviewName(nameParameter = null))
-      assertEquals("Many 01", helper.buildParameterName(nameParameter = null))
+      assertEquals("01 Many - f", helper.buildPreviewName(nameParameter = null))
+      assertEquals("01 Many", helper.buildParameterName(nameParameter = null))
     }
 
   @Test
@@ -154,11 +154,11 @@ class AnnotationPreviewNameHelperTest {
         .collect()
 
       assertContentEquals(
-        listOf("a - Annot2 1", "a", "a - Annot1 1", "a - Annot3 1"),
+        listOf("1 Annot2 - a", "a", "1 Annot1 - a", "1 Annot3 - a"),
         aPreviewNames,
       )
 
-      assertContentEquals(listOf("Annot2 1", null, "Annot1 1", "Annot3 1"), aParameterNames)
+      assertContentEquals(listOf("1 Annot2", null, "1 Annot1", "1 Annot3"), aParameterNames)
     }
 
   @Test
@@ -180,9 +180,9 @@ class AnnotationPreviewNameHelperTest {
         }
         .collect()
 
-      assertContentEquals(listOf("c - Annot3 1", "c - Annot1 1", "c"), cPreviewNames)
+      assertContentEquals(listOf("1 Annot3 - c", "1 Annot1 - c", "c"), cPreviewNames)
 
-      assertContentEquals(listOf("Annot3 1", "Annot1 1", null), cParameterNames)
+      assertContentEquals(listOf("1 Annot3", "1 Annot1", null), cParameterNames)
     }
 
   @Test
@@ -206,32 +206,32 @@ class AnnotationPreviewNameHelperTest {
 
       assertContentEquals(
         listOf(
-          "f - Many 01",
-          "f - Many 02",
-          "f - Many 03",
-          "f - Many 04",
-          "f - Many 05",
-          "f - Many 06",
-          "f - Many 07",
-          "f - Many 08",
-          "f - Many 09",
-          "f - Many 10",
+          "01 Many - f",
+          "02 Many - f",
+          "03 Many - f",
+          "04 Many - f",
+          "05 Many - f",
+          "06 Many - f",
+          "07 Many - f",
+          "08 Many - f",
+          "09 Many - f",
+          "10 Many - f",
         ),
         fPreviewNames,
       )
 
       assertContentEquals(
         listOf(
-          "Many 01",
-          "Many 02",
-          "Many 03",
-          "Many 04",
-          "Many 05",
-          "Many 06",
-          "Many 07",
-          "Many 08",
-          "Many 09",
-          "Many 10",
+          "01 Many",
+          "02 Many",
+          "03 Many",
+          "04 Many",
+          "05 Many",
+          "06 Many",
+          "07 Many",
+          "08 Many",
+          "09 Many",
+          "10 Many",
         ),
         fParameterNames,
       )
