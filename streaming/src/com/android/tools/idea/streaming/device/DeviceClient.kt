@@ -418,7 +418,7 @@ internal class DeviceClient(
                 (if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) DEBUG_LAYOUT_UI_SETTINGS else 0) or
                 (if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) GESTURE_NAVIGATION_UI_SETTINGS else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0) or
-                (if (isEmulator && deviceConfig.deviceType == DeviceType.XR) DEVICE_IS_XR else 0) // Workaround for b/406870742.
+                (if (deviceConfig.deviceType == DeviceType.XR) DEVICE_IS_XR else 0) // Workaround for b/406870742 and b/408280128.
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()
     val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""
