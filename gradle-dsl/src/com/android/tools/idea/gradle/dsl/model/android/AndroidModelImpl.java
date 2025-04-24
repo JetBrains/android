@@ -45,9 +45,9 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.
 import static com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement.TEST_COVERAGE;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.NUMERIC;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.STRING;
 
@@ -75,6 +75,7 @@ import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.android.SplitsModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestCoverageModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.UseLibrariesModel;
 import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -511,5 +512,10 @@ public class AndroidModelImpl extends GradleDslBlockModel implements AndroidMode
   public DependenciesInfoModel dependenciesInfo() {
     DependenciesInfoDslElement dependenciesInfoElement = myDslElement.ensurePropertyElement(DEPENDENCIES_INFO);
     return new DependenciesInfoModelImpl(dependenciesInfoElement);
+  }
+
+  @Override
+  public @NotNull UseLibrariesModel useLibraries() {
+    return new UseLibrariesModelImpl(myDslElement);
   }
 }

@@ -2324,6 +2324,25 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED)
   }
 
+  @Test
+  fun testUseLibrary() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    val library1 = android.useLibraries().create("library1")
+    assertThat(library1).isNotNull()
+    assertThat(library1.name()).isEqualTo("library1")
+
+    val library2 = android.useLibraries().create("library2")
+    assertThat(library2).isNotNull()
+    assertThat(library2.name()).isEqualTo("library2")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED)
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
@@ -2447,6 +2466,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_BUILD_TYPE_SET_INIT_WITH_EXPECTED("addBuildTypeSetInitWithExpected"),
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH("addProductFlavorSetInitWith"),
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED("addProductFlavorSetInitWithExpected"),
+    ANDROID_BLOCK_WITH_USE_LIBRARY("androidBlockWithUseLibrary"),
+    ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED("androidBlockWithUseLibraryExpected"),
     EMPTY_FILE("emptyFile"),
     ;
 
@@ -2455,4 +2476,3 @@ class AndroidModelTest : GradleFileModelTestCase() {
     }
   }
 }
-
