@@ -37,6 +37,8 @@ fun checkAcceleration(sdk: AndroidSdkHandler): AccelerationErrorCode {
   val emulator = sdk.getEmulatorPackage(progressIndicator)
   val emulatorBinary =
     emulator?.emulatorBinary ?: return AccelerationErrorCode.NO_EMULATOR_INSTALLED
+  if (emulator.version < MINIMUM_EMULATOR_VERSION) return AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED
+
   // TODO: The emulator -accel-check currently does not check for the available memory, do it here
   // instead:
   val memoryBytes = MemorySettingsUtil.getMachineMemoryBytes()
@@ -44,7 +46,7 @@ fun checkAcceleration(sdk: AndroidSdkHandler): AccelerationErrorCode {
     return AccelerationErrorCode.NOT_ENOUGH_MEMORY
   }
   if (!emulator.isQemu2) {
-    return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED
+    return AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED
   }
   val commandLine = GeneralCommandLine()
   val checkBinary = emulator.emulatorCheckBinary
@@ -90,3 +92,6 @@ private object EmulatorAccelerationChecks
 private val progressIndicator =
   StudioLoggerProgressIndicator(EmulatorAccelerationChecks::class.java)
 private val PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0")
+
+@JvmField
+internal val MINIMUM_EMULATOR_VERSION = Revision.parseRevision("34.1.20") // 2024/04/01

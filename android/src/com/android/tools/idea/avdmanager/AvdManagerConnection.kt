@@ -247,13 +247,12 @@ constructor(
     when (code) {
       AccelerationErrorCode.ALREADY_INSTALLED ->
         return continueToStartAvd(project, info, requestType, factory)
-      AccelerationErrorCode.TOOLS_UPDATE_REQUIRED,
       AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED,
-      AccelerationErrorCode
-        .SYSTEM_IMAGE_UPDATE_ADVISED -> // Launch the virtual device with possibly degraded
-        // performance even if there are updates
+      AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED ->
+        // Launch the virtual device with possibly degraded performance even if there are updates
         // noinspection DuplicateBranchesInSwitch
         return continueToStartAvd(project, info, requestType, factory)
+      AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED,
       AccelerationErrorCode.NO_EMULATOR_INSTALLED ->
         return handleAccelerationError(project, info, requestType, code)
       else -> {
