@@ -688,6 +688,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     return TemplateUtils.getJavaVersion(project, defaultVersion)
   }
 
+  override fun useLibrary(name: String) {
+    val buildModel = moduleGradleBuildModel ?: return
+    buildModel.android().useLibraries().create(name)
+  }
+
   fun applyChanges() {
     if (!context.dryRun) {
       projectBuildModel?.applyChanges()

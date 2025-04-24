@@ -154,4 +154,6 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
   override fun getJavaVersion(defaultVersion: String): String {
     return TemplateUtils.getJavaVersion(project, defaultVersion)
   }
+
+  override fun useLibrary(name: String) {}
 }
