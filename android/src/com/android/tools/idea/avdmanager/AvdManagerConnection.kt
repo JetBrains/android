@@ -63,13 +63,14 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
-import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.platform.ide.progress.withBackgroundProgress
+import com.intellij.platform.util.progress.reportProgress
+import com.intellij.platform.util.progress.withProgressText
 import com.intellij.util.net.ProxyConfiguration
 import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
 import com.intellij.util.net.ProxyCredentialStore
@@ -86,7 +87,10 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.listDirectoryEntries
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 
@@ -273,7 +277,7 @@ constructor(
     avd: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
     factory: EmulatorCommandBuilderFactory,
-  ): IDevice {
+  ): IDevice = coroutineScope {
     var avd = avd
     val emulator = emulator
     if (emulator == null) {
@@ -319,51 +323,42 @@ constructor(
         throw DeviceActionException(String.format("Error launching emulator %1\$s", avdName), e)
       }
 
-    // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise,
-    // show it.
-    val p =
-      if (emulator.isQemu2)
-        BackgroundableProcessIndicator(project, "Launching emulator", null, "", false)
-      else ProgressWindow(false, true, project)
-    p.isIndeterminate = false
-    p.setDelayInMillis(0)
-
-    // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it
-    // seems like the action wasn't invoked and users tend to click multiple times on it, ending up
-    // with several instances of the emulator.
-    ApplicationManager.getApplication().executeOnPooledThread {
-      try {
-        p.start()
-        p.text = "Starting AVD..."
-        var d = 0.0
-        while (d < 1) {
-          p.fraction = d
-          Thread.sleep(100)
-          if (processHandler.isProcessTerminated) {
-            break
+    // It takes >= 8 seconds to start the Emulator. Display a small progress indicator; otherwise,
+    // it seems like the action wasn't invoked.
+    val progressJob = launch {
+      if (project != null) {
+        withBackgroundProgress(project, "Launching emulator") {
+          reportProgress(80) { reporter ->
+            withProgressText("Starting AVD...") {
+              repeat(80) {
+                reporter.itemStep { delay(100) }
+                if (processHandler.isProcessTerminated) {
+                  return@withProgressText
+                }
+              }
+            }
           }
-          d += 1.0 / 80
         }
-      } catch (ignore: InterruptedException) {} finally {
-        p.stop()
-        p.processFinish()
       }
     }
+    try {
+      // Send notification that the device has been launched.
+      val messageBus = project?.messageBus ?: ApplicationManager.getApplication().messageBus
+      messageBus
+        .syncPublisher(AvdLaunchListener.TOPIC)
+        .avdLaunched(avd, commandLine, requestType, project)
 
-    // Send notification that the device has been launched.
-    val messageBus = project?.messageBus ?: ApplicationManager.getApplication().messageBus
-    messageBus
-      .syncPublisher(AvdLaunchListener.TOPIC)
-      .avdLaunched(avd, commandLine, requestType, project)
-
-    return EmulatorConnectionListener.getDeviceForEmulator(
-        project,
-        avd.name,
-        processHandler,
-        5,
-        TimeUnit.MINUTES,
-      )
-      .await()
+      return@coroutineScope EmulatorConnectionListener.getDeviceForEmulator(
+          project,
+          avd.name,
+          processHandler,
+          5,
+          TimeUnit.MINUTES,
+        )
+        .await()
+    } finally {
+      progressJob.cancel()
+    }
   }
 
   protected open fun newEmulatorCommand(
@@ -392,10 +387,6 @@ constructor(
 
   /** Write HTTP Proxy information to a temporary file. */
   private fun writeParameterFile(): Path? {
-    if (!emulator!!.hasStudioParamsSupport()) {
-      return null
-    }
-
     // These are defined in the HTTP Proxy section of the Settings dialog.
     // We can only use static HTTP proxies; ignore the other types.
     val config =
