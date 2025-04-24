@@ -271,7 +271,6 @@ class AgpUpgradeRefactoringProcessor(
     get() = componentRefactoringProcessors.sortedBy { if (it is AgpVersionRefactoringProcessor) 1 else 0 }
   val componentRefactoringProcessors = listOf(
     AgpVersionRefactoringProcessor(this),
-    GMavenRepositoryRefactoringProcessor(this),
     GradleVersionRefactoringProcessor(this),
     GradlePluginsRefactoringProcessor(this),
     ProjectJdkRefactoringProcessor(this),

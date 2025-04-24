@@ -98,11 +98,6 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testEverythingDisabledNoEffectOnGMavenRepository() {
-    everythingDisabledNoEffectOn("GMavenRepository/AGP2Project")
-  }
-
-  @Test
   fun testEverythingDisabledNoEffectOnGradleVersion() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersion"))
     val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
@@ -182,15 +177,6 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is CompileRuntimeConfigurationRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleApplicationExpected"))
-  }
-
-  @Test
-  fun testEnabledEffectOnGMavenRepository() {
-    writeToBuildFile(TestFileName("GMavenRepository/AGP2Project"))
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("2.3.2"), AgpVersion.parse("4.2.0"))
-    processor.componentRefactoringProcessors.forEach { it.isEnabled = it is GMavenRepositoryRefactoringProcessor }
-    processor.run()
-    verifyFileContents(buildFile, TestFileName("GMavenRepository/AGP2ProjectExpected"))
   }
 
   @Test
@@ -356,7 +342,6 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val earliestSupportedVersion = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
     val processorsByEnd = processor.componentRefactoringProcessors.mapNotNull {
-      if (it is GMavenRepositoryRefactoringProcessor) return@mapNotNull null // TODO(next CL)
       when (val info = it.necessityInfo) {
         is PointNecessity -> it to info.change
         is RegionNecessity -> it to info.originalRemoved

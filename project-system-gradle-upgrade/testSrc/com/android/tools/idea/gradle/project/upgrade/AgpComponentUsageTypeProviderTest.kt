@@ -58,25 +58,6 @@ class AgpComponentUsageTypeProviderTest : AndroidTestCase() {
     assertThat(usageType.toString()).isEqualTo("Update Gradle distribution URL")
   }
 
-  fun testGMavenRepositoryRefactoringProcessor() {
-    myFixture.addFileToProject("build.gradle", """
-      buildscript {
-        dependencies {
-          classpath 'com.android.tools.build:gradle:2.3.0'
-        }
-        repositories {
-          jcenter()
-        }
-    """.trimIndent())
-    val processor = GMavenRepositoryRefactoringProcessor(myFixture.project, AgpVersion.parse("2.3.0"), AgpVersion.parse("4.1.0"))
-    assertTrue(processor.isEnabled)
-    val usages = processor.findUsages()
-    assertThat(usages).hasLength(1)
-    assertThat(usages[0].element).isNotNull()
-    val usageType = getUsageType(usages[0].element!!)
-    assertThat(usageType.toString()).isEqualTo("Add GMaven declaration")
-  }
-
   fun testJava8DefaultRefactoringProcessorInsertOldDefault() {
     myFixture.addFileToProject("build.gradle", """
       plugins {

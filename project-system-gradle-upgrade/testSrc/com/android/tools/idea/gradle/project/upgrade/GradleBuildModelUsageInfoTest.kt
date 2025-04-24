@@ -85,7 +85,6 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
 
     val usageInfos = listOf(
       AgpVersionUsageInfo(wrappedPsiElement, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.1.0"), gradlePropertyModel),
-      RepositoriesNoGMavenUsageInfo(wrappedPsiElement, repositoriesModel),
       GradleVersionUsageInfo(wrappedPsiElement, GradleVersion.version("6.1.1"), "https://services.gradle.org/distributions/gradle-6.1.1-bin.zip"),
       WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, artifactDependencyModel, gradlePropertyModel, "1.3.72"),
       WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, pluginModel, gradlePropertyModel, "1.3.72"),
