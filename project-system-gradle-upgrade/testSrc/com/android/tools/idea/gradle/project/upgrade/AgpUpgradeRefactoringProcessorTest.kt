@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
+import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -347,5 +348,21 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     assertWithMessage("These classes use the default kind, please assign a unique kind per class").that(notDefined).isNull()
     val repeated = kindToProcessors.filter { it.value.size > 1 }.toList()
     assertWithMessage("There are classes that share the same kind, please assign a unique kind per class").that(repeated).isEmpty()
+  }
+
+  @Test
+  fun testNoObviouslyObsoleteProcessors() {
+    val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
+    val earliestSupportedVersion = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
+    val processorsByEnd = processor.componentRefactoringProcessors.mapNotNull {
+      if (it is GMavenRepositoryRefactoringProcessor) return@mapNotNull null // TODO(next CL)
+      when (val info = it.necessityInfo) {
+        is PointNecessity -> it to info.change
+        is RegionNecessity -> it to info.originalRemoved
+        else -> null
+      }
+    }
+    assertThat(processorsByEnd.filter { it.second < earliestSupportedVersion }).isEmpty()
   }
 }
