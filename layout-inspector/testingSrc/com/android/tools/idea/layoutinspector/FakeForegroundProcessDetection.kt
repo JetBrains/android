@@ -43,7 +43,7 @@ class FakeForegroundProcessDetection : ForegroundProcessDetection {
 
   override fun stopPollingSelectedDevice() {}
 
-  override fun start() {
+  override fun start(selectedDeviceId: String?) {
     startInvokeCounter += 1
   }
 

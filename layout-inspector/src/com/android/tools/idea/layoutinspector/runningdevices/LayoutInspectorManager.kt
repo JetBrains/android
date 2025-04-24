@@ -149,7 +149,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       // lock device model to only allow connections to this device
       value.layoutInspector.deviceModel?.forcedDeviceSerialNumber = value.deviceId.serialNumber
-      value.layoutInspector.foregroundProcessDetection?.start()
+      value.layoutInspector.foregroundProcessDetection?.start(value.deviceId.serialNumber)
 
       val selectedDevice =
         value.layoutInspector.deviceModel?.devices?.find {

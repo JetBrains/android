@@ -981,7 +981,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L,
       )
-    foregroundProcessDetection.start()
+    foregroundProcessDetection.start(device1.serial)
 
     val foregroundProcessSyncChannel = Channel<Pair<NewForegroundProcess, Boolean>>()
     foregroundProcessDetection.addForegroundProcessListener {
@@ -1000,7 +1000,7 @@ class ForegroundProcessDetectionTest {
     startTrackingSyncChannel.receive()
 
     connectDevice(device2)
-    handshakeSyncChannel.receive()
+    assertThat(handshakeSyncChannel.isEmpty).isTrue()
 
     processDiscovery.fireConnected(device1.toDeviceDescriptor().createProcess("process1", 1))
     sendForegroundProcessEvent(device2, ForegroundProcess(1, "process1"))
