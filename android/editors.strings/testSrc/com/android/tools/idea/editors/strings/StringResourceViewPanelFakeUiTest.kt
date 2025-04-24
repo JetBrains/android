@@ -21,6 +21,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -217,10 +218,20 @@ class StringResourceViewPanelFakeUiTest {
     val field: JTextField = stringResourceViewPanel.loadingPanel.getDescendant { it.name == "keyTextField" }
     fakeUi.keyboard.setFocus(field)
     field.focusListeners.forEach { it.focusGained(FocusEvent(field, FocusEvent.FOCUS_GAINED)) }
+
+    // Invalid value:
+    field.imitateEditing("b a d v a l u e")
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo("error")
+    assertThat(field.toolTipText).isEqualTo("' ' is not a valid resource name character")
+
+    // Valid change:
     field.imitateEditing("new_key")
     var changes = 0
     stringResourceViewPanel.table.frozenTable.model.addTableModelListener { changes++ }
     fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+    assertThat(field.toolTipText).isNull()
 
     waitForCondition(2.seconds) { changes > 0 }
     assertThat(stringResourceViewPanel.table.data?.keys[1]?.name).isEqualTo("new_key")
@@ -234,10 +245,20 @@ class StringResourceViewPanelFakeUiTest {
     val field = component.textField
     fakeUi.keyboard.setFocus(field)
     field.focusListeners.forEach { it.focusGained(FocusEvent(field, FocusEvent.FOCUS_GAINED)) }
+
+    // Invalid value:
+    field.imitateEditing("<bad value")
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo("error")
+    assertThat(field.toolTipText).isEqualTo("Invalid value")
+
+    // Valid change:
     field.imitateEditing("New default value")
     var changes = 0
     stringResourceViewPanel.table.frozenTable.model.addTableModelListener { changes++ }
     fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+    assertThat(field.toolTipText).isNull()
 
     waitForCondition(2.seconds) { changes > 0 }
     val data = stringResourceViewPanel.table.data!!
@@ -253,10 +274,21 @@ class StringResourceViewPanelFakeUiTest {
     val field = component.textField
     fakeUi.keyboard.setFocus(field)
     field.focusListeners.forEach { it.focusGained(FocusEvent(field, FocusEvent.FOCUS_GAINED)) }
+
+    // Invalid value:
+    field.imitateEditing("<bad value")
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo("error")
+    assertThat(field.toolTipText).isEqualTo("Invalid value")
+
+    // Valid change:
+    field.imitateEditing("New default value")
     field.imitateEditing("New translated value")
     var changes = 0
     stringResourceViewPanel.table.scrollableTable.model.addTableModelListener { changes++ }
     fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+    assertThat(field.toolTipText).isNull()
 
     waitForCondition(2.seconds) { changes > 0 }
     val data = stringResourceViewPanel.table.data!!
