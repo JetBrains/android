@@ -164,6 +164,11 @@ public class AidlParserTest extends ParsingTestCase {
     checkNoErrors();
   }
 
+  public void testFixedSizeArray() {
+    // Regression for b/410903441
+    checkNoErrors();
+  }
+
   private void checkNoErrors() {
     doTest(true, true);
   }
