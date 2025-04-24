@@ -9,6 +9,5 @@ build_test(
     name = "test_projects_test",
     targets = [
         "//tools/adt/idea/aswb/aswb/testdata/projects/autovalue:test_data_build",
-        "//tools/adt/idea/aswb/aswb/testdata/projects/src_transform:test_data_build",
     ],
 )
