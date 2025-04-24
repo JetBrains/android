@@ -281,14 +281,15 @@ public class QuerySyncManager implements Disposable {
         taskOrigin);
   }
 
-  public ListenableFuture<Boolean> syncQueryDataIfNeeded(QuerySyncActionStatsScope querySyncActionStats, TaskOrigin taskOrigin) {
+  public ListenableFuture<Boolean> syncQueryDataIfNeeded(Collection<Path> workspaceRelativePaths, QuerySyncActionStatsScope querySyncActionStats, TaskOrigin taskOrigin) {
     assertProjectLoaded();
     return runSync(
         "Updating build structure",
         "Refreshing build structure",
         querySyncActionStats,
         context -> {
-          if (getFileListener().hasModifiedBuildFiles()) {
+          if (getFileListener().hasModifiedBuildFiles() ||
+              getTargetsToBuildByPaths(workspaceRelativePaths).stream().anyMatch(TargetsToBuild::requiresQueryDataRefresh)) {
             Optional<PostQuerySyncData> lastQuery = Optional.ofNullable(loadedProject)
               .flatMap(it ->
                          it.getSnapshotHolder().getCurrent().map(QuerySyncProjectSnapshot::queryData));
