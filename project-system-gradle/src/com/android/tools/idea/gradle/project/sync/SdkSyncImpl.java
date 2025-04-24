@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+import static com.android.tools.idea.gradle.project.sync.AndroidManifestUtil.hasAndroidManifest;
 import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -44,16 +45,20 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.Strings;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ModalityUiUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.util.stream.Stream;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SdkSyncImpl implements SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
-  static final String ANDROID_MANIFEST_PATH = "/app/src/main/AndroidManifest.xml";
 
   @Override
   public void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties, @Nullable Project project) {
@@ -257,7 +262,7 @@ public class SdkSyncImpl implements SdkSync {
            || Strings.isNotEmpty(localProperties.getProperty(SDK_DIR_PROPERTY))
            || project != null && ReadAction.nonBlocking(() -> ContainerUtil.exists(
         ProjectRootManager.getInstance(project).getContentRoots(),
-        root -> root.findFileByRelativePath(ANDROID_MANIFEST_PATH) != null))
+        root -> hasAndroidManifest(root.toNioPath())))
       .executeSynchronously();
   }
 
