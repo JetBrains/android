@@ -54,8 +54,8 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   private fun everythingDisabledNoEffectOn(filename: String) {
     writeToBuildFile(TestFileName(filename))
-    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
+    val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
     processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
     processor.run()
     verifyFileContents(buildFile, TestFileName(filename))
@@ -63,8 +63,8 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   private fun everythingEnabledNoEffectOn(filename: String) {
     writeToBuildFile(TestFileName(filename))
-    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
+    val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
     processor.componentRefactoringProcessors.forEach { it.isEnabled = true }
     processor.run()
     verifyFileContents(buildFile, TestFileName(filename))
@@ -74,8 +74,8 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   // Java8 processor.
   private fun everythingButJava8EnabledNoEffectOn(filename: String) {
     writeToBuildFile(TestFileName(filename))
-    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
+    val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it !is Java8DefaultRefactoringProcessor }
     processor.run()
     verifyFileContents(buildFile, TestFileName(filename))
@@ -104,8 +104,8 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEverythingDisabledNoEffectOnGradleVersion() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersion"))
-    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
+    val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
     processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
     processor.run()
 
@@ -337,8 +337,8 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   fun testAllComponentKindsAreUnique() {
     val kindToProcessors = mutableMapOf<UpgradeAssistantComponentKind, MutableList<String>>()
     writeToBuildFile(TestFileName("AgpUpgrade/Empty"))
-    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), AgpVersion.parse(latestKnownVersion))
+    val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
     processor.componentRefactoringProcessors.forEach {
       val kind = it.getComponentInfo().kind
       kindToProcessors.getOrPut(kind) { mutableListOf<String>() }.add(it.javaClass.simpleName)
