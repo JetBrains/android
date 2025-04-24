@@ -32,6 +32,7 @@ import org.junit.Assert
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.Comparator
 
 @RunsInEdt
 class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
@@ -349,5 +350,22 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
       }
     }
     assertThat(processorsByEnd.filter { it.second < earliestSupportedVersion }).isEmpty()
+  }
+
+  @Test
+  fun testNecessityOrder() {
+    val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("1.0.0"), latestKnownVersion)
+    val processorsWithEndAndStart = processor.componentRefactoringProcessors.mapNotNull {
+      when (val info = it.necessityInfo) {
+        is PointNecessity -> Triple(it, info.change, info.change)
+        is RegionNecessity -> Triple(it, info.originalRemoved, info.replacementAvailable)
+        else -> null
+      }
+    }
+    // There is no guarantee that we will be able to order by both start and end versions.  Somewhat arbitrarily we prefer the
+    // ordering by end, then start.
+    val comparator = Comparator.comparing(Triple<*,AgpVersion,AgpVersion>::second).thenComparing(Triple<*,AgpVersion,AgpVersion>::third)
+    assertThat(processorsWithEndAndStart).isOrdered(comparator)
   }
 }
