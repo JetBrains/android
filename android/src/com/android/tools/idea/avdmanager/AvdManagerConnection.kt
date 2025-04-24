@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.IDevice
-import com.android.io.CancellableFileIo
 import com.android.prefs.AndroidLocationsException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
@@ -75,11 +74,6 @@ import com.intellij.util.net.ProxyConfiguration
 import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
 import com.intellij.util.net.ProxyCredentialStore
 import com.intellij.util.net.ProxySettings
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -90,6 +84,11 @@ import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.listDirectoryEntries
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 
 /**
  * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
@@ -152,10 +151,9 @@ constructor(
           if (success) {
             service<RunningAvdTracker>().shuttingDown(avd.id)
             try {
+              // Wait for the emulator process to terminate.
               termination.get()
-            }
-            catch (_: Exception) {
-            } // Wait for the emulator process to terminate.
+            } catch (_: Exception) {}
           }
         }
       }
@@ -298,8 +296,7 @@ constructor(
       if (ProcessHandleProvider.getProcessHandle(pid)?.isAlive == true) {
         // TODO: Bring the running emulator's window to the front.
         throw AvdIsAlreadyRunningException(avd.displayName, pid)
-      }
-      else {
+      } else {
         avdManager.deleteLockFiles(avd)
       }
     }
@@ -479,8 +476,8 @@ constructor(
   }
 
   /**
-   * Kills the emulator if it is running and deletes all AVD files and subdirectories except the ones that were created
-   * when the AVD itself was created.
+   * Kills the emulator if it is running and deletes all AVD files and subdirectories except the
+   * ones that were created when the AVD itself was created.
    */
   @Slow
   fun wipeUserData(avdInfo: AvdInfo): Boolean {
@@ -606,18 +603,6 @@ constructor(
     }
 
     @JvmStatic
-    fun doesSystemImageSupportQemu2(description: SystemImageDescription): Boolean {
-      val location = description.systemImage.location
-      try {
-        CancellableFileIo.list(location).use { files ->
-          return files.anyMatch { it.fileName.toString().startsWith("kernel-ranchu") }
-        }
-      } catch (e: IOException) {
-        return false
-      }
-    }
-
-    @JvmStatic
     fun getRequiredSystemImagePath(avdInfo: AvdInfo): String? {
       val imageSystemDir = avdInfo.properties[ConfigKey.IMAGES_1] ?: return null
       return StringUtil.trimEnd(
@@ -627,8 +612,6 @@ constructor(
     }
   }
 }
-
-private fun OptionalLong.orNull(): Long? = if (isPresent) asLong else null
 
 internal fun StaticProxyConfiguration.toStudioParams(
   credentialStore: ProxyCredentialStore
