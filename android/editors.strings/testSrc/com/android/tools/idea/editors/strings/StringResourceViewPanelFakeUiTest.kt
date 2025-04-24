@@ -20,6 +20,7 @@ import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -46,7 +47,6 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.SameThreadExecutor
 import org.jetbrains.android.facet.AndroidFacet
@@ -58,6 +58,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.awt.event.KeyEvent
 import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 
 @RunWith(JUnit4::class)
 class StringResourceViewPanelFakeUiTest {
@@ -162,13 +163,14 @@ class StringResourceViewPanelFakeUiTest {
     val oldResources = locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it) }
     val newKey = "new_key"
 
+    // Change a key value in the table:
     stringResourceViewPanel.table.model.setValueAt(newKey, row, KEY_COLUMN)
+
     // Editing a key runs a refactor which happens in invokeLater(), so wait for that to finish.
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    waitForCondition(2.seconds) { stringResourceViewPanel.table.getValueAt(row, KEY_COLUMN) == "new_key" }
 
     assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(
-      DEFAULT_KEYS.take(row) + DEFAULT_KEYS.drop(row + 1) + newKey)
-    localResourceRepository.waitForPendingUpdates()
+      DEFAULT_KEYS.toMutableList().apply { this[row] = newKey})
     assertThat(locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it)}).isEmpty()
 
     locales.mapNotNull { getResourceItem(newKey, it)}.zip(oldResources).forEach { (new, old) ->
