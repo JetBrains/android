@@ -26,7 +26,7 @@ fun DeviceDescriptor.toDeviceInfo(): DeviceInfo {
   return DeviceInfo.newBuilder()
     .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(this.serial))
     .setBuildVersionRelease(this.version)
-    .setBuildApiLevelFull(AndroidVersion(this.apiLevel, this.codename).apiString)
+    .setBuildApiLevelFull(AndroidVersion(apiLevel, codename, null, true).apiStringWithoutExtension)
     .setManufacturer(this.manufacturer)
     .setDeviceType(
       if (this.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR

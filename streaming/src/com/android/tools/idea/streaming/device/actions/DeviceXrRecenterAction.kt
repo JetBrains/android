@@ -16,16 +16,15 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.streaming.device.XrRecenterMessage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.diagnostic.thisLogger
 
 /** Resets the view on an XR device to its initial state. */
 internal class DeviceXrRecenterAction : AbstractDeviceAction(configFilter = { it.deviceType == DeviceType.XR }) {
 
   override fun actionPerformed(event: AnActionEvent) {
-    // TODO: Implement when IXrSimulatedInputManager supports it.
-    thisLogger().error("This action is not implemented yet")
+    getDeviceController(event)?.sendControlMessage(XrRecenterMessage())
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

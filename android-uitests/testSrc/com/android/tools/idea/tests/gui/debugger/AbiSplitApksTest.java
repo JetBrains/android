@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
+import com.android.sdklib.AndroidApiLevel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -56,7 +57,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
       "Google",
       "Nexus 5X",
       "8.1",
-      "31",
+      new AndroidApiLevel(31),
       DeviceState.HostConnectionType.LOCAL
     ).get();
     device.getProperties().put("ro.product.cpu.abilist", "x86_64");

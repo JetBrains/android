@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -38,7 +39,7 @@ class ViewInspectorTreeLoader(
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
 ) {
   private var folderConfig =
-    LayoutInspectorViewProtocol.Configuration.getDefaultInstance().convert(1)
+    LayoutInspectorViewProtocol.Configuration.getDefaultInstance().convert(AndroidApiLevel(1))
 
   // if true, exit immediately and return null
   private var isInterrupted = false

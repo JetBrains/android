@@ -114,4 +114,19 @@ void Base128OutputStream::WriteBool(bool value) {
   WriteByte(value ? 1 : 0);
 }
 
+void Base128OutputStream::WriteFloat(float value) {
+  // Float is written a 32-bit integer in little endian byte order as per IEEE 754 standard.
+  int32_t value_as_int32;
+  memcpy(&value_as_int32, &value, sizeof value);
+  WriteFixed32(value_as_int32);
+}
+
+void Base128OutputStream::WriteFixed32(int32_t value) {
+  uint32_t uvalue = value;
+  WriteByte(uvalue);
+  WriteByte(uvalue >> 8);
+  WriteByte(uvalue >> 16);
+  WriteByte(uvalue >> 24);
+}
+
 }  // namespace screensharing

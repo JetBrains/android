@@ -20,6 +20,7 @@ import static com.android.tools.idea.tests.gui.npw.NewCppProjectTestUtil.createN
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
+import com.android.sdklib.AndroidApiLevel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -52,7 +53,7 @@ public class CreateNewProjectWithCpp1Test {
       "Google",
       "Nexus 5X",
       "9.0",
-      "28",
+      new AndroidApiLevel(28),
       DeviceState.HostConnectionType.LOCAL
     ).get();
     fakeDevice.setActivityManager((args, serviceOutput) -> {

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -58,6 +59,19 @@ internal class EnableOrSkipStepPage : WizardPage() {
 internal fun WizardState.EnableOrSkipComposableContent() {
   val configurationState = getOrCreateState { SyncConfigurationState() }
   val signInState = getOrCreateState { SignInState() }
+
+  // Fetching and caching data as soon as the user makes a selection is more time-efficient than
+  // waiting to fetch only when "Next" is clicked (if the data isn't already cached).
+  LaunchedEffect(configurationState.configurationOption) {
+    if (configurationState.configurationOption != SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT) {
+      return@LaunchedEffect
+    }
+
+    with(configurationState) {
+      val userEmail = checkNotNull(getOnboardingUser().email)
+      getCloudStatus(userEmail, allowFetchIfCacheMiss = true)
+    }
+  }
 
   InnerWizardContentPage(syncConfigurationPageTitle) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {

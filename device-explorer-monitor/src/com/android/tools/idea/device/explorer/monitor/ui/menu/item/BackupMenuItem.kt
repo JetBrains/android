@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
-import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
-class BackupMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext, private val project: Project) : TreeMenuItem(listener) {
+class BackupMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     return if (context == MenuContext.Toolbar) {
       "<html><b>Backup app data</b><br>Backs up app data</html>"
@@ -45,11 +43,7 @@ class BackupMenuItem(listener: DeviceMonitorActionsListener, private val context
 
   override val isEnabled: Boolean
     get() {
-      if (listener.selectedProcessInfo.size != 1) {
-        return false
-      }
-      val packageName = listener.selectedProcessInfo.first().packageName ?: return false
-      return BackupManager.getInstance(project).isAppSupported(packageName)
+      return listener.selectedProcessInfo.firstOrNull()?.packageName != null
     }
 
   override fun run() {

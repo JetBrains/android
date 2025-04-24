@@ -22,6 +22,7 @@ import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestApplicationManager
@@ -78,7 +79,7 @@ class AdbFileListingTest {
     DdmPreferences.setTimeOut(5_000)
 
     deviceState = fakeAdbRule.fakeAdb.connectDevice(
-      deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = "31",
+      deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = AndroidApiLevel(31),
       hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
 
     device = runBlocking {

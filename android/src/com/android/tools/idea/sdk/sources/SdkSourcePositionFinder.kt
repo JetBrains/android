@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.sdk.sources
 
+import com.android.sdklib.AndroidApiLevel
 import com.intellij.debugger.SourcePosition
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 
 /** Finds the [SourcePosition] for a framework code reference in the proper API level */
 interface SdkSourcePositionFinder {
-  fun getSourcePosition(apiLevel: Int, file: PsiFile, lineNumber: Int): SourcePosition
+  fun getSourcePosition(apiLevel: AndroidApiLevel, file: PsiFile, lineNumber: Int): SourcePosition
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): SdkSourcePositionFinder = project.getService(SdkSourcePositionFinder::class.java)
+    fun getInstance(project: Project): SdkSourcePositionFinder =
+      project.getService(SdkSourcePositionFinder::class.java)
   }
 }

@@ -74,10 +74,6 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
 
   override val buildTargets: BuildSystemFilePreviewServices.BuildTargets = object: BuildSystemFilePreviewServices.BuildTargets {
     override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
-      return fromModuleOnly(module)
-    }
-
-    override fun fromModuleOnly(module: Module): BuildTargetReference {
       return GradleBuildTargetReference(module)
     }
   }

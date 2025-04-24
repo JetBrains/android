@@ -62,7 +62,6 @@ import org.mockito.kotlin.whenever
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for [AndroidJavaDebugger] code.
@@ -183,6 +182,8 @@ class AndroidJavaDebuggerTest {
   @Test
   fun testSessionName() = runTest {
     val session = DebugSessionStarter.attachDebuggerToClientAndShowTab(project, client, AndroidJavaDebugger(), AndroidDebuggerState())
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
+
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
     assertThat(session!!.sessionName).isEqualTo("Java Only (${client.clientData.pid})")
@@ -275,6 +276,8 @@ class AndroidJavaDebuggerTest {
       javaDebugger.createState(),
       destroyRunningProcess = { isDestroyed.set(true) },
       indicator = EmptyProgressIndicator())
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
+
     @Suppress("UnstableApiUsage")
     val processHandler = session.debugProcess.processHandler
     val latch = CountDownLatch(1)

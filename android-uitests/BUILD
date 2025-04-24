@@ -112,6 +112,7 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "//tools/adt/idea/.idea/libraries:agp-version",
+        "//tools/base/common:studio.android.sdktools.common",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["manual"],

@@ -119,12 +119,12 @@ object TargetSelectionActionFactory {
 
   private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) =
     when {
-      device.apiLevel < AndroidVersion.VersionCodes.M -> {
+      device.apiLevel.majorVersion < AndroidVersion.VersionCodes.M -> {
         event.presentation.isEnabled = false
         event.presentation.text =
           "${device.buildDeviceName()} (Unsupported for API < ${AndroidVersion.VersionCodes.M})"
       }
-      device.apiLevel < AndroidVersion.VersionCodes.Q -> {
+      device.apiLevel.majorVersion < AndroidVersion.VersionCodes.Q -> {
         event.presentation.icon = device.toLegacyIcon()
         event.presentation.text =
           "${device.buildDeviceName()} (Live inspection disabled for API < ${AndroidVersion.VersionCodes.Q})"

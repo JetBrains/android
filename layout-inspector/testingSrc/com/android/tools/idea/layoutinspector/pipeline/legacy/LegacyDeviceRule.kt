@@ -141,7 +141,7 @@ class LegacyDeviceRule(
       device.manufacturer,
       device.model,
       device.version,
-      device.apiLevel.toString(),
+      device.apiLevel,
     )
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)

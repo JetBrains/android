@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.coroutineScope
@@ -58,7 +59,7 @@ class HandshakeExecutorTest {
       override val model = "mod"
       override val serial = "serial"
       override val isEmulator = false
-      override val apiLevel = 0
+      override val apiLevel = AndroidApiLevel(0)
       override val version = "version"
       override val codename = "codename"
     }
@@ -779,8 +780,9 @@ class HandshakeExecutorTest {
     return Common.Device.newBuilder()
       .setDeviceId(id)
       .setSerial(serial)
-      .setApiLevel(apiLevel)
-      .setFeatureLevel(apiLevel)
+      .setApiLevel(apiLevel.majorVersion)
+      .setApiLevelMinor(apiLevel.minorVersion)
+      .setFeatureLevel(apiLevel.majorVersion)
       .setModel(model)
       .setCpuAbi("arm64-v8a")
       .setState(Common.Device.State.ONLINE)

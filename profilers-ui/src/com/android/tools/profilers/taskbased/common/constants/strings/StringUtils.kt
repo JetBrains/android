@@ -20,12 +20,18 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
 object StringUtils {
-  fun getTaskTabTitle(taskType: ProfilerTaskType): String {
-    val taskTitle = getTaskTitle(taskType)
-    val taskSubtitle = getTaskSubtitle(taskType)
+  fun getTaskTabTitle(taskType: ProfilerTaskType, isTaskTitleV2Enabled: Boolean): String {
+    val taskTitle = getTaskTitle(taskType, isTaskTitleV2Enabled)
+    val taskSubtitle = getTaskSubtitle(taskType, isTaskTitleV2Enabled)
 
     if (taskTitle.isBlank()) {
       return "Task not supported yet"
+    }
+
+    if (isTaskTitleV2Enabled) {
+      // When isTaskTitleV2Enabled is true, `taskTitle` may be long. Therefore, only the subtitle is used
+      // as the tab title if it exists.
+      return taskSubtitle.ifBlank { taskTitle }
     }
 
     var tabTitle: String = taskTitle

@@ -58,12 +58,6 @@ interface BuildSystemFilePreviewServices<P : AndroidProjectSystem, R : BuildTarg
      * object) to ensure that the [module], indeed, contains the [targetFile].
      */
     fun from(module: Module, targetFile: VirtualFile): BuildTargetReference
-
-    /**
-     * Constructs a best effort [BuildTargetReference] referring to all source code contained in the [module]. It is not expected to be
-     * correctly supported by all build systems and its usage is limited to legacy callers only.
-     */
-    fun fromModuleOnly(module: Module): BuildTargetReference
   }
 
   /**

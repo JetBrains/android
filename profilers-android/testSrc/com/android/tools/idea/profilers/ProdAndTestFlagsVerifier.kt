@@ -36,7 +36,12 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
       return FeatureConfig::class.java.declaredMethods.map { arrayOf(it, it.name) }.toList()
     }
 
-    val KNOWN_DIVERGENCES = emptyMap<String, String>()
+    // After a flag is introduced but before it's enabled in the stable releases,
+    // the production and testing environment may or may not diverge depending on which
+    // branch the test is running on. For example, it's possible that a flag is false in
+    // the testing environment, true on the main branch (canary releases), but false on
+    // release branches (for beta, RC, stable releases).
+    val KNOWN_POSSIBLE_DIVERGENCES = mapOf("isTaskTitleV2Enabled" to "b/410089372")
   }
 
   @Test
@@ -47,27 +52,24 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
     val testServicesConfig = FakeIdeProfilerServices().featureConfig
     val testValue = method.invoke(testServicesConfig)
 
-    if (prodValue != testValue && !KNOWN_DIVERGENCES.containsKey(name)) {
+    if (prodValue != testValue && !KNOWN_POSSIBLE_DIVERGENCES.containsKey(name)) {
       Assert.fail("Value for FeatureConfig.$name() is $prodValue in Prod but $testValue for Test.")
-    } else if (prodValue == testValue && KNOWN_DIVERGENCES.containsKey(name)) {
-      Assert.fail("Value for FeatureConfig.$name() is the same in Prod and tests ($prodValue), but a divergence is being tracked in " +
-                  "${KNOWN_DIVERGENCES[name]}. If you fixed it, remove it from the knownDivergences.")
     }
   }
 }
 
 /**
- * This test class runs once and make sure our {@code KNOWN_DIVERGENCES} registry isn't stale with entries that doesn't exist anymore.
+ * This test class runs once and make sure our {@code KNOWN_POSSIBLE_DIVERGENCES} registry isn't stale with entries that doesn't exist anymore.
  */
 class VerifyKnownDivergencesUpdatedTest {
   @Test
   fun makeSureAllKnownDivergencesExists() {
     val allMethodsInFeatureConfig = FeatureConfig::class.java.declaredMethods.map { it.name }.toSet()
-    val missingMethodsFromKnownDivergences = ProdAndTestFlagsVerifier.KNOWN_DIVERGENCES.keys.minus(allMethodsInFeatureConfig)
+    val missingMethodsFromKnownDivergences = ProdAndTestFlagsVerifier.KNOWN_POSSIBLE_DIVERGENCES.keys.minus(allMethodsInFeatureConfig)
     if (missingMethodsFromKnownDivergences.isNotEmpty()) {
-      Assert.fail("The following methods are listed in knownDivergences but doesn't exist in FeatureConfig interface: " +
+      Assert.fail("The following methods are listed in KNOWN_POSSIBLE_DIVERGENCES but doesn't exist in FeatureConfig interface: " +
                   "${missingMethodsFromKnownDivergences}. " +
-                  "Make sure you removed the entry from knownDivergences if you removed/cleaned the flag.")
+                  "Make sure you removed the entry from KNOWN_POSSIBLE_DIVERGENCES if you removed/cleaned the flag.")
     }
   }
 }

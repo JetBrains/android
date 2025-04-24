@@ -1,0 +1,4 @@
+directories:
+  gensrc_conflict/project
+
+android_sdk_platform: android-34

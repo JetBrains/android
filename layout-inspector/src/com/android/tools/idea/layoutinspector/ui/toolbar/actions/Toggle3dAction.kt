@@ -113,7 +113,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
     } else {
       event.presentation.isEnabled = false
       val isLowerThenApi29 =
-        client != null && client.isConnected && client.process.device.apiLevel < 29
+        client != null && client.isConnected && client.process.device.apiLevel.majorVersion < 29
       @Suppress("DialogTitleCapitalization")
       event.presentation.text =
         when {

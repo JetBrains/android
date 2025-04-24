@@ -62,6 +62,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDe
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
+import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.google.protobuf.TextFormat.shortDebugString
@@ -913,7 +914,7 @@ class EmulatorView(
     }
 
     private fun updateXrOptions(xrOptions: XrOptions) {
-      xrInputController?.environment = xrOptions.environment
+      xrInputController?.environment = xrOptions.environment?.let { XrEnvironment.entries[it.number] }
       xrInputController?.passthroughCoefficient = xrOptions.passthroughCoefficient
     }
 
@@ -1092,6 +1093,8 @@ class EmulatorView(
   private inner class MyMouseListener : MouseAdapter() {
 
     private var currentButtons = 0
+    private var accumulatedScrollX = 0.0
+    private var accumulatedScrollY = 0.0
 
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
@@ -1184,12 +1187,24 @@ class EmulatorView(
         return
       }
       // Change the sign of wheelRotation because the direction of the mouse wheel rotation is opposite between AWT and Android.
-      val dy = -(event.getNormalizedScrollAmount() * EMULATOR_SCROLL_ADJUSTMENT_FACTOR).roundToInt()
-      if (dy == 0) {
+      val delta = -(event.getNormalizedScrollAmount() * EMULATOR_SCROLL_ADJUSTMENT_FACTOR)
+      if (delta == 0.0) {
         return
       }
-      val inputEvent = InputEventMessage.newBuilder().setWheelEvent(WheelEvent.newBuilder().setDy(dy)).build()
-      emulator.getOrCreateInputEventSender().onNext(inputEvent)
+      if (event.isShiftDown) {
+        accumulatedScrollX += delta
+      }
+      else {
+        accumulatedScrollY += delta
+      }
+      val deltaX = accumulatedScrollX.toInt()
+      val deltaY = accumulatedScrollY.toInt()
+      if (deltaX != 0 || deltaY != 0) {
+        accumulatedScrollX -= deltaX
+        accumulatedScrollY -= deltaY
+        val inputEvent = InputEventMessage.newBuilder().setWheelEvent(WheelEvent.newBuilder().setDx(deltaX).setDy(deltaY)).build()
+        emulator.getOrCreateInputEventSender().onNext(inputEvent)
+      }
     }
 
     private fun updateMultiTouchMode(event: MouseEvent) {
@@ -1668,7 +1683,7 @@ private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS
 // https://android.googlesource.com/platform/external/qemu/+/refs/heads/emu-master-dev/android/android-emu/android/multitouch-screen.h
 private const val PRESSURE_RANGE_MAX = 0x400
 
-internal const val EMULATOR_SCROLL_ADJUSTMENT_FACTOR = 100f
+internal const val EMULATOR_SCROLL_ADJUSTMENT_FACTOR = 120f
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
 

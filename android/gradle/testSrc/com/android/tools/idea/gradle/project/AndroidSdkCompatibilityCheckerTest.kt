@@ -66,6 +66,16 @@ class AndroidSdkCompatibilityCheckerTest {
       canaryChannel = StudioVersionRecommendation.getDefaultInstance()
       betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
       stableChannel = StudioVersionRecommendation.getDefaultInstance()
+    }.build(),
+    "1000.1" to RecommendedVersions.newBuilder().apply {
+      canaryChannel = StudioVersionRecommendation.getDefaultInstance()
+      betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
+      stableChannel = StudioVersionRecommendation.getDefaultInstance()
+    }.build(),
+    "1000.2" to RecommendedVersions.newBuilder().apply {
+      canaryChannel = StudioVersionRecommendation.getDefaultInstance()
+      betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
+      stableChannel = StudioVersionRecommendation.getDefaultInstance()
     }.build()
   )
   private val timeout: Long = 5
@@ -140,6 +150,23 @@ class AndroidSdkCompatibilityCheckerTest {
       waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
       throw Exception("Should not have created a dialog")
     }
+  }
+
+  @Test
+  fun `test compile sdk with major and minor versions set`() {
+    projectRule.setupProjectFrom(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      appModuleBuilder(compileSdk = "android-1000.1"),
+      libModuleBuilder(compileSdk = "android-1000.2")
+    )
+
+    val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
+
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(2)
   }
 
   @Test

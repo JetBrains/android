@@ -100,6 +100,10 @@ public:
   bool CallBooleanMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   int32_t CallIntMethod(jmethodID method, ...) const;
   int32_t CallIntMethod(JNIEnv* jni_env, jmethodID method, ...) const;
+  int8_t CallByteMethod(jmethodID method, ...) const;
+  int8_t CallByteMethod(JNIEnv* jni_env, jmethodID method, ...) const;
+  float CallFloatMethod(jmethodID method, ...) const;
+  float CallFloatMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   void CallVoidMethod(jmethodID method, ...) const;
   void CallVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const;
   [[nodiscard]] JObject GetObjectField(jfieldID field) const {

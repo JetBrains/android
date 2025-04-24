@@ -25,6 +25,7 @@ import com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection
 import com.android.tools.idea.lint.common.AndroidLintWrongGradleMethodInspection
 import com.android.tools.idea.lint.inspections.AndroidLintAligned16KBInspection
 import com.android.tools.idea.lint.inspections.AndroidLintDuplicateActivityInspection
+import com.android.tools.idea.lint.inspections.AndroidLintMinSdkTooLowInspection
 import com.android.tools.idea.lint.inspections.AndroidLintMockLocationInspection
 import com.android.tools.idea.lint.inspections.AndroidLintNewApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection
@@ -35,14 +36,22 @@ import com.android.tools.lint.checks.GradleDetector
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInspection.CommonProblemDescriptor
 import com.intellij.codeInspection.GlobalInspectionTool
+import com.intellij.codeInspection.ProblemDescriptor
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper
 import com.intellij.codeInspection.reference.RefEntity
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.InspectionTestUtil
+import com.intellij.testFramework.createGlobalContextForTool
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import java.io.File
 import java.util.Locale
 
@@ -302,6 +311,23 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
+  fun testCatalogMin() {
+    // Checks that if we run batch inspection (called "global" inspection in the test infrastructure),
+    // but the file scope is a single file, we end up taking the isolated mode path in the lint
+    // checks.
+    loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
+    val tomlFile = myFixture.loadFile("gradle/libs.versions.toml")
+    myFixture.checkLintBatch(
+      AndroidLintMinSdkTooLowInspection(),
+      """
+      libs.versions.toml:3: Error: The value of minSdkVersion (15) is too low. It can be incremented without noticeably reducing the number of supported devices.
+          Fix: Update minSdkVersion to 16
+      """,
+      AnalysisScope(tomlFile)
+    )
+  }
+
+
   fun testCompileSdkLocation() {
     loadProject(TestProjectPaths.TEST_LINT_DSL_ERRORS)
     val appBuildFile = myFixture.loadFile("app/build.gradle.kts")
@@ -418,4 +444,64 @@ fun JavaCodeInsightTestFixture.checkLint(
       sb.toString().trimIndent().trim(),
     )
   }
+}
+
+
+/**
+ * Like [checkLint], but runs lint in batch mode (e.g. as a "global inspection")
+ */
+@Suppress("UnstableApiUsage")
+fun JavaCodeInsightTestFixture.checkLintBatch(
+  inspection: AndroidLintInspectionBase,
+  expected: String,
+  scope: AnalysisScope = AnalysisScope(project),
+) {
+  enableInspections(inspection)
+  AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
+
+  scope.invalidate();
+
+  val wrapper = GlobalInspectionToolWrapper(inspection)
+  val globalContext = createGlobalContextForTool(scope, project, listOf(wrapper));
+  InspectionTestUtil.runTool(wrapper, scope, globalContext);
+
+  fun PsiElement.getLineNumber(): Int {
+    val doc = PsiDocumentManager.getInstance(project).getDocument(containingFile)
+    return doc?.getLineNumber(textRange.startOffset) ?: -1
+  }
+
+  val descriptors = globalContext.getPresentation(wrapper).problemDescriptors;
+  val sb = StringBuilder()
+  for (descriptor in descriptors) {
+    if (descriptor is ProblemDescriptor) {
+      val element = descriptor.psiElement
+      sb.append(element.containingFile.virtualFile.name).append(":").append(element.getLineNumber()).append(": ")
+      val highlightType = descriptor.highlightType
+      val severity = when (highlightType) {
+        ProblemHighlightType.ERROR,
+        ProblemHighlightType.GENERIC_ERROR,
+        ProblemHighlightType.GENERIC_ERROR_OR_WARNING -> "Error"
+        ProblemHighlightType.WARNING -> "Warning"
+        ProblemHighlightType.INFORMATION,
+        ProblemHighlightType.WEAK_WARNING -> "Info"
+        else -> highlightType.name.lowercase(Locale.ROOT).capitalize()
+      }
+      sb.append(severity).append(": ")
+      sb.append(descriptor.toString().removePrefix("<html>").removeSuffix("</html>").trim()).append("\n")
+      val fixes = descriptor.fixes
+      if (fixes != null) {
+        for (fix in fixes) {
+          sb.append("    Fix: ")
+          sb.append(fix.name)
+          sb.append("\n")
+        }
+      }
+      if (sb.isEmpty()) {
+        sb.append("No warnings.")
+      }
+    } else {
+      fail("Unexpected descriptor type $descriptor)")
+    }
+  }
+  assertEquals(expected.trimIndent().trim(), sb.toString().trim())
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspector.api.process
 
+import com.android.sdklib.AndroidApiLevel
+
 /** Basic information about a device. */
 interface DeviceDescriptor {
   /** The manufacturer of the device. */
@@ -30,7 +32,7 @@ interface DeviceDescriptor {
   val isEmulator: Boolean
 
   /** The API level of this device. See also: AndroidVersion.VersionCodes */
-  val apiLevel: Int
+  val apiLevel: AndroidApiLevel
 
   /** The OS build as a string, e.g. "5.1.1" */
   val version: String

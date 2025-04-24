@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.fakeadbserver.FakeAdbServer;
+import com.android.sdklib.AndroidApiLevel;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProfilerToolWindowFixture;
@@ -53,7 +54,7 @@ public class AndroidProfilerTest {
   private static final String MANUFACTURER = "Google";
   private static final String MODEL = "Alphabet Google Android Pixel Silver Really Red Edition";
   private static final String RELEASE = "9.0";
-  private static final String SDK = "28";
+  private static final AndroidApiLevel SDK = new AndroidApiLevel(28);
 
   @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
   private FakeAdbServer myAdbServer;

@@ -22,6 +22,7 @@ import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Translation
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.XrOptions
+import com.android.emulator.control.XrOptions.Environment.forNumber
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.DeviceId
@@ -63,7 +64,10 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   override suspend fun setPassthrough(passthroughCoefficient: Float) {
     suspendCancellableCoroutine { continuation ->
-      val xrOptions = XrOptions.newBuilder().setPassthroughCoefficient(passthroughCoefficient).setEnvironment(environment).build()
+      val xrOptions = XrOptions.newBuilder()
+        .setPassthroughCoefficient(passthroughCoefficient)
+        .setEnvironment(environment?.let { forNumber(it.ordinal) })
+        .build()
       emulator.setXrOptions(xrOptions, object : EmptyStreamObserver<Empty>() {
         override fun onNext(message: Empty) {
           this@EmulatorXrInputController.passthroughCoefficient = passthroughCoefficient

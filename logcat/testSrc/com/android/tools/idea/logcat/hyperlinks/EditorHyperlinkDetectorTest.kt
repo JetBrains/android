@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.waitForCondition
@@ -173,9 +174,13 @@ class EditorHyperlinkDetectorTest {
   fun detectHyperlinks_passesSdk() {
     val editorHyperlinkDetector = editorHyperlinkDetector(editor)
 
-    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = 23)
+    editorHyperlinkDetector.detectHyperlinks(
+      0,
+      editor.document.lineCount - 1,
+      sdk = AndroidApiLevel(23),
+    )
 
-    assertThat(editorHyperlinkDetector.filter.apiLevel).isEqualTo(23)
+    assertThat(editorHyperlinkDetector.filter.apiLevel).isEqualTo(AndroidApiLevel(23))
   }
 
   private class TestFilter(private val text: String) : Filter {

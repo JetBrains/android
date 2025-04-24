@@ -19,11 +19,14 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.preview.focus.FocusModeTabs.Companion.truncate
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.preview.PreviewDisplaySettings
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.assertInstanceOf
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -47,56 +50,98 @@ class FocusModeTabsTest {
 
   private var rootComponent = JPanel(BorderLayout())
 
-  private data class TestKey(override val title: String) : TitledKey
+  private data class TestKey(override val settings: PreviewDisplaySettings) : FocusKey
+
+  private val simpleSettings =
+    PreviewDisplaySettings(
+      name = "",
+      baseName = "",
+      parameterName = null,
+      group = null,
+      showDecoration = false,
+      showBackground = false,
+      backgroundColor = null,
+      organizationGroup = "",
+      organizationName = "",
+    )
 
   @Test
   fun `first tab is selected`() {
-    val selected = TestKey("First Tab")
-    val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+    val selected = TestKey(simpleSettings.copy(name = "First Tab"))
+    val keys =
+      setOf(
+        TestKey(simpleSettings.copy(name = "First Tab")),
+        TestKey(simpleSettings.copy(name = "Second Tab")),
+        TestKey(simpleSettings.copy(name = "Third Tab")),
+      )
     val tabs = FocusModeTabs(rootComponent, { selected }, { keys }, { _, _ -> })
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
-    assertEquals(TestKey("First Tab"), tabs.selectedKey)
+    assertEquals(TestKey(simpleSettings.copy(name = "First Tab")), tabs.selectedKey)
   }
 
   @Test
   fun `second tab is selected`() {
-    val selected = TestKey("Second Tab")
-    val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+    val selected = TestKey(simpleSettings.copy(name = "Second Tab"))
+    val keys =
+      setOf(
+        TestKey(simpleSettings.copy(name = "First Tab")),
+        TestKey(simpleSettings.copy(name = "Second Tab")),
+        TestKey(simpleSettings.copy(name = "Third Tab")),
+      )
     val tabs = FocusModeTabs(rootComponent, { selected }, { keys }, { _, _ -> })
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
-    assertEquals(TestKey("Second Tab"), tabs.selectedKey)
+    assertEquals(TestKey(simpleSettings.copy(name = "Second Tab")), tabs.selectedKey)
   }
 
   @Test
   fun `update selected tab`() {
-    var selected = TestKey("First Tab")
-    val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-    val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }, { _, _ -> })
-    selected = TestKey("Second Tab")
+    var selected = TestKey(simpleSettings.copy(name = "First Tab"))
+    val keys =
+      setOf(
+        TestKey(simpleSettings.copy(name = "First Tab")),
+        TestKey(simpleSettings.copy(name = "Second Tab")),
+        TestKey(simpleSettings.copy(name = "Third Tab")),
+      )
+    val tabs = FocusModeTabs(rootComponent, { selected }, { keys }, { _, _ -> })
+    selected = TestKey(simpleSettings.copy(name = "Second Tab"))
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
-    assertEquals(TestKey("Second Tab"), tabs.selectedKey)
+    assertEquals(TestKey(simpleSettings.copy(name = "Second Tab")), tabs.selectedKey)
   }
 
   @Test
   fun `update provided tabs`() {
-    val keys = setOf(TestKey("Second Tab"), TestKey("Third Tab"))
-    var providedKeys = setOf(TestKey("First Tab")) + keys
+    val keys =
+      setOf(
+        TestKey(simpleSettings.copy(name = "Second Tab")),
+        TestKey(simpleSettings.copy(name = "Third Tab")),
+      )
+    var providedKeys = setOf(TestKey(simpleSettings.copy(name = "First Tab"))) + keys
     val tabs =
-      FocusModeTabs(rootComponent, { TestKey("Second Tab") }, { providedKeys }, { _, _ -> })
+      FocusModeTabs(
+        rootComponent,
+        { TestKey(simpleSettings.copy(name = "Second Tab")) },
+        { providedKeys },
+        { _, _ -> },
+      )
     providedKeys = keys
     FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
-    assertEquals(TestKey("Second Tab"), tabs.selectedKey)
+    assertEquals(TestKey(simpleSettings.copy(name = "Second Tab")), tabs.selectedKey)
   }
 
   @Test
   fun `new tab is added `() {
-    val newTab = TestKey("newTab")
-    val selected = TestKey("Tab")
-    val providedKeys = mutableSetOf(TestKey("Tab"), TestKey("Tab2"), TestKey("Tab3"))
+    val newTab = TestKey(simpleSettings.copy(name = "New Tab"))
+    val selected = TestKey(simpleSettings.copy(name = "Tab"))
+    val providedKeys =
+      mutableSetOf(
+        TestKey(simpleSettings.copy(name = "First Tab")),
+        TestKey(simpleSettings.copy(name = "Second Tab")),
+        TestKey(simpleSettings.copy(name = "Third Tab")),
+      )
     val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
     // so the ActionButtonWithText can be found when using TreeWalker.
@@ -111,11 +156,11 @@ class FocusModeTabsTest {
 
   @Test
   fun `order correct after update`() {
-    val keyOne = TestKey("First")
-    val keyTwo = TestKey("Second")
-    val keyThree = TestKey("Third")
+    val keyOne = TestKey(simpleSettings.copy(name = "First Tab"))
+    val keyTwo = TestKey(simpleSettings.copy(name = "Second Tab"))
+    val keyThree = TestKey(simpleSettings.copy(name = "Third Tab"))
     var providedKeys = setOf(keyTwo)
-    val selected = TestKey("First")
+    val selected = TestKey(simpleSettings.copy(name = "First Tab"))
     val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
     // so the ActionButtonWithText can be found when using TreeWalker.
@@ -125,15 +170,20 @@ class FocusModeTabsTest {
     ui.updateNestedActions()
     val allActions = findAllActionButtons(tabs)
     assertEquals(3, allActions.size)
-    assertEquals("First", allActions[0].presentation.text)
-    assertEquals("Second", allActions[1].presentation.text)
-    assertEquals("Third", allActions[2].presentation.text)
+    assertEquals("First Tab", allActions[0].presentation.text)
+    assertEquals("Second Tab", allActions[1].presentation.text)
+    assertEquals("Third Tab", allActions[2].presentation.text)
   }
 
   @Test
   fun `toolbar is not updated`() {
-    val selected = TestKey("First Tab")
-    val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+    val selected = TestKey(simpleSettings.copy(name = "First Tab"))
+    val providedKeys =
+      setOf(
+        TestKey(simpleSettings.copy(name = "First Tab")),
+        TestKey(simpleSettings.copy(name = "Second Tab")),
+        TestKey(simpleSettings.copy(name = "Third Tab")),
+      )
     val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
@@ -147,15 +197,19 @@ class FocusModeTabsTest {
 
   @Test
   fun `toolbar is updated with new key`() {
-    val selected = TestKey("First Tab")
+    val selected = TestKey(simpleSettings.copy(name = "First Tab"))
     val providedKeys =
-      mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+      mutableSetOf(
+        TestKey(simpleSettings.copy(name = "First Tab")),
+        TestKey(simpleSettings.copy(name = "Second Tab")),
+        TestKey(simpleSettings.copy(name = "Third Tab")),
+      )
     val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     UIUtil.dispatchAllInvocationEvents()
     val toolbar = findFocusModeTabs(tabs)
     // Set new set of keys.
-    providedKeys += TestKey("New Tab")
+    providedKeys += TestKey(simpleSettings.copy(name = "New Tab"))
     ui.updateNestedActions()
     val updatedToolbar = findFocusModeTabs(tabs)
     // New toolbar was created.
@@ -163,11 +217,106 @@ class FocusModeTabsTest {
   }
 
   @Test
+  fun `more toolbar group created`() {
+    val keys =
+      mutableSetOf(
+        TestKey(
+          simpleSettings.copy(
+            name = "name - 1",
+            parameterName = "1",
+            organizationGroup = "group1",
+            organizationName = "name1",
+          )
+        ),
+        TestKey(
+          simpleSettings.copy(
+            name = "name - 2",
+            parameterName = "2",
+            organizationGroup = "group1",
+            organizationName = "name1",
+          )
+        ),
+        TestKey(
+          simpleSettings.copy(
+            name = "name - 3",
+            parameterName = "3",
+            organizationGroup = "group1",
+            organizationName = "name1",
+          )
+        ),
+        TestKey(
+          simpleSettings.copy(
+            name = "name - 4",
+            parameterName = "4",
+            organizationGroup = "no group1",
+          )
+        ),
+        TestKey(
+          simpleSettings.copy(
+            name = "name - 5",
+            parameterName = "5",
+            organizationGroup = "no group",
+          )
+        ),
+        TestKey(
+          simpleSettings.copy(
+            name = "name - 6",
+            parameterName = "6",
+            organizationGroup = "group2",
+            organizationName = "name2",
+          )
+        ),
+        TestKey(
+          simpleSettings.copy(
+            name = "name - 7",
+            parameterName = "7",
+            organizationGroup = "group2",
+            organizationName = "name2",
+          )
+        ),
+        TestKey(
+          simpleSettings.copy(
+            name = "name - 8",
+            parameterName = "8",
+            organizationGroup = "group2",
+            organizationName = "name2",
+          )
+        ),
+      )
+    val tabs = FocusModeTabs(rootComponent, { keys.first() }, { keys }) { _, _ -> }
+    FakeUi(tabs)
+    UIUtil.dispatchAllInvocationEvents()
+    assertEquals(13, tabs.getMoreActionsForTests().count())
+
+    assertInstanceOf<Separator>(tabs.getMoreActionsForTests()[0])
+    assertInstanceOf<FocusModeTabs.HeaderAction>(tabs.getMoreActionsForTests()[1])
+    assertInstanceOf<FocusModeTabs<*>.TabLabelAction>(tabs.getMoreActionsForTests()[2])
+    assertInstanceOf<FocusModeTabs<*>.TabLabelAction>(tabs.getMoreActionsForTests()[3])
+    assertInstanceOf<FocusModeTabs<*>.TabLabelAction>(tabs.getMoreActionsForTests()[4])
+    assertInstanceOf<Separator>(tabs.getMoreActionsForTests()[5])
+    assertInstanceOf<FocusModeTabs<*>.TabLabelAction>(tabs.getMoreActionsForTests()[6])
+    assertInstanceOf<FocusModeTabs<*>.TabLabelAction>(tabs.getMoreActionsForTests()[7])
+    assertInstanceOf<Separator>(tabs.getMoreActionsForTests()[8])
+    assertInstanceOf<FocusModeTabs.HeaderAction>(tabs.getMoreActionsForTests()[9])
+    assertInstanceOf<FocusModeTabs<*>.TabLabelAction>(tabs.getMoreActionsForTests()[10])
+    assertInstanceOf<FocusModeTabs<*>.TabLabelAction>(tabs.getMoreActionsForTests()[11])
+    assertInstanceOf<FocusModeTabs<*>.TabLabelAction>(tabs.getMoreActionsForTests()[12])
+
+    assertEquals("name1", (tabs.getMoreActionsForTests()[1].templateText))
+    assertEquals("name2", (tabs.getMoreActionsForTests()[9].templateText))
+  }
+
+  @Test
   fun `toolbar is updated with removed key`() {
-    val keyToRemove = TestKey("Key to remove")
-    val selected = TestKey("First Tab")
+    val keyToRemove = TestKey(simpleSettings.copy(name = "Key to remove"))
+    val selected = TestKey(simpleSettings.copy(name = "First Tab"))
     val providedKeys =
-      mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"), keyToRemove)
+      mutableSetOf(
+        TestKey(simpleSettings.copy(name = "First Tab")),
+        TestKey(simpleSettings.copy(name = "Second Tab")),
+        TestKey(simpleSettings.copy(name = "Third Tab")),
+        keyToRemove,
+      )
     val tabs = FocusModeTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
     val ui = FakeUi(tabs)
     ui.updateNestedActions()
@@ -188,12 +337,18 @@ class FocusModeTabsTest {
    * selected.
    */
   fun `preview tabs`() {
-    val selected = TestKey("First Tab")
+    val selected = TestKey(simpleSettings.copy(name = "First Tab"))
     val tabs =
       FocusModeTabs(
         rootComponent,
         { selected },
-        { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
+        {
+          setOf(
+            TestKey(simpleSettings.copy(name = "First Tab")),
+            TestKey(simpleSettings.copy(name = "Second Tab")),
+            TestKey(simpleSettings.copy(name = "Third Tab")),
+          )
+        },
       ) { _, _ ->
       }
     val root = JPanel(BorderLayout()).apply { size = Dimension(400, 400) }
@@ -205,12 +360,18 @@ class FocusModeTabsTest {
 
   @Test
   fun `click on tabs`() {
-    var selected = TestKey("First Tab")
+    var selected = TestKey(simpleSettings.copy(name = "First Tab"))
     val tabs =
       FocusModeTabs(
         rootComponent,
         { selected },
-        { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
+        {
+          setOf(
+            TestKey(simpleSettings.copy(name = "First Tab")),
+            TestKey(simpleSettings.copy(name = "Second Tab")),
+            TestKey(simpleSettings.copy(name = "Third Tab")),
+          )
+        },
       ) { _, key ->
         selected = key!!
       }
@@ -221,27 +382,33 @@ class FocusModeTabsTest {
     root.add(tabs, BorderLayout.NORTH)
     val ui = FakeUi(root).apply { updateNestedActions() }
     val buttons = findAllActionButtons(root)
-    assertEquals("First Tab", selected.title)
-    assertEquals("First Tab", tabs.selectedKey?.title)
+    assertEquals("First Tab", selected.settings.name)
+    assertEquals("First Tab", tabs.selectedKey?.settings?.name)
     ui.clickOn(buttons[1])
-    assertEquals("Second Tab", selected.title)
-    assertEquals("Second Tab", tabs.selectedKey?.title)
+    assertEquals("Second Tab", selected.settings.name)
+    assertEquals("Second Tab", tabs.selectedKey?.settings?.name)
     ui.clickOn(buttons[2])
-    assertEquals("Third Tab", selected.title)
-    assertEquals("Third Tab", tabs.selectedKey?.title)
+    assertEquals("Third Tab", selected.settings.name)
+    assertEquals("Third Tab", tabs.selectedKey?.settings?.name)
     ui.clickOn(buttons[0])
-    assertEquals("First Tab", selected.title)
-    assertEquals("First Tab", tabs.selectedKey?.title)
+    assertEquals("First Tab", selected.settings.name)
+    assertEquals("First Tab", tabs.selectedKey?.settings?.name)
   }
 
   @Test
   fun `clicked tab is always visible`() {
-    var selected = TestKey("First Tab")
+    var selected = TestKey(simpleSettings.copy(name = "First Tab"))
     val tabs =
       FocusModeTabs(
         rootComponent,
         { selected },
-        { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
+        {
+          setOf(
+            TestKey(simpleSettings.copy(name = "First Tab")),
+            TestKey(simpleSettings.copy(name = "Second Tab")),
+            TestKey(simpleSettings.copy(name = "Third Tab")),
+          )
+        },
       ) { _, key ->
         selected = key!!
       }
@@ -278,18 +445,18 @@ class FocusModeTabsTest {
 
   @Test
   fun `selected tab is always visible`() {
-    val selected = TestKey("Sixth Tab")
+    val selected = TestKey(simpleSettings.copy(name = "Sixth Tab"))
     val tabs =
       FocusModeTabs(
         rootComponent,
         { selected },
         {
           setOf(
-            TestKey("First Tab"),
-            TestKey("Second Tab"),
-            TestKey("Third Tab"),
-            TestKey("Fourth Tab"),
-            TestKey("Fifth Tab"),
+            TestKey(simpleSettings.copy(name = "First Tab")),
+            TestKey(simpleSettings.copy(name = "Second Tab")),
+            TestKey(simpleSettings.copy(name = "Third Tab")),
+            TestKey(simpleSettings.copy(name = "Fourth Tab")),
+            TestKey(simpleSettings.copy(name = "Fifth Tab")),
             selected,
           )
         },
@@ -306,7 +473,7 @@ class FocusModeTabsTest {
     val buttons = findAllActionButtons(root)
     val scrollPane = findScrollPane(root).apply { size = Dimension(320, 40) }
 
-    assertEquals(tabs.selectedKey!!.title, "Sixth Tab")
+    assertEquals(tabs.selectedKey!!.settings.name, "Sixth Tab")
     assertFalse(scrollPane.bounds.contains(buttons[0].relativeBounds()))
     assertFalse(scrollPane.bounds.contains(buttons[1].relativeBounds()))
     assertTrue(scrollPane.bounds.contains(buttons[2].relativeBounds()))

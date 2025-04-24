@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -513,7 +514,7 @@ class InspectorClientLaunchMonitorTest {
           override val model = "model"
           override val serial = "emulator-33"
           override val isEmulator = true
-          override val apiLevel = 33
+          override val apiLevel = AndroidApiLevel(33)
           override val version = "10.0.0"
           override val codename: String? = null
         }

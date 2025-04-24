@@ -511,5 +511,10 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     public boolean isLeakCanaryEnabled() {
       return StudioFlags.PROFILER_LEAKCANARY.get();
     }
+
+    @Override
+    public boolean isTaskTitleV2Enabled() {
+      return StudioFlags.PROFILER_TASK_TITLE_V2.get();
+    }
   }
 }

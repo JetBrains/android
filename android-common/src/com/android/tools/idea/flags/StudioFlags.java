@@ -290,6 +290,10 @@ public final class StudioFlags {
                                                                              "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
                                                                              true);
 
+  public static final Flag<Boolean> PROFILER_TASK_TITLE_V2 = new BooleanFlag(PROFILER, "task.title.v2", "Task Title V2",
+                                                                             "Enables more distinguishable descriptions for profiler tasks",
+                                                                             enabledUpTo(CANARY));
+
   public static final Flag<Boolean> PROFILER_LEAKCANARY = new BooleanFlag(PROFILER, "leakcanary", "LeakCanary",
                                                                           "Enables the integration of leakCanary and display of leaks",
                                                                           false);
@@ -1425,6 +1429,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> PREVIEW_FILTER = new BooleanFlag(
+    PREVIEW_COMMON, "filter",
+    "Support filtering the previews",
+    "If enabled, the user can find the filter actions to filter the visible previews",
+    false
+  );
+
   //endregion
 
   //region Compose
@@ -1506,14 +1517,7 @@ public final class StudioFlags {
     COMPOSE, "preview.resizing",
     "Enable resizing for Compose Preview",
     "If enabled, the user can resize the Compose Preview",
-    enabledUpTo(DEV)
-  );
-
-  public static final Flag<Boolean> COMPOSE_VIEW_FILTER = new BooleanFlag(
-    COMPOSE, "view.filter",
-    "Support filter the previews in Compose",
-    "If enabled, the user can find the filter actions to filter the visible previews in compose preview",
-    false
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = new IntFlag(
@@ -2156,14 +2160,14 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
     new BooleanFlag(STUDIOBOT, "current.file.context",
-                    "Use the current file as context",
-                    "Attach the current file's path, contents, and selection with chat queries.",
-                    enabledUpTo(CANARY));
+                    "Enable the Current File macro in the context drawer",
+                    "This macro attaches the current file's path, contents, and selection with chat queries.",
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_RECENT_FILES_CONTEXT =
     new BooleanFlag(STUDIOBOT, "open.files.context",
-                    "Use the most recently opened files as context",
-                    "Attach the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.",
+                    "Enable the Recent Files macro in the context drawer",
+                    "This macro attaches the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.",
                     enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
@@ -2182,7 +2186,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
                     "Enable Scroll to Bottom button",
                     "When enabled, the chat will show a Scroll to Bottom button as needed.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
@@ -2282,6 +2286,12 @@ public final class StudioFlags {
                     "Enable support for GCA Enterprise tier",
                     enabledUpTo(CANARY));
 
+  public static Flag<Boolean> STUDIOBOT_SHIMMER_PLACEHOLDER =
+    new BooleanFlag(STUDIOBOT, "show.shimmer.placeholder",
+                    "Enable shimmering placeholder in chat timeline.",
+                    "When enabled, the compose chat timeline will show a shimmering placeholder while awaiting initial response content.",
+                    enabledUpTo(CANARY));
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
@@ -2376,14 +2386,6 @@ public final class StudioFlags {
       "Display Backup action in Running Devices",
       "Display Backup action in Running Devices",
       true);
-
-  public static final Flag<Boolean> BACKUP_ALLOW_NON_PROJECT_APPS =
-    new BooleanFlag(
-      BACKUP,
-      "allow.non.project.apps",
-      "Allow Backup/Restore on Non Project Apps",
-      "Allow invocation of Backup & Restore actions on apps that are not part of the project. Unexpected results may occur.",
-      false);
   // endregion Backup
 
   // region GOOGLE_PLAY_SDK_INDEX

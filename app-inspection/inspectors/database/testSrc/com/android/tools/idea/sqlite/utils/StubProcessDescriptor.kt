@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.utils
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 
@@ -25,7 +26,7 @@ class StubProcessDescriptor : ProcessDescriptor {
       override val model = "model"
       override val serial = "serial"
       override val isEmulator = false
-      override val apiLevel = 26
+      override val apiLevel = AndroidApiLevel(26)
       override val version: String = "8.0"
       override val codename: String = "O"
     }

@@ -61,7 +61,7 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
 
   /** List of [NlComponent]s that have not been suppressed */
   val components
-    get() = synchronized(_components) { _components.filterNot(isComponentSuppressed).toList() }
+    get() = allComponents.filterNot(isComponentSuppressed)
 
   val models
     get() = synchronized(_models) { _models.toSet() }

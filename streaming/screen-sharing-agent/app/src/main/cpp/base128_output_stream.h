@@ -47,6 +47,8 @@ public:
   void WriteUInt64(uint64_t value);
   void WriteInt64(int64_t value) { WriteUInt64(value); }
   void WriteBool(bool value);
+  void WriteFloat(float value);
+  void WriteFixed32(int32_t value);
 
 private:
   SocketWriter writer_;

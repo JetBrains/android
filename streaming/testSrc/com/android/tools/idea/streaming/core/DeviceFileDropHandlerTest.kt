@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adb.FakeAdbServiceRule
@@ -127,7 +128,7 @@ class DeviceFileDropHandlerTest {
   }
 
   private fun attachDevice() =
-      adbRule.attachDevice("emulator-${emulator.serialPort}", "Google", "Pixel 3 XL", "Sweet dessert", "29")
+      adbRule.attachDevice("emulator-${emulator.serialPort}", "Google", "Pixel 3 XL", "Sweet dessert", AndroidApiLevel(29))
 
   private fun createDropTarget(): DnDTarget {
     var nullableTarget: DnDTarget? = null

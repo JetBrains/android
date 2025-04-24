@@ -165,6 +165,13 @@ internal class DeviceView(
     set(value) {
       if (field != value) {
         field = value
+        xrInputController?.let {
+          when (value) {
+            ConnectionState.CONNECTED -> deviceClient.deviceController?.addXrEnvironmentListener(it)
+            ConnectionState.DISCONNECTED -> deviceClient.deviceController?.removeXrEnvironmentListener(it)
+            else -> {}
+          }
+        }
         ActivityTracker.getInstance().inc() // Trigger toolbar updates.
         UIUtil.invokeLaterIfNeeded {
           if (!disposed) {

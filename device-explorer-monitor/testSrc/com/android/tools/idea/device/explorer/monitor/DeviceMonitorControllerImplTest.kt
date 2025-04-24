@@ -26,6 +26,7 @@ import com.android.ddmlib.AdbInitOptions
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.ClientState
 import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -320,7 +321,7 @@ class DeviceMonitorControllerImplTest {
       manufacturer = "Google",
       deviceModel = "Pixel 10",
       release = "8.0",
-      sdk = "30",
+      sdk = AndroidApiLevel(30),
       hostConnectionType = DeviceState.HostConnectionType.USB
     )
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE

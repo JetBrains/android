@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
@@ -59,7 +60,7 @@ class RootPanelTest {
       override val model = "model"
       override val serial = "serial"
       override val isEmulator = false
-      override val apiLevel = 0
+      override val apiLevel = AndroidApiLevel(0)
       override val version = "version"
       override val codename = "codename"
     }

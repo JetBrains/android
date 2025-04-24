@@ -522,12 +522,16 @@ public class QuerySyncManager implements Disposable {
     if (virtualFile == null) {
       return true;
     }
+    Path nioPath = virtualFile.getFileSystem().getNioPath(virtualFile);
+    if (nioPath == null) {
+      return true;
+    }
     return CachedValuesManager.getCachedValue(psiFile, () -> {
       boolean result;
       if (loadedProject == null) {
         result = false;
       } else {
-        result = loadedProject.isReadyForAnalysis(virtualFile.toNioPath());
+        result = loadedProject.isReadyForAnalysis(nioPath);
       }
       return CachedValueProvider.Result.create(result, getProjectModificationTracker());
     });

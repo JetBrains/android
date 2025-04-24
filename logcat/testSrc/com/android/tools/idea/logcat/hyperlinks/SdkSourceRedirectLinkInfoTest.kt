@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
@@ -63,7 +64,7 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file.virtualFile),
         OpenFileDescriptor(project, file.virtualFile, 10, 0),
-        27,
+        AndroidApiLevel(27),
       )
 
     info.navigate(project)
@@ -87,7 +88,7 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file.virtualFile),
         OpenFileDescriptor(project, file.virtualFile, 1, 0),
-        27,
+        apiLevel = AndroidApiLevel(27),
       )
 
     info.navigate(project)
@@ -105,7 +106,7 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file1, file2),
         OpenFileDescriptor(project, file1, 1, 0),
-        27,
+        AndroidApiLevel(27),
       )
 
     info.navigate(project)
@@ -126,7 +127,7 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file1, file2),
         OpenFileDescriptor(project, file1, 1, 0),
-        27,
+        AndroidApiLevel(27),
       )
 
     info.navigate(project)
@@ -146,7 +147,7 @@ class SdkSourceRedirectLinkInfoTest {
         project,
         listOf(file.virtualFile),
         OpenFileDescriptor(project, file.virtualFile, 7),
-        27,
+        AndroidApiLevel(27),
       )
 
     info.navigate(project)

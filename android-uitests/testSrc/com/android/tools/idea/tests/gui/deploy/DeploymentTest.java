@@ -226,7 +226,7 @@ public class DeploymentTest {
       AndroidProcessHandler handler = waitForClient(device);
 
       // Ensure that the buttons are enabled if on Android version Oreo or above and disabled otherwise.
-      boolean shouldBeEnabled = Integer.parseInt(selectedDeviceBinder.getState().getBuildVersionSdk()) >= O;
+      boolean shouldBeEnabled = selectedDeviceBinder.getState().getBuildVersionSdk().getMajorVersion() >= O;
       ideFrameFixture.findApplyCodeChangesButton(shouldBeEnabled);
       ideFrameFixture.findApplyChangesButton(shouldBeEnabled);
 

@@ -46,6 +46,7 @@ class AndroidProfilerToolWindowFactoryTest {
   fun setup() {
     // This test suite assumes the Task-Based UX is enabled unless otherwise specified.
     StudioFlags.PROFILER_TASK_BASED_UX.override(true)
+    StudioFlags.PROFILER_TASK_TITLE_V2.override(false)
   }
 
   @After

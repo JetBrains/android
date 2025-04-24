@@ -24,6 +24,7 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.resources.Density
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.SystemImageTags.PLAY_STORE_TAG
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey
@@ -1331,7 +1332,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
             override val model = "model"
             override val serial = "emulator-$apiLevel"
             override val isEmulator = true
-            override val apiLevel = apiLevel
+            override val apiLevel = AndroidApiLevel(apiLevel)
             override val version = "10.0.0"
             override val codename: String? = null
           }
@@ -1348,7 +1349,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       processDescriptor.device.manufacturer,
       processDescriptor.device.model,
       processDescriptor.device.version,
-      processDescriptor.device.apiLevel.toString(),
+      processDescriptor.device.apiLevel,
       processDescriptor.abiCpuArch,
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,

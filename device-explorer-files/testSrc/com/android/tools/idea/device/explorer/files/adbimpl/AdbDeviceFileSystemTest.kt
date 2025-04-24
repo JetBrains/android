@@ -23,6 +23,7 @@ import com.android.fakeadbserver.DeviceFileState
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
@@ -100,7 +101,7 @@ class AdbDeviceFileSystemTest {
         manufacturer = "Google",
         deviceModel = "Pixel 10",
         release = "8.0",
-        sdk = "31",
+        sdk = AndroidApiLevel(31),
         hostConnectionType = DeviceState.HostConnectionType.USB
       )
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.sdklib.AndroidApiLevel
+
 /** Interface for detecting hyperlinks. */
 internal interface HyperlinkDetector {
   /**
@@ -24,5 +26,5 @@ internal interface HyperlinkDetector {
    * @param endLine End line of region to process (zero based)
    * @param sdk The sdk level of the selected device or null if it is not known (should not happen)
    */
-  fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?)
+  fun detectHyperlinks(startLine: Int, endLine: Int, sdk: AndroidApiLevel?)
 }

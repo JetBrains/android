@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.sources
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.java.JavaLanguage
@@ -40,8 +41,8 @@ class SdkSourcePositionFinderImplTest {
     val file = runInEdtAndGet { PsiFileFactory.getInstance(project).createFileFromText("View.java", JavaLanguage.INSTANCE, "") }
     val finder = SdkSourcePositionFinderImpl(project)
 
-    val position1 = finder.getSourcePosition(apiLevel = 1, file, lineNumber = 12)
-    val position2 = finder.getSourcePosition(apiLevel = 1, file, lineNumber = 13)
+    val position1 = finder.getSourcePosition(apiLevel = AndroidApiLevel(1), file, lineNumber = 12)
+    val position2 = finder.getSourcePosition(apiLevel = AndroidApiLevel(1), file, lineNumber = 13)
 
     assertThat(position1.file).isSameAs(position2.file)
   }

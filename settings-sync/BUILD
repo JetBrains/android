@@ -12,6 +12,7 @@ iml_module(
         "@intellij//:test-framework",
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -27,5 +28,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "//tools/adt/idea/artwork:intellij.android.artwork",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations",
     ],
 )

@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.backup
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetContext
 import com.android.tools.idea.run.editor.DeployTargetProvider
 import com.intellij.execution.RunManager
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 /** Production implementation of [ActionHelper] */
@@ -50,12 +48,7 @@ class ActionHelperImpl : ActionHelper {
   }
 
   override suspend fun checkCompatibleApps(project: Project, serialNumber: String): Boolean {
-    if (StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get()) {
-      return true
-    }
-    val backupManager = BackupManager.getInstance(project)
-    val applicationIds = project.service<ProjectAppsProvider>().getApplicationIds()
-    return applicationIds.any { backupManager.isInstalled(serialNumber, it) }
+    return BackupManager.getInstance(project).getDebuggableApps(serialNumber).isNotEmpty()
   }
 
   private fun getDeployTarget(project: Project): DeployTarget {

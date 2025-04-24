@@ -50,11 +50,19 @@ internal data class LogcatPanelConfig(
   val isSoftWrap: Boolean,
 ) {
 
+  /**
+   * Ensures that the contents of LogcatPanelConfig are in a normal state; i.e. all non-nullable
+   * fields are not null. (Gson can deserialize objects into this broken state. In this state, the
+   * copy() method throws an exception because it tries to pass the null to a non-null parameter.)
+   */
+  private fun normalize(): LogcatPanelConfig? =
+    runCatching { copy(device = runCatching { device?.copy() }.getOrNull()) }.getOrNull()
+
   companion object {
     /** Decodes a JSON string into a [LogcatPanelConfig]. */
     fun fromJson(json: String?): LogcatPanelConfig? {
       return try {
-        gson.fromJson(json, LogcatPanelConfig::class.java)
+        gson.fromJson(json, LogcatPanelConfig::class.java)?.normalize()
       } catch (e: JsonSyntaxException) {
         LOGGER.warn("Invalid state JSON string: '$json'")
         null

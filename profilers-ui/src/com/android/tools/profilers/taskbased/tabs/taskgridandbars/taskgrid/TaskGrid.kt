@@ -88,6 +88,7 @@ fun TaskGrid(taskGridModel: TaskGridModel, taskTypes: List<ProfilerTaskType>) {
             onTaskSelection = {
               taskGridModel.onTaskSelection(it)
             },
+            isTaskTitleV2Enabled = taskGridModel.profilers.ideServices.featureConfig.isTaskTitleV2Enabled,
           )
         }
       }
@@ -107,7 +108,8 @@ fun TaskGrid(taskGridModel: TaskGridModel, selectedRecording: SessionItem?, task
           TaskGridItem(
             task = it,
             isSelectedTask = it == selectedTask,
-            onTaskSelection = taskGridModel::onTaskSelection
+            onTaskSelection = taskGridModel::onTaskSelection,
+            isTaskTitleV2Enabled = taskGridModel.profilers.ideServices.featureConfig.isTaskTitleV2Enabled,
           )
         }
       }

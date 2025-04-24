@@ -42,6 +42,8 @@ private fun simplestDisplaySettings(name: String = "") =
     showDecoration = false,
     showBackground = false,
     backgroundColor = null,
+    organizationName = "organizationName",
+    organizationGroup = "organizationGroup",
   )
 
 private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {

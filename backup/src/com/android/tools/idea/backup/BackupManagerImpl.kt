@@ -106,9 +106,14 @@ internal constructor(
       withContext(Dispatchers.Default) {
         backupService.isBackupEnabled(serialNumber, applicationId)
       }
+    val debuggableApps = getDebuggableApps(serialNumber)
     withContext(Dispatchers.EDT) {
-      showBackupDialog(serialNumber, applicationId, source, notify, isBackupEnabled)
+      showBackupDialog(serialNumber, applicationId, debuggableApps, source, notify, isBackupEnabled)
     }
+  }
+
+  override suspend fun getDebuggableApps(serialNumber: String): List<String> {
+    return backupService.getDebuggableApps(serialNumber)
   }
 
   @VisibleForTesting
@@ -116,11 +121,12 @@ internal constructor(
   fun showBackupDialog(
     serialNumber: String,
     applicationId: String,
+    debuggableApps: List<String>,
     source: Source,
     notify: Boolean,
     isBackupEnabled: Boolean,
   ) {
-    val dialog = BackupDialog(project, applicationId, isBackupEnabled)
+    val dialog = BackupDialog(project, applicationId, debuggableApps, isBackupEnabled)
     val ok = dialog.showAndGet()
     if (ok) {
       doBackup(serialNumber, dialog.applicationId, dialog.type, dialog.backupPath, source, notify)
@@ -208,13 +214,6 @@ internal constructor(
         ?: return false
     val deviceType = deviceHandle.state.properties.deviceType
     return deviceType == DeviceType.HANDHELD
-  }
-
-  override fun isAppSupported(applicationId: String): Boolean {
-    return when {
-      StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get() -> true
-      else -> project.service<ProjectAppsProvider>().getApplicationIds().contains(applicationId)
-    }
   }
 
   @UiThread

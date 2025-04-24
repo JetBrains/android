@@ -211,7 +211,7 @@ class EmulatorConfiguration private constructor(
     }
 
     fun createStub(avdName: String, avdFolder: Path): EmulatorConfiguration {
-      return EmulatorConfiguration(avdFolder, avdName, DeviceType.HANDHELD, AndroidVersion(0), Dimension(), 0, emptyMap(), null, false,
+      return EmulatorConfiguration(avdFolder, avdName, DeviceType.HANDHELD, AndroidVersion(0, 0), Dimension(), 0, emptyMap(), null, false,
                                    false, 0, emptyList(), emptyList())
     }
 

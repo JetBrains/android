@@ -54,6 +54,7 @@ import com.android.resources.ScreenSize
 import com.android.resources.TouchScreen
 import com.android.resources.UiMode
 import com.android.resources.WideGamutColor
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.properties.PropertyType
@@ -212,7 +213,9 @@ fun LayoutInspectorViewProtocol.Quad.toPolygon(): Polygon {
  * Create a [FolderConfiguration] based on a [LayoutInspectorViewProtocol.Configuration] proto
  * received from a device.
  */
-fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: Int): FolderConfiguration {
+fun LayoutInspectorViewProtocol.Configuration.convert(
+  apiLevel: AndroidApiLevel
+): FolderConfiguration {
   val config = FolderConfiguration()
   config.countryCodeQualifier = CountryCodeQualifier(countryCode)
   config.networkCodeQualifier = NetworkCodeQualifier(networkCode)

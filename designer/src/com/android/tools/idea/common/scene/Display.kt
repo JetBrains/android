@@ -62,10 +62,10 @@ private class AsyncDisplay(disposable: Disposable, private val captureRepaints: 
 
         var needsAnotherRepaint = false
         val time = System.currentTimeMillis()
+        val sceneVersion = scene.displayListVersion
         needsAnotherRepaint = scene.layout(time, sceneContext)
         sceneContext.time = time
         checkCanceled()
-        val sceneVersion = scene.displayListVersion
         scene.buildDisplayList(newDisplayList, time, sceneContext)
         cachedStateFlow.value = CachedState(sceneVersion, newDisplayList, sceneContext.scale)
         if (needsAnotherRepaint) {

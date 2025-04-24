@@ -256,6 +256,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview",
             baseName = "tilePreview",
             parameterName = null,
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
+            organizationName = "tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
@@ -270,6 +272,8 @@ class WearTilePreviewElementFinderTest {
             name = "largeRoundTilePreview",
             baseName = "largeRoundTilePreview",
             parameterName = null,
+            organizationName = "largeRoundTilePreview",
+            organizationGroup = "com.android.test.SrcKt.largeRoundTilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
@@ -292,6 +296,8 @@ class WearTilePreviewElementFinderTest {
             name = "namedTilePreview - some name",
             baseName = "namedTilePreview",
             parameterName = "some name",
+            organizationName = "namedTilePreview",
+            organizationGroup = "com.android.test.SrcKt.namedTilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -315,6 +321,8 @@ class WearTilePreviewElementFinderTest {
             baseName = "tilePreviewWithGroup",
             parameterName = null,
             group = "some group",
+            organizationName = "tilePreviewWithGroup",
+            organizationGroup = "com.android.test.SrcKt.tilePreviewWithGroup",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_square"))
@@ -337,6 +345,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreviewWithLocale",
             baseName = "tilePreviewWithLocale",
             parameterName = null,
+            organizationName = "tilePreviewWithLocale",
+            organizationGroup = "com.android.test.SrcKt.tilePreviewWithLocale",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(locale = "fr"))
@@ -358,6 +368,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreviewWithFontScale",
             baseName = "tilePreviewWithFontScale",
             parameterName = null,
+            organizationName = "tilePreviewWithFontScale",
+            organizationGroup = "com.android.test.SrcKt.tilePreviewWithFontScale",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(fontScale = 1.2f))
@@ -379,6 +391,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreviewWithContextParameter",
             baseName = "tilePreviewWithContextParameter",
             parameterName = null,
+            organizationName = "tilePreviewWithContextParameter",
+            organizationGroup = "com.android.test.SrcKt.tilePreviewWithContextParameter",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -393,6 +407,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreviewWithMultipleAnnotations",
             baseName = "tilePreviewWithMultipleAnnotations",
             parameterName = null,
+            organizationName = "tilePreviewWithMultipleAnnotations",
+            organizationGroup = "com.android.test.SrcKt.tilePreviewWithMultipleAnnotations",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -407,6 +423,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreviewWithMultipleAnnotations",
             baseName = "tilePreviewWithMultipleAnnotations",
             parameterName = null,
+            organizationName = "tilePreviewWithMultipleAnnotations",
+            organizationGroup = "com.android.test.SrcKt.tilePreviewWithMultipleAnnotations",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
@@ -421,6 +439,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreviewWithMultipleAnnotations - some name",
             baseName = "tilePreviewWithMultipleAnnotations",
             parameterName = "some name",
+            organizationName = "tilePreviewWithMultipleAnnotations",
+            organizationGroup = "com.android.test.SrcKt.tilePreviewWithMultipleAnnotations",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -465,6 +485,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview",
             baseName = "tilePreview",
             parameterName = null,
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
+            organizationName = "tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -507,6 +529,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreviewInJavaFile",
             baseName = "tilePreviewInJavaFile",
             parameterName = null,
+            organizationGroup = "com.android.test.JavaPreview.tilePreviewInJavaFile",
+            organizationName = "tilePreviewInJavaFile",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -598,6 +622,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview - AllWearDevices 1",
             baseName = "tilePreview",
             parameterName = "AllWearDevices 1",
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
+            organizationName = "tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
@@ -611,6 +637,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview - AllWearDevices 2",
             baseName = "tilePreview",
             parameterName = "AllWearDevices 2",
+            organizationName = "tilePreview",
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
@@ -624,6 +652,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview - AllWearDevices 3",
             baseName = "tilePreview",
             parameterName = "AllWearDevices 3",
+            organizationName = "tilePreview",
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_square"))
@@ -637,6 +667,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview - AllWearDevices 4",
             baseName = "tilePreview",
             parameterName = "AllWearDevices 4",
+            organizationName = "tilePreview",
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_rect"))
@@ -650,6 +682,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview - some preview",
             baseName = "tilePreview",
             parameterName = "some preview",
+            organizationName = "tilePreview",
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -663,6 +697,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview - multipreview level 1",
             baseName = "tilePreview",
             parameterName = "multipreview level 1",
+            organizationName = "tilePreview",
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -676,6 +712,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview - multipreview level 2",
             baseName = "tilePreview",
             parameterName = "multipreview level 2",
+            organizationName = "tilePreview",
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -694,6 +732,9 @@ class WearTilePreviewElementFinderTest {
             name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 1",
             baseName = "tileWithMultiPreviewAnnotationFromAnotherFile",
             parameterName = "multipreview level 1",
+            organizationName = "tileWithMultiPreviewAnnotationFromAnotherFile",
+            organizationGroup =
+              "com.android.test.OtherSrcKt.tileWithMultiPreviewAnnotationFromAnotherFile",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -712,6 +753,9 @@ class WearTilePreviewElementFinderTest {
             name = "tileWithMultiPreviewAnnotationFromAnotherFile - multipreview level 2",
             baseName = "tileWithMultiPreviewAnnotationFromAnotherFile",
             parameterName = "multipreview level 2",
+            organizationName = "tileWithMultiPreviewAnnotationFromAnotherFile",
+            organizationGroup =
+              "com.android.test.OtherSrcKt.tileWithMultiPreviewAnnotationFromAnotherFile",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration())
@@ -771,6 +815,8 @@ class WearTilePreviewElementFinderTest {
             name = "tilePreview - MultiPreview 1",
             baseName = "tilePreview",
             parameterName = "MultiPreview 1",
+            organizationGroup = "com.android.test.SrcKt.tilePreview",
+            organizationName = "tilePreview",
           )
         )
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
@@ -1000,6 +1046,8 @@ private fun defaultDisplaySettings(
   baseName: String,
   parameterName: String?,
   group: String? = null,
+  organizationGroup: String,
+  organizationName: String,
 ) =
   PreviewDisplaySettings(
     name = name,
@@ -1009,6 +1057,8 @@ private fun defaultDisplaySettings(
     showBackground = true,
     showDecoration = false,
     backgroundColor = null,
+    organizationGroup = organizationGroup,
+    organizationName = organizationName,
   )
 
 private fun defaultConfiguration(

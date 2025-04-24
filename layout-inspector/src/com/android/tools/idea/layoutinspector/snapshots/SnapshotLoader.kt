@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -54,8 +55,8 @@ interface SnapshotLoader {
               override val isEmulator: Boolean
                 get() = false // TODO
 
-              override val apiLevel: Int
-                get() = metadata?.apiLevel ?: 0
+              override val apiLevel: AndroidApiLevel
+                get() = AndroidApiLevel(metadata?.apiLevel ?: 0)
 
               override val version: String
                 get() = "" // TODO

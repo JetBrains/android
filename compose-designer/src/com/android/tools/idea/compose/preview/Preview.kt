@@ -630,8 +630,6 @@ class ComposePreviewRepresentation(
       requestRefresh()
     }
 
-  override var isFilterEnabled: Boolean = false
-
   private val dataProvider = DataProvider {
     when (it) {
       COMPOSE_PREVIEW_MANAGER.name,
