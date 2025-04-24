@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.Intent
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.PendingIntent.Type.BROADCAST
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
@@ -43,6 +44,10 @@ import com.intellij.ui.InplaceButton
 import com.intellij.ui.components.ActionLink
 import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTextArea
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,10 +60,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTextArea
 
 class EntryDetailsViewTest {
   private class TestIdeServices : AppInspectionIdeServicesAdapter() {
@@ -288,17 +289,21 @@ class EntryDetailsViewTest {
             type = BROADCAST
             flags = 0xc000000
             requestCode = 12
-            intentBuilder.apply {
-              action = "action"
-              data = "data"
-              addAllCategories(listOf("c1", "c2"))
-              componentNameBuilder.apply {
-                packageName = "component-package"
-                className = "component-class"
-              }
-              type = "type"
-              flags = 0x8000
-              extras = "extras"
+            intentBuilderList.apply {
+              addIntent(
+                Intent.newBuilder().apply {
+                  action = "action"
+                  data = "data"
+                  addAllCategories(listOf("c1", "c2"))
+                  componentNameBuilder.apply {
+                    packageName = "component-package"
+                    className = "component-class"
+                  }
+                  type = "type"
+                  flags = 0x8000
+                  extras = "extras"
+                }
+              )
             }
           }
         }
