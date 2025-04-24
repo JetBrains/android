@@ -778,10 +778,10 @@ class TemplateDiffTest(private val testMode: TestMode) {
     )
   }
 
-   @Test
-   fun testXRBasicHeadsetActivity() {
+  @Test
+  fun testXRBasicHeadsetActivity() {
     checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
-   }
+  }
 }
 
 typealias TemplateStateCustomizer = Map<String, Any>
