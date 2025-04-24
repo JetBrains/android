@@ -79,7 +79,8 @@ class AndroidTestSuiteViewAdaptor {
             id = id,
             methodName = xml.testName,
             className = xml.testClassName.substringAfterLast("."),
-            packageName = xml.testClassName.substringBeforeLast(".")
+            packageName = xml.testClassName.substringBeforeLast("."),
+            result = AndroidTestCaseResult.IN_PROGRESS
           )
         }
         rootTestSuite.testCaseCount = testCaseMap.size
