@@ -19,6 +19,7 @@ import com.example.top_level_lib_2.Lib2;
 
 /** NestedClass test class. */
 public final class NestedClass {
+  // Note: This dependency must be here as it is used in `dependencyBuildFailure` test.
   private final Lib2 lib2 = Lib2.createTest();
 
   public void method() {
