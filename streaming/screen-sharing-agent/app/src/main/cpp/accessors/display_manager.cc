@@ -84,6 +84,9 @@ DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
   }
   int logical_width = display_info.GetIntField(jni, logical_width_field_);
   int logical_height = display_info.GetIntField(logical_height_field_);
+  if (Agent::device_type() == DeviceType::XR && logical_width >= logical_height * 7 / 4) {
+    logical_width /= 2; // Hack. Compensate for incorrectly reported display size.
+  }
   int logical_density_dpi = display_info.GetIntField(logical_density_dpi_field_);
   int rotation = display_info.GetIntField(rotation_field_);
   int layer_stack = display_info.GetIntField(layer_stack_field_);
