@@ -19,8 +19,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.deps.OutputGroup;
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * A service that tracks what files in the project can be analyzed and what is the status of their
@@ -48,6 +54,7 @@ public interface DependencyTracker {
        * artifacts.
        */
       WHOLE_PROJECT,
+      FILE_PREVIEWS
     };
 
     final RequestType requestType;
@@ -64,6 +71,37 @@ public interface DependencyTracker {
 
     public static DependencyBuildRequest wholeProject() {
       return new DependencyBuildRequest(RequestType.WHOLE_PROJECT, ImmutableSet.of());
+    }
+
+    public static DependencyBuildRequest filePreviews(Collection<Label> targets) {
+      return new DependencyBuildRequest(RequestType.FILE_PREVIEWS, ImmutableSet.copyOf(targets));
+    }
+
+    Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages) {
+      var outputGroups = languages.stream()
+        .mapMulti(DependencyBuildRequest::languageToOutputGroups)
+        .collect(Collectors.toCollection(() -> EnumSet.noneOf(OutputGroup.class)));
+
+      if (requestType.equals(RequestType.FILE_PREVIEWS)) {
+        outputGroups.add(OutputGroup.TRANSITIVE_RUNTIME_JARS);
+      }
+
+      return outputGroups;
+    }
+
+    private static void languageToOutputGroups(QuerySyncLanguage language, Consumer<OutputGroup> consumer) {
+      switch (language) {
+        case JVM -> {
+          consumer.accept(OutputGroup.JARS);
+          consumer.accept(OutputGroup.AARS);
+          consumer.accept(OutputGroup.GENSRCS);
+          consumer.accept(OutputGroup.ARTIFACT_INFO_FILE);
+        }
+        case CC -> {
+          consumer.accept(OutputGroup.CC_HEADERS);
+          consumer.accept(OutputGroup.CC_INFO_FILE);
+        }
+      }
     }
   }
 }

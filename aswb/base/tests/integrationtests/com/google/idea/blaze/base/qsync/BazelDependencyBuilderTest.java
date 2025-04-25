@@ -27,6 +27,7 @@ import com.google.idea.blaze.base.MockProjectViewManager;
 import com.google.idea.blaze.base.bazel.BazelBuildSystemProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.SnapshotHolder;
@@ -159,12 +160,13 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
                                  ImmutableSet.of("always_build_rule1", "always_build_rule2")
       );
 
+    var targets = ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2"));
     final var generatedTargetPatternName = Label.of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).name();
-    final var invocationInfo = dependencyBuilder.getInvocationInfo(
-      BlazeContext.create(),
-      ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2")),
-      ImmutableSet.of(QuerySyncLanguage.JVM, QuerySyncLanguage.CC)
-    );
+
+    final var invocationInfo = dependencyBuilder.getInvocationInfo(BlazeContext.create(),
+                                                                   targets,
+                                                                   DependencyBuildRequest.multiTarget(targets),
+                                                                   ImmutableSet.of(QuerySyncLanguage.JVM, QuerySyncLanguage.CC));
     ImmutableMap<Path, ByteSource> invocationFiles =
       invocationInfo.invocationWorkspaceFiles();
     assertThat(

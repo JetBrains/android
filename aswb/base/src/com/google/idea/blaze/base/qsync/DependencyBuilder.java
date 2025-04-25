@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
@@ -26,6 +27,6 @@ import java.util.Set;
 /** A query sync service that knows how to build dependencies for given targets */
 public interface DependencyBuilder {
 
-  OutputInfo build(BlazeContext context, Set<Label> buildTargets, Set<QuerySyncLanguage> languages)
-      throws IOException, BuildException;
+  OutputInfo build(BlazeContext context, Set<Label> buildTargets, DependencyBuildRequest request, Set<QuerySyncLanguage> languages)
+    throws IOException, BuildException;
 }

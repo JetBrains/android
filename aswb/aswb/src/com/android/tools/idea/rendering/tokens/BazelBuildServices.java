@@ -94,9 +94,8 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
                                       @NotNull BlazeContext context,
                                       @NotNull Set<@NotNull Label> labels) throws BuildException {
     try {
-      // TODO: b/413108575 - Build the runtime artifacts as well
       manager.getLoadedProject().orElseThrow().getDependencyTracker()
-        .buildDependenciesForTargets(context, DependencyBuildRequest.multiTarget(labels));
+        .buildDependenciesForTargets(context, DependencyBuildRequest.filePreviews(labels));
     }
     catch (IOException exception) {
       throw new BuildException(exception);

@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.joining;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.idea.blaze.base.bazel.BazelExitCode;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
@@ -76,30 +77,30 @@ public class DependencyTrackerImpl implements DependencyTracker {
     QuerySyncProjectSnapshot snapshot = getCurrentSnapshot();
 
     RequestedTargets maybeRequestedTargets = getRequestedTargets(snapshot, request);
-    buildDependencies(context, snapshot, maybeRequestedTargets);
+    buildDependencies(context, snapshot, maybeRequestedTargets, request);
     return true;
   }
 
   private RequestedTargets getRequestedTargets(
       QuerySyncProjectSnapshot snapshot, DependencyBuildRequest request) {
-    switch (request.requestType) {
-      case MULTIPLE_TARGETS:
-        return snapshot.graph().computeRequestedTargets(request.targets);
-      case WHOLE_PROJECT:
-        return snapshot.graph().computeRequestedTargets(snapshot.graph().allTargets());
-    }
-    throw new IllegalArgumentException("Invalid request type: " + request.requestType);
+    return switch (request.requestType) {
+      case MULTIPLE_TARGETS -> snapshot.graph().computeRequestedTargets(request.targets);
+      case WHOLE_PROJECT -> snapshot.graph().computeRequestedTargets(snapshot.graph().allTargets());
+      case FILE_PREVIEWS -> new RequestedTargets(request.targets, ImmutableSet.of());
+    };
   }
 
-  private void buildDependencies(
-      BlazeContext context, QuerySyncProjectSnapshot snapshot, RequestedTargets requestedTargets)
-      throws IOException, BuildException {
+  private void buildDependencies(BlazeContext context,
+                                 QuerySyncProjectSnapshot snapshot,
+                                 RequestedTargets requestedTargets,
+                                 DependencyBuildRequest request) throws IOException, BuildException {
     BuildDepsStatsScope.fromContext(context)
         .ifPresent(stats -> stats.setBuildTargets(requestedTargets.buildTargets()));
     OutputInfo outputInfo =
         builder.build(
             context,
             requestedTargets.buildTargets(),
+            request,
             snapshot.graph().getTargetLanguages(requestedTargets.buildTargets()));
     reportErrorsAndWarnings(context, snapshot, outputInfo);
 
