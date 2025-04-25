@@ -19,7 +19,6 @@ import com.android.annotations.Nullable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import org.intellij.lang.annotations.MagicConstant;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Allows to mock message dialogs in headless integration tests.
@@ -41,7 +40,7 @@ public class TestMessagesDialog implements TestDialog {
   }
 
   @Override
-  public int show(@NotNull String message) {
+  public int show(String message) {
     myDisplayedMessage = message;
     return myAnswer;
   }
