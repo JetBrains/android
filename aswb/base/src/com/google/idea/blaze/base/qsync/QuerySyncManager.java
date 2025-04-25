@@ -265,13 +265,14 @@ public class QuerySyncManager implements Disposable {
   @CanIgnoreReturnValue
   public ListenableFuture<Boolean> deltaSync(
       QuerySyncActionStatsScope querySyncActionStats, TaskOrigin taskOrigin) {
-    assertProjectLoaded();
     return runSync(
         "Updating project structure",
         "Refreshing project",
         querySyncActionStats,
         context -> {
-          if (projectDefinitionHasChanged(context)) {
+          if (!isProjectLoaded()) {
+            loadProject(context);
+          } else if (projectDefinitionHasChanged(context)) {
             context.output(PrintOutput.log("Project definition has changed, reloading."));
             loadProject(context);
           } else {
@@ -545,6 +546,9 @@ public class QuerySyncManager implements Disposable {
    * @return true if the {@link ProjectDefinition} has changed.
    */
   private boolean projectDefinitionHasChanged(BlazeContext context) throws BuildException {
+    if (loadedProject == null) {
+      return true;
+    }
     // Ensure edits to the project view and any imports have been saved
     SaveUtil.saveAllFiles();
     final var projectDefinition = loader.loadProjectDefinition(context).definition();
