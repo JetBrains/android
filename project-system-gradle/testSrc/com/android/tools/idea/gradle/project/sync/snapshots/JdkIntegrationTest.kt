@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.AndroidStudioProjectActivity
+import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.assertions.AssertInMemoryConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnDiskConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnFailure
@@ -31,10 +34,15 @@ import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.util.RecursionManager
+import com.intellij.testFramework.PlatformTestUtil
+import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.launch
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 class JdkIntegrationTest(
@@ -199,6 +207,35 @@ class JdkIntegrationTest(
           }
         }
       )
+    }
+
+    fun skipSyncWithAssertion(
+      expectedGradleJdkName: String,
+      expectedGradleJdkPath: String
+    ) {
+      val project = preparedProject.open(
+        updateOptions = {
+          it.copy(
+            overrideProjectGradleJdkPath = null,
+            onProjectCreated = {
+              GradleProjectInfo.getInstance(this).isSkipStartupActivity = true
+            },
+            verifyOpened = {}
+          )
+        }) { project ->
+        val awaitGradleStartupActivity = project.coroutineScope.launch {
+          project.service<AndroidStudioProjectActivity.StartupService>().awaitInitialization()
+        }
+        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(1))
+
+        AssertInMemoryConfig(project, expect).run {
+          assertGradleJdkAndValidateTableEntry(expectedGradleJdkName, expectedGradleJdkPath)
+        }
+        project
+      }
+      AssertOnDiskConfig(project, expect).run {
+        assertGradleJdk(expectedGradleJdkName)
+      }
     }
   }
 }

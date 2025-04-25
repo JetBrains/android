@@ -58,13 +58,11 @@ public final class StudioFlags {
 
   @NotNull
   private static Flags createFlags() {
-    Application app = ApplicationManager.getApplication();
     FlagOverrides userOverrides;
-    if (app != null && !app.isUnitTestMode()) {
-      userOverrides = new LazyStudioFlagSettings();
-    }
-    else {
+    if (isUnitTestMode()) {
       userOverrides = new DefaultFlagOverrides();
+    } else {
+      userOverrides = new LazyStudioFlagSettings();
     }
     return new Flags(userOverrides, new PropertyOverrides(), new MendelOverrides(), new ServerFlagOverrides());
   }
@@ -918,7 +916,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> RESTORE_INVALID_GRADLE_JDK_CONFIGURATION = new BooleanFlag(
     GRADLE_IDE, "restore.invalid.gradle.jdk.configuration", "Restore invalid Gradle JDK configuration",
-    "Restore project from invalid Gradle JDK configuration during opening.", true);
+    "Restore project from invalid Gradle JDK configuration during opening.", !isUnitTestMode());
 
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
@@ -2528,4 +2526,8 @@ public final class StudioFlags {
   // endregion PROJECT_TOOL_WINDOW
 
   private StudioFlags() { }
+
+  private static Boolean isUnitTestMode() {
+    return ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode();
+  }
 }

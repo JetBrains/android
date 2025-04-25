@@ -2279,7 +2279,8 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
   val reportProjectSizeUsage: Boolean = false,
-  val overrideProjectGradleJdkPath: File? = null
+  val overrideProjectGradleJdkPath: File? = null,
+  val onProjectCreated: Project.() -> Unit = {}
 )
 
 fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions = copy(disableKtsRelatedIndexing = true)
@@ -2316,6 +2317,7 @@ private fun <T> openPreparedProject(
         var afterCreateCalled = false
 
         fun afterCreate(project: Project) {
+          options.onProjectCreated(project)
           if (options.disableKtsRelatedIndexing) {
             // [KotlinScriptWorkspaceFileIndexContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
             // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
