@@ -1,6 +1,7 @@
 # Default ignored files
 /shelf/
 /deploymentTargetSelector.xml
+/deviceManager.xml
 /jarRepositories.xml
 /other.xml
 /workspace.xml

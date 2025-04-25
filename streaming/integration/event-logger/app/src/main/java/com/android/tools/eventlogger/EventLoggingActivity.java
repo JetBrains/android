@@ -15,24 +15,46 @@
  */
 package com.android.tools.eventlogger;
 
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
+
+import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 public class EventLoggingActivity extends Activity {
+
   private static final String TAG = "EventLogger";
+  private static final long POINTER_HIDE_DELAY_MILLIS = 5000;
+  private final Runnable pointerHider = () -> this.crosshair.setVisibility(INVISIBLE);
+  private FrameLayout layout;
+  private ImageView crosshair;
+  private Handler scheduler;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    scheduler = new Handler(Looper.getMainLooper());
     getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
-    getActionBar().hide();
-    FrameLayout frameLayout = new FrameLayout(this);
-    setContentView(frameLayout);
+    ActionBar actionBar = getActionBar();
+    if (actionBar != null) {
+      actionBar.hide();
+      }
+    layout = new FrameLayout(this);
+    setContentView(layout);
+    crosshair = new ImageView(this);
+    crosshair.setImageResource(R.drawable.crosshair);
+    crosshair.setScaleType(ImageView.ScaleType.CENTER);
+    crosshair.setVisibility(INVISIBLE);
+    layout.addView(crosshair);
   }
 
   @Override
@@ -80,6 +102,14 @@ public class EventLoggingActivity extends Activity {
   public boolean onTouchEvent(MotionEvent event) {
     Log.d(TAG, event.toString());
     Log.i(TAG, "TOUCH EVENT: " + MotionEvent.actionToString(event.getAction()) + pointersToString(event));
+    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+      crosshair.setImageResource(R.drawable.crosshair_filled);
+    }
+    if (event.getAction() == MotionEvent.ACTION_UP) {
+      crosshair.setImageResource(R.drawable.crosshair);
+    }
+    // TODO: Show multiple pointers for multitouch events.
+    showPointer(event.getX(0), event.getY(0));
     return true;
   }
 
@@ -88,13 +118,12 @@ public class EventLoggingActivity extends Activity {
     Log.d(TAG, event.toString());
     StringBuilder buf = new StringBuilder("MOTION EVENT: ");
     buf.append(MotionEvent.actionToString(event.getAction()));
-    switch (event.getAction()) {
-      case MotionEvent.ACTION_SCROLL:
-        processScrollEvent(event, buf);
-        break;
-      default:
-        buf.append(pointersToString(event));
-        break;
+    if (event.getAction() == MotionEvent.ACTION_SCROLL) {
+      processScrollEvent(event, buf);
+    }
+    else {
+      buf.append(pointersToString(event));
+      showPointer(event.getX(0), event.getY(0));
     }
     Log.i(TAG, buf.toString());
     return true;
@@ -118,5 +147,13 @@ public class EventLoggingActivity extends Activity {
       result.append(" (").append(event.getX(i)).append(",").append(event.getY(i)).append(")");
     }
     return result.toString();
+  }
+
+  private void showPointer(float x, float y) {
+    scheduler.removeCallbacks(pointerHider);
+    crosshair.setTranslationX(x - layout.getWidth() / 2F);
+    crosshair.setTranslationY(y - layout.getHeight() / 2F);
+    crosshair.setVisibility(VISIBLE);
+    scheduler.postDelayed(pointerHider, POINTER_HIDE_DELAY_MILLIS);
   }
 }
