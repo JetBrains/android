@@ -909,6 +909,29 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testMapOfPair() {
+    doTestOnPatchedSchema("""
+       androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf("a"$caret)
+        }
+       }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
+    }
+
+    doTestOnPatchedSchema("""
+       androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf("a" $caret)
+        }
+       }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
+    }
+  }
+
+  @Test
   fun testRootProject() {
     doCompletionTest("""
     rootProje$caret
