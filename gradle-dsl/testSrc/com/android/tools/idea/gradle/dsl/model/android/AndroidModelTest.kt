@@ -2333,10 +2333,17 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val library1 = android.useLibraries().create("library1")
     assertThat(library1).isNotNull()
     assertThat(library1.name()).isEqualTo("library1")
+    assertThat(library1.required()).isTrue()
 
-    val library2 = android.useLibraries().create("library2")
+    val library2 = android.useLibraries().create("library2", false)
     assertThat(library2).isNotNull()
     assertThat(library2.name()).isEqualTo("library2")
+    assertThat(library2.required()).isFalse()
+
+    val library3 = android.useLibraries().create("library3", true)
+    assertThat(library3).isNotNull()
+    assertThat(library3.name()).isEqualTo("library3")
+    assertThat(library3.required()).isTrue()
 
     applyChangesAndReparse(buildModel)
 

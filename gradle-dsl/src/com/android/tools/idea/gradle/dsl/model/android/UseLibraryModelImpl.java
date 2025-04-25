@@ -36,15 +36,29 @@ public class UseLibraryModelImpl implements UseLibraryModel {
   }
 
   @Override
+  public boolean required() {
+    return myDslElement.getArguments().stream().skip(1).findFirst().map(arg -> ((GradleDslLiteral)arg).getValue(Boolean.class)).orElse(true);
+  }
+
+  @Override
   public @Nullable PsiElement getPsiElement() {
     return myDslElement.getPsiElement();
   }
 
   static UseLibraryModel createNew(@NotNull GradlePropertiesDslElement parent, @NotNull String libraryName) {
+    return createNew(parent, libraryName, null);
+  }
+
+  static UseLibraryModel createNew(@NotNull GradlePropertiesDslElement parent, @NotNull String libraryName, @Nullable Boolean required) {
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, GradleNameElement.empty(), USE_LIBRARY);
     GradleDslLiteral nameArgument = new GradleDslLiteral(methodCall, GradleNameElement.empty());
     nameArgument.setValue(libraryName);
     methodCall.addNewArgument(nameArgument);
+    if (required != null) {
+      GradleDslLiteral requiredArgument = new GradleDslLiteral(methodCall, GradleNameElement.empty());
+      requiredArgument.setValue(required);
+      methodCall.addNewArgument(requiredArgument);
+    }
     parent.setNewElement(methodCall);
     return new UseLibraryModelImpl(methodCall);
   }

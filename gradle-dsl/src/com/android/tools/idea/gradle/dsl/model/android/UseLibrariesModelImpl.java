@@ -30,4 +30,9 @@ public class UseLibrariesModelImpl implements UseLibrariesModel {
   public @NotNull UseLibraryModel create(@NotNull String libraryName) {
     return UseLibraryModelImpl.createNew(myDslElement, libraryName);
   }
+
+  @Override
+  public @NotNull UseLibraryModel create(@NotNull String libraryName, boolean required) {
+    return UseLibraryModelImpl.createNew(myDslElement, libraryName, required);
+  }
 }

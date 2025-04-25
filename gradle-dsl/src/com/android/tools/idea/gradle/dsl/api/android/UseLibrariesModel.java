@@ -20,4 +20,7 @@ import org.jetbrains.annotations.NotNull;
 public interface UseLibrariesModel {
   @NotNull
   UseLibraryModel create(@NotNull String libraryName);
+
+  @NotNull
+  UseLibraryModel create(@NotNull String libraryName, boolean required);
 }

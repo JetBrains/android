@@ -24,4 +24,6 @@ public interface UseLibraryModel extends PsiElementHolder {
 
   @NotNull
   String name();
+
+  boolean required();
 }
