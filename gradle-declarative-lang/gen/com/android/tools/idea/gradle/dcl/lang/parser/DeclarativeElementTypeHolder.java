@@ -42,6 +42,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType IDENTIFIER = new DeclarativeElementType("IDENTIFIER");
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
   IElementType PAIR = new DeclarativeElementType("PAIR");
+  IElementType PAIR_OPERATOR = new DeclarativeElementType("PAIR_OPERATOR");
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
   IElementType PROPERTY_RECEIVER = new DeclarativeElementType("PROPERTY_RECEIVER");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
@@ -116,6 +117,9 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == PAIR) {
         return new DeclarativePairImpl(type);
+      }
+      else if (type == PAIR_OPERATOR) {
+        return new DeclarativePairOperatorImpl(type);
       }
       else if (type == QUALIFIED) {
         return new DeclarativeQualifiedImpl(type);

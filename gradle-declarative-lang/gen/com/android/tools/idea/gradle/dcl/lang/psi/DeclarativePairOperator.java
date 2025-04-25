@@ -21,21 +21,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface DeclarativePair extends DeclarativeValue {
-
-  @Nullable
-  DeclarativePair getPair();
-
-  @NotNull
-  DeclarativePairOperator getPairOperator();
-
-  @NotNull
-  DeclarativeSimpleLiteral getSimpleLiteral();
-
-  @NotNull
-  DeclarativeSimpleLiteral getFirst();
-
-  @NotNull
-  DeclarativeValue getSecond();
+public interface DeclarativePairOperator extends DeclarativeElement {
 
 }

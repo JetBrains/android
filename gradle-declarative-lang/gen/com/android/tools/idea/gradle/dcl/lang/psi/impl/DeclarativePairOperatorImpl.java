@@ -28,50 +28,20 @@ import com.intellij.psi.impl.source.tree.CompositePsiElement;
 import com.android.tools.idea.gradle.dcl.lang.psi.*;
 import com.intellij.psi.tree.IElementType;
 
-public class DeclarativePairImpl extends CompositePsiElement implements DeclarativePair {
+public class DeclarativePairOperatorImpl extends CompositePsiElement implements DeclarativePairOperator {
 
-  public DeclarativePairImpl(@NotNull IElementType type) {
+  public DeclarativePairOperatorImpl(@NotNull IElementType type) {
     super(type);
   }
 
   public void accept(@NotNull DeclarativeVisitor visitor) {
-    visitor.visitPair(this);
+    visitor.visitPairOperator(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof DeclarativeVisitor) accept((DeclarativeVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public DeclarativePair getPair() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativePair.class);
-  }
-
-  @Override
-  @NotNull
-  public DeclarativePairOperator getPairOperator() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativePairOperator.class);
-  }
-
-  @Override
-  @NotNull
-  public DeclarativeSimpleLiteral getSimpleLiteral() {
-    return PsiTreeUtil.getChildOfType(this, DeclarativeSimpleLiteral.class);
-  }
-
-  @Override
-  @NotNull
-  public DeclarativeSimpleLiteral getFirst() {
-    return PsiImplUtil.getFirst(this);
-  }
-
-  @Override
-  @NotNull
-  public DeclarativeValue getSecond() {
-    return PsiImplUtil.getSecond(this);
   }
 
 }
