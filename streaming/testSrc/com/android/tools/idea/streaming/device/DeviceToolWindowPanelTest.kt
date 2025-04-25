@@ -323,6 +323,12 @@ class DeviceToolWindowPanelTest {
       assertThat(hardwareInputStateStorage.isHardwareInputEnabled(displayView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
     }
 
+    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Home" }
+    fakeUi.mousePressOn(button)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_ALL_APPS, 0))
+    fakeUi.mouseRelease()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_ALL_APPS, 0))
+
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Reset View" })
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrRecenterMessage())
 

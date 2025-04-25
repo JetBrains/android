@@ -190,15 +190,29 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
     assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
 
-    // Check EmulatorPowerButtonAction.
-    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Power" }
-    fakeUi.mousePressOn(button)
-    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
-    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"Power\" }")
-    fakeUi.mouseRelease()
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"Power\" }")
+    // Check push button actions.
+    val pushButtonCases = listOf(
+      Pair("Power", "Power"),
+      Pair("Volume Up", "AudioVolumeUp"),
+      Pair("Volume Down", "AudioVolumeDown"),
+      Pair("Back", "GoBack"),
+      Pair("Home", "GoHome"),
+      Pair("Overview", "AppSwitch"),
+    )
+    var streamInputCall: GrpcCallRecord? = null
+    for (case in pushButtonCases) {
+      val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
+      fakeUi.mousePressOn(button)
+      if (streamInputCall == null) {
+        streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+        assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+      }
+      assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"${case.second}\" }")
+      fakeUi.mouseRelease()
+      assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"${case.second}\" }")
+    }
 
+    streamInputCall as GrpcCallRecord
     // Check EmulatorPowerButtonAction invoked by a keyboard shortcut.
     var action = ActionManager.getInstance().getAction("android.device.power.button")
     var keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
@@ -213,20 +227,6 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"VolumeUp\" }")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keypress key: \"Power\" }")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"VolumeUp\" }")
-
-    // Check EmulatorVolumeUpButtonAction.
-    button = fakeUi.getComponent { it.action.templateText == "Volume Up" }
-    fakeUi.mousePressOn(button)
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AudioVolumeUp\" }")
-    fakeUi.mouseRelease()
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AudioVolumeUp\" }")
-
-    // Check EmulatorVolumeDownButtonAction.
-    button = fakeUi.getComponent { it.action.templateText == "Volume Down" }
-    fakeUi.mousePressOn(button)
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AudioVolumeDown\" }")
-    fakeUi.mouseRelease()
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AudioVolumeDown\" }")
 
     // Check that the Fold/Unfold action is hidden because the device is not foldable.
     assertThat(updateAndGetActionPresentation("android.device.postures", emulatorView, project).isVisible).isFalse()
@@ -421,8 +421,15 @@ class EmulatorToolWindowPanelTest {
       assertThat(hardwareInputStateStorage.isHardwareInputEnabled(emulatorView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
     }
 
-    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Reset View" })
+    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Home" }
+    fakeUi.mousePressOn(button)
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AllApps\" }")
+    fakeUi.mouseRelease()
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AllApps\" }")
+
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Reset View" })
     assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { }")
 

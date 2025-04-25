@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.device.actions
+package com.android.tools.idea.streaming.emulator.actions
 
-import com.android.tools.idea.streaming.device.AKEYCODE_HOME
+import com.android.sdklib.deviceprovisioner.DeviceType
 
-/** Simulates pressing the Home button on an Android device. */
-internal class DeviceHomeButtonAction : DevicePushButtonAction(AKEYCODE_HOME, configFilter = { !it.isWatch })
+/** Simulates pressing the Home button on an Android XR virtual device. */
+class EmulatorAllAppsButtonAction : EmulatorPushButtonAction("AllApps", configFilter = { it.deviceType == DeviceType.XR })
