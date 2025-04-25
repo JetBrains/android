@@ -27,11 +27,11 @@ import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValueFieldOwner
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifier
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeIdentifierOwner
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePair
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeProperty
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePropertyReceiver
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverBasedFactory
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeReceiverPrefixed
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeSimpleLiteral
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeValue
 import com.intellij.lang.Language
@@ -263,12 +263,13 @@ fun DeclarativeFactoryReceiver.toDeclarativeUExpression(uastParent: UElement?): 
 
 fun DeclarativeValue.toDeclarativeUExpression(uastParent: UElement?): UExpression =
   when (this) {
-    is DeclarativeLiteral -> DeclarativeULiteral(this, uastParent)
+    is DeclarativeSimpleLiteral -> DeclarativeULiteral(this, uastParent)
     is DeclarativeReceiverBasedFactory<*> -> DeclarativeUFactory(this) { uastParent }
     is DeclarativeProperty -> getReceiver()?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
       this.field, uastParent)
     is DeclarativePropertyReceiver -> getReceiver()?.let { DeclarativeUQualifiedProperty(this, uastParent, it) } ?: DeclarativeUSimpleProperty(
       this.field, uastParent)
+    is DeclarativePair -> DeclarativeUPair(this, uastParent)
     else -> error("Unexpected DeclarativeValue: $this")
   }
 
@@ -276,7 +277,7 @@ fun DeclarativeAssignableProperty.toDeclarativeUExpression(uastParent: UElement?
   DeclarativeUAssignableProperty(this, uastParent, it)
 } ?: DeclarativeUSimpleProperty(this.field, uastParent)
 
-class DeclarativeULiteral(override val sourcePsi: DeclarativeLiteral, override val uastParent: UElement?) : ULiteralExpression {
+class DeclarativeULiteral(override val sourcePsi: DeclarativeSimpleLiteral, override val uastParent: UElement?) : ULiteralExpression {
   override val psi: PsiElement = sourcePsi
   override val uAnnotations: List<UAnnotation> = listOf()
   override val value: Any? = sourcePsi.value
@@ -314,4 +315,30 @@ class DeclarativeUSimpleProperty(override val sourcePsi: DeclarativeIdentifier,
   override val resolvedName: String? = null
   override val uAnnotations: List<UAnnotation> = listOf()
   override fun resolve(): PsiElement? = null
+}
+
+class DeclarativeUPair(
+  override val sourcePsi: DeclarativePair,
+  override val uastParent: UElement?
+) : UCallExpression {
+  override val classReference: UReferenceExpression? = null
+  override val kind: UastCallKind = UastCallKind.METHOD_CALL
+  override val methodIdentifier: UIdentifier
+    get() = UIdentifier(sourcePsi.pairOperator, this)
+  override val methodName: String
+    get() = sourcePsi.pairOperator.toString()
+  override val psi: PsiElement
+    get() = sourcePsi
+  override val receiverType: PsiType? = null
+  override val returnType: PsiType? = null
+  override val typeArgumentCount: Int = 0
+  override val typeArguments: List<PsiType> = listOf()
+  override val uAnnotations: List<UAnnotation> = listOf()
+  override val valueArgumentCount: Int = 1
+  override fun getArgumentForParameter(i: Int): UExpression? = valueArguments.getOrNull(i)
+  override fun resolve(): PsiMethod? = null
+  override val receiver: UExpression
+    get() = sourcePsi.first.toDeclarativeUExpression(this)
+  override val valueArguments: List<UExpression>
+    get() = listOf(sourcePsi.second.toDeclarativeUExpression(this) )
 }

@@ -146,6 +146,19 @@ class DeclarativeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testMap() {
+    check(
+      """
+       testInstrumentationRunnerArguments = mapOf("a" to "b")
+      """,
+      """
+      checkDslPropertyAssignment(property="testInstrumentationRunnerArguments", value="mapOf("a" to "b")", parent="")
+      checkMethodCall(statement="mapOf", unnamedArguments=""a" to "b"")
+      checkMethodCall(statement="to", parent=""a"", unnamedArguments=""b"")
+      """,
+    )
+  }
+
   // Test infrastructure below
 
   private fun check(@Language("Declarative") gradleSource: String, expected: String) {
