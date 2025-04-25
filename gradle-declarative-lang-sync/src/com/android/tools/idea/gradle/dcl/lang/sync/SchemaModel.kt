@@ -149,7 +149,8 @@ class BuildDeclarativeSchema(
   var topLevelReceiver: ClassModel?,
   val dataClassesByFqName: Map<FullName, ClassType>,
   val topLevelFunctions: Map<String, SchemaFunction>,
-  val augmentedTypes: Map<FullName, List<AugmentationKind>>
+  val augmentedTypes: Map<FullName, List<AugmentationKind>>,
+  val infixFunctionsMap: Map<String, SchemaFunction>
 ) : Serializable {
   fun resolveRef(fqName: FullName): ClassType? = dataClassesByFqName[fqName]
 
