@@ -16,28 +16,41 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.UseLibraryModel;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.psi.PsiElement;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UseLibraryModelImpl implements UseLibraryModel {
 
-  private final @NotNull GradleDslMethodCall myDslElement;
+  private final @NotNull GradleDslElement myDslElement;
 
-  private UseLibraryModelImpl(@NotNull GradleDslMethodCall element) { myDslElement = element; }
+  UseLibraryModelImpl(@NotNull GradleDslElement element) { myDslElement = element; }
 
   @Override
   public @NotNull String name() {
-    return myDslElement.getArguments().stream().findFirst().map(arg -> ((GradleDslLiteral)arg).getValue(String.class)).orElseThrow();
+    if (myDslElement instanceof GradleDslMethodCall methodCall) {
+      return methodCall.getArguments().stream().findFirst().map(arg -> ((GradleDslLiteral)arg).getValue(String.class)).orElseThrow();
+    }
+    if (myDslElement instanceof GradleDslLiteral literal) {
+      return Objects.requireNonNull(literal.getValue(String.class));
+    }
+    throw new NoSuchElementException("unexpected GradleDslElement in UseLibraryModel" + myDslElement);
   }
 
   @Override
   public boolean required() {
-    return myDslElement.getArguments().stream().skip(1).findFirst().map(arg -> ((GradleDslLiteral)arg).getValue(Boolean.class)).orElse(true);
+    if (myDslElement instanceof GradleDslMethodCall methodCall) {
+      return methodCall.getArguments().stream().skip(1).findFirst().map(arg -> ((GradleDslLiteral)arg).getValue(Boolean.class)).orElse(true);
+    }
+    if (myDslElement instanceof GradleDslLiteral) return true;
+    throw new NoSuchElementException("unexpected GradleDslElement in UseLibraryModel" + myDslElement);
   }
 
   @Override

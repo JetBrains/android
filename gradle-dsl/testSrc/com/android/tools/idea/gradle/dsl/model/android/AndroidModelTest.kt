@@ -2325,7 +2325,32 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
-  fun testUseLibrary() {
+  fun testParseUseLibrary() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    val library1 = android.useLibraries().find("library1")
+    assertThat(library1).hasSize(1)
+    assertThat(library1.get(0).name()).isEqualTo("library1")
+    assertThat(library1.get(0).required()).isTrue()
+
+    val library2 = android.useLibraries().find("library2")
+    assertThat(library2).hasSize(1)
+    assertThat(library2.get(0).name()).isEqualTo("library2")
+    assertThat(library2.get(0).required()).isFalse()
+
+    val library3 = android.useLibraries().find("library3")
+    assertThat(library3).hasSize(1)
+    assertThat(library3.get(0).name()).isEqualTo("library3")
+    assertThat(library3.get(0).required()).isTrue()
+
+    val library4 = android.useLibraries().find("library4")
+    assertThat(library4).hasSize(0);
+  }
+
+  @Test
+  fun testAddUseLibrary() {
     writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY)
     val buildModel = gradleBuildModel
     val android = buildModel.android()

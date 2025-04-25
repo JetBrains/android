@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface UseLibrariesModel {
   @NotNull
@@ -23,4 +25,7 @@ public interface UseLibrariesModel {
 
   @NotNull
   UseLibraryModel create(@NotNull String libraryName, boolean required);
+
+  @NotNull
+  List<UseLibraryModel> find(@NotNull String libraryName);
 }
