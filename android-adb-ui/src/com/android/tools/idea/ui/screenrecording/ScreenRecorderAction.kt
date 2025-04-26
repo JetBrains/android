@@ -19,13 +19,8 @@ import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
 import com.android.annotations.concurrency.UiThread
-import com.android.prefs.AndroidLocationsException
-import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -44,7 +39,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.awt.Dimension
-import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.Duration
 import java.util.function.Supplier
 
@@ -80,11 +75,11 @@ class ScreenRecorderAction : DumbAwareAction(
   override fun actionPerformed(event: AnActionEvent) {
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
     val project = event.project ?: return
-    val canUseEmulatorRecording = params.serialNumber.isEmulator()
+    val avdId = params.avdId
     val options = ScreenRecorderPersistentOptions.getInstance()
-    val dialog = ScreenRecorderOptionsDialog(options, project, canUseEmulatorRecording, params.featureLevel)
+    val dialog = ScreenRecorderOptionsDialog(options, project, avdId != null, params.featureLevel)
     if (dialog.showAndGet()) {
-      startRecordingAsync(options, params, canUseEmulatorRecording && options.useEmulatorRecording, project)
+      startRecordingAsync(options, params, if (options.useEmulatorRecording) avdId else null, project)
     }
   }
 
@@ -94,18 +89,10 @@ class ScreenRecorderAction : DumbAwareAction(
   }
 
   @UiThread
-  private fun startRecordingAsync(
-      options: ScreenRecorderPersistentOptions,
-      params: Parameters,
-      useEmulatorRecording: Boolean,
-      project: Project,
-  ) {
+  private fun startRecordingAsync(options: ScreenRecorderPersistentOptions, params: Parameters, avdId: String?, project: Project) {
     val adbSession: AdbSession = AdbLibApplicationService.instance.session
-    val manager: AvdManager? = getVirtualDeviceManager()
+    val emulatorRecordingFile = if (avdId != null) Paths.get(avdId).resolve(EMU_TMP_FILENAME) else null
     val serialNumber = params.serialNumber
-    val avdName = params.avdId
-    val emulatorRecordingFile =
-        if (manager != null && useEmulatorRecording && avdName != null) getTemporaryVideoPathForVirtualDevice(avdName, manager) else null
     recordingInProgress.add(serialNumber)
 
     val disposableParent = params.recordingLifetimeDisposable
@@ -146,16 +133,6 @@ class ScreenRecorderAction : DumbAwareAction(
           setShowTouch(adbSession, serialNumber, showTouchEnabled)
         }
       }
-    }
-  }
-
-  private fun getVirtualDeviceManager(): AvdManager? {
-    return try {
-      IdeAvdManagers.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler())
-    }
-    catch (exception: AndroidLocationsException) {
-      logger.warn(exception)
-      null
     }
   }
 
@@ -208,7 +185,7 @@ class ScreenRecorderAction : DumbAwareAction(
     coroutineScope.launch(Dispatchers.EDT) {
       Messages.showErrorDialog(
         project,
-        AndroidAdbUiBundle.message("screenrecord.error.exception", throwable.toString()),
+        AndroidAdbUiBundle.message("screenrecord.error.exception", throwable),
         AndroidAdbUiBundle.message("screenrecord.action.title"))
     }
   }
@@ -224,13 +201,6 @@ class ScreenRecorderAction : DumbAwareAction(
     private val WM_SIZE_OUTPUT_REGEX = Regex("(?<width>\\d+)x(?<height>\\d+)")
     private const val EMU_TMP_FILENAME = "tmp.webm"
     private val COMMAND_TIMEOUT = Duration.ofSeconds(2)
-
-    private fun getTemporaryVideoPathForVirtualDevice(avdName: String, manager: AvdManager): Path? {
-      val virtualDevice: AvdInfo = manager.getAvd(avdName, true) ?: return null
-      return virtualDevice.dataFolderPath.resolve(EMU_TMP_FILENAME)
-    }
-
-    private fun String.isEmulator() = startsWith("emulator-")
   }
 
   data class Parameters(
