@@ -621,104 +621,6 @@ java_test(
 )
 
 java_test(
-    name = "NewProjectTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NewProjectTest"],
-    tags = COMMON_TAGS + ["manual"],  #smoke test passing, but latestSupportLibraryWhileDndLayouts failed for UI reason
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NewActivityTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.NewActivityTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/74910563
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "DeviceConfigurationDialogTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.avdmanager.DeviceConfigurationDialogTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/367875427
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NlEditorTest",
-    size = "large",
-    data = COMMON_DATA + [
-        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.android.support.support-annotations_28.0.0",
-        "@maven//:com.android.support.appcompat-v7_26.1.0",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]) + glob(["testData/LayoutTest/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NlEditorTest"],
-    tags = COMMON_TAGS + ["manual"],  #BasicLayoutTest failed for UI reason
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NavNlEditorTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-        "testData/Navigation/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.NavNlEditorTest"],
-    tags = COMMON_TAGS + ["manual"],  #BasicLayoutTest failed for UI reason
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ConstraintLayoutTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-        "testData/LayoutTest/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutTest"],
-    tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "GradleSyncTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.GradleSyncTest"],
-    tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "VerifyJavaKotlinXmlCodeStylesTest",
     size = "large",
     data = COMMON_DATA + [
@@ -778,24 +680,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LayoutInspectorTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-        "testData/LayoutInspector/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -869,15 +753,6 @@ java_test(
 )
 
 java_test(
-    name = "AndroidProfilerTest",
-    data = COMMON_DATA + glob(["testData/MinimalMinSdk26Apk/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.profiler.AndroidProfilerTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/154963251
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "DeploymentTest",
     size = "large",
     data = COMMON_DATA + [
@@ -899,63 +774,6 @@ java_test(
         "noci:studio-win",
         "ui_test",
     ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "TerminateAdbIfNotUsedTest",
-    data = COMMON_DATA + glob(["testData/simple/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.adb.TerminateAdbIfNotUsedTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/154963251
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ConsentDialogOptinTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.analytics.ConsentDialogOptinTest -Denable.android.analytics.consent.dialog.for.test=true -Denable.android.analytics.logging.for.test=true"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ConsentDialogDeclineTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.analytics.ConsentDialogDeclineTest -Denable.android.analytics.consent.dialog.for.test=true -Denable.android.analytics.logging.for.test=false"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LoggingEnabledTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.analytics.LoggingEnabledTest -Denable.android.analytics.logging.for.test=true"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LoggingDisabledTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.analytics.LoggingDisabledTest -Denable.android.analytics.logging.for.test=false"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "EmbeddedEmulatorTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/android-emulator:emulator",
-    ] + glob(["testData/TextInput/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.end2end.EmbeddedEmulatorTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/154963251
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -1219,21 +1037,6 @@ java_test(
 )
 
 java_test(
-    name = "ComponentSelectionSplitViewTest",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob(["testData/SimpleApplication/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ComponentSelectionSplitViewTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "ui_test",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "OpenCloseVisualizationToolTest",
     size = "large",
     data = COMMON_DATA + [
@@ -1246,27 +1049,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "FlavorsExecutionTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleFlavoredApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsExecutionTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "qa_smoke",
-        "qa_smoke_unreliable",  # b/160247726
-        "qa_unreliable",  # b/160247726
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1427,42 +1209,6 @@ java_test(
 )
 
 java_test(
-    name = "NewModuleWithVersionCatalogTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleAndroidxApplicationWithConventionalDefaultToml/**",
-    ]) + glob([
-        "testData/SimpleAndroidxApplicationVersionCatalogInBuildScript/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.versioncatalog.NewModuleWithVersionCatalogTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "ui_test",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ModuleVariantConflictTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/ModuleVariantConflicts/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.ModuleVariantConflictTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "ui_test",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "CreateCppKotlinProjectTest",
     size = "large",
     data = COMMON_DATA + [
@@ -1488,42 +1234,6 @@ java_test(
         "no_crostini",
         "noci:studio-win",
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AbiSplitApksTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AbiSplitApksTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "no_crostini",
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "X86AbiSplitApksTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "no_crostini",
-        "noci:studio-win",
-        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1723,25 +1433,6 @@ java_test(
         "noci:studio-win",
         "qa_smoke",
     ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ComponentSelectionTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + [
-        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.android.support.support-annotations_28.0.0",
-        "@maven//:com.android.support.appcompat-v7_26.1.0",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]) + glob(["testData/LayoutTest/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ComponentSelectionTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/267327815,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -2505,22 +2196,6 @@ java_test(
 )
 
 java_test(
-    name = "ThemeEditorTest",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ThemeEditorTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "ConstraintLayoutResizeHandleTest",
     size = "large",
     data = COMMON_DATA + [
@@ -3084,21 +2759,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateFromPreexistingApkTest",
-    data = COMMON_DATA + glob([
-        "testData/ApkDebug/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateFromPreexistingApkTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "noci:studio-win",
-        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
