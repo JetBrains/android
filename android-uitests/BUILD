@@ -396,6 +396,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -436,6 +437,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.FindInPathMemoryLeakTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -498,6 +500,7 @@ java_test(
     ] + glob(["testData/Navigation/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
+        "qa_fast",
         "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -513,6 +516,7 @@ java_test(
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
     tags = COMMON_TAGS + [
+        "qa_fast",
         "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -562,6 +566,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualLintTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
