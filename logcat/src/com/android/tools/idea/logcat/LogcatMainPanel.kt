@@ -161,6 +161,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.ZoneId
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
@@ -929,7 +930,7 @@ constructor(
           it.name,
           it.serialNumber,
           it.featureLevel,
-          if (it.isEmulator) it.deviceId else null,
+          if (it.isEmulator) Paths.get(it.deviceId) else null,
           PRIMARY_DISPLAY_ID,
           null,
           this,
