@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.settings;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.idea.blaze.base.projectview.ProjectViewManager.migrateImportSettingsToProjectViewFile;
 
+import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
@@ -60,10 +61,12 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
   private final AtomicReference<BlazeImportSettings> importSettings = new AtomicReference<>(null);
 
   private final Project project;
+  private final QuerySyncConversionUtility querySyncConversionUtility;
   @Nullable private BlazeImportSettings loadedImportSettings;
 
   public BlazeImportSettingsManager(Project project) {
     this.project = project;
+    this.querySyncConversionUtility = project.getService(QuerySyncConversionUtility.class);
   }
 
   public static BlazeImportSettingsManager getInstance(Project project) {
@@ -150,6 +153,11 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     final var importSettings =
       new BlazeImportSettings(workspaceRoot, projectName, projectBasePath, locationHash, projectViewFilePath.toString(),
                               buildSystem, projectType);
+
+    if (querySyncConversionUtility.canConvert(projectViewFilePath)) {
+      importSettings.setProjectType(BlazeImportSettings.ProjectType.QUERY_SYNC);
+      querySyncConversionUtility.backupExistingProjectDirectories();
+    }
 
     this.importSettings.set(importSettings);
   }

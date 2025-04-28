@@ -49,6 +49,8 @@
         serviceImplementation="com.google.idea.blaze.android.run.runner.BlazeAndroidDebuggerService$DefaultDebuggerService"/>
     <projectService serviceInterface="com.google.idea.blaze.android.targetmaps.TargetToBinaryMap"
         serviceImplementation="com.google.idea.blaze.android.targetmaps.TargetToBinaryMapImpl" />
+    <projectService serviceInterface="com.google.idea.blaze.base.project.QuerySyncConversionUtility"
+        serviceImplementation="com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility" />
     <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemBuildManager$LastBuildResultCache"/>
     <applicationService serviceImplementation="com.google.idea.blaze.android.settings.BlazeAndroidUserSettings"/>
     <applicationService serviceInterface="com.google.idea.blaze.android.sdk.BlazeSdkProvider"
