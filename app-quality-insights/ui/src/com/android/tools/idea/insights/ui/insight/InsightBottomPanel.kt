@@ -25,13 +25,7 @@ import com.android.tools.idea.insights.ai.transform.CodeTransformation
 import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminerImpl
 import com.android.tools.idea.insights.ai.transform.CodeTransformationImpl
 import com.android.tools.idea.insights.ai.transform.TransformDiffViewerEvent
-import com.android.tools.idea.insights.experiments.InsightFeedback
-import com.android.tools.idea.insights.filterReady
-import com.android.tools.idea.insights.mapReadyOrDefault
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
@@ -42,17 +36,12 @@ import java.awt.BorderLayout
 import javax.swing.JButton
 import javax.swing.JPanel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-private const val LEFT_TOOL_BAR = "InsightBottomPanelLeftToolBar"
-private const val RIGHT_TOOL_BAR = "InsightBottomPanelRightToolBar"
 
 private const val SUGGEST_A_FIX = "Suggest a fix"
 private const val SUGGEST_A_FIX_DISABLED = "No fix available"
@@ -68,21 +57,7 @@ class InsightBottomPanel(
     ),
 ) : JPanel(BorderLayout()) {
 
-  private val actionManager: ActionManager
-    get() = ActionManager.getInstance()
-
   private val scope = parentDisposable.createCoroutineScope()
-
-  private val feedbackPanel =
-    InsightFeedbackPanel(
-      currentInsightFlow
-        .mapReadyOrDefault(InsightFeedback.NONE) { insight ->
-          insight?.feedback ?: InsightFeedback.NONE
-        }
-        .stateIn(scope, SharingStarted.Eagerly, InsightFeedback.NONE)
-    ) {
-      controller.submitInsightFeedback(it)
-    }
 
   private val fixInsightButton =
     JButton(SUGGEST_A_FIX).apply {
@@ -90,8 +65,6 @@ class InsightBottomPanel(
       isEnabled = false
       isVisible = StudioFlags.SUGGEST_A_FIX.get()
     }
-
-  private val copyAction = actionManager.getAction(IdeActions.ACTION_COPY)
 
   private var currentTransformation: CodeTransformation? = null
 
@@ -125,20 +98,14 @@ class InsightBottomPanel(
 
     val leftPanel = JPanel(HorizontalLayout(JBUI.scale(5)))
     leftPanel.add(fixInsightButton)
-
-    val rightGroup = DefaultActionGroup(copyAction)
-    val rightToolbar = actionManager.createActionToolbar(RIGHT_TOOL_BAR, rightGroup, true)
-    rightToolbar.targetComponent = this
     add(leftPanel, BorderLayout.CENTER)
 
-    val rightPanel = JPanel(HorizontalLayout(JBUI.scale(5)))
-    rightPanel.add(rightToolbar.component)
-    rightPanel.add(feedbackPanel)
-    add(rightPanel, BorderLayout.EAST)
+    add(
+      InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback),
+      BorderLayout.EAST,
+    )
 
     border = SideBorder(JBColor.border(), SideBorder.TOP)
-
-    currentInsightFlow.filterReady().onEach { feedbackPanel.resetFeedback() }.launchIn(scope)
   }
 
   private suspend fun proposeFix(text: String?) {
