@@ -758,32 +758,6 @@ java_test(
 )
 
 java_test(
-    name = "DeploymentTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//tools/base/deploy/deployer:test_apks",
-    ] + glob([
-        "testData/simple/**",
-    ]) + select({
-        "@platforms//os:windows": [],
-        "//conditions:default": [
-            "//tools/base/deploy/installer:test-installer",
-            "//tools/base/deploy/installer/tests:artifacts",
-        ],
-    }),
-    flaky = True,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
-    tags = COMMON_TAGS + [
-        "ci:studio-linux_very_flaky",  # b/203243180
-        "noci:studio-linux",
-        "noci:studio-win",
-        "ui_test",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "CompileWithJava8Test",
     data = COMMON_DATA + glob([
         "testData/MinSdk24App/**",
@@ -2379,81 +2353,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.AgpUpgradeJava8ProjTest"],
     tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "InstantAppDynamicModuleOnDemandTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.InstantAppDynamicModuleOnDemandTest",
-    ],
-    tags = [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "DynamicModuleInstallTimeTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.DynamicModuleInstallTimeTest",
-    ],
-    tags = [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "EnableInstantAppTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.EnableInstantAppTest",
-    ],
-    tags = [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AddInstantModuleTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddInstantModuleTest",
-    ],
-    tags = [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "BuildInstantAppTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.BuildInstantAppTest",
-    ],
-    tags = [
         "noci:studio-win",
         "qa_fast",
     ],
