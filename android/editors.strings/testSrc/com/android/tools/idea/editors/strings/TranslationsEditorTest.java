@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.strings;
 
 import static com.android.testutils.AsyncTestUtils.waitForCondition;
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN;
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN;
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.junit.Assert.assertEquals;
 
@@ -104,22 +106,21 @@ public final class TranslationsEditorTest {
   @Test
   public void setKeyName() throws Exception {
     Utils.loadResources(myPanel, Collections.singletonList(myRes));
-    myTable.editCellAt(0, StringResourceTableModel.KEY_COLUMN);
+    myTable.editCellAt(0, KEY_COLUMN);
 
     StringTableCellEditor cellEditor = (StringTableCellEditor)myTable.getCellEditor();
     cellEditor.setCellEditorValue("key_2");
     cellEditor.stopCellEditing();
 
     dispatchAllInvocationEvents();
-    assertEquals("key_2", myTable.getValueAt(0, StringResourceTableModel.KEY_COLUMN));
+    waitForCondition(2, TimeUnit.SECONDS, () -> myTable.getValueAt(0, KEY_COLUMN).equals("key_2"));
 
-    myTable.editCellAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    myTable.editCellAt(0, DEFAULT_VALUE_COLUMN);
 
     cellEditor.setCellEditorValue("key_2_default");
     cellEditor.stopCellEditing();
 
     // Updates of the default value column are asynchronous. Wait for the update to complete.
-    waitForCondition(2, TimeUnit.SECONDS, () -> !myTable.getValueAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN).equals(""));
-    assertEquals("key_2_default", myTable.getValueAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN));
+    waitForCondition(2, TimeUnit.SECONDS, () -> myTable.getValueAt(0, DEFAULT_VALUE_COLUMN).equals("key_2_default"));
   }
 }
