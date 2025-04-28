@@ -578,7 +578,10 @@ class GradleModuleSystem(
     }
 
   override val supportsAndroidResources: Boolean
-    get() = readFromAgpFlags { it.androidResourcesEnabled } ?: true
+    get() = when {
+      module.isHolderModule() -> false
+      else -> readFromAgpFlags { it.androidResourcesEnabled } ?: true
+    }
 
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 
