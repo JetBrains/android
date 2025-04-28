@@ -370,6 +370,11 @@ public final class StudioFlags {
     NELE, "use.bytecode.r.class.loading", "Uses bytecode R class parsing instead of reflection",
     "When enabled, the parsing of R classes will use bytecode parsing instead of reflection.",
     true);
+
+  public static final Flag<Boolean> LAYOUTLIB_NATIVE_MEMORY_CLEAN = new BooleanFlag(
+    NELE, "layoutlib.native.memory.clean", "Enable cleaning of Layoutlib native memory.",
+    "When it is detected that Layoutlib uses too much native memory, attempts are made to clear it.",
+    true);
   //endregion
 
   //region Resource Repository
