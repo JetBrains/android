@@ -18,8 +18,8 @@ package com.android.tools.idea.editors.strings;
 import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN;
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
-import static org.junit.Assert.assertEquals;
 
 import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
@@ -36,8 +36,8 @@ import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -95,12 +95,11 @@ public final class TranslationsEditorTest {
 
     TableColumnModel model = myTable.getScrollableTable().getColumnModel();
 
-    Object values = IntStream.range(0, model.getColumnCount())
+    List<?> values = IntStream.range(0, model.getColumnCount())
       .mapToObj(model::getColumn)
       .map(TableColumn::getHeaderValue)
       .collect(Collectors.toList());
-
-    assertEquals(Arrays.asList("Abkhazian (ab)", "Achinese (ace)"), values);
+    assertThat(values).containsExactly("Abkhazian (ab)", "Achinese (ace)").inOrder();
   }
 
   @Test
@@ -112,7 +111,6 @@ public final class TranslationsEditorTest {
     cellEditor.setCellEditorValue("key_2");
     cellEditor.stopCellEditing();
 
-    dispatchAllInvocationEvents();
     waitForCondition(2, TimeUnit.SECONDS, () -> myTable.getValueAt(0, KEY_COLUMN).equals("key_2"));
 
     myTable.editCellAt(0, DEFAULT_VALUE_COLUMN);
