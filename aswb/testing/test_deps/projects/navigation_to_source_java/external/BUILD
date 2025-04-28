@@ -1,19 +1,12 @@
+load("@rules_java//java:defs.bzl", "java_import", "java_library")
 load("@rules_pkg//pkg:mappings.bzl", "strip_prefix")
 load("@rules_pkg//pkg:pkg.bzl", "pkg_zip")
-load(
-    "//tools/adt/idea/aswb/aswb/testdata/projects:test_projects.bzl",
-    "external_sources_package",
-)
+
+package(default_visibility = ["//navigation_to_source_java:__subpackages__"])
 
 java_library(
     name = "external",
     srcs = ["java/com/example/external/ExternalJavaSource.java"],
-    visibility = ["//tools/adt/idea/aswb/aswb/testdata/projects/deps:__subpackages__"],
-)
-
-external_sources_package(
-    name = "sources",
-    visibility = ["//tools/adt/idea/aswb/aswb/testdata/projects/deps:__subpackages__"],
 )
 
 # Build the srcjar as a library:
@@ -28,7 +21,6 @@ java_import(
     name = "external_srcjar",
     jars = [":libbuild_from_srcjar.jar"],
     srcjar = "java/com/example/external/external.srcjar",
-    visibility = ["//tools/adt/idea/aswb/aswb/testdata/projects/deps:__subpackages__"],
 )
 
 # Generates a srcjar. The java source root within the srcjar is not the jar file
@@ -44,5 +36,4 @@ pkg_zip(
 java_library(
     name = "external_gensrcjar",
     srcs = [":external_generated.srcjar"],
-    visibility = ["//tools/adt/idea/aswb/aswb/testdata/projects/deps:__subpackages__"],
 )
