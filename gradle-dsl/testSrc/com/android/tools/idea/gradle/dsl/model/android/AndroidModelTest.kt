@@ -2389,6 +2389,27 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_DELETE_USE_LIBRARY_EXPECTED)
   }
 
+  @Test
+  fun testParseDuplicateUseLibrary() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_DUPLICATE_USE_LIBRARY)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    val library1 = android.useLibraries().find("library1")
+    assertThat(library1).hasSize(3)
+    assertThat(library1.get(0).name()).isEqualTo("library1")
+    assertThat(library1.get(0).required()).isTrue()
+
+    assertThat(library1.get(1).name()).isEqualTo("library1")
+    assertThat(library1.get(1).required()).isFalse()
+
+    assertThat(library1.get(2).name()).isEqualTo("library1")
+    assertThat(library1.get(2).required()).isTrue()
+
+    val library4 = android.useLibraries().find("library2")
+    assertThat(library4).hasSize(0);
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
@@ -2515,6 +2536,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ANDROID_BLOCK_WITH_USE_LIBRARY("androidBlockWithUseLibrary"),
     ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED("androidBlockWithUseLibraryExpected"),
     ANDROID_BLOCK_DELETE_USE_LIBRARY_EXPECTED("androidBlockDeleteUseLibraryExpected"),
+    ANDROID_BLOCK_DUPLICATE_USE_LIBRARY("androidBlockDuplicateUseLibrary"),
     EMPTY_FILE("emptyFile"),
     ;
 
