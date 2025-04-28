@@ -37,14 +37,14 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
     val blockedBy: MutableList<BlockedEdge> = ArrayList()
     val blocking: MutableList<BlockedEdge> = ArrayList()
 
-    fun getThreadNameAndId(): String = Companion.getThreadNameAndId(threadInfo)
+    fun getThreadNameAndId(): String = "[\"${threadInfo.threadName}\" Id=${threadInfo.threadId}]"
   }
 
-  fun addEdge(blockedNode: ThreadNode,
-              blockingNode: ThreadNode,
-              reason: String,
-              timed: Boolean,
-              confidence: Confidence) {
+  private fun addEdge(blockedNode: ThreadNode,
+                      blockingNode: ThreadNode,
+                      reason: String,
+                      timed: Boolean,
+                      confidence: Confidence) {
     val edge = BlockedEdge(blockedNode, blockingNode, reason, timed, confidence)
     blockedNode.blockedBy.add(edge)
     blockingNode.blocking.add(edge)
@@ -57,7 +57,7 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
                          val confidence: Confidence)
 
   companion object {
-    fun analyzeThreads(threads: Array<ThreadInfo>): FreezeGraph {
+    fun analyzeThreads(threads: List<ThreadInfo>): FreezeGraph {
       val threadNodes = threads.map { ThreadNode(it) }.toList()
       val graph = FreezeGraph(threadNodes, threadNodes.firstOrNull { DiagnosticUtils.isAwtThread(it.threadInfo) })
 
@@ -67,9 +67,6 @@ class FreezeGraph(val nodes: List<ThreadNode>, val awtNode: ThreadNode?) {
       graph.analyze()
       return graph
     }
-
-    fun getThreadNameAndId(info: ThreadInfo): String =
-      "[\"${info.threadName}\" Id=${info.threadId}]"
   }
 
   private fun addEdgesFromLockInfo() {
