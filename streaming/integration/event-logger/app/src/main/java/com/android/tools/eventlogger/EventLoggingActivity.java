@@ -47,7 +47,7 @@ public class EventLoggingActivity extends Activity {
     ActionBar actionBar = getActionBar();
     if (actionBar != null) {
       actionBar.hide();
-      }
+    }
     layout = new FrameLayout(this);
     setContentView(layout);
     crosshair = new ImageView(this);
@@ -151,8 +151,10 @@ public class EventLoggingActivity extends Activity {
 
   private void showPointer(float x, float y) {
     scheduler.removeCallbacks(pointerHider);
-    crosshair.setTranslationX(x - layout.getWidth() / 2F);
-    crosshair.setTranslationY(y - layout.getHeight() / 2F);
+    int[] offset = new int[2];
+    layout.getLocationInWindow(offset);
+    crosshair.setTranslationX(x - offset[0] - layout.getWidth() / 2F);
+    crosshair.setTranslationY(y - offset[1] - layout.getHeight() / 2F);
     crosshair.setVisibility(VISIBLE);
     scheduler.postDelayed(pointerHider, POINTER_HIDE_DELAY_MILLIS);
   }
