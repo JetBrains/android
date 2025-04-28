@@ -2375,6 +2375,20 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED)
   }
 
+  @Test
+  fun testDeleteUseLibrary() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    val useLibraries = android.useLibraries()
+    val library2 = useLibraries.find("library2").get(0)
+    library2.delete()
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_DELETE_USE_LIBRARY_EXPECTED)
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
@@ -2500,6 +2514,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED("addProductFlavorSetInitWithExpected"),
     ANDROID_BLOCK_WITH_USE_LIBRARY("androidBlockWithUseLibrary"),
     ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED("androidBlockWithUseLibraryExpected"),
+    ANDROID_BLOCK_DELETE_USE_LIBRARY_EXPECTED("androidBlockDeleteUseLibraryExpected"),
     EMPTY_FILE("emptyFile"),
     ;
 

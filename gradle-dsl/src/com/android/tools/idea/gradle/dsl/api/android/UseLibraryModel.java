@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder;
+import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public interface UseLibraryModel extends PsiElementHolder {
+public interface UseLibraryModel extends DeletablePsiElementHolder {
   @NonNls String USE_LIBRARY = "useLibrary";
 
   @NotNull

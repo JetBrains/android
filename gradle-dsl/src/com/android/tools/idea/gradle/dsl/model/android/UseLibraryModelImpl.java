@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.removeElement;
+
 import com.android.tools.idea.gradle.dsl.api.android.UseLibraryModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
@@ -51,6 +53,11 @@ public class UseLibraryModelImpl implements UseLibraryModel {
     }
     if (myDslElement instanceof GradleDslLiteral) return true;
     throw new NoSuchElementException("unexpected GradleDslElement in UseLibraryModel" + myDslElement);
+  }
+
+  @Override
+  public void delete() {
+    removeElement(myDslElement);
   }
 
   @Override
