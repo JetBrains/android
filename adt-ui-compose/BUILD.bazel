@@ -36,6 +36,7 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
     "//platform/util:util-ui",
+    "//platform/util",
   ],
   exports = [
     "@lib//:android-adt-ui-compose-jetbrains-compose-ui-test-junit4-desktop",
@@ -75,6 +76,7 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
     "//platform/util:util-ui",
+    "//platform/util",
   ],
   runtime_deps = [
     ":adt-ui-compose_resources",
