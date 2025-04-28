@@ -6,7 +6,7 @@ MANIFEST = "app/src/main/AndroidManifest.xml"
 
 android_binary(
     name = "event-logger",
-    srcs = glob(["app/src/main/res/**/*.java"]),
+    srcs = glob(["app/src/main/java/**/*.java"]),
     custom_package = PACKAGE,
     javacopts = [
         "-source",
