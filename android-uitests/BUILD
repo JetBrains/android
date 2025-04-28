@@ -582,39 +582,6 @@ java_test(
 )
 
 java_test(
-    name = "GradleBuildTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.GradleBuildTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "UpdateBuildTypesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.UpdateBuildTypesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "ConvertFromAndToWebpTest",
     size = "large",
     data = COMMON_DATA + [
@@ -705,85 +672,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateDefaultActivityTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",  # fails 0 out of 3000 runs
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ModifyMinSdkAndSyncTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.ModifyMinSdkAndSyncTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",  # fails 1 out of 3000 runs
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateNewAppModuleWithDefaultsTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewAppModuleWithDefaultsTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateNewLibraryModuleWithDefaultsTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewLibraryModuleWithDefaultsTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AddNewBuildTypeTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AddSupportLibraryTest",
-    size = "large",
-    timeout = "long",
-    data = COMMON_DATA + [
-        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.android.support.support-annotations_28.0.0",
-        "@maven//:com.android.support.appcompat-v7_28.0.0",
-    ] + glob([
-        "testData/ConvertFrom9Patch/**",
-    ]) + glob([
-        "testData/VersionCatalogProject/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddSupportLibraryTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -929,67 +817,6 @@ java_test(
 )
 
 java_test(
-    name = "CreateNewFlavorsTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AddDebugAndReleaseSourceSetToProjectTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddDebugAndReleaseSourceSetToProjectTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "GradleVersionCatalogTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/VersionCatalogProject/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "GradleVersionCatalogTest2",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/VersionCatalogProject/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest2"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "CreateBasicKotlinProjectTest",
     size = "large",
     data = COMMON_DATA + [
@@ -1091,21 +918,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.BuildCppKotlinTest"],
     tags = COMMON_TAGS + [
         "no_crostini",
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LocalApkProjTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/ApkDebug/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.LocalApkProjTest"],
-    tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_smoke",
     ],
@@ -1684,76 +1496,6 @@ java_test(
 )
 
 java_test(
-    name = "JavaLibsDepTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaLibsDepTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_unreliable",  # b/117238132
-        "qa_unreliable",  # b/117238132
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AndroidLibsDepTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidLibsDepTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_unreliable",  # b/117238132
-        "qa_unreliable",  # b/117238132
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "JavaDepTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.google.code.gson.gson_2.11.0",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaDepTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_unreliable",  # b/117238132
-        "qa_unreliable",  # b/117238132
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AndroidDepTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.google.code.gson.gson_2.11.0",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidDepTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_unreliable",  # b/111889561
-        "qa_unreliable",  # b/111889561
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "ChangeLibModSettingsTest",
     size = "large",
     data = COMMON_DATA + [
@@ -1989,20 +1731,6 @@ java_test(
 )
 
 java_test(
-    name = "FlavorsEditingTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsEditingTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "ConvertFrom9PatchTest",
     size = "large",
     data = COMMON_DATA + glob([
@@ -2026,20 +1754,6 @@ java_test(
         "testData/KotlinInstrumentation/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.LintCheckWithKotlinTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NoGradleSyncForProjectReimportTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NoGradleSyncForProjectReimportTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
