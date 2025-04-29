@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.adblib.AdbFeatures.TRACK_MDNS_SERVICE
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.adb.wireless.v2.ui.WifiAvailableDevicesDialog
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.concurrency.coroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import icons.StudioIcons
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** The action to show the [WiFiPairingDialog] window. */
 class PairDevicesUsingWiFiAction : AnAction(StudioIcons.Avd.PAIR_OVER_WIFI) {
@@ -32,9 +41,22 @@ class PairDevicesUsingWiFiAction : AnAction(StudioIcons.Avd.PAIR_OVER_WIFI) {
   @UiThread
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
-    val controller =
-      PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()
-    controller.showDialog()
+    if (!StudioFlags.WIFI_V2_ENABLED.get()) {
+      PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController().showDialog()
+      return
+    }
+    project.coroutineScope.launch(Dispatchers.Default) {
+      val hostFeatures = AdbLibService.getSession(project).hostServices.hostFeatures()
+      withContext(Dispatchers.EDT) {
+        if (hostFeatures.contains(TRACK_MDNS_SERVICE)) {
+          WifiAvailableDevicesDialog(project).showDialog()
+        } else {
+          PairDevicesUsingWiFiService.getInstance(project)
+            .createPairingDialogController()
+            .showDialog()
+        }
+      }
+    }
   }
 
   companion object {
