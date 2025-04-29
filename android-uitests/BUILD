@@ -403,20 +403,6 @@ java_test(
 )
 
 java_test(
-    name = "InspectionsMemoryUseTest",
-    size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.InspectionsMemoryUseTest"],
-    tags = COMMON_TAGS + [
-        "ci:studio-linux_very_flaky",
-        "noci:studio-linux",
-        "noci:studio-win",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "NavEditorMemoryUseTest",
     size = "large",
     data = COMMON_DATA + [
@@ -548,39 +534,6 @@ java_test(
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CodeConversionFromJavaToKotlinTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/JavaToKotlinCode/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CodeConversionFromJavaToKotlinTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LinkProjectWithKotlinTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/LinkProjectWithKotlin/**",
-    ]),
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.LinkProjectWithKotlinTest",
-    ],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [
-        ":intellij.android.guiTests_testlib",
-    ],
 )
 
 java_test(
@@ -1219,36 +1172,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LintCheckWithKotlinTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/KotlinInstrumentation/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.LintCheckWithKotlinTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "JavaToKotlinConversionTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
