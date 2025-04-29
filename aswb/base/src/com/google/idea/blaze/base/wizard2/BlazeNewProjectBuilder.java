@@ -251,6 +251,7 @@ public final class BlazeNewProjectBuilder {
         workspaceRoot.directory().getPath(),
         projectName,
         projectDataDirectory,
+        BlazeImportSettingsManager.createLocationHash(projectName),
         Optional.ofNullable(projectViewFile).map(File::getPath).orElse(null),
         getBuildSystem(),
         isQuerySyncProject() ? ProjectType.QUERY_SYNC : ProjectType.ASPECT_SYNC);

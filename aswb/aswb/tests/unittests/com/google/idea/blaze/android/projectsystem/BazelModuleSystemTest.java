@@ -203,7 +203,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
   private void mockBlazeImportSettings(Container projectServices) {
     BlazeImportSettingsManager importSettingsManager = new BlazeImportSettingsManager(project);
     importSettingsManager.setImportSettings(
-        new BlazeImportSettings("", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC));
+        new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC));
     projectServices.register(BlazeImportSettingsManager.class, importSettingsManager);
   }
 

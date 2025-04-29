@@ -15,12 +15,10 @@
  */
 package com.google.idea.blaze.base.settings;
 
-import java.util.UUID;
 import javax.annotation.Nullable;
 
 /** Project settings that are set at import time. */
 public final class BlazeImportSettings {
-
   /** Type of the project based on the IDE configuration when it was created. */
   public enum ProjectType {
     ASPECT_SYNC,
@@ -58,22 +56,17 @@ public final class BlazeImportSettings {
       String workspaceRoot,
       String projectName,
       String projectDataDirectory,
+      String locationHash,
       String projectViewFile,
       BuildSystemName buildSystemName,
       ProjectType projectType) {
     this.workspaceRoot = workspaceRoot;
     this.projectName = projectName;
     this.projectDataDirectory = projectDataDirectory;
-    this.locationHash = createLocationHash(projectName);
+    this.locationHash = locationHash;
     this.projectViewFile = projectViewFile;
     this.buildSystem = buildSystemName;
     this.projectType = projectType;
-  }
-
-  private static String createLocationHash(String projectName) {
-    String uuid = UUID.randomUUID().toString();
-    uuid = uuid.substring(0, Math.min(uuid.length(), 8));
-    return projectName.replaceAll("[^a-zA-Z0-9]", "") + "-" + uuid;
   }
 
   @Deprecated

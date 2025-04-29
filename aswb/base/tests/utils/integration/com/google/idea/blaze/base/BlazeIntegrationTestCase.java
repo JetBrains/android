@@ -129,6 +129,7 @@ public abstract class BlazeIntegrationTestCase {
                 workspaceRoot.toString(),
                 "test-project",
                 projectDataDirectory.getPath(),
+                "location-hash",
                 workspaceRoot.fileForPath(new WorkspacePath("project-view-file")).getPath(),
                 buildSystem(),
                 ProjectType.ASPECT_SYNC));

@@ -20,6 +20,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 /** Manages storage for the project's {@link BlazeImportSettings}. */
@@ -76,5 +77,11 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
    */
   public static void setPendingProjectSettings(BlazeImportSettings importSettings) {
     pendingProjectSettings = importSettings;
+  }
+
+  public static String createLocationHash(String projectName) {
+    String uuid = UUID.randomUUID().toString();
+    uuid = uuid.substring(0, Math.min(uuid.length(), 8));
+    return projectName.replaceAll("[^a-zA-Z0-9]", "") + "-" + uuid;
   }
 }

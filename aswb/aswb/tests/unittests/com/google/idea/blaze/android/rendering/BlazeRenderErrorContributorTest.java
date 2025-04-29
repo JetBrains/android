@@ -132,7 +132,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
 
     BlazeImportSettingsManager importSettingsManager = new BlazeImportSettingsManager(project);
     BlazeImportSettings settings =
-        new BlazeImportSettings("", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
+        new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
     importSettingsManager.setImportSettings(settings);
     projectServices.register(BlazeImportSettingsManager.class, importSettingsManager);
 

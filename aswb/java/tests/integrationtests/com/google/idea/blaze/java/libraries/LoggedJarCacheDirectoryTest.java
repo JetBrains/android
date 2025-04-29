@@ -129,10 +129,11 @@ public class LoggedJarCacheDirectoryTest {
 
   private static BlazeImportSettings createSettings(BuildSystemName buildSystemName) {
     return new BlazeImportSettings(
-        /* workspaceRoot= */ "",
-        /* projectName= */ "",
-        /* projectDataDirectory= */ "",
-        /* projectViewFile= */ "",
+        "",
+        "",
+        "",
+        "",
+        "",
         buildSystemName,
         ProjectType.ASPECT_SYNC);
   }
