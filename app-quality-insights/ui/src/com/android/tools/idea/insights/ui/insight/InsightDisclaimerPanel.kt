@@ -105,7 +105,7 @@ class InsightDisclaimerPanel(
               DataManager.getInstance()
                 .getDataContext(component)
                 .getData(SearchTextField.KEY)
-                ?.text = "Use context from this project to improve responses"
+                ?.text = "Use all Gemini features Use context from this project"
             }
           }
           runnableReference.set(runnable)
