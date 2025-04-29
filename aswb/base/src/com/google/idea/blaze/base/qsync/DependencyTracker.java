@@ -24,7 +24,6 @@ import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -65,7 +64,7 @@ public interface DependencyTracker {
       this.targets = targets;
     }
 
-    public static DependencyBuildRequest multiTarget(Set<Label> targets) {
+    public static DependencyBuildRequest multiTarget(Collection<Label> targets) {
       return new DependencyBuildRequest(RequestType.MULTIPLE_TARGETS, ImmutableSet.copyOf(targets));
     }
 
