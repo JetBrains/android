@@ -431,23 +431,6 @@ java_test(
 )
 
 java_test(
-    name = "AddAssetMemoryUseTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob(["testData/SimpleApplication/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddAssetMemoryUseTest"],
-    tags = COMMON_TAGS + [
-        "ci:studio-linux_very_flaky",
-        "noci:studio-linux",
-        "noci:studio-win",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "NavEditorMemoryUseTest",
     size = "large",
     data = COMMON_DATA + [
@@ -582,40 +565,6 @@ java_test(
 )
 
 java_test(
-    name = "ConvertFromAndToWebpTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/ImportLocalWebpProject/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFromAndToWebpTest"],
-    tags = COMMON_TAGS + [
-        "no_test_mac",  # Cannot be automated in MAC
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "FilterIconTest",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.FilterIconTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "BuildAnalyzerTest",
     size = "enormous",
     timeout = "long",
@@ -662,36 +611,6 @@ java_test(
 )
 
 java_test(
-    name = "CreateDefaultActivityTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateDefaultActivityTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",  # fails 0 out of 3000 runs
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "StudioDefaultJDKTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.newpsd.StudioDefaultJDKTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "LinkProjectWithKotlinTest",
     size = "large",
     data = COMMON_DATA + glob([
@@ -702,25 +621,6 @@ java_test(
     ],
     tags = COMMON_TAGS + [
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [
-        ":intellij.android.guiTests_testlib",
-    ],
-)
-
-java_test(
-    name = "AddKotlinFilesTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/LinkProjectWithKotlin/**",
-    ]),
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.AddKotlinFilesTest",
-    ],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
@@ -811,84 +711,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateBasicKotlinProjectTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateBasicKotlinProjectTest",
-    ],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AddRemoveCppDependencyTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.AddRemoveCppDependencyTest",
-    ],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateNewProjectWithCpp1Test",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp1Test"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",  # fails 1 out of 3000 runs
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateNewProjectWithCpp2Test",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp2Test"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",  # fails 1 out of 3000 runs
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateNewProjectWithCpp3Test",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp3Test"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",  # fails 0 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1258,127 +1080,6 @@ java_test(
 )
 
 java_test(
-    name = "AddBenchmarkModuleTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/SimpleAndroidxApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.benchmark.AddBenchmarkModuleTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_unreliable",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "VerifyNpwPhoneAndTabletTemplatesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletTemplatesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "VerifyNpwPhoneAndTabletCppTemplatesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletCppTemplatesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "VerifyNpwPhoneAndTabletNavigationTemplatesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletNavigationTemplatesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "VerifyNpwPhoneAndTabletViewsTemplatesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletViewsTemplatesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "VerifyNpwWearOSTemplatesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwWearOSTemplatesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "VerifyNpwAutomotiveTemplatesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob(["testData/Navigation/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwAutomotiveTemplatesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "VerifyNpwAndroidTVTemplatesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwAndroidTVTemplatesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "UnusedResourceEvaluationTest",
     data = COMMON_DATA + glob([
         "testData/NoUnusedResourceApp/**",
@@ -1602,23 +1303,6 @@ java_test(
 )
 
 java_test(
-    name = "AdaptiveIconsTest",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.assetstudio.AdaptiveIconsTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "AndroidVectorDrawableToolTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:runtime",
@@ -1731,21 +1415,6 @@ java_test(
 )
 
 java_test(
-    name = "ConvertFrom9PatchTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/ConvertFrom9Patch/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFrom9PatchTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "LintCheckWithKotlinTest",
     size = "large",
     data = COMMON_DATA + [
@@ -1831,48 +1500,6 @@ java_test(
         "-Daspects.agent.rules=$(location //tools/adt/idea/android-uitests:aspect_rules)",
         "-Daspects.agent.baseline=$(location //tools/adt/idea/android-uitests:aspects_baseline)",
     ],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fast test
-java_test(
-    name = "CreateNewGoogleActivitiesTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewGoogleActivitiesTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fat test
-java_test(
-    name = "CreateLoginActivityTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateLoginActivityTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fat test
-java_test(
-    name = "CreateSettingsActivityTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateSettingsActivityTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
