@@ -760,7 +760,7 @@ public final class StudioFlags {
     "protobuf.enable",
     "Enable Logcat Protobuf format",
     "Enable Logcat Protobuf format",
-    false
+    true
   );
 
   public static final Flag<Long> LOGCAT_FILE_RELOAD_DELAY_MS = new LongFlag(

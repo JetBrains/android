@@ -48,7 +48,7 @@ constructor(project: Project, private val lastMessageDelayMs: Long = LOGCAT_IDLE
     duration: Duration,
     newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
-    return when (sdk.majorVersion >= 35 && StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()) {
+    return when (sdk.majorVersion >= 36 && StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()) {
       true -> readLogcatProtobuf(serialNumber, duration, newMessagesOnly)
       false -> readLogcatText(serialNumber, sdk, duration, newMessagesOnly)
     }
