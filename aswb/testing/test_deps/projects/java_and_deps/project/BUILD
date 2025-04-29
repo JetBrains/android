@@ -44,16 +44,3 @@ java_library(
         "//java_and_deps/deps/top_level_lib_1",
     ],
 )
-
-kt_jvm_library(
-    name = "lib2_not_in_compile_jar_and_reexport_lib1",
-    srcs = ["java/com/example/lib2_not_in_compile_jar_and_reexport_lib1/Class1.kt"],
-    visibility = ["//visibility:public"],
-    exports = [
-        "//java_and_deps/deps/top_level_lib_1",
-    ],
-    deps = [
-        "//java_and_deps/deps/top_level_lib_1",
-        "//java_and_deps/deps/top_level_lib_2",
-    ],
-)
