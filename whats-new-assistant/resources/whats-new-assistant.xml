@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2024.3.1.00">
+    version="2024.3.2.00">
   <feature
-      name="What's New in Meerkat">
+      name="What's New in Meerkat Feature Drop">
     <tutorial
         key="whats-new"
-        label=" What's New in Meerkat"
-        icon="preview/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2024-3-1"
+        label="What's New in Meerkat Feature Drop"
+        icon="stable/product-icon.svg"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2024-3-2"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,11 +37,59 @@
           from the main menu.
           ]]>
       </description>
+      <step label="Themed icon support">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>To ensure your app icon looks its best when users enable "Theme icons" in Android 16,
+            Android Studio now lets you preview how your icon will look with the new theming
+            algorithm. Use this new preview tool to get an idea of how your icon will look and
+            identify any potential color contrast issues.</p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/design/themed-icon-support">Learn more</a>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Android Studio config directories changing">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>Android Studio now uses the same user configurations across canary, beta, and stable
+            releases. As a result, "Preview" has been dropped from the configuration directory path
+            for preview releases. We've also added a micro version to the config directory path. For
+            example, <code>AndroidStudio2024.3.2</code> is <code>AndroidStudio2024.3</code>.</p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/build/config-directory">Learn more</a>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Prompt Library">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>Gemini in Android Studio's new Prompt Library feature enhances productivity by
+            allowing you to save and manage frequently used prompts. Access the Prompt Library
+            from <b>Settings &gt; Gemini &gt; Prompt Library</b> to store and retrieve prompts. You can also
+            right-click on a prompt in chat to save it for later use. To apply a saved prompt,
+            right-click in the Editor and navigate to <b>Gemini &gt; Prompt Library</b> to apply the prompt.
+            This streamlined workflow eliminates the need to retype commonly used prompts, saving
+            developers time and effort.</p>
+            <br>
+            <a href="https://d.android.com/r/studio-ui/build/prompt-library">Learn more</a>
+            <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
       <footerStep label="">
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 11/06/2024</em><br>
+              <br><em>Last updated 04/29/2025</em><br>
             ]]>
           </section>
         </stepElement>
