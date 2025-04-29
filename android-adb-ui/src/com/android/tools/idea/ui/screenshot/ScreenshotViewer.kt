@@ -253,10 +253,7 @@ class ScreenshotViewer(
           text(message("screenrecord.options.save.directory"))
           text(saveLocation)
             .applyToComponent { saveLocationText = this }
-          button(message("configure.save.button.text")) {
-            configureSave()
-            saveLocationText.text = saveLocation
-          }
+          link(message("configure.save.button.text")) { configureSave() }
             .align(AlignX.RIGHT)
         }
       }
