@@ -48,8 +48,6 @@ public final class ToolWindowScope implements BlazeScope {
     private final Project project;
     private final Task task;
     private ProgressIndicator progressIndicator;
-    private boolean startTaskOnScopeBegin = true;
-    private boolean finishTaskOnScopeEnd = true;
     private boolean showSummaryOutput = false;
     private FocusBehavior popupBehavior = FocusBehavior.ON_ERROR;
     private ImmutableList<BlazeIssueParser.Parser> parsers = ImmutableList.of();
@@ -62,26 +60,6 @@ public final class ToolWindowScope implements BlazeScope {
     @CanIgnoreReturnValue
     public Builder setProgressIndicator(ProgressIndicator progressIndicator) {
       this.progressIndicator = progressIndicator;
-      return this;
-    }
-
-    /**
-     * Makes the scope to start or not start the task when scope begins. The default behaviour is to
-     * start the task.
-     */
-    @CanIgnoreReturnValue
-    public Builder setStartTaskOnScopeBegin(boolean startTaskOnScopeBegin) {
-      this.startTaskOnScopeBegin = startTaskOnScopeBegin;
-      return this;
-    }
-
-    /**
-     * Makes the scope to stop or not stop the task when the scope ends. The default behaviour is to
-     * stop the task.
-     */
-    @CanIgnoreReturnValue
-    public Builder setFinishTaskOnScopeEnd(boolean finishTaskOnScopeEnd) {
-      this.finishTaskOnScopeEnd = finishTaskOnScopeEnd;
       return this;
     }
 
@@ -108,11 +86,9 @@ public final class ToolWindowScope implements BlazeScope {
           project,
           task,
           progressIndicator,
-          startTaskOnScopeBegin,
-          finishTaskOnScopeEnd,
           showSummaryOutput,
           popupBehavior,
-          parsers.isEmpty() || !startTaskOnScopeBegin
+          parsers.isEmpty()
               ? ImmutableList.of()
               : ImmutableList.of(
                   ToolWindowTaskIssueOutputFilter.createWithLinkToTask(project, parsers, task)));
@@ -121,7 +97,6 @@ public final class ToolWindowScope implements BlazeScope {
 
   private final Task task;
   @Nullable private final ProgressIndicator progressIndicator;
-  private final boolean startTaskOnScopeBegin;
   private final FocusBehavior popupBehavior;
   private final ImmutableList<Filter> consoleFilters;
   private final TasksToolWindowService tasksToolWindowController;
@@ -130,7 +105,6 @@ public final class ToolWindowScope implements BlazeScope {
   private final OutputSink<StateUpdate> stateSink;
   @Nullable private final OutputSink<SummaryOutput> summarySink;
 
-  private boolean finishTaskOnScopeEnd;
   private boolean activated;
   private final Set<String> dedupedSummaryOutput = Sets.newHashSet();
 
@@ -138,15 +112,11 @@ public final class ToolWindowScope implements BlazeScope {
       Project project,
       Task task,
       @Nullable ProgressIndicator progressIndicator,
-      boolean startTaskOnScopeBegin,
-      boolean finishTaskOnScopeEnd,
       boolean showSummaryOutput,
       FocusBehavior popupBehavior,
       ImmutableList<Filter> consoleFilters) {
     this.task = task;
     this.progressIndicator = progressIndicator;
-    this.startTaskOnScopeBegin = startTaskOnScopeBegin;
-    this.finishTaskOnScopeEnd = finishTaskOnScopeEnd;
     this.popupBehavior = popupBehavior;
     this.consoleFilters = consoleFilters;
     tasksToolWindowController = TasksToolWindowService.getInstance(project);
@@ -198,9 +168,7 @@ public final class ToolWindowScope implements BlazeScope {
             progressIndicator.cancel();
           }
         });
-    if (startTaskOnScopeBegin) {
-      tasksToolWindowController.startTask(task, consoleFilters);
-    }
+    tasksToolWindowController.startTask(task, consoleFilters);
     tasksToolWindowController.setStopHandler(
         task,
         () -> {
@@ -222,18 +190,12 @@ public final class ToolWindowScope implements BlazeScope {
 
   @Override
   public void onScopeEnd(BlazeContext context) {
-    if (finishTaskOnScopeEnd) {
-      tasksToolWindowController.finishTask(task, statusForContext(context));
-    }
+    tasksToolWindowController.finishTask(task, statusForContext(context));
     tasksToolWindowController.removeStopHandler(task);
   }
 
   public Task getTask() {
     return task;
-  }
-
-  public void setFinishTaskOnScopeEnd(boolean finishTaskOnScopeEnd) {
-    this.finishTaskOnScopeEnd = finishTaskOnScopeEnd;
   }
 
   private void activateIfNeeded(OutputType outputType) {
