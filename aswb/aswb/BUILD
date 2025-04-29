@@ -196,8 +196,6 @@ intellij_integration_test_suite(
         ],
     ),
     data = [
-        "testdata/golden.png",
-        "testdata/ic_banner.png",
         "tools/adt/idea/android/annotations/empty_file",
     ],
     plugins = [
