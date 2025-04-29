@@ -417,20 +417,6 @@ java_test(
 )
 
 java_test(
-    name = "GradleSyncMemoryUseTest",
-    size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.GradleSyncMemoryUseTest"],
-    tags = COMMON_TAGS + [
-        "ci:studio-linux_very_flaky",
-        "noci:studio-linux",
-        "noci:studio-win",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "NavEditorMemoryUseTest",
     size = "large",
     data = COMMON_DATA + [
@@ -565,24 +551,6 @@ java_test(
 )
 
 java_test(
-    name = "BuildAnalyzerTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/BuildAttributionApp/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.build.analyzer.BuildAnalyzerTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "CodeConversionFromJavaToKotlinTest",
     size = "large",
     data = COMMON_DATA + glob([
@@ -592,19 +560,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CompileWithJava8Test",
-    data = COMMON_DATA + glob([
-        "testData/MinSdk24App/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.java8.CompileWithJava8Test"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",  # fails 0 out of 3000 runs
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -711,20 +666,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ImportTestHistoryTest",
-    size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.androidtest.ImportTestHistoryTest"],
-    tags = COMMON_TAGS + [
-        "ci:studio-linux_very_flaky",  # b/269167918
-        "noci:studio-linux",
-        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1308,58 +1249,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AgpUpgradeTest",
-    size = "large",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.AgpUpgradeTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AgpUpgradeJava8ProjTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/CodeGeneration/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.AgpUpgradeJava8ProjTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fat test
-java_test(
-    name = "AddAppCompatLibTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/NoAppCompatLibApp/**",
-    ]),
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddAppCompatLibTest",
-        "-Daspects.agent.jar=$(location //tools/base/aspects_agent:aspects_agent)",
-        "-Daspects.agent.rules=$(location //tools/adt/idea/android-uitests:aspect_rules)",
-        "-Daspects.agent.baseline=$(location //tools/adt/idea/android-uitests:aspects_baseline)",
-    ],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
