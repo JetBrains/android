@@ -103,10 +103,16 @@ class ComposeLayoutInspectorClientTest {
   private val devFlagRule = FlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR)
   private val devFolderFlagRule =
     FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER)
+  private val releaseFolderFlagRule =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER)
 
   @get:Rule
   val rule =
-    RuleChain.outerRule(projectRule).around(adbRule).around(devFlagRule).around(devFolderFlagRule)!!
+    RuleChain.outerRule(projectRule)
+      .around(adbRule)
+      .around(devFlagRule)
+      .around(devFolderFlagRule)
+      .around(releaseFolderFlagRule)!!
 
   @Before
   fun before() {

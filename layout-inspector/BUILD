@@ -144,6 +144,7 @@ iml_module(
         "@platforms//os:linux": ["-Djava.library.path=prebuilts/studio/skiaparser/test_support/linux"],
     }),
     test_resources = ["testResources"],
+    test_shard_count = 2,
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
