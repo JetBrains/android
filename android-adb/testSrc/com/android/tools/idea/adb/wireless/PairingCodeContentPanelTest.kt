@@ -43,8 +43,8 @@ class PairingCodeContentPanelTest {
 
     val services1 =
       listOf(
-        MdnsService("Service1", ServiceType.PairingCode, InetAddresses.fromInteger(1), 1001),
-        MdnsService("Service2", ServiceType.QrCode, InetAddresses.fromInteger(1), 1002),
+        PairingMdnsService("Service1", ServiceType.PairingCode, InetAddresses.fromInteger(1), 1001),
+        PairingMdnsService("Service2", ServiceType.QrCode, InetAddresses.fromInteger(1), 1002),
       )
     panel.showDevices(services1) {}
     assertThat(deviceList.components).hasLength(2)
@@ -55,8 +55,8 @@ class PairingCodeContentPanelTest {
 
     val services2 =
       listOf(
-        MdnsService("Service2", ServiceType.QrCode, InetAddresses.fromInteger(1), 1002),
-        MdnsService("Service3", ServiceType.PairingCode, InetAddresses.fromInteger(1), 1003),
+        PairingMdnsService("Service2", ServiceType.QrCode, InetAddresses.fromInteger(1), 1002),
+        PairingMdnsService("Service3", ServiceType.PairingCode, InetAddresses.fromInteger(1), 1003),
       )
     panel.showDevices(services2) {}
     assertThat(deviceList.components).hasLength(2)

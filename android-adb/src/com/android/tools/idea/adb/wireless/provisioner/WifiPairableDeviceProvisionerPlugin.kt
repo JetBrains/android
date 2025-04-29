@@ -33,6 +33,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.PairDeviceAction
 import com.android.tools.idea.adb.wireless.AdbServiceWrapper
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
+import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.v2.ui.WifiPairableDevicesPersistentStateComponent
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
 import com.intellij.openapi.diagnostic.logger
@@ -243,7 +244,14 @@ class WifiPairableDeviceProvisionerPlugin(
         override suspend fun pair() {
           val controller =
             PairDevicesUsingWiFiService.getInstance(project)
-              .createPairingDialogController(serviceName)
+              .createPairingDialogController(
+                TrackingMdnsService(
+                  serviceName = serviceName,
+                  ipv4 = ipv4,
+                  port = port.toString(),
+                  deviceName = deviceName,
+                )
+              )
           controller.showDialog()
         }
 

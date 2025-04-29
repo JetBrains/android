@@ -114,7 +114,7 @@ public class PairingCodeInputPanel {
     return sb.toString();
   }
 
-  public void setDevice(@NotNull MdnsService service) {
+  public void setDevice(@NotNull PairingMdnsService service) {
     myDeviceAddressLabel.setText(service.getDisplayString());
   }
 

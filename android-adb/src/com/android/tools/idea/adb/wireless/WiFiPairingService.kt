@@ -44,7 +44,7 @@ interface WiFiPairingService {
   fun devices(): ListenableFuture<List<AdbDevice>>
 
   /** Look up the list of mDNS services currently seen by the underlying adb implementation */
-  suspend fun scanMdnsServices(): List<MdnsService>
+  suspend fun scanMdnsServices(): List<PairingMdnsService>
 
   /**
    * Returns a [Flow] that emits a new [MdnsServices] everytime a mdns service change is detected by
@@ -54,7 +54,10 @@ interface WiFiPairingService {
   fun trackMdnsServices(): Flow<MdnsServices>
 
   /** Pair a device through an mDNS service */
-  suspend fun pairMdnsService(mdnsService: MdnsService, password: String): PairingResult
+  suspend fun pairMdnsService(
+    pairingMdnsService: PairingMdnsService,
+    password: String,
+  ): PairingResult
 
   /** Wait for device to be available from the underlying adb implementation */
   suspend fun waitForDevice(pairingResult: PairingResult): AdbOnlineDevice
@@ -85,8 +88,8 @@ data class PairingResult(
     }
 }
 
-/** A device/service as exposed by the "adb mdns services" command */
-data class MdnsService(
+/** An adb-tls-pairing._tcp. service as exposed by the "adb mdns services" command */
+data class PairingMdnsService(
   val serviceName: String,
   val serviceType: ServiceType,
   val ipAddress: InetAddress,
@@ -102,6 +105,19 @@ data class MdnsService(
 enum class ServiceType {
   QrCode,
   PairingCode,
+}
+
+/** mdns tracking service result as exposed by "host:track-mdns-services" query */
+data class TrackingMdnsService(
+  val serviceName: String,
+  val ipv4: String,
+  val port: String,
+  val deviceName: String?,
+) {
+  val displayString: String
+    get() {
+      return if (deviceName.isNullOrBlank()) "Device at ${ipv4}:${port}" else deviceName
+    }
 }
 
 /** Abstraction over an bitmap representation of a QrCode */

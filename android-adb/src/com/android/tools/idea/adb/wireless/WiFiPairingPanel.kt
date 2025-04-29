@@ -32,7 +32,7 @@ import javax.swing.event.HyperlinkListener
 internal class WiFiPairingPanel(
   private val parentDisposable: Disposable,
   private val hyperlinkListener: HyperlinkListener,
-  private val mdnsService: String?,
+  private val mdnsServiceUnderPairing: TrackingMdnsService?,
 ) {
   private val centerPanel by lazy { WiFiPairingCenterPanel(hyperlinkListener) }
 
@@ -53,13 +53,13 @@ internal class WiFiPairingPanel(
   }
 
   val qrCodePanel by lazy {
-    QrCodeTabPanel(Runnable { qrCodeScanAgainInvoked() }, parentDisposable)
+    QrCodeTabPanel(Runnable { qrCodeScanAgainInvoked() }, parentDisposable, mdnsServiceUnderPairing)
   }
 
   val pairingCodePanel by lazy {
     PairingCodeTabPanel(
-      Consumer<MdnsService> { service -> pairingCodePairInvoked(service) },
-      mdnsService,
+      Consumer<PairingMdnsService> { service -> pairingCodePairInvoked(service) },
+      mdnsServiceUnderPairing,
     )
   }
 
@@ -74,13 +74,13 @@ internal class WiFiPairingPanel(
         loadingPanel.stopLoading()
       }
 
-  var pairingCodePairInvoked: (MdnsService) -> Unit = {}
+  var pairingCodePairInvoked: (PairingMdnsService) -> Unit = {}
 
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
   private fun createHeaderPanel(): JComponent {
     val topLabel =
-      JBLabel("Pair new devices over Wi-Fi").apply {
+      JBLabel("Pair ${mdnsServiceUnderPairing?.displayString ?: "new devices"} over Wi-Fi").apply {
         border = JBEmptyBorder(0, 0, 10, 0)
         font = JBUI.Fonts.label(22f) // .asBold()
       }
@@ -114,7 +114,7 @@ internal class WiFiPairingPanel(
       WiFiPairingContentPanel(parentDisposable)
         .apply {
           setQrCodeComponent(qrCodePanel)
-          setPairingCodeComponent(pairingCodePanel, mdnsService)
+          setPairingCodeComponent(pairingCodePanel, mdnsServiceUnderPairing)
         }
         .component
 

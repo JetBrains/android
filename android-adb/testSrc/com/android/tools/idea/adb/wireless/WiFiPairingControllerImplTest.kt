@@ -121,7 +121,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       notificationService,
       view,
       { createPairingCodePairingController(it) },
-      mdnsService = null,
+      mdnsServiceUnderPairing = null,
     )
   }
 
@@ -139,9 +139,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @Suppress("SameParameterValue")
   private fun createPairingCodePairingController(
-    mdnsService: MdnsService
+    pairingMdnsService: PairingMdnsService
   ): PairingCodePairingController {
-    val model = PairingCodePairingModel(mdnsService)
+    val model = PairingCodePairingModel(pairingMdnsService)
     val view =
       MockPairingCodePairingView(project, notificationService, model).also {
         lastPairingCodeView = it

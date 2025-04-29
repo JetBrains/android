@@ -45,6 +45,7 @@ import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
+import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.Urls
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
@@ -209,7 +210,14 @@ class WifiAvailableDevicesDialog(project: Project) : Disposable {
           onClick = {
             val controller =
               PairDevicesUsingWiFiService.getInstance(project)
-                .createPairingDialogController(device.service.serviceInstanceName.instance)
+                .createPairingDialogController(
+                  TrackingMdnsService(
+                    serviceName = device.service.serviceInstanceName.instance,
+                    ipv4 = device.service.ipv4,
+                    port = device.service.port.toString(),
+                    deviceName = device.service.deviceModel,
+                  )
+                )
             controller.showDialog()
           }
         ) {

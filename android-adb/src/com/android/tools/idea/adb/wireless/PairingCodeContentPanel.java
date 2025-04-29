@@ -47,14 +47,14 @@ public class PairingCodeContentPanel {
   @NotNull private JBScrollPane myDeviceListScrollPane;
   private JBLabel myDeviceLineupLabel;
   @NotNull List<PairingCodeDevicePanel> myPanels = new ArrayList<>();
-  private final String myMdnsDevice;
+  private final TrackingMdnsService mdnsServiceUnderPairing;
 
   public PairingCodeContentPanel() {
     this(null);
   }
 
-  public PairingCodeContentPanel(@Nullable String mdnsDevice) {
-    myMdnsDevice = mdnsDevice;
+  public PairingCodeContentPanel(@Nullable TrackingMdnsService mdnsServiceUnderPairing) {
+    this.mdnsServiceUnderPairing = mdnsServiceUnderPairing;
     setupUI();
     myDeviceList.setLayout(new VerticalFlowLayout());
 
@@ -68,7 +68,7 @@ public class PairingCodeContentPanel {
     return myRootComponent;
   }
 
-  public void showDevices(@NotNull List<MdnsService> services, @NotNull Consumer<MdnsService> pairingCodePairInvoked) {
+  public void showDevices(@NotNull List<PairingMdnsService> services, @NotNull Consumer<PairingMdnsService> pairingCodePairInvoked) {
     if (services.isEmpty()) {
       myEmptyPanel.setVisible(true);
       myDevicesPanel.setVisible(false);
@@ -82,7 +82,7 @@ public class PairingCodeContentPanel {
       boolean needRepaint = false;
 
       // Keep existing panels & add add new panels for new devices
-      for (MdnsService service : services) {
+      for (PairingMdnsService service : services) {
         if (isPanelPresent(myPanels, service)) {
           continue;
         }
@@ -120,7 +120,7 @@ public class PairingCodeContentPanel {
   }
 
   /** Checks consistency between services, myPanels and myDeviceList. */
-  private boolean checkConsistency(@NotNull List<MdnsService> services) {
+  private boolean checkConsistency(@NotNull List<PairingMdnsService> services) {
     if (myPanels.size() != myDeviceList.getComponentCount() || services.size() != myDeviceList.getComponentCount()) {
       return false;
     }
@@ -138,11 +138,11 @@ public class PairingCodeContentPanel {
   }
 
   /** Dumps contents of services, myPanels and subcomponents of myDeviceList to a string. */
-  private String getDataStructuresDump(@NotNull List<MdnsService> services) {
+  private String getDataStructuresDump(@NotNull List<PairingMdnsService> services) {
     StringBuilder buf = new StringBuilder();
     buf.append("services:");
     String separator = " ";
-    for (MdnsService service : services) {
+    for (PairingMdnsService service : services) {
       buf.append(separator);
       buf.append(service);
       separator = ", ";
@@ -197,10 +197,10 @@ public class PairingCodeContentPanel {
     myDeviceLineupLabel.setHorizontalTextPosition(0);
     myDeviceLineupLabel.setIconTextGap(0);
     // TODO(b/412571872) remove this hack, implement custom UI for available pairable devices (pending input from UX session).
-    if (myMdnsDevice == null) {
+    if (mdnsServiceUnderPairing == null) {
       myDeviceLineupLabel.setText("Searching for devices...");
     } else {
-      myDeviceLineupLabel.setText(String.format("Waiting for %s to enter pairing mode...", myMdnsDevice));
+      myDeviceLineupLabel.setText(String.format("Waiting for %s to enter pairing mode...", mdnsServiceUnderPairing.getDisplayString()));
     }
     myDeviceLineupLabel.setVerticalTextPosition(3);
     myEmptyPanel.add(myDeviceLineupLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
@@ -208,14 +208,14 @@ public class PairingCodeContentPanel {
                                                               null, null, 0, false));
   }
 
-  private static boolean isPanelDeleted(@NotNull List<MdnsService> services, @NotNull PairingCodeDevicePanel panel) {
-    //TODO: Add test that MdnsService implements value equality
+  private static boolean isPanelDeleted(@NotNull List<PairingMdnsService> services, @NotNull PairingCodeDevicePanel panel) {
+    //TODO: Add test that PairingMdnsService implements value equality
     return services.stream().noneMatch(service -> service.equals(panel.getMdnsService()));
   }
 
   private static boolean isPanelPresent(@NotNull List<PairingCodeDevicePanel> panels,
-                                        @NotNull MdnsService device) {
-    //TODO: Add test that MdnsService implements value equality
+                                        @NotNull PairingMdnsService device) {
+    //TODO: Add test that PairingMdnsService implements value equality
     return panels.stream().anyMatch(panel -> panel.getMdnsService().equals(device));
   }
 

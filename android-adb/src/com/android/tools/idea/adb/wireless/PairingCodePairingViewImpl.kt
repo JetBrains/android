@@ -68,13 +68,13 @@ class PairingCodePairingViewImpl(
     allowPairAction = false
   }
 
-  override fun showPairingSuccess(service: MdnsService, device: AdbOnlineDevice) {
+  override fun showPairingSuccess(service: PairingMdnsService, device: AdbOnlineDevice) {
     dlg.showPairingSuccess(device)
     allowPairAction = false
     notificationService.showPairingSuccessBalloon(device)
   }
 
-  override fun showPairingError(service: MdnsService, error: Throwable) {
+  override fun showPairingError(service: PairingMdnsService, error: Throwable) {
     dlg.showPairingError()
     allowPairAction = true
   }

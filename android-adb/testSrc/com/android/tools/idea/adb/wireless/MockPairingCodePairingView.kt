@@ -27,8 +27,8 @@ class MockPairingCodePairingView(
   val showDialogTracker = FutureValuesTracker<Unit>()
   val showPairingInProgressTracker = FutureValuesTracker<Unit>()
   val showWaitingForDeviceProgressTracker = FutureValuesTracker<PairingResult>()
-  val showPairingSuccessTracker = FutureValuesTracker<Pair<MdnsService, AdbOnlineDevice>>()
-  val showPairingErrorTracker = FutureValuesTracker<Pair<MdnsService, Throwable>>()
+  val showPairingSuccessTracker = FutureValuesTracker<Pair<PairingMdnsService, AdbOnlineDevice>>()
+  val showPairingErrorTracker = FutureValuesTracker<Pair<PairingMdnsService, Throwable>>()
 
   override fun showDialog() {
     showDialogTracker.produce(Unit)
@@ -45,12 +45,12 @@ class MockPairingCodePairingView(
     viewImpl.showWaitingForDeviceProgress(pairingResult)
   }
 
-  override fun showPairingSuccess(service: MdnsService, device: AdbOnlineDevice) {
+  override fun showPairingSuccess(service: PairingMdnsService, device: AdbOnlineDevice) {
     showPairingSuccessTracker.produce(Pair(service, device))
     viewImpl.showPairingSuccess(service, device)
   }
 
-  override fun showPairingError(service: MdnsService, error: Throwable) {
+  override fun showPairingError(service: PairingMdnsService, error: Throwable) {
     showPairingErrorTracker.produce(Pair(service, error))
     viewImpl.showPairingError(service, error)
   }

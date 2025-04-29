@@ -39,7 +39,7 @@ class QrCodeScanningController(
   private val service: WiFiPairingService,
   private val view: WiFiPairingView,
   parentDisposable: Disposable,
-  private val mdnsDevice: String?,
+  private val mdnsServiceUnderPairing: TrackingMdnsService?,
 ) : Disposable {
   private val LOG = logger<QrCodeScanningController>()
   private val modelListener = MyModelListener()
@@ -75,14 +75,14 @@ class QrCodeScanningController(
     model.qrCodeImage = qrCode
   }
 
-  private fun startPairingDevice(mdnsService: MdnsService, password: String) {
+  private fun startPairingDevice(pairingMdnsService: PairingMdnsService, password: String) {
     state = State.Pairing
-    view.showQrCodePairingInProgress(mdnsService)
+    view.showQrCodePairingInProgress(pairingMdnsService)
     scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       val now = System.currentTimeMillis()
       val adbVersion = service.getAdbVersion()
       try {
-        val pairingResult = service.pairMdnsService(mdnsService, password)
+        val pairingResult = service.pairMdnsService(pairingMdnsService, password)
         view.showQrCodePairingWaitForDevice(pairingResult)
         val device = service.waitForDevice(pairingResult)
         WifiPairingUsageTracker.trackSuccess(
@@ -93,7 +93,7 @@ class QrCodeScanningController(
           System.currentTimeMillis() - now,
         )
         state = State.PairingSuccess
-        view.showQrCodePairingSuccess(mdnsService, device)
+        view.showQrCodePairingSuccess(pairingMdnsService, device)
       } catch (error: Throwable) {
         if (!isCancelled(error)) {
           WifiPairingUsageTracker.trackFailure(
@@ -102,9 +102,9 @@ class QrCodeScanningController(
             error,
             System.currentTimeMillis() - now,
           )
-          LOG.warn("Error pairing device ${mdnsService}", error)
+          LOG.warn("Error pairing device ${pairingMdnsService}", error)
           state = State.PairingError
-          view.showQrCodePairingError(mdnsService, error)
+          view.showQrCodePairingError(pairingMdnsService, error)
         }
       }
     }
@@ -140,7 +140,7 @@ class QrCodeScanningController(
     service.trackMdnsServices().collect {
       val services =
         it.pairingMdnsServices.map {
-          MdnsService(
+          PairingMdnsService(
             it.mdnsService.serviceInstanceName.instance,
             if (it.mdnsService.serviceInstanceName.instance.startsWith("studio-"))
               ServiceType.QrCode
@@ -152,7 +152,8 @@ class QrCodeScanningController(
       view.model.pairingCodeServices =
         services.filter {
           it.serviceType == ServiceType.PairingCode &&
-            (mdnsDevice == null || mdnsDevice == it.serviceName)
+            (mdnsServiceUnderPairing == null ||
+              mdnsServiceUnderPairing.serviceName == it.serviceName)
         }
       view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
     }
@@ -183,7 +184,7 @@ class QrCodeScanningController(
       }
     }
 
-    override fun onPairingCodePairAction(mdnsService: MdnsService) {
+    override fun onPairingCodePairAction(pairingMdnsService: PairingMdnsService) {
       // Ignore
     }
 
@@ -196,7 +197,7 @@ class QrCodeScanningController(
   inner class MyModelListener : AdbDevicePairingModelListener {
     override fun qrCodeGenerated(newImage: QrCodeImage) {}
 
-    override fun qrCodeServicesDiscovered(services: List<MdnsService>) {
+    override fun qrCodeServicesDiscovered(services: List<PairingMdnsService>) {
       LOG.info("${services.size} QR code connect services discovered")
       services.forEachIndexed { index, it ->
         LOG.info(
@@ -215,7 +216,7 @@ class QrCodeScanningController(
       }
     }
 
-    override fun pairingCodeServicesDiscovered(services: List<MdnsService>) {
+    override fun pairingCodeServicesDiscovered(services: List<PairingMdnsService>) {
       LOG.info("${services.size} pairing code pairing services discovered")
       services.forEachIndexed { index, it ->
         LOG.info(

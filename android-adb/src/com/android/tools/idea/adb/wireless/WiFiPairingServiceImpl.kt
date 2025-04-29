@@ -141,7 +141,7 @@ class WiFiPairingServiceImpl(
   }
 
   @Throws(AdbCommandException::class)
-  override suspend fun scanMdnsServices(): List<MdnsService> {
+  override suspend fun scanMdnsServices(): List<PairingMdnsService> {
     // TODO: Investigate updating (then using) ddmlib instead of spawning an adb client command, so
     // that
     //       we don't have to rely on parsing command line output
@@ -177,7 +177,7 @@ class WiFiPairingServiceImpl(
           val serviceType =
             if (serviceName.startsWith(studioServiceNamePrefix)) ServiceType.QrCode
             else ServiceType.PairingCode
-          MdnsService(serviceName, serviceType, ipAddress, port)
+          PairingMdnsService(serviceName, serviceType, ipAddress, port)
         } catch (ignored: Exception) {
           LOG.warn("mDNS service entry ignored due do invalid characters: ${line}")
           null
@@ -190,10 +190,13 @@ class WiFiPairingServiceImpl(
     return adbService.trackMdnsServices()
   }
 
-  override suspend fun pairMdnsService(mdnsService: MdnsService, password: String): PairingResult {
-    LOG.info("Start mDNS pairing: ${mdnsService}")
+  override suspend fun pairMdnsService(
+    pairingMdnsService: PairingMdnsService,
+    password: String,
+  ): PairingResult {
+    LOG.info("Start mDNS pairing: ${pairingMdnsService}")
 
-    val deviceAddress = "${mdnsService.ipAddress.hostAddress}:${mdnsService.port}"
+    val deviceAddress = "${pairingMdnsService.ipAddress.hostAddress}:${pairingMdnsService.port}"
     // TODO: Update this when password can be passed as an argument
     val passwordInput = password + LineSeparator.getSystemLineSeparator().separatorString
     // TODO: Investigate updating (then using) ddmlib instead of spawning an adb client command, so

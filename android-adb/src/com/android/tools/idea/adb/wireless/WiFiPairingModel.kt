@@ -21,13 +21,13 @@ import java.util.ArrayList
 /** Model used for pairing devices */
 @UiThread
 open class WiFiPairingModel {
-  open var qrCodeServices: List<MdnsService> = emptyList()
+  open var qrCodeServices: List<PairingMdnsService> = emptyList()
     set(value) {
       field = value
       listeners.forEach { it.qrCodeServicesDiscovered(value) }
     }
 
-  open var pairingCodeServices: List<MdnsService> = emptyList()
+  open var pairingCodeServices: List<PairingMdnsService> = emptyList()
     set(value) {
       field = value
       listeners.forEach { it.pairingCodeServicesDiscovered(value) }
@@ -57,9 +57,15 @@ interface AdbDevicePairingModelListener {
   /** Invoked when a new QrCode image has been generated */
   fun qrCodeGenerated(newImage: QrCodeImage)
 
-  /** Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server */
-  fun qrCodeServicesDiscovered(services: List<MdnsService>)
+  /**
+   * Invoked when a new list of [PairingMdnsService] has been discovered from the underlying ADB
+   * server
+   */
+  fun qrCodeServicesDiscovered(services: List<PairingMdnsService>)
 
-  /** Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server */
-  fun pairingCodeServicesDiscovered(services: List<MdnsService>)
+  /**
+   * Invoked when a new list of [PairingMdnsService] has been discovered from the underlying ADB
+   * server
+   */
+  fun pairingCodeServicesDiscovered(services: List<PairingMdnsService>)
 }

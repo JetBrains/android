@@ -41,16 +41,17 @@ import org.jetbrains.annotations.Nullable;
  */
 @UiThread
 public class PairingCodeTabPanel {
-  @NotNull private final Consumer<MdnsService> myPairingCodePairInvoked;
+  @NotNull private final Consumer<PairingMdnsService> myPairingCodePairInvoked;
   @NotNull private final PairingCodeContentPanel myContentPanel;
   @NotNull private JBLabel myFirstLineLabel;
   @NotNull private JBLabel mySecondLineLabel;
   @NotNull private JPanel myRootComponent;
   @NotNull private JPanel myContentPanelContainer;
-  private final String myMdnsService;
+  @Nullable private final TrackingMdnsService mdnsServiceUnderPairing;
 
-  public PairingCodeTabPanel(@NotNull Consumer<MdnsService> pairingCodePairInvoked, @Nullable String mdnsService) {
-    myMdnsService = mdnsService;
+  public PairingCodeTabPanel(@NotNull Consumer<PairingMdnsService> pairingCodePairInvoked,
+                             @Nullable TrackingMdnsService mdnsServiceUnderPairing) {
+    this.mdnsServiceUnderPairing = mdnsServiceUnderPairing;
     setupUI();
     myPairingCodePairInvoked = pairingCodePairInvoked;
     myContentPanelContainer.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
@@ -58,13 +59,13 @@ public class PairingCodeTabPanel {
     myFirstLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
     mySecondLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
 
-    myContentPanel = new PairingCodeContentPanel(mdnsService);
+    myContentPanel = new PairingCodeContentPanel(mdnsServiceUnderPairing);
     myContentPanelContainer.add(myContentPanel.getComponent(), BorderLayout.CENTER);
 
     showAvailableServices(new ArrayList<>());
   }
 
-  public void showAvailableServices(@NotNull List<MdnsService> devices) {
+  public void showAvailableServices(@NotNull List<PairingMdnsService> devices) {
     myContentPanel.showDevices(devices, myPairingCodePairInvoked);
   }
 
@@ -80,8 +81,8 @@ public class PairingCodeTabPanel {
     Font myFirstLineLabelFont = getFont(null, Font.BOLD, -1, myFirstLineLabel.getFont());
     if (myFirstLineLabelFont != null) myFirstLineLabel.setFont(myFirstLineLabelFont);
     String deviceName = "Android 11+ device";
-    if (myMdnsService != null) {
-      deviceName = myMdnsService;
+    if (mdnsServiceUnderPairing != null) {
+      deviceName = mdnsServiceUnderPairing.getDisplayString();
     }
     myFirstLineLabel.setText(String.format("Set your %s to pairing mode", deviceName));
     myRootComponent.add(myFirstLineLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
