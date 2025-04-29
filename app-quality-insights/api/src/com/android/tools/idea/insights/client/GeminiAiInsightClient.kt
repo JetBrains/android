@@ -95,7 +95,7 @@ class GeminiAiInsightClient(
     if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
       val contextData =
         if (!request.connection.isMatchingProject()) {
-          CodeContextData.DISABLED
+          CodeContextData.empty(project)
         } else if (StudioFlags.GEMINI_ASSISTED_CONTEXT_FETCH.get()) {
           queryForRelevantContext(request)
         } else {

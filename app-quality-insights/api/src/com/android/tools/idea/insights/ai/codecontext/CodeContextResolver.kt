@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ai.codecontext
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.ai.codecontext.CodeContextData.Companion.getContextSharingState
 import com.android.utils.associateWithNotNull
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.ExceptionInfoCache
@@ -57,6 +58,17 @@ data class CodeContextData(
   companion object {
     /** The default experiment state for users who disable context sharing settings. */
     val DISABLED = CodeContextData(emptyList(), contextSharingState = ContextSharingState.DISABLED)
+
+    fun empty(project: Project) =
+      CodeContextData(emptyList(), contextSharingState = getContextSharingState(project))
+
+    fun getContextSharingState(project: Project) =
+      if (
+        GeminiPluginApi.getInstance().isAvailable() &&
+          GeminiPluginApi.getInstance().isContextAllowed(project)
+      )
+        ContextSharingState.ALLOWED
+      else ContextSharingState.DISABLED
   }
 
   fun isEmpty() = codeContext.isEmpty()
@@ -90,10 +102,10 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
 
   override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
     if (!conn.isMatchingProject()) {
-      return CodeContextData(emptyList())
+      return CodeContextData.empty(project)
     }
     val sources = getSource(stack)
-    return CodeContextData(sources, getMetadata(sources), getContextSharingState())
+    return CodeContextData(sources, getMetadata(sources), getContextSharingState(project))
   }
 
   override suspend fun getSource(fileNames: List<String>): CodeContextData {
@@ -116,16 +128,8 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
           }
         }
         .map { (file, virtFile) -> CodeContext(file, virtFile.readText()) }
-    return CodeContextData(context, getMetadata(context), getContextSharingState())
+    return CodeContextData(context, getMetadata(context), getContextSharingState(project))
   }
-
-  private fun getContextSharingState() =
-    if (
-      GeminiPluginApi.getInstance().isAvailable() &&
-        GeminiPluginApi.getInstance().isContextAllowed(project)
-    )
-      ContextSharingState.ALLOWED
-    else ContextSharingState.DISABLED
 
   private fun getMetadata(contexts: List<CodeContext>): CodeContextTrackingInfo =
     contexts.fold(CodeContextTrackingInfo.EMPTY) { acc, context ->
