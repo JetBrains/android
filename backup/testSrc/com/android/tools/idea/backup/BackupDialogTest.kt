@@ -347,12 +347,17 @@ class BackupDialogTest {
 
   private fun createDialog(
     initialApplication: String = "app",
-    debuggableApps: List<String> = emptyList(),
+    debuggableApps: List<String> = listOf(initialApplication),
     isBackupEnabled: Boolean = true,
     dialogInteractor: (BackupDialog) -> Unit,
   ) {
     createModalDialogAndInteractWithIt(
-      BackupDialog(project, initialApplication, debuggableApps, isBackupEnabled)::show
+      BackupDialog(
+        project,
+        initialApplication,
+        debuggableApps,
+        mapOf(initialApplication to isBackupEnabled),
+      )::show
     ) {
       dialogInteractor(it as BackupDialog)
     }

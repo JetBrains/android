@@ -102,11 +102,11 @@ internal constructor(
     source: Source,
     notify: Boolean,
   ) {
+    val debuggableApps = getDebuggableApps(serialNumber)
     val isBackupEnabled =
       withContext(Dispatchers.Default) {
-        backupService.isBackupEnabled(serialNumber, applicationId)
+        debuggableApps.associateWith { backupService.isBackupEnabled(serialNumber, it) }
       }
-    val debuggableApps = getDebuggableApps(serialNumber)
     withContext(Dispatchers.EDT) {
       showBackupDialog(serialNumber, applicationId, debuggableApps, source, notify, isBackupEnabled)
     }
@@ -124,7 +124,7 @@ internal constructor(
     debuggableApps: List<String>,
     source: Source,
     notify: Boolean,
-    isBackupEnabled: Boolean,
+    isBackupEnabled: Map<String, Boolean>,
   ) {
     val dialog = BackupDialog(project, applicationId, debuggableApps, isBackupEnabled)
     val ok = dialog.showAndGet()

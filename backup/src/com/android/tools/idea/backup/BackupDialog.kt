@@ -28,7 +28,6 @@ import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.SwingHelper
 import java.awt.Dimension
-import java.awt.event.ItemEvent
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
@@ -51,7 +50,7 @@ internal class BackupDialog(
   private val project: Project,
   initialApplicationId: String,
   debuggableApps: List<String>,
-  private val isBackupEnabled: Boolean,
+  private val appIdToBackupEnabledMap: Map<String, Boolean>,
 ) : DialogWrapper(project) {
   private val applicationIds =
     buildList {
@@ -76,7 +75,6 @@ internal class BackupDialog(
       isEditable = false
       isOpaque = false
       putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
-      isVisible = !isBackupEnabled
       addHyperlinkListener { it ->
         if (it.eventType == ACTIVATED) {
           BackupManagerImpl.openBackupDisabledLearnMoreLink()
@@ -123,22 +121,19 @@ internal class BackupDialog(
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
 
-    if (!isBackupEnabled) {
-      fun doUpdate() {
-        backupNotEnabledWarning.text =
-          if (typeComboBox.item == DEVICE_TO_DEVICE) WARNING_DTD else WARNING_CLOUD
-        updateOkAction()
-      }
-
-      val itemListener: (ItemEvent) -> Unit = {
-        doUpdate()
-        pack()
-      }
-      doUpdate()
-      typeComboBox.addItemListener(itemListener)
-    }
-    pack()
+    applicationIdComboBox.addItemListener { checkBackupType() }
+    typeComboBox.addItemListener { checkBackupType() }
+    checkBackupType()
     isResizable = false
+  }
+
+  private fun checkBackupType() {
+    val isBackupEnabled = appIdToBackupEnabledMap[applicationIdComboBox.item] != true
+    backupNotEnabledWarning.isVisible = isBackupEnabled
+    backupNotEnabledWarning.text =
+      if (typeComboBox.item == DEVICE_TO_DEVICE) WARNING_DTD else WARNING_CLOUD
+    updateOkAction()
+    pack()
   }
 
   override fun createCenterPanel(): JComponent {
@@ -270,6 +265,7 @@ internal class BackupDialog(
   }
 
   fun updateOkAction() {
+    val isBackupEnabled = appIdToBackupEnabledMap[applicationIdComboBox.item] ?: false
     try {
       val path = Path.of(fileTextField.text)
       isOKActionEnabled =
