@@ -1624,7 +1624,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
     "If a user moves their caret to a element present in a preview, we highlight those elements",
-    enabledUpTo(DEV));
+    true);
   //endregion
 
   // region Wear surfaces
