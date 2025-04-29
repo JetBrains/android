@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.vitals.ui
 
+import com.android.flags.junit.FlagRule
+import com.android.testutils.delayUntilCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
@@ -47,11 +50,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 class VitalsTabProviderTest {
 
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val flagRule = FlagRule(StudioFlags.USE_1P_LOGIN_UI, false)
 
   private lateinit var modelStateFlow: MutableStateFlow<AppInsightsModel>
   private lateinit var manager: AppInsightsConfigurationManager
@@ -120,7 +123,13 @@ class VitalsTabProviderTest {
           modelStateFlow.value = AppInsightsModel.Unauthenticated
         }
         2 -> {
-          assertThat(component.toString()).contains("loggedOutErrorStateComponent")
+          val expect =
+            if (StudioFlags.USE_1P_LOGIN_UI.get()) {
+              "loggedOut1pPanel"
+            } else {
+              "loggedOutErrorStateComponent"
+            }
+          assertThat(component.toString()).contains(expect)
           modelStateFlow.value = AppInsightsModel.InitializationFailed
         }
         3 -> {
@@ -173,6 +182,17 @@ class VitalsTabProviderTest {
     val flow = populateTabAndGetComponentsFlow()
     flow.take(1).collect { component ->
       assertThat(component).isInstanceOf(ServiceDeprecatedPanel::class.java)
+    }
+  }
+
+  @Test
+  fun `test 1p login screen`() = runTest {
+    StudioFlags.USE_1P_LOGIN_UI.override(true)
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+    modelStateFlow.value = AppInsightsModel.Unauthenticated
+
+    delayUntilCondition(200) {
+      tabPanel.components.firstOrNull().toString().contains("loggedOut1pPanel")
     }
   }
 }
