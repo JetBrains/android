@@ -39,16 +39,15 @@ internal class SaveConfigurationResolver(private val project: Project) {
       val dir = Paths.get(userHome).resolve(expandSaveLocation(saveLocation))
       val time = timestamp.atZone(ZoneId.systemDefault())
       val filename = filenameTemplate
-          .replace("%Y", time.get(ChronoField.YEAR).toString())
-          .replace("%y", time.get(ChronoField.YEAR).toString().takeLast(2))
-          .replace("%M", String.Companion.format(Locale.US, "%02d", time.get(ChronoField.MONTH_OF_YEAR)))
-          .replace("%D", String.Companion.format(Locale.US, "%02d", time.get(ChronoField.DAY_OF_MONTH)))
-          .replace("%H", String.Companion.format(Locale.US, "%02d", time.get(ChronoField.HOUR_OF_DAY)))
-          .replace("%m", String.Companion.format(Locale.US, "%02d", time.get(ChronoField.MINUTE_OF_HOUR)))
-          .replace("%S", String.Companion.format(Locale.US, "%02d", time.get(ChronoField.SECOND_OF_MINUTE)))
-          .replace("%d", sequentialNumber.toString())
-          .replace(Regex("%(\\d+)d")) { match -> String.Companion.format(Locale.ROOT, "%0${match.groupValues[1]}d", sequentialNumber) }
-          .replace("%p", project.name)
+          .replace("<yyyy>", time.get(ChronoField.YEAR).toString())
+          .replace("<yy>", time.get(ChronoField.YEAR).toString().takeLast(2))
+          .replace("<MM>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.MONTH_OF_YEAR)))
+          .replace("<dd>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.DAY_OF_MONTH)))
+          .replace("<HH>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.HOUR_OF_DAY)))
+          .replace("<mm>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.MINUTE_OF_HOUR)))
+          .replace("<ss>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.SECOND_OF_MINUTE)))
+          .replace(Regex("<#+>")) { match -> String.format(Locale.ROOT, "%0${match.range.count() - 2}d", sequentialNumber) }
+          .replace("<project>", project.name)
       return dir.resolve("$filename.$fileExtension").normalize().toString().replace('/', File.separatorChar)
     } catch (_: InvalidPathException) {
       return ""
@@ -83,8 +82,29 @@ internal class SaveConfigurationResolver(private val project: Project) {
     const val DEFAULT_SAVE_LOCATION = "$USER_HOME_MACRO/Desktop"
     const val PROJECT_DIR_MACRO: @NonNls String = "\$PROJECT_DIR$"
 
+    @JvmStatic
     private fun String.startsWithFollowedBySeparator(prefix: String): Boolean {
       return startsWith(prefix) && (length == prefix.length || this[prefix.length] == '/')
+    }
+
+    /** Converts the given filename template from the format that was used in Narwhal preview to the new format. */
+    // TODO: Remove after Narwhal is released to stable.
+    @JvmStatic
+    fun convertFilenameTemplateFromOldFormat(oldTemplate: String): String {
+      if (oldTemplate.contains('<') && oldTemplate.contains('>')) {
+        return oldTemplate // Already in the new format.
+      }
+      return oldTemplate
+          .replace("%Y", "<yyyy>")
+          .replace("%y", "<yy>")
+          .replace("%M", "<MM>")
+          .replace("%D", "<dd>")
+          .replace("%H", "<HH>")
+          .replace("%m", "<mm>")
+          .replace("%S", "<ss>")
+          .replace("%d", "<#>")
+          .replace(Regex("%(\\d+)d")) { match -> "<${"#".repeat(match.groupValues[1].toInt())}>" }
+          .replace("%p", "<project>")
     }
   }
 }

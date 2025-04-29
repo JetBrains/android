@@ -23,6 +23,7 @@ import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfigurationDialog
 import com.android.tools.idea.ui.save.SaveConfigurationResolver
+import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.convertFilenameTemplateFromOldFormat
 import com.android.tools.pixelprobe.color.Colors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
@@ -570,7 +571,7 @@ class ScreenshotViewer(
     var frameScreenshot: Boolean = false
     var saveLocation: String = SaveConfigurationResolver.DEFAULT_SAVE_LOCATION
     var scale: Double = 1.0
-    var filenameTemplate: String = "Screenshot_%Y%M%D_%H%m%S"
+    var filenameTemplate: String = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>"
     var screenshotCount: Int = 0
     var postSaveAction: PostSaveAction = PostSaveAction.OPEN
 
@@ -580,6 +581,7 @@ class ScreenshotViewer(
 
     override fun loadState(state: ScreenshotConfiguration) {
       XmlSerializerUtil.copyBean<ScreenshotConfiguration>(state, this)
+      filenameTemplate = convertFilenameTemplateFromOldFormat(filenameTemplate)
     }
   }
 

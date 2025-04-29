@@ -63,11 +63,11 @@ class SaveConfigurationResolverTest {
 
   @Test
   fun testExpandFilenamePattern() {
-    assertThat(saveConfigResolver.expandFilenamePattern(PROJECT_DIR_MACRO, "screenshots/%Y%M%D_%H%m%S", "png", timestamp, 5))
+    assertThat(saveConfigResolver.expandFilenamePattern(PROJECT_DIR_MACRO, "screenshots/<yyyy><MM><dd>_<HH><mm><ss>", "png", timestamp, 5))
         .isEqualTo("$normalizedProjectDir/screenshots/20250121_102214.png".toPlatformPath())
-    assertThat(saveConfigResolver.expandFilenamePattern("Pictures", "%p_%3d", "png", timestamp, 5))
+    assertThat(saveConfigResolver.expandFilenamePattern("Pictures", "<project>_<###>", "png", timestamp, 5))
         .isEqualTo("$userHome/Pictures/${project.name}_005.png".toPlatformPath())
-    assertThat(saveConfigResolver.expandFilenamePattern("$USER_HOME_MACRO/Screenshots", "%5d", "png", timestamp, 1))
+    assertThat(saveConfigResolver.expandFilenamePattern("$USER_HOME_MACRO/Screenshots", "<#####>", "png", timestamp, 1))
         .isEqualTo("$userHome/Screenshots/00001.png".toPlatformPath())
   }
 
@@ -78,6 +78,12 @@ class SaveConfigurationResolverTest {
     assertThat(saveConfigResolver.generalizeSaveLocation("foo/bar")).isEqualTo("$USER_HOME_MACRO/foo/bar")
     val absPath = if (SystemInfo.isWindows) "C:/foo/bar" else "/foo/bar"
     assertThat(saveConfigResolver.generalizeSaveLocation(absPath)).isEqualTo(absPath)
+  }
+
+  @Test
+  fun testConvertFilenameTemplateFromOldFormat() {
+    assertThat(SaveConfigurationResolver.convertFilenameTemplateFromOldFormat("Screenshot_%Y%y%M%D_%H%m%S_%d%3d%p"))
+        .isEqualTo("Screenshot_<yyyy><yy><MM><dd>_<HH><mm><ss>_<#><###><project>")
   }
 
   private fun String.toPlatformPath(): String =
