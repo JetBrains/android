@@ -717,37 +717,6 @@ java_test(
 )
 
 java_test(
-    name = "CreateCppKotlinProjectTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "BuildCppKotlinTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/CppKotlin/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.BuildCppKotlinTest"],
-    tags = COMMON_TAGS + [
-        "no_crostini",
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "ImportTestHistoryTest",
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
@@ -943,21 +912,6 @@ java_test(
 )
 
 java_test(
-    name = "CMakeListsTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/debugger/CMakeListsHelloJni/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CMakeListsTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "NewComposeProjectTest",
     size = "large",
     data = COMMON_DATA,
@@ -1031,34 +985,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.RemovePreviewTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "QuickFixForJniTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/debugger/CLionNdkHelloJni/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.QuickFixForJniTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "WarningsCheckInNewCPPProjectTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.WarningsCheckInNewCPPProjectTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
@@ -1358,63 +1284,6 @@ java_test(
 )
 
 java_test(
-    name = "AddCppToModuleActionTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.AddCppToModuleActionTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ShowFilesUnknownToCMakeActionTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShowFilesUnknownToCMakeActionTest"],
-    tags = COMMON_TAGS + [
-        "no_crostini",
-        "noci:studio-win",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CLionIntegrationTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/debugger/CLionNdkHelloJni/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CLionIntegrationTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ShortcutNavigationTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/debugger/NdkHelloJni/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShortcutNavigationTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "LintCheckWithKotlinTest",
     size = "large",
     data = COMMON_DATA + [
@@ -1423,18 +1292,6 @@ java_test(
         "testData/KotlinInstrumentation/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.LintCheckWithKotlinTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NdkSxsTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.NdkSxsTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
