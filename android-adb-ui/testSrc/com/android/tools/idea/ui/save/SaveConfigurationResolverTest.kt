@@ -28,6 +28,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -78,6 +79,14 @@ class SaveConfigurationResolverTest {
     assertThat(saveConfigResolver.generalizeSaveLocation("foo/bar")).isEqualTo("$USER_HOME_MACRO/foo/bar")
     val absPath = if (SystemInfo.isWindows) "C:/foo/bar" else "/foo/bar"
     assertThat(saveConfigResolver.generalizeSaveLocation(absPath)).isEqualTo(absPath)
+  }
+
+  @Test
+  fun testExpandSaveLocation() {
+    assertThat(saveConfigResolver.expandSaveLocation("$PROJECT_DIR_MACRO/screenshots"))
+        .isEqualTo(projectDir.resolve("screenshots").toString())
+    assertThat(saveConfigResolver.expandSaveLocation("$USER_HOME_MACRO/foo/bar"))
+        .isEqualTo(Paths.get(userHome).resolve("foo/bar").toString())
   }
 
   @Test

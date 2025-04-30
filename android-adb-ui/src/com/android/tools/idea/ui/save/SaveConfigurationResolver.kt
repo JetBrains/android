@@ -60,11 +60,11 @@ internal class SaveConfigurationResolver(private val project: Project) {
     val projectDir = project.guessProjectDir()?.toNioPath()
     return when {
       projectDir != null && dir.startsWith(projectDir) ->
-          dir.toString().replaceRange(0, projectDir.toString().length, PROJECT_DIR_MACRO).replace(File.separatorChar, '/')
+          dir.toString().replaceRange(0, projectDir.toString().length, PROJECT_DIR_MACRO)
       dir.startsWith(Paths.get(userHome)) ->
-          dir.toString().replaceRange(0, userHome.length, USER_HOME_MACRO).replace(File.separatorChar, '/')
-      else -> saveLocation.replace(File.separatorChar, '/')
-    }
+          dir.toString().replaceRange(0, userHome.length, USER_HOME_MACRO)
+      else -> saveLocation
+    }.replace(File.separatorChar, '/')
   }
 
   fun expandSaveLocation(saveLocation: String): String {
@@ -75,7 +75,7 @@ internal class SaveConfigurationResolver(private val project: Project) {
           "$userHome/Desktop"
       saveLocation.startsWithFollowedBySeparator(USER_HOME_MACRO) -> "$userHome/${dir.substringAfter('/', "")}"
       else -> saveLocation
-    }
+    }.replace('/', File.separatorChar)
   }
 
   companion object {

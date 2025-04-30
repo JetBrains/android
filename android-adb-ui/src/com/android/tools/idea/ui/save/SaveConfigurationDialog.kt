@@ -58,13 +58,13 @@ internal class SaveConfigurationDialog(
 ) {
 
   val saveLocation: String
-    get() = saveConfigResolver.generalizeSaveLocation(saveLocationInternal.trim())
+    get() = saveConfigResolver.generalizeSaveLocation(expandedSaveLocation.trim())
   val filenameTemplate: String
     get() = normalizeFilename(filenameTemplateInternal).replace(File.separatorChar, '/')
   var postSaveAction: PostSaveAction = postSaveAction
     private set
   private val saveConfigResolver = project.service<SaveConfigurationResolver>()
-  private var saveLocationInternal: String = saveConfigResolver.expandSaveLocation(saveLocation).replace('/', File.separatorChar)
+  private var expandedSaveLocation: String = saveConfigResolver.expandSaveLocation(saveLocation)
   private var filenameTemplateInternal: String = filenameTemplate.replace('/', File.separatorChar)
   private lateinit var preview: JEditorPane
   private lateinit var saveLocationField: TextAccessor
@@ -83,7 +83,7 @@ internal class SaveConfigurationDialog(
         textFieldWithBrowseButton(fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
           .also { it.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, false) })
           .columns(COLUMNS_LARGE)
-          .bindText(::saveLocationInternal)
+          .bindText(::expandedSaveLocation)
           .validationOnInput(validation)
           .onChanged { preview.text = generatePreview() }
           .applyToComponent { saveLocationField = this }
