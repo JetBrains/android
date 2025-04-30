@@ -149,9 +149,10 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     final var buildSystem = projectViewFilePath.endsWith(".bazelproject") ? BuildSystemName.Bazel : BuildSystemName.Blaze;
 
     String workspaceRoot = workspaceLocation.get();
+    final var legacySyncShardCount = loadedImportSettings.map(BlazeImportSettings::getLegacySyncShardCount).orElse(0);
     final var importSettings =
       new BlazeImportSettings(workspaceRoot, projectName, projectBasePath, locationHash, projectViewFilePath.toString(),
-                              buildSystem, projectType);
+                              buildSystem, projectType, legacySyncShardCount);
 
     if (querySyncConversionUtility.canConvert(projectViewFilePath)) {
       importSettings.setProjectType(BlazeImportSettings.ProjectType.QUERY_SYNC);
