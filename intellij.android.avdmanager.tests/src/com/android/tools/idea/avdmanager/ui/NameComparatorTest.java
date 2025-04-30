@@ -66,7 +66,7 @@ public final class NameComparatorTest {
                                   mockDevice("Pixel"));
 
     var actualDevices = shuffle(expectedDevices);
-    var comparator = new NameComparator(() -> true);
+    var comparator = new NameComparator();
 
     // Act
     actualDevices.sort(comparator);

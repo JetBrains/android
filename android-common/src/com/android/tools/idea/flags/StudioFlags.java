@@ -1757,21 +1757,6 @@ public final class StudioFlags {
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
 
-  public static final Flag<Boolean> RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "resizable.experimental.tweaks.enabled",
-    "Enable the UI tweaks for the Resizable (Experimental) device definition",
-    "Enable the UI tweaks for the Resizable (Experimental) device definition",
-    enabledUpTo(CANARY));
-
-  public static final Flag<Boolean> DEVICE_CATALOG_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "device.catalog.enabled",
-    "Enable the Device Catalog for virtual device creation",
-    "Enable new UI for creating AVDs",
-    true
-  );
-
   public static final Flag<Boolean> POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "post.mvp.virtual.device.dialog.features.enabled",
