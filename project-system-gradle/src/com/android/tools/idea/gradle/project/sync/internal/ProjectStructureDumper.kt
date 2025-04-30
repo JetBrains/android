@@ -175,7 +175,9 @@ fun ProjectDumper.dump(module: Module) {
       }
     }
 
-    dumpTasks{ arrayOf(module) }
+    if (!ignoreTasks) {
+      dumpTasks{ arrayOf(module) }
+    }
   }
 }
 

@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.aggregateAndThrowIfAny
 import com.android.tools.idea.testing.runCatchingAndRecord
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume
@@ -59,7 +60,7 @@ interface SyncedProjectTestDef : AgpIntegrationTestDefinition {
    * Note, this setup is intended for registering additional listeners etc. i.e. actions that do not have impact on the way projects are
    * opened and synced.
    */
-  fun setup() = Unit
+  fun setup(testRootDisposable: Disposable) = Unit
 
   /**
    * Verifies the structure of the [project] and records any failures to [expect].
@@ -134,7 +135,7 @@ abstract class SyncedProjectTestBase<TestProject: TemplateBasedTestProject>(
 
       aggregateAndThrowIfAny {
         tests.forEach {
-          runCatchingAndRecord { it.setup() }
+          runCatchingAndRecord { it.setup(projectRule.testRootDisposable) }
         }
 
         preparedProject.open(
