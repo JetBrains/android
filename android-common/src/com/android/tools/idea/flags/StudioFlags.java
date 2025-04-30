@@ -2447,23 +2447,13 @@ public final class StudioFlags {
     "Show issues related to deprecated libraries from SDK Index in Lint and PSD",
     true
   );
-  // endregion GOOGLE_PLAY_SDK_INDEX
+  // endregion GOOGLE_PLAY_SDK_INDEXx
 
   // region JOURNEYS_WITH_GEMINI
   private static final FlagGroup JOURNEYS_WITH_GEMINI = new FlagGroup(FLAGS, "journeys.with.gemini", "Journeys with Gemini");
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EDITOR = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.editor", "Enable Journeys with Gemini Editor",
-    "Use Journeys with Gemini Editor when editing journey files (.journey.xml extensions)",
-    enabledUpTo(DEV)
-  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EXECUTION = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.execution", "Enable Journeys with Gemini execution",
-    "Enable triggering Journeys with Gemini run configurations",
-    enabledUpTo(DEV)
-  );
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_TEMPLATE = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.template", "Enable Journeys with Gemini template",
-    "Enable creating Journeys with Gemini templates",
+    "Enable Journeys with Gemini related functionality to allow users to create, edit and execute Journeys.",
     enabledUpTo(DEV)
   );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
