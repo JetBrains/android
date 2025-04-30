@@ -31,6 +31,7 @@ class ProjectToolWindowSettings: PersistentStateComponent<ProjectToolWindowSetti
   This value is what the stored state is, but does not consider [PROJECT_VIEW_KEY], use [isProjectViewDefault] instead.
    */
   var defaultToProjectView = false
+  var showBuildFilesInModule = false
 
   companion object {
     @JvmStatic

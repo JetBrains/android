@@ -36,6 +36,10 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
   private var initialDefaultProjectView = defaultProjectView
   private var defaultProjectViewCheckBox: JBCheckBox? = null
 
+  private var showBuildFilesInModule = projectToolSettings.showBuildFilesInModule
+  private var initialShowBuildFilesInModule = showBuildFilesInModule
+  private var showBuildFilesCheckBox: JBCheckBox? = null
+
   override fun getId(): @NonNls String {
     return AndroidBundle.message("configurable.ProjectToolWindowConfigurable.id")
   }
@@ -54,6 +58,23 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
   }
 
   private fun createPanel() = panel {
+    if (StudioFlags.SHOW_BUILD_FILES_IN_MODULE_SETTINGS.get()) {
+      row {
+        showBuildFilesCheckBox = checkBox("[Android view] Display build files in module")
+          .bindSelected(
+            getter = { showBuildFilesInModule },
+            setter = { selected -> showBuildFilesInModule = selected },
+          )
+          .onChanged { showBuildFilesInModule = it.isSelected }
+          .component
+        showBuildFilesCheckBox?.isSelected = showBuildFilesInModule
+        showBuildFilesCheckBox?.isEnabled = true
+      }
+    }
+    else {
+      showBuildFilesCheckBox = null
+    }
+
     if (StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.get()) {
       row {
         val projectViewProperty = java.lang.Boolean.getBoolean(PROJECT_VIEW_KEY)
@@ -76,7 +97,7 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
   }
 
   override fun isModified(): Boolean {
-    return defaultProjectView != initialDefaultProjectView
+    return defaultProjectView != initialDefaultProjectView || showBuildFilesInModule != initialShowBuildFilesInModule
   }
 
   override fun apply() {
@@ -85,11 +106,19 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
         initialDefaultProjectView = defaultProjectView
         projectToolSettings.defaultToProjectView = defaultProjectView
       }
+
+      if (showBuildFilesCheckBox != null) {
+        initialShowBuildFilesInModule = showBuildFilesInModule
+        projectToolSettings.showBuildFilesInModule = showBuildFilesInModule
+      }
     }
   }
 
   override fun reset() {
     defaultProjectView = initialDefaultProjectView
     defaultProjectViewCheckBox?.isSelected = defaultProjectView
+
+    showBuildFilesInModule = initialShowBuildFilesInModule
+    showBuildFilesCheckBox?.isSelected = showBuildFilesInModule
   }
 }
