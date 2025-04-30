@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -42,3 +44,9 @@ internal fun Path.isValid(): Boolean {
   val names = (0 until nameCount).map { getName(it).pathString }
   return names.all { fileSystem.isValidName(it) && it.isNotBlank() }
 }
+
+internal fun Project.findModule(applicationId: String) =
+  getProjectSystem().findModulesWithApplicationId(applicationId).firstOrNull()
+
+internal fun Project.findHolderModule(applicationId: String) =
+  findModule(applicationId)?.getModuleSystem()?.getHolderModule()
