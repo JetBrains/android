@@ -485,7 +485,6 @@ class ComposePreviewRepresentation(
             }
             emptyUiCheckPanel.setHasErrors(count > 0)
             VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
-            surface.zoomController.zoomToFit()
             surface.repaint()
           }
         } else {
