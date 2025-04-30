@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.settings;
 
+import com.google.common.annotations.VisibleForTesting;
 import javax.annotation.Nullable;
 
 /** Project settings that are set at import time. */
@@ -48,18 +49,34 @@ public final class BlazeImportSettings {
   // default for backwards compatibility with existing projects
   private ProjectType projectType = ProjectType.ASPECT_SYNC;
 
+  // Stores the shard count calculated by Legacy Sync
+  private int legacySyncShardCount = 0;
+
   // Used by bean serialization
   @SuppressWarnings("unused")
-  BlazeImportSettings() {}
+  BlazeImportSettings() { }
+
+  @VisibleForTesting
+  public BlazeImportSettings(
+    String workspaceRoot,
+    String projectName,
+    String projectDataDirectory,
+    String locationHash,
+    String projectViewFile,
+    BuildSystemName buildSystemName,
+    ProjectType projectType) {
+    this(workspaceRoot, projectName, projectDataDirectory, locationHash, projectViewFile, buildSystemName, projectType, 0);
+  }
 
   public BlazeImportSettings(
-      String workspaceRoot,
-      String projectName,
-      String projectDataDirectory,
-      String locationHash,
-      String projectViewFile,
-      BuildSystemName buildSystemName,
-      ProjectType projectType) {
+    String workspaceRoot,
+    String projectName,
+    String projectDataDirectory,
+    String locationHash,
+    String projectViewFile,
+    BuildSystemName buildSystemName,
+    ProjectType projectType,
+    int legacySyncShardCount) {
     this.workspaceRoot = workspaceRoot;
     this.projectName = projectName;
     this.projectDataDirectory = projectDataDirectory;
@@ -67,6 +84,7 @@ public final class BlazeImportSettings {
     this.projectViewFile = projectViewFile;
     this.buildSystem = buildSystemName;
     this.projectType = projectType;
+    this.legacySyncShardCount = legacySyncShardCount;
   }
 
   @Deprecated
@@ -85,29 +103,41 @@ public final class BlazeImportSettings {
     return projectDataDirectory;
   }
 
-  /** Hash used to give the project a unique directory in the system directory. */
+  /**
+   * Hash used to give the project a unique directory in the system directory.
+   */
   @SuppressWarnings("unused")
   public String getLocationHash() {
     return locationHash;
   }
 
-  /** The user's local project view file */
+  /**
+   * The user's local project view file
+   */
   @SuppressWarnings("unused")
   public String getProjectViewFile() {
     return projectViewFile;
   }
 
-  /** The build system used for the project. */
+  /**
+   * The build system used for the project.
+   */
   @SuppressWarnings("unused")
   public BuildSystemName getBuildSystem() {
     return buildSystem;
   }
 
-  /** The type of this project. */
+  /**
+   * The type of this project.
+   */
   @Deprecated
   @SuppressWarnings("unused")
   public ProjectType getProjectType() {
     return projectType;
+  }
+
+  public int getLegacySyncShardCount() {
+    return legacySyncShardCount;
   }
 
   // Used by bean serialization
@@ -156,5 +186,9 @@ public final class BlazeImportSettings {
   @SuppressWarnings("unused")
   public void setProjectType(ProjectType projectType) {
     this.projectType = projectType;
+  }
+
+  public void setLegacySyncShardCount(int legacySyncShardCount) {
+    this.legacySyncShardCount = legacySyncShardCount;
   }
 }

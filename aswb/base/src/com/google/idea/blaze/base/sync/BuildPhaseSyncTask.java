@@ -204,6 +204,9 @@ public final class BuildPhaseSyncTask {
     }
     ShardedTargetList shardedTargets = shardedTargetsResult.shardedTargets;
 
+    if (syncParams.syncMode() == SyncMode.FULL) {
+      importSettings.setLegacySyncShardCount(shardedTargets.shardCount());
+    }
     boolean parallel;
     SyncStrategy strategy = buildSystem.getSyncStrategy(project);
     switch (strategy) {
