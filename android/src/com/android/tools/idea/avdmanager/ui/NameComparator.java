@@ -85,7 +85,7 @@ public final class NameComparator implements Comparator<Device> {
         case "Medium Tablet" -> MEDIUM_TABLET;
         case "Pixel XL", "Pixel" -> PIXEL_1;
         case "Pixel Fold" -> PIXEL_FOLD;
-        case "Resizable (Experimental)" -> resizableExperimentalTweaksEnabledGet.getAsBoolean() ? DEVICE : RESIZABLE_EXPERIMENTAL;
+        case "Resizable", "Resizable (Experimental)" -> resizableExperimentalTweaksEnabledGet.getAsBoolean() ? DEVICE : RESIZABLE_EXPERIMENTAL;
         default -> {
           var prefix = displayName.length() >= 7 ? displayName.substring(0, 7) : "";
           yield switch(prefix) {
