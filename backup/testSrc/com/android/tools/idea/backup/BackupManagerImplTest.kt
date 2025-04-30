@@ -136,7 +136,7 @@ internal class BackupManagerImplTest {
         emptyList(),
         RUN_CONFIG,
         notify = true,
-        isBackupEnabled = apps.associateWith { true },
+        apps.associateWith { true },
       )
     }) { dialogWrapper ->
       val dialog = dialogWrapper as BackupDialog

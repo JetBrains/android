@@ -22,16 +22,11 @@ import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Invalid
 import com.android.tools.idea.backup.BackupAppAction.BackupInfo.Valid
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.BACKUP_APP_ACTION
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /** Backups the state of an app to a file */
 internal class BackupAppAction(
@@ -58,34 +53,26 @@ internal class BackupAppAction(
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    project.coroutineScope.launch {
-      when (val backupInfo = e.getBackupInfo()) {
-        is Invalid -> backupInfo.showDialog(project)
-        is Valid -> doBackup(project, backupInfo)
-      }
+    when (val backupInfo = e.getBackupInfo()) {
+      is Invalid -> backupInfo.showDialog(project)
+      is Valid -> doBackup(project, backupInfo)
     }
   }
 
-  private suspend fun doBackup(project: Project, backupInfo: Valid) {
+  private fun doBackup(project: Project, backupInfo: Valid) {
     val backupManager = BackupManager.getInstance(project)
-    withContext(Dispatchers.EDT) {
-      backupManager.showBackupDialog(
-        backupInfo.serialNumber,
-        backupInfo.applicationId,
-        BACKUP_APP_ACTION,
-      )
-    }
+    backupManager.showBackupDialog(
+      backupInfo.serialNumber,
+      backupInfo.applicationId,
+      BACKUP_APP_ACTION,
+    )
   }
 
-  private suspend fun AnActionEvent.getBackupInfo(): BackupInfo {
+  private fun AnActionEvent.getBackupInfo(): BackupInfo {
     val project = project ?: throw IllegalStateException("Missing project")
-    val backupManager = BackupManager.getInstance(project)
     val serialNumber =
       actionHelper.getDeployTargetSerial(project)
         ?: return Invalid(message("error.device.not.running"))
-    if (!backupManager.isDeviceSupported(serialNumber)) {
-      return Invalid(message("error.device.not.supported"))
-    }
     val applicationId =
       actionHelper.getApplicationId(project)
         ?: return Invalid(message("error.incompatible.run.config"))
@@ -94,8 +81,6 @@ internal class BackupAppAction(
     return when {
       targetCount == 0 -> Invalid(message("error.device.not.running"))
       targetCount > 1 -> Invalid(message("error.multiple.devices"))
-      !backupManager.isInstalled(serialNumber, applicationId) ->
-        Invalid(message("error.application.not.installed"))
       else -> Valid(applicationId, serialNumber)
     }
   }
@@ -106,7 +91,7 @@ internal class BackupAppAction(
     class Invalid(val reason: String) : BackupInfo()
   }
 
-  private suspend fun Invalid.showDialog(project: Project) {
+  private fun Invalid.showDialog(project: Project) {
     dialogFactory.showDialog(project, message("backup.app.action.error.title"), reason)
   }
 }

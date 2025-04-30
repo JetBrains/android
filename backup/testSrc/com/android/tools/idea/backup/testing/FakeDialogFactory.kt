@@ -25,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 internal class FakeDialogFactory : DialogFactory {
   val dialogs = mutableListOf<DialogData>()
 
-  override suspend fun showDialog(
+  override fun showDialog(
     project: Project,
     title: String,
     message: String,

@@ -33,7 +33,7 @@ class ActionHelperImpl : ActionHelper {
   override fun getDeployTargetCount(project: Project) =
     getDeployTarget(project).getAndroidDevices(project).size
 
-  override suspend fun getDeployTargetSerial(project: Project): String? {
+  override fun getDeployTargetSerial(project: Project): String? {
     val deployTarget = getDeployTarget(project)
     val targets = deployTarget.getAndroidDevices(project)
     if (targets.size != 1) {

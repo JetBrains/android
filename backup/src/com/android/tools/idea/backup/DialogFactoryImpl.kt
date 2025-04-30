@@ -17,20 +17,18 @@ package com.android.tools.idea.backup
 
 import com.android.tools.idea.backup.DialogFactory.DialogButton
 import com.intellij.CommonBundle
-import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 internal class DialogFactoryImpl : DialogFactory {
-  override suspend fun showDialog(
+  override fun showDialog(
     project: Project,
     title: String,
     message: String,
     buttons: List<DialogButton>,
   ) {
-    withContext(Dispatchers.EDT) {
+    runInEdt {
       val buttonTexts = buttons.map { it.text }
       val actionMap = buttons.associateBy { it.text }
       @Suppress("UnstableApiUsage")

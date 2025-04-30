@@ -128,21 +128,6 @@ internal class BackupAppActionTest {
   }
 
   @Test
-  fun actionPerformed_deviceNotSupported() {
-    val actionHelper = FakeActionHelper("com.app", 0, "serial")
-    fakeBackupManager.isDeviceSupported = false
-    val action = BackupAppAction(actionHelper, fakeDialogFactory)
-    val event = testEvent(project, "serial")
-
-    action.actionPerformed(event)
-
-    fakeDialogFactory.waitForDialogs(1)
-    assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not supported"))
-  }
-
-  @Test
   fun actionPerformed_multipleTargets() {
     val actionHelper = FakeActionHelper("com.app", 2, "serial")
     val action = BackupAppAction(actionHelper, fakeDialogFactory)

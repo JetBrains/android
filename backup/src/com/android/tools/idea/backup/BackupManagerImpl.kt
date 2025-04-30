@@ -68,6 +68,7 @@ import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
@@ -96,19 +97,63 @@ internal constructor(
     DialogFactoryImpl(),
   )
 
-  override suspend fun showBackupDialog(
+  override fun showBackupDialog(
     serialNumber: String,
-    applicationId: String,
+    applicationId: String?,
     source: Source,
     notify: Boolean,
   ) {
-    val debuggableApps = getDebuggableApps(serialNumber)
-    val isBackupEnabled =
-      withContext(Dispatchers.Default) {
-        debuggableApps.associateWith { backupService.isBackupEnabled(serialNumber, it) }
+    runWithModalProgressBlocking<Unit>(
+      ModalTaskOwner.project(project),
+      "Collecting Data",
+      cancellable(),
+    ) {
+      reportSequentialProgress { reporter ->
+        var steps = if (applicationId == null) 4 else 3
+        var step = 0
+        withContext(Default) {
+          reporter.onStep(Step(step, steps, "Checking device..."))
+          if (!isDeviceSupported(serialNumber)) {
+            project.showDialog(message("error.device.not.supported"))
+            return@withContext
+          }
+
+          val appId =
+            when (applicationId) {
+              null -> {
+                reporter.onStep(Step(++step, steps, "Detecting foreground app..."))
+                backupService.getForegroundApplicationId(serialNumber)
+              }
+              else -> applicationId
+            }
+
+          reporter.onStep(Step(++step, steps, "Detecting debuggable apps..."))
+          val debuggableApps = backupService.getDebuggableApps(serialNumber)
+          if (debuggableApps.isEmpty()) {
+            project.showDialog(message("error.applications.not.installed"))
+            return@withContext
+          }
+          steps += debuggableApps.size - 1
+          val appIdToBackupEnabledMap =
+            withContext(Default) {
+              debuggableApps.withIndex().associate {
+                reporter.onStep(Step(++step, steps, "Checking ${it.value}"))
+                it.value to backupService.isBackupEnabled(serialNumber, it.value)
+              }
+            }
+
+          withContext(Dispatchers.EDT) {
+            showBackupDialog(
+              serialNumber,
+              appId,
+              debuggableApps,
+              source,
+              notify,
+              appIdToBackupEnabledMap,
+            )
+          }
+        }
       }
-    withContext(Dispatchers.EDT) {
-      showBackupDialog(serialNumber, applicationId, debuggableApps, source, notify, isBackupEnabled)
     }
   }
 
@@ -124,9 +169,9 @@ internal constructor(
     debuggableApps: List<String>,
     source: Source,
     notify: Boolean,
-    isBackupEnabled: Map<String, Boolean>,
+    appIdToBackupEnabledMap: Map<String, Boolean>,
   ) {
-    val dialog = BackupDialog(project, applicationId, debuggableApps, isBackupEnabled)
+    val dialog = BackupDialog(project, applicationId, debuggableApps, appIdToBackupEnabledMap)
     val ok = dialog.showAndGet()
     if (ok) {
       doBackup(serialNumber, dialog.applicationId, dialog.type, dialog.backupPath, source, notify)
@@ -364,6 +409,10 @@ internal constructor(
     override fun actionPerformed(e: AnActionEvent) {
       openBackupDisabledLearnMoreLink()
     }
+  }
+
+  private fun Project.showDialog(message: String) {
+    dialogFactory.showDialog(this@showDialog, message("backup.app.action.error.title"), message)
   }
 }
 
