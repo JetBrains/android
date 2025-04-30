@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.util.concurrent.Futures.immediateFuture;
+import static com.google.idea.blaze.base.scope.scopes.SyncActionScopes.createAndSubmitRunTask;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
@@ -24,23 +25,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
-import com.google.idea.blaze.base.command.BlazeInvocationContext.ContextType;
-import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.scope.BlazeScope;
-import com.google.idea.blaze.base.scope.Scope;
-import com.google.idea.blaze.base.scope.scopes.IdeaLogScope;
-import com.google.idea.blaze.base.scope.scopes.ProblemsViewScope;
-import com.google.idea.blaze.base.scope.scopes.ProgressIndicatorScope;
-import com.google.idea.blaze.base.scope.scopes.ToolWindowScope;
-import com.google.idea.blaze.base.settings.BlazeUserSettings;
-import com.google.idea.blaze.base.settings.BlazeUserSettings.FocusBehavior;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
-import com.google.idea.blaze.base.toolwindow.Task;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
@@ -52,7 +40,6 @@ import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.TargetsToBuild;
-import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -104,9 +91,6 @@ public class QuerySyncManager implements Disposable {
   private final QuerySyncAsyncFileListener fileListener;
 
   private final CacheCleaner cacheCleaner;
-
-  private static final BoolExperiment showWindowOnAutomaticSyncErrors =
-      new BoolExperiment("querysync.autosync.show.console.on.error", true);
 
   /** An enum represent the origin of a task performed by the {@link QuerySyncManager} */
   public enum TaskOrigin {
@@ -365,61 +349,15 @@ public class QuerySyncManager implements Disposable {
         },
         MoreExecutors.directExecutor());
     try {
+      querySyncActionStatsScope.getBuilder().setTaskOrigin(taskOrigin);
       ListenableFuture<Boolean> innerResultFuture =
-          createAndSubmitRunTask(title, subTitle, querySyncActionStatsScope, operation, taskOrigin);
+          createAndSubmitRunTask(project, title, subTitle, Optional.of(querySyncActionStatsScope), operation, taskOrigin);
       result.setFuture(innerResultFuture);
     } catch (Throwable t) {
       result.setException(t);
       throw t;
     }
     return result;
-  }
-
-  private ListenableFuture<Boolean> createAndSubmitRunTask(
-      String title,
-      String subTitle,
-      QuerySyncActionStatsScope querySyncActionStatsScope,
-      ThrowingScopedOperation operation,
-      TaskOrigin taskOrigin) {
-    querySyncActionStatsScope.getBuilder().setTaskOrigin(taskOrigin);
-    BlazeUserSettings userSettings = BlazeUserSettings.getInstance();
-    return ProgressiveTaskWithProgressIndicator.builder(project, title)
-        .submitTaskWithResult(
-            indicator ->
-                Scope.root(
-                    context -> {
-                      Task task = new Task(project, subTitle, Task.Type.SYNC);
-                      BlazeScope scope =
-                          new ToolWindowScope.Builder(project, task)
-                              .setProgressIndicator(indicator)
-                              .showSummaryOutput()
-                              .setPopupBehavior(
-                                  taskOrigin == TaskOrigin.AUTOMATIC
-                                      ? showWindowOnAutomaticSyncErrors.getValue()
-                                          ? FocusBehavior.ON_ERROR
-                                          : FocusBehavior.NEVER
-                                      : userSettings.getShowBlazeConsoleOnSync())
-                              .setIssueParsers(
-                                  BlazeIssueParser.defaultIssueParsers(
-                                      project,
-                                      WorkspaceRoot.fromProject(project),
-                                      ContextType.Sync))
-                              .build();
-                      context
-                          .push(new ProgressIndicatorScope(indicator))
-                          .push(scope)
-                          .push(querySyncActionStatsScope)
-                          .push(
-                              new ProblemsViewScope(
-                                  project, userSettings.getShowProblemsViewOnSync()))
-                          .push(new IdeaLogScope());
-                      try {
-                        operation.execute(context);
-                      } catch (Exception e) {
-                        context.handleException(title + " failed", e);
-                      }
-                      return !context.hasErrors();
-                    }));
   }
 
   public Set<TargetsToBuild> getTargetsToBuildByPaths(Collection<Path> workspaceRelativePaths) {
