@@ -300,6 +300,21 @@ class BlockUnifiedTestPlatformProcessor: AbstractBlockPropertyUnlessNoOpProcesso
 }
 
 /**
+ * Processor that blocks AGP upgrades if android.r8.optimizedShrinking is used after AGP 10.0.0-alpha01
+ */
+class BlockR8OptimizedShrinkingProcessor: AbstractBlockPropertyUnlessNoOpProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+
+  override val featureName = "R8 Optimized Shrinking"
+  override val propertyKey = "android.r8.optimizedShrinking"
+  override val propertyRemovedVersion = AgpVersion.parse("10.0.0-alpha01")
+  override val componentKind = UpgradeAssistantComponentKind.BLOCK_R8_OPTIMIZED_SHRINKING_PRESENT
+  override val noOpValue = true
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.unifiedTestPlatformBlockProperty"
+}
+
+/**
  * Processor that blocks AGP upgrades if android.r8.strictFullModeForKeepRules is used after AGP 10.0.0-alpha01
  */
 class BlockR8StrictFullModeForKeepRulesProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
