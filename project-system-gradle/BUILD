@@ -321,6 +321,24 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
+        "runs_indexing_resync_project": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.runsGradleOpenProjectTest.PhasedSyncResyncTests",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
+            "shard_count": 3,
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
         "runs_gradle_sync_integration": {
             "test_filter": ".runsGradleSyncIntegration",
             "tags": [
