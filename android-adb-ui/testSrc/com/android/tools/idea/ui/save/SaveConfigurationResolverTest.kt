@@ -44,7 +44,7 @@ class SaveConfigurationResolverTest {
     get() = project.guessProjectDir()!!.toNioPath()
   private val normalizedProjectDir
     get() = projectDir.toString().replace(File.separatorChar, '/')
-  private val timestamp = LocalDateTime.of(2025, 1, 21, 10, 22, 14).atZone(ZoneId.systemDefault()).toInstant()
+  private val timestamp = LocalDateTime.of(2025, 1, 21, 10, 22, 14, 79_000_000).atZone(ZoneId.systemDefault()).toInstant()
   private lateinit var savedUserHome: String
   private lateinit var userHome: String
 
@@ -65,8 +65,8 @@ class SaveConfigurationResolverTest {
   fun testExpandFilenamePattern() {
     assertThat(saveConfigResolver.expandFilenamePattern(PROJECT_DIR_MACRO, "screenshots/<yyyy><MM><dd>_<HH><mm><ss>", "png", timestamp, 5))
         .isEqualTo("$normalizedProjectDir/screenshots/20250121_102214.png".toPlatformPath())
-    assertThat(saveConfigResolver.expandFilenamePattern("Pictures", "<project>_<###>", "png", timestamp, 5))
-        .isEqualTo("$userHome/Pictures/${project.name}_005.png".toPlatformPath())
+    assertThat(saveConfigResolver.expandFilenamePattern("Pictures", "<project> <zzz> <###>", "png", timestamp, 5))
+        .isEqualTo("$userHome/Pictures/${project.name} 079 005.png".toPlatformPath())
     assertThat(saveConfigResolver.expandFilenamePattern("$USER_HOME_MACRO/Screenshots", "<#####>", "png", timestamp, 1))
         .isEqualTo("$userHome/Screenshots/00001.png".toPlatformPath())
   }
@@ -87,5 +87,5 @@ class SaveConfigurationResolverTest {
   }
 
   private fun String.toPlatformPath(): String =
-      this.replace('/', File.separatorChar)
+      replace('/', File.separatorChar)
 }

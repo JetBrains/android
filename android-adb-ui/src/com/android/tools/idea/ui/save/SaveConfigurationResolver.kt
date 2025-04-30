@@ -46,6 +46,7 @@ internal class SaveConfigurationResolver(private val project: Project) {
           .replace("<HH>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.HOUR_OF_DAY)))
           .replace("<mm>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.MINUTE_OF_HOUR)))
           .replace("<ss>", String.format(Locale.ROOT, "%02d", time.get(ChronoField.SECOND_OF_MINUTE)))
+          .replace("<zzz>", String.format(Locale.ROOT, "%03d", time.get(ChronoField.MILLI_OF_SECOND)))
           .replace(Regex("<#+>")) { match -> String.format(Locale.ROOT, "%0${match.range.count() - 2}d", sequentialNumber) }
           .replace("<project>", project.name)
       return dir.resolve("$filename.$fileExtension").normalize().toString().replace('/', File.separatorChar)
