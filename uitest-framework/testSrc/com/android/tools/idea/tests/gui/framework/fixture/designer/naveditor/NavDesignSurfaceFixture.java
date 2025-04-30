@@ -92,12 +92,12 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
 
   @NotNull
   public AddDestinationMenuFixture openAddDestinationMenu() {
-    return new AddDestinationMenuFixture(robot(), openMenu(AddDestinationMenu.class));
+    return AddDestinationMenuFixture.create(robot(), openMenu(AddDestinationMenu.class));
   }
 
   @NotNull
   public AddDestinationMenuFixture getAddDestinationMenu() {
-    return new AddDestinationMenuFixture(robot(), getMenu(AddDestinationMenu.class));
+    return AddDestinationMenuFixture.create(robot(), getMenu(AddDestinationMenu.class));
   }
 
   @Nullable
