@@ -177,9 +177,9 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
           } else {
             newEntities.modifyModuleEntity(existingEntity) {
               this.entitySource = newModuleEntity.entitySource
-              this.dependencies = newModuleEntity.dependencies
               this.contentRoots = newModuleEntity.contentRoots
               this.exModuleOptions = newModuleEntity.exModuleOptions
+              // Not modifying existing dependencies here because we don't have that info here yet.
             }
           }
         }

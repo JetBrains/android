@@ -55,8 +55,7 @@ fun ModuleDumpWithType.filterOutKnownResyncIssues() = copy(
    entries = entries.filter { line ->
       PROPERTIES_WITH_KNOWN_RESYNC_ISSUES.none { line.contains("/$it") }
     }
-  ) // TODO(b/384022658): Source set dependencies are currently reset every time to be later set up by full sync again.
-  .filterOutDependencies()
+  )
 
 
 
