@@ -2523,6 +2523,13 @@ public final class StudioFlags {
       "Show UI for default project view in settings",
       "Show UI for default project view in settings",
       enabledUpTo(CANARY));
+  public static final Flag<Boolean> SHOW_BUILD_FILES_IN_MODULE_SETTINGS =
+    new BooleanFlag(
+      PROJECT_TOOL_WINDOW,
+      "gradle.files.in.module",
+      "Show UI for having build files per module",
+      "When enabled, the settings menu will show a checkbox to change the behavior of the Android view to display gradle files under each module",
+      enabledUpTo(CANARY));
   // endregion PROJECT_TOOL_WINDOW
 
   private StudioFlags() { }
