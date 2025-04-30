@@ -39,7 +39,7 @@ iml_module(
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",
     ],
-    test_shard_count = 2,
+    test_shard_count = 3,
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
