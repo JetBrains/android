@@ -22,6 +22,7 @@ import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.findAndroidModule
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.runConfigurationType
@@ -75,7 +76,8 @@ open class ComposePreviewRunConfigurationProducer :
       configuration.composableMethodFqn = ktNamedFunction.composePreviewFunctionFqn()
       // We don't want to be able to create a run configuration from individual source set modules
       // so we use their container module instead
-      configuration.setModule(module.getModuleSystem().getHolderModule())
+      val androidModule = module.findAndroidModule() ?: module
+      configuration.setModule(androidModule.getModuleSystem().getHolderModule())
       updateConfigurationTriggerToGutterIfNeeded(configuration, context)
 
       ktNamedFunction.valueParameters.forEach { parameter ->
