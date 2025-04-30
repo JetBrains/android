@@ -23,27 +23,6 @@ data class JourneyActionArtifacts(
   val screenshotImage: String?,
 ) {
   companion object {
-    fun tryParseFromTestOutput(output: String): JourneyActionArtifacts? {
-      if (!output.startsWith("[additionalTestArtifacts]Journeys")) {
-        return null
-      }
-
-      // TODO: Implement a more robust way of encoding the artifact data (perhaps proto?)
-      val regex =
-        Regex(
-          "^\\[additionalTestArtifacts]Journeys.screenshot=(.*) Journeys.action=(.*) Journeys.modelReasoning=(.*)$"
-        )
-      val match = regex.find(output)
-      if (match == null || match.groups.size < 3) {
-        return null
-      }
-
-      val screenshotPath = match.groupValues.getOrNull(1) ?: return null
-      val action = match.groupValues.getOrNull(2) ?: return null
-      val reason = match.groupValues.getOrNull(3) ?: return null
-      return JourneyActionArtifacts(action, reason, screenshotPath)
-    }
-
     /**
      * Extracts journey-related artifacts from a map of additional test artifacts.
      *
