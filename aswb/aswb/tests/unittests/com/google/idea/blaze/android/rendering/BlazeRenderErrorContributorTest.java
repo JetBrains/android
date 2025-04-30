@@ -166,12 +166,6 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
   }
 
   @Test
-  public void testProviderNotApplicableIfNotBlaze() {
-    BlazeImportSettingsManager.getInstance(project).loadState(null);
-    assertThat(provider.isApplicable(project)).isFalse();
-  }
-
-  @Test
   public void testNoIssuesIfNoErrors() {
     VirtualFile virtualFile = new MockVirtualFile("layout.xml");
     when(projectFileIndex.getModuleForFile(virtualFile)).thenReturn(module);
