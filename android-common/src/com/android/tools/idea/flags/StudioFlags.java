@@ -37,7 +37,6 @@ import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -1616,10 +1615,10 @@ public final class StudioFlags {
     "Enable an AI-powered quick fix action for UI Check issues.",
     enabledUpTo(DEV));
 
-  public static final Flag<Boolean> COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT = new BooleanFlag(
-    COMPOSE, "send.preview.to.studio.bot", "Enable action to send Compose Previews to Studio Bot",
-    "Enables a context-menu action to send Compose Previews to Studio Bot as context.",
-    enabledUpTo(DEV));
+  public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI = new BooleanFlag(
+    COMPOSE, "transform.ui.with.ai", "Enable action to transform UI with Gemini",
+    "Enables a context-menu action to transform UI with Gemini.",
+    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
