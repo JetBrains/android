@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless.v2.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,9 +27,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -36,18 +39,23 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import com.android.adblib.AdbFeatures.TRACK_MDNS_SERVICE
 import com.android.adblib.MdnsTlsService
 import com.android.adblib.MdnsTrackServiceInfo
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.compose.StudioComposePanel
+import com.android.tools.idea.adb.wireless.AdbServiceWrapper
+import com.android.tools.idea.adb.wireless.AdbServiceWrapperAdbLibImpl
+import com.android.tools.idea.adb.wireless.MdnsSupportState
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
+import com.android.tools.idea.adb.wireless.RandomProvider
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.Urls
-import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.adb.wireless.WiFiPairingService
+import com.android.tools.idea.adb.wireless.WiFiPairingServiceImpl
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.RowFilter
 import com.android.tools.idea.adddevicedialog.SearchBar
@@ -55,19 +63,24 @@ import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableTextColumn
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.ui.SimpleDialog
 import com.android.tools.idea.ui.SimpleDialogOptions
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUiKind
+import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBDimension
 import icons.StudioIconsCompose
 import javax.swing.JComponent
+import kotlin.collections.forEach
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
@@ -77,39 +90,95 @@ import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 class WifiAvailableDevicesDialog(project: Project) : Disposable {
 
   private val dialog: SimpleDialog
-
   private val model = WifiPairableDeviceModel()
 
-  private val scope = createCoroutineScope()
-
-  private val rootView: JComponent = StudioComposePanel { WifiPairableDevices(model.devices) }
+  private val randomProvider = RandomProvider()
+  private val adbService: AdbServiceWrapper = AdbServiceWrapperAdbLibImpl(project)
+  private val wifiPairingService: WiFiPairingService =
+    WiFiPairingServiceImpl(randomProvider, adbService)
 
   private val panelPreferredSize: JBDimension
     get() = JBDimension(700, 600)
 
-  init {
-    scope.launch {
-      val hostServices = AdbLibService.Companion.getSession(project).hostServices
-      if (!hostServices.hostFeatures().contains(TRACK_MDNS_SERVICE)) {
-        // TODO(b/412571872) check mDNS enabled
-        return@launch
+  private val rootView: JComponent = StudioComposePanel {
+    val state by
+      produceState<MdnsSupportState?>(null) {
+        value = wifiPairingService.checkMdnsSupport()
+        if (value == MdnsSupportState.Supported) {
+          startTrackingMdnsServices()
+        }
       }
-      hostServices
-        .trackMdnsServices()
-        .map { it.tlsMdnsServices.toSet() }
-        .trackSetChanges()
-        .collect {
-          when (it) {
-            is SetChange.Remove -> {
-              model.removeMdnsService(it.value.service.serviceInstanceName.instance)
-            }
-            is SetChange.Add -> {
-              model.addMdnsService(it.value)
-            }
+
+    when (state) {
+      null -> { // Checking mDNS state
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.padding(8.dp))
+            Text("Preparing Wi-Fi pairing...")
           }
         }
+      }
+      MdnsSupportState.Supported -> {
+        WifiPairableDevices(model.devices)
+      }
+      MdnsSupportState.NotSupported ->
+        ErrorStateDisplay(
+          title = "Wi-Fi Pairing Not Supported",
+          messages =
+            listOf(
+              "This system does not meet the requirements to support Wi-Fi pairing.",
+              "Please update to the latest version of \"platform-tools\" using the SDK manager.",
+            ),
+          links = listOf(Urls.openSdkManager to "Open SDK Manager", Urls.learnMore to "Learn more"),
+        )
+      MdnsSupportState.AdbVersionTooLow ->
+        ErrorStateDisplay(
+          title = "ADB Version Too Low",
+          messages =
+            listOf(
+              "The currently installed version of the \"Android Debug Bridge\" (adb) does not support Wi-Fi pairing.",
+              "Please update to the latest version of \"platform-tools\" using the SDK manager.",
+            ),
+          links = listOf(Urls.openSdkManager to "Open SDK Manager", Urls.learnMore to "Learn more"),
+        )
+      MdnsSupportState.AdbInvocationError ->
+        ErrorStateDisplay(
+          title = "ADB Invocation Error",
+          messages = listOf("There was an unexpected error during Wi-Fi pairing initialization."),
+          links = listOf(Urls.learnMore to "Learn more"),
+        )
+      MdnsSupportState.AdbMacEnvironmentBroken ->
+        ErrorStateDisplay(
+          title = "macOS mDNS Environment Issue",
+          messages =
+            listOf(
+              "Please update to the latest version of \"platform-tools\" (minimum 35.0.2).",
+              "Make sure mDNS backend 'default' is selected in ADB Settings.",
+            ),
+          links =
+            listOf(
+              Urls.openSdkManager to "Open SDK Manager",
+              Urls.openAdbSettings to "Open ADB Settings",
+              Urls.learnMore to "Learn more",
+            ),
+        )
+      MdnsSupportState.AdbDisabled ->
+        ErrorStateDisplay(
+          title = "mDNS Disabled in ADB",
+          messages =
+            listOf(
+              "mDNS backend is disabled.",
+              "1. Make sure it is enabled in ADB Settings.",
+              "2. Make sure you are not using a manually managed ADB server.",
+            ),
+          links =
+            listOf(Urls.openAdbSettings to "Open ADB Settings", Urls.learnMore to "Learn more"),
+        )
     }
+  }
 
+  init {
     val options =
       SimpleDialogOptions(
         project,
@@ -126,12 +195,68 @@ class WifiAvailableDevicesDialog(project: Project) : Disposable {
     dialog.init()
   }
 
+  private suspend fun startTrackingMdnsServices() {
+    wifiPairingService
+      .trackMdnsServices()
+      .map { it.tlsMdnsServices.toSet() }
+      .trackSetChanges()
+      .collect {
+        when (it) {
+          is SetChange.Remove -> {
+            model.removeMdnsService(it.value.service.serviceInstanceName.instance)
+          }
+          is SetChange.Add -> {
+            model.addMdnsService(it.value)
+          }
+        }
+      }
+  }
+
   fun createCenterPanel(): JComponent {
     rootView.preferredSize = panelPreferredSize
     if (SystemInfo.isMac) {
       rootView.minimumSize = panelPreferredSize
     }
     return rootView
+  }
+
+  @Composable
+  private fun ErrorStateDisplay(
+    title: String,
+    messages: List<String>,
+    links: List<Pair<String, String>>,
+  ) {
+    Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+      Text(
+        buildAnnotatedString {
+          pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+          append(title)
+          pop()
+          appendLine()
+          appendLine()
+
+          messages.forEach { message ->
+            append(message)
+            appendLine()
+          }
+          appendLine()
+
+          links.forEach { (url, text) ->
+            withLink(
+              LinkAnnotation.Url(
+                url = url,
+                styles =
+                  TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
+                linkInteractionListener = { WifiPairingLinkHandler.handleLinkActivation(url) },
+              )
+            ) {
+              append(text)
+            }
+            appendLine()
+          }
+        }
+      )
+    }
   }
 
   @Composable
@@ -149,11 +274,13 @@ class WifiAvailableDevicesDialog(project: Project) : Disposable {
       Text(
         buildAnnotatedString {
           append(
-            "Ensure that your workstation and device are connected to the same wireless network, "
+            "1. Ensure that your workstation and device are connected to the same wireless network"
           )
+          appendLine()
           append(
-            "then enable Wireless debugging on your Android 11+ device by toggling Developer Options > wireless debugging. "
+            "2. Enable Wireless debugging on your Android 11+ device by toggling Developer Options > wireless debugging. "
           )
+          appendLine()
           withLink(
             LinkAnnotation.Url(
               Urls.learnMore,
@@ -257,3 +384,30 @@ class WifiAvailableDevicesDialog(project: Project) : Disposable {
 private fun buildDeviceName(mdnsService: MdnsTrackServiceInfo): String =
   if (mdnsService.deviceModel.isNullOrBlank()) "Device at ${mdnsService.ipv4}:${mdnsService.port}"
   else mdnsService.deviceModel!!
+
+object WifiPairingLinkHandler {
+
+  fun handleLinkActivation(url: String) {
+    when (url) {
+      Urls.openSdkManager -> {
+        ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").let {
+          it.actionPerformed(
+            createEvent(it, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)
+          )
+        }
+      }
+      Urls.openAdbSettings -> {
+        ActionManager.getInstance().getAction("Android.AdbSettings").let {
+          it.actionPerformed(
+            createEvent(it, DataContext.EMPTY_CONTEXT, null, "", ActionUiKind.NONE, null)
+          )
+        }
+      }
+      else -> {
+        if (url.isNotBlank()) {
+          BrowserUtil.browse(url)
+        }
+      }
+    }
+  }
+}
