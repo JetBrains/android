@@ -664,6 +664,7 @@
     <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
     <codeinsight.quickfix.registrar implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinQuickFixRegistrar"/>
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
+    <k2KaModuleFactory implementation="org.jetbrains.android.augment.AndroidLightClassBase$AndroidLightClassKaModuleFactory"/>
   </extensions>
 
 
