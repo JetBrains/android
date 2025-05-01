@@ -60,7 +60,8 @@ public final class StudioFlags {
     FlagOverrides userOverrides;
     if (isUnitTestMode()) {
       userOverrides = new DefaultFlagOverrides();
-    } else {
+    }
+    else {
       userOverrides = new LazyStudioFlagSettings();
     }
     return new Flags(userOverrides, new PropertyOverrides(), new MendelOverrides(), new ServerFlagOverrides());
@@ -2347,6 +2348,12 @@ public final class StudioFlags {
                    "Enable support for GCA Dasher accounts",
                    "Enable support for GCA Dasher accounts",
                    DasherSupportMode.AUTO);
+
+  public static final Flag<Boolean> GEMINI_SHOW_SIGN_IN_DIALOG =
+    new BooleanFlag(STUDIOBOT, "gemini.show.sign.in.dialog",
+                    "Enable sign in dialog for Gemini",
+                    "Enable Gemini actions to display a dialog prompting the user to sign in",
+                    enabledUpTo(DEV));
 
   // endregion STUDIO_BOT
 
