@@ -16,18 +16,15 @@
 package com.android.tools.idea.settingssync.onboarding
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.google.gct.login2.ui.onboarding.compose.InnerWizardContentPage
@@ -35,14 +32,15 @@ import com.google.gct.wizard.WizardDialogController
 import com.google.gct.wizard.WizardPage
 import com.google.gct.wizard.WizardPageControl
 import com.google.gct.wizard.WizardState
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.settingsSync.core.SettingsSyncBundle
 import com.intellij.settingsSync.core.SettingsSyncStateHolder
 import com.intellij.settingsSync.core.UpdateResult
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 
 private const val BACKUP_AND_SYNC_LOCATION_URL =
   "https://d.android.com/r/studio-ui/settings-sync/location"
@@ -128,42 +126,28 @@ internal fun WizardState.PushOrPullComposableContent() {
   InnerWizardContentPage(syncConfigurationPageTitle) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
       Text(
-        buildAnnotatedString {
-          append(
-            "There are already existing settings on this Google account." +
-              " Please choose which one you would like to use as the basis for sync going forward. \n\n" +
-              "The option you choose will become authoritative settings that will be kept in sync." +
-              " The other settings will be backed up and can be retrieved via the instructions available" +
-              " "
-          )
-          withLink(
-            LinkAnnotation.Url(
-              BACKUP_AND_SYNC_LOCATION_URL,
-              TextLinkStyles(style = SpanStyle(color = LocalLinkStyle.current.colors.content)),
-            )
-          ) {
-            append("here")
-          }
-          append(".")
-        }
+        "There are existing Android Studio settings synced to this Google account." +
+          " Please choose which settings you would like to use."
       )
 
-      Spacer(modifier = Modifier.height(12.dp))
+      Spacer(modifier = Modifier.height(16.dp))
 
       Column(Modifier.padding(start = 16.dp)) {
         // pull
         RadioButtonWithComment(
           annotatedText =
             AnnotatedString.Builder()
+              .apply { append("Use the settings from your Google account storage\n") }
+              .toAnnotatedString(),
+          annotatedComment =
+            AnnotatedString.Builder()
               .apply {
-                append("Use the settings from your Google account storage\n\n")
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                   append("Last updated: ${extractDateFromCloudRecord()}\n")
-                  append("Android Studio version: ${extractAppInfoFromCloudRecord()}")
+                  append("Android Studio version: ${extractAppInfoFromCloudRecord()}\n")
                 }
               }
               .toAnnotatedString(),
-          comment = "",
           selected = configurationState.pushOrPull == PushOrPull.PULL,
           onSelect = { configurationState.pushOrPull = PushOrPull.PULL },
         )
@@ -173,7 +157,12 @@ internal fun WizardState.PushOrPullComposableContent() {
           annotatedText =
             AnnotatedString.Builder()
               .apply {
-                append("Use the local settings and upload them to your Google account storage\n\n")
+                append("Use the local settings and upload them to your Google account storage\n")
+              }
+              .toAnnotatedString(),
+          annotatedComment =
+            AnnotatedString.Builder()
+              .apply {
                 // TODO: grab date info from the settings folder?
                 // withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                 //   append("Last updated: ??\n")
@@ -184,9 +173,16 @@ internal fun WizardState.PushOrPullComposableContent() {
                 // }
               }
               .toAnnotatedString(),
-          comment = "",
           selected = configurationState.pushOrPull == PushOrPull.PUSH,
           onSelect = { configurationState.pushOrPull = PushOrPull.PUSH },
+        )
+      }
+
+      Row {
+        Text("Your previous settings will be backed up and can be retrieved. ")
+        ExternalLink(
+          text = "Learn more",
+          onClick = { BrowserUtil.browse(BACKUP_AND_SYNC_LOCATION_URL) },
         )
       }
     }

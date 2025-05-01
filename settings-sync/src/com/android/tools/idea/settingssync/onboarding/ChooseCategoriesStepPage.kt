@@ -59,7 +59,7 @@ internal val syncConfigurationPageTitle = buildAnnotatedString {
 internal fun WizardState.ChooseCategoriesComposableContent() {
   InnerWizardContentPage(syncConfigurationPageTitle) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
-      Text("If you would like to choose what to sync to your Google Account, you can do so below.")
+      Text("You can configure what to sync to your Google account below.")
 
       Spacer(modifier = Modifier.height(8.dp))
 

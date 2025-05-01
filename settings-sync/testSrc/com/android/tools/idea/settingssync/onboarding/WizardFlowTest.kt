@@ -238,7 +238,7 @@ class WizardFlowTest {
     // Action
     // 1. Select to stay with the current configuration.
     composeTestRule
-      .onNodeWithText("Do not enable Backup & Sync for this account.", useUnmergedTree = true)
+      .onNodeWithText("Continue to sync my settings to $activeSyncUser.", useUnmergedTree = true)
       .assertIsDisplayed()
       .performClick()
     // 2. Click "Finish" button.
@@ -272,7 +272,7 @@ class WizardFlowTest {
     // 1. Select to configure using the new account.
     composeTestRule
       .onNodeWithText(
-        "stop syncing settings to the previously signed-in account ($activeSyncUser)",
+        "Sync settings to $USER_EMAIL instead.",
         substring = true,
         useUnmergedTree = true,
       )

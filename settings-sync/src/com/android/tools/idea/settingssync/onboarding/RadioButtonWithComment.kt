@@ -31,7 +31,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.RadioButton
 import org.jetbrains.jewel.ui.component.Text
 
@@ -39,7 +38,7 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 internal fun RadioButtonWithComment(
   annotatedText: AnnotatedString,
-  comment: String,
+  annotatedComment: AnnotatedString = AnnotatedString(text = ""),
   selected: Boolean,
   onSelect: () -> Unit,
 ) {
@@ -62,8 +61,12 @@ internal fun RadioButtonWithComment(
 
     Column(Modifier.padding(top = 2.dp)) {
       Text(text = annotatedText, textAlign = TextAlign.Start)
-      Spacer(modifier = Modifier.height(6.dp))
-      Text(text = comment, color = JewelTheme.globalColors.text.info)
+
+      if (annotatedComment.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(text = annotatedComment)
+        Spacer(modifier = Modifier.height(6.dp))
+      }
     }
   }
 }
