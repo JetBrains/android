@@ -349,6 +349,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     DialogWrapper wrapper = new DialogWrapper(project, false) {
       {
         init();
+        setSize(1000, 700);
       }
 
       @Override
