@@ -18,6 +18,7 @@ package com.google.idea.blaze.android.wizard2;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.google.idea.blaze.android.projectsystem.BlazeProjectSystemProvider;
 import com.google.idea.blaze.base.project.ExtendableBazelProjectCreator;
+import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.function.Consumer;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -87,7 +89,7 @@ public class BlazeProjectCreator {
       throws IOException {
 
     CreatedProjectDescriptor createdProjectDescriptor =
-        createProject(projectFilePath, projectName, projectStorageFormat);
+        createProject(projectFilePath, projectName, projectStorageFormat, null);
     if (createdProjectDescriptor == null) {
       return;
     }
@@ -98,7 +100,7 @@ public class BlazeProjectCreator {
   @Nullable
   @VisibleForTesting
   public BlazeProjectCreator.CreatedProjectDescriptor createProject(
-      String projectFilePath, String projectName, StorageScheme projectStorageFormat)
+      String projectFilePath, String projectName, StorageScheme projectStorageFormat, Consumer<Project> initProject)
       throws IOException {
     File projectDir = new File(projectFilePath).getParentFile();
     logger.assertTrue(
@@ -117,6 +119,9 @@ public class BlazeProjectCreator {
       return null;
     }
     Project newProject = returnedValue.get();
+    if (initProject != null) {
+      initProject.accept(newProject);
+    }
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
     }
@@ -126,7 +131,6 @@ public class BlazeProjectCreator {
     }
 
     projectBuilder.commit(newProject, null, ModulesProvider.EMPTY_MODULES_PROVIDER);
-
     class MyStartup implements Runnable, DumbAware {
       @Override
       public void run() {
@@ -156,6 +160,10 @@ public class BlazeProjectCreator {
 
     //noinspection deprecation
     StartupManager.getInstance(newProject).registerPostStartupActivity(new MyStartup());
+
+    BlazeImportSettingsManager blazeImportSettingsManager = BlazeImportSettingsManager.getInstance(newProject);
+    blazeImportSettingsManager.resetImportSettings();
+    blazeImportSettingsManager.initProjectView();
 
     Path path = Paths.get(projectFilePath);
     ProjectUtil.updateLastProjectLocation(path);

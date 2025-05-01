@@ -95,20 +95,7 @@ public class PrefetchProjectInitializer implements StartupActivity.DumbAware {
   }
 
   /** Get the cached {@link ProjectViewSet}, or reload it from source. */
-  @Nullable
   private static ProjectViewSet getProjectViewSet(Project project) {
-    ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
-    if (projectViewSet != null) {
-      return projectViewSet;
-    }
-    return Scope.root(
-        context -> {
-          try {
-            return ProjectViewManager.getInstance(project).reloadProjectView(context);
-          }
-          catch (BuildException e) {
-            return null;
-          }
-        });
+    return ProjectViewManager.getInstance(project).getProjectViewSet();
   }
 }

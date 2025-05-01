@@ -15,35 +15,27 @@
  */
 package com.google.idea.blaze.base.projectview;
 
-import com.google.common.collect.Lists;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
+import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
-import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
-import com.google.idea.blaze.base.util.SaveUtil;
-import com.google.idea.blaze.base.util.SerializationUtil;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.exception.ConfigurationException;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** Project view manager implementation. Stores mutable per-project user settings. */
-final class ProjectViewManagerImpl extends ProjectViewManager {
-
-  private static final Logger logger = Logger.getInstance(ProjectViewManagerImpl.class);
-  private static final String CACHE_FILE_NAME = "project.view.dat";
+public final class ProjectViewManagerImpl extends ProjectViewManager {
 
   private final Project project;
-  @Nullable private ProjectViewSet projectViewSet;
-  private boolean projectViewSetLoaded = false;
 
   public ProjectViewManagerImpl(Project project) {
     this.project = project;
@@ -52,41 +44,27 @@ final class ProjectViewManagerImpl extends ProjectViewManager {
   @Nullable
   @Override
   public ProjectViewSet getProjectViewSet() {
-    if (projectViewSet == null && !projectViewSetLoaded) {
-      ProjectViewSet loadedProjectViewSet = null;
-      try {
-        BlazeImportSettings importSettings =
-            BlazeImportSettingsManager.getInstance(project).getImportSettings();
-        if (importSettings == null) {
-          return null;
-        }
-        File file = getCacheFile(project, importSettings);
-
-        List<ClassLoader> classLoaders = Lists.newArrayList();
-        classLoaders.add(getClass().getClassLoader());
-        classLoaders.add(Thread.currentThread().getContextClassLoader());
-        loadedProjectViewSet = (ProjectViewSet) SerializationUtil.loadFromDisk(file, classLoaders);
-      } catch (IOException e) {
-        logger.warn("Failed to load project view set: " + e.getMessage());
-      }
-      this.projectViewSet = loadedProjectViewSet;
-      this.projectViewSetLoaded = true;
-    }
-    return projectViewSet;
+      return BlazeImportSettingsManager.getInstance(project).getProjectViewSet();
   }
 
   @Override
   public ProjectViewSet reloadProjectView(BlazeContext context) throws BuildException {
-    SaveUtil.saveAllFiles();
-    WorkspacePathResolver pathResolver = computeWorkspacePathResolver(project);
-    return reloadProjectView(context, pathResolver);
+    return BlazeImportSettingsManager.getInstance(project).reloadProjectView();
   }
 
-  private ProjectViewSet reloadProjectView(
-      BlazeContext context, WorkspacePathResolver workspacePathResolver) throws BuildException {
-    BlazeImportSettings importSettings =
-        BlazeImportSettingsManager.getInstance(project).getImportSettings();
-    File projectViewFile = new File(importSettings.getProjectViewFile());
+  @Override
+  public ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings) throws ConfigurationException {
+    final var projectViewRootFile = importSettings.getProjectViewFile();
+    ProjectViewParser rootParser = new ProjectViewParser(BlazeContext.create(), null);
+    rootParser.parseProjectView(projectViewRootFile, List.of(WorkspaceLocationSection.PARSER));
+    final var rootProjectViewSet = rootParser.getResult();
+    final var rootProjectView = Optional.ofNullable(rootProjectViewSet.getTopLevelProjectViewFile()).map(it -> it.projectView);
+    final var workspaceLocation = rootProjectView.map(it -> it.getScalarValue(WorkspaceLocationSection.KEY));
+    final WorkspacePathResolver workspacePathResolver;
+    workspacePathResolver =
+      new WorkspacePathResolverImpl(WorkspaceRoot.fromProto(workspaceLocation.orElseGet(importSettings::getWorkspaceRoot)));
+
+    File projectViewFile = new File(projectViewRootFile);
     ProjectViewParser parser = new ProjectViewParser(context, workspacePathResolver);
     parser.parseProjectView(projectViewFile);
 
@@ -94,24 +72,6 @@ final class ProjectViewManagerImpl extends ProjectViewManager {
       throw new ConfigurationException(
           "Failed to read project view from " + projectViewFile.getAbsolutePath());
     }
-    ProjectViewSet projectViewSet = parser.getResult();
-    migrateImportSettingsToProjectViewFile(importSettings, projectViewSet.getTopLevelProjectViewFile());
-    File file = getCacheFile(project, importSettings);
-    try {
-      SerializationUtil.saveToDisk(file, projectViewSet);
-    } catch (IOException e) {
-      logger.error(e);
-    }
-    this.projectViewSet = projectViewSet;
-    return projectViewSet;
-  }
-
-  private static File getCacheFile(Project project, BlazeImportSettings importSettings) {
-    return new File(BlazeDataStorage.getProjectCacheDir(project, importSettings), CACHE_FILE_NAME);
-  }
-
-  private static WorkspacePathResolver computeWorkspacePathResolver(Project project) {
-    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
-    return new WorkspacePathResolverImpl(workspaceRoot);
+    return parser.getResult();
   }
 }

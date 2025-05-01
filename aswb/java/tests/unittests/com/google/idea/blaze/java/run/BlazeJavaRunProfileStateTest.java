@@ -277,10 +277,14 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
       return ProjectViewSet.builder().build();
     }
 
-    @Nullable
     @Override
     public ProjectViewSet reloadProjectView(BlazeContext context) {
       return ProjectViewSet.builder().build();
+    }
+
+    @Override
+    public ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings) {
+      return ProjectViewSet.EMPTY;
     }
   }
 

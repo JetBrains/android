@@ -36,11 +36,13 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
+import com.google.idea.blaze.exception.ConfigurationException;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
 import java.util.List;
@@ -209,9 +211,13 @@ public class BlazeSyncManagerTest extends BlazeTestCase {
       return ProjectViewSet.builder().build();
     }
 
-    @Nullable
     @Override
     public ProjectViewSet reloadProjectView(BlazeContext context) {
+      return ProjectViewSet.builder().build();
+    }
+
+    @Override
+    public ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings) {
       return ProjectViewSet.builder().build();
     }
   }

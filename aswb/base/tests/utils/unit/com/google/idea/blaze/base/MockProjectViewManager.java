@@ -18,7 +18,9 @@ package com.google.idea.blaze.base;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
+import com.google.idea.blaze.exception.ConfigurationException;
 import com.google.idea.testing.ServiceHelper;
 import com.intellij.openapi.project.Project;
 import javax.annotation.Nullable;
@@ -44,9 +46,13 @@ public class MockProjectViewManager extends ProjectViewManager {
     return projectViewSet;
   }
 
-  @Nullable
   @Override
   public ProjectViewSet reloadProjectView(BlazeContext context) {
+    return getProjectViewSet();
+  }
+
+  @Override
+  public ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings) {
     return getProjectViewSet();
   }
 }

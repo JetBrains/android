@@ -177,26 +177,23 @@ public class ProjectLoaderImpl implements ProjectLoader {
   }
 
   @Override
-  public ProjectToLoadDefinition loadProjectDefinition(BlazeContext context) throws BuildException {
+  public ProjectToLoadDefinition loadProjectDefinition(ProjectViewSet projectViewSet) {
     BlazeImportSettings importSettings =
       Preconditions.checkNotNull(
         BlazeImportSettingsManager.getInstance(project).getImportSettings());
-    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
-    ProjectViewManager projectViewManager = ProjectViewManager.getInstance(project);
+    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project); // TODO: solodkyy - read from the project view.
     // TODO we may need to get the WorkspacePathResolver from the VcsHandler, as the old sync
     // does inside ProjectStateSyncTask.computeWorkspacePathResolverAndProjectView
     // Things will probably work without that, but we should understand why the other
     // implementations of WorkspacePathResolver exists. Perhaps they are performance
     // optimizations?
-    ProjectViewSet projectViewSet =
-      projectViewManager.reloadProjectView(context);
     ProjectDefinition projectDefinition =
       createProjectDefinition(workspaceRoot, importSettings.getBuildSystem(), projectViewSet);
     WorkspaceLanguageSettings workspaceLanguageSettings =
       LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
     BuildSystem buildSystem =
       BuildSystemProvider.getBuildSystemProvider(importSettings.getBuildSystem())
-        .getBuildSystem();
+        .getBuildSystem(); // TODO: solodkyy - read from the project view.
 
     return new ProjectToLoadDefinition(workspaceRoot, buildSystem, projectDefinition, projectViewSet, workspaceLanguageSettings);
   }
@@ -206,7 +203,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         Preconditions.checkNotNull(
             BlazeImportSettingsManager.getInstance(project).getImportSettings());
 
-    ProjectToLoadDefinition projectToLoad = loadProjectDefinition(context);
+    final var projectToLoad = loadProjectDefinition(BlazeImportSettingsManager.getInstance(project).getProjectViewSet());
     final var projectViewSet = projectToLoad.projectViewSet();
     final var workspaceRoot = projectToLoad.workspaceRoot();
     final var latestProjectDef = projectToLoad.definition();

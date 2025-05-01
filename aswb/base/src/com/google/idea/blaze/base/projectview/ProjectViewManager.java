@@ -25,6 +25,7 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.exception.ConfigurationException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
@@ -77,9 +78,9 @@ public abstract class ProjectViewManager {
   @Nullable
   public abstract ProjectViewSet getProjectViewSet();
 
-  /**
-   * Reloads the project view, replacing the current one only if there are no errors. Calculates a
-   * VCS-aware {@link WorkspacePathResolver} if necessary.
-   */
+  /** Reloads the project view, replacing the current one only if there are no errors. */
   public abstract ProjectViewSet reloadProjectView(BlazeContext context) throws BuildException;
+
+  public abstract ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings)
+    throws ConfigurationException;
 }
