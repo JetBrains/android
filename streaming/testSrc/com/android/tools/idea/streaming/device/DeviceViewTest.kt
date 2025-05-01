@@ -782,6 +782,7 @@ internal class DeviceViewTest {
     val button = fakeUi.getComponent<JButton>()
     assertThat(fakeUi.isShowing(button)).isTrue()
     assertThat(button.text).isEqualTo("Reconnect")
+
     // Check handling of the agent crash on startup.
     agent.crashOnStart = true
     errorMessage.text = ""
