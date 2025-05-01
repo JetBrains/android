@@ -2138,6 +2138,12 @@ public final class StudioFlags {
                     "When enabled, returns all files modified by models.",
                     enabledUpTo(DEV));
 
+  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_SESSION_DIFF_EDITOR_VIEWER_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.transform.session.diff.editor.viewer.enabled",
+                    "Enable the new DiffEditorViewer UI that can show multiple-file diffs.",
+                    "When enabled, uses the new DiffEditorViewer UI.",
+                    false);
+
   public static final Flag<Boolean> STUDIOBOT_ALLOW_TRANSFORMS_WITH_CITATIONS =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.allow.transforms.with.citations",
                     "Show transform results that have citations.",
