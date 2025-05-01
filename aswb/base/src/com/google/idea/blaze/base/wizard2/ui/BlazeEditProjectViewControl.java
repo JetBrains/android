@@ -40,7 +40,9 @@ import com.google.idea.blaze.base.projectview.section.sections.Sections;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
 import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
+import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
+import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.OutputSink.Propagation;
 import com.google.idea.blaze.base.scope.Scope;
@@ -600,6 +602,8 @@ public final class BlazeEditProjectViewControl {
     final ProjectViewSet projectViewSet;
     ScalarSection<String> workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
       .set(workspaceData.workspaceRoot().toString()).build();
+    ScalarSection<UseQuerySyncSection.UseQuerySync> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
+      .set(QuerySync.useForNewProjects() ? UseQuerySyncSection.UseQuerySync.TRUE : UseQuerySyncSection.UseQuerySync.FALSE).build();
     if (useSharedProjectView && selectProjectViewOption.getSharedProjectView() != null) {
       projectView =
           ProjectView.builder()
@@ -608,6 +612,7 @@ public final class BlazeEditProjectViewControl {
                       .set(selectProjectViewOption.getSharedProjectView()))
               .add(TextBlockSection.of(TextBlock.newLine()))
               .add(workspaceRootSection)
+              .add(useQuerySyncSection)
               .build();
       projectViewSet =
           ProjectViewSet.builder()
@@ -619,6 +624,7 @@ public final class BlazeEditProjectViewControl {
       assert projectViewFile != null;
       ProjectView.Builder projectViewBuilder = ProjectView.builder(projectViewFile.projectView);
       projectViewBuilder.add(workspaceRootSection);
+      projectViewBuilder.add(useQuerySyncSection);
       projectView = projectViewBuilder.build();
       projectViewSet = parseResult;
     }
