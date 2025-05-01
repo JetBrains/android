@@ -438,6 +438,12 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // <<afterClosingRParen>>
+  static boolean factory_recover(PsiBuilder b, int l) {
+    return afterClosingRParen(b, l + 1);
+  }
+
+  /* ********************************************************** */
   // token
   public static boolean identifier(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "identifier")) return false;
@@ -564,7 +570,6 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   // identifier OP_LPAREN argumentsList OP_RPAREN
   static boolean private_factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "private_factory")) return false;
-    if (!nextTokenIs(b, TOKEN)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = identifier(b, l + 1);
@@ -572,7 +577,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     p = r; // pin = 2
     r = r && report_error_(b, argumentsList(b, l + 1));
     r = p && consumeToken(b, OP_RPAREN) && r;
-    exit_section_(b, l, m, r, p, null);
+    exit_section_(b, l, m, r, p, DeclarativeParser::factory_recover);
     return r || p;
   }
 
