@@ -43,6 +43,7 @@ import com.intellij.ui.SideBorder
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.PositionTracker
 import com.intellij.util.ui.components.BorderLayoutPanel
+import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.EventQueue
@@ -60,10 +61,10 @@ private const val IS_TOOLBAR_HORIZONTAL = true
 /**
  * Provides view of one Android device in the Running Devices tool window.
  */
-abstract class StreamingDevicePanel(
+abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   val id: DeviceId,
   mainToolbarId: String,
-  secondaryToolbarId: String,
+  secondaryToolbarId: String = STREAMING_SECONDARY_TOOLBAR_ID,
 ) : BorderLayoutPanel(), UiDataProvider, Disposable {
 
   /** Plain text name of the device. */
@@ -82,6 +83,7 @@ abstract class StreamingDevicePanel(
   protected val mainToolbar: ActionToolbar
   protected val secondaryToolbar: ActionToolbar
   protected val centerPanel = BorderLayoutPanel()
+  protected val displayPanels = Int2ObjectRBTreeMap<T>()
 
   init {
     background = primaryPanelBackground

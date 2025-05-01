@@ -29,7 +29,6 @@ import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.PanelState
-import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.core.StreamingDevicePanel
@@ -65,8 +64,7 @@ internal class DeviceToolWindowPanel(
   private val project: Project,
   val deviceHandle: DeviceHandle,
   val deviceClient: DeviceClient,
-) : StreamingDevicePanel(
-    DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
+) : StreamingDevicePanel<DeviceDisplayPanel>(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID) {
 
   val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber
@@ -76,16 +74,19 @@ internal class DeviceToolWindowPanel(
 
   override val description: String
     get() {
-      val properties = deviceClient.deviceConfig.deviceProperties
-      val api = properties.androidVersion?.apiStringWithoutExtension ?: "${deviceClient.deviceConfig.apiLevel}"
+      val properties = deviceConfig.deviceProperties
+      val api = properties.androidVersion?.apiStringWithoutExtension ?: "${deviceConfig.apiLevel}"
       return "${properties.title} API $api ${"($deviceSerialNumber)".htmlColored(JBColor.GRAY)}"
     }
 
   override val icon: Icon
-    get() = ExecutionUtil.getLiveIndicator(deviceClient.deviceConfig.deviceProperties.icon)
+    get() = ExecutionUtil.getLiveIndicator(deviceConfig.deviceProperties.icon)
 
   override val deviceType: DeviceType
-    get() = deviceClient.deviceConfig.deviceType
+    get() = deviceConfig.deviceType
+
+  private val deviceConfig: DeviceConfiguration
+    get() = deviceClient.deviceConfig
 
   val component: JComponent
     get() = this
@@ -104,7 +105,7 @@ internal class DeviceToolWindowPanel(
   private var contentDisposable: Disposable? = null
   override var primaryDisplayView: DeviceView? = null
     private set
-  private val displayPanels = Int2ObjectRBTreeMap<DeviceDisplayPanel>()
+  //private val displayPanels = Int2ObjectRBTreeMap<DeviceDisplayPanel>()
 
   private val deviceStateListener = object : DeviceController.DeviceStateListener {
     override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {

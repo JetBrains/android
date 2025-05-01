@@ -31,7 +31,6 @@ import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.core.PanelState
-import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.core.StreamingDevicePanel
@@ -81,10 +80,9 @@ internal class EmulatorToolWindowPanel(
   disposableParent: Disposable,
   private val project: Project,
   val emulator: EmulatorController
-) : StreamingDevicePanel(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID),
+) : StreamingDevicePanel<EmulatorDisplayPanel>(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID),
     ConnectionStateListener {
 
-  private val displayPanels = Int2ObjectRBTreeMap<EmulatorDisplayPanel>()
   private val displayConfigurator = DisplayConfigurator(project)
   private var contentDisposable: Disposable? = null
 
