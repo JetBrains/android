@@ -451,17 +451,6 @@ object AndroidStudioUsageTracker {
   }
 
   /**
-   * Creates a [DeviceInfo] from a [IDevice] instance
-   * containing api level only.
-   */
-  @JvmStatic
-  fun deviceToDeviceInfoApiLevelOnly(device: IDevice): DeviceInfo {
-    return DeviceInfo.newBuilder()
-      .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
-      .build()
-  }
-
-  /**
    * Reads the channel selected by the user from UpdateSettings and converts it into a [SoftwareLifeCycleChannel] value.
    */
   private fun lifecycleChannelFromUpdateSettings(): SoftwareLifeCycleChannel {
