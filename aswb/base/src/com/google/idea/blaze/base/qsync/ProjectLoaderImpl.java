@@ -188,9 +188,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
     // Things will probably work without that, but we should understand why the other
     // implementations of WorkspacePathResolver exists. Perhaps they are performance
     // optimizations?
-    WorkspacePathResolver workspacePathResolver = new WorkspacePathResolverImpl(workspaceRoot);
     ProjectViewSet projectViewSet =
-      projectViewManager.reloadProjectView(context, workspacePathResolver);
+      projectViewManager.reloadProjectView(context);
     ProjectDefinition projectDefinition =
       createProjectDefinition(workspaceRoot, importSettings.getBuildSystem(), projectViewSet);
     WorkspaceLanguageSettings workspaceLanguageSettings =

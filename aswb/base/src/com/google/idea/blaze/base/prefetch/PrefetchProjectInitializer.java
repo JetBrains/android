@@ -27,6 +27,7 @@ import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
+import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -102,7 +103,12 @@ public class PrefetchProjectInitializer implements StartupActivity.DumbAware {
     }
     return Scope.root(
         context -> {
-          return ProjectViewManager.getInstance(project).reloadProjectView(context);
+          try {
+            return ProjectViewManager.getInstance(project).reloadProjectView(context);
+          }
+          catch (BuildException e) {
+            return null;
+          }
         });
   }
 }

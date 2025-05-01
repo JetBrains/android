@@ -49,10 +49,4 @@ public class MockProjectViewManager extends ProjectViewManager {
   public ProjectViewSet reloadProjectView(BlazeContext context) {
     return getProjectViewSet();
   }
-
-  @Override
-  public ProjectViewSet reloadProjectView(
-      BlazeContext context, WorkspacePathResolver workspacePathResolver) {
-    return getProjectViewSet();
-  }
 }

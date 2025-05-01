@@ -16,7 +16,6 @@
 package com.google.idea.blaze.base.projectview;
 
 import com.google.common.collect.Lists;
-import com.google.idea.blaze.base.async.executor.BlazeExecutor;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
@@ -33,8 +32,6 @@ import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.base.util.SerializationUtil;
-import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider;
-import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.exception.ConfigurationException;
 import com.intellij.openapi.diagnostic.Logger;
@@ -84,21 +81,14 @@ final class ProjectViewManagerImpl extends ProjectViewManager {
     return projectViewSet;
   }
 
-  @Nullable
   @Override
-  public ProjectViewSet reloadProjectView(BlazeContext context) {
+  public ProjectViewSet reloadProjectView(BlazeContext context) throws BuildException {
     SaveUtil.saveAllFiles();
-    WorkspacePathResolver pathResolver = computeWorkspacePathResolver(project, context);
-    try {
-      return pathResolver != null ? reloadProjectView(context, pathResolver) : null;
-    } catch (BuildException e) {
-      context.handleException("Failed to reload project view", e);
-      return null;
-    }
+    WorkspacePathResolver pathResolver = computeWorkspacePathResolver(project);
+    return reloadProjectView(context, pathResolver);
   }
 
-  @Override
-  public ProjectViewSet reloadProjectView(
+  private ProjectViewSet reloadProjectView(
       BlazeContext context, WorkspacePathResolver workspacePathResolver) throws BuildException {
     BlazeImportSettings importSettings =
         BlazeImportSettingsManager.getInstance(project).getImportSettings();
@@ -147,23 +137,8 @@ final class ProjectViewManagerImpl extends ProjectViewManager {
     return new File(BlazeDataStorage.getProjectCacheDir(project, importSettings), CACHE_FILE_NAME);
   }
 
-  @Nullable
-  private static WorkspacePathResolver computeWorkspacePathResolver(
-      Project project, BlazeContext context) {
-    BlazeProjectData projectData =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-    if (projectData != null) {
-      return projectData.getWorkspacePathResolver();
-    }
-    // otherwise try to compute the workspace path resolver from scratch
+  private static WorkspacePathResolver computeWorkspacePathResolver(Project project) {
     WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
-    BlazeVcsHandler vcsHandler = BlazeVcsHandlerProvider.vcsHandlerForProject(project);
-    BlazeVcsHandlerProvider.BlazeVcsSyncHandler vcsSyncHandler =
-        vcsHandler != null ? vcsHandler.createSyncHandler() : null;
-    if (vcsSyncHandler == null) {
-      return new WorkspacePathResolverImpl(workspaceRoot);
-    }
-    boolean ok = vcsSyncHandler.update(context, BlazeExecutor.getInstance().getExecutor());
-    return ok ? vcsSyncHandler.getWorkspacePathResolver() : null;
+    return new WorkspacePathResolverImpl(workspaceRoot);
   }
 }

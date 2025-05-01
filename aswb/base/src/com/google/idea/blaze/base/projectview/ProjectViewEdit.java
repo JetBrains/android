@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.scope.Scope;
 import com.google.idea.blaze.base.util.SaveUtil;
+import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -49,7 +50,12 @@ public class ProjectViewEdit {
   private static ProjectViewSet reloadProjectView(Project project) {
     return Scope.root(
         context -> {
-          return ProjectViewManager.getInstance(project).reloadProjectView(context);
+          try {
+            return ProjectViewManager.getInstance(project).reloadProjectView(context);
+          }
+          catch (BuildException e) {
+            return null;
+          }
         });
   }
 

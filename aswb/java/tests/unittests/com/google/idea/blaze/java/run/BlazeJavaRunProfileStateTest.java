@@ -282,12 +282,6 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
     public ProjectViewSet reloadProjectView(BlazeContext context) {
       return ProjectViewSet.builder().build();
     }
-
-    @Override
-    public ProjectViewSet reloadProjectView(
-        BlazeContext context, WorkspacePathResolver workspacePathResolver) {
-      return ProjectViewSet.EMPTY;
-    }
   }
 
   private static class FakeFileOperationProvider extends FileOperationProvider {
