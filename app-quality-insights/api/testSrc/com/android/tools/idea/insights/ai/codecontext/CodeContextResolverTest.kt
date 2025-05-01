@@ -282,7 +282,6 @@ private val EXPECTED_CONTEXT =
       EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
       EXPECTED_MAIN_ACTIVITY_CONTEXT,
     ),
-    CodeContextTrackingInfo(4, 53, 1309),
     ContextSharingState.ALLOWED,
   )
 

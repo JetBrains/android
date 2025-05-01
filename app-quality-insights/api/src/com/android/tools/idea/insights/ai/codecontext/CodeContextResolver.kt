@@ -68,7 +68,6 @@ enum class ContextSharingState {
 
 data class CodeContextData(
   val codeContext: List<CodeContext>,
-  val codeContextTrackingInfo: CodeContextTrackingInfo = CodeContextTrackingInfo.EMPTY,
   val contextSharingState: ContextSharingState = ContextSharingState.DISABLED,
 ) {
   companion object {
@@ -80,6 +79,15 @@ data class CodeContextData(
   }
 
   fun isEmpty() = codeContext.isEmpty()
+
+  fun getTrackingInfo(): CodeContextTrackingInfo =
+    codeContext.fold(CodeContextTrackingInfo.EMPTY) { acc, context ->
+      CodeContextTrackingInfo(
+        acc.fileCount + 1,
+        acc.lineCount + context.content.lines().size,
+        acc.charCount + context.content.count(),
+      )
+    }
 }
 
 /** A simple value class for containing info related to a piece of code context. */
@@ -120,7 +128,7 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
       return CodeContextData.empty(project)
     }
     val sources = getSource(stack)
-    return CodeContextData(sources, getMetadata(sources), getContextSharingState(project))
+    return CodeContextData(sources, getContextSharingState(project))
   }
 
   override suspend fun getSource(fileNames: List<String>): CodeContextData {
@@ -128,7 +136,7 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
       fileNames
         .associateWithNotNull { fileName -> getSourceVirtualFiles(fileName).firstOrNull() }
         .map { (file, virtFile) -> CodeContext(file, virtFile.readText()) }
-    return CodeContextData(context, getMetadata(context), getContextSharingState(project))
+    return CodeContextData(context, getContextSharingState(project))
   }
 
   override suspend fun getSourceVirtualFiles(filePath: String): List<VirtualFile> =
@@ -144,15 +152,6 @@ class CodeContextResolverImpl(private val project: Project) : CodeContextResolve
           Logger.getInstance(CodeContextResolverImpl::class.java)
             .debug("Found virtual files ${files.map { it.path }}")
         }
-    }
-
-  private fun getMetadata(contexts: List<CodeContext>): CodeContextTrackingInfo =
-    contexts.fold(CodeContextTrackingInfo.EMPTY) { acc, context ->
-      CodeContextTrackingInfo(
-        acc.fileCount + 1,
-        acc.lineCount + context.content.lines().size,
-        acc.charCount + context.content.count(),
-      )
     }
 
   private suspend fun getSource(stack: StacktraceGroup): List<CodeContext> {

@@ -19,6 +19,7 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.formatForTests
+import com.android.tools.idea.insights.AI_INSIGHT_WITH_CODE_CONTEXT
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
@@ -232,9 +233,32 @@ class GeminiAiInsightClientTest {
 
     assertThat(client.fetchCrashInsight(request))
       .isEqualTo(AiInsight("", insightSource = InsightSource.STUDIO_BOT))
-    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, CodeContextData(emptyList())))
+    assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, ContextSharingState.DISABLED))
       .isEqualTo(AiInsight("", isCached = true, insightSource = InsightSource.STUDIO_BOT))
   }
+
+  @Test
+  fun `client prefers insight generated with code context regardless of context sharing setting`() =
+    runBlocking {
+      fakeGeminiPluginApi.contextAllowed = false
+      val cache = AppInsightsCacheImpl()
+      cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
+      cache.putAiInsight(CONNECTION1, ISSUE1.id, null, AI_INSIGHT_WITH_CODE_CONTEXT)
+      val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
+
+      val request =
+        GeminiCrashInsightRequest(
+          connection = CONNECTION1,
+          issueId = ISSUE1.id,
+          variantId = null,
+          deviceName = "DeviceName",
+          apiLevel = "ApiLevel",
+          event = ISSUE1.sampleEvent,
+        )
+
+      assertThat(client.fetchCrashInsight(request))
+        .isEqualTo(AI_INSIGHT_WITH_CODE_CONTEXT.copy(isCached = true))
+    }
 
   @Test
   fun `client omits code context when connection does not match project`() = runBlocking {

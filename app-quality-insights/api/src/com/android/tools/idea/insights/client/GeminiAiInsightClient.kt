@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
@@ -109,6 +110,9 @@ class GeminiAiInsightClient(
 
   override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight =
     if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
+      getCachedInsight(request)?.let {
+        return it
+      }
       val contextData =
         if (!request.connection.isMatchingProject()) {
           CodeContextData.empty(project)
@@ -118,11 +122,6 @@ class GeminiAiInsightClient(
           codeContextResolver.getSource(request.connection, request.event.stacktraceGroup)
         }
 
-      cache
-        .getAiInsight(request.connection, request.issueId, request.variantId, contextData)
-        ?.let { insight ->
-          return insight
-        }
       val userPrompt = createPrompt(request, contextData.codeContext)
       val finalPrompt =
         buildLlmPrompt(project) {
@@ -141,6 +140,21 @@ class GeminiAiInsightClient(
       delay(2000)
       AiInsight(createPrompt(request, emptyList()), insightSource = InsightSource.STUDIO_BOT)
     }
+
+  // Always prefer the insight generated with context regardless of current context sharing setting.
+  private fun getCachedInsight(request: GeminiCrashInsightRequest): AiInsight? =
+    cache.getAiInsight(
+      request.connection,
+      request.issueId,
+      request.variantId,
+      ContextSharingState.ALLOWED,
+    )
+      ?: cache.getAiInsight(
+        request.connection,
+        request.issueId,
+        request.variantId,
+        ContextSharingState.DISABLED,
+      )
 
   private suspend fun queryForRelevantContext(request: GeminiCrashInsightRequest): CodeContextData {
     if (

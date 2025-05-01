@@ -26,7 +26,7 @@ import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.SortedSet
@@ -88,7 +88,7 @@ interface AppInsightsCache {
     connection: Connection,
     issueId: IssueId,
     variantId: String?,
-    codeContextData: CodeContextData,
+    contextSharingState: ContextSharingState,
   ): AiInsight?
 
   /**
@@ -119,7 +119,10 @@ private data class IssueDetailsValue(
   fun toIssue() = AppInsightsIssue(issueDetails, sampleEvents.first(), state)
 }
 
-private data class AiInsightKey(val variantId: String?, val codeContextData: CodeContextData)
+private data class AiInsightKey(
+  val variantId: String?,
+  val contextSharingState: ContextSharingState,
+)
 
 private data class CacheValue(
   val issueDetails: IssueDetailsValue?,
@@ -247,13 +250,13 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
     connection: Connection,
     issueId: IssueId,
     variantId: String?,
-    codeContextData: CodeContextData,
+    contextSharingState: ContextSharingState,
   ): AiInsight? {
     return compositeIssuesCache
       .getIfPresent(connection)
       ?.getIfPresent(issueId)
       ?.aiInsights
-      ?.get(AiInsightKey(variantId, codeContextData))
+      ?.get(AiInsightKey(variantId, contextSharingState))
       ?.copy(isCached = true)
   }
 
@@ -269,7 +272,7 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
       cacheValue.copy(
         aiInsights =
           cacheValue.aiInsights.plus(
-            AiInsightKey(variantId, aiInsight.codeContextData) to aiInsight
+            AiInsightKey(variantId, aiInsight.codeContextData.contextSharingState) to aiInsight
           )
       )
     }
