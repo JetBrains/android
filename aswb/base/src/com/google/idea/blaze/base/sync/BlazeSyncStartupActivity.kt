@@ -22,23 +22,15 @@ import com.google.idea.blaze.base.settings.BlazeImportSettings
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.google.idea.blaze.base.settings.BlazeUserSettings
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager
-import com.google.idea.blaze.base.toolwindow.TasksToolWindowFactory
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
-import com.intellij.openapi.wm.RegisterToolWindowTask
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
-import com.intellij.util.application
 
 /** Syncs the project upon startup.  */
 class BlazeSyncStartupActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
     if (!Blaze.isBlazeProject(project)) {
       return
-    }
-    if (application.isUnitTestMode) {
-      val toolWindowHeadlessManager = ToolWindowManagerEx.getInstanceEx(project)
-      toolWindowHeadlessManager.registerToolWindow(RegisterToolWindowTask.notClosable(TasksToolWindowFactory.ID))
     }
     val importSettings =
       BlazeImportSettingsManager.getInstance(project).importSettings
