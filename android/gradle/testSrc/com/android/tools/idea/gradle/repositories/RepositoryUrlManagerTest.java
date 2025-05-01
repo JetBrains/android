@@ -20,6 +20,7 @@ import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.repository.GoogleMavenRepositoryV2;
+import com.android.ide.common.repository.FakeGoogleMavenRepositoryV2Host;
 import com.android.ide.common.repository.StubGoogleMavenRepository;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
@@ -95,7 +96,8 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                     "com/android/support/group-index.xml", SUPPORT_GROUP,
                     "com/android/support/constraint/group-index.xml", CONTRAINT_GROUP);
 
-  private final GoogleMavenRepositoryV2 googleMavenRepositoryV2 = GoogleMavenRepositoryV2.Companion.create();
+  private final GoogleMavenRepositoryV2 googleMavenRepositoryV2 =
+    GoogleMavenRepositoryV2.Companion.create(new FakeGoogleMavenRepositoryV2Host());
 
   @Override
   public void setUp() throws Exception {

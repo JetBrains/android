@@ -29,8 +29,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <TEMP>/.idea/modules/app/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -82,8 +81,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <TEMP>/.idea/modules/app/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -151,8 +149,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <TEMP>/.idea/modules/app/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -219,8 +216,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <TEMP>/.idea/modules/app/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -284,8 +280,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <TEMP>/.idea/modules/lib/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.lib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -337,8 +332,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <TEMP>/.idea/modules/lib/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.lib.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -404,8 +398,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <TEMP>/.idea/modules/lib/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.lib.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -471,8 +464,7 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <TEMP>/.idea/modules/lib/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.lib.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

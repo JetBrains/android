@@ -66,8 +66,8 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     VIRTUAL_FILE_NOT_EXIST("Modifying virtual file that does not exist", "%", false, Status.VIRTUAL_FILE_NOT_EXIST),
     BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
 
-    MODULE_IS_DISPOSED("Module Disposed", "%", false, Status.UNKNOWN), // TODO: Add new metrics.
-    FILE_NOT_VALID("Invalid File", "%", true, Status.UNKNOWN), // TODO: Add new metrics.
+    MODULE_IS_DISPOSED("Module Disposed", "%", false, Status.MODULE_DISPOSED), // TODO: Add new metrics.
+    FILE_NOT_VALID("Invalid File", "%", true, Status.INVALID_FILE), // TODO: Add new metrics.
 
     INTERNAL_ERROR_NO_COMPILER_OUTPUT("Internal Error", "%", false, Status.INTERNAL_ERROR_NO_COMPILER_OUTPUT),
     INTERNAL_ERROR_FILE_OUTSIDE_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_OUTSIDE_MODULE),

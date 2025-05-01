@@ -122,6 +122,7 @@ public class BlazeResolveConfigurationEquivalenceTest extends BlazeTestCase {
                 "",
                 "",
                 "",
+                "",
                 getBuildSystemProvider().getBuildSystem().getName(),
                 ProjectType.ASPECT_SYNC));
 

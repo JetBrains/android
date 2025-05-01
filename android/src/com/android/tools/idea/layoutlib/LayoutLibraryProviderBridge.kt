@@ -34,4 +34,7 @@ class LayoutLibraryProviderBridge : LayoutLibraryProvider {
 
   override fun getFrameworkRClass(): Class<*>? =
     epName.computeSafeIfAny(LayoutLibraryProvider::getFrameworkRClass)
+
+  override fun getNativeMemoryUsage(): Long =
+    epName.computeSafeIfAny(LayoutLibraryProvider::getNativeMemoryUsage) ?: 0
 }

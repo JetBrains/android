@@ -507,12 +507,7 @@ public record BuildGraphDataImpl(
         return TargetsToBuild.forSourceFile(targetOwner, workspaceRelativePath);
       }
     } else {
-      context.output(
-          PrintOutput.error("Can't find any supported targets for %s", workspaceRelativePath));
-      context.output(
-          PrintOutput.error(
-              "If this is a newly added supported rule, please re-sync your project."));
-      context.setHasWarnings();
+      return TargetsToBuild.forUnknownSourceFile(workspaceRelativePath);
     }
     return TargetsToBuild.None.INSTANCE;
   }

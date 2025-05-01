@@ -213,6 +213,8 @@ class AppInspectionInspectorClient(
         viewUpdateDeferred.await()
         model.removeModificationListener(updateListener)
 
+        stats.isXr(model.isXr)
+
         checkIfComposeSupportsXrInspection()
       }
       .recover { t ->

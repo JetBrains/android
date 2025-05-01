@@ -18,6 +18,7 @@ package com.android.layoutlib
 import com.android.layoutlib.bridge.Bridge
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
+import libcore.util.NativeAllocationRegistry
 
 class LayoutlibProvider : LayoutLibraryLoader.LayoutLibraryProvider {
   override fun getLibrary(): LayoutLibrary {
@@ -26,5 +27,9 @@ class LayoutlibProvider : LayoutLibraryLoader.LayoutLibraryProvider {
 
   override fun getFrameworkRClass(): Class<*> {
     return com.android.internal.R::class.java
+  }
+
+  override fun getNativeMemoryUsage(): Long {
+    return NativeAllocationRegistry.getMetrics().sumOf { it.mallocedBytes + it.nonmallocedBytes }
   }
 }

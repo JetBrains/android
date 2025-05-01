@@ -25,6 +25,9 @@
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleAttachSourcesProvider" />
     <applicationInitializedListener id="DisableKotlinGradleTomlVersionCatalogReferencesSearcher"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableKotlinGradleTomlVersionCatalogReferencesSearcher" />
+    <applicationInitializedListener id="PhasedSyncInitializer"
+                                    implementation="com.android.tools.idea.projectsystem.gradle.PhasedSyncInitializer" />
+
     <projectConfigurable groupId="build" id="build.tools"
                          instance="com.android.tools.idea.projectsystem.gradle.AndroidStudioBuildToolsConfigurable"
                          key="settings.build.tools.display.name" bundle="messages.ExternalSystemBundle"/>
@@ -68,6 +71,9 @@
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
     <taskManager implementation="com.android.tools.idea.testartifacts.testsuite.GradleAndroidTestsTaskManager"/>
+    <syncContributor implementation="com.android.tools.idea.projectsystem.gradle.FixSyncContributorIssues" />
+    <syncContributor implementation="com.android.tools.idea.gradle.project.sync.AndroidSourceRootSyncContributor"/>
+
   </extensions>
   <applicationListeners>
     <listener class="com.android.tools.idea.startup.GradleSpecificInitializer"

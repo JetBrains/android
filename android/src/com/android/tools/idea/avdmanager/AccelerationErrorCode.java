@@ -27,6 +27,7 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_EMULATOR;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_PLATFORM_TOOLS;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_SYSTEM_IMAGES;
+import static com.android.tools.idea.avdmanager.EmulatorAccelerationCheck.MINIMUM_EMULATOR_VERSION;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.diagnostic.Logger;
@@ -62,8 +63,8 @@ public enum AccelerationErrorCode {
   HYPER_V_ENABLED(15, "Android Emulator is incompatible with Hyper-V.", TURNOFF_HYPER_V, SOLUTION_TURN_OFF_HYPER_V),
   EMULATOR_ERROR(138, "Accelerator Detection Problem.", NONE, "Please file a bug against Android Studio."),
   UNKNOWN_ERROR(-1, "Unknown Error", NONE, "Please file a bug against Android Studio."),
-  NO_EMULATOR_INSTALLED(-2, "No emulator installed", DOWNLOAD_EMULATOR, "Please download the emulator"),
-  TOOLS_UPDATE_REQUIRED(-3, "Emulator is outdated", UPDATE_EMULATOR, "Please download the newest tools"),
+  NO_EMULATOR_INSTALLED(-2, "No emulator installed", DOWNLOAD_EMULATOR, "Please download the emulator."),
+  EMULATOR_UPDATE_REQUIRED(-3, "The currently installed emulator is no longer supported by this version of Android Studio.", UPDATE_EMULATOR, "Please update the emulator to version " + MINIMUM_EMULATOR_VERSION + " or later."),
   NOT_ENOUGH_MEMORY(-4, "Not enough memory to run the AVD", NONE, "Get more available memory for the AVD"),
   HAXM_REQUIRES_WINDOWS(-5, "HAXM is deprecated.", NONE, "Please file a bug against Android Studio."),
   PLATFORM_TOOLS_UPDATE_ADVISED(-6, "Platform tools update is available", UPDATE_PLATFORM_TOOLS, "Please download platform tools"),

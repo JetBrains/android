@@ -396,6 +396,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -436,6 +437,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.FindInPathMemoryLeakTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -498,6 +500,7 @@ java_test(
     ] + glob(["testData/Navigation/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
     tags = COMMON_TAGS + [
+        "qa_fast",
         "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -513,6 +516,7 @@ java_test(
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
     tags = COMMON_TAGS + [
+        "qa_fast",
         "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -562,6 +566,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualLintTest"],
     tags = COMMON_TAGS + [
         "noci:studio-win",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -621,128 +626,6 @@ java_test(
 )
 
 java_test(
-    name = "GuiTestRuleTest",
-    size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ResolveXmlReferencesTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/DatabindingMethodsTest/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.ResolveXmlReferencesTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NewProjectTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NewProjectTest"],
-    tags = COMMON_TAGS + ["manual"],  #smoke test passing, but latestSupportLibraryWhileDndLayouts failed for UI reason
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NewActivityTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.NewActivityTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/74910563
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "DeviceConfigurationDialogTest",
-    size = "large",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.avdmanager.DeviceConfigurationDialogTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/367875427
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NlEditorTest",
-    size = "large",
-    data = COMMON_DATA + [
-        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.android.support.support-annotations_28.0.0",
-        "@maven//:com.android.support.appcompat-v7_26.1.0",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]) + glob(["testData/LayoutTest/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NlEditorTest"],
-    tags = COMMON_TAGS + ["manual"],  #BasicLayoutTest failed for UI reason
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NavNlEditorTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-        "testData/Navigation/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.NavNlEditorTest"],
-    tags = COMMON_TAGS + ["manual"],  #BasicLayoutTest failed for UI reason
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ConstraintLayoutTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-        "testData/LayoutTest/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutTest"],
-    tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "GradleSyncTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.GradleSyncTest"],
-    tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "VerifyJavaKotlinXmlCodeStylesTest",
     size = "large",
     data = COMMON_DATA + [
@@ -791,21 +674,6 @@ java_test(
 )
 
 java_test(
-    name = "NewModuleTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-        "testData/LocalJarsAsModules/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NewModuleTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/110178024
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "UpdateBuildTypesTest",
     size = "large",
     data = COMMON_DATA + [
@@ -817,24 +685,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LayoutInspectorTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-        "testData/LayoutInspector/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "noci:studio-win",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -908,15 +758,6 @@ java_test(
 )
 
 java_test(
-    name = "AndroidProfilerTest",
-    data = COMMON_DATA + glob(["testData/MinimalMinSdk26Apk/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.profiler.AndroidProfilerTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/154963251
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "DeploymentTest",
     size = "large",
     data = COMMON_DATA + [
@@ -938,63 +779,6 @@ java_test(
         "noci:studio-win",
         "ui_test",
     ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "TerminateAdbIfNotUsedTest",
-    data = COMMON_DATA + glob(["testData/simple/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.adb.TerminateAdbIfNotUsedTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/154963251
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ConsentDialogOptinTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.analytics.ConsentDialogOptinTest -Denable.android.analytics.consent.dialog.for.test=true -Denable.android.analytics.logging.for.test=true"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ConsentDialogDeclineTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.analytics.ConsentDialogDeclineTest -Denable.android.analytics.consent.dialog.for.test=true -Denable.android.analytics.logging.for.test=false"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LoggingEnabledTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.analytics.LoggingEnabledTest -Denable.android.analytics.logging.for.test=true"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LoggingDisabledTest",
-    data = COMMON_DATA,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.analytics.LoggingDisabledTest -Denable.android.analytics.logging.for.test=false"],
-    tags = COMMON_TAGS + ["manual"],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "EmbeddedEmulatorTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/android-emulator:emulator",
-    ] + glob(["testData/TextInput/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.end2end.EmbeddedEmulatorTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/154963251
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -1052,20 +836,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateDefaultActivityTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",  # fails 0 out of 3000 runs
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "GenerateApkWithReleaseVariantTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.GenerateApkWithReleaseVariantTest"],
-    tags = COMMON_TAGS + [
-        "qa_smoke",  # b/110178024
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1272,21 +1042,6 @@ java_test(
 )
 
 java_test(
-    name = "ComponentSelectionSplitViewTest",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob(["testData/SimpleApplication/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ComponentSelectionSplitViewTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "ui_test",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "OpenCloseVisualizationToolTest",
     size = "large",
     data = COMMON_DATA + [
@@ -1299,27 +1054,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "FlavorsExecutionTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleFlavoredApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsExecutionTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "qa_smoke",
-        "qa_smoke_unreliable",  # b/160247726
-        "qa_unreliable",  # b/160247726
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1480,42 +1214,6 @@ java_test(
 )
 
 java_test(
-    name = "NewModuleWithVersionCatalogTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleAndroidxApplicationWithConventionalDefaultToml/**",
-    ]) + glob([
-        "testData/SimpleAndroidxApplicationVersionCatalogInBuildScript/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.versioncatalog.NewModuleWithVersionCatalogTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "ui_test",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ModuleVariantConflictTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/ModuleVariantConflicts/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.ModuleVariantConflictTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "ui_test",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "CreateCppKotlinProjectTest",
     size = "large",
     data = COMMON_DATA + [
@@ -1547,42 +1245,6 @@ java_test(
 )
 
 java_test(
-    name = "AbiSplitApksTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AbiSplitApksTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "no_crostini",
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "X86AbiSplitApksTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "no_crostini",
-        "noci:studio-win",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "LocalApkProjTest",
     size = "large",
     data = COMMON_DATA + glob([
@@ -1592,25 +1254,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "InstallPackageTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.sdkmanager.InstallPackageTest"],
-    tags = [
-        "cpu:100",
-        "no-remote",
-        "noci:studio-win",
-        "qa_smoke",
-        "qa_smoke_emu",  # Run together with emulators because the test needs to run alone
-        "requires-network",
-        "requires_emulator",  # Run together with emulators because the test needs to run alone
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1635,37 +1278,6 @@ config_setting(
     define_values = {
         "external_emulator": "true",
     },
-)
-
-java_test(
-    name = "DebugOnEmulatorTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }),
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.DebugOnEmulatorTest",
-    ],
-    # do not sort: the beginning of this list is copied from COMMON_TAGS
-    tags = [
-        "block-network",
-        "noci:studio-win",
-        "qa_smoke",
-        "qa_smoke_emu",
-        "requires_emulator",
-        "cpu:100",
-        "qa_smoke_unreliable_emu",  # intend to run it here to see stable smoke ui tests running time
-        "qa_unreliable",  # intend to run it here to see stable smoke ui tests running time
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
 java_test(
@@ -1781,25 +1393,6 @@ java_test(
 )
 
 java_test(
-    name = "ComponentSelectionTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + [
-        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "@maven//:com.android.support.support-annotations_28.0.0",
-        "@maven//:com.android.support.appcompat-v7_26.1.0",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]) + glob(["testData/LayoutTest/**"]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ComponentSelectionTest"],
-    tags = COMMON_TAGS + ["manual"],  # b/267327815,
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "CreateNavNIGraphTest",
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
@@ -1856,102 +1449,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# TODO(b/331230661): Enable the test once the bug is fixed in linux, mac and chrome
-
-java_test(
-    name = "DualDebuggerBreakpointsTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.DualDebuggerBreakpointsTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_smoke",  # b/128932526
-        "qa_smoke_emu",  # b/128932526
-        "qa_smoke_unreliable_emu",  # b/128932526
-        "qa_unreliable",  # b/128932526
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "RunInstrumentationTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/InstrumentationTest/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunInstrumentationTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_smoke",
-        "qa_smoke_emu",
-        "qa_smoke_unreliable",  # b/145991485
-        "qa_unreliable",  # b/145991485
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "EspressoRecorderTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        ":espresso_recorder_deps",
-        "//prebuilts/studio/sdk:emulator",
-        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
-    ] + select({
-        "@platforms//os:linux": ["//tools/adt/idea/studio:android-studio.linux.zip"],
-        "//conditions:default": [],
-    }),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.espresso.EspressoRecorderTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_smoke",
-        "qa_smoke_emu",
-        "qa_smoke_unreliable_emu",  # b/77635374
-        "qa_unreliable",  # b/77635374
-        "requires_emulator",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2207,20 +1704,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_unreliable",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "LintTest",
-    data = COMMON_DATA + glob([
-        "testData/LintTest/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.lint.LintTest"],
-    tags = COMMON_TAGS + [
-        "noci:studio-win",
-        "qa_fast",  # b/110178024
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2572,22 +2055,6 @@ java_test(
 )
 
 java_test(
-    name = "ThemeEditorTest",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:runtime",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ThemeEditorTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "ConstraintLayoutResizeHandleTest",
     size = "large",
     data = COMMON_DATA + [
@@ -2864,274 +2331,6 @@ java_test(
 )
 
 java_test(
-    name = "BuildAndRunCMakeProjectTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.BuildAndRunCMakeProjectTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "qa_fast_unreliable_emu",
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "JavaDebuggerTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.JavaDebuggerTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AutoDebuggerInNdkProjectTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/NdkHelloJni/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AutoDebuggerInNdkProjectTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_unreliable_emu",
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "DualDebuggerInNdkProjectTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/NdkHelloJni/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.DualDebuggerInNdkProjectTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "qa_fast_unreliable_emu",
-        "qa_unreliable",
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NativeDebuggerInNdkProjectTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/NdkHelloJni/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.NativeDebuggerInNdkProjectTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "qa_fast_unreliable_emu",
-        "qa_unreliable",
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "WatchpointTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/WatchpointTestAppForUI/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.WatchpointTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "qa_fast_unreliable_emu",
-        "qa_unreliable",
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "NativeDebuggerBreakpointsTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.NativeDebuggerBreakpointsTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "qa_fast_unreliable_emu",  # b/137669728
-        "qa_unreliable",  # b/137669728
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "SessionRestartTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/BasicCmakeAppForUI/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.SessionRestartTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "qa_fast_unreliable_emu",  # b/137669728
-        "qa_unreliable",  # b/137669728
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "SmartStepIntoTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/debugger/SmartStepIntoCmakeApp/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.SmartStepIntoTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "qa_fast_unreliable_emu",  # b/138743860
-        "qa_unreliable",  # b/138743860
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "NdkSxsTest",
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.NdkSxsTest"],
@@ -3151,21 +2350,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
     tags = COMMON_TAGS + [
         "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateFromPreexistingApkTest",
-    data = COMMON_DATA + glob([
-        "testData/ApkDebug/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateFromPreexistingApkTest"],
-    tags = COMMON_TAGS + [
-        "manual",
-        "noci:studio-win",
-        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -3197,120 +2381,6 @@ java_test(
     tags = COMMON_TAGS + [
         "noci:studio-win",
         "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "CreateAPKProjectTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/ApkDebug/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/python/linux-x86",
-        "//prebuilts/tools:lldb",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateAPKProjectTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "InstantAppRunFromCmdLineTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/TopekaInstantApp/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }),
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.InstantAppRunFromCmdLineTest",
-    ],
-    # do not sort: the beginning of this list is copied from COMMON_TAGS
-    tags = [
-        "block-network",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "requires_emulator",
-        "cpu:100",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "ImportAndRunInstantAppTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/InstantAppsService/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }),
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.ImportAndRunInstantAppTest",
-    ],
-    # do not sort: the beginning of this list is copied from COMMON_TAGS
-    tags = [
-        "block-network",
-        "noci:studio-win",
-        "slow",
-        "qa_fast",
-        "qa_fast_emu",
-        "requires_emulator",
-        "cpu:100",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "InstrumentationTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/KotlinInstrumentation/**",
-    ]) + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.InstrumentationTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "noci:studio-win",
-        "qa_fast",
-        "qa_fast_emu",
-        "requires_emulator",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

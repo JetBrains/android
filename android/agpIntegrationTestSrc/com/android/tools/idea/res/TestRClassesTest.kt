@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
@@ -325,6 +326,56 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.checkHighlighting()
   }
+
+  companion object {
+    val ALL_R_CLASS_NAMES = listOf(
+      "android.arch.core.R",
+      "android.arch.lifecycle.livedata.core.R",
+      "android.arch.lifecycle.livedata.R",
+      "android.arch.lifecycle.R",
+      "android.arch.lifecycle.viewmodel.R",
+      "android.support.graphics.drawable.R",
+      "android.support.v7.appcompat.R",
+      "android.support.asynclayoutinflater.R",
+      "android.support.coordinatorlayout.R",
+      "android.support.cursoradapter.R",
+      "android.support.customview.R",
+      "android.support.documentfile.R",
+      "android.support.drawerlayout.R",
+      "android.support.interpolator.R",
+      "android.support.loader.R",
+      "android.support.localbroadcastmanager.R",
+      "android.support.print.R",
+      "android.support.slidingpanelayout.R",
+      "android.support.compat.R",
+      "android.support.coreui.R",
+      "android.support.coreutils.R",
+      "android.support.fragment.R",
+      "android.support.graphics.drawable.R",
+      "android.support.swiperefreshlayout.R",
+      "androidx.versionedparcelable.R",
+      "android.support.v7.viewpager.R",
+      "com.example.projectwithappandlib.lib.test.R",
+      "com.example.projectwithappandlib.lib.test.R",
+      "com.example.projectwithappandlib.lib.R",
+      "com.example.projectwithappandlib.lib.R",
+      "com.example.projectwithappandlib.app.R",
+      "com.example.projectwithappandlib.app.R",
+      "com.example.projectwithappandlib.lib.R",
+      "com.example.projectwithappandlib.lib.R",
+      "com.example.projectwithappandlib.app.R",
+      "com.example.projectwithappandlib.app.R",
+      "com.example.projectwithappandlib.app.test.R",
+      "com.example.projectwithappandlib.app.test.R",
+    )
+
+    val ADDITIONAL_R_CLASS_NAMES = listOf(
+      "android.support.v7.cardview.R",
+      "android.support.design.R",
+      "android.support.v7.recyclerview.R",
+      "android.support.transition.R",
+    )
+  }
 }
 
 /**
@@ -515,18 +566,24 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     val libModule = getModule("lib")
     val service = ProjectLightResourceClassService.getInstance(project)
 
-    assertThat(service.getLightRClassesDefinedByModule(appModule).map { it.qualifiedName }).containsExactly(
+    assertThat(service.getLightRClassesDefinedByModule(appModule.getMainModule()).map { it.qualifiedName }).containsExactly(
       "com.example.projectwithappandlib.app.R",
     )
     assertThat(service.getLightRClassesDefinedByModule(appModule.getAndroidTestModule()!!).map { it.qualifiedName }).containsExactly(
       "com.example.projectwithappandlib.app.test.R",
     )
-    assertThat(service.getLightRClassesDefinedByModule(libModule).map { it.qualifiedName }).containsExactly(
+    assertThat(service.getLightRClassesDefinedByModule(libModule.getMainModule()).map { it.qualifiedName }).containsExactly(
       "com.example.projectwithappandlib.lib.R",
     )
     assertThat(service.getLightRClassesDefinedByModule(libModule.getAndroidTestModule()!!).map { it.qualifiedName }).containsExactly(
       "com.example.projectwithappandlib.lib.test.R",
     )
+  }
+
+  fun testAllClasses() {
+    val service = ProjectLightResourceClassService.getInstance(project)
+    val allClassNames = service.allLightRClasses.map { it.qualifiedName }
+    assertThat(allClassNames).containsExactlyElementsIn(ALL_R_CLASS_NAMES)
   }
 
   fun testUseScope() {
@@ -689,6 +746,12 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
   }
 
+  fun testAllClasses() {
+    val service = ProjectLightResourceClassService.getInstance(project)
+    val allClassNames = service.allLightRClasses.map { it.qualifiedName }
+    assertThat(allClassNames).containsExactlyElementsIn(ALL_R_CLASS_NAMES + ADDITIONAL_R_CLASS_NAMES)
+  }
+
   fun testLibAndroidResourcesEnabled() {
     doTestLibAndroidResourcesEnabled()
   }
@@ -711,6 +774,19 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testNavigateToDefinitionKotlinToAppResource() {
     doTestNavigateToDefinitionKotlinToAppResource()
+  }
+}
+
+class ConstantIdsRClassesTest : TestRClassesTest() {
+  override fun modifyGradleFiles(projectRoot: File) {
+    super.modifyGradleFiles(projectRoot)
+    File(projectRoot, "gradle.properties").appendText("android.nonFinalResIds=false")
+  }
+
+  fun testAllClasses() {
+    val service = ProjectLightResourceClassService.getInstance(project)
+    val allClassNames = service.allLightRClasses.map { it.qualifiedName }
+    assertThat(allClassNames).containsExactlyElementsIn(ALL_R_CLASS_NAMES + ADDITIONAL_R_CLASS_NAMES)
   }
 }
 

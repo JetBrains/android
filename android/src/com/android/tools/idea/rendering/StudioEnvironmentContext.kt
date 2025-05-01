@@ -18,6 +18,8 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
+import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.analytics.crash.CrashReporter
 import com.android.tools.fonts.DownloadableFontCacheService
@@ -25,6 +27,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.LAYOUTLIB_NATIVE_MEMORY_CLEAN
 import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
@@ -42,6 +45,8 @@ import com.android.tools.rendering.api.NavGraphResolver
 import com.android.tools.rendering.parsers.RenderXmlFile
 import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.sdk.AndroidPlatform
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
@@ -59,6 +64,8 @@ import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import java.lang.ref.WeakReference
+
+private val LOG = Logger.getInstance(StudioEnvironmentContext::class.java)
 
 /** Studio-specific implementation of [EnvironmentContext]. */
 class StudioEnvironmentContext(private val module: Module) : EnvironmentContext {
@@ -145,6 +152,25 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   // We only track allocations in testing mode
   override fun isInTest(): Boolean = GuiTestingService.getInstance()?.isGuiTestingMode == true ||
                                          ApplicationManager.getApplication()?.isUnitTestMode == true
+
+  override fun cleanLayoutlibNativeMemory() {
+    LOG.warn("Native memory usage by layoutlib is high, run GC to reclaim what is associated with Java objects.")
+    if (!LAYOUTLIB_NATIVE_MEMORY_CLEAN.get()) {
+      return
+    }
+    if (AnalyticsSettings.optedIn) {
+      val layoutEditorEventBuilder =
+        LayoutEditorEvent.newBuilder()
+          .setType(LayoutEditorEvent.LayoutEditorEventType.NATIVE_MEMORY_GC)
+      val studioEvent =
+        AndroidStudioEvent.newBuilder()
+          .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+          .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+          .setLayoutEditorEvent(layoutEditorEventBuilder.build())
+      UsageTracker.log(studioEvent)
+    }
+    System.gc()
+  }
 
   override val downloadableFontCacheService: DownloadableFontCacheService
     get() = StudioDownloadableFontCacheService.getInstance()

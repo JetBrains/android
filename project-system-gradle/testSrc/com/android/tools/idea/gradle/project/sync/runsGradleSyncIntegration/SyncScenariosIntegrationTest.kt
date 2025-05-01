@@ -41,6 +41,8 @@ import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
+import com.intellij.notification.Notification
+import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
@@ -242,7 +244,21 @@ class SyncScenariosIntegrationTest {
       }
     """.trimIndent())
 
-    preparedProject.open { project ->
+    val received = mutableListOf<Notification>()
+
+    preparedProject.open(updateOptions = {
+      it.copy(
+        subscribe = { connection ->
+          connection.subscribe(Notifications.TOPIC, object : Notifications {
+            override fun notify(notification: Notification) {
+              received.add(notification)
+            }
+          }
+          )
+        }
+      )
+    })
+    { project ->
       val modules = ModuleManager.getInstance(project).modules
       assertThat(modules).hasLength(5)
       assertThat(modules.map(Module::getName).sorted()).containsExactly(
@@ -252,6 +268,11 @@ class SyncScenariosIntegrationTest {
       assertThat(roots.map { it.url }).doesNotContain(
         preparedProject.root.resolve("app/src/test/resources").toPath()
           .toVirtualFileUrl(WorkspaceModel.getInstance(project).getVirtualFileUrlManager()).url)
+      val notification = received.find { it.groupId == "Detected Gradle source sets" }
+      assertThat(notification).isNotNull()
+      assertThat(notification!!.title).isEqualTo("Non-Android source sets detected in 'app'")
+      assertThat(notification.content).isEqualTo("Gradle source sets ignored: test.")
+
     }
   }
 

@@ -53,6 +53,20 @@ class AssertInMemoryConfig(
     }
   }
 
+  fun assertGradleJdkAndValidateTableEntry(expectedJdkName: String, expectedJdkPath: String) {
+    assertGradleJdk(expectedJdkName)
+    assertGradleJdkTableEntry(expectedJdkPath)
+  }
+
+  fun assertGradleJdkTableEntry(expectedJdkPath: String, gradleRootName: String = "") {
+    val currentJdkName = ProjectJdkUtils.getGradleRootJdkNameInMemory(syncedProject, gradleRootName).orEmpty()
+    val currentJdkPath = JdkTableUtils.getJdkPathFromJdkTable(currentJdkName)
+    expect.that(currentJdkPath).isEqualTo(expectedJdkPath)
+
+    val containsValidJdkEntry = JdkTableUtils.containsValidJdkTableEntry(currentJdkName)
+    expect.that(containsValidJdkEntry).isTrue()
+  }
+
   fun assertProjectJdkAndValidateTableEntry(expectedJdkName: String, expectedJdkPath: String) {
     assertProjectJdk(expectedJdkName)
     assertProjectJdkTablePath(expectedJdkPath)

@@ -157,7 +157,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
       };
 
   private static final BlazeImportSettings DUMMY_IMPORT_SETTINGS =
-      new BlazeImportSettings("", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
+      new BlazeImportSettings("","", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
   private ExtensionPointImpl<BlazeJavaSyncAugmenter> augmenters;
 
   private BlazeContext context;

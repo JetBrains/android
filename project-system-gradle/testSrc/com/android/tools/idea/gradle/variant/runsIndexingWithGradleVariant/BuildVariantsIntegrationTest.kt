@@ -70,13 +70,21 @@ class BuildVariantsIntegrationTest {
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
 
+  // These test cases are incompatible with phased sync since we only depend on the data services to run when switching variants.
+  // Specifically, in a standard case, switching from debug to release causes androidTest module to get disposed and re-created by the
+  // data services, and the resulting module ends up being a JPS based one (since phased sync is not executed at all), altering the
+  // module file and type. So module file and type are all ignored in the test cases below.
+  //
+  // In the future, instead of going through data services we could entirely rely on backing up and restoring the workspace model
+  // representation when switching. This is left to later as there is no harm in having a different underlying module representation after
+  // switching variants.
   @Test
   fun testSwitchVariants() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.consistentConfigurationOf(project)
@@ -86,7 +94,7 @@ class BuildVariantsIntegrationTest {
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
     }
   }
 
@@ -96,7 +104,7 @@ class BuildVariantsIntegrationTest {
     preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.consistentConfigurationOf(project)
@@ -106,7 +114,7 @@ class BuildVariantsIntegrationTest {
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
     }
   }
 
@@ -158,7 +166,7 @@ class BuildVariantsIntegrationTest {
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
       expect.thatModuleVariantIs(project, ":lib", "debug")
-      val basicDebugSnapshot = project.saveAndDump()
+      val basicDebugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "basicRelease")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
@@ -171,7 +179,7 @@ class BuildVariantsIntegrationTest {
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
       expect.thatModuleVariantIs(project, ":lib", "debug")
-      expect.that(project.saveAndDump()).isEqualTo(basicDebugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(basicDebugSnapshot)
     }
   }
 
@@ -186,7 +194,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "x86")
-      val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
@@ -203,7 +211,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "x86")
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
     }
   }
 
@@ -245,7 +253,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "armeabi-v7a")
       expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "armeabi-v7a")
-      val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "xxRelease")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
@@ -263,7 +271,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "armeabi-v7a")
       expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "armeabi-v7a")
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
     }
   }
 
@@ -278,7 +286,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "x86")
-      val x86Snapshot = project.saveAndDump()
+      val x86Snapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchAbi(project, ":app", "armeabi-v7a")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
@@ -295,7 +303,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "x86")
-      expect.that(project.saveAndDump()).isEqualTo(x86Snapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(x86Snapshot)
     }
   }
 
@@ -368,7 +376,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
       expect.thatModuleVariantIs(project, ":library2", "debug")
-      val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
@@ -383,7 +391,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
       expect.thatModuleVariantIs(project, ":library2", "debug")
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
     }
   }
 
@@ -408,13 +416,13 @@ class BuildVariantsIntegrationTest {
       switchVariant(project, ":app", "release")
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      val releaseSnapshot = project.saveAndDump()
+      val releaseSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       project.requestSyncAndWait()
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
-      expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(releaseSnapshot)
     }
   }
 
@@ -425,25 +433,25 @@ class BuildVariantsIntegrationTest {
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      debugSnapshot to project.saveAndDump()
+      debugSnapshot to project.saveAndDump(ignoreModuleFileAndType = true)
     }
     preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(releaseSnapshot)
 
       switchVariant(project, ":app", "debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
     }
   }
 
@@ -454,32 +462,32 @@ class BuildVariantsIntegrationTest {
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      val releaseSnapshot = project.saveAndDump()
+      val releaseSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
       debugSnapshot to releaseSnapshot
     }
     preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(releaseSnapshot)
     }
   }
 
@@ -489,24 +497,24 @@ class BuildVariantsIntegrationTest {
     val (debugSnapshot, releaseSnapshot) = preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      debugSnapshot to project.saveAndDump()
+      debugSnapshot to project.saveAndDump(ignoreModuleFileAndType = true)
     }
     preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(releaseSnapshot)
 
       switchVariant(project, ":app", "debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(debugSnapshot)
     }
   }
 
@@ -518,19 +526,19 @@ class BuildVariantsIntegrationTest {
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "armeabi-v7a")
-      val firstSnapshot = project.saveAndDump()
+      val firstSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "x86Debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "x86")
-      firstSnapshot to project.saveAndDump()
+      firstSnapshot to project.saveAndDump(ignoreModuleFileAndType = true)
     }
     preparedProject.open { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "x86")
-      expect.that(project.saveAndDump()).isEqualTo(secondSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(secondSnapshot)
 
       switchAbi(project, ":app", "arm64-v8a")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
@@ -541,13 +549,13 @@ class BuildVariantsIntegrationTest {
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "armeabi-v7a")
-      expect.that(project.saveAndDump()).isEqualTo(firstSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(firstSnapshot)
 
       switchAbi(project, ":app", "x86")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "x86")
-      expect.that(project.saveAndDump()).isEqualTo(secondSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(secondSnapshot)
 
       switchVariant(project, ":app", "enableAllAbisDebug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
@@ -606,7 +614,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":app2", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
       expect.thatModuleVariantIs(project, ":library2", "debug")
-      val allDebugSnapshot = project.saveAndDump()
+      val allDebugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
@@ -639,7 +647,7 @@ class BuildVariantsIntegrationTest {
       expect.thatModuleVariantIs(project, ":app2", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
       expect.thatModuleVariantIs(project, ":library2", "debug")
-      expect.that(project.saveAndDump()).isEqualTo(allDebugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(allDebugSnapshot)
     }
   }
 
@@ -651,28 +659,28 @@ class BuildVariantsIntegrationTest {
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":testDependency", "debug")
-      val allDebugSnapshot = project.saveAndDump()
+      val allDebugSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":testDependency", "release")
-      val allReleaseSnapshot = project.saveAndDump()
+      val allReleaseSnapshot = project.saveAndDump(ignoreModuleFileAndType = true)
 
       switchVariant(project, ":app", "debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":testDependency", "debug")
-      expect.that(project.saveAndDump()).isEqualTo(allDebugSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(allDebugSnapshot)
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":testDependency", "release")
-      expect.that(project.saveAndDump()).isEqualTo(allReleaseSnapshot)
+      expect.that(project.saveAndDump(ignoreModuleFileAndType = true)).isEqualTo(allReleaseSnapshot)
     }
   }
 

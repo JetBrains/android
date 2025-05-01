@@ -316,6 +316,39 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   }
 
   @Test
+  fun testAssignMapCompletion() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = ma$caret
+        }
+      }
+      """.trimIndent(), """
+      androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf($caret)
+        }
+      }
+      """.trimIndent())
+  }
+
+  @Test
+  fun testAssignMapSuggestion() {
+    doTestOnPatchedSchema("""
+      androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = $caret
+        }
+      }
+      """.trimIndent())
+    { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory"
+      )
+    }
+  }
+
+  @Test
   fun testAppendList() {
     doCompletionTestPatchedSchema("""
       androidApp {
@@ -872,6 +905,29 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
     """) { suggestions ->
       Truth.assertThat(suggestions.toList()).contains("layout"  to "Property")
+    }
+  }
+
+  @Test
+  fun testMapOfPair() {
+    doTestOnPatchedSchema("""
+       androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf("a"$caret)
+        }
+       }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
+    }
+
+    doTestOnPatchedSchema("""
+       androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf("a" $caret)
+        }
+       }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
     }
   }
 

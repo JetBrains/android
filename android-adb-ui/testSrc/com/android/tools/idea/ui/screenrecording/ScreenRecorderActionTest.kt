@@ -34,15 +34,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-/**
- * Tests for [ScreenRecorderAction]
- *
- * Based on com.android.tools.idea.ddms.actions.ScreenRecorderActionTest.
- * We only include tests that exist in the above file, so we don't lose coverage. Tests of getTemporaryVideoPathForVirtualDevice() are not
- * included because the new impl of this function is simpler and doesn't require these tests.
- *
- * The getEmulatorScreenRecorderOptions() has been moved to EmulatorConsoleRecordingProviderTest
- */
+/** Tests for [ScreenRecorderAction]. */
+// TODO(b/235094713): Add tests for action execution. Only updating is currently tested.
 class ScreenRecorderActionTest {
   private val projectRule = ProjectRule()
 

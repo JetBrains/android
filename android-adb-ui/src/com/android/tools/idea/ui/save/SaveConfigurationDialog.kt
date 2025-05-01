@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.save
 
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
+import com.google.common.html.HtmlEscapers
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.PathChooserDialog
@@ -28,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtilRt.getExtension
 import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
 import com.intellij.ui.TextAccessor
 import com.intellij.ui.components.dialog
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
 import com.intellij.ui.dsl.builder.HyperlinkEventAction
@@ -56,13 +58,13 @@ internal class SaveConfigurationDialog(
 ) {
 
   val saveLocation: String
-    get() = saveConfigResolver.generalizeSaveLocation(saveLocationInternal.trim())
+    get() = saveConfigResolver.generalizeSaveLocation(expandedSaveLocation.trim())
   val filenameTemplate: String
     get() = normalizeFilename(filenameTemplateInternal).replace(File.separatorChar, '/')
   var postSaveAction: PostSaveAction = postSaveAction
     private set
   private val saveConfigResolver = project.service<SaveConfigurationResolver>()
-  private var saveLocationInternal: String = saveConfigResolver.expandSaveLocation(saveLocation).replace('/', File.separatorChar)
+  private var expandedSaveLocation: String = saveConfigResolver.expandSaveLocation(saveLocation)
   private var filenameTemplateInternal: String = filenameTemplate.replace('/', File.separatorChar)
   private lateinit var preview: JEditorPane
   private lateinit var saveLocationField: TextAccessor
@@ -81,7 +83,7 @@ internal class SaveConfigurationDialog(
         textFieldWithBrowseButton(fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
           .also { it.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, false) })
           .columns(COLUMNS_LARGE)
-          .bindText(::saveLocationInternal)
+          .bindText(::expandedSaveLocation)
           .validationOnInput(validation)
           .onChanged { preview.text = generatePreview() }
           .applyToComponent { saveLocationField = this }
@@ -101,18 +103,30 @@ internal class SaveConfigurationDialog(
         text(message("configure.screenshot.dialog.placeholders.description"), maxLineLength = 90)
       }
       row("") {
-        text("${placeholder("%Y")} ${message("configure.screenshot.dialog.year.4.digits")}<br>" +
-             "${placeholder("%y")} ${message("configure.screenshot.dialog.year.2.digits")}<br>" +
-             "${placeholder("%M")} ${message("configure.screenshot.dialog.month")}<br>" +
-             "${placeholder("%D")} ${message("configure.screenshot.dialog.day")}<br>" +
-             "${placeholder("%H")} ${message("configure.screenshot.dialog.hour")}<br>" +
-             "${placeholder("%m")} ${message("configure.screenshot.dialog.minute")}<br>" +
-             "${placeholder("%S")} ${message("configure.screenshot.dialog.second")}<br>" +
-             "${placeholder("%d")} ${message("configure.screenshot.dialog.sequential.number")}<br>" +
-             "${placeholder("%Nd")} ${message("configure.screenshot.dialog.sequential.number.padded")}<br>" +
-             "${placeholder("%p")} ${message("configure.screenshot.dialog.project.name")}<br>" +
-             "${placeholder(File.separator)} ${message("configure.screenshot.dialog.directory.separator")}",
-             action = hyperlinkAction)
+        panel {
+          row {
+            text("${"<yyyy>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.year.4.digits")}<br>" +
+                 "${"<yy>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.year.2.digits")}<br>" +
+                 "${"<MM>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.month")}<br>" +
+                 "${"<dd>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.day")}<br>" +
+                 "${"<HH>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.hour")}<br>" +
+                 "${"<mm>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.minute")}<br>" +
+                 "${"<ss>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.second")}",
+                 action = hyperlinkAction)
+              .widthGroup("columns").align(AlignX.LEFT)
+          }
+        }
+        panel {
+          row {
+            text("${"<zzz>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.millisecond")}<br>" +
+                 "${"<#>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.number.line1")}<br>" +
+                 "${"".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.number.line2")}<br>" +
+                 "${"<project>".toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.project.name")}<br>" +
+                 "${File.separator.toPaddedHtmlLink(10)} ${message("configure.screenshot.dialog.directory.separator")}",
+                 action = hyperlinkAction)
+              .widthGroup("columns").align(AlignX.LEFT)
+          }
+        }
       }
       row("After Saving:") {
         comboBox(PostSaveAction.entries.filter(PostSaveAction::isSupported))
@@ -120,9 +134,6 @@ internal class SaveConfigurationDialog(
       }
     }
   }
-
-  private fun placeholder(text: String): String =
-      "<code><a href='$text'><code>$text</a>${"&nbsp;".repeat(3 - text.length)}</code>"
 
   /** Creates the dialog wrapper. */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
@@ -168,7 +179,7 @@ internal class SaveConfigurationDialog(
             ValidationInfo(message("configure.screenshot.dialog.error.trailing.separator"), filenameTemplateField)
         filenamePattern.contains("..") || filenamePattern.contains(":") ->
             ValidationInfo(message("configure.screenshot.dialog.error.invalid.filename.generic"), filenameTemplateField)
-        else -> checkPath(filenamePattern)?.let {
+        else -> checkPath(generatePreview())?.let {
             ValidationInfo(message("configure.screenshot.dialog.error.invalid.filename", it), filenameTemplateField)
         }
       }
@@ -186,3 +197,11 @@ internal class SaveConfigurationDialog(
     }
   }
 }
+
+private fun String.toPaddedHtmlLink(paddedLength: Int): String =
+    "<code>${toHtmlLink()}${"&nbsp;".repeat(paddedLength - length)}</code>"
+
+private fun String.toHtmlLink(): String =
+    if (isEmpty()) "" else "<a href='$this'><code>${htmlEscape()}</a>"
+
+private fun String.htmlEscape(): String = HtmlEscapers.htmlEscaper().escape(this)

@@ -2579,9 +2579,9 @@ MODULE                        : TestCompositeLib3.lib
 MODULE                        : TestCompositeLib3.lib.androidTest
 MODULE                        : TestCompositeLib3.lib.main
 MODULE                        : TestCompositeLib3.lib.unitTest
-MODULE                        : com.test.compositeNest3.compositeNest
-MODULE                        : com.test.compositeNest3.compositeNest.main
-MODULE                        : com.test.compositeNest3.compositeNest.test
+MODULE                        : TestCompositeLibNested_3.compositeNest
+MODULE                        : TestCompositeLibNested_3.compositeNest.main
+MODULE                        : TestCompositeLibNested_3.compositeNest.test
 MODULE                        : composite2
 MODULE                        : composite2.main
 MODULE                        : composite2.test

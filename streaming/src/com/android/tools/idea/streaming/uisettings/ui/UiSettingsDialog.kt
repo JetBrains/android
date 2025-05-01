@@ -24,6 +24,7 @@ import com.intellij.ui.PopupBorder
 import com.intellij.ui.WindowMoveListener
 import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.util.ui.JBUI
+import org.jetbrains.android.util.runOnDisposalOfAnyOf
 import java.awt.Component
 import java.awt.Container
 import java.awt.KeyboardFocusManager
@@ -53,7 +54,7 @@ internal class UiSettingsDialog(
 
   init {
     init()
-    Disposer.register(parentDisposable) {
+    runOnDisposalOfAnyOf(parentDisposable, disposable) {
       close()
     }
   }

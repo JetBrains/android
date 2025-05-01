@@ -52,6 +52,12 @@ public class DeclarativePairImpl extends CompositePsiElement implements Declarat
 
   @Override
   @NotNull
+  public DeclarativePairOperator getPairOperator() {
+    return PsiTreeUtil.getChildOfType(this, DeclarativePairOperator.class);
+  }
+
+  @Override
+  @NotNull
   public DeclarativeSimpleLiteral getSimpleLiteral() {
     return PsiTreeUtil.getChildOfType(this, DeclarativeSimpleLiteral.class);
   }

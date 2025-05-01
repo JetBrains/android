@@ -133,9 +133,10 @@ private compound_literal ::= pair
 
 literal ::= atomic_literal | compound_literal { extends="simple_literal" methods=[getValue getReference getReferences] }
 private expression::= factory | pair | property | literal
-pair ::= simple_literal OP_TO expression {
+pair ::= simple_literal pair_operator expression {
   methods=[getFirst getSecond literal="" property="" factory_receiver="" factory_property_receiver=""]
 }
+pair_operator ::= OP_TO
 
 property ::= qualified | bare { methods=[getField getReceiver getReference getReferences] }
 qualified ::= property OP_DOT identifier {extends=property pin=2}

@@ -83,6 +83,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.Contract;
@@ -404,7 +405,19 @@ public class NavigationSchema implements Disposable {
   /**
    * Cache of NavigationSchemas that have been created, per Facet.
    */
-  private static final Map<Module, NavigationSchema> ourSchemas = new HashMap<>();
+  private static final Map<Module, NavigationSchema> ourSchemas = new ConcurrentHashMap<>();
+
+  private static void putSchema(@NotNull Module module, @NotNull NavigationSchema schema) {
+    NavigationSchema previousSchema = ourSchemas.put(module, schema);
+    if (schema.equals(previousSchema)) return;
+
+    // The schema has changed so notify listeners.
+    List<Runnable> listeners;
+    synchronized (ourListenerLock) {
+      listeners = new ArrayList<>(ourListeners.get(module));
+    }
+    listeners.forEach(Runnable::run);
+  }
 
   /**
    * Gets the {@code NavigationSchema} for the given {@code module}. {@link #createIfNecessary(Module)} <b>must</b> be called before
@@ -432,7 +445,7 @@ public class NavigationSchema implements Disposable {
     }
     result = new NavigationSchema(module);
     result.init();
-    ourSchemas.put(module, result);
+    putSchema(module, result);
     if (Disposer.tryRegister(ModuleDisposableService.getInstance(module), result)) {
       WeakReference<NavigationSchema> navigationSchemaWeakReference = new WeakReference<>(result);
       // b/397154986
@@ -456,7 +469,7 @@ public class NavigationSchema implements Disposable {
 
   @Override
   public void dispose() {
-    ApplicationManager.getApplication().invokeLater(() -> ourSchemas.remove(myModule, this));
+    ourSchemas.remove(myModule, this);
   }
 
   /**
@@ -798,7 +811,7 @@ public class NavigationSchema implements Disposable {
           }
         }
       });
-      if (myRebuildTask == null) {
+      if (myRebuildTask == null || myRebuildTask.isCompletedExceptionally()) {
         // there was an error during init
         return;
       }
@@ -810,7 +823,7 @@ public class NavigationSchema implements Disposable {
         }
         return;
       }
-      ourSchemas.put(myModule, newVersion);
+      putSchema(myModule, newVersion);
 
       boolean registered = false;
       try {
@@ -824,11 +837,6 @@ public class NavigationSchema implements Disposable {
         myRebuildTask.complete(registered ? newVersion : new NavigationSchema(myModule));
       }
 
-      List<Runnable> listeners;
-      synchronized (ourListenerLock) {
-        listeners = new ArrayList<>(ourListeners.get(myModule));
-      }
-      listeners.forEach(Runnable::run);
       Disposer.dispose(this);
     });
     return task;
@@ -838,9 +846,11 @@ public class NavigationSchema implements Disposable {
    * Add a listener that will be run on a worker thread when schema rebuild is complete.
    * The listener will also automatically be propagated to the new NavigationSchema object.
    */
-  public static void addSchemaRebuildListener(@NotNull Module module, @NotNull Runnable listener) {
-    synchronized (ourListenerLock) {
-      ourListeners.put(module, listener);
+  public static void addSchemaRebuildListener(@NotNull Disposable parentDisposable, @NotNull Module module, @NotNull Runnable listener) {
+    if (Disposer.tryRegister(parentDisposable, () -> removeSchemaRebuildListener(module, listener))) {
+      synchronized (ourListenerLock) {
+        ourListeners.put(module, listener);
+      }
     }
   }
 

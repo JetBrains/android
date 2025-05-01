@@ -31,7 +31,7 @@ internal interface ActionHelper {
    *
    * @return null if there is more than one target or if the target is not running
    */
-  suspend fun getDeployTargetSerial(project: Project): String?
+  fun getDeployTargetSerial(project: Project): String?
 
   /**
    * Returns true if a compatible app is installed

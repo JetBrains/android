@@ -22,6 +22,7 @@ import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
@@ -94,8 +95,7 @@ class RoomSchemaManager(val module: Module) {
   private fun buildSchema(module: Module, includeTests: Boolean): RoomSchema? {
     val scope = module.getModuleWithDependenciesAndLibrariesScope(includeTests)
 
-    if (!isRoomPresentInScope(scope)) return null
-
+    if (!module.project.service<RoomDependencyChecker>().isRoomPresent()) return null
     LOG.debug { "Recalculating Room schema for module ${module.name} ${if (includeTests) "including" else "excluding"} tests" }
 
     val psiFacade = JavaPsiFacade.getInstance(module.project) ?: return null
@@ -121,11 +121,13 @@ class RoomSchemaManager(val module: Module) {
     annotation: AndroidxName,
     processor: (PsiClass) -> T?
   ): Set<T> {
-    val result = HashSet<T>()
-    annotation.bothNames { name ->
-      psiFacade.findClass(name, scope)?.let { searchPsiClasses(it, scope).findAll().mapNotNullTo(result, processor) }
+    val allScope = GlobalSearchScope.allScope(psiFacade.project)
+    return buildSet {
+      annotation.bothNames { name ->
+        val annotationClass = psiFacade.findClass(name, allScope) ?: return@bothNames
+        addAll(searchPsiClasses(annotationClass, scope).findAll().mapNotNull(processor))
+      }
     }
-    return result
   }
 
   private fun createTable(psiClass: PsiClass, type: RoomTable.Type): RoomTable? {
@@ -151,7 +153,8 @@ class RoomSchemaManager(val module: Module) {
   }
 
   private fun createColumns(psiClass: PsiClass, tableName: String, type: RoomTable.Type): Set<AndroidSqlColumn> {
-    val columns = createColumnsFromFields(psiClass, useMethods = psiClass.hasAnnotation(AUTO_VALUE_ANNOTATION)).toHashSet<AndroidSqlColumn>()
+    val columns = createColumnsFromFields(psiClass,
+                                          useMethods = psiClass.hasAnnotation(AUTO_VALUE_ANNOTATION)).toHashSet<AndroidSqlColumn>()
     val tableElement = pointerManager.createSmartPsiElementPointer(psiClass).element!!
     val primaryKeyElement = columns.find { it.isPrimaryKey }
     if (psiClass.annotations.any(::isFtsAnnotation)) {
@@ -182,7 +185,7 @@ class RoomSchemaManager(val module: Module) {
   }
 
   private fun createColumnsFromFields(psiClass: PsiClass, namePrefix: String = "", useMethods: Boolean): Sequence<RoomMemberColumn> {
-    val members:MutableList<PsiMember> = psiClass.allFields.toMutableList()
+    val members: MutableList<PsiMember> = psiClass.allFields.toMutableList()
     if (useMethods) {
       members.addAll(psiClass.methods)
     }
@@ -194,7 +197,8 @@ class RoomSchemaManager(val module: Module) {
         val embeddedAnnotation = psiMember.modifierList?.findAnnotation(RoomAnnotations.EMBEDDED)
         if (embeddedAnnotation != null) {
           createColumnsFromEmbeddedField(psiMember, embeddedAnnotation, namePrefix)
-        } else {
+        }
+        else {
           val thisField = getNameAndNameElement(
             psiMember as? PsiField ?: psiMember as PsiMethod,
             annotationName = RoomAnnotations.COLUMN_INFO,
@@ -232,13 +236,16 @@ class RoomSchemaManager(val module: Module) {
   }
 
   private fun PsiAnnotation.extractClassesFromAttribute(attribute: String): Set<PsiClassPointer> = findDeclaredAttributeValue(attribute)
-  ?.let { it as? PsiArrayInitializerMemberValue }
-  ?.initializers
-  ?.mapNotNullTo(HashSet()) {
-    val classObjectAccessExpression = it as? PsiClassObjectAccessExpression ?: return@mapNotNullTo null
-    PsiUtil.resolveClassInClassTypeOnly(classObjectAccessExpression.operand.type)
-      ?.let(pointerManager::createSmartPsiElementPointer)
-  } ?: emptySet()
+                                                                                                     ?.let { it as? PsiArrayInitializerMemberValue }
+                                                                                                     ?.initializers
+                                                                                                     ?.mapNotNullTo(HashSet()) {
+                                                                                                       val classObjectAccessExpression = it as? PsiClassObjectAccessExpression
+                                                                                                                                         ?: return@mapNotNullTo null
+                                                                                                       PsiUtil.resolveClassInClassTypeOnly(
+                                                                                                         classObjectAccessExpression.operand.type)
+                                                                                                         ?.let(
+                                                                                                           pointerManager::createSmartPsiElementPointer)
+                                                                                                     } ?: emptySet()
 
   private fun createDatabase(psiClass: PsiClass, pointerManager: SmartPointerManager, daos: Set<Dao>): RoomDatabase? {
     val dataBaseAnnotation = psiClass.modifierList?.findAnnotation(RoomAnnotations.DATABASE) ?: return null
@@ -253,7 +260,8 @@ class RoomSchemaManager(val module: Module) {
           ?.let(pointerManager::createSmartPsiElementPointer)
       }
 
-    return RoomDatabase(pointerManager.createSmartPsiElementPointer(psiClass), entities = entities, daos = daosExposedInDatabase, views = views)
+    return RoomDatabase(pointerManager.createSmartPsiElementPointer(psiClass), entities = entities, daos = daosExposedInDatabase,
+                        views = views)
   }
 
   private fun <T> getNameAndNameElement(
@@ -288,7 +296,8 @@ class RoomSchemaManager(val module: Module) {
     // Property annotation it is annotation without target
     return if (annotationEntry.useSiteTarget == null) {
       annotationEntry.findArgumentExpression(annotationAttributeName)
-    } else {
+    }
+    else {
       null
     }
   }

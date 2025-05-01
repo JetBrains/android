@@ -20,6 +20,8 @@ import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.waitForCondition
+import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -44,9 +46,9 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.SameThreadExecutor
 import org.jetbrains.android.facet.AndroidFacet
@@ -56,8 +58,11 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.util.concurrent.CountDownLatch
+import javax.swing.JTextField
+import kotlin.time.Duration.Companion.seconds
 
 @RunWith(JUnit4::class)
 class StringResourceViewPanelFakeUiTest {
@@ -107,7 +112,7 @@ class StringResourceViewPanelFakeUiTest {
     assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(DEFAULT_KEYS)
     val locales = (FIXED_COLUMN_COUNT until stringResourceViewPanel.table.columnCount)
       .map(stringResourceViewPanel.table::getColumnName)
-    assertThat(locales).isEqualTo(Companion.DEFAULT_LOCALES)
+    assertThat(locales).isEqualTo(DEFAULT_LOCALES)
     assertThat(stringResourceViewPanel.table.getColumnAt(RESOURCE_FOLDER_COLUMN)).isEqualTo(List(DEFAULT_KEYS.size) { "res" })
   }
 
@@ -162,13 +167,14 @@ class StringResourceViewPanelFakeUiTest {
     val oldResources = locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it) }
     val newKey = "new_key"
 
+    // Change a key value in the table:
     stringResourceViewPanel.table.model.setValueAt(newKey, row, KEY_COLUMN)
+
     // Editing a key runs a refactor which happens in invokeLater(), so wait for that to finish.
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    waitForCondition(2.seconds) { stringResourceViewPanel.table.getValueAt(row, KEY_COLUMN) == "new_key" }
 
     assertThat(stringResourceViewPanel.table.getColumnAt(KEY_COLUMN)).isEqualTo(
-      DEFAULT_KEYS.take(row) + DEFAULT_KEYS.drop(row + 1) + newKey)
-    localResourceRepository.waitForPendingUpdates()
+      DEFAULT_KEYS.toMutableList().apply { this[row] = newKey})
     assertThat(locales.mapNotNull { getResourceItem(DEFAULT_KEYS[row], it)}).isEmpty()
 
     locales.mapNotNull { getResourceItem(newKey, it)}.zip(oldResources).forEach { (new, old) ->
@@ -205,12 +211,103 @@ class StringResourceViewPanelFakeUiTest {
     assertThat(getResourceItem(DEFAULT_KEYS[row], locale)?.resourceValue?.value).isEqualTo("new_value")
   }
 
+  @Test
+  @RunsInEdt
+  fun changeKeyInBottomPanel() {
+    stringResourceViewPanel.table.selectCellAt(1, 3)
+    val field: JTextField = stringResourceViewPanel.loadingPanel.getDescendant { it.name == "keyTextField" }
+    fakeUi.keyboard.setFocus(field)
+    field.focusListeners.forEach { it.focusGained(FocusEvent(field, FocusEvent.FOCUS_GAINED)) }
+
+    // Invalid value:
+    field.imitateEditing("b a d v a l u e")
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo("error")
+    assertThat(field.toolTipText).isEqualTo("' ' is not a valid resource name character")
+
+    // Valid change:
+    field.imitateEditing("new_key")
+    var changes = 0
+    stringResourceViewPanel.table.frozenTable.model.addTableModelListener { changes++ }
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+    assertThat(field.toolTipText).isNull()
+
+    waitForCondition(2.seconds) { changes > 0 }
+    assertThat(stringResourceViewPanel.table.data?.keys[1]?.name).isEqualTo("new_key")
+  }
+
+  @Test
+  @RunsInEdt
+  fun changeDefaultValueInBottomPanel() {
+    stringResourceViewPanel.table.selectCellAt(1, 3)
+    val component: TextFieldWithBrowseButton = stringResourceViewPanel.loadingPanel.getDescendant { it.name == "defaultValueTextField" }
+    val field = component.textField
+    fakeUi.keyboard.setFocus(field)
+    field.focusListeners.forEach { it.focusGained(FocusEvent(field, FocusEvent.FOCUS_GAINED)) }
+
+    // Invalid value:
+    field.imitateEditing("<bad value")
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo("error")
+    assertThat(field.toolTipText).isEqualTo("Invalid value")
+
+    // Valid change:
+    field.imitateEditing("New default value")
+    var changes = 0
+    stringResourceViewPanel.table.frozenTable.model.addTableModelListener { changes++ }
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+    assertThat(field.toolTipText).isNull()
+
+    waitForCondition(2.seconds) { changes > 0 }
+    val data = stringResourceViewPanel.table.data!!
+    val key = data.keys[1]
+    assertThat(data.getStringResource(key).defaultValueAsString).isEqualTo("New default value")
+  }
+
+  @Test
+  @RunsInEdt
+  fun changeTranslationInBottomPanel() {
+    stringResourceViewPanel.table.selectCellAt(1, 4)
+    val component: TextFieldWithBrowseButton = stringResourceViewPanel.loadingPanel.getDescendant { it.name == "translationTextField" }
+    val field = component.textField
+    fakeUi.keyboard.setFocus(field)
+    field.focusListeners.forEach { it.focusGained(FocusEvent(field, FocusEvent.FOCUS_GAINED)) }
+
+    // Invalid value:
+    field.imitateEditing("<bad value")
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isEqualTo("error")
+    assertThat(field.toolTipText).isEqualTo("Invalid value")
+
+    // Valid change:
+    field.imitateEditing("New default value")
+    field.imitateEditing("New translated value")
+    var changes = 0
+    stringResourceViewPanel.table.scrollableTable.model.addTableModelListener { changes++ }
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    assertThat(field.getClientProperty(OUTLINE_PROPERTY)).isNull()
+    assertThat(field.toolTipText).isNull()
+
+    waitForCondition(2.seconds) { changes > 0 }
+    val data = stringResourceViewPanel.table.data!!
+    val key = data.keys[1]
+    val locale = data.localeList[0]
+    assertThat(data.getStringResource(key).getTranslationAsString(locale)).isEqualTo("New translated value")
+  }
+
   private fun <T> LocalResourceRepository<T>.waitForPendingUpdates() {
     val latch = CountDownLatch(1)
     invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
       latch.countDown()
     }
     latch.await()
+  }
+
+  private fun JTextField.imitateEditing(newText: String) {
+    document.remove(0, document.length)
+    document.insertString(0, newText, null)
   }
 
   private fun getResourceItem(name: String, locale: Locale): ResourceItem? =

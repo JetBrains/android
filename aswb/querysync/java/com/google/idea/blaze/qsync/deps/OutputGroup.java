@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.deps;
 /** Represents an output group produced by the {@code build_dependencies.bzl} aspect. */
 public enum OutputGroup {
   JARS("qs_jars"),
+  TRANSITIVE_RUNTIME_JARS("qs_transitive_runtime_jars"),
   AARS("qs_aars"),
   GENSRCS("qs_gensrcs"),
   ARTIFACT_INFO_FILE("qs_info"),

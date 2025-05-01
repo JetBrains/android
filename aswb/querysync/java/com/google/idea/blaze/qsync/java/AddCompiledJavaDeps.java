@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.java;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
@@ -43,20 +44,37 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
   }
 
   @Override
-  public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState, Context<?> context) {
+  public void update(
+      ProjectProtoUpdate update, ArtifactTracker.State artifactState, Context<?> context) {
     ArtifactDirectoryBuilder javaDepsDir = update.artifactDirectory(ArtifactDirectories.JAVADEPS);
     Set<String> skipped = new HashSet<>();
     Set<String> seen = new HashSet<>();
     Map<String, Set<String>> libNameToJars = new HashMap<>();
+    Map<String, Label> outputJarToTarget = new HashMap<>();
+    artifactState.targets().stream()
+        .filter(target -> target.javaInfo().isPresent())
+        .forEach(
+            target -> {
+              for (BuildArtifact jar : target.javaInfo().get().outputJars()) {
+                outputJarToTarget.put(jar.digest(), target.label());
+              }
+            });
     for (TargetBuildInfo target : artifactState.targets()) {
       if (target.javaInfo().isPresent()) {
         JavaArtifactInfo javaInfo = target.javaInfo().get();
         Set<String> locallySeen = new HashSet<>();
+
         for (BuildArtifact jar :
-          javaInfo.jars().stream()
-            // Prefer already added artifactPaths.
-            .sorted(Comparator.comparing(it -> !seen.contains(it.artifactPath().toString())))
-            .toList()) {
+            javaInfo.jars().stream()
+                // Prefer already added artifactPaths.
+                .filter(
+                    jar -> {
+                      final var targetLabelByDigest = outputJarToTarget.get(jar.digest());
+                      return targetLabelByDigest == null
+                          || target.label().equals(targetLabelByDigest);
+                    })
+                .sorted(Comparator.comparing(it -> !seen.contains(it.artifactPath().toString())))
+                .toList()) {
           if (locallySeen.contains(jar.digest())) {
             skipped.add(jar.artifactPath().toString());
             continue;
@@ -65,8 +83,8 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
           seen.add(jar.artifactPath().toString());
           javaDepsDir.addIfNewer(jar.artifactPath(), jar, target.buildContext());
           libNameToJars
-            .computeIfAbsent(target.label().toString(), t -> new HashSet<>())
-            .add(javaDepsDir.path().resolve(jar.artifactPath()).toString());
+              .computeIfAbsent(target.label().toString(), t -> new HashSet<>())
+              .add(javaDepsDir.path().resolve(jar.artifactPath()).toString());
         }
       }
     }
@@ -79,26 +97,26 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
   }
 
   private void updateProjectProtoUpdateOneTargetToOneLibrary(
-    Map<String, Set<String>> libNameToJars, ProjectProtoUpdate update) {
+      Map<String, Set<String>> libNameToJars, ProjectProtoUpdate update) {
     libNameToJars.forEach(
-      (name, jars) ->
-        update
-          .library(name)
-          .addAllClassesJar(
-            jars.stream()
-              .map(
-                jar ->
-                  JarDirectory.newBuilder().setPath(jar).setRecursive(false).build())
-              .collect(toImmutableSet())));
+        (name, jars) ->
+            update
+                .library(name)
+                .addAllClassesJar(
+                    jars.stream()
+                        .map(
+                            jar ->
+                                JarDirectory.newBuilder().setPath(jar).setRecursive(false).build())
+                        .collect(toImmutableSet())));
   }
 
   private void updateProjectProtoUpdateAllJarsInOneLibrary(
-    ArtifactDirectoryBuilder javaDepsDir, ProjectProtoUpdate update) {
+      ArtifactDirectoryBuilder javaDepsDir, ProjectProtoUpdate update) {
     if (!javaDepsDir.isEmpty()) {
       update
-        .library(JAVA_DEPS_LIB_NAME)
-        .addClassesJar(
-          JarDirectory.newBuilder().setPath(javaDepsDir.path().toString()).setRecursive(true));
+          .library(JAVA_DEPS_LIB_NAME)
+          .addClassesJar(
+              JarDirectory.newBuilder().setPath(javaDepsDir.path().toString()).setRecursive(true));
       if (!update.workspaceModule().getLibraryNameList().contains(JAVA_DEPS_LIB_NAME)) {
         update.workspaceModule().addLibraryName(JAVA_DEPS_LIB_NAME);
       }

@@ -1889,6 +1889,36 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyCompileSdkWithMinor() {
+    // TODO(b/411099168): Add additional test case for the new DSL once ready
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-36.1")
+    assertEquals("compileSdkVersion", "android-36.1", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_WITH_MINOR_EXPECTED);
+  }
+
+  @Test
+  fun testAddAndApplyCompileSdkWithExtension() {
+    // TODO(b/411099168): Add additional test case for the new DSL once ready
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-34-ext14")
+    assertEquals("compileSdkVersion", "android-34-ext14", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_WITH_EXTENSION_EXPECTED);
+  }
+
+  @Test
   fun testAddAndApplyStringSdkElements() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
@@ -2324,6 +2354,92 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED)
   }
 
+  @Test
+  fun testParseUseLibrary() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    val library1 = android.useLibraries().find("library1")
+    assertThat(library1).hasSize(1)
+    assertThat(library1.get(0).name()).isEqualTo("library1")
+    assertThat(library1.get(0).required()).isTrue()
+
+    val library2 = android.useLibraries().find("library2")
+    assertThat(library2).hasSize(1)
+    assertThat(library2.get(0).name()).isEqualTo("library2")
+    assertThat(library2.get(0).required()).isFalse()
+
+    val library3 = android.useLibraries().find("library3")
+    assertThat(library3).hasSize(1)
+    assertThat(library3.get(0).name()).isEqualTo("library3")
+    assertThat(library3.get(0).required()).isTrue()
+
+    val library4 = android.useLibraries().find("library4")
+    assertThat(library4).hasSize(0);
+  }
+
+  @Test
+  fun testAddUseLibrary() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    val library1 = android.useLibraries().create("library1")
+    assertThat(library1).isNotNull()
+    assertThat(library1.name()).isEqualTo("library1")
+    assertThat(library1.required()).isTrue()
+
+    val library2 = android.useLibraries().create("library2", false)
+    assertThat(library2).isNotNull()
+    assertThat(library2.name()).isEqualTo("library2")
+    assertThat(library2.required()).isFalse()
+
+    val library3 = android.useLibraries().create("library3", true)
+    assertThat(library3).isNotNull()
+    assertThat(library3.name()).isEqualTo("library3")
+    assertThat(library3.required()).isTrue()
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED)
+  }
+
+  @Test
+  fun testDeleteUseLibrary() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    val useLibraries = android.useLibraries()
+    val library2 = useLibraries.find("library2").get(0)
+    library2.delete()
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_DELETE_USE_LIBRARY_EXPECTED)
+  }
+
+  @Test
+  fun testParseDuplicateUseLibrary() {
+    writeToBuildFile(TestFile.ANDROID_BLOCK_DUPLICATE_USE_LIBRARY)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+
+    val library1 = android.useLibraries().find("library1")
+    assertThat(library1).hasSize(3)
+    assertThat(library1.get(0).name()).isEqualTo("library1")
+    assertThat(library1.get(0).required()).isTrue()
+
+    assertThat(library1.get(1).name()).isEqualTo("library1")
+    assertThat(library1.get(1).required()).isFalse()
+
+    assertThat(library1.get(2).name()).isEqualTo("library1")
+    assertThat(library1.get(2).required()).isTrue()
+
+    val library4 = android.useLibraries().find("library2")
+    assertThat(library4).hasSize(0);
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
@@ -2419,6 +2535,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS("addAndApplyIntegerLiteralElements"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED("addAndApplyIntegerLiteralElementsExpected"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400("addAndApplyIntegerLiteralElementsExpected400"),
+    ADD_AND_APPLY_COMPILE_SDK_WITH_MINOR_EXPECTED("addAndApplyCompileSdkWithMinorExpected"),
+    ADD_AND_APPLY_COMPILE_SDK_WITH_EXTENSION_EXPECTED("addAndApplyCompileSdkWithExtensionExpected"),
     ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED("addAndApplyStringSdkElementsExpected"),
     ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400("addAndApplyStringSdkElementsExpected400"),
     REPLACE_AND_APPLY_LIST_ELEMENTS("replaceAndApplyListElements"),
@@ -2447,6 +2565,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_BUILD_TYPE_SET_INIT_WITH_EXPECTED("addBuildTypeSetInitWithExpected"),
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH("addProductFlavorSetInitWith"),
     ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED("addProductFlavorSetInitWithExpected"),
+    ANDROID_BLOCK_WITH_USE_LIBRARY("androidBlockWithUseLibrary"),
+    ANDROID_BLOCK_WITH_USE_LIBRARY_EXPECTED("androidBlockWithUseLibraryExpected"),
+    ANDROID_BLOCK_DELETE_USE_LIBRARY_EXPECTED("androidBlockDeleteUseLibraryExpected"),
+    ANDROID_BLOCK_DUPLICATE_USE_LIBRARY("androidBlockDuplicateUseLibrary"),
     EMPTY_FILE("emptyFile"),
     ;
 
@@ -2455,4 +2577,3 @@ class AndroidModelTest : GradleFileModelTestCase() {
     }
   }
 }
-

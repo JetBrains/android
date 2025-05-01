@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.client
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.formatForTests
 import com.android.tools.idea.insights.CONNECTION1
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ai.AiInsight
@@ -26,6 +27,7 @@ import com.android.tools.idea.insights.ai.InsightSource
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -35,6 +37,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 class GeminiAiInsightClientTest {
 
@@ -224,6 +228,49 @@ class GeminiAiInsightClientTest {
       .isEqualTo(AiInsight("", insightSource = InsightSource.STUDIO_BOT))
     assertThat(cache.getAiInsight(CONNECTION1, ISSUE1.id, null, CodeContextData(emptyList())))
       .isEqualTo(AiInsight("", isCached = true, insightSource = InsightSource.STUDIO_BOT))
+  }
+
+  @Test
+  fun `client omits code context when connection does not match project`() = runBlocking {
+    val client =
+      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+    val connection = mock<Connection>()
+    `when`(connection.isMatchingProject()).thenReturn(false)
+
+    val request =
+      GeminiCrashInsightRequest(
+        connection = connection,
+        issueId = ISSUE1.id,
+        variantId = null,
+        deviceName = "DeviceName",
+        apiLevel = "ApiLevel",
+        event = ISSUE1.sampleEvent,
+      )
+
+    expectedPromptText =
+      """
+      |SYSTEM
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
+      |
+      |USER
+      |Explain this exception from my app running on DeviceName with Android version ApiLevel:
+      |Exception:
+      |```
+      |retrofit2.HttpException: HTTP 401 
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      |```"""
+        .trimMargin()
+    val insight = client.fetchCrashInsight(request)
+
+    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
+
+    assertThat(insight.rawInsight).isEqualTo("a/b/c/HelloWorld1.kt,a/b/c/HelloWorld2.kt")
+    assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
+    assertThat(insight.codeContextData)
+      .isEqualTo(CodeContextData(emptyList(), contextSharingState = ContextSharingState.ALLOWED))
   }
 
   @Test

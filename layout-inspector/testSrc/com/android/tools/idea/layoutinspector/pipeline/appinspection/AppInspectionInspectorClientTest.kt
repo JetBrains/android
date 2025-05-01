@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.adblib.DeviceSelector
 import com.android.fakeadbserver.DeviceState
+import com.android.flags.junit.FlagRule
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.impl.meta.RepositoryPackages
@@ -1147,9 +1148,12 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(mock()), projectRule) { false }
+  // Fake emulator set up by `LayoutInspectorRule` doesn't play well with adblib
+  private val flagRule = FlagRule(StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE, false)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
+  val ruleChain =
+    RuleChain.outerRule(flagRule).around(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   @Test
   fun testApi29VersionBanner() = runBlocking {

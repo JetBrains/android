@@ -855,7 +855,7 @@ class EmulatorView(
         emulatorId.avdName,
         deviceSerialNumber,
         emulatorConfig.api,
-        emulatorId.avdId,
+        emulatorId.avdFolder,
         displayId,
         ::deviceDisplaySize,
         emulator)

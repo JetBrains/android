@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.screenshot
 import com.android.annotations.concurrency.Slow
 import com.intellij.openapi.Disposable
 import kotlinx.coroutines.CancellationException
-import java.io.IOException
 
 /**
  * Used in conjunction with [ScreenshotViewer].

@@ -16,17 +16,15 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.sdklib.AndroidTargetHash
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
-import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsInts
-import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsStrings
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
+import com.android.tools.idea.gradle.structure.model.helpers.maxSdkValues
+import com.android.tools.idea.gradle.structure.model.helpers.minSdkValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseFile
@@ -35,6 +33,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseReferenceOnly
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.helpers.proGuardFileValues
 import com.android.tools.idea.gradle.structure.model.helpers.signingConfigs
+import com.android.tools.idea.gradle.structure.model.helpers.targetSdkValues
 import com.android.tools.idea.gradle.structure.model.helpers.withProFileSelector
 import com.android.tools.idea.gradle.structure.model.meta.ListProperty
 import com.android.tools.idea.gradle.structure.model.meta.MapProperty
@@ -93,7 +92,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     getter = { asInt() },
     setter = { setValue(it) },
     parser = ::parseInt,
-    knownValuesGetter = ::installedSdksAsInts
+    knownValuesGetter = ::maxSdkValues
   )
 
   val minSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
@@ -105,7 +104,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     setter = { setValue(it.toIntOrNull() ?: it) },
     parser = ::parseString,
     matcher = ::matchHashStrings,
-    knownValuesGetter = ::installedSdksAsStrings
+    knownValuesGetter = ::minSdkValues
   )
 
   val multiDexEnabled: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
@@ -139,7 +138,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     setter = { setValue(it.toIntOrNull() ?: it) },
     parser = ::parseString,
     matcher = ::matchHashStrings,
-    knownValuesGetter = ::installedSdksAsStrings
+    knownValuesGetter = ::targetSdkValues
   )
 
   val testApplicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(

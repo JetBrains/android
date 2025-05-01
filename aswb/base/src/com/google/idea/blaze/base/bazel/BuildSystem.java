@@ -85,6 +85,10 @@ public interface BuildSystem {
        */
       RUN_REMOTE_QUERIES,
       /**
+       * Capability to run blaze/bazel query command with --query_file flag
+       */
+      SUPPORT_QUERY_FILE,
+      /**
        * Capability to debug Android local test
        */
       DEBUG_LOCAL_TEST
@@ -141,9 +145,14 @@ public interface BuildSystem {
   Optional<BuildInvoker> getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements);
 
   /**
-   * Get a Blaze invoker.
+   * Get a Blaze invoker. Returns the parallel invoker if the sync strategy is PARALLEL and the system supports it (for legacy sync);
+   * otherwise returns the standard invoker.
    */
   default BuildInvoker getBuildInvoker(Project project) {
+    if (Blaze.getProjectType(project) != ProjectType.QUERY_SYNC
+        && getSyncStrategy(project) == SyncStrategy.PARALLEL) {
+      return getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.BUILD_PARALLEL_SHARDS)).orElseThrow();
+    }
     return getBuildInvoker(project, ImmutableSet.of()).orElseThrow();
   }
 
@@ -162,18 +171,6 @@ public interface BuildSystem {
    * Get bazel only version. Returns empty if it's not bazel project.
    */
   Optional<String> getBazelVersionString(BlazeInfo blazeInfo);
-
-  /**
-   * Returns the parallel invoker if the sync strategy is PARALLEL and the system supports it;
-   * otherwise returns the standard invoker.
-   */
-  default BuildInvoker getDefaultInvoker(Project project) {
-    if (Blaze.getProjectType(project) != ProjectType.QUERY_SYNC
-        && getSyncStrategy(project) == SyncStrategy.PARALLEL) {
-      return getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.BUILD_PARALLEL_SHARDS)).orElseThrow();
-    }
-    return getBuildInvoker(project);
-  }
 
   /**
    * Returns invocation link for the given invocation ID.

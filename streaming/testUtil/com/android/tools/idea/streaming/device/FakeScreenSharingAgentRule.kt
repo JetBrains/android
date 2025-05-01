@@ -30,6 +30,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.tools.idea.adb.FakeAdbServiceRule
+import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.util.StudioPathManager
@@ -97,12 +98,14 @@ class FakeScreenSharingAgentRule : TestRule {
 
   override fun apply(base: Statement, description: Description): Statement {
     return projectRule.apply(
+      PreInitAndroidDebugBridgeRule().apply(
         fakeAdbRule.apply(
-            fakeAdbServiceRule.apply(
-                testEnvironment.apply(base, description),
-                description),
+          fakeAdbServiceRule.apply(
+            testEnvironment.apply(base, description),
             description),
-        description)
+          description),
+        description),
+      description)
   }
 
   private fun createFakeAdbRule(): FakeAdbRule {

@@ -1357,7 +1357,8 @@ def intellij_platform_import(name, spec):
 
     dir_archive(
         name = name + "-dist",
-        dir = "../" + name,
+        dir = "",
+        dir_relative_to_repository = True,
         files = native.glob(
             include = ["**"],
             exclude = ["spec.bzl", "BUILD.bazel", "WORKSPACE"],

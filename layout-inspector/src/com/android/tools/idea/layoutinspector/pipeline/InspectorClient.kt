@@ -319,6 +319,10 @@ private object DisconnectedSessionStatistics : SessionStatistics {
 
   override fun debuggerInUse(isPaused: Boolean) {}
 
+  override fun setOnDeviceRendering(enabled: Boolean) {}
+
+  override fun isXr(isXr: Boolean) {}
+
   override var currentModeIsLive: Boolean = false
   override var currentMode3D: Boolean = false
   override var hideSystemNodes: Boolean = true

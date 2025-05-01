@@ -17,7 +17,5 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.device.AKEYCODE_HOME
 
-/**
- * Simulates pressing the Home button on an Android device.
- */
+/** Simulates pressing the Home button on an Android device. */
 internal class DeviceHomeButtonAction : DevicePushButtonAction(AKEYCODE_HOME, configFilter = { !it.isWatch })

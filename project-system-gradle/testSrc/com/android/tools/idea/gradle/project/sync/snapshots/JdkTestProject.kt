@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.util.PathUtil
+import org.apache.commons.io.FileUtils
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import java.io.File
@@ -47,7 +48,10 @@ sealed class JdkTestProject(
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
   ) : JdkTestProject(
     agpVersion = agpVersion,
-    template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION
+    template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    patch = { projectRoot ->
+      FileUtils.deleteDirectory(projectRoot.resolve(DIRECTORY_STORE_FOLDER))
+    }
   )
 
   class SimpleApplication(

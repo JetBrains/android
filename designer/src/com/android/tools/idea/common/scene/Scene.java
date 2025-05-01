@@ -104,6 +104,7 @@ public class Scene implements SelectionListener, Disposable {
   private final SceneManager mySceneManager;
   private static final boolean DEBUG = false;
   private final HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
+  @Nullable
   private SceneComponent myRoot;
   private boolean myIsAnimated = true; // animate layout changes
 
@@ -272,10 +273,11 @@ public class Scene implements SelectionListener, Disposable {
    */
   @Nullable
   public SceneComponent getSceneComponent(@NotNull String componentId) {
-    if (myRoot == null) {
+    SceneComponent root = myRoot;
+    if (root == null) {
       return null;
     }
-    return myRoot.getSceneComponent(componentId);
+    return root.getSceneComponent(componentId);
   }
 
   public List<NlComponent> getSelection() {
@@ -358,15 +360,16 @@ public class Scene implements SelectionListener, Disposable {
 
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    if (myRoot != null) {
-      markSelection(myRoot, model);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      markSelection(root, model);
     }
   }
 
   /**
    * Given a {@link SelectionModel}, marks the corresponding SceneComponent as selected.
    */
-  private static void markSelection(SceneComponent component, SelectionModel model) {
+  private static void markSelection(@NotNull SceneComponent component, SelectionModel model) {
     component.setSelected(model.isSelected(component.getNlComponent()));
     component.setHighlighted(model.isHighlighted(component.getNlComponent()));
 
@@ -417,7 +420,8 @@ public class Scene implements SelectionListener, Disposable {
    */
   @AnyThread
   void buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
-    if (myRoot != null) {
+    SceneComponent root = myRoot;
+    if (root != null) {
       // clear the objects and release
       sceneContext.getScenePicker().foreachObject(o -> {
         if (o instanceof SecondarySelector) {
@@ -426,7 +430,7 @@ public class Scene implements SelectionListener, Disposable {
       });
 
       sceneContext.getScenePicker().reset();
-      myRoot.buildDisplayList(time, displayList, sceneContext);
+      root.buildDisplayList(time, displayList, sceneContext);
       if (DEBUG) {
         System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
       }
@@ -448,8 +452,9 @@ public class Scene implements SelectionListener, Disposable {
   @AnyThread
   public boolean layout(long time, SceneContext sceneContext) {
     boolean needsToRebuildDisplayList = false;
-    if (myRoot != null) {
-      needsToRebuildDisplayList = myRoot.layout(sceneContext, time);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      needsToRebuildDisplayList = root.layout(sceneContext, time);
       if (needsToRebuildDisplayList) {
         needsRebuildList();
       }
@@ -508,9 +513,10 @@ public class Scene implements SelectionListener, Disposable {
       myLastHoverConstraintComponent = null;
       needsRebuildList();
     }
-    if (myRoot != null) {
-      myHoverListener.find(transform, myRoot, x, y, modifiersEx);
-      mySnapListener.find(transform, myRoot, x, y, modifiersEx);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      myHoverListener.find(transform, root, x, y, modifiersEx);
+      mySnapListener.find(transform, root, x, y, modifiersEx);
     }
     repaint();
     Target closestTarget = myHoverListener.getClosestTarget(modifiersEx);
@@ -815,7 +821,8 @@ public class Scene implements SelectionListener, Disposable {
     myLastMouseX = x;
     myLastMouseY = y;
     myFilterType = FilterType.NONE;
-    if (myRoot == null) {
+    SceneComponent root = myRoot;
+    if (root == null) {
       return;
     }
 
@@ -827,7 +834,7 @@ public class Scene implements SelectionListener, Disposable {
       return true;
     });
     SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
-    myHitListener.find(transform, myRoot, x, y, modifiersEx);
+    myHitListener.find(transform, root, x, y, modifiersEx);
     myHitTarget = myHitListener.getClosestTarget(modifiersEx);
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
@@ -867,6 +874,8 @@ public class Scene implements SelectionListener, Disposable {
     if (myLastMouseX == x && myLastMouseY == y) {
       return;
     }
+    SceneComponent root = myRoot;
+    if (root == null) return;
     myLastMouseX = x;
     myLastMouseY = y;
     if (myHitTarget != null) {
@@ -891,7 +900,7 @@ public class Scene implements SelectionListener, Disposable {
       }
 
       myHitListener.setTargetFilter(target -> myHitTarget != target);
-      myHitListener.find(transform, myRoot, x, y, modifiersEx);
+      myHitListener.find(transform, root, x, y, modifiersEx);
       SceneComponent targetComponent = myHitTarget.getComponent();
       if (lassoTarget == null // No need to select LassoTarget's component.
           && targetComponent != null
@@ -967,7 +976,10 @@ public class Scene implements SelectionListener, Disposable {
 
     SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
-      myHitListener.find(transform, myRoot, x, y, modifiersEx);
+      SceneComponent root = myRoot;
+      if (root != null) {
+        myHitListener.find(transform, root, x, y, modifiersEx);
+      }
       myHitTarget.mouseRelease(x, y, myHitListener.getHitTargets());
       myHitTarget.getComponent().setDragging(false);
       if (myHitTarget instanceof MultiComponentTarget) {
@@ -1125,10 +1137,9 @@ public class Scene implements SelectionListener, Disposable {
 
   @Nullable
   public SceneComponent findComponent(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    if (myRoot == null) {
-      return null;
-    }
-    myFindListener.find(transform, myRoot, x, y, 0);
+    SceneComponent root = myRoot;
+    if (root == null) return null;
+    myFindListener.find(transform, root, x, y, 0);
     return myFindListener.getClosestComponent();
   }
 
@@ -1137,10 +1148,11 @@ public class Scene implements SelectionListener, Disposable {
                            @AndroidDpCoordinate int x,
                            @AndroidDpCoordinate int y,
                            @InputEventMask int modifiersEx) {
-    if (myRoot == null) {
+    SceneComponent root = myRoot;
+    if (root == null) {
       return null;
     }
-    myFindListener.find(transform, myRoot, x, y, modifiersEx);
+    myFindListener.find(transform, root, x, y, modifiersEx);
     return myFindListener.getClosestTarget(modifiersEx);
   }
 
@@ -1225,7 +1237,10 @@ public class Scene implements SelectionListener, Disposable {
    */
   public List<Placeholder> getPlaceholders(@Nullable SceneComponent requester, @NotNull List<SceneComponent> draggedComponents) {
     ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
-    doGetPlaceholders(builder, myRoot, requester, draggedComponents);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      doGetPlaceholders(builder, root, requester, draggedComponents);
+    }
     return builder.build();
   }
 

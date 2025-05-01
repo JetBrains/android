@@ -114,12 +114,13 @@ internal class BackupManagerImplTest {
       project.basePath?.let { Path.of(it) }?.resolve("file.backup")
         ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
+    val apps = setOf("app1", "app2", "app3")
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("app3"))
     project.replaceService(
       ProjectAppsProvider::class.java,
       object : ProjectAppsProvider {
         override fun getApplicationIds(): Set<String> {
-          return setOf("app1", "app2", "app3")
+          return apps
         }
       },
       disposableRule.disposable,
@@ -135,7 +136,7 @@ internal class BackupManagerImplTest {
         emptyList(),
         RUN_CONFIG,
         notify = true,
-        isBackupEnabled = true,
+        apps.associateWith { true },
       )
     }) { dialogWrapper ->
       val dialog = dialogWrapper as BackupDialog

@@ -52,8 +52,8 @@ private val WARNING_DTD_HTML =
       </head>
       <body>
         App-data won't be backed up as allowBackup property is false.<br>Backup 
-        may contain Restore Keys, if present for the app.<br>(<a href="http://bar.com/">Learn 
-        more</a>)
+        may contain Restore Keys, if present for the app.<br>(<a href="learn-more">Learn 
+        more</a>, <a href="enable-backup">Enable in manifest</a>)
       </body>
     </html>
 """
@@ -67,8 +67,8 @@ private val WARNING_CLOUD_HTML =
       </head>
       <body>
         App-data won't be backed up as allowBackup property is false.<br>Restore 
-        Keys backup is not supported via this tool for Cloud.<br>backup type. (<a href="http://bar.com/">Learn 
-        more</a>)
+        Keys backup is not supported via this tool for Cloud.<br>backup type. (<a href="learn-more">Learn 
+        more</a>, <a href="enable-backup">Enable in manifest</a>)
       </body>
     </html>
 """
@@ -347,12 +347,17 @@ class BackupDialogTest {
 
   private fun createDialog(
     initialApplication: String = "app",
-    debuggableApps: List<String> = emptyList(),
+    debuggableApps: List<String> = listOf(initialApplication),
     isBackupEnabled: Boolean = true,
     dialogInteractor: (BackupDialog) -> Unit,
   ) {
     createModalDialogAndInteractWithIt(
-      BackupDialog(project, initialApplication, debuggableApps, isBackupEnabled)::show
+      BackupDialog(
+        project,
+        initialApplication,
+        debuggableApps,
+        mapOf(initialApplication to isBackupEnabled),
+      )::show
     ) {
       dialogInteractor(it as BackupDialog)
     }

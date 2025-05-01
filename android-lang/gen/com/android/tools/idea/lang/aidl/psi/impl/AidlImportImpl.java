@@ -50,8 +50,7 @@ public class AidlImportImpl extends AidlPsiCompositeElementImpl implements AidlI
   }
 
   @Override
-  @Nullable
-  public PsiElement resolve() {
+  public @Nullable PsiElement resolve() {
     return AidlPsiUtil.resolve(this);
   }
 

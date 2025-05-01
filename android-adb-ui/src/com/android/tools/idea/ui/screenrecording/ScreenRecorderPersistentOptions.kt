@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.screenrecording
 
 import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfigurationResolver
+import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.convertFilenameTemplateFromOldFormat
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
@@ -39,7 +40,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
   var showTaps: Boolean = false
   var useEmulatorRecording: Boolean = true
   var saveLocation: String = SaveConfigurationResolver.DEFAULT_SAVE_LOCATION
-  var filenameTemplate: String = "Screen_recording_%Y%M%D_%H%m%S"
+  var filenameTemplate: String = "Screen_recording_<yyyy><MM><dd>_<HH><mm><ss>"
   var postSaveAction: PostSaveAction = PostSaveAction.OPEN
   var recordingCount: Int = 0
 
@@ -52,6 +53,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
 
   override fun loadState(state: ScreenRecorderPersistentOptions) {
     XmlSerializerUtil.copyBean(state, this)
+    filenameTemplate = convertFilenameTemplateFromOldFormat(filenameTemplate)
   }
 
   fun toScreenRecorderOptions(displayId: Int, size: Dimension?, timeLimitSec: Int): ScreenRecorderOptions {

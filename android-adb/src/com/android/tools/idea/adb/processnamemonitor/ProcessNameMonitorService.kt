@@ -39,7 +39,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlinx.coroutines.flow.Flow
 
-private const val LOGCAT_PROTO_SUPPORT_SDK = 35
+private const val LOGCAT_PROTO_SUPPORT_SDK = 36
 
 /** A trivial [ProcessNameMonitor] that delegates to [ProcessNameMonitorImpl] */
 internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor, Disposable {

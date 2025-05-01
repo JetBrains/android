@@ -38,8 +38,9 @@ class TemplateResolver {
             "Basic Headset Activity" -> StudioFlags.NPW_ENABLE_XR_TEMPLATE.get()
             "Navigation UI Activity" -> StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()
             "Bottom Navigation Views Activity",
-            "Navigation Drawer Views Activity",
-             -> !StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()
+            "Navigation Drawer Views Activity" ->
+              !StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.get()
+            "Journey File" -> StudioFlags.JOURNEYS_WITH_GEMINI_TEMPLATE.get()
             else -> true
           }
         }

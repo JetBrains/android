@@ -27,7 +27,6 @@ public interface AidlImport extends AidlPsiCompositeElement {
   @NotNull
   AidlQualifiedName getQualifiedName();
 
-  @Nullable
-  PsiElement resolve();
+  @Nullable PsiElement resolve();
 
 }

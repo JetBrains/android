@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dcl.lang.sync.ClassType
 import com.android.tools.idea.gradle.dcl.lang.sync.Entry
 import com.android.tools.idea.gradle.dcl.lang.sync.FullName
 import com.android.tools.idea.gradle.dcl.lang.sync.GradleSchemaProjectResolver
+import com.android.tools.idea.gradle.dcl.lang.sync.SchemaFunction
 import com.intellij.ide.troubleshooting.scale
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -74,6 +75,9 @@ data class BuildDeclarativeSchemas(val settings: Set<BuildDeclarativeSchema>, va
 
   fun getAugmentedTypes(fileName: String): Map<FullName, List<AugmentationKind>> =
     getSchemas(fileName).flatMap { schema -> schema.augmentedTypes.map { it.toPair() } }.toMap()
+
+  fun getInfixFunctions(fileName: String): Map<String, SchemaFunction> =
+    getSchemas(fileName).flatMap { schema -> schema.infixFunctionsMap.map { it.toPair() } }.toMap()
 
   private fun isSettings(name: String) = name == "settings.gradle.dcl"
 }

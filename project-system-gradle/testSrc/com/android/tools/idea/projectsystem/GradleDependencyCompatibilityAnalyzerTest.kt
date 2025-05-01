@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
 import com.android.ide.common.gradle.Component
+import com.android.ide.common.repository.FakeGoogleMavenRepositoryV2Host
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GoogleMavenRepositoryV2
@@ -45,6 +46,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
@@ -56,18 +58,22 @@ private const val TIMEOUT = 10L // seconds
 @RunWith(JUnit4::class)
 class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
+  private val testDataDir: Path =
+    Paths.get(
+      AndroidTestBase.getTestDataPath()).resolve("../../project-system-gradle/testData/repoIndex").normalize()
+
   /**
    * This test is using a fake Maven Repository where we control the available artifacts and versions.
    */
   private val mavenRepository = object : GoogleMavenRepository(
-    cacheDir = Paths.get(AndroidTestBase.getTestDataPath()).resolve("../../project-system-gradle/testData/repoIndex").normalize(),
+    cacheDir = testDataDir,
     cacheExpiryHours = Int.MAX_VALUE,
     useNetwork = false
   ) {
     override fun readUrlData(url: String, timeout: Int, lastModified: Long) = throw AssertionFailedError("shouldn't try to read!")
     override fun error(throwable: Throwable, message: String?) {}
   }
-  private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create()
+  private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create(FakeGoogleMavenRepositoryV2Host())
 
   private val repoUrlManager = RepositoryUrlManager(
     googleMavenRepository = mavenRepository,
@@ -449,7 +455,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       allprojects {
           repositories {
               maven {
-                  url 'file://${mavenRepository.cacheDir}'
+                  url 'file://${testDataDir}'
               }
           }
       }

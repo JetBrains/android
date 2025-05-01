@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.project.importing
 
 import com.android.tools.idea.gradle.project.Info
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.project.modules
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.impl.DirectoryIndexExcludePolicy
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
 /**
@@ -42,7 +45,7 @@ class InitialImportExcludeDirectoryPolicy(private val project: Project) : Direct
     // Stop returning any exclude directories when sync succeeds. A successful sync sets up some source roots unless all modules are empty.
     // Note: We cannot rely on listeners here to clear the flag as roots are enumerated just after committing project model changes and
     //       listeners run too late.
-    if (!project.isGradleProject() || project.projectHasSourceRoots()) {
+    if (!project.isGradleProject() || project.projectHasAnyExcludeRoots()) {
       project.putUserData(EXCLUDE_DIRS_KEY, false)
       return emptyArray()
     }
@@ -60,8 +63,8 @@ private fun Project.isGradleProject(): Boolean {
   return Info.getInstance(this).isBuildWithGradle
 }
 
-private fun Project.projectHasSourceRoots(): Boolean {
-  return ProjectRootManager.getInstance(this).orderEntries().withoutLibraries().withoutSdk().sources().urls.isNotEmpty()
+private fun Project.projectHasAnyExcludeRoots(): Boolean {
+  return modules.any { ModuleRootManager.getInstance(it).excludeRoots.isNotEmpty() }
 }
 
 private fun Project.getGradleRoots(): List<File> {

@@ -22,6 +22,7 @@ import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.idea.ui.extractTextFromHtml
 import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.DEFAULT_SAVE_LOCATION
 import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.PROJECT_DIR_MACRO
+import com.google.common.html.HtmlEscapers
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -61,9 +62,10 @@ class SaveConfigurationDialogTest {
     val dialog = SaveConfigurationDialog(
       project,
       DEFAULT_SAVE_LOCATION,
-      "Screenshot_%Y%M%D_%H%m%S",
+      "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>",
       PostSaveAction.OPEN,
-      EXT_PNG, timestamp,
+      EXT_PNG,
+      timestamp,
       5)
 
     val dialogWrapper = dialog.createWrapper()
@@ -72,11 +74,11 @@ class SaveConfigurationDialogTest {
       val saveLocationField = ui.getComponent<TextFieldWithBrowseButton>()
       assertThat(saveLocationField.text).isEqualTo("$homeDir/Desktop".toPlatformPath())
       val filenameTemplateField = ui.getComponent<JBTextField>()
-      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%m%S")
+      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_<yyyy><MM><dd>_<HH><mm><ss>")
       val previewField = ui.getComponent<JEditorPane>()
       assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$homeDir/Desktop/Screenshot_20250121_102214.png".toPlatformPath())
       saveLocationField.text = "$projectDir/foo/bar"
-      filenameTemplateField.text = "screenshots/%4d"
+      filenameTemplateField.text = "screenshots/<####>"
       assertThat(extractTextFromHtml(previewField.text)).isEqualTo("$projectDir/foo/bar/screenshots/0005.png".toPlatformPath())
       val postSavingActionSelector = ui.getComponent<ComboBox<PostSaveAction>>()
       assertThat(postSavingActionSelector.itemCount).isEqualTo(PostSaveAction.entries.filter(PostSaveAction::isSupported).size)
@@ -87,7 +89,7 @@ class SaveConfigurationDialogTest {
     assertThat(dialogWrapper.isDisposed).isTrue()
     assertThat(dialogWrapper.isOK).isTrue()
     assertThat(dialog.saveLocation).isEqualTo("$PROJECT_DIR_MACRO/foo/bar")
-    assertThat(dialog.filenameTemplate).isEqualTo("screenshots/%4d")
+    assertThat(dialog.filenameTemplate).isEqualTo("screenshots/<####>")
     assertThat(dialog.postSaveAction).isEqualTo(PostSaveAction.NONE)
   }
 
@@ -97,24 +99,25 @@ class SaveConfigurationDialogTest {
     val dialog = SaveConfigurationDialog(
       project,
       DEFAULT_SAVE_LOCATION,
-      "Screenshot_%Y%M%D_%H%m%S",
+      "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>",
       PostSaveAction.NONE,
-      EXT_PNG, timestamp,
+      EXT_PNG,
+      timestamp,
       5)
 
     val dialogWrapper = dialog.createWrapper()
     createModalDialogAndInteractWithIt(dialogWrapper::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
-      val patternInserter = ui.getComponent<JEditorPane> { it.text.contains("year (4 digits)") }
-      patternInserter.clickOnHyperlink("%Nd")
+      val patternInserter = ui.getComponent<JEditorPane> { it.text.contains("<#>") }
+      patternInserter.clickOnHyperlink("<#>")
       val filenameTemplateField = ui.getComponent<JBTextField>()
-      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%Y%M%D_%H%m%S%3d")
-      filenameTemplateField.selectionStart = filenameTemplateField.text.indexOf("%Y")
-      filenameTemplateField.selectionEnd = filenameTemplateField.text.indexOf("%3d")
-      patternInserter.clickOnHyperlink("%p")
-      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_%p%3d")
-      assertThat(filenameTemplateField.selectionStart).isEqualTo(filenameTemplateField.text.indexOf("%3d"))
-      assertThat(filenameTemplateField.selectionEnd).isEqualTo(filenameTemplateField.text.indexOf("%3d"))
+      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_<yyyy><MM><dd>_<HH><mm><ss><#>")
+      filenameTemplateField.selectionStart = filenameTemplateField.text.indexOf("<yyyy>")
+      filenameTemplateField.selectionEnd = filenameTemplateField.text.indexOf("<#>")
+      patternInserter.clickOnHyperlink("<project>")
+      assertThat(filenameTemplateField.text).isEqualTo("Screenshot_<project><#>")
+      assertThat(filenameTemplateField.selectionStart).isEqualTo(filenameTemplateField.text.indexOf("<#>"))
+      assertThat(filenameTemplateField.selectionEnd).isEqualTo(filenameTemplateField.text.indexOf("<#>"))
       assertThat(dialogWrapper.doCancelAction())
     }
     assertThat(dialogWrapper.isDisposed).isTrue()
@@ -129,3 +132,5 @@ class SaveConfigurationDialogTest {
   private fun String.toPlatformPath(): String =
       replace('/', File.separatorChar)
 }
+
+private fun String.htmlEscape(): String = HtmlEscapers.htmlEscaper().escape(this)

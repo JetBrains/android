@@ -434,6 +434,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   override val preferredInitialVisibility: PreferredVisibility? = null
 
+  override val caretNavigationHandler =
+    PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
+
   override val mode = previewModeManager.mode
 
   override fun dispose() {

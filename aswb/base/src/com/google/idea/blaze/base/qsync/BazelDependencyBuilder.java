@@ -27,7 +27,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
@@ -51,6 +50,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.prefetch.FetchExecutor;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.util.VersionChecker;
@@ -93,7 +93,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -104,7 +103,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.stream.Streams;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /** An object that knows how to build dependencies for given targets */
@@ -186,21 +184,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     this.buildArtifactCache = buildArtifactCache;
   }
 
-  private static final ImmutableMultimap<QuerySyncLanguage, OutputGroup> OUTPUT_GROUPS_BY_LANGUAGE =
-      ImmutableMultimap.<QuerySyncLanguage, OutputGroup>builder()
-          .putAll(
-              QuerySyncLanguage.JVM,
-              OutputGroup.JARS,
-              OutputGroup.AARS,
-              OutputGroup.GENSRCS,
-              OutputGroup.ARTIFACT_INFO_FILE)
-          .putAll(QuerySyncLanguage.CC, OutputGroup.CC_HEADERS, OutputGroup.CC_INFO_FILE)
-          .build();
-
   @Override
-  public OutputInfo build(
-      BlazeContext context, Set<Label> buildTargets, Set<QuerySyncLanguage> languages)
-      throws IOException, BuildException {
+  public OutputInfo build(BlazeContext context, Set<Label> buildTargets, DependencyBuildRequest request, Set<QuerySyncLanguage> languages)
+    throws IOException, BuildException {
     try (final var ignoredLock =
         ApplicationManager.getApplication()
             .getService(BuildDependenciesLockService.class)
@@ -210,12 +196,11 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             "The IDE has been upgraded in the background. Bazel build aspect files maybe"
                 + " incompatible. Please restart the IDE.");
       }
-      final var buildDependenciesBazelInvocationInfo =
-          getInvocationInfo(context, buildTargets, languages);
+      final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, request, languages);
       prepareInvocationFiles(
           context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles());
 
-      BuildInvoker invoker = buildSystem.getDefaultInvoker(project);
+      BuildInvoker invoker = buildSystem.getBuildInvoker(project);
 
       Optional<BuildDepsStats.Builder> buildDepsStatsBuilder =
           BuildDepsStatsScope.fromContext(context);
@@ -247,8 +232,10 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   @VisibleForTesting
-  public BuildDependenciesBazelInvocationInfo getInvocationInfo(
-      BlazeContext context, Set<Label> buildTargets, Set<QuerySyncLanguage> languages) {
+  public BuildDependenciesBazelInvocationInfo getInvocationInfo(BlazeContext context,
+                                                                Set<Label> buildTargets,
+                                                                DependencyBuildRequest request,
+                                                                Set<QuerySyncLanguage> languages) {
     ImmutableList<String> includes =
         projectDefinition.projectIncludes().stream()
             .map(path -> "//" + path)
@@ -270,12 +257,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             multiInfoFile.getValue());
 
     InvocationFiles invocationFiles = getInvocationFiles(buildTargets, parameters);
-
-    ImmutableSet<OutputGroup> outputGroups =
-        languages.stream()
-            .map(OUTPUT_GROUPS_BY_LANGUAGE::get)
-            .flatMap(Collection::stream)
-            .collect(ImmutableSet.toImmutableSet());
+    var outputGroups = request.getOutputGroups(languages);
 
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
@@ -307,8 +289,8 @@ public class BazelDependencyBuilder implements DependencyBuilder {
         outputGroups.stream()
             .map(g -> "--output_groups=" + g.outputGroupName())
             .collect(toImmutableList()));
-    return new BuildDependenciesBazelInvocationInfo(
-        querySyncFlags.build(), outputGroups, invocationFiles.files());
+
+    return new BuildDependenciesBazelInvocationInfo(querySyncFlags.build(), ImmutableSet.copyOf(outputGroups), invocationFiles.files());
   }
 
   public record InvocationFiles(

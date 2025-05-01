@@ -99,12 +99,17 @@ class BuildDependenciesHelper(val project: Project) {
     querySyncActionStats: QuerySyncActionStatsScope,
     consumer: (Set<Label>) -> Deferred<Boolean>
   ): Deferred<Boolean> {
+    fun displayWarning(title: String, content: String, items: List<String>) {
+      logger.warn("$title; $content\n${items.joinToString("\n")}")
+      getInstance(project).notifyWarning(title, content + "\n"+  items.joinToString(prefix = "  ", separator = ", ", limit = 3))
+    }
+
     return project.coroutineScope.async(Dispatchers.Default) {
       // semi sync - without updating project
       if (!canEnableAnalysisNow()) return@async false
       val syncResult =
         withContext(Dispatchers.EDT) {
-          syncManager.syncQueryDataIfNeeded(querySyncActionStats, TaskOrigin.AUTOMATIC)
+          syncManager.syncQueryDataIfNeeded(workspaceRelativePaths, querySyncActionStats, TaskOrigin.AUTOMATIC)
         }
           .asDeferred()
           .await()
@@ -116,6 +121,15 @@ class BuildDependenciesHelper(val project: Project) {
       val groupsToBuild = getTargetsToEnableAnalysisForPaths(workspaceRelativePaths)
       val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(groupsToBuild, targetDisambiguationAnchors)
       val ambiguousTargets = disambiguator.ambiguousTargetSets
+      val undefinedTargets = disambiguator.undefinedTargetSets
+
+      if (undefinedTargets.isNotEmpty()) {
+        displayWarning(
+          "Cannot find targets to build",
+          "Some paths requested to build cannot be mapped to project targets. Not building them:",
+          undefinedTargets.map { it.displayLabel }
+        )
+      }
 
       val targetsToBuild = when {
         ambiguousTargets.isEmpty() -> disambiguator.unambiguousTargets
@@ -138,15 +152,11 @@ class BuildDependenciesHelper(val project: Project) {
         }
 
         else -> {
-          logger.warn(
-            "Multiple ambiguous target sets; not building them: " +
-            ambiguousTargets.joinToString<TargetsToBuild>(",  ", limit = 3) { it.displayLabel })
-          getInstance(project)
-            .notifyWarning(
-              "Ambiguous target sets found",
-              "Ambiguous target sets found; not building them: "
-              + ambiguousTargets.joinToString<TargetsToBuild>(", ", limit = 3) { it.displayLabel }
-            )
+          displayWarning(
+            "Ambiguous target sets found",
+            "Ambiguous target sets found; not building them: ",
+            ambiguousTargets.map { it.displayLabel }
+          )
           when {
             disambiguator.unambiguousTargets.isNotEmpty<Label>() -> disambiguator.unambiguousTargets
             else -> {

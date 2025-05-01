@@ -38,15 +38,14 @@ class FakeBackupManager : BackupManager {
   val showBackupDialogInvocations = mutableListOf<ShowBackupDialogInvocation>()
   val restoreModalInvocations = mutableListOf<RestoreModalInvocation>()
 
-  override suspend fun showBackupDialog(
+  override fun showBackupDialog(
     serialNumber: String,
-    applicationId: String,
+    applicationId: String?,
     source: BackupManager.Source,
     notify: Boolean,
   ) {
-    assert(EDT.isCurrentThreadEdt())
     showBackupDialogInvocations.add(
-      ShowBackupDialogInvocation(serialNumber, applicationId, source, notify)
+      ShowBackupDialogInvocation(serialNumber, applicationId!!, source, notify)
     )
   }
 

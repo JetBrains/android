@@ -243,7 +243,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
         case LAUNCHER_LEGACY:
         case ACTIONBAR:
         case NOTIFICATION:
-          view = new ConfigureIconPanel(this, facet, iconType, minSdkVersion, renderer);
+          view = new ConfigureIconPanel(this, facet, iconType, minSdkVersion, myValidatorPanel, renderer);
           break;
         case TV_BANNER:
           view = new ConfigureTvBannerPanel(this, facet, myValidatorPanel, renderer);

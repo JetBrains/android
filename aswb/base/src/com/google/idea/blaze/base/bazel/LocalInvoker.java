@@ -63,19 +63,25 @@ import javax.annotation.Nullable;
 /** A local Blaze/Bazel invoker that issues commands via CLI. */
 public class LocalInvoker extends AbstractBuildInvoker {
   private static Logger logger = Logger.getInstance(LocalInvoker.class);
-  private final BuildBinaryType buildBinaryType;
+  private static final ImmutableSet<Capability> CAPABILITIES = ImmutableSet.of(
+    Capability.BUILD_AIT, Capability.SUPPORT_CLI, Capability.DEBUG_LOCAL_TEST, Capability.SUPPORT_QUERY_FILE);
 
   public LocalInvoker(
       Project project,
-      BuildSystem buildSystem,
-      BuildBinaryType binaryType) {
-    super(project, buildSystem, binaryPath(binaryType, project));
-    this.buildBinaryType = binaryType;
+      BuildSystem buildSystem) {
+    super(project, buildSystem, binaryPath(project));
+  }
+
+  public LocalInvoker(
+    Project project,
+    BuildSystem buildSystem,
+    String binaryPath) {
+    super(project, buildSystem, binaryPath);
   }
 
   @Override
   public ImmutableSet<Capability> getCapabilities() {
-    return ImmutableSet.of(Capability.BUILD_AIT, Capability.SUPPORT_CLI, Capability.DEBUG_LOCAL_TEST);
+    return CAPABILITIES;
   }
 
   @Override
@@ -196,7 +202,12 @@ public class LocalInvoker extends AbstractBuildInvoker {
 
   @Override
   public BuildBinaryType getType() {
-    return this.buildBinaryType;
+    return BuildBinaryType.BAZEL;
+  }
+
+  @Override
+  public boolean isAvailable() {
+    return true;
   }
 
   private BuildResult issueBuild(
@@ -222,7 +233,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
   }
 
   private void maybeAddAndroidHome(ExternalTask.Builder builder) {
-    if (this.buildBinaryType.needsAndroidHome) {
+    if (getType().needsAndroidHome) {
       builder.environmentVar("ANDROID_HOME", IdeSdks.getInstance().getAndroidSdkPath().toString());
     }
   }
@@ -252,11 +263,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
     }
   }
 
-  private static String binaryPath(BuildBinaryType binaryType, Project project) {
-    if (binaryType.equals(BuildBinaryType.BLAZE)
-        || binaryType.equals(BuildBinaryType.BLAZE_CUSTOM)) {
-      return BlazeUserSettings.getInstance().getBlazeBinaryPath();
-    }
+  private static String binaryPath(Project project) {
     File projectSpecificBinary = null;
     ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
     if (projectView != null) {

@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.editors.strings
 
+import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -45,8 +47,9 @@ class TranslationsEditorTextFieldTest {
   private val table: StringResourceTable = mock()
   private val model: StringResourceTableModel = mock()
   private var selectedColumn = 0
+  private var error: String? = null
 
-  private val translationsEditorTextField = TranslationsEditorTextField(table) { selectedColumn }
+  private val translationsEditorTextField = TranslationsEditorTextField(table, { selectedColumn }, { error })
 
   private lateinit var fakeUi: FakeUi
   private lateinit var focusManager: FakeKeyboardFocusManager
@@ -95,6 +98,25 @@ class TranslationsEditorTextFieldTest {
 
       verify(model).setValueAt(text, i, j)
     }
+  }
+
+  @Test
+  fun nothingSavedWhenError() {
+    whenever(table.hasSelectedCell()).thenReturn(true)
+    whenever(table.selectedModelRowIndex).thenReturn(13)
+    selectedColumn = 17
+    error = "Wrong value"
+
+    // Simulate weird focus behaviour in JTextComponent:
+    fakeUi.keyboard.setFocus(translationsEditorTextField)
+    translationsEditorTextField.text = "Original Value"
+    translationsEditorTextField.focusListeners.forEach { it.focusGained(FocusEvent(translationsEditorTextField, FocusEvent.FOCUS_GAINED)) }
+    assertThat(translationsEditorTextField.toolTipText).isEqualTo(error)
+    assertThat(translationsEditorTextField.getClientProperty(OUTLINE_PROPERTY)).isEqualTo("error")
+
+    imitateEditing("New text...")
+    fakeUi.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    verifyNoInteractions(model)
   }
 
   @Test

@@ -1,4 +1,5 @@
+# Route bugs created from test failures to L2 triage.
+# Bug component: 148132
+# See go/studio-test-owners for more.
+
 include platform/tools/base:/owners/profilers_OWNERS
-
-jgielzak@google.com
-

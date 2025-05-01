@@ -15,6 +15,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.common.ThreadLeakTracker
 import org.junit.After
 import org.junit.Before
@@ -26,13 +27,14 @@ import java.util.concurrent.TimeUnit
 
 class ApplicationDeployerImplTest {
 
-  @get:Rule
-  val fakeAdb: FakeAdbTestRule = FakeAdbTestRule()
+  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule()
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
+  private val projectRule = AndroidProjectRule.onDisk()
+
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val rule = RuleChain(projectRule, fakeAdb)
 
   @Before
   fun setUp() {

@@ -58,13 +58,11 @@ public final class StudioFlags {
 
   @NotNull
   private static Flags createFlags() {
-    Application app = ApplicationManager.getApplication();
     FlagOverrides userOverrides;
-    if (app != null && !app.isUnitTestMode()) {
-      userOverrides = new LazyStudioFlagSettings();
-    }
-    else {
+    if (isUnitTestMode()) {
       userOverrides = new DefaultFlagOverrides();
+    } else {
+      userOverrides = new LazyStudioFlagSettings();
     }
     return new Flags(userOverrides, new PropertyOverrides(), new MendelOverrides(), new ServerFlagOverrides());
   }
@@ -369,6 +367,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> USE_BYTECODE_R_CLASS_PARSING = new BooleanFlag(
     NELE, "use.bytecode.r.class.loading", "Uses bytecode R class parsing instead of reflection",
     "When enabled, the parsing of R classes will use bytecode parsing instead of reflection.",
+    true);
+
+  public static final Flag<Boolean> LAYOUTLIB_NATIVE_MEMORY_CLEAN = new BooleanFlag(
+    NELE, "layoutlib.native.memory.clean", "Enable cleaning of Layoutlib native memory.",
+    "When it is detected that Layoutlib uses too much native memory, attempts are made to clear it.",
     true);
   //endregion
 
@@ -757,7 +760,7 @@ public final class StudioFlags {
     "protobuf.enable",
     "Enable Logcat Protobuf format",
     "Enable Logcat Protobuf format",
-    false
+    true
   );
 
   public static final Flag<Long> LOGCAT_FILE_RELOAD_DELAY_MS = new LongFlag(
@@ -913,7 +916,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> RESTORE_INVALID_GRADLE_JDK_CONFIGURATION = new BooleanFlag(
     GRADLE_IDE, "restore.invalid.gradle.jdk.configuration", "Restore invalid Gradle JDK configuration",
-    "Restore project from invalid Gradle JDK configuration during opening.", true);
+    "Restore project from invalid Gradle JDK configuration during opening.", !isUnitTestMode());
 
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
@@ -1029,6 +1032,30 @@ public final class StudioFlags {
   );
 
   //endregion
+  //region Gradle Phased Sync
+  private static final FlagGroup PHASED_SYNC = new FlagGroup(FLAGS, "phased.sync", "Gradle Phased Sync");
+
+  public static final Flag<Boolean> PHASED_SYNC_ENABLED = new BooleanFlag(
+    PHASED_SYNC,
+    "enabled",
+    "Enables phased sync",
+    "Enables the new sync mode where the models are streamed back to IDE as they become available in phases. These APIs also" +
+    " allow direct interaction with the workspace model via new APIs",
+    enabledUpTo(DEV)
+  );
+
+  public static final Flag<Boolean> PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED = new BooleanFlag(
+    PHASED_SYNC,
+    "disable.bridge.data.service",
+    "Disables bridge data service for phased sync",
+    "Entities set up by phased sync are not completely trusted by the IntelliJ platform and is later being replaced by what's " +
+    "populated by the data services. To enable this a 'bridge data service' is used to completely remove entities set up by phased sync. " +
+    "However we've done extensive feasibility work to make sure we don't actually need this replacement behaviour, meaning we can disable " +
+    "this behaviour completely. This flag is a fail-safe to make sure we can switch this behaviour back to platform's default, if needed.",
+    enabledUpTo(DEV)
+  );
+  //endregion
+
   //region Apk Project System
   private static final FlagGroup APK_IDE = new FlagGroup(FLAGS, "apk.ide", "APK Project System");
 
@@ -1597,7 +1624,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
     "If a user moves their caret to a element present in a preview, we highlight those elements",
-    enabledUpTo(DEV));
+    true);
   //endregion
 
   // region Wear surfaces
@@ -2426,6 +2453,16 @@ public final class StudioFlags {
     "Enable triggering Journeys with Gemini run configurations",
     enabledUpTo(DEV)
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_TEMPLATE = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.template", "Enable Journeys with Gemini template",
+    "Enable creating Journeys with Gemini templates",
+    enabledUpTo(DEV)
+  );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
+    "Enable recording of Journeys with Gemini",
+    false
+  );
   // endregion JOURNEYS_WITH_GEMINI
 
   // region WIZARD_MIGRATION
@@ -2477,5 +2514,20 @@ public final class StudioFlags {
       false);
   // endregion Settings sync
 
+  // region PROJECT_TOOL_WINDOW
+  private static final FlagGroup PROJECT_TOOL_WINDOW = new FlagGroup(FLAGS, "project.tool.window", "Project Toolwindow");
+  public static final Flag<Boolean> SHOW_DEFAULT_PROJECT_VIEW_SETTINGS =
+    new BooleanFlag(
+      PROJECT_TOOL_WINDOW,
+      "default.project.view",
+      "Show UI for default project view in settings",
+      "Show UI for default project view in settings",
+      enabledUpTo(CANARY));
+  // endregion PROJECT_TOOL_WINDOW
+
   private StudioFlags() { }
+
+  private static Boolean isUnitTestMode() {
+    return ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode();
+  }
 }

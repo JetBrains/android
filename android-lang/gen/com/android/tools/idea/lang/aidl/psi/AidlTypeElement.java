@@ -27,6 +27,9 @@ public interface AidlTypeElement extends AidlPsiCompositeElement {
   @NotNull
   List<AidlAnnotationElement> getAnnotationElementList();
 
+  @NotNull
+  List<AidlExpression> getExpressionList();
+
   @Nullable
   AidlQualifiedName getQualifiedName();
 

@@ -49,7 +49,8 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
   val dataClasses = mutableMapOf<FullName, ClassType>()
   val topFunctions = mutableMapOf<String, SchemaFunction>()
   val augmentedTypes = mutableMapOf<FullName, List<AugmentationKind>>()
-  val schema = BuildDeclarativeSchema(null, dataClasses, topFunctions, augmentedTypes)
+  val infixFunctions = mutableMapOf<String, SchemaFunction>()
+  val schema = BuildDeclarativeSchema(null, dataClasses, topFunctions, augmentedTypes, infixFunctions)
   val top = topLevelReceiverType.convert(schema)
   schema.topLevelReceiver = top
   dataClasses.putAll(
@@ -71,6 +72,14 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
       assignmentAugmentationsByTypeName.mapNotNull {
         // deliberately ignore generic type for now
         keyValue -> keyValue.key.convert() to keyValue.value.mapNotNull { it.convert() }
+      }.toMap()
+    )
+  }
+  safeRun {
+    infixFunctions.putAll(
+      infixFunctionsByFqName.mapNotNull {
+        keyValue ->
+        keyValue.value.convert()?.let { keyValue.key.simpleName to it }
       }.toMap()
     )
   }

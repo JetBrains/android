@@ -46,6 +46,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import java.io.EOFException
 import java.io.IOException
+import java.nio.channels.ClosedChannelException
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -294,6 +295,9 @@ internal class DeviceController(
           }
         }
         catch (_: EOFException) {
+          break
+        }
+        catch (_: ClosedChannelException) {
           break
         }
         catch (e: IOException) {

@@ -50,6 +50,12 @@ public class AidlTypeElementImpl extends AidlPsiCompositeElementImpl implements 
   }
 
   @Override
+  @NotNull
+  public List<AidlExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AidlExpression.class);
+  }
+
+  @Override
   @Nullable
   public AidlQualifiedName getQualifiedName() {
     return findChildByClass(AidlQualifiedName.class);
