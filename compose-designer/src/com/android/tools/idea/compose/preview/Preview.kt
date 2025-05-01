@@ -1587,8 +1587,8 @@ class ComposePreviewRepresentation(
   private var currentAnimationPreview: ComposeAnimationPreview? = null
 
   /**
-   * Manages the preview's response to caret movements, including highlighting components at
-   * the caret's position and scrolling components into view.
+   * Manages the preview's response to caret movements, including highlighting components at the
+   * caret's position and scrolling components into view.
    */
   inner class CaretNavigationHandlerImpl() : PreviewRepresentation.CaretNavigationHandler {
     override var isNavigatingToCode: Boolean = false
@@ -1611,9 +1611,7 @@ class ComposePreviewRepresentation(
       lifecycleManager.executeIfActive {
         launch(uiThread) {
           val filePreviewElements =
-            withContext(workerThread) {
-              composePreviewFlowManager.allPreviewElementsFlow.value
-            }
+            withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
           // Workaround for b/238735830: The following withContext(uiThread) should not be needed
           // but the code below ends up being executed in a worker thread under some circumstances
           // so we need to prevent that from happening by forcing the context switch.
@@ -1624,12 +1622,11 @@ class ComposePreviewRepresentation(
                 filePreviewElements.collection
                   .find { element ->
                     element.previewBody?.psiRange.containsOffset(offset) ||
-                    element.previewElementDefinition?.psiRange.containsOffset(offset)
+                      element.previewElementDefinition?.psiRange.containsOffset(offset)
                   }
                   ?.let { selectedPreviewElement ->
                     surface.models.find {
-                      previewElementModelAdapter.modelToElement(it) ==
-                        selectedPreviewElement
+                      previewElementModelAdapter.modelToElement(it) == selectedPreviewElement
                     }
                   }
                   ?.let { surface.scrollToVisible(it, true) }
