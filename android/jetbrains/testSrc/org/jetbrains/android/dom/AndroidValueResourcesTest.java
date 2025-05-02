@@ -61,7 +61,6 @@ import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.containers.ContainerUtil;
-import io.vavr.collection.Array;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1008,7 +1007,7 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     myFixture.setReadEditorMarkupModel(true);
 
-    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(myProject, myFixture.getProjectDisposable(), () -> {
+    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(myProject, () -> {
       AndroidTestUtils.moveCaret(myFixture, "<string name=\"f|oo\">foo</string>");
       // Identifier highlighting has been moved out of the highlighting passes, so we need to wait for BackgroundHighlighter to be computed.
       IdentifierHighlighterPassFactory.waitForIdentifierHighlighting();
