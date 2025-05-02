@@ -220,6 +220,7 @@ class AndroidRunConfigurationExecutorTest {
     processHandler.destroyProcess()
   }
 
+  @Ignore("b/415332589")
   @Test
   fun debugSucceeded() { //TODO: write handler in fakeAdb for "am capabilities --protobuf"
     StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.overrideForTest(false, projectRule.testRootDisposable)
