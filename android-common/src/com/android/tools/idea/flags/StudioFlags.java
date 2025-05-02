@@ -2454,6 +2454,12 @@ public final class StudioFlags {
     "Enable Journeys with Gemini related functionality to allow users to create, edit and execute Journeys.",
     enabledUpTo(DEV)
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.auto.gradle.configuration",
+    "Enable automatic Gradle configuration for Journeys with Gemini",
+    "Applies the Gradle configuration needed to run Journeys automatically when a Journeys run configuration is triggered",
+    enabledUpTo(DEV)
+  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
     "Enable recording of Journeys with Gemini",
