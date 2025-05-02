@@ -39,6 +39,7 @@ import com.android.tools.idea.backup.testing.findComponent
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.NotificationRule.NotificationInfo
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_USAGE
 import com.google.wireless.android.sdk.stats.BackupUsageEvent
@@ -98,6 +99,7 @@ internal class BackupManagerImplTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       usageTrackerRule,
       notificationRule,
       HeadlessDialogRule(),
