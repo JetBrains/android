@@ -307,8 +307,9 @@ class $LINT_INSPECTION_PREFIX${id}Inspection :
       androidSpecific: Boolean,
     ) {
       val suffix =
-        if (androidSpecific) "tools/adt/idea/android-lint/src/META-INF/android-lint-plugin.xml"
-        else "tools/adt/idea/lint/src/META-INF/lint-plugin.xml"
+        if (androidSpecific)
+          "tools/adt/idea/android-lint/resources/META-INF/android-lint-plugin.xml"
+        else "tools/adt/idea/lint/resources/META-INF/lint-plugin.xml"
       if (root == null) {
         sb.append(
           "\nRegister the following inspections in $suffix (and try to preserve case insensitive alphabetical order):\n"
