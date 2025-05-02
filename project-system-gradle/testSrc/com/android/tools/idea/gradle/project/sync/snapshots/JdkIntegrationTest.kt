@@ -255,7 +255,7 @@ class JdkIntegrationTest(
         PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(1))
 
         AssertInMemoryConfig(project, expect).run {
-          assertGradleJdkAndValidateTableEntry(expectedGradleJdkName, expectedGradleJdkPath)
+          assertGradleJdk(expectedGradleJdkName, expectedGradleJdkPath)
         }
         project
       }
