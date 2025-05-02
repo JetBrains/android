@@ -1558,6 +1558,7 @@ class ComposePreviewRepresentation(
           it.tracker.closeAnimationInspector()
         }
         currentAnimationPreview = null
+        ComposeAnimationSubscriber.setHandler(null)
         requestVisibilityAndNotificationsUpdate()
       }
       is PreviewMode.Focus -> {

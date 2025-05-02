@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
-import com.android.annotations.TestOnly
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber.onAnimationUnsubscribed
@@ -27,6 +26,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Responsible for animation subscription events and passing them to [ComposeAnimationHandler].
@@ -97,6 +97,8 @@ object ComposeAnimationSubscriber {
   }
 
   @TestOnly fun hasNoAnimationsForTests() = subscribedAnimations.isEmpty()
+
+  @TestOnly fun getHandlerForTests() = animationHandler
 
   @JvmStatic
   @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
