@@ -45,6 +45,8 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.streaming.emulator.actions.showExtendedControls
 import com.android.tools.idea.streaming.emulator.actions.showManageSnapshotsDialog
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.SCREEN_RECORDER_PARAMETERS_KEY
+import com.android.tools.idea.ui.screenrecording.ScreenRecordingParameters
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ActivityTracker
@@ -271,6 +273,16 @@ internal class EmulatorToolWindowPanel(
     sink[EMULATOR_CONTROLLER_KEY] = emulator
     sink[EMULATOR_VIEW_KEY] = primaryDisplayView
     sink[NUMBER_OF_DISPLAYS_KEY] = displayPanels.size
+    sink[SCREEN_RECORDER_PARAMETERS_KEY] = getScreenRecorderParameters()
+  }
+
+  private fun getScreenRecorderParameters(): ScreenRecordingParameters? {
+    return if (emulator.connectionState == ConnectionState.CONNECTED) {
+      ScreenRecordingParameters(emulatorId.serialNumber, emulatorId.avdName, emulator.emulatorConfig.api, emulator, emulatorId.avdFolder)
+    }
+    else {
+      null
+    }
   }
 
   private inner class DisplayConfigurator(private val project: Project) : DisplayConfigurationListener {

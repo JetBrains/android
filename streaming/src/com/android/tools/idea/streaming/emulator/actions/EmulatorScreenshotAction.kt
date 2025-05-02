@@ -21,24 +21,21 @@ import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.io.writeImage
 import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.streaming.emulator.DeferredResultStreamObserver
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
-import com.android.tools.idea.streaming.emulator.DeferredResultStreamObserver
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotProvider
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
-import com.google.common.base.Throwables
 import com.google.common.base.Throwables.throwIfUnchecked
-import com.google.common.util.concurrent.UncheckedExecutionException
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
@@ -53,8 +50,6 @@ import java.awt.geom.Area
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.io.IOException
-import java.util.EnumSet
-import java.util.concurrent.ExecutionException
 import javax.imageio.IIOException
 import javax.imageio.ImageIO
 
@@ -98,8 +93,8 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val screenshotProvider = EmulatorScreenshotProvider(emulatorController, displayId)
 
         ApplicationManager.getApplication().invokeLater {
-          val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator, framingOptions, 0,
-                                        EnumSet.noneOf(ScreenshotViewer.Option::class.java))
+          val viewer =
+              ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator, framingOptions, 0, false)
           viewer.show()
         }
       }
@@ -145,7 +140,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       val w = image.width
       val h = image.height
       val skinDefinition = emulatorView.emulator.getSkin(emulatorView.currentPosture?.posture)
-      val skin = skinDefinition?.createScaledLayout(w, h, screenshotImage.screenshotRotationQuadrants)
+      val skin = skinDefinition?.createScaledLayout(w, h, screenshotImage.screenshotOrientationQuadrants)
       val arcWidth = skin?.displayCornerSize?.width ?: 0
       val arcHeight = skin?.displayCornerSize?.height ?: 0
       if (framingOption == null || skin == null) {

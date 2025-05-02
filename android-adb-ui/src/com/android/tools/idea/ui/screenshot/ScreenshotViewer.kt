@@ -117,7 +117,7 @@ import kotlin.math.roundToInt
  *     is null. The pull-down list of framing options is shown only when [screenshotDecorator] is
  *     not null and there are two or more framing options.
  * @param defaultFramingOption the index of the default framing option in the [framingOptions] list
- * @param screenshotViewerOptions determine whether the rotation buttons are available or not
+ * @param allowImageRotation determines whether the rotation buttons are available or not
 */
 class ScreenshotViewer(
   private val project: Project,
@@ -127,12 +127,11 @@ class ScreenshotViewer(
   private val screenshotDecorator: ScreenshotDecorator,
   framingOptions: List<FramingOption>,
   defaultFramingOption: Int,
-  screenshotViewerOptions: Set<Option>
+  private val allowImageRotation: Boolean,
 ) : DialogWrapper(project, true), DataProvider {
 
   private val timestampFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ROOT)
 
-  private var allowRotation = screenshotViewerOptions.contains(Option.ALLOW_IMAGE_ROTATION)
   private val editorProvider: FileEditorProvider = getImageFileEditorProvider()
   private val imageFileEditor = editorProvider.createEditor(project, backingFile) as ImageFileEditor
 
@@ -181,7 +180,7 @@ class ScreenshotViewer(
     title = message("screenshot.action.title")
 
     sourceImageRef.set(screenshotImage)
-    rotationQuadrants = screenshotImage.screenshotRotationQuadrants
+    rotationQuadrants = screenshotImage.screenshotOrientationQuadrants
 
     val decorationOptions = DefaultComboBoxModel<ScreenshotDecorationOption>()
     decorationOptions.addElement(ScreenshotDecorationOption.RECTANGULAR)
@@ -230,7 +229,7 @@ class ScreenshotViewer(
             runOnDisposalOfAnyOf(screenshotProvider, disposable, runnable = { setEnabled(false) })
           }
 
-        if (allowRotation) {
+        if (allowImageRotation) {
           button(message("screenshot.dialog.rotate.left.button.text")) { updateImageRotation(1) }
           button(message("screenshot.dialog.rotate.right.button.text")) { updateImageRotation(3) }
         }
@@ -436,7 +435,7 @@ class ScreenshotViewer(
 
         val screenshotImage = screenshot
         sourceImageRef.set(screenshotImage)
-        processScreenshot(if (allowRotation) rotationQuadrants else 0)
+        processScreenshot(if (allowImageRotation) rotationQuadrants else 0)
       }
     }.queue()
   }
@@ -559,10 +558,6 @@ class ScreenshotViewer(
       }
       return image
     }
-  }
-
-  enum class Option {
-    ALLOW_IMAGE_ROTATION // Enables the image rotation buttons.
   }
 
   @Service

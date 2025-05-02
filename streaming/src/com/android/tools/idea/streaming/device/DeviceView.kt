@@ -38,13 +38,10 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
 import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.android.tools.idea.ui.screenshot.ScreenshotOptions
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
@@ -600,23 +597,6 @@ internal class DeviceView(
   fun removeConnectionStateListener(listener: ConnectionStateListener) {
     connectionStateListeners.remove(listener)
   }
-
-  override fun uiDataSnapshot(sink: DataSink) {
-    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] = if (isConnected) createScreenshotOptions() else null
-    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceController?.let {
-      ScreenRecorderAction.Parameters(
-        deviceClient.deviceName,
-        deviceSerialNumber,
-        deviceConfig.featureLevel,
-        null,
-        displayId,
-        ::deviceDisplaySize,
-        it)
-    }
-  }
-
-  private fun createScreenshotOptions() =
-      ScreenshotOptions(deviceSerialNumber, deviceConfig.deviceModel, deviceConfig.deviceType, displayId, screenshotOrientationProvider)
 
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.sdklib.AndroidApiLevel
@@ -105,8 +104,9 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
+import com.android.tools.idea.ui.screenrecording.ScreenRecordingParameters
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.android.tools.idea.ui.screenshot.ScreenshotOptions
+import com.android.tools.idea.ui.screenshot.ScreenshotParameters
 import com.android.tools.r8.retrace.InvalidMappingFileException
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
@@ -914,26 +914,18 @@ constructor(
   override fun uiDataSnapshot(sink: DataSink) {
     val device = connectedDevice.get()
     sink[LOGCAT_PRESENTER_ACTION] = this
-    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] =
+    sink[ScreenshotAction.SCREENSHOT_PARAMETERS_KEY] =
       device?.let {
-        ScreenshotOptions(
-          it.serialNumber,
-          it.model,
-          it.type ?: DeviceType.HANDHELD,
-          PRIMARY_DISPLAY_ID,
-          null,
-        )
+        ScreenshotParameters(it.serialNumber, it.type ?: DeviceType.HANDHELD, it.model)
       }
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] =
       device?.let {
-        ScreenRecorderAction.Parameters(
-          it.name,
+        ScreenRecordingParameters(
           it.serialNumber,
+          it.name,
           it.featureLevel,
-          if (it.isEmulator) Paths.get(it.deviceId) else null,
-          PRIMARY_DISPLAY_ID,
-          null,
           this,
+          if (it.isEmulator) Paths.get(it.deviceId) else null,
         )
       }
     sink[CONNECTED_DEVICE] = device

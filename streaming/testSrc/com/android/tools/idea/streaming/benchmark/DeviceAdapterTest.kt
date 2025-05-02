@@ -26,7 +26,6 @@ import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -48,10 +47,8 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.awt.event.KeyListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
 import java.awt.image.BufferedImage
 import kotlin.math.ceil
 import kotlin.math.log2
@@ -518,8 +515,6 @@ class DeviceAdapterTest {
     override fun computeActualSize() = deviceDisplaySize
 
     override fun dispose() {}
-
-    override fun uiDataSnapshot(sink: DataSink) {}
 
     fun notifyFrame(frame: BufferedImage) {
       notifyFrameListeners(Rectangle(), frame)

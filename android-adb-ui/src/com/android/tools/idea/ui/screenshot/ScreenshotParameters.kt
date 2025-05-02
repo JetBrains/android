@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
@@ -24,11 +23,9 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.sdk.DeviceManagers
-import java.awt.image.BufferedImage
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.EnumSet
@@ -40,30 +37,12 @@ import kotlin.math.log2
 private const val MAX_MATCH_DISTANCE_RATIO = 2.0
 private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
 
-class ScreenshotOptions(
-  val serialNumber: String,
-  private val deviceModel: String?,
-  val deviceType: DeviceType,
-  val displayId: Int,
-  private val orientationProvider: (() -> ScreenshotAction.ScreenshotRotation)?,
-) {
+class ScreenshotParameters(val serialNumber: String, val deviceType: DeviceType, private val deviceModel: String?) {
 
-  val screenshotViewerOptions: EnumSet<ScreenshotViewer.Option> =
-      orientationProvider?.let { EnumSet.noneOf(ScreenshotViewer.Option::class.java) } ?:
-      EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION)
   val screenshotDecorator: ScreenshotDecorator = DeviceScreenshotDecorator()
 
   private var defaultFrameIndex: Int = 0
   private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
-
-  /** This simplified constructor is intended exclusively for use in TestRecorderScreenshotTask. */
-  constructor(serialNumber: String) : this(serialNumber, null, DeviceType.HANDHELD, PRIMARY_DISPLAY_ID, null)
-
-  fun createScreenshotImage(image: BufferedImage, displayInfo: String): ScreenshotImage {
-    val rotation = orientationProvider?.invoke()
-    val rotatedImage = ImageUtils.rotateByQuadrants(image, rotation?.imageRotationQuadrants ?: 0)
-    return ScreenshotImage(rotatedImage, rotation?.orientationQuadrants ?: 0, deviceType, displayInfo)
-  }
 
   /** Returns the list of available framing options for the given image. */
   fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {

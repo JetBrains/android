@@ -25,6 +25,7 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.StreamingHardwareInputAction
+import com.android.tools.idea.ui.DISPLAY_ID_KEY
 import com.intellij.ide.DataManager
 import com.intellij.ide.KeyboardAwareFocusOwner
 import com.intellij.openapi.Disposable
@@ -32,6 +33,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
@@ -358,6 +360,10 @@ abstract class AbstractDisplayView(
       g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE)
     }
     return g
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[DISPLAY_ID_KEY] = displayId
   }
 
   protected fun MouseWheelEvent.getNormalizedScrollAmount(): Double =

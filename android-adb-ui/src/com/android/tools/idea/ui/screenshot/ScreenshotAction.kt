@@ -17,7 +17,10 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
 import com.android.io.writeImage
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
+import com.android.tools.idea.ui.DISPLAY_ID_KEY
+import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -45,15 +48,18 @@ class ScreenshotAction : DumbAwareAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = event.getData(SCREENSHOT_OPTIONS_KEY) != null
+    event.presentation.isEnabled = event.getData(SCREENSHOT_PARAMETERS_KEY) != null
   }
 
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
-    val screenshotOptions = event.getData(SCREENSHOT_OPTIONS_KEY) ?: return
-    val serialNumber = screenshotOptions.serialNumber
+    val screenshotParameters = event.getData(SCREENSHOT_PARAMETERS_KEY) ?: return
+    val displayId = event.getData(DISPLAY_ID_KEY) ?: 0
+    val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY)
+    val serialNumber = screenshotParameters.serialNumber
 
-    val screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, screenshotOptions)
+    val screenshotProvider =
+        ShellCommandScreenshotProvider(project, serialNumber, displayId, screenshotParameters.deviceType, displayInfoProvider)
     var disposable: Disposable? = screenshotProvider
 
     object : ScreenshotTask(project, screenshotProvider) {
@@ -63,8 +69,8 @@ class ScreenshotAction : DumbAwareAction(
         super.run(indicator)
         val screenshot = screenshot ?: return
         try {
-          val screenshotDecorator = screenshotOptions.screenshotDecorator
-          val framingOptions = screenshotOptions.getFramingOptions(screenshot)
+          val screenshotDecorator = screenshotParameters.screenshotDecorator
+          val framingOptions = screenshotParameters.getFramingOptions(screenshot)
           val decoration = ScreenshotViewer.getDefaultDecoration(screenshot, screenshotDecorator, framingOptions.firstOrNull())
           val processedImage = screenshotDecorator.decorate(screenshot, decoration)
           indicator.checkCanceled()
@@ -104,11 +110,11 @@ class ScreenshotAction : DumbAwareAction(
       }
 
       private fun showScreenshotViewer(screenshot: ScreenshotImage, backingFile: VirtualFile) {
-        val screenshotPostprocessor = screenshotOptions.screenshotDecorator
-        val framingOptions = screenshotOptions.getFramingOptions(screenshot)
+        val screenshotPostprocessor = screenshotParameters.screenshotDecorator
+        val framingOptions = screenshotParameters.getFramingOptions(screenshot)
         try {
-          val defaultFrame =
-              if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption() else 0
+          val defaultFrame = if (framingOptions.isNotEmpty()) screenshotParameters.getDefaultFramingOption() else 0
+          val allowImageRotation = displayInfoProvider == null && screenshotParameters.deviceType == DeviceType.HANDHELD
           val viewer = ScreenshotViewer(project,
                                         screenshot,
                                         backingFile,
@@ -116,7 +122,7 @@ class ScreenshotAction : DumbAwareAction(
                                         screenshotPostprocessor,
                                         framingOptions,
                                         defaultFrame,
-                                        screenshotOptions.screenshotViewerOptions)
+                                        allowImageRotation)
           viewer.show()
           Disposer.register(viewer.disposable, screenshotProvider)
           disposable = null
@@ -130,7 +136,7 @@ class ScreenshotAction : DumbAwareAction(
   }
 
   companion object {
-    val SCREENSHOT_OPTIONS_KEY = DataKey.create<ScreenshotOptions>("ScreenshotOptions")
+    val SCREENSHOT_PARAMETERS_KEY = DataKey.create<ScreenshotParameters>("ScreenshotParameters")
   }
 
   class ScreenshotRotation(val orientationQuadrants: Int, val imageRotationQuadrants: Int)

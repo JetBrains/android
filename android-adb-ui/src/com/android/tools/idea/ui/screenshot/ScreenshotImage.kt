@@ -23,7 +23,7 @@ import kotlin.math.roundToInt
 
 class ScreenshotImage(
   val image: BufferedImage,
-  val screenshotRotationQuadrants: Int,
+  val screenshotOrientationQuadrants: Int,
   val deviceType: DeviceType,
   private val displayInfo: String = "",
 ) {
@@ -59,7 +59,7 @@ class ScreenshotImage(
     }
     return ScreenshotImage(
       image = ImageUtils.rotateByQuadrantsAndScale(image, rotationQuadrants, (w * scale).roundToInt(), (h * scale).roundToInt()),
-      screenshotRotationQuadrants = (screenshotRotationQuadrants + rotationQuadrants) and 0x03,
+      screenshotOrientationQuadrants = (screenshotOrientationQuadrants + rotationQuadrants) and 0x03,
       displayInfo = displayInfo,
       deviceType = deviceType)
   }

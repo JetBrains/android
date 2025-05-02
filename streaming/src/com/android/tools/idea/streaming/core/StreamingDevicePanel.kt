@@ -23,6 +23,8 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
+import com.android.tools.idea.ui.DisplayInfoProvider
 import com.intellij.codeInsight.hint.HintUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -46,6 +48,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Point
 import java.awt.event.ComponentEvent
@@ -84,6 +87,21 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   protected val secondaryToolbar: ActionToolbar
   protected val centerPanel = BorderLayoutPanel()
   protected val displayPanels = Int2ObjectRBTreeMap<T>()
+
+  private val displayInfoProvider = object : DisplayInfoProvider {
+
+    override fun getIdsOfAllDisplays(): IntArray =
+        displayPanels.keys.toIntArray()
+
+    override fun getDisplaySize(displayId: Int): Dimension =
+        displayPanels[displayId]?.displayView?.deviceDisplaySize ?: throw IllegalArgumentException()
+
+    override fun getDisplayOrientation(displayId: Int): Int =
+        displayPanels[displayId]?.displayView?.displayOrientationQuadrants ?: throw IllegalArgumentException()
+
+    override fun getScreenshotRotation(displayId: Int): Int =
+        displayPanels[displayId]?.displayView?.displayOrientationCorrectionQuadrants ?: throw IllegalArgumentException()
+  }
 
   init {
     background = primaryPanelBackground
@@ -133,6 +151,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
     sink[SERIAL_NUMBER_KEY] = id.serialNumber
     sink[STREAMING_CONTENT_PANEL_KEY] = centerPanel
     sink[DEVICE_ID_KEY] = id
+    sink[DISPLAY_INFO_PROVIDER_KEY] = displayInfoProvider
   }
 
   override fun dispose() {

@@ -76,7 +76,6 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Path
-import java.util.EnumSet
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.UIManager
@@ -471,7 +470,7 @@ class ScreenshotViewerTest {
     val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
     val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
     val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, screenshotProvider, screenshotDecorator,
-                                  framingOptions, 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
+                                  framingOptions, 0, allowImageRotation = true)
     viewer.show()
     return viewer
   }
