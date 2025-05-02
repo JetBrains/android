@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 /**
@@ -24,6 +25,6 @@ interface ScreenRecordingSupportedCache {
   fun isScreenRecordingSupported(serialNumber: String): Boolean
 
   companion object {
-    fun getInstance(project: Project): ScreenRecordingSupportedCache = project.getService(ScreenRecordingSupportedCache::class.java)
+    fun getInstance(project: Project): ScreenRecordingSupportedCache = project.service<ScreenRecordingSupportedCache>()
   }
 }
