@@ -664,6 +664,10 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
     args.add("--version_micro", micro)
     args.add("--version_patch", patch)
     args.add("--build_txt", stamped_build_txt.path)
+
+    if ctx.attr.essential_plugins:
+        args.add_all("--essential_plugins", ctx.attr.essential_plugins)
+
     args.add("--stamp_app_info")
     _stamp(ctx, args, [ctx.version_file, stamped_build_txt], resources_jar, stamped_resources_jar)
 
@@ -988,6 +992,7 @@ _android_studio = rule(
         "host_platform_name": attr.string(),
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
+        "essential_plugins": attr.string_list(),
         "experimental_runner": attr.bool(default = False),
         "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
