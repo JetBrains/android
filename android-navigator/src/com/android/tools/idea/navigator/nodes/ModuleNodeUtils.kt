@@ -17,11 +17,16 @@
 
 package com.android.tools.idea.navigator.nodes
 
+import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings
 import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * Creates Android project view nodes for a given [project].
@@ -43,4 +48,23 @@ fun createChildModuleNodes(
   return children
 }
 
+/**
+ * Should this build script be shown in the project node?
+ */
+fun showInProjectBuildScriptsGroup(psiFile: PsiFile): Boolean {
+  if (isProjectBuildScript(psiFile)) {
+    return true
+  }
+  return !showBuildFilesInModule()
+}
 
+fun showBuildFilesInModule(): Boolean {
+  return overrideShowBuildFilesInModule ?: ProjectToolWindowSettings.getInstance().showBuildFilesInModule
+}
+
+@VisibleForTesting
+var overrideShowBuildFilesInModule: Boolean? = null
+
+private fun isProjectBuildScript(psiFile: PsiFile): Boolean {
+  return (psiFile.module?.getGradleIdentityPath() == ":")
+}

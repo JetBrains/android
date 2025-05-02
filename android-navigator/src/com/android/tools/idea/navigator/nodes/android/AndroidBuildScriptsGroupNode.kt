@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.android
 
+import com.android.tools.idea.navigator.nodes.showBuildFilesInModule
+import com.android.tools.idea.navigator.nodes.showInProjectBuildScriptsGroup
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.ide.projectView.PresentationData
@@ -28,6 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import icons.GradleIcons
+import org.jetbrains.annotations.VisibleForTesting
 
 class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   : ProjectViewNode<List<PsiDirectory?>?>(project, emptyList(), settings) {
@@ -47,7 +50,9 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
     cachedScripts.forEach { configFile ->
       val psiFile = PsiManager.getInstance(myProject).findFile(configFile.file)
       if (psiFile != null) {
-        children.add(AndroidBuildScriptNode(myProject, psiFile, settings, configFile.displayName, configFile.groupOrder))
+        if (showInProjectBuildScriptsGroup(psiFile)) {
+          children.add(AndroidBuildScriptNode(myProject, psiFile, settings, configFile.displayName, configFile.groupOrder))
+        }
       }
     }
     return children
@@ -56,13 +61,18 @@ class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   override fun getWeight(): Int = 100 // Gradle scripts node should be at the end after all the modules
 
   override fun update(presentation: PresentationData) {
-    presentation.presentableText = "Gradle Scripts"
+    presentation.presentableText = getNodeText(showBuildFilesInModule())
     presentation.setIcon(GradleIcons.Gradle)
   }
 
-  override fun toTestString(printInfo: PrintInfo?): String = "Gradle Scripts"
+  override fun toTestString(printInfo: PrintInfo?): String = getNodeText(showBuildFilesInModule())
 
   private fun buildConfigurationSourceProvider(): BuildConfigurationSourceProvider {
     return project.getProjectSystem().getBuildConfigurationSourceProvider() ?: BuildConfigurationSourceProvider.EMPTY
+  }
+
+  @VisibleForTesting
+  fun getNodeText(perModule: Boolean): String {
+    return if (perModule) "Project Gradle Files" else "Gradle Scripts"
   }
 }

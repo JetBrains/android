@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.projectView
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings.Companion.PROJECT_VIEW_KEY
+import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.bindSelected
@@ -108,8 +110,14 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
       }
 
       if (showBuildFilesCheckBox != null) {
+        val refreshView = initialShowBuildFilesInModule != showBuildFilesInModule
         initialShowBuildFilesInModule = showBuildFilesInModule
         projectToolSettings.showBuildFilesInModule = showBuildFilesInModule
+        if (refreshView) {
+          ProjectManager.getInstance().openProjects
+            .filter { !it.isDisposed }
+            .forEach{ ProjectView.getInstance(it)?.refresh() }
+        }
       }
     }
   }

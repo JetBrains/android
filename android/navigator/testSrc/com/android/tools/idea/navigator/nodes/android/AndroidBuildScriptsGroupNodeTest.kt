@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.navigator.nodes.android
 
+import com.android.tools.idea.navigator.nodes.overrideShowBuildFilesInModule
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
+import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.onEdt
+import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,6 +36,11 @@ import org.junit.Test
 class AndroidBuildScriptsGroupNodeTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+
+  @After
+  fun cleanUp() {
+    overrideShowBuildFilesInModule = null
+  }
 
   @Test
   fun rootProjectOnly() {
@@ -68,6 +77,7 @@ class AndroidBuildScriptsGroupNodeTest {
 
   @Test
   fun appProject() {
+    overrideShowBuildFilesInModule = false
     val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "")
     val build_gradle = projectRule.fixture.addFileToProject("build.gradle", "")
     val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
@@ -80,7 +90,8 @@ class AndroidBuildScriptsGroupNodeTest {
     val app_gradle_libs_versions_toml = projectRule.fixture.addFileToProject("app/gradle/libs.versions.toml", "")
     projectRule.setupProjectFrom(rootModuleBuilder,  AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()))
 
-    val node = AndroidBuildScriptsGroupNode(projectRule.project, ViewSettings.DEFAULT)
+    val project = projectRule.project
+    val node = AndroidBuildScriptsGroupNode(project, ViewSettings.DEFAULT)
 
     assertTrue(node.contains(setting_gradle.virtualFile))
     assertTrue(node.contains(build_gradle.virtualFile))
@@ -101,6 +112,57 @@ class AndroidBuildScriptsGroupNodeTest {
       consumer-proguard-rules.pro (ProGuard Rules for ":app")
     """.trimIndent()
     assertEquals(expectedChildren, node.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
+
+    val appModule = project.findAppModule()
+    assertThat(appModule).isNotNull()
+    val appNode = AndroidModuleNode(project, appModule, ViewSettings.DEFAULT)
+    assertThat(appNode.children).isEmpty()
+  }
+
+  @Test
+  fun appProjectWithBuildScripts() {
+    overrideShowBuildFilesInModule = true
+    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "")
+    val build_gradle = projectRule.fixture.addFileToProject("build.gradle", "")
+    val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
+    val app_proguard_rules_pro = projectRule.fixture.addFileToProject("app/proguard-rules.pro", "")
+    val app_consumer_proguard_rules_pro = projectRule.fixture.addFileToProject("app/consumer-proguard-rules.pro", "")
+    val gradle_other_versions_toml = projectRule.fixture.addFileToProject("gradle/other.versions.toml", "")
+    val unrelated_txt = projectRule.fixture.addFileToProject("unrelated.txt", "")
+    val app_unrelated_txt = projectRule.fixture.addFileToProject("app/unrelated.txt", "")
+    val app_libs_versions_toml = projectRule.fixture.addFileToProject("app/libs.versions.toml", "")
+    val app_gradle_libs_versions_toml = projectRule.fixture.addFileToProject("app/gradle/libs.versions.toml", "")
+    projectRule.setupProjectFrom(rootModuleBuilder,  AndroidModuleModelBuilder(":app", "debug", AndroidProjectBuilder()))
+
+    val project = projectRule.project
+    val node = AndroidBuildScriptsGroupNode(project, ViewSettings.DEFAULT)
+
+    assertTrue(node.contains(setting_gradle.virtualFile))
+    assertTrue(node.contains(build_gradle.virtualFile))
+    assertTrue(node.contains(app_proguard_rules_pro.virtualFile))
+    assertTrue(node.contains(app_consumer_proguard_rules_pro.virtualFile))
+    assertTrue(node.contains(app_build_gradle.virtualFile))
+    assertFalse(node.contains(gradle_other_versions_toml.virtualFile))
+    assertFalse(node.contains(app_libs_versions_toml.virtualFile))
+    assertFalse(node.contains(app_gradle_libs_versions_toml.virtualFile)) // only include .versions.toml files from the root project
+    assertFalse(node.contains(unrelated_txt.virtualFile))
+    assertFalse(node.contains(app_unrelated_txt.virtualFile))
+
+    val expectedChildren = """
+      build.gradle (Project: AndroidBuildScriptsGroupNodeTest_appProjectWithBuildScripts)
+      settings.gradle (Project Settings)
+    """.trimIndent()
+    assertEquals(expectedChildren, node.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
+
+    val appModule = project.findAppModule()
+    assertThat(appModule).isNotNull()
+    val appNode = AndroidModuleNode(project, appModule, ViewSettings.DEFAULT)
+    val expectedChildrenApp = """
+      build.gradle (Module :app)
+      proguard-rules.pro (ProGuard Rules for ":app")
+      consumer-proguard-rules.pro (ProGuard Rules for ":app")
+    """.trimIndent()
+    assertEquals(expectedChildrenApp, appNode.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
   }
 
   @Test

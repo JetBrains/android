@@ -32,7 +32,7 @@ public class AndroidBuildScriptNode extends PsiFileNode {
   @Nullable private final String myQualifier;
   private final int myOrder;
 
-  AndroidBuildScriptNode(@NotNull Project project,
+  public AndroidBuildScriptNode(@NotNull Project project,
                          @NotNull PsiFile value,
                          @NotNull ViewSettings settings,
                          @Nullable String qualifier,

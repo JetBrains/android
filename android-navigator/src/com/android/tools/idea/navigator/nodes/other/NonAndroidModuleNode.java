@@ -15,16 +15,25 @@
  */
 package com.android.tools.idea.navigator.nodes.other;
 
+import static com.android.tools.idea.navigator.nodes.ModuleNodeUtils.showBuildFilesInModule;
+import static com.android.tools.idea.navigator.nodes.ModuleNodeUtils.showInProjectBuildScriptsGroup;
+
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
+import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptNode;
+import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +61,24 @@ public class NonAndroidModuleNode extends AndroidViewModuleNode {
     assert myProject != null;
     for (NonAndroidSourceType type : sourceTypes) {
       nodes.add(new NonAndroidSourceTypeNode(myProject, module, getSettings(), type));
+    }
+
+    if (showBuildFilesInModule()) {
+      PsiManager psiManager = PsiManager.getInstance(myProject);
+      BuildConfigurationSourceProvider buildProvider = ProjectSystemUtil.getProjectSystem(myProject).getBuildConfigurationSourceProvider();
+      if (buildProvider != null) {
+        @NotNull List<BuildConfigurationSourceProvider.ConfigurationFile> allBuildFiles;
+        allBuildFiles = buildProvider.getBuildConfigurationFiles();
+        for (BuildConfigurationSourceProvider.ConfigurationFile file : allBuildFiles) {
+          if (ModuleUtilCore.moduleContainsFile(module, file.getFile(), true)
+              || ModuleUtilCore.moduleContainsFile(module, file.getFile(), false)) {
+            PsiFile psiFile = psiManager.findFile(file.getFile());
+            if (psiFile != null && (!showInProjectBuildScriptsGroup(psiFile))) {
+              nodes.add(new AndroidBuildScriptNode(myProject, psiFile, getSettings(), file.getDisplayName(), file.getGroupOrder()));
+            }
+          }
+        }
+      }
     }
 
     return nodes;
@@ -92,7 +119,6 @@ public class NonAndroidModuleNode extends AndroidViewModuleNode {
   @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    Module module = getModule();
     return String.format("%1$s (non-Android)", super.toTestString(printInfo));
   }
 
