@@ -266,6 +266,52 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
+  fun `adding preview makes it appear without rebuilding`() = runBlocking {
+    // This test only makes sense when fast preview is disabled, as what's being tested is that
+    // annotation changes take effect without rebuilding nor recompiling
+    FastPreviewManager.getInstance(project).disable()
+
+    projectRule.runAndWaitForRefresh(failOnTimeout = false) {
+      // Add another @Preview to NavigatablePreview
+      runWriteActionAndWait {
+        fixture.openFileInEditor(psiMainFile.virtualFile)
+        fixture.moveCaret("NavigatablePreview|")
+        // Move to the line with the annotation
+        fixture.editor.moveCaretLines(-2)
+        // Add another preview annotation
+        fixture.editor.executeAndSave { insertText("@Preview(name = \"additional preview\")\n") }
+        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+        FileDocumentManager.getInstance().saveAllDocuments()
+      }
+    }
+    fakeUi.findComponent<SceneViewPanel>()!!.setNoComposeHeadersForTests()
+    withContext(uiThread) { fakeUi.findComponent<SceneViewPanel>()?.doLayout() }
+    projectRule.validate()
+
+    withContext(uiThread) { fakeUi.layoutAndDispatchEvents() }
+    delayUntilCondition(100, 10.seconds) {
+      fakeUi.findAllComponents<SceneViewPeerPanel>().size == 6
+    }
+
+    val allSceneViewPeerPanels = fakeUi.findAllComponents<SceneViewPeerPanel>()
+    val sceneViewPeerPanelsText =
+      allSceneViewPeerPanels.joinToString(", ") { "${it.displayName} showing=${it.isShowing}" }
+
+    assertEquals(
+      "Unexpected visible panels. Current is '$sceneViewPeerPanelsText'",
+      listOf(
+        "DefaultPreview",
+        "MyPreviewWithInline",
+        "NavigatablePreview",
+        "NavigatablePreview - additional preview",
+        "OnlyATextNavigation",
+        "TwoElementsPreview",
+      ),
+      allSceneViewPeerPanels.filter { it.isShowing }.map { it.displayName }.sorted(),
+    )
+  }
+
+  @Test
   fun `MultiPreview annotation changes are reflected in the previews without rebuilding`() =
     runBlocking {
       // This test only makes sense when fast preview is disabled, as what's being tested is that
