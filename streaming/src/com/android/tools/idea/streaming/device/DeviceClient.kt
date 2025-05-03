@@ -129,17 +129,17 @@ private const val REPORT_FIELD_RUN_DURATION_MILLIS = "runDurationMillis"
 private const val REPORT_FIELD_AGENT_MESSAGES = "agentMessages"
 private const val REPORT_FIELD_DEVICE = "device"
 
-internal class DeviceClient(
+class DeviceClient(
   val deviceSerialNumber: String,
   val deviceConfig: DeviceConfiguration,
   private val deviceAbi: String
 ) : Disposable {
 
   val deviceName: String = deviceConfig.deviceName
-  val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
+  internal val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
   private val clientScope = createCoroutineScope()
   private val connectionHolder = AtomicReference<Connection>()
-  val deviceController: DeviceController?
+  internal val deviceController: DeviceController?
     get() = connectionHolder.get()?.deviceController
   val videoDecoder: VideoDecoder?
     get() = connectionHolder.get()?.videoDecoder

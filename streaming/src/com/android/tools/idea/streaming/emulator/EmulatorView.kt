@@ -123,6 +123,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.DisposableWrapperList
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import org.HdrHistogram.Histogram
@@ -247,6 +248,7 @@ class EmulatorView(
   @Volatile
   private var notificationReceiver: NotificationReceiver? = null
 
+  private val sourceFrameListeners = DisposableWrapperList<SourceFrameListener>()
   private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   private val postureListeners: MutableList<PostureListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   @Volatile
@@ -719,6 +721,32 @@ class EmulatorView(
     notificationFeed = null
   }
 
+  fun notifySourceFrameListeners(frame: BufferedImage) {
+    for (listener in sourceFrameListeners) {
+      try {
+        listener.frameReceived(frameNumber, displayOrientationQuadrants, frame)
+      } catch (t: Throwable) {
+        LOG.error(t)
+      }
+    }
+  }
+
+  /**
+   * Adds [listener] to receive events whenever a new frame is received from the source.
+   * Removal of the listener
+   */
+  fun addSourceFrameListener(listener: SourceFrameListener, parentDisposable: Disposable? = null) =
+    if (parentDisposable != null) {
+      sourceFrameListeners.add(listener, parentDisposable)
+    } else if (listener is Disposable) {
+      sourceFrameListeners.add(listener, listener)
+    } else {
+      sourceFrameListeners.add(listener)
+    }
+
+  fun removeSourceFrameListener(listener: SourceFrameListener) =
+    sourceFrameListeners.remove(listener)
+
   private fun showVirtualSceneCameraPrompt(prompt: String) {
     if (EmulatorSettings.getInstance().showCameraControlPrompts) {
       findNotificationHolderPanel()?.showFadeOutNotification(prompt)
@@ -846,6 +874,10 @@ class EmulatorView(
   override fun uiDataSnapshot(sink: DataSink) {
     super.uiDataSnapshot(sink)
     sink[EMULATOR_VIEW_KEY] = this
+  }
+
+  interface SourceFrameListener {
+    fun frameReceived(frameNumber: UInt, displayOrientationQuadrants: Int, displayImage: BufferedImage)
   }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
@@ -1403,6 +1435,7 @@ class EmulatorView(
       if (displayMode != null && !checkAspectRatioConsistency(imageFormat, displayMode)) {
         return
       }
+
       val foldedDisplay = imageFormat.foldedDisplay
       val activeDisplayRegion = when {
         foldedDisplay.width != 0 && foldedDisplay.height != 0 ->
@@ -1410,6 +1443,9 @@ class EmulatorView(
         displayMode != null -> Rectangle(displayMode.displaySize)
         else -> null
       }
+
+      notifySourceFrameListeners(image)
+
       val displayShape =
           DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode, message.seq.toUInt())
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)

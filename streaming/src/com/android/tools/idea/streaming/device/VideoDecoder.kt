@@ -96,7 +96,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 import kotlin.text.Charsets.UTF_8
 
-internal class VideoDecoder(
+class VideoDecoder internal constructor(
   private val videoChannel: SuspendingSocketChannel,
   private val decoderScope: CoroutineScope,
   private val deviceProperties: DeviceProperties,
@@ -208,7 +208,7 @@ internal class VideoDecoder(
     fun onInvalidFrame(e: InvalidFrameException)
   }
 
-  internal class VideoFrame(
+  class VideoFrame(
       val image: BufferedImage,
       val displaySize: Dimension,
       val orientation: Int,
@@ -607,8 +607,8 @@ internal class VideoDecoder(
   }
 }
 
-internal open class VideoDecoderException(message: String) : RuntimeException(message)
-internal class InvalidFrameException(message: String) : VideoDecoderException(message)
+open class VideoDecoderException(message: String) : RuntimeException(message)
+class InvalidFrameException(message: String) : VideoDecoderException(message)
 
 private fun Pointer.asByteBufferOfSize(size: Int): ByteBuffer =
   BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
