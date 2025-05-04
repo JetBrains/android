@@ -27,7 +27,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.base.async.executor.BlazeExecutor;
 import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
+import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
+import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker.Capability;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunnerExperiments;
@@ -83,6 +85,7 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 
@@ -112,19 +115,25 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   @Override
   protected ProcessHandler startProcess() throws ExecutionException {
     Project project = getConfiguration().getProject();
+    BuildSystem buildSystem = Blaze.getBuildSystemProvider(project).getBuildSystem();
     BlazeContext context = BlazeContext.create();
     boolean debuggingLocalTest =
       TargetKindUtil.isLocalTest(getConfiguration().getTargetKind())
       && getExecutorType().isDebugType();
-    ImmutableSet<BuildInvoker.Capability> requirements =
-      debuggingLocalTest ? ImmutableSet.of(BuildInvoker.Capability.DEBUG_LOCAL_TEST) : ImmutableSet.of();
-    BuildInvoker invoker =
-      Blaze.getBuildSystemProvider(project)
-        .getBuildSystem()
-        .getBuildInvoker(project, requirements).orElseThrow();
-    if (debuggingLocalTest
-        && !invoker.getCapabilities().contains(BuildInvoker.Capability.SUPPORT_CLI)) {
-      return startProcessRunfilesCase(project);
+    final BuildInvoker invoker;
+    if (debuggingLocalTest) {
+      Optional<BuildInvoker> invokerWithDebuggerCapability = buildSystem.getBuildInvoker(project,
+                                                                                         ImmutableSet.of(Capability.ATTACH_JAVA_DEBUGGER,
+                                                                                                         Capability.SUPPORT_CLI));
+      if (invokerWithDebuggerCapability.isEmpty()) {
+        return startProcessRunfilesCase(project);
+      }
+      else {
+        invoker = invokerWithDebuggerCapability.get();
+      }
+    }
+    else {
+      invoker = buildSystem.getBuildInvoker(project, ImmutableSet.of()).orElseThrow();
     }
     return startProcessBazelCliCase(invoker, project, context);
   }

@@ -87,7 +87,7 @@ public interface BuildSystem {
       /**
        * Capability to debug Android local test
        */
-      DEBUG_LOCAL_TEST
+      ATTACH_JAVA_DEBUGGER
     }
 
     ImmutableSet<Capability> getCapabilities();

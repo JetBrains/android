@@ -59,8 +59,8 @@ import javax.annotation.Nullable;
 /** A local Blaze/Bazel invoker that issues commands via CLI. */
 public class LocalInvoker extends AbstractBuildInvoker {
   private static final Logger logger = Logger.getInstance(LocalInvoker.class);
-  private static final ImmutableSet<Capability> CAPABILITIES = ImmutableSet.of(
-    Capability.SUPPORT_CLI, Capability.DEBUG_LOCAL_TEST, Capability.SUPPORT_QUERY_FILE);
+  protected static final ImmutableSet<Capability> CAPABILITIES = ImmutableSet.of(
+    Capability.SUPPORT_CLI, Capability.ATTACH_JAVA_DEBUGGER, Capability.SUPPORT_QUERY_FILE);
 
   public LocalInvoker(
     Project project,
