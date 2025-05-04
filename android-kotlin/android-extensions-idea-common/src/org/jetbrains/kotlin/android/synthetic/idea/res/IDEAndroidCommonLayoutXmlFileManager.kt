@@ -107,7 +107,7 @@ open class IDEAndroidCommonLayoutXmlFileManager(val module: Module) : AndroidLay
 
     private fun SourceProviderMirror.toVariant() = let {
         val list = resDirectories.mapNotNull { it.canonicalPath }
-        val fixedName = if (name != "") name else "main"  // IdeaSourceProvider's for legacy projects rename the main source set.
+        val fixedName = name.ifEmpty { "main" }  // IdeaSourceProvider's for legacy projects rename the main source set.
         AndroidVariant(fixedName, list)
     }
 
