@@ -602,8 +602,8 @@ public final class BlazeEditProjectViewControl {
     final ProjectViewSet projectViewSet;
     ScalarSection<String> workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
       .set(workspaceData.workspaceRoot().toString()).build();
-    ScalarSection<UseQuerySyncSection.UseQuerySync> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
-      .set(QuerySync.useForNewProjects() ? UseQuerySyncSection.UseQuerySync.TRUE : UseQuerySyncSection.UseQuerySync.FALSE).build();
+    ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
+      .set(QuerySync.useForNewProjects()).build();
     if (useSharedProjectView && selectProjectViewOption.getSharedProjectView() != null) {
       projectView =
           ProjectView.builder()

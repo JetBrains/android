@@ -133,7 +133,7 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
 
     final var projectViewProjectType =
       Optional.ofNullable(topLevelProjectView.getScalarValue(UseQuerySyncSection.KEY))
-        .map(querySync -> (querySync.isEnabled()
+        .map(querySync -> (querySync
                            ? BlazeImportSettings.ProjectType.QUERY_SYNC
                            : BlazeImportSettings.ProjectType.ASPECT_SYNC));
     final var projectViewWorkspaceLocation = Optional.ofNullable(topLevelProjectView.getScalarValue(WorkspaceLocationSection.KEY));

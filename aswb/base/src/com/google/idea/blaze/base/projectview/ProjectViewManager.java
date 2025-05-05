@@ -42,7 +42,7 @@ public abstract class ProjectViewManager {
   public static void migrateImportSettingsToProjectViewFile(BlazeImportSettings importSettings,
                                                             ProjectViewSet.ProjectViewFile projectViewFile) {
     ScalarSection<String> workspaceRootSection = null;
-    ScalarSection<UseQuerySyncSection.UseQuerySync> useQuerySyncSection = null;
+    ScalarSection<Boolean> useQuerySyncSection = null;
     if (projectViewFile.projectView.getSections().stream().noneMatch(x -> x.isSectionType(WorkspaceLocationSection.KEY))) {
       workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
         .set(importSettings.getWorkspaceRoot())
@@ -50,9 +50,7 @@ public abstract class ProjectViewManager {
     }
     if (projectViewFile.projectView.getSections().stream().noneMatch(x -> x.isSectionType(UseQuerySyncSection.KEY))) {
       useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
-        .set(importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC
-             ? UseQuerySyncSection.UseQuerySync.TRUE
-             : UseQuerySyncSection.UseQuerySync.FALSE).build();
+        .set(importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC).build();
     }
     if (workspaceRootSection != null || useQuerySyncSection != null) {
       ProjectView.Builder projectView = ProjectView.builder(projectViewFile.projectView);
