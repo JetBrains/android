@@ -2473,6 +2473,13 @@ public final class StudioFlags {
     "Applies the Gradle configuration needed to run Journeys automatically when a Journeys run configuration is triggered",
     enabledUpTo(DEV)
   );
+  public static final Flag<String> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_DEP = new StringFlag(
+    JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.auto.gradle.configuration",
+    "Journey plugin dependency name used by automatic Gradle configuration",
+    "The ID of the Journey AGP plugin to use in the init-script injected when JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION " +
+    "is enabled, Use the `-dev` suffix to use a locally built plugin.",
+    "com.android.tools.journeys:journeys-gradle-plugin:0.0.1-alpha01"
+  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
     "Enable recording of Journeys with Gemini",
