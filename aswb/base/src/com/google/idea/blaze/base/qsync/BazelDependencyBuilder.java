@@ -431,7 +431,8 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     }
   }
 
-  protected Path getBundledAspectPath(String filename) {
+  @VisibleForTesting
+  public Path getBundledAspectPath(String filename) {
     return getBundledAspectPath("aspect", filename);
   }
 

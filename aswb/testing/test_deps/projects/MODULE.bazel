@@ -238,6 +238,11 @@ bazel_dep(
     name = "bazel_skylib",
     version = "1.7.1",
 )
+bazel_dep(
+    name = "rules_testing",
+    version = "0.8.0",
+    dev_dependency=True
+)
 
 remote_android_extensions = use_extension(
     "@rules_android//bzlmod_extensions:android_extensions.bzl",
