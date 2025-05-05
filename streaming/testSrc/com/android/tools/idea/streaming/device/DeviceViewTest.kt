@@ -843,6 +843,7 @@ internal class DeviceViewTest {
     // Check reconnection.
     agent.crashOnStart = false
     fakeUi.clickOn(button)
+    waitForCondition(15, SECONDS) { agent.isRunning }
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(19, 0, 462, 1000))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
