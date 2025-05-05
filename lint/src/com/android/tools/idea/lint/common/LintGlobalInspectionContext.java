@@ -27,7 +27,6 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionContext;
-import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.codeInspection.ex.GlobalInspectionContextBase;
 import com.intellij.codeInspection.ex.InspectionProfileImpl;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
@@ -59,7 +58,6 @@ import com.intellij.util.concurrency.ThreadingAssertions;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -71,7 +69,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LintGlobalInspectionContext implements GlobalInspectionContextExtension<LintGlobalInspectionContext> {
-  static final Key<LintGlobalInspectionContext> ID = Key.create("LintGlobalInspectionContext");
+  public static final Key<LintGlobalInspectionContext> ID = Key.create("LintGlobalInspectionContext");
   private Map<Issue, Map<File, List<LintProblemData>>> myResults;
   private LintBaseline myBaseline;
 

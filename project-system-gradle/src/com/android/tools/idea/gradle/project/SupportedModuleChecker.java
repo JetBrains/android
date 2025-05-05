@@ -38,12 +38,12 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.platform.workspace.jps.entities.ModuleEntity;
+import com.intellij.workspaceModel.ide.legacyBridge.ModuleBridge;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javax.swing.event.HyperlinkEvent;
-import com.intellij.workspaceModel.ide.legacyBridge.ModuleBridge;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -112,7 +112,7 @@ public class SupportedModuleChecker {
   }
 
   @VisibleForTesting
-  static class UnsupportedModulesQuickFix extends NotificationHyperlink {
+  public static class UnsupportedModulesQuickFix extends NotificationHyperlink {
 
     private final List<ModulePointer> unsupportedModules;
 

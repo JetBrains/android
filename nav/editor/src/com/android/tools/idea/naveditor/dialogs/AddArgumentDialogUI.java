@@ -25,23 +25,22 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 @VisibleForTesting
 public class AddArgumentDialogUI {
-  JPanel myContentPanel;
-  JCheckBox myNullableCheckBox;
-  JTextField myNameTextField;
-  JPanel myDefaultValuePanel;
-  JComboBox<String> myDefaultValueComboBox;
-  JTextField myDefaultValueTextField;
-  JBLabel myNullableLabel;
-  JComboBox<AddArgumentDialog.Type> myTypeComboBox;
-  JLabel myArrayLabel;
-  JCheckBox myArrayCheckBox;
+  public JPanel myContentPanel;
+  public JCheckBox myNullableCheckBox;
+  public JTextField myNameTextField;
+  public JPanel myDefaultValuePanel;
+  public JComboBox<String> myDefaultValueComboBox;
+  public JTextField myDefaultValueTextField;
+  public JBLabel myNullableLabel;
+  public JComboBox<AddArgumentDialog.Type> myTypeComboBox;
+  public JLabel myArrayLabel;
+  public JCheckBox myArrayCheckBox;
 
   public AddArgumentDialogUI() {
     setupUI();
