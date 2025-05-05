@@ -72,7 +72,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Separator
@@ -1322,7 +1321,7 @@ private val DeviceState.Connected.serialNumber: String
     get() = connectedDevice.serialNumber
 
 private fun ContentManager.addSelectedPanelDataProvider() {
-  addDataProvider(EdtNoGetDataProvider { sink -> DataSink.uiDataSnapshot(sink, selectedContent?.component) })
+  addUiDataProvider { sink -> DataSink.uiDataSnapshot(sink, selectedContent?.component) }
 }
 
 private val ContentManager.placeholderContent: Content?
