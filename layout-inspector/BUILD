@@ -1,4 +1,3 @@
-load("@exec_properties//:constants.bzl", "RBE_CPU_8")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -226,7 +225,6 @@ iml_test(
     name = "EmbeddedLayoutInspectorIntegrationTest",
     timeout = "long",
     data = layout_inspector_view_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.layout-inspector.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],

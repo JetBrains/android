@@ -1,4 +1,3 @@
-load("@exec_properties//:constants.bzl", "RBE_CPU_8")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 
@@ -102,7 +101,6 @@ iml_test(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.device-explorer.integration.tests",
     tags = [
         "studio-e2e-test",
