@@ -2355,6 +2355,12 @@ public final class StudioFlags {
                     "Enable Gemini actions to display a dialog prompting the user to sign in",
                     enabledUpTo(DEV));
 
+  public static final Flag<Boolean> GEMINI_VERIFY_USER_TIER_IN_ALL_AIDA_RPCS =
+    new BooleanFlag(STUDIOBOT, "verify.user.tier.in.aida.rpcs",
+                    "Verify user tier in all API requests to the AIDA endpoint",
+                    "Verify user tier in all API requests to the AIDA endpoint",
+                    true);
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
