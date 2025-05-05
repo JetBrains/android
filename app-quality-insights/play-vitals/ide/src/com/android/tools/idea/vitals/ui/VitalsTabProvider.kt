@@ -70,7 +70,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
     val scope = AndroidCoroutineScope(tabPanel)
     val deprecationData = getConfigurationManager(project).deprecationData
     val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
-    if (deprecationData.isDeprecated()) {
+    if (deprecationData.isUnsupported()) {
       tabPanel.setComponent(
         ServiceDeprecatedPanel(scope, activeTabFlow, tracker, deprecationData) {
           UpdateChecker.updateAndShowResult(project)

@@ -15,44 +15,29 @@
  */
 package com.android.tools.idea.gservices
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.serverflags.FakeServerFlagService
 import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.serverflags.protos.Date
 import com.android.tools.idea.serverflags.protos.DevServicesDeprecationMetadata
 import com.google.common.truth.Truth.assertThat
-import com.google.protobuf.Message
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.util.Locale
 
 @RunWith(JUnit4::class)
 class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCase() {
 
-  private var isServiceDeprecated = false
-  private var protoToReturn: Message =
-    DevServicesDeprecationMetadata.newBuilder()
-      .apply {
-        header = "header"
-        description = "description"
-        moreInfoUrl = "moreInfo"
-        showUpdateAction = true
-      }
-      .build()
-
-  private val fakeServerFlagService =
-    object : ServerFlagService {
-      override val configurationVersion: Long = 0
-      override val flagAssignments: Map<String, Int> = emptyMap()
-
-      override fun <T : Message> getProtoOrNull(name: String, instance: T) =
-        if (isServiceDeprecated) {
-          protoToReturn as T
-        } else {
-          null
-        }
-    }
+  @get:Rule val flagRule = FlagRule(StudioFlags.USE_POLICY_WITH_DEPRECATE, true)
+  private val fakeServerFlagService = FakeServerFlagService()
+  private val provider = ServerFlagBasedDevServicesDeprecationDataProvider()
 
   @Before
   fun setup() {
@@ -65,7 +50,6 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `proto missing in ServerFlag returns SUPPORTED`() {
-    isServiceDeprecated = false
     assertThat(
         ServerFlagService.instance.getProtoOrNull(
           "service",
@@ -74,47 +58,175 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       )
       .isNull()
 
-    val provider = ServerFlagBasedDevServicesDeprecationDataProvider()
-
     val deprecationData = provider.getCurrentDeprecationData("service")
-
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.SUPPORTED)
   }
 
   @Test
   fun `proto available in ServerFlag returns DEPRECATED`() {
-    isServiceDeprecated = true
+    StudioFlags.USE_POLICY_WITH_DEPRECATE.override(false)
+    registerServiceProto(
+      DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build()
+    )
     assertThat(
-        ServerFlagService.instance.getProtoOrNull(
-          "service",
-          DevServicesDeprecationMetadata.getDefaultInstance(),
-        )
+      ServerFlagService.instance.getProtoOrNull(
+        "dev_services/service",
+        DevServicesDeprecationMetadata.getDefaultInstance(),
       )
-      .isNotNull()
+    ).isNotNull()
 
     val provider = ServerFlagBasedDevServicesDeprecationDataProvider()
 
     val deprecationData = provider.getCurrentDeprecationData("service")
-
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.UNSUPPORTED)
   }
 
   @Test
   fun `proto with missing values returns DEPRECATED`() {
-    isServiceDeprecated = true
+    StudioFlags.USE_POLICY_WITH_DEPRECATE.override(false)
     assertThat(
-        ServerFlagService.instance.getProtoOrNull(
-          "service",
-          DevServicesDeprecationMetadata.getDefaultInstance(),
-        )
+      ServerFlagService.instance.getProto(
+        "dev_services/service",
+        DevServicesDeprecationMetadata.getDefaultInstance(),
       )
-      .isNotNull()
+    ).isNotNull()
 
-    protoToReturn = DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build()
+    registerServiceProto(
+      DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build()
+    )
     val provider = ServerFlagBasedDevServicesDeprecationDataProvider()
 
     val deprecationData = provider.getCurrentDeprecationData("service")
-
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.UNSUPPORTED)
+  }
+
+  @Test
+  fun `proto description returns substituted string`() {
+    val serviceProto = DevServicesDeprecationMetadata.newBuilder().apply {
+      description = "<service_name> will be substituted. So will <date>"
+      deprecationDate = Date.newBuilder().apply {
+        year = 2025
+        month = 1
+        day = 1
+      }.build()
+    }.build()
+    registerServiceProto(serviceProto)
+
+    var deprecationData = provider.getCurrentDeprecationData("service")
+    assertThat(deprecationData.description).isEqualTo("This service will be substituted. So will Jan 1, 2025")
+
+    deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
+    assertThat(deprecationData.description).isEqualTo("UserFriendlyName will be substituted. So will Jan 1, 2025")
+
+    registerServiceProto(
+      DevServicesDeprecationMetadata.newBuilder().apply {
+      description = "<service_name> will be substituted. So will <date>"
+    }.build()
+    )
+
+    deprecationData = provider.getCurrentDeprecationData("service")
+    assertThat(deprecationData.description).isEqualTo("This service will be substituted. So will ")
+  }
+
+  @Test
+  fun `proto header returns substituted string`() {
+    val serviceProto = DevServicesDeprecationMetadata.newBuilder().apply {
+      header = "<service_name> will be substituted. So will <date>"
+      deprecationDate = Date.newBuilder().apply {
+        year = 2025
+        month = 1
+        day = 1
+      }.build()
+    }.build()
+    registerServiceProto(serviceProto)
+
+    var deprecationData = provider.getCurrentDeprecationData("service")
+    assertThat(deprecationData.header).isEqualTo("This service will be substituted. So will Jan 1, 2025")
+
+    deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
+    assertThat(deprecationData.header).isEqualTo("UserFriendlyName will be substituted. So will Jan 1, 2025")
+
+    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply {
+      header = "<service_name> will be substituted. So will <date>"
+    }.build()
+    )
+
+    deprecationData = provider.getCurrentDeprecationData("service")
+    assertThat(deprecationData.header).isEqualTo("This service will be substituted. So will ")
+  }
+
+  @Test
+  fun `service proto takes precedence over studio proto`() {
+    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply {
+      header = "ServiceProto"
+    }.build()
+    )
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply {
+      header = "StudioProto"
+    }.build()
+    )
+
+    val deprecationData = provider.getCurrentDeprecationData("service")
+    assertThat(deprecationData.header).isEqualTo("ServiceProto")
+  }
+
+  @Test
+  fun `studio proto returned when service proto not available`() {
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply {
+      header = "StudioProto"
+    }.build()
+    )
+
+    val deprecationData = provider.getCurrentDeprecationData("service")
+    assertThat(deprecationData.header).isEqualTo("StudioProto")
+  }
+
+  @Test
+  fun `date is formatted to user locale`() {
+    val studioProto = DevServicesDeprecationMetadata.newBuilder().apply {
+      description = "<date>"
+      deprecationDate = Date.newBuilder().apply {
+        year = 2025
+        month = 1
+        day = 1
+      }.build()
+    }.build()
+    registerStudioProto(studioProto)
+
+    withLocaleOverride(Locale.FRENCH).use {
+      val deprecationData = provider.getCurrentDeprecationData("service")
+      assertThat(deprecationData.description).isEqualTo("1 janv. 2025")
+    }
+
+    withLocaleOverride(Locale.GERMAN).use {
+      val deprecationData = provider.getCurrentDeprecationData("service")
+      assertThat(deprecationData.description).isEqualTo("01.01.2025")
+    }
+
+    withLocaleOverride(Locale.ITALIAN).use {
+      val deprecationData = provider.getCurrentDeprecationData("service")
+      assertThat(deprecationData.description).isEqualTo("1 gen 2025")
+    }
+  }
+
+  private fun registerServiceProto(flag: Any) {
+    registerFlag("dev_services/service", flag)
+  }
+  private fun registerStudioProto(flag: Any) {
+    registerFlag("dev_services/studio", flag)
+  }
+  private fun registerFlag(name: String, flag: Any) {
+    fakeServerFlagService.registerFlag(name, flag)
+  }
+
+  private fun withLocaleOverride(override: Locale) = object : AutoCloseable {
+    private val originalLocale = Locale.getDefault()
+    init {
+      Locale.setDefault(override)
+    }
+
+    override fun close() {
+      Locale.setDefault(originalLocale)
+    }
   }
 }

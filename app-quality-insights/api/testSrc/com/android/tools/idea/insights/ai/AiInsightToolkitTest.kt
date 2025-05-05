@@ -40,6 +40,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -73,7 +74,7 @@ class AiInsightToolkitTest {
       projectRule.disposable,
     )
     deprecationDataProvider = mock<DevServicesDeprecationDataProvider>()
-    whenever(deprecationDataProvider.getCurrentDeprecationData(any()))
+    whenever(deprecationDataProvider.getCurrentDeprecationData(any(), any()))
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
     application.replaceService(
       DevServicesDeprecationDataProvider::class.java,
@@ -115,9 +116,9 @@ class AiInsightToolkitTest {
 
   @Test
   fun `insight deprecation data checks gemini first`() = runBlocking {
-    whenever(deprecationDataProvider.getCurrentDeprecationData("gemini/gemini"))
+    whenever(deprecationDataProvider.getCurrentDeprecationData(eq("gemini/gemini"), any()))
       .thenReturn(DevServicesDeprecationData("Gemini", "desc", "url", true, UNSUPPORTED))
-    whenever(deprecationDataProvider.getCurrentDeprecationData("aqi/insights"))
+    whenever(deprecationDataProvider.getCurrentDeprecationData(eq("aqi/insights"), any()))
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
     val toolkit =
       AiInsightToolkitImpl(
@@ -127,7 +128,7 @@ class AiInsightToolkitTest {
       )
 
     val data = toolkit.insightDeprecationData
-    assertThat(data.isDeprecated()).isTrue()
+    assertThat(data.isUnsupported()).isTrue()
     assertThat(data.header).isEqualTo("Gemini")
     assertThat(data.description).isEqualTo("desc")
     assertThat(data.moreInfoUrl).isEqualTo("url")
@@ -136,9 +137,9 @@ class AiInsightToolkitTest {
 
   @Test
   fun `insight deprecation data checks insights after checking gemini`() = runBlocking {
-    whenever(deprecationDataProvider.getCurrentDeprecationData("gemini/gemini"))
+    whenever(deprecationDataProvider.getCurrentDeprecationData(eq("gemini/gemini"), any()))
       .thenReturn(DevServicesDeprecationData("", "", "", false, SUPPORTED))
-    whenever(deprecationDataProvider.getCurrentDeprecationData("aqi/insights"))
+    whenever(deprecationDataProvider.getCurrentDeprecationData(eq("aqi/insights"), any()))
       .thenReturn(DevServicesDeprecationData("AQI", "desc", "url", true, UNSUPPORTED))
     val toolkit =
       AiInsightToolkitImpl(
@@ -148,7 +149,7 @@ class AiInsightToolkitTest {
       )
 
     val data = toolkit.insightDeprecationData
-    assertThat(data.isDeprecated()).isTrue()
+    assertThat(data.isUnsupported()).isTrue()
     assertThat(data.header).isEqualTo("AQI")
     assertThat(data.description).isEqualTo("desc")
     assertThat(data.moreInfoUrl).isEqualTo("url")

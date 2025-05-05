@@ -2624,6 +2624,17 @@ public final class StudioFlags {
       false);
   // endregion Wifi 2.0
 
+  // region deprecation policy
+  private static final FlagGroup DEPRECATION_POLICY = new FlagGroup(FLAGS, "deprecationpolicy", "Deprecation Policy");
+  public static final Flag<Boolean> USE_POLICY_WITH_DEPRECATE =
+    new BooleanFlag(
+      DEPRECATION_POLICY,
+      "use.policy.with.deprecate",
+      "Use N2 deprecation policy",
+      "Use N2 deprecation policy that supports DEPRECATED state",
+      enabledUpTo(CANARY));
+  // endregion deprecation policy
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {

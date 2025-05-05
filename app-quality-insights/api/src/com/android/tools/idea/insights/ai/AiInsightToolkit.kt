@@ -53,11 +53,11 @@ class AiInsightToolkitImpl(
 ) : AiInsightToolkit {
 
   override val insightDeprecationData = run {
-    val geminiData = getDeprecationData("gemini/gemini")
-    if (geminiData.isDeprecated()) {
+    val geminiData = getDeprecationData("gemini/gemini", "Gemini")
+    if (geminiData.isUnsupported()) {
       geminiData
     } else {
-      getDeprecationData("aqi/insights")
+      getDeprecationData("aqi/insights", "Insights")
     }
   }
 
@@ -68,6 +68,7 @@ class AiInsightToolkitImpl(
       .copy(contextSharingState = ContextSharingState.ALLOWED)
   }
 
-  private fun getDeprecationData(service: String) =
-    DevServicesDeprecationDataProvider.getInstance().getCurrentDeprecationData(service)
+  private fun getDeprecationData(service: String, userFriendlyServiceName: String) =
+    DevServicesDeprecationDataProvider.getInstance()
+      .getCurrentDeprecationData(service, userFriendlyServiceName)
 }

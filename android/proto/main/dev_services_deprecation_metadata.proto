@@ -1,15 +1,39 @@
 syntax = "proto2";
 
+import "proto/main/date.proto";
+
 option java_package = "com.android.tools.idea.serverflags.protos";
 option java_multiple_files = true;
 
 message DevServicesDeprecationMetadata {
+  enum Status {
+    STATUS_UNKNOWN = 0;
+    // The service is supported.
+    SUPPORTED = 1;
+    // The service is deprecated and will be unsupported soon.
+    DEPRECATED = 2;
+    // The service is not supported.
+    UNSUPPORTED = 3;
+  }
   // The header text to display in the deprecation message.
+  // Required if the service is not supported.
   optional string header = 1;
-  // The description text to display in the deprecation message.
+  // Subtext or description text to display in the deprecation message.
+  // This supports several placeholders:
+  // - <service_name> will be replaced with the service name.
+  // - <date> will be replaced with the deprecation date.
+  // Required if the service is not supported.
   optional string description = 2;
   // The URL of the more info link in the deprecation message.
+  // Optional. If not set, the default link will be used.
   optional string more_info_url = 3;
   // Shows the update action button.
+  // Required if the service is not supported.
   optional bool show_update_action = 4;
+  // The date when the service is deprecated/unsupported.
+  // This will be replaced in the description at <date>.
+  // Optional. If not set, ensure description does not contain <date>.
+  optional Date deprecation_date = 5;
+  // The status of the service. Required.
+  optional Status status = 6;
 }

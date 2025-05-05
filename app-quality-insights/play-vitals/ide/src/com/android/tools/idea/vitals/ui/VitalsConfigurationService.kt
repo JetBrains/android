@@ -122,7 +122,9 @@ class VitalsConfigurationManager(
   override val offlineStatusManager = OfflineStatusManagerImpl()
 
   override val deprecationData: DevServicesDeprecationData
-    get() = service<DevServicesDeprecationDataProvider>().getCurrentDeprecationData("aqi/vitals")
+    get() =
+      service<DevServicesDeprecationDataProvider>()
+        .getCurrentDeprecationData("aqi/vitals", VitalsInsightsProvider.displayName)
 
   override val configuration =
     flow {
