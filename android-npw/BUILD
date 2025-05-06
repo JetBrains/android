@@ -105,8 +105,6 @@ iml_module(
         },
         "ModuleModelTest": {
             "test_filter": "com.android.tools.idea.npw.module.ModuleModelTest",
-            # b/415086702 flaky on windows, getGradleProjectPath is null
-            "tags": ["noci:studio-win"],
         },
         "other": {
             "shard_count": 10,
