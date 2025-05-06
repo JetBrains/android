@@ -20,8 +20,6 @@ import static com.android.SdkConstants.EXT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 
 import com.android.ide.common.gradle.Component;
-import com.android.ide.common.gradle.Dependency;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -84,28 +82,23 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
    * Finds all the "extras repository" dependencies that haven't been already added to the project.
    */
   @NotNull
-  private static ImmutableCollection<String> findAllDependencies(@NotNull GradleBuildModel buildModel) {
-    HashSet<String> existingDependencies = Sets.newHashSet();
+  private static ImmutableCollection<Component> findAllDependencies(@NotNull GradleBuildModel buildModel) {
+    HashSet<GoogleMavenArtifactId> existingDependencies = Sets.newHashSet();
+    Project project = buildModel.getProject();
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts()) {
       ProgressManager.checkCanceled();
-      existingDependencies.add(dependency.group() + ":" + dependency.name());
+      GoogleMavenArtifactId id = GoogleMavenArtifactId.find(dependency.group().toString(), dependency.name().toString());
+      if (id != null) existingDependencies.add(id);
     }
 
-    ImmutableList.Builder<String> dependenciesBuilder = ImmutableList.builder();
+    ImmutableList.Builder<Component> dependenciesBuilder = ImmutableList.builder();
     RepositoryUrlManager repositoryUrlManager = RepositoryUrlManager.get();
-    for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
+    for (GoogleMavenArtifactId id : GoogleMavenArtifactId.getEntries()) {
       ProgressManager.checkCanceled();
-      // Dependency for any version available
-      Dependency dependency = id.getDependency("+");
-
-      // Get from the library coordinate only the group and artifactId to check if we have already added it
-      if (!existingDependencies.contains(id.toString())) {
-        Component resolvedComponent = repositoryUrlManager.resolveDependency(dependency, buildModel.getProject(), null);
+      if (!existingDependencies.contains(id)) {
+        Component resolvedComponent = repositoryUrlManager.resolveDependency(id.getDependency("+"), project, null);
         if (resolvedComponent != null) {
-          String identifier = resolvedComponent.toIdentifier();
-          if (identifier != null) {
-            dependenciesBuilder.add(identifier);
-          }
+          dependenciesBuilder.add(resolvedComponent);
         }
       }
     }
@@ -127,18 +120,14 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
    *
    * @param project
    * @param buildModel
-   * @param coordinateString
+   * @param component
    */
   private static void addDependency(final @NotNull Project project,
                                     final @NotNull ProjectBuildModel projectModel,
                                     final @NotNull GradleBuildModel buildModel,
-                                    @NotNull String coordinateString) {
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateString);
-    if (coordinate == null || coordinate.getArtifactId() == null) {
-      return;
-    }
+                                    @NotNull Component component) {
     final ArtifactDependencySpec newDependency =
-      ArtifactDependencySpec.create(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getRevision());
+      ArtifactDependencySpec.create(component.getName(), component.getGroup(), component.getVersion().toString());
 
     String compactNotation = newDependency.compactNotation();
     DependenciesHelper.withModel(projectModel).addDependency(CommonConfigurationNames.IMPLEMENTATION, compactNotation, buildModel);
@@ -153,7 +142,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
       return;
     }
 
-    ImmutableCollection<String> dependencies = ProgressManager
+    ImmutableCollection<Component> dependencies = ProgressManager
       .getInstance()
       .runProcessWithProgressSynchronously(
         () -> findAllDependencies(buildModel),
@@ -166,17 +155,17 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
       return;
     }
 
-    final JList list = new JBList(dependencies);
-    JBPopup popup = new PopupChooserBuilder(list).setItemChoosenCallback(new Runnable() {
+    final JList<Component> list = new JBList<>(dependencies);
+    JBPopup popup = new PopupChooserBuilder<>(list).setItemChosenCallback(new Runnable() {
       @Override
       public void run() {
-        for (Object selectedValue : list.getSelectedValues()) {
+        for (Component selectedValue : list.getSelectedValuesList()) {
           if (selectedValue == null) {
             return;
           }
-          addDependency(project, projectModel, buildModel, (String)selectedValue);
+          addDependency(project, projectModel, buildModel, selectedValue);
         }
-        WriteCommandAction.runWriteCommandAction(project, () -> { projectModel.applyChanges(); });
+        WriteCommandAction.runWriteCommandAction(project, projectModel::applyChanges);
       }
     }).createPopup();
     popup.showInBestPositionFor(editor);
