@@ -41,17 +41,23 @@ class GoogleAuthService : SettingsSyncAuthService {
     get() = PROVIDER_NAME_GOOGLE
 
   /**
-   * Returns a list of [SettingsSyncUserData] which contains
+   * Current behavior: Returns a list of [SettingsSyncUserData] which contains
+   * 1) user who uses the feature (irrespective of their B&S feature authorization status)
+   * 2) the logged-in users that have authorized B&S
+   *
+   * Expected behavior: Returns a list of [SettingsSyncUserData] which contains
    * 1) user who uses the feature (irrespective of their B&S feature authorization status)
    * 2) the remaining logged-in users (irrespective of their B&S feature authorization status)
    *
-   * TODO: this requires JB's cooperative effort to make it work.
+   * TODO: the above expected behavior requires JB's cooperative effort to make it work.
    */
   override fun getAvailableUserAccounts(): List<SettingsSyncUserData> {
     val currentUser = getActiveSyncUserEmail()?.let { getUserData(it) }
 
     val allLoggedInUsers =
-      GoogleLoginService.instance.allUsersFlow.value.values.map { it.createSettingsSyncUserData() }
+      GoogleLoginService.instance.allUsersFlow.value.values
+        .filter { it.isLoggedIn(feature) }
+        .map { it.createSettingsSyncUserData() }
 
     return listOfNotNull(currentUser) + allLoggedInUsers.filterNot { it == currentUser }
   }
