@@ -97,10 +97,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   private class Resolvable
-  private constructor(val libraries: Collection<MavenClassRegistryBase.LibraryImportData>) {
+  private constructor(val libraries: Collection<MavenClassRegistry.LibraryImportData>) {
     companion object {
       fun createNewOrNull(
-        libraries: Collection<MavenClassRegistryBase.LibraryImportData>
+        libraries: Collection<MavenClassRegistry.LibraryImportData>
       ): Resolvable? = libraries.takeUnless { it.isEmpty() }?.let(::Resolvable)
     }
   }
@@ -338,14 +338,14 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
       addDependency(module, artifact, artifactVersion)
       // Also add on an extra dependency for special cases.
-      registry.findExtraArtifacts(artifact).forEach {
+      MavenClassRegistry.findExtraArtifacts(artifact).forEach {
         addDependency(module, it.key, artifactVersion, it.value)
       }
 
       // Also add dependent annotation processor?
       val moduleSystem = module.getModuleSystem()
       if (moduleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
-        registry.findAnnotationProcessor(artifact)?.let {
+        MavenClassRegistry.findAnnotationProcessor(artifact)?.let {
           val annotationProcessor =
             if (moduleSystem.useAndroidX) {
               AndroidxNameUtils.getCoordinateMapping(it)
@@ -544,7 +544,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       text: String,
       receiverType: String?,
       completionFileType: FileType?,
-    ): Collection<MavenClassRegistryBase.LibraryImportData> {
+    ): Collection<MavenClassRegistry.LibraryImportData> {
       if (receiverType == ALL_RECEIVER_TYPES) {
         return registry.findLibraryDataAnyReceiver(text, useAndroidX, completionFileType)
       }

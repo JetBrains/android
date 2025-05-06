@@ -17,7 +17,7 @@ package com.android.tools.idea.imports
 
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
-import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
+import com.android.tools.idea.imports.MavenClassRegistry.LibraryImportData
 import com.google.common.truth.Truth.assertThat
 import java.io.InputStream
 import java.nio.charset.StandardCharsets.UTF_8
