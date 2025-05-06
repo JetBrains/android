@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
@@ -89,6 +88,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -177,6 +177,7 @@ class VisualizationForm(
             }
           }
         }
+        .waitForRenderBeforeRestoringZoom(true)
         .setActionManagerProvider { surface: DesignSurface<*> ->
           VisualizationActionManager((surface as NlDesignSurface?)!!) { myCurrentModelsProvider }
         }
@@ -390,21 +391,14 @@ class VisualizationForm(
           )
           .await()
       }
-      // Re-layout and set scale before rendering. This may be processed delayed but we have
-      // known the preview number and sizes because the
-      // models are added, so it would layout correctly.
-      withContext(Dispatchers.EDT) {
-        surface.invalidate()
-        val lastScaling = VisualizationToolProjectSettings.getInstance(project).projectState.scale
-        if (!surface.zoomController.setScale(lastScaling)) {
-          // Update scroll area because the scaling doesn't change, which keeps the old scroll
-          // area and may not suitable to new
-          // configuration set.
-          surface.revalidateScrollArea()
-        }
-      }
 
       renderCurrentModels()
+
+      // Re-layout and set scale after rendering.
+      // This may be processed delayed but we have
+      // known the preview number and rendering provides the right sizes
+      // and the models are added, so it would layout correctly.
+      withContext(Dispatchers.EDT) { relayoutAndNotifyZoomToFit() }
 
       ApplicationManager.getApplication().invokeLater {
         surface.unregisterIndicator(myProgressIndicator)
@@ -414,6 +408,15 @@ class VisualizationForm(
       } else {
         removeModels(models)
       }
+    }
+  }
+
+  private fun relayoutAndNotifyZoomToFit() {
+    surface.invalidate()
+    if (surface.zoomController.canZoomToFit()) {
+      // On every mode change we want to set zoom-to-fit, apply zoom-to-fit if it is not set
+      // already.
+      surface.notifyZoomToFit()
     }
   }
 
@@ -637,6 +640,7 @@ class VisualizationForm(
         newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
       surface.layoutManagerSwitcher?.currentLayoutOption?.value = myLayoutOption
+      surface.resetZoomToFitNotifier(false)
       refresh()
     }
   }
@@ -703,16 +707,20 @@ class VisualizationForm(
     fun initContent(project: Project, form: VisualizationForm, onComplete: () -> Unit)
   }
 
+  @TestOnly
+  fun getDesignSurfaceForTestOnly(): NlDesignSurface {
+    return surface
+  }
+
+  @TestOnly
+  fun refreshForTestOnly() {
+    relayoutAndNotifyZoomToFit()
+  }
+
   companion object {
     @VisibleForTesting const val VISUALIZATION_DESIGN_SURFACE_NAME = "Layout Validation"
     private val VISUALIZATION_SUPPORTED_ACTIONS: Set<NlSupportedActions> =
       ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL)
-
-    /** horizontal gap between different previews */
-    @SwingCoordinate private val GRID_HORIZONTAL_SCREEN_DELTA = 100
-
-    /** vertical gap between different previews */
-    @SwingCoordinate private val VERTICAL_SCREEN_DELTA = 48
 
     @JvmField
     val VISUALIZATION_FORM = DataKey.create<VisualizationForm>(VisualizationForm::class.java.name)
