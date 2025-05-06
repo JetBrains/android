@@ -454,6 +454,8 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/app/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : kotlinMultiPlatform.app.jvmMain
         ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
@@ -1224,6 +1226,8 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/module2/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : kotlinMultiPlatform.module2.jvmMain
         ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
