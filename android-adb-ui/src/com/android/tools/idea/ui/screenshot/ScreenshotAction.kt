@@ -58,8 +58,9 @@ class ScreenshotAction : DumbAwareAction(
     val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY)
     val serialNumber = screenshotParameters.serialNumber
 
+    val deviceName = screenshotParameters.deviceModel ?: "Unknown device"
     val screenshotProvider =
-        ShellCommandScreenshotProvider(project, serialNumber, displayId, screenshotParameters.deviceType, displayInfoProvider)
+        ShellCommandScreenshotProvider(project, serialNumber, screenshotParameters.deviceType, deviceName, displayId, displayInfoProvider)
     var disposable: Disposable? = screenshotProvider
 
     object : ScreenshotTask(project, screenshotProvider) {
@@ -138,6 +139,4 @@ class ScreenshotAction : DumbAwareAction(
   companion object {
     val SCREENSHOT_PARAMETERS_KEY = DataKey.create<ScreenshotParameters>("ScreenshotParameters")
   }
-
-  class ScreenshotRotation(val orientationQuadrants: Int, val imageRotationQuadrants: Int)
 }

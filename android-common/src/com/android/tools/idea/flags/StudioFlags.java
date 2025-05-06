@@ -1248,6 +1248,10 @@ public final class StudioFlags {
     SCREENSHOT, "resizing", "Allow Screenshots to Be Resized",
     "Allow screenshots to be resized",
     enabledUpTo(CANARY));
+  public static final Flag<Boolean> MULTI_DISPLAY_SCREENSHOTS = new BooleanFlag(
+    SCREENSHOT, "multi.display", "Take Screenshots of All Displays",
+    "Take screenshots of all device displays",
+    false);
   //endregion
 
   // region Device Definition Download Service

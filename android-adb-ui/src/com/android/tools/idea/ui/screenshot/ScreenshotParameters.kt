@@ -37,7 +37,7 @@ import kotlin.math.log2
 private const val MAX_MATCH_DISTANCE_RATIO = 2.0
 private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
 
-class ScreenshotParameters(val serialNumber: String, val deviceType: DeviceType, private val deviceModel: String?) {
+class ScreenshotParameters(val serialNumber: String, val deviceType: DeviceType, val deviceModel: String?) {
 
   val screenshotDecorator: ScreenshotDecorator = DeviceScreenshotDecorator()
 

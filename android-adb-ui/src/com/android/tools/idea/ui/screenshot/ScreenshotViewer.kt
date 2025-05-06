@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants.EXT_PNG
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.flags.StudioFlags
@@ -72,6 +73,7 @@ import org.intellij.images.editor.ImageFileEditor
 import org.jetbrains.android.util.runOnDisposalOfAnyOf
 import org.jetbrains.annotations.NonNls
 import java.awt.Dimension
+import java.awt.Point
 import java.awt.color.ICC_ColorSpace
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
@@ -128,6 +130,7 @@ class ScreenshotViewer(
   framingOptions: List<FramingOption>,
   defaultFramingOption: Int,
   private val allowImageRotation: Boolean,
+  private val dialogLocationArbiter: DialogLocationArbiter? = null,
 ) : DialogWrapper(project, true), DataProvider {
 
   private val timestampFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ROOT)
@@ -177,8 +180,10 @@ class ScreenshotViewer(
         { "Invalid defaultFramingOption:$defaultFramingOption framingOptions:$framingOptions" }
 
     isModal = false
-    title = message("screenshot.action.title")
-
+    title = when (screenshotImage.displayId) {
+      PRIMARY_DISPLAY_ID -> message("screenshot.dialog.title.primary.display", screenshotImage.deviceName)
+      else -> message("screenshot.dialog.title.secondary.display", screenshotImage.deviceName, screenshotImage.displayId)
+    }
     sourceImageRef.set(screenshotImage)
     rotationQuadrants = screenshotImage.screenshotOrientationQuadrants
 
@@ -342,7 +347,7 @@ class ScreenshotViewer(
   }
 
   private fun saveScreenshotAfterAsking(): Boolean {
-    val descriptor = FileSaverDescriptor(message("screenshot.dialog.title"), "", EXT_PNG)
+    val descriptor = FileSaverDescriptor(message("screenshot.dialog.file.save.title"), "", EXT_PNG)
     val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
     val baseDir = loadScreenshotPath()
     val fileWrapper = saveFileDialog.save(baseDir, adjustedFileName(defaultFileName)) ?: return false
@@ -376,8 +381,20 @@ class ScreenshotViewer(
   override fun getPreferredFocusedComponent(): JComponent =
       imageFileEditor.component
 
-  override fun getDimensionServiceKey(): @NonNls String =
-      SCREENSHOT_VIEWER_DIMENSIONS_KEY
+  override fun getDimensionServiceKey(): @NonNls String {
+    val displayId = sourceImageRef.get().displayId
+    return when {
+      !StudioFlags.MULTI_DISPLAY_SCREENSHOTS.get() || displayId == PRIMARY_DISPLAY_ID -> SCREENSHOT_VIEWER_DIMENSIONS_KEY
+      else -> "$SCREENSHOT_VIEWER_DIMENSIONS_KEY.$displayId"
+    }
+  }
+
+  override fun getInitialLocation(): Point? =
+      dialogLocationArbiter?.suggestLocation(this)
+
+  override fun beforeShowCallback() {
+    dialogLocationArbiter?.dialogShown(this)
+  }
 
   override fun getData(dataId: @NonNls String): Any? {
     // This is required since the Image Editor's actions are dependent on the context
@@ -479,7 +496,8 @@ class ScreenshotViewer(
   }
 
   private fun processScreenshot(rotationQuadrants: Int = 0) {
-    val rotatedImage = sourceImageRef.get().rotatedAndScaled(rotationQuadrants = rotationQuadrants)
+    val screenshotImage: ScreenshotImage = sourceImageRef.get()
+    val rotatedImage = screenshotImage.rotatedAndScaled(rotationQuadrants = rotationQuadrants)
     val processedImage = processImage(rotatedImage)
 
     // Update the backing file, this is necessary for operations that read the backing file from the editor,
@@ -585,7 +603,7 @@ class ScreenshotViewer(
   }
 
   companion object {
-    private const val SCREENSHOT_VIEWER_DIMENSIONS_KEY: @NonNls String = "ScreenshotViewer.Dimensions"
+    private const val SCREENSHOT_VIEWER_DIMENSIONS_KEY: @NonNls String = "ScreenshotViewer"
     private const val SCREENSHOT_SAVE_PATH_KEY: @NonNls String = "ScreenshotViewer.SavePath"
 
     fun getDefaultDecoration(screenshotImage: ScreenshotImage, screenshotDecorator: ScreenshotDecorator,

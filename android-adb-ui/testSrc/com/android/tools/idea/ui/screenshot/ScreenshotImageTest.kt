@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
 import com.google.common.truth.Truth.assertThat
@@ -28,7 +29,7 @@ class ScreenshotImageTest {
   @Test
   fun testRotatedAndScaled() {
     val image = createTestImage(100, 180, Color.BLUE)
-    val screenshot = ScreenshotImage(image, 0, DeviceType.HANDHELD)
+    val screenshot = ScreenshotImage(image, 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID)
     val transformedScreenshot = screenshot.rotatedAndScaled(1, 0.5)
     assertThat(transformedScreenshot.width).isEqualTo(90)
     assertThat(transformedScreenshot.height).isEqualTo(50)

@@ -137,6 +137,6 @@ internal class ScreenRecorderOptionsDialog(
   }
 
   companion object {
-    private const val SCREEN_RECORDER_DIMENSIONS_KEY: @NonNls String = "ScreenshotRecorder.Options.Dimensions"
+    private const val SCREEN_RECORDER_DIMENSIONS_KEY: @NonNls String = "ScreenRecorderOptionsDialog"
   }
 }

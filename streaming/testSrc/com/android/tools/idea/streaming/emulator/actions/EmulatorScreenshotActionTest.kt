@@ -27,10 +27,14 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.emulator.ALL_EMULATOR_VIEWS_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
+import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -86,8 +90,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
+    val screenshotViewer = waitForScreenshotViewer()
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -107,8 +110,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
+    val screenshotViewer = waitForScreenshotViewer()
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
 
@@ -126,8 +128,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
+    val screenshotViewer = waitForScreenshotViewer()
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
 
@@ -144,8 +145,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
+    val screenshotViewer = waitForScreenshotViewer()
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
 
@@ -172,13 +172,45 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
+    val screenshotViewer = waitForScreenshotViewer()
     assertAppearance(screenshotViewer.waitForUpdateAndGetImage(false), "SecondaryDisplay")
   }
 
+  @Test
+  fun testMultipleDisplays() {
+    StudioFlags.MULTI_DISPLAY_SCREENSHOTS.overrideForTest(true, testRootDisposable)
+    val primaryDisplayView = emulatorViewRule.newEmulatorView()
+    emulator = emulatorViewRule.getFakeEmulator(primaryDisplayView)
+
+    val displayId = 1
+    val emulatorController = primaryDisplayView.emulator
+    runBlocking {
+      emulator.changeSecondaryDisplays(
+        listOf(DisplayConfiguration.newBuilder().setDisplay(displayId).setWidth(1080).setHeight(2340).build()))
+    }
+    val emulatorView = EmulatorView(testRootDisposable, emulatorController, project, displayId, null, true)
+    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+
+    executeStreamingAction("android.device.screenshot", primaryDisplayView, project,
+                           extra = { sink -> sink[ALL_EMULATOR_VIEWS_KEY] = listOf(primaryDisplayView, emulatorView) })
+
+    val screenshotViewerPrimary = waitForScreenshotViewer { !it.title.contains("Display") }
+    val screenshotViewerSecondary = waitForScreenshotViewer { it.title.contains("Display 1") }
+    assertAppearance(screenshotViewerPrimary.waitForUpdateAndGetImage(false), "PrimaryDisplay")
+    assertAppearance(screenshotViewerSecondary.waitForUpdateAndGetImage(false), "SecondaryDisplay")
+  }
+
+  private fun waitForScreenshotViewer(filter: (ScreenshotViewer) -> Boolean = { true }): ScreenshotViewer {
+    var screenshotViewer: ScreenshotViewer? = null
+    waitForCondition(2.seconds) {
+      screenshotViewer = findScreenshotViewer(filter)
+      screenshotViewer != null
+    }
+    return screenshotViewer!!
+  }
+
   private fun findScreenshotViewer(filter: (ScreenshotViewer) -> Boolean = { true }): ScreenshotViewer? =
-      findModelessDialog<ScreenshotViewer> { filter(it) }
+    findModelessDialog<ScreenshotViewer> { filter(it) }
 
   private fun assertAppearance(image: BufferedImage, goldenImageName: String) {
     val scaledDownImage = ImageUtils.scale(image, 0.1)
@@ -230,7 +262,7 @@ private fun VirtualFile.readImage(): BufferedImage? {
   return try {
     ImageIO.read(inputStream)
   }
-  catch (e: IOException) {
+  catch (_: IOException) {
     null
   }
 }

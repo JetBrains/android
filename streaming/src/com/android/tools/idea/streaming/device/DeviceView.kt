@@ -225,8 +225,6 @@ internal class DeviceView(
   private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
-  private val screenshotOrientationProvider: () -> ScreenshotAction.ScreenshotRotation
-    get() = { ScreenshotAction.ScreenshotRotation(displayOrientationQuadrants, displayOrientationCorrectionQuadrants) }
 
   private var xrInputController: DeviceXrInputController? = null
     get() {

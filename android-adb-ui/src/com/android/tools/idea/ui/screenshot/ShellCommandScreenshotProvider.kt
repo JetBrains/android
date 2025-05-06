@@ -40,8 +40,9 @@ private val commandTimeout = INFINITE_DURATION
 class ShellCommandScreenshotProvider(
   project: Project,
   private val serialNumber: String,
-  private val displayId: Int,
   private val deviceType: DeviceType,
+  private val deviceName: String,
+  private val displayId: Int,
   private val displayInfoProvider: DisplayInfoProvider? = null,
 ) : ScreenshotProvider {
 
@@ -51,7 +52,7 @@ class ShellCommandScreenshotProvider(
       Regex("\\s(DisplayDeviceInfo\\W.* state ON,.*)\\s\\S]*?\\s+mCurrentLayerStack=$displayId\\W", RegexOption.MULTILINE)
 
   /** This simplified constructor is intended exclusively for use in TestRecorderScreenshotTask. */
-  constructor(project: Project, serialNumber: String) : this(project, serialNumber, PRIMARY_DISPLAY_ID, DeviceType.HANDHELD)
+  constructor(project: Project, serialNumber: String) : this(project, serialNumber, DeviceType.HANDHELD, "Device", PRIMARY_DISPLAY_ID)
 
   @Slow
   @Throws(RuntimeException::class, CancellationException::class)
@@ -82,7 +83,7 @@ class ShellCommandScreenshotProvider(
         val screenshotRotation = displayInfoProvider?.getScreenshotRotation(displayId) ?: 0
         val rotatedImage = ImageUtils.rotateByQuadrants(image, screenshotRotation)
         val orientation = displayInfoProvider?.getDisplayOrientation(displayId) ?: 0
-        ScreenshotImage(rotatedImage, orientation, deviceType, displayInfo)
+        ScreenshotImage(rotatedImage, orientation, deviceType, deviceName, displayId, displayInfo)
       }
       catch (e: Throwable) {
         throwIfUnchecked(e)

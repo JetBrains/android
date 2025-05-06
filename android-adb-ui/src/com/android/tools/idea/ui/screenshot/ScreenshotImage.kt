@@ -25,6 +25,8 @@ class ScreenshotImage(
   val image: BufferedImage,
   val screenshotOrientationQuadrants: Int,
   val deviceType: DeviceType,
+  val deviceName: String,
+  val displayId: Int,
   private val displayInfo: String = "",
 ) {
 
@@ -60,8 +62,11 @@ class ScreenshotImage(
     return ScreenshotImage(
       image = ImageUtils.rotateByQuadrantsAndScale(image, rotationQuadrants, (w * scale).roundToInt(), (h * scale).roundToInt()),
       screenshotOrientationQuadrants = (screenshotOrientationQuadrants + rotationQuadrants) and 0x03,
+      deviceType = deviceType,
+      deviceName = deviceName,
+      displayId = displayId,
       displayInfo = displayInfo,
-      deviceType = deviceType)
+    )
   }
 
   private fun computeDisplaySize(): Dimension? {
