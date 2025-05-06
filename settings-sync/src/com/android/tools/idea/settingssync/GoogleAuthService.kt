@@ -52,7 +52,10 @@ class GoogleAuthService : SettingsSyncAuthService {
    * TODO: the above expected behavior requires JB's cooperative effort to make it work.
    */
   override fun getAvailableUserAccounts(): List<SettingsSyncUserData> {
-    val currentUser = getActiveSyncUserEmail()?.let { getUserData(it) }
+    val currentUser =
+      getActiveSyncUserEmail()
+        .takeIf { SettingsSyncLocalSettings.getInstance().providerCode == PROVIDER_CODE_GOOGLE }
+        ?.let { getUserData(it) }
 
     val allLoggedInUsers =
       GoogleLoginService.instance.allUsersFlow.value.values
@@ -83,17 +86,17 @@ class GoogleAuthService : SettingsSyncAuthService {
   }
 
   override fun crossSyncSupported(): Boolean = false
+}
 
-  private fun getActiveSyncUserEmail(): String? {
-    return SettingsSyncLocalSettings.getInstance().userId.takeIf {
-      SettingsSyncSettings.getInstance().syncEnabled
-    }
+internal fun getActiveSyncUserEmail(): String? {
+  return SettingsSyncLocalSettings.getInstance().userId.takeIf {
+    SettingsSyncSettings.getInstance().syncEnabled
   }
 }
 
 // if we want to make sure what we show is consistent (e.g. name is not available if not logged
 // in), we just always pass email info around.
-fun CredentialedUser.createSettingsSyncUserData() =
+private fun CredentialedUser.createSettingsSyncUserData() =
   SettingsSyncUserData(
     id = email,
     providerCode = PROVIDER_CODE_GOOGLE,
@@ -102,7 +105,7 @@ fun CredentialedUser.createSettingsSyncUserData() =
     printableName = null,
   )
 
-fun createSettingsSyncUserData(email: String) =
+private fun createSettingsSyncUserData(email: String) =
   SettingsSyncUserData(
     id = email,
     providerCode = PROVIDER_CODE_GOOGLE,
