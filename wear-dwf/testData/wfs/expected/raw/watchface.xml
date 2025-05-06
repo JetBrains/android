@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WatchFace
+    clipShape="CIRCLE"
+    height="450"
+    width="450" >
+
+    <Scene backgroundColor="#ff000000" >
+
+        <PartImage
+            name="battery index"
+            alpha="255"
+            height="132"
+            width="135"
+            x="31"
+            y="269" >
+
+            <Image resource="wfs_battery_index_14255200_2541_4cfb_be12_e203e0fd2ca0" />
+        </PartImage>
+
+        <PartImage
+            name="BG"
+            alpha="255"
+            height="450"
+            width="450"
+            x="0"
+            y="0" >
+
+            <Image resource="wfs_basic_c6ee15b8_c624_45ad_a293_a9c89f15672a" />
+        </PartImage>
+
+        <PartImage
+            name="decoration"
+            alpha="255"
+            height="56"
+            width="56"
+            x="110"
+            y="274" >
+
+            <Image resource="wfs_icon_bg_44edb506_23f6_4448_989e_1f4b8fca7f91" />
+        </PartImage>
+
+        <Group
+            name="Time_analog"
+            alpha="255"
+            height="450"
+            width="215"
+            x="200"
+            y="0" >
+
+            <PartImage
+                name="Time_analog"
+                alpha="255"
+                height="140"
+                width="140"
+                x="75"
+                y="215" >
+
+                <Image resource="wfs_bg_99498b2c_932a_4350_a742_69b256e36568" />
+            </PartImage>
+
+            <PartImage
+                name="Index"
+                alpha="255"
+                height="130"
+                width="130"
+                x="80"
+                y="219" >
+
+                <Image resource="wfs_index_79e30cb5_bd52_44af_b46e_bad4ac892343" />
+            </PartImage>
+        </Group>
+
+        <Group
+            name="Steps"
+            alpha="255"
+            height="123"
+            width="123"
+            x="164"
+            y="317" >
+
+            <PartImage
+                name="step BG"
+                alpha="255"
+                height="104"
+                width="104"
+                x="12"
+                y="9" >
+
+                <Image resource="wfs_basic_ad324426_8672_492b_b738_857091acda03" />
+            </PartImage>
+
+            <PartImage
+                name="step shape"
+                alpha="255"
+                height="123"
+                width="123"
+                x="0"
+                y="0" >
+
+                <Image resource="wfs_basic_5e3589a2_237c_4677_ac26_4f9e4ee7670d" />
+            </PartImage>
+
+            <PartImage
+                name="step icon"
+                alpha="255"
+                height="14"
+                width="24"
+                x="50"
+                y="48" >
+
+                <Image resource="wfs_icon_08d61728_2501_4dc4_808c_194fa8a7fc1c" />
+            </PartImage>
+        </Group>
+
+        <Group
+            name="Time_digital"
+            alpha="255"
+            height="450"
+            width="450"
+            x="0"
+            y="0" >
+
+            <PartImage
+                name="Time_digital"
+                alpha="255"
+                height="212"
+                width="324"
+                x="65"
+                y="55" >
+
+                <Image resource="wfs_basic_7fbe5cca_1629_40dd_a079_b7b022a332a7" />
+            </PartImage>
+
+            <PartImage
+                name="pm"
+                alpha="255"
+                height="56"
+                width="28"
+                x="88"
+                y="124" >
+
+                <Image resource="wfs_pm_9a381711_f330_4a56_8c7c_37e43e4787da" />
+            </PartImage>
+
+            <PartImage
+                name="am"
+                alpha="255"
+                height="56"
+                width="28"
+                x="88"
+                y="124" >
+
+                <Image resource="wfs_am_b16eccef_61fb_4efe_aa1d_019d833149f6" />
+            </PartImage>
+
+            <PartImage
+                name="decoration"
+                alpha="255"
+                height="13"
+                width="300"
+                x="76"
+                y="146" >
+
+                <Image resource="wfs_wfs_decoration_cf5a7f19_6ff7_4b62_aed4_8968e2a6128f" />
+            </PartImage>
+        </Group>
+
+        <Group
+            name="Date"
+            alpha="255"
+            height="234"
+            width="250"
+            x="92"
+            y="57" />
+    </Scene>
+
+</WatchFace>
