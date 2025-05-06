@@ -126,10 +126,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   val connectionState: ConnectionState
     get() = connectionStateReference.get()
 
-  /**
-   * Returns true if [shutdown] has been called.
-   */
-  val isShuttingDown
+  /** Returns true if [shutdown] has been called. */
+  val isShuttingDown: Boolean
     get() = emulatorState.get() != EmulatorState.RUNNING
 
   val emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub
