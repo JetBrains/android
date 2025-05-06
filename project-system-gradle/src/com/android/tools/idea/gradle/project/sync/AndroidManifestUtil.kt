@@ -18,21 +18,19 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.intellij.openapi.diagnostic.Logger
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.exists
 
-
-private const val ANDROID_MANIFEST_GLOB_PATTERN: String = "glob:**/src/{main,androidMain}/AndroidManifest.xml"
 
 fun hasAndroidManifest(contentRoot: Path): Boolean {
-  val pathMatcher = contentRoot.fileSystem.getPathMatcher(ANDROID_MANIFEST_GLOB_PATTERN)
   return try {
-    Files.walk(contentRoot).use { paths ->
-      paths.anyMatch(pathMatcher::matches)
+    Files.list(contentRoot).anyMatch { childProjectDir ->
+      childProjectDir.resolve("src/main/AndroidManifest.xml").exists()
+      || childProjectDir.resolve("src/androidMain/AndroidManifest.xml").exists()
     }
   }
-  catch (e: IOException) {
+  catch (e: Exception) {
     Logger.getInstance(SdkSync::class.java).error("Failed to find Android manifest due to I/O exception", e)
     false
   }
