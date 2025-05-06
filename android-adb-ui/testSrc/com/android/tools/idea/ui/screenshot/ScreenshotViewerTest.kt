@@ -107,7 +107,7 @@ class ScreenshotViewerTest {
   fun tearDown() {
     dispatchInvocationEventsFor(100.milliseconds)
     dispatchAllEventsInIdeEventQueue()
-    findModelessDialog { it is ScreenshotViewer }?.close(CLOSE_EXIT_CODE)
+    findModelessDialog<ScreenshotViewer>()?.close(CLOSE_EXIT_CODE)
     dispatchAllEventsInIdeEventQueue()
     service<ScreenshotConfiguration>().loadState(ScreenshotConfiguration())
   }

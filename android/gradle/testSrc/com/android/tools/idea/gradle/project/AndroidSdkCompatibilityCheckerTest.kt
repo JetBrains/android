@@ -80,9 +80,7 @@ class AndroidSdkCompatibilityCheckerTest {
   )
   private val timeout: Long = 5
 
-  private fun findDialog(): AndroidSdkCompatibilityDialog? {
-    return findModelessDialog { it is AndroidSdkCompatibilityDialog } as AndroidSdkCompatibilityDialog?
-  }
+  private fun findDialog(): AndroidSdkCompatibilityDialog? = findModelessDialog<AndroidSdkCompatibilityDialog>()
 
   @Before
   fun setUp() {

@@ -177,9 +177,8 @@ class EmulatorScreenshotActionTest {
     assertAppearance(screenshotViewer.waitForUpdateAndGetImage(false), "SecondaryDisplay")
   }
 
-  private fun findScreenshotViewer(): ScreenshotViewer? {
-    return findModelessDialog { it is ScreenshotViewer } as ScreenshotViewer?
-  }
+  private fun findScreenshotViewer(filter: (ScreenshotViewer) -> Boolean = { true }): ScreenshotViewer? =
+      findModelessDialog<ScreenshotViewer> { filter(it) }
 
   private fun assertAppearance(image: BufferedImage, goldenImageName: String) {
     val scaledDownImage = ImageUtils.scale(image, 0.1)

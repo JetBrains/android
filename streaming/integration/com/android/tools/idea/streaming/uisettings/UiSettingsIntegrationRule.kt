@@ -261,7 +261,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     return findDialog()!!
   }
 
-  private fun findDialog() = findModelessDialog { it is UiSettingsDialog && it.isShowing } as? UiSettingsDialog
+  private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
 
   // Emulate a disconnect of the device
   fun cutConnectionToAgent() {
