@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.util.findComposeViewAdapter
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 
 interface SourceLocation {
@@ -59,7 +60,19 @@ fun parseViewInfo(rootViewInfo: ViewInfo, logger: Logger): List<ComposeViewInfo>
         .single { it.name.contains("getViewInfos") }
         .also { it.isAccessible = true }
     val composeViewInfos = viewInfoField.invoke(viewObj) as List<*>
-    return parseBounds(composeViewInfos, logger)
+    val viewInfos = parseBounds(composeViewInfos, logger)
+
+    // False positive: assert uses this lambda's result as a lazy error message on failure.
+    @Suppress("Noop")
+    assert(viewInfos.size == 1 || ApplicationManager.getApplication().isUnitTestMode) {
+      // Skipping tests as they might have incomplete set up that results in viewInfos size being 0
+      // if they are not directly testing related functionality
+      "Expected one ComposeViewInfo. Received multiple entries. This indicates a failure in the "
+      "stitchTree function's merging logic. While a list is accepted to prevent immediate failure, "
+      "the presence of multiple entries here requires investigation of stitchTree. Alternatively, "
+      "if multiple entries are now expected, this assert should be removed or modified."
+    }
+    return viewInfos
   } catch (e: Exception) {
     logger.debug(e)
     return listOf()

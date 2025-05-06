@@ -133,7 +133,6 @@ private fun findBoundsOfComponentsInFile(
   if (allViewInfos.isEmpty()) return listOf()
   val rectangles =
     allViewInfos
-      .first()
       .findAllHitsInFile(fileName)
       .filter { it.sourceLocation.lineNumber == lineNumber }
       .map {
@@ -180,7 +179,6 @@ private fun findNavigatableComponents(
 
   if (shouldFindAllNavigatables) {
     return allViewInfos
-      .first()
       .findLeafHitsInFile(x, y, fileName)
       .filter { it.sourceLocation.toNavigatable(module) != null }
       .map {

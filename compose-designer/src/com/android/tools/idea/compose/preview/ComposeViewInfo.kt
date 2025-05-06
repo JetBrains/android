@@ -38,10 +38,7 @@ data class ComposeViewInfo(
 }
 
 @VisibleForTesting
-fun ComposeViewInfo.findHitWithDepth(
-  x: Int,
-  y: Int,
-): Collection<Pair<Int, ComposeViewInfo>> {
+fun ComposeViewInfo.findHitWithDepth(x: Int, y: Int): Collection<Pair<Int, ComposeViewInfo>> {
   val hitsWithDepth = mutableListOf<Pair<Int, ComposeViewInfo>>()
   val stack = mutableListOf<Pair<Int, ComposeViewInfo>>()
 
@@ -53,40 +50,48 @@ fun ComposeViewInfo.findHitWithDepth(
     val currentViewInfo = current.second
 
     // Add to results if it contains point
-    if (currentViewInfo.containsPoint(x, y)){
+    if (currentViewInfo.containsPoint(x, y)) {
       hitsWithDepth.push(current)
     }
 
     // Add all children to stack
-    currentViewInfo.children.forEach { child ->
-      stack.push(Pair(current.first + 1, child))
-    }
+    currentViewInfo.children.forEach { child -> stack.push(Pair(current.first + 1, child)) }
   }
   return hitsWithDepth
 }
 
 /**
- * Traverses the compose view tree to compile a list of view information that contain the
- * specified x, y coordinates, along with their corresponding depth in the tree hierarchy.
+ * Traverses the compose view tree to compile a list of view information that contain the specified
+ * x, y coordinates, along with their corresponding depth in the tree hierarchy.
  */
-fun List<ComposeViewInfo>.findHitWithDepth(
-  x: Int,
-  y: Int,
-): Collection<Pair<Int, ComposeViewInfo>> {
+fun List<ComposeViewInfo>.findHitWithDepth(x: Int, y: Int): Collection<Pair<Int, ComposeViewInfo>> {
   return flatMap { it.findHitWithDepth(x, y) }
 }
 
-fun List<ComposeViewInfo>.findSmallestHit(
+/**
+ * Traverses the compose view tree and finds all leaf hits that have the coordinates [x] and [y].
+ * Then goes through each hit and finds the smallest [ComposeViewInfo] by area and returns it in a
+ * [Collection].
+ */
+fun ComposeViewInfo.findSmallestHit(
   @AndroidCoordinate x: Int,
   @AndroidCoordinate y: Int,
 ): Collection<ComposeViewInfo> {
-  val viewInfos = first().findAllLeafHits(x, y)
+  val viewInfos = findAllLeafHits(x, y)
   if (viewInfos.isEmpty()) return listOf()
   return listOf(
     viewInfos.minByOrNull {
       (it.bounds.bottom - it.bounds.top) * (it.bounds.right - it.bounds.left)
     }!!
   )
+}
+
+/**
+ * Traverses the compose view tree and finds the smallest [ComposeViewInfo] by area and returns it
+ * in a [Collection].
+ */
+fun List<ComposeViewInfo>.findSmallestHit(x: Int, y: Int): Collection<ComposeViewInfo> {
+  return flatMap { it.findSmallestHit(x, y) }
 }
 
 /**
@@ -112,6 +117,18 @@ fun ComposeViewInfo.findLeafHitsInFile(x: Int, y: Int, fileName: String): List<C
     }
   }
   return leafHits.toList()
+}
+
+/**
+ * Traverses the compose view tree to compile a [Collection] of leaf nodes that contain the
+ * specified x, y coordinates and are in the [fileName] passed in.
+ */
+fun List<ComposeViewInfo>.findLeafHitsInFile(
+  x: Int,
+  y: Int,
+  fileName: String,
+): Collection<ComposeViewInfo> {
+  return flatMap { it.findLeafHitsInFile(x, y, fileName) }
 }
 
 /** This function will return all hits that have no children. */
@@ -149,6 +166,14 @@ fun ComposeViewInfo.findAllHitsInFile(fileName: String): List<ComposeViewInfo> {
     stack.addAll(childrenContainingPoint)
   }
   return hits.toList()
+}
+
+/**
+ * Traverses the compose view tree to compile a [Collection] of [ComposeViewInfo] that are in the
+ * [fileName] passed in.
+ */
+fun List<ComposeViewInfo>.findAllHitsInFile(fileName: String): Collection<ComposeViewInfo> {
+  return flatMap { it.findAllHitsInFile(fileName) }
 }
 
 fun ComposeViewInfo.containsPoint(x: Int, y: Int): Boolean {
