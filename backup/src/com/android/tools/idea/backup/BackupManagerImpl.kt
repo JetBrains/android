@@ -95,56 +95,65 @@ internal constructor(
     DialogFactoryImpl(),
   )
 
+  @UiThread
   override fun showBackupDialog(
     serialNumber: String,
     applicationId: String?,
     source: Source,
     notify: Boolean,
   ) {
-    runWithModalProgressBlocking<Unit>(
-      ModalTaskOwner.project(project),
-      "Collecting Data",
-      cancellable(),
-    ) {
-      reportSequentialProgress { reporter ->
-        var steps = if (applicationId == null) 4 else 3
-        var step = 0
-        withContext(Default) {
-          reporter.onStep(Step(++step, steps, "Checking device..."))
-          if (!isDeviceSupported(serialNumber)) {
-            project.showDialog(message("error.device.not.supported"))
-            return@withContext
-          }
-
-          val appId =
-            when (applicationId) {
-              null -> {
-                reporter.onStep(Step(++step, steps, "Detecting foreground app..."))
-                backupService.getForegroundApplicationId(serialNumber)
-              }
-              else -> applicationId
+    val dialogData =
+      runWithModalProgressBlocking(
+        ModalTaskOwner.project(project),
+        "Collecting Data",
+        cancellable(),
+      ) {
+        reportSequentialProgress { reporter ->
+          var steps = if (applicationId == null) 4 else 3
+          var step = 0
+          withContext(Default) {
+            reporter.onStep(Step(++step, steps, "Checking device..."))
+            if (!isDeviceSupported(serialNumber)) {
+              project.showDialog(message("error.device.not.supported"))
+              return@withContext null
             }
 
-          reporter.onStep(Step(++step, steps, "Detecting debuggable apps..."))
-          val debuggableApps = backupService.getDebuggableApps(serialNumber)
-          if (!debuggableApps.contains(appId)) {
-            project.showDialog(message("error.application.not.debuggable", appId))
-            return@withContext
-          }
-          steps += debuggableApps.size - 1
-          val appIdToBackupEnabledMap =
-            withContext(Default) {
-              debuggableApps.withIndex().associate {
-                reporter.onStep(Step(++step, steps, "Checking ${it.value}"))
-                it.value to backupService.isBackupEnabled(serialNumber, it.value)
+            val appId =
+              when (applicationId) {
+                null -> {
+                  reporter.onStep(Step(++step, steps, "Detecting foreground app..."))
+                  backupService.getForegroundApplicationId(serialNumber)
+                }
+                else -> applicationId
               }
-            }
 
-          withContext(Dispatchers.EDT) {
-            showBackupDialog(serialNumber, appId, source, notify, appIdToBackupEnabledMap)
+            reporter.onStep(Step(++step, steps, "Detecting debuggable apps..."))
+            val debuggableApps = backupService.getDebuggableApps(serialNumber)
+            if (!debuggableApps.contains(appId)) {
+              project.showDialog(message("error.application.not.debuggable", appId))
+              return@withContext null
+            }
+            steps += debuggableApps.size - 1
+            val appIdToBackupEnabledMap =
+              withContext(Default) {
+                debuggableApps.withIndex().associate {
+                  reporter.onStep(Step(++step, steps, "Checking ${it.value}"))
+                  it.value to backupService.isBackupEnabled(serialNumber, it.value)
+                }
+              }
+
+            return@withContext DialogData(appId, appIdToBackupEnabledMap)
           }
         }
       }
+    if (dialogData != null) {
+      showBackupDialog(
+        serialNumber,
+        dialogData.applicationId,
+        source,
+        notify,
+        dialogData.appIdToBackupEnabledMap,
+      )
     }
   }
 
@@ -398,6 +407,11 @@ internal constructor(
   private fun Project.showDialog(message: String) {
     dialogFactory.showDialog(this@showDialog, message("backup.app.action.error.title"), message)
   }
+
+  private class DialogData(
+    val applicationId: String,
+    val appIdToBackupEnabledMap: Map<String, Boolean>,
+  )
 }
 
 private fun SequentialProgressReporter.onStep(step: Step) {

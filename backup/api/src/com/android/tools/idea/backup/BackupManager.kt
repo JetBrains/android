@@ -46,6 +46,7 @@ interface BackupManager {
    * @param applicationId Application ID (package name) of the app
    * @param notify If true, will post a notification on completion
    */
+  @UiThread
   fun showBackupDialog(
     serialNumber: String,
     applicationId: String?,
