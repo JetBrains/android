@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.name.FqName
  * to include in go/studio-auto-import-packages.
  */
 class MavenClassRegistry private constructor(val lookup: LookupData) {
+
   /**
    * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
    * maven.google.com artifacts containing a class or function matching the [name] and
@@ -110,6 +111,22 @@ class MavenClassRegistry private constructor(val lookup: LookupData) {
   fun getCoordinates(): Collection<Coordinate> {
     return lookup.coordinateList
   }
+
+  /**
+   * Returns a value indicating whether a given [packageName] is included in any of the libraries
+   * indexed by this registry.
+   */
+  fun isPackageIndexed(packageName: String): Boolean {
+    return packageName in allIndexedPackages
+  }
+
+  private val allIndexedPackages by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+      (lookup.classNameMap.values + lookup.topLevelFunctionsMap.values)
+        .flatten()
+        .mapNotNull { it.importedItemPackageName.takeIf(String::isNotEmpty) }
+        .toSet()
+    }
 
   private enum class IndexKey(val key: String) {
     GROUP_ID("groupId"),
@@ -339,6 +356,32 @@ class MavenClassRegistry private constructor(val lookup: LookupData) {
 
   /** Coordinate for Google Maven artifact. */
   data class Coordinate(val groupId: String, val artifactId: String, val version: String)
+
+  /** Lookup data extracted from an index file. */
+  data class LookupData(
+    /** A map from simple class names to the corresponding [LibraryImportData] objects. */
+    val classNameMap: Map<String, List<LibraryImportData>>,
+    /** A map from function specifiers to the corresponding [LibraryImportData] objects. */
+    val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
+    /** A map from non-KTX libraries to the associated KTX libraries. */
+    val ktxMap: Map<String, String>,
+
+    /** A list of Google Maven [MavenClassRegistry.Coordinate]. */
+    val coordinateList: List<MavenClassRegistry.Coordinate>,
+  ) {
+    /**
+     * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
+     * objects.
+     */
+    val topLevelFunctionsMapAllReceivers: Map<String, List<LibraryImportData>> =
+      topLevelFunctionsMap.entries.groupBy({ it.key.simpleName }, { it.value }).mapValues {
+        it.value.flatten().distinct()
+      }
+
+    companion object {
+      @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
+    }
+  }
 }
 
 /** An index of a specific [version] of GMaven Artifact. */
@@ -437,32 +480,6 @@ internal data class KotlinTopLevelFunction(
         receiverFqName = receiverFqName?.let(::FqName),
       )
     }
-  }
-}
-
-/** Lookup data extracted from an index file. */
-data class LookupData(
-  /** A map from simple class names to the corresponding [LibraryImportData] objects. */
-  val classNameMap: Map<String, List<LibraryImportData>>,
-  /** A map from function specifiers to the corresponding [LibraryImportData] objects. */
-  val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
-  /** A map from non-KTX libraries to the associated KTX libraries. */
-  val ktxMap: Map<String, String>,
-
-  /** A list of Google Maven [MavenClassRegistry.Coordinate]. */
-  val coordinateList: List<MavenClassRegistry.Coordinate>,
-) {
-  /**
-   * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
-   * objects.
-   */
-  val topLevelFunctionsMapAllReceivers: Map<String, List<LibraryImportData>> =
-    topLevelFunctionsMap.entries.groupBy({ it.key.simpleName }, { it.value }).mapValues {
-      it.value.flatten().distinct()
-    }
-
-  companion object {
-    @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
   }
 }
 

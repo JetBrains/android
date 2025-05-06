@@ -632,4 +632,61 @@ class MavenClassRegistryTest {
       KotlinTopLevelFunction.fromJvmQualifiedName("foo", "com.example.Receiver")
     }
   }
+
+  @Test
+  fun isPackageIndexed() {
+    repositoryIndexContents =
+      """
+        {
+          "Index": [
+            {
+              "groupId": "group1",
+              "artifactId": "artifact1",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [
+                "com.example.class1"
+              ]
+            },
+            {
+              "groupId": "group2",
+              "artifactId": "artifact2",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [
+                "com.example2.class1"
+              ],
+              "ktlfns": [
+                {
+                  "xfqn": "com.example2.toplevel.FacadeFileKt.someExtensionFunction",
+                  "rcvr": "amazingReceiver"
+                }
+              ]
+            },
+            {
+              "groupId": "group3",
+              "artifactId": "artifact3",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [],
+              "ktlfns": [
+                {
+                  "xfqn": "foo.bar.baz.FacadeFileKt.someExtensionFunction",
+                  "rcvr": "amazingReceiver"
+                }
+              ]
+            }
+          ]
+        }
+      """
+        .trimIndent()
+
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
+
+    assertThat(mavenClassRegistry.isPackageIndexed("com.example")).isTrue()
+    assertThat(mavenClassRegistry.isPackageIndexed("com.example2")).isTrue()
+    assertThat(mavenClassRegistry.isPackageIndexed("com.example2.toplevel")).isTrue()
+    assertThat(mavenClassRegistry.isPackageIndexed("foo.bar.baz")).isTrue()
+    assertThat(mavenClassRegistry.isPackageIndexed("other")).isFalse()
+  }
 }
