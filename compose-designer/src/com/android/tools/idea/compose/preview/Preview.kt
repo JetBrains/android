@@ -242,6 +242,7 @@ fun configureLayoutlibSceneManager(
   requestPrivateClassLoader: Boolean,
   runVisualAnalysis: Boolean,
   quality: Float,
+  disableAnimation: Boolean,
 ): LayoutlibSceneManager =
   sceneManager.apply {
     sceneRenderConfiguration.let { config ->
@@ -264,6 +265,7 @@ fun configureLayoutlibSceneManager(
       // During configure of SceneManager, always clear the override render size in SceneManagers,
       // as they are reused and may have old resize data.
       config.clearOverrideRenderSize = true
+      config.disableAnimation = disableAnimation
     }
     visualLintMode =
       if (runVisualAnalysis) {
@@ -1013,6 +1015,7 @@ class ComposePreviewRepresentation(
       requestPrivateClassLoader = usePrivateClassLoader(),
       runVisualAnalysis = mode.value is PreviewMode.UiCheck,
       quality = qualityManager.getTargetQuality(layoutlibSceneManager),
+      disableAnimation = mode.value.isNormal,
     )
 
   private fun onAfterRender(previewsCount: Int) {

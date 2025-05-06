@@ -225,6 +225,9 @@ class ComposePreviewRepresentationTest {
       assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it))
     }
 
+    // Animation should be disabled in Default and Focus modes
+    mainSurface.sceneManagers.forEach { assertTrue(it.sceneRenderConfiguration.disableAnimation) }
+
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
       .containsExactly("groupA")
 
@@ -306,6 +309,9 @@ class ComposePreviewRepresentationTest {
     setModeAndWaitForRefresh(
       PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false))
     )
+
+    // Animation should be enabled in not Default and not Focus modes
+    mainSurface.sceneManagers.forEach { assertFalse(it.sceneRenderConfiguration.disableAnimation) }
 
     assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(
       preview.uiCheckFilterFlow.value
