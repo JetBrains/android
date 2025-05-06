@@ -34,13 +34,9 @@ import com.google.idea.blaze.base.execution.ExecutionDeniedException;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.sections.BazelBinarySection;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
@@ -62,15 +58,9 @@ import javax.annotation.Nullable;
 
 /** A local Blaze/Bazel invoker that issues commands via CLI. */
 public class LocalInvoker extends AbstractBuildInvoker {
-  private static Logger logger = Logger.getInstance(LocalInvoker.class);
+  private static final Logger logger = Logger.getInstance(LocalInvoker.class);
   private static final ImmutableSet<Capability> CAPABILITIES = ImmutableSet.of(
-    Capability.BUILD_AIT, Capability.SUPPORT_CLI, Capability.DEBUG_LOCAL_TEST, Capability.SUPPORT_QUERY_FILE);
-
-  public LocalInvoker(
-      Project project,
-      BuildSystem buildSystem) {
-    super(project, buildSystem, binaryPath(project));
-  }
+    Capability.SUPPORT_CLI, Capability.DEBUG_LOCAL_TEST, Capability.SUPPORT_QUERY_FILE);
 
   public LocalInvoker(
     Project project,
@@ -81,6 +71,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
 
   @Override
   public ImmutableSet<Capability> getCapabilities() {
+    // TODO: b/415992661 - extract a class with common behavior and move specific details to `LocalBazelInvoker`. 
     return CAPABILITIES;
   }
 
@@ -261,18 +252,5 @@ public class LocalInvoker extends AbstractBuildInvoker {
           .submit(context);
       throw e;
     }
-  }
-
-  private static String binaryPath(Project project) {
-    File projectSpecificBinary = null;
-    ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
-    if (projectView != null) {
-      projectSpecificBinary = projectView.getScalarValue(BazelBinarySection.KEY).orElse(null);
-    }
-
-    if (projectSpecificBinary != null) {
-      return projectSpecificBinary.getPath();
-    }
-    return BlazeUserSettings.getInstance().getBazelBinaryPath();
   }
 }

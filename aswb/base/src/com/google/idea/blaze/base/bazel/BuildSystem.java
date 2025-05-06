@@ -69,10 +69,6 @@ public interface BuildSystem {
 
     enum Capability {
       /**
-       * Capability to build Android Instrumentation Test APK
-       */
-      BUILD_AIT,
-      /**
        * Capability to invoke blaze/bazel via CLI
        */
       SUPPORT_CLI,
@@ -94,9 +90,7 @@ public interface BuildSystem {
       DEBUG_LOCAL_TEST
     }
 
-    default ImmutableSet<Capability> getCapabilities() {
-      throw new UnsupportedOperationException("This invoker does not support capabilities.");
-    }
+    ImmutableSet<Capability> getCapabilities();
 
     /**
      * Runs a blaze command, parses the build results into a {@link BlazeBuildOutputs} object.

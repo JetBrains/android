@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.bazel;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
@@ -39,6 +40,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     return new AutoValue_FakeBuildInvoker.Builder()
         .type(BuildBinaryType.NONE)
         .binaryPath("")
+        .capabilities(ImmutableSet.of())
         .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
   }
 
@@ -129,6 +131,8 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     public abstract Builder type(BuildBinaryType type);
 
     public abstract Builder binaryPath(String binaryPath);
+
+    public abstract Builder capabilities(com.google.common.collect.ImmutableSet<Capability> value);
 
     public abstract Builder buildSystem(BuildSystem buildSystem);
   }
