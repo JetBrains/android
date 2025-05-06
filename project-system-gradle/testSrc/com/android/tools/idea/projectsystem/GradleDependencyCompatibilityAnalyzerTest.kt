@@ -122,7 +122,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
       listOf(GoogleMavenArtifactId.PLAY_SERVICES_ADS.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
-    assertThat(warning).isEqualTo("The dependency was not found: com.google.android.gms:play-services-ads:+!!")
+    assertThat(warning).isEqualTo("The dependency was not found: com.google.android.gms:play-services-ads:+")
     assertThat(missing).containsExactly(GoogleMavenArtifactId.PLAY_SERVICES_ADS.getCoordinate("+"))
     assertThat(found).isEmpty()
   }
@@ -360,8 +360,30 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
       listOf(GradleCoordinate("nonexistent", "dependency123", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
-    assertThat(warning).isEqualTo("The dependency was not found: nonexistent:dependency123:+!!")
+    assertThat(warning).isEqualTo("The dependency was not found: nonexistent:dependency123:+")
     assertThat(missing).containsExactly(GradleCoordinate("nonexistent", "dependency123", "+"))
+    assertThat(found).isEmpty()
+  }
+
+  @Test
+  fun testGetAvailableDependenciesWhenUnavailable() {
+    setupProject()
+    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
+      listOf(GradleCoordinate("nonexistent", "dependency123", "+"),
+             GradleCoordinate("nonexistent", "dependency456", "+"))
+    ).get(TIMEOUT, TimeUnit.SECONDS)
+
+    assertThat(warning).isEqualTo(
+      """
+       The dependencies were not found:
+          nonexistent:dependency123:+
+          nonexistent:dependency456:+
+      """.trimIndent()
+    )
+    assertThat(missing).containsExactly(
+      GradleCoordinate("nonexistent", "dependency123", "+"),
+      GradleCoordinate("nonexistent", "dependency456", "+")
+    )
     assertThat(found).isEmpty()
   }
 
@@ -396,7 +418,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.17.3"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
-    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:[22.17.3,22.17.4)!!")
+    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:22.17.3")
     assertThat(missing).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.17.3"))
     assertThat(found).isEmpty()
   }
