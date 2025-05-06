@@ -15,20 +15,13 @@
   modules:
   - name: intellij.android.common
   - name: intellij.android.jps.model
-- name: lib/android-extensions-ide.jar
-  modules:
-  - name: intellij.android.kotlin.extensions.common
 - name: lib/android-gradle.jar
   modules:
   - name: intellij.android.gradle-tooling.api
   - name: intellij.android.gradle-tooling.impl
   - name: intellij.android.projectSystem.gradle.sync
-- name: lib/android-kotlin-extensions-tooling.jar
-  modules:
-  - name: intellij.android.kotlin.extensions.tooling
 - name: lib/android-kotlin.jar
   modules:
-  - name: intellij.android.kotlin.extensions
   - name: intellij.android.kotlin.idea
   - name: intellij.android.kotlin.idea.common
   - name: intellij.android.kotlin.idea.k1
