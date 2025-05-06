@@ -28,6 +28,7 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.execution.process.ProcessHandler;
 import java.io.InputStream;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -53,6 +54,12 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   @Override
   public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     return fakeBuildEventStreamProvider();
+  }
+
+  @Override
+  public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
+                                               BlazeContext blazeContext) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

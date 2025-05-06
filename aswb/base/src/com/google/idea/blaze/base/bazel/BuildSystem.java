@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
 import java.util.Optional;
@@ -72,6 +73,11 @@ public interface BuildSystem {
        * Capability to invoke blaze/bazel via CLI
        */
       SUPPORT_CLI,
+
+      /**
+       * Can return a process handler
+       */
+      RETURN_PROCESS_HANDLER,
       /**
        * Capability to run parallel builds
        */
@@ -96,6 +102,11 @@ public interface BuildSystem {
      * Runs a blaze command, parses the build results into a {@link BlazeBuildOutputs} object.
      */
     BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
+
+    /**
+     * Runs a blaze command and returns a process handler, which can be used by the IDE to control its execution.
+     */
+    ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Runs a blaze query command.
