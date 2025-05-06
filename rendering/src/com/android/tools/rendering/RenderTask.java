@@ -217,6 +217,7 @@ public class RenderTask {
   @NotNull private String myDefaultForegroundColor = "#333333";
   @NotNull private final ModuleClassLoaderManager.Reference<?> myModuleClassLoaderReference;
   @NotNull private final TestEventListener myTestEventListener;
+  private final float myAnimatorDurationScale;
 
   /**
    * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
@@ -254,12 +255,14 @@ public class RenderTask {
              boolean reportOutOfDateUserClasses,
              @NotNull RenderAsyncActionExecutor.RenderingTopic topic,
              boolean useCustomInflater,
-             @NotNull TestEventListener testEventListener) throws NoDeviceException {
+             @NotNull TestEventListener testEventListener,
+             float animatorDurationScale) throws NoDeviceException {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
+    myAnimatorDurationScale = animatorDurationScale;
 
     if (!isSecurityManagerEnabled) {
       LOG.debug("Security manager was disabled");
@@ -733,6 +736,8 @@ public class RenderTask {
 
     params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
     params.setImageTransformation(configuration.getImageTransformation());
+
+    params.setAnimatorDurationScale(myAnimatorDurationScale);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
