@@ -2480,6 +2480,12 @@ public final class StudioFlags {
     "is enabled, Use the `-dev` suffix to use a locally built plugin.",
     "com.android.tools.journeys:journeys-gradle-plugin:0.0.1-alpha01"
   );
+  public static final Flag<String> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_EXTRA_REPOSITORY_URL = new StringFlag(
+    JOURNEYS_WITH_GEMINI, "extra.repository.url.for.journeys.with.gemini.auto.gradle.configuration",
+    "URL of extra repository used by automatic Gradle configuration (e.g. staging repo)",
+    "URL of extra repository used by automatic Gradle configuration (e.g. staging repo)",
+    ""
+  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
     "Enable recording of Journeys with Gemini",
