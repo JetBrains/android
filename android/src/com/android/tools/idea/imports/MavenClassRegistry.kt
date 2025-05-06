@@ -24,6 +24,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.name.FqName
 
@@ -33,7 +34,7 @@ import org.jetbrains.kotlin.name.FqName
  * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes`
  * to include in go/studio-auto-import-packages.
  */
-class MavenClassRegistry private constructor(val lookup: LookupData) {
+class MavenClassRegistry private constructor(@VisibleForTesting internal val lookup: LookupData) {
 
   /**
    * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
@@ -127,6 +128,19 @@ class MavenClassRegistry private constructor(val lookup: LookupData) {
         .mapNotNull { it.importedItemPackageName.takeIf(String::isNotEmpty) }
         .toSet()
     }
+
+  /**
+   * Given a simple class name (eg, not a fully-qualified name), returns a collection of
+   * [LibraryImportData] objects that contains a class with that name.
+   */
+  fun findImportDataByClassName(simpleClassName: String) = lookup.classNameMap[simpleClassName]
+
+  /**
+   * Given a [FunctionSpecifier], returns a collection of [LibraryImportData] objects that contains
+   * a matching top-level function.
+   */
+  fun findImportDataByFunctionSpecifier(functionSpecifier: FunctionSpecifier) =
+    lookup.topLevelFunctionsMap[functionSpecifier]
 
   private enum class IndexKey(val key: String) {
     GROUP_ID("groupId"),

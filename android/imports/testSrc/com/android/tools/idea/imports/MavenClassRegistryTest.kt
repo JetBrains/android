@@ -141,6 +141,22 @@ class MavenClassRegistryTest {
         )
       )
 
+    assertThat(mavenClassRegistry.findImportDataByClassName("Fake"))
+      .containsExactly(
+        LibraryImportData(
+          artifact = "androidx.activity:activity",
+          importedItemFqName = "androidx.activity.Fake",
+          importedItemPackageName = "androidx.activity",
+          version = "1.1.0",
+        ),
+        LibraryImportData(
+          artifact = "androidx.annotation:annotation",
+          importedItemFqName = "androidx.annotation.Fake",
+          importedItemPackageName = "androidx.annotation",
+          version = "1.1.0",
+        ),
+      )
+
     assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap)
       .containsExactlyEntriesIn(
         mapOf(
@@ -187,6 +203,26 @@ class MavenClassRegistryTest {
               )
             ),
         )
+      )
+
+    assertThat(
+        mavenClassRegistry.findImportDataByFunctionSpecifier(
+          FunctionSpecifier("FakeFunction", null)
+        )
+      )
+      .containsExactly(
+        LibraryImportData(
+          artifact = "androidx.activity:activity",
+          importedItemFqName = "androidx.activity.FakeFunction",
+          importedItemPackageName = "androidx.activity",
+          version = "1.1.0",
+        ),
+        LibraryImportData(
+          artifact = "androidx.annotation:annotation",
+          importedItemFqName = "androidx.annotation.FakeFunction",
+          importedItemPackageName = "androidx.annotation",
+          version = "1.1.0",
+        ),
       )
 
     assertThat(mavenClassRegistry.lookup.ktxMap)
