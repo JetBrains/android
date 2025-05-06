@@ -34,8 +34,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
@@ -62,6 +60,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
@@ -85,6 +84,7 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -282,7 +282,7 @@ class VisualizationForm(
       myResourceNotifyingFilesLock.unlock()
     }
     for (file in registeredFiles) {
-      scope.launch(workerThread) { unregisterResourceNotification(file) }
+      scope.launch(Dispatchers.Default) { unregisterResourceNotification(file) }
     }
     removeModels(surface.models)
     surface.removeIssueListener(issueListener)
@@ -377,7 +377,7 @@ class VisualizationForm(
         } ?: emptyList()
       if (models.isEmpty()) myWorkBench.showLoading("No Device Found")
       if (models.isEmpty() || isRequestCancelled.get()) {
-        withContext(workerThread) { unregisterResourceNotification(myFile) }
+        withContext(Dispatchers.Default) { unregisterResourceNotification(myFile) }
       } else {
         myWorkBench.showContent()
         interruptRendering()
@@ -393,7 +393,7 @@ class VisualizationForm(
       // Re-layout and set scale before rendering. This may be processed delayed but we have
       // known the preview number and sizes because the
       // models are added, so it would layout correctly.
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         surface.invalidate()
         val lastScaling = VisualizationToolProjectSettings.getInstance(project).projectState.scale
         if (!surface.zoomController.setScale(lastScaling)) {
@@ -410,7 +410,7 @@ class VisualizationForm(
         surface.unregisterIndicator(myProgressIndicator)
       }
       if (!isRequestCancelled.get() && facet?.isDisposed == false) {
-        withContext(uiThread) { activateEditor(models.isNotEmpty()) }
+        withContext(Dispatchers.EDT) { activateEditor(models.isNotEmpty()) }
       } else {
         removeModels(models)
       }
@@ -456,7 +456,7 @@ class VisualizationForm(
     } else {
       editor = myPendingEditor
       myPendingEditor = null
-      withContext(workerThread) { registerResourceNotification(myFile) }
+      withContext(Dispatchers.Default) { registerResourceNotification(myFile) }
       myWorkBench.setFileEditor(myEditor)
     }
   }
@@ -588,11 +588,11 @@ class VisualizationForm(
   }
 
   private suspend fun onActivate() {
-    withContext(workerThread) {
+    withContext(Dispatchers.Default) {
       registerResourceNotification(myFile)
       isActive = true
     }
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       if (myContentPanel == null) {
         initializer.initContent(project, this@VisualizationForm) { initModel() }
       } else {
@@ -618,7 +618,7 @@ class VisualizationForm(
     myCancelPendingModelLoad.set(true)
     surface.deactivate()
     isActive = false
-    scope.launch(workerThread) { unregisterResourceNotification(myFile) }
+    scope.launch(Dispatchers.Default) { unregisterResourceNotification(myFile) }
     if (myContentPanel != null) {
       setNoActiveModel()
     }
