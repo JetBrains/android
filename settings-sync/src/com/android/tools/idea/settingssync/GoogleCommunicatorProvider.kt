@@ -212,4 +212,6 @@ class GoogleCloudServerCommunicator(
       }
     }
   }
+
+  override fun dispose() = Unit
 }

@@ -43,6 +43,7 @@ import com.google.gct.wizard.WizardState
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_AND_SYNC_EVENT
 import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
 import com.intellij.openapi.components.SettingsCategory
+import com.intellij.openapi.util.Disposer
 import com.intellij.settingsSync.core.ServerState
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncPushResult
@@ -92,7 +93,10 @@ class WizardFlowTest {
 
   @Before
   fun setup() {
-    communicator = FakeRemoteCommunicator(USER_EMAIL)
+    communicator =
+      FakeRemoteCommunicator(USER_EMAIL).apply {
+        Disposer.register(disposableRule.disposable, this)
+      }
     communicatorProvider = FakeCommunicatorProvider(communicator)
 
     ExtensionTestUtil.maskExtensions(
