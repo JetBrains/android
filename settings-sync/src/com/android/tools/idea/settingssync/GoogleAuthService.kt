@@ -76,6 +76,8 @@ class GoogleAuthService : SettingsSyncAuthService {
     return loggedInUser.email?.let { getUserData(it) }
   }
 
+  override fun crossSyncSupported(): Boolean = false
+
   private fun getActiveSyncUserEmail(): String? {
     return SettingsSyncLocalSettings.getInstance().userId.takeIf {
       SettingsSyncSettings.getInstance().syncEnabled
