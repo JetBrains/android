@@ -2226,6 +2226,12 @@ public final class StudioFlags {
                     "When enabled, the chat will show a Scroll to Bottom button as needed.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_RESPONSE_CANCELLATION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",
+                    "Enable cancellation in Chat Timeline",
+                    "When enabled, the chat will show a banner that will allow cancelling ongoing responses.",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
