@@ -47,5 +47,5 @@ interface IXrSimulatedInputManager {
     void registerListener(IXrSimulatedInputStateCallback cb);
 
     // Unregisters callback
-    void unRegisterListener(IXrSimulatedInputStateCallback cb);
+    void unregisterListener(IXrSimulatedInputStateCallback cb);
 }
