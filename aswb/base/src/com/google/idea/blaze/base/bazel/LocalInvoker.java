@@ -16,7 +16,6 @@
 package com.google.idea.blaze.base.bazel;
 
 import com.android.tools.idea.sdk.IdeSdks;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Closer;
 import com.google.idea.blaze.base.async.process.ExternalTask;
@@ -35,20 +34,14 @@ import com.google.idea.blaze.base.execution.ExecutionDeniedException;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.run.processhandler.LineProcessingProcessAdapter;
-import com.google.idea.blaze.base.run.processhandler.ScopedBlazeProcessHandler;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
-import com.google.idea.blaze.base.scope.scopes.IdeaLogScope;
-import com.google.idea.blaze.base.scope.scopes.ProblemsViewScope;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessListener;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -108,34 +101,6 @@ public class LocalInvoker extends AbstractBuildInvoker {
     return getBepStream(outputFile);
   }
 
-  private ProcessHandler getScopedProcessHandler(
-    Project project, ImmutableList<String> command, WorkspaceRoot workspaceRoot)
-    throws ExecutionException {
-    return new ScopedBlazeProcessHandler(
-      project,
-      command,
-      workspaceRoot,
-      new ScopedBlazeProcessHandler.ScopedProcessHandlerDelegate() {
-        @Override
-        public void onBlazeContextStart(BlazeContext context) {
-          context
-            .push(
-              new ProblemsViewScope(
-                project, BlazeUserSettings.getInstance().getShowProblemsViewOnRun()))
-            .push(new IdeaLogScope());
-        }
-
-        @Override
-        public ImmutableList<ProcessListener> createProcessListeners(BlazeContext context) {
-          LineProcessingOutputStream outputStream =
-            LineProcessingOutputStream.of(
-              BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context));
-          return ImmutableList.of(new LineProcessingProcessAdapter(outputStream));
-        }
-      });
-  }
-
-
 
   @Override
   public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
@@ -146,7 +111,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
       throw new BuildException(e.getMessage(), e);
     }
     try {
-      return getScopedProcessHandler(project, blazeCommandBuilder.build().toList(), WorkspaceRoot.fromProject(project));
+      return LocalInvokerHelper.getScopedProcessHandler(project, blazeCommandBuilder.build().toList(), WorkspaceRoot.fromProject(project));
     }
     catch (ExecutionException e) {
       throw new BuildException(e);

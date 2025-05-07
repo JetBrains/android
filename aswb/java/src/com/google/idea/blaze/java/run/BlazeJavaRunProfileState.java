@@ -16,13 +16,13 @@
 package com.google.idea.blaze.java.run;
 
 import static com.google.common.base.Verify.verify;
+import static com.google.idea.blaze.base.bazel.LocalInvokerHelper.getScopedProcessHandler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker.Capability;
@@ -31,7 +31,6 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeCommandRunnerExperiments;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
 import com.google.idea.blaze.base.issueparser.ToolWindowTaskIssueOutputFilter;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.RuleType;
@@ -41,8 +40,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.ExecutorType;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner;
-import com.google.idea.blaze.base.run.processhandler.LineProcessingProcessAdapter;
-import com.google.idea.blaze.base.run.processhandler.ScopedBlazeProcessHandler;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestEventsHandler;
 import com.google.idea.blaze.base.run.smrunner.BlazeTestUiSession;
 import com.google.idea.blaze.base.run.smrunner.SmRunnerUtils;
@@ -51,10 +48,7 @@ import com.google.idea.blaze.base.run.testlogs.BlazeTestResultFinderStrategy;
 import com.google.idea.blaze.base.run.testlogs.BlazeTestResultHolder;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.OutputSink;
-import com.google.idea.blaze.base.scope.scopes.IdeaLogScope;
-import com.google.idea.blaze.base.scope.scopes.ProblemsViewScope;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.java.TargetKindUtil;
@@ -64,7 +58,6 @@ import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.filters.TextConsoleBuilderImpl;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
@@ -297,33 +290,6 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
 
     command.addExeFlags(handlerState.getExeFlagsState().getFlagsForExternalProcesses());
     return command;
-  }
-
-  private ProcessHandler getScopedProcessHandler(
-    Project project, ImmutableList<String> command, WorkspaceRoot workspaceRoot)
-    throws ExecutionException {
-    return new ScopedBlazeProcessHandler(
-      project,
-      command,
-      workspaceRoot,
-      new ScopedBlazeProcessHandler.ScopedProcessHandlerDelegate() {
-        @Override
-        public void onBlazeContextStart(BlazeContext context) {
-          context
-            .push(
-              new ProblemsViewScope(
-                project, BlazeUserSettings.getInstance().getShowProblemsViewOnRun()))
-            .push(new IdeaLogScope());
-        }
-
-        @Override
-        public ImmutableList<ProcessListener> createProcessListeners(BlazeContext context) {
-          LineProcessingOutputStream outputStream =
-            LineProcessingOutputStream.of(
-              BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context));
-          return ImmutableList.of(new LineProcessingProcessAdapter(outputStream));
-        }
-      });
   }
 
   private File getDownloadDir() {
