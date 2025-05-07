@@ -32,8 +32,8 @@ import com.intellij.BundleBase
 import com.intellij.ide.IdeBundle
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.runInDumbMode
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
@@ -645,7 +645,7 @@ class StringResourceWriterTest {
 
     runBlockingOrBlockingModalIfEdt {
       withTimeout(2.seconds) {
-        (DumbService.getInstance(project) as DumbServiceImpl).runInDumbMode {
+        DumbService.getInstance(project).runInDumbMode {
           withContext(Dispatchers.EDT) {
             suspendCancellableCoroutine<Unit> { cont ->
               stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }

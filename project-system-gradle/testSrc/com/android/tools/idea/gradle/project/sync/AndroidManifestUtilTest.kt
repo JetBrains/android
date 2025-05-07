@@ -48,8 +48,10 @@ class AndroidManifestUtilTest {
       true to "app/src/main",
       true to "composeApp/src/main",
       true to "composeApp/src/androidMain",
-      true to "some/deep/nested/gradle/project/src/main",
-      true to "some/deep/nested/gradle/project/src/androidMain",
+
+      // nested gradle projects are not supported due to performance reasons
+      false to "some/deep/nested/gradle/project/src/main",
+      false to "some/deep/nested/gradle/project/src/androidMain",
 
       false to "",
       false to "app",

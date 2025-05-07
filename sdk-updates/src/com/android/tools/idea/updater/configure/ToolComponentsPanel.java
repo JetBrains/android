@@ -17,6 +17,7 @@ package com.android.tools.idea.updater.configure;
 
 import static com.android.repository.util.RepoPackageUtilKt.getRepoPackagePrefix;
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
+
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
@@ -89,9 +90,9 @@ public class ToolComponentsPanel {
   private final Multimap<String, UpdatablePackage> myMultiVersionPackages = HashMultimap.create();
 
   @VisibleForTesting
-  UpdaterTreeNode myToolsDetailsRootNode;
+  public UpdaterTreeNode myToolsDetailsRootNode;
   @VisibleForTesting
-  UpdaterTreeNode myToolsSummaryRootNode;
+  public UpdaterTreeNode myToolsSummaryRootNode;
 
   Set<PackageNodeModel> myStates = Sets.newHashSet();
 
@@ -105,7 +106,7 @@ public class ToolComponentsPanel {
   }
 
   @VisibleForTesting
-  ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
+  public ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
     setupUI();
     myToolsDetailsCheckbox.setSelected(propertiesComponent.getBoolean(TOOLS_DETAILS_CHECKBOX_SELECTED, false));
     myToolsDetailsCheckbox.addActionListener(e -> {

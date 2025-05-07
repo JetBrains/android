@@ -45,15 +45,10 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.Strings;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ModalityUiUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.util.stream.Stream;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -297,7 +292,7 @@ public class SdkSyncImpl implements SdkSync {
   }
 
   @VisibleForTesting
-  static class FindValidSdkPathTask { // TODO: rename to "AskUserToProvideValidSdkPathTask"
+  public static class FindValidSdkPathTask { // TODO: rename to "AskUserToProvideValidSdkPathTask"
     @Nullable
     File selectValidSdkPath() {
       Ref<File> pathRef = new Ref<>();

@@ -90,7 +90,7 @@ public class StringResourceViewPanel implements Disposable {
   public TextFieldWithBrowseButton myDefaultValueTextField;
 
   private final @NotNull Component myTranslationLabel;
-  @VisibleForTesting TextFieldWithBrowseButton myTranslationTextField;
+  public @VisibleForTesting TextFieldWithBrowseButton myTranslationTextField;
   private @Nullable Container myPanel;
   private final @NotNull JBLoadingPanel myLoadingPanel;
 

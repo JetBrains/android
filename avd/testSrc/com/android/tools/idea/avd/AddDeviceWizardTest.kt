@@ -42,6 +42,7 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -100,6 +101,7 @@ class AddDeviceWizardTest {
   }
 
   @Test
+  @IJIgnore(issue = "IDEA-372166")
   fun addAutomotiveDevice() {
     with(SdkFixture()) {
       val api34Ext9Auto =
