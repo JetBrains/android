@@ -38,7 +38,6 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
 import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
-import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -218,6 +217,20 @@ internal class DeviceView(
   private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
+
+  override val hardwareInput = object : HardwareInput() {
+    override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
+      if (!isConnected) return
+      val action = when (id) {
+        KEY_PRESSED -> ACTION_DOWN
+        KEY_RELEASED -> ACTION_UP
+        else -> return
+      }
+      val metaState = modifiersToMetaState(modifiersEx)
+      val akeycode = VK_TO_AKEYCODE[keyCode] ?: return
+      deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
+    }
+  }
 
   private var xrInputController: DeviceXrInputController? = null
     get() {
@@ -596,6 +609,18 @@ internal class DeviceView(
     connectionStateListeners.remove(listener)
   }
 
+  private fun updateMultiTouchMode(event: InputEvent) {
+    val oldMultiTouchMode = multiTouchMode
+    if (event is MouseEvent) {
+      wasInsideDisplay = isInsideDisplay(event)
+    }
+    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 &&
+                     !isHardwareInputEnabled() && xrInputController == null
+    if (multiTouchMode && oldMultiTouchMode) {
+      repaint() // If multi-touch mode changed above, the repaint method was already called.
+    }
+  }
+
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 
   /** Listener of connection state changes. */
@@ -631,20 +656,6 @@ internal class DeviceView(
       else {
         agentTerminationListener.get()?.let { disconnected(initialDisplayOrientation, e, it) }
       }
-    }
-  }
-
-  override val hardwareInput = object : HardwareInput() {
-    override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
-      if (!isConnected) return
-      val action = when (id) {
-        KEY_PRESSED -> ACTION_DOWN
-        KEY_RELEASED -> ACTION_UP
-        else -> return
-      }
-      val metaState = modifiersToMetaState(modifiersEx)
-      val akeycode = VK_TO_AKEYCODE[keyCode] ?: return
-      deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
     }
   }
 
@@ -927,18 +938,6 @@ internal class DeviceView(
 
     override fun deviceDisconnected() {
       disconnected(initialDisplayOrientation, null, this)
-    }
-  }
-
-  private fun updateMultiTouchMode(event: InputEvent) {
-    val oldMultiTouchMode = multiTouchMode
-    if (event is MouseEvent) {
-      wasInsideDisplay = isInsideDisplay(event)
-    }
-    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 &&
-                     !isHardwareInputEnabled() && xrInputController == null
-    if (multiTouchMode && oldMultiTouchMode) {
-      repaint() // If multi-touch mode changed above, the repaint method was already called.
     }
   }
 
