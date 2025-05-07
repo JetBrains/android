@@ -59,12 +59,10 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /** A local Blaze/Bazel invoker that issues commands via CLI. */
-public class LocalInvoker extends AbstractBuildInvoker {
-  private static final Logger logger = Logger.getInstance(LocalInvoker.class);
-  protected static final ImmutableSet<Capability> CAPABILITIES = ImmutableSet.of(
-    Capability.SUPPORT_CLI, Capability.ATTACH_JAVA_DEBUGGER, Capability.SUPPORT_QUERY_FILE, Capability.RETURN_PROCESS_HANDLER);
+public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
+  private static final Logger logger = Logger.getInstance(AbstractLocalInvoker.class);
 
-  public LocalInvoker(
+  protected AbstractLocalInvoker(
     Project project,
     BuildSystem buildSystem,
     String binaryPath) {
@@ -72,13 +70,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
   }
 
   @Override
-  public ImmutableSet<Capability> getCapabilities() {
-    // TODO: b/415992661 - extract a class with common behavior and move specific details to `LocalBazelInvoker`. 
-    return CAPABILITIES;
-  }
-
-  @Override
-  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
+  public final BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
       throws BuildException {
     try {
       performGuardCheck(project, blazeContext);
@@ -103,7 +95,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
 
 
   @Override
-  public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
+  public final ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
                                                BlazeContext blazeContext) throws BuildException {
     try {
       performGuardCheck(project, blazeContext);
@@ -119,7 +111,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
   }
 
   @Override
-  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
+  public final InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     try {
       performGuardCheck(project, blazeContext);
     } catch (ExecutionDeniedException e) {
@@ -174,7 +166,7 @@ public class LocalInvoker extends AbstractBuildInvoker {
 
   @Override
   @Nullable
-  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
+  public final InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     try {
       performGuardCheck(project, blazeContext);
     } catch (ExecutionDeniedException e) {
@@ -209,16 +201,6 @@ public class LocalInvoker extends AbstractBuildInvoker {
       logger.error(e);
       return null;
     }
-  }
-
-  @Override
-  public BuildBinaryType getType() {
-    return BuildBinaryType.BAZEL;
-  }
-
-  @Override
-  public boolean isAvailable() {
-    return true;
   }
 
   private BuildResult issueBuild(

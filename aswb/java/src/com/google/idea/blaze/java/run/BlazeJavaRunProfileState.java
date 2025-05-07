@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.java.run;
 
-import static com.google.common.base.Verify.verify;
 import static com.google.idea.blaze.base.bazel.LocalInvokerHelper.getScopedProcessHandler;
 
 import com.google.common.annotations.VisibleForTesting;

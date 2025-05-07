@@ -23,7 +23,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.sections.BazelBinarySection;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
-import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -39,7 +38,7 @@ class BazelBuildSystem implements BuildSystem {
 
   @Override
   public Optional<BuildInvoker> getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
-    return Optional.of(new LocalInvoker(project, this, binaryPath(project)));
+    return Optional.of(new LocalBazelInvoker(project, this, binaryPath(project)));
   }
 
   @Override
