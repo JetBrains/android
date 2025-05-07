@@ -74,14 +74,14 @@ class RegularClassVisitor(private val className: String, private val logger: ILo
 
   // Allow adding and removing synthetic methods, such as compiler-generated accessor methods.
   override fun visitMethods(added: List<IrMethod>, removed: List<IrMethod>, modified: List<MethodDiff>) {
-    if (added.filterNot { it.isSynthetic() }.isNotEmpty()) {
+    if (added.filterNot { it.isSyntheticOrBridge() }.isNotEmpty()) {
       if (!LiveEditAdvancedConfiguration.getInstance().allowClassStructuralRedefinition) {
         val msg = "added method(s): " + added.joinToString(", ") { it.getReadableDesc() }
         throw unsupportedSourceModificationAddedMethod(location, msg)
       }
     }
 
-    if (removed.filterNot { it.isSynthetic() }.isNotEmpty()) {
+    if (removed.filterNot { it.isSyntheticOrBridge() }.isNotEmpty()) {
       if (!LiveEditAdvancedConfiguration.getInstance().allowClassStructuralRedefinition) {
         val msg = "removed method(s): " + removed.joinToString(", ") { it.getReadableDesc() }
         throw unsupportedSourceModificationRemovedMethod(location, msg)

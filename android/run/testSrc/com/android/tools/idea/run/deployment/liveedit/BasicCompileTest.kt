@@ -430,6 +430,21 @@ class BasicCompileTest {
   }
 
   @Test
+  fun kotlinBridge() {
+    val file1 = projectRule.createKtFile("Parent.kt", "interface Parent<T> { fun stuff(input: T) : T }")
+    val file2 = projectRule.createKtFile("Child.kt", "class Child : Parent<String> { override fun stuff(s: String) = s }")
+    val cache = projectRule.initialCache(listOf(file2))
+
+    // Removing the generic makes the compiler no longer need to generate a bridge.
+    projectRule.fixture.configureByText("Parent.kt", "interface Parent<T> { fun stuff(input: String) : String }")
+
+    // Only compile the child class since that's where the bridge is going to disappear when compared to the cache.
+    compile(file2, cache)
+
+    // Note that at the moment when this test was written, compiler generates the method with both ACC_BRIDGE and ACC_SYNTHETIC.
+  }
+
+  @Test
   fun `Modify when Mapping`() {
     val enumDef = projectRule.createKtFile("Food.kt", """
       enum class Food { Pizza, Donuts }
