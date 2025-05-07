@@ -179,6 +179,10 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), runner, configSettings,
                                    project)
 
+    // When Complications are launched for debugging `AndroidComplicationConfigurationExecutor` first starts
+    // and immediately stops a Complication in RUN mode.
+    var launchForInDebugMode = false
+    var pid = 1234
     val processTerminatedLatch = CountDownLatch(1)
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
@@ -197,14 +201,18 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
           shellCommandOutput.writeStdout("Broadcast completed: result=1, data=\"Set debug app to $appId\"")
         }
         setComplicationSlot1 -> {
-          deviceState.startClient(1234, 1235, appId, true)
+          deviceState.startClient(pid, 1235, appId, launchForInDebugMode)
           shellCommandOutput.writeStdout("Broadcast completed: result=1")
         }
         setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         unsetWatchFace -> {
-          deviceState.stopClient(1234)
+          deviceState.stopClient(pid)
           shellCommandOutput.writeStdout("Broadcast completed: result=1")
+
+          // Next time launch in debug mode and use a different pid
+          launchForInDebugMode = true
+          pid += 10
         }
 
         clearDebugAppAm -> processTerminatedLatch.countDown()
