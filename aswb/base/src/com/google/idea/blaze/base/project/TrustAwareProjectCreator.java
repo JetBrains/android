@@ -28,23 +28,6 @@ import javax.annotation.Nullable;
 /** Creates a project if the user has trusted the project. */
 public class TrustAwareProjectCreator implements ExtendableBazelProjectCreator {
 
-  /**
-   * Creates a project if the user has trusted the project.
-   *
-   * @param builder the project builder
-   * @param name the name of the project
-   * @param path the path to the project
-   * @return the created project, null if the user did not trust the project
-   */
-  @Override
-  public Optional<Project> createProject(ProjectBuilder builder, String name, String path) {
-    if (!canCreateProject(null)) {
-      return Optional.empty();
-    }
-
-    return Optional.of(builder.createProject(name, path));
-  }
-
   /** Returns true if the user has trusted the project. */
   @Override
   public boolean canCreateProject(@Nullable BuildSystemName buildSystemName) {
