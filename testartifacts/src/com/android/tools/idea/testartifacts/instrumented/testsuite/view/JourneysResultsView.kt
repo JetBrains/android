@@ -98,13 +98,11 @@ fun JourneysResultsView(
           title = "Action Taken",
           text = artifact.description ?: "No action",
         )
-        if (artifact.reasoning != null) {
-          ArtifactText(
-            modifier = Modifier.weight(weight = 0.5f, fill = true),
-            title = "Reasoning",
-            text = artifact.reasoning,
-          )
-        }
+        ArtifactText(
+          modifier = Modifier.weight(weight = 0.5f, fill = true),
+          title = "Reasoning",
+          text = artifact.reasoning ?: "None",
+        )
       }
     }
   }
@@ -150,9 +148,7 @@ fun JourneysResultsViewCompact(
           title = "Action Taken",
           text = artifact.description ?: "No action",
         )
-        if (artifact.reasoning != null) {
-          ArtifactText(modifier = Modifier, title = "Reasoning", text = artifact.reasoning)
-        }
+        ArtifactText(modifier = Modifier, title = "Reasoning", text = artifact.reasoning ?: "None")
       }
       VerticalScrollbar(
         modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd),
