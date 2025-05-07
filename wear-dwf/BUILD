@@ -16,6 +16,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/base/wear-wff-schema:studio.intellij.android.wear-wff-schema",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
     ],
 )
 
@@ -25,6 +26,7 @@ iml_module(
     iml_files = ["intellij.android.wear-dwf.tests.iml"],
     test_class = "com.android.tools.idea.wear.dwf.AndroidWearDWFTestSuite",
     test_data = [
+        "//prebuilts/studio/sdk:platform-tools",
         "//tools/adt/idea/wear-dwf/testData",
     ],
     # do not sort: must match IML order
@@ -38,6 +40,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
     ],
     test_friends = ["//tools/adt/idea/wear-dwf:intellij.android.wear-dwf"],
     test_resources = ["testData"],
