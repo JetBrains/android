@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-org.jetbrains.platform.debugger.streams">
+  <library name="studio-plugin-intellij.debugger.streams.core">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/debugger-streams-core/lib/debugger-streams-core.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.debugger.streams.core.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

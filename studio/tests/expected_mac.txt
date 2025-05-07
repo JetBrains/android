@@ -448,6 +448,7 @@ Android Studio Preview.app/Contents/lib/jna/amd64/libjnidispatch.jnilib
 Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/kotlinx-coroutines-slf4j-1.8.0-intellij.jar
 Android Studio Preview.app/Contents/lib/lib.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.debugger.streams.core.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.grid.core.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.grid.csv.core.impl.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.grid.impl.jar
@@ -483,8 +484,9 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.inline.complet
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.foundation.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.ideLafBridge.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.core.jar
-Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extension.gfmAlerts.jar
-Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extension.gfmTables.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.ideLafBridgeStyling.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.ui.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.kernel.backend.jar
@@ -2727,9 +2729,9 @@ Android Studio Preview.app/Contents/plugins/cidr-clangFormat-plugin/lib/cidr-cla
 Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
 Android Studio Preview.app/Contents/plugins/compose-ide-plugin/lib/compose-ide-plugin.jar
+Android Studio Preview.app/Contents/plugins/compose-ide-plugin/lib/modules/intellij.compose.ide.plugin.gradleTooling.rt.jar
 Android Studio Preview.app/Contents/plugins/configurationScript/lib/configurationScript.jar
 Android Studio Preview.app/Contents/plugins/copyright/lib/copyright.jar
-Android Studio Preview.app/Contents/plugins/debugger-streams-core/lib/debugger-streams-core.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/design-tools.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/design-tools.so.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/layoutlib.jar
@@ -3143,6 +3145,7 @@ Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visua
 Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/maven-model/lib/maven-model.jar
 Android Studio Preview.app/Contents/plugins/maven-server/lib/maven-server.jar
+Android Studio Preview.app/Contents/plugins/performanceTesting/lib/modules/intellij.performanceTesting.frontend.jar
 Android Studio Preview.app/Contents/plugins/performanceTesting/lib/performanceTesting.jar
 Android Studio Preview.app/Contents/plugins/platform-images/lib/platform-images.jar
 Android Studio Preview.app/Contents/plugins/platform-langInjection/lib/java-langInjection-jps.jar
@@ -3172,6 +3175,7 @@ Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/zsh/zdot
 Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/zsh/zdotdir/.zprofile
 Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/zsh/zdotdir/.zshenv
 Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/zsh/zdotdir/.zshrc
+Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/zsh/zdotdir/source-original.zsh
 Android Studio Preview.app/Contents/plugins/terminal/shell-integrations/zsh/zsh-integration.zsh
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/swt.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/test-recorder.jar
