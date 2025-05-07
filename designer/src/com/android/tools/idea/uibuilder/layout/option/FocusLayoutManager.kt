@@ -16,4 +16,6 @@
 package com.android.tools.idea.uibuilder.layout.option
 
 /** [SurfaceLayoutManager] for Focus mode. */
-class FocusLayoutManager : GridLayoutManager()
+class FocusLayoutManager : GridLayoutManager() {
+  override val containsResizableContent: Boolean = true
+}

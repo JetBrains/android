@@ -22,6 +22,7 @@ import com.android.tools.idea.common.layout.positionable.margin
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MAX_SCALE
 import com.android.tools.idea.common.surface.ZoomConstants.DEFAULT_MIN_SCALE
+import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.layout.padding.DEFAULT_LAYOUT_PADDING
 import com.android.tools.idea.uibuilder.layout.padding.OrganizationPadding
 import com.android.tools.idea.uibuilder.layout.positionable.GridLayoutGroup
@@ -80,8 +81,8 @@ open class GridLayoutManager(
     content.singleContentOrNull()?.let {
       val previewSize = it.sizeForScale(it.scaleFunc())
       return Dimension(
-        previewSize.width + padding.canvasSinglePadding * 2,
-        previewSize.height + padding.canvasSinglePadding * 2,
+        previewSize.width + padding.canvasSinglePadding * 2 + getResizableHoveringArea(),
+        previewSize.height + padding.canvasSinglePadding * 2 + getResizableHoveringArea(),
       )
     }
     val groups = createLayoutGroups(transform(content), scaleFunc, availableWidth)
@@ -284,8 +285,16 @@ open class GridLayoutManager(
       // When there is only one visible preview, centralize it as a special case.
       val previewSize = singleContent.sizeForScale(singleContent.scale)
       // Try to centralize the content.
-      val x = maxOf((availableWidth - previewSize.width) / 2, padding.canvasSinglePadding)
-      val y = maxOf((availableHeight - previewSize.height) / 2, padding.canvasSinglePadding)
+      val x =
+        maxOf(
+          (availableWidth - previewSize.width - getResizableHoveringArea()) / 2,
+          padding.canvasSinglePadding,
+        )
+      val y =
+        maxOf(
+          (availableHeight - previewSize.height - getResizableHoveringArea()) / 2,
+          padding.canvasSinglePadding,
+        )
       return mapOf(singleContent to getContentPosition(singleContent, x, y))
     }
 
@@ -412,4 +421,8 @@ open class GridLayoutManager(
     val shiftedY = previewY + margin.top
     return Point(shiftedX, shiftedY)
   }
+
+  /** @return [NlConstants.RESIZING_HOVERING_SIZE] if [containsResizableContent], 0 otherwsie */
+  private fun getResizableHoveringArea(): Int =
+    NlConstants.RESIZING_HOVERING_SIZE.takeIf { containsResizableContent } ?: 0
 }
