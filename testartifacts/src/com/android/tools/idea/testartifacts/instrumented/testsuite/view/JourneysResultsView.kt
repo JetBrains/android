@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -64,6 +65,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun JourneysResultsView(
   modifier: Modifier = Modifier,
@@ -72,36 +74,49 @@ fun JourneysResultsView(
   numEntries: Int,
   onImageDoubleClicked: () -> Unit = {},
 ) {
-  Box(modifier = modifier.width(800.dp), contentAlignment = Alignment.Center) {
+  Row(modifier = modifier.height(160.dp).padding(horizontal = 16.dp)) {
+    val path = artifact.screenshotImage
+    if (path != null) {
+      DoubleClickableWrapper(modifier = Modifier, onDoubleClick = onImageDoubleClicked) {
+        JourneyScreenshot(modifier = Modifier, path = path)
+      }
+    }
+    else {
+      Tooltip(modifier = Modifier, tooltip = { Text("No screenshot available") }) {
+        Box(
+          modifier = Modifier.aspectRatio(0.5f).fillMaxHeight().background(color = Color.LightGray)
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.width(12.dp))
+
     Column {
-      val path = artifact.screenshotImage
-      if (path != null) {
-        DoubleClickableWrapper(
-          modifier = Modifier.align(Alignment.CenterHorizontally).weight(weight = 1f, fill = true),
-          onDoubleClick = onImageDoubleClicked,
+      val textScrollState = rememberScrollState()
+      Box {
+        Column(
+          modifier = Modifier.verticalScroll(textScrollState),
+          verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
         ) {
-          JourneyScreenshot(modifier = Modifier, path = path)
-        }
-        if (numEntries > 1) {
-          Text(
-            "${index + 1} of $numEntries",
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 8.dp),
+          Row {
+            ArtifactText(
+              modifier = Modifier.weight(1f, fill = true),
+              title = "Action Taken",
+              text = artifact.description ?: "No action",
+            )
+            if (numEntries > 1) {
+              StepCounter(modifier = Modifier, index = index, numEntries = numEntries)
+            }
+          }
+          ArtifactText(
+            modifier = Modifier,
+            title = "Reasoning",
+            text = artifact.reasoning ?: "None",
           )
         }
-      }
-      Row(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterHorizontally),
-      ) {
-        ArtifactText(
-          modifier = Modifier.weight(weight = 0.5f, fill = true),
-          title = "Action Taken",
-          text = artifact.description ?: "No action",
-        )
-        ArtifactText(
-          modifier = Modifier.weight(weight = 0.5f, fill = true),
-          title = "Reasoning",
-          text = artifact.reasoning ?: "None",
+        VerticalScrollbar(
+          modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd),
+          adapter = rememberScrollbarAdapter(textScrollState),
         )
       }
     }
@@ -116,43 +131,50 @@ fun JourneysResultsViewCompact(
   numEntries: Int,
   onImageDoubleClicked: () -> Unit = {},
 ) {
-  Row(modifier = modifier.padding(16.dp)) {
-    val path = artifact.screenshotImage
-    if (path != null) {
-      Column {
+  Column(modifier = modifier.padding(16.dp)) {
+    Row(modifier = Modifier.weight(1f, fill = true)) {
+      val path = artifact.screenshotImage
+      if (path != null) {
         DoubleClickableWrapper(
-          modifier = Modifier.weight(weight = 1f, fill = true),
+          modifier = Modifier.fillMaxHeight(),
           onDoubleClick = onImageDoubleClicked,
         ) {
           JourneyScreenshot(modifier = Modifier, path = path)
         }
-        if (numEntries > 1) {
-          Text(
-            "${index + 1} of $numEntries",
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 8.dp),
+        Spacer(modifier = Modifier.width(12.dp))
+      }
+
+      val textScrollState = rememberScrollState()
+      Box {
+        Column(
+          modifier = Modifier.widthIn(max = 400.dp).verticalScroll(textScrollState),
+          verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
+        ) {
+          ArtifactText(
+            modifier = Modifier,
+            title = "Action Taken",
+            text = artifact.description ?: "No action",
+          )
+          ArtifactText(
+            modifier = Modifier,
+            title = "Reasoning",
+            text = artifact.reasoning ?: "None",
           )
         }
+        VerticalScrollbar(
+          modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd),
+          adapter = rememberScrollbarAdapter(textScrollState),
+        )
       }
-
-      Spacer(modifier = Modifier.width(12.dp))
     }
 
-    val textScrollState = rememberScrollState()
-    Box {
-      Column(
-        modifier = Modifier.widthIn(max = 400.dp).verticalScroll(textScrollState),
-        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
-      ) {
-        ArtifactText(
-          modifier = Modifier,
-          title = "Action Taken",
-          text = artifact.description ?: "No action",
-        )
-        ArtifactText(modifier = Modifier, title = "Reasoning", text = artifact.reasoning ?: "None")
-      }
-      VerticalScrollbar(
-        modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd),
-        adapter = rememberScrollbarAdapter(textScrollState),
+    Spacer(modifier = Modifier.height(12.dp))
+
+    if (numEntries > 1) {
+      StepCounter(
+        modifier = Modifier.align(Alignment.CenterHorizontally),
+        index = index,
+        numEntries = numEntries,
       )
     }
   }
@@ -265,7 +287,7 @@ private fun ArtifactText(modifier: Modifier, title: String, text: String) {
         TextStyle(
           fontSize = 13.sp,
           lineHeight = 16.sp,
-          fontWeight = FontWeight.SemiBold,
+          fontWeight = FontWeight(500),
         ),
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
@@ -280,4 +302,19 @@ private fun ArtifactText(modifier: Modifier, title: String, text: String) {
         ),
     )
   }
+}
+
+@Composable
+private fun StepCounter(modifier: Modifier, index: Int, numEntries: Int) {
+  Text(
+    "Step ${index + 1} of $numEntries",
+    style =
+    TextStyle(
+      fontSize = 13.sp,
+      lineHeight = 16.sp,
+      fontWeight = FontWeight(500),
+      color = Color.Gray,
+    ),
+    modifier = modifier,
+  )
 }

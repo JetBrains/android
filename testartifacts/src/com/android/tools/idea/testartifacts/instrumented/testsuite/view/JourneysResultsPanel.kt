@@ -15,15 +15,23 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -39,6 +47,7 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
 
   private val journeyArtifacts: MutableState<List<JourneyActionArtifacts>> =
     mutableStateOf(emptyList())
+  private val shouldResetScroll: MutableState<Boolean> = mutableStateOf(false)
 
   init {
     this.add(
@@ -47,20 +56,37 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
         val listState = rememberLazyListState()
         val numArtifacts by remember { derivedStateOf { artifacts.size } }
 
-        Carousel(
-          modifier = Modifier.fillMaxSize(),
-          listState = listState,
-          itemCount = numArtifacts,
-          itemWidth = null,
-          maxVisibleItems = 1,
-        ) { index ->
-          val artifact = artifacts[index]
-          JourneysResultsView(
+        LaunchedEffect(shouldResetScroll.value) {
+          if (shouldResetScroll.value) {
+            listState.scrollToItem(0)
+            shouldResetScroll.value = false
+          }
+        }
+
+        Row {
+          LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(vertical = 16.dp).weight(1f, fill = true),
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+          ) {
+            items(count = numArtifacts) { index ->
+              val artifact = artifacts[index]
+              JourneysResultsView(
+                modifier = Modifier.fillMaxHeight(),
+                artifact = artifact,
+                index = index,
+                numEntries = artifacts.size,
+                onImageDoubleClicked = {
+                  if (artifact.screenshotImage != null) {
+                    openImageInEditor(File(artifact.screenshotImage))
+                  }
+                },
+              )
+            }
+          }
+          VerticalScrollbar(
+            adapter = rememberScrollbarAdapter(listState),
             modifier = Modifier.fillMaxHeight(),
-            artifact = artifact,
-            index = index,
-            numEntries = artifacts.size,
-            onImageDoubleClicked = { openImageInEditor(File(artifact.screenshotImage)) },
           )
         }
       },
@@ -69,7 +95,18 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
   }
 
   fun updateArtifacts(artifacts: List<JourneyActionArtifacts>) {
+    if (!artifacts.take(journeyArtifacts.value.size).contentEquals(journeyArtifacts.value)) {
+      shouldResetScroll.value = true
+    }
+
     journeyArtifacts.value = artifacts
+  }
+
+  private fun List<JourneyActionArtifacts>.contentEquals(
+    other: List<JourneyActionArtifacts>
+  ): Boolean {
+    if (this.size != other.size) return false
+    return this.zip(other).all { (a, b) -> a == b }
   }
 
   private fun openImageInEditor(imageFile: File) {
