@@ -123,6 +123,7 @@ import java.awt.event.MouseWheelEvent
 import java.awt.geom.AffineTransform
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.KeyStroke
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -190,15 +191,7 @@ internal class DeviceView(
 
   private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
   private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
-  private val agentTerminationListener = object : AgentTerminationListener {
-    override fun agentTerminated(exitCode: Int) {
-      disconnected(initialDisplayOrientation, AgentTerminatedException(exitCode))
-    }
-
-    override fun deviceDisconnected() {
-      disconnected(initialDisplayOrientation)
-    }
-  }
+  private var agentTerminationListener = AtomicReference<AgentTerminationListener>()
   private val frameListener = MyFrameListener()
   private val displayTransform = AffineTransform()
   private var disposed = false
@@ -271,16 +264,21 @@ internal class DeviceView(
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
     frameNumber = 0u
+    val disconnectionListener = MyAgentTerminationListener()
+    if (!agentTerminationListener.compareAndSet(null, disconnectionListener)) {
+      throw IllegalStateException("Agent termination listener already set")
+    }
     connectionState = ConnectionState.CONNECTING
     maxVideoSize = physicalSize
+    deviceClient.addAgentTerminationListener(disconnectionListener)
     createCoroutineScope().launch {
-      connectToAgent(maxVideoSize, initialDisplayOrientation)
+      connectToAgent(maxVideoSize, initialDisplayOrientation, disconnectionListener)
     }
   }
 
-  private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
+  private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int,
+                                     disconnectionListener: AgentTerminationListener) {
     try {
-      deviceClient.addAgentTerminationListener(agentTerminationListener)
       if (displayId == PRIMARY_DISPLAY_ID) {
         deviceClient.establishAgentConnection(maxOutputSize, initialDisplayOrientation, startVideoStream = true, project)
       }
@@ -288,7 +286,7 @@ internal class DeviceView(
         deviceClient.waitUntilConnected()
         val videoDecoder = deviceClient.videoDecoder
         if (videoDecoder == null) {
-          disconnected(initialDisplayOrientation, null)
+          disconnected(initialDisplayOrientation, null, disconnectionListener)
           return
         }
         deviceClient.startVideoStream(project, displayId, maxOutputSize)
@@ -309,7 +307,7 @@ internal class DeviceView(
       throw e
     }
     catch (e: Throwable) {
-      disconnected(initialDisplayOrientation, e)
+      disconnected(initialDisplayOrientation, e, disconnectionListener)
     }
   }
 
@@ -334,8 +332,10 @@ internal class DeviceView(
     }
   }
 
-  private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
-    deviceClient.removeAgentTerminationListener(agentTerminationListener)
+  private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null, disconnectionListener: AgentTerminationListener) {
+    if (!agentTerminationListener.compareAndSet(disconnectionListener, null)) {
+      return
+    }
     if (displayId != PRIMARY_DISPLAY_ID) {
       return
     }
@@ -397,7 +397,7 @@ internal class DeviceView(
   override fun dispose() {
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
     deviceClient.stopVideoStream(project, displayId)
-    deviceClient.removeAgentTerminationListener(agentTerminationListener)
+    agentTerminationListener.get()?.let { deviceClient.removeAgentTerminationListener(it) }
     disposed = true
   }
 
@@ -629,7 +629,7 @@ internal class DeviceView(
         deviceClient.startVideoStream(project, displayId, maxVideoSize)
       }
       else {
-        disconnected(initialDisplayOrientation, e)
+        agentTerminationListener.get()?.let { disconnected(initialDisplayOrientation, e, it) }
       }
     }
   }
@@ -917,6 +917,17 @@ internal class DeviceView(
 
     /** Converts true to 1 and false to -1. */
     private fun Boolean.toSign(): Int = if (this) 1 else -1
+  }
+
+  private inner class MyAgentTerminationListener : AgentTerminationListener {
+
+    override fun agentTerminated(exitCode: Int) {
+      disconnected(initialDisplayOrientation, AgentTerminatedException(exitCode), this)
+    }
+
+    override fun deviceDisconnected() {
+      disconnected(initialDisplayOrientation, null, this)
+    }
   }
 
   private fun updateMultiTouchMode(event: InputEvent) {
