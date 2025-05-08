@@ -29,7 +29,7 @@ import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.analysis.api.platform.projectStructure.KotlinCompilerPluginsProvider
-import org.jetbrains.kotlin.analysis.api.projectStructure.KaSourceModule
+import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
@@ -75,14 +75,14 @@ private val composeExtensionStorage by lazy {
 @OptIn(ExperimentalCompilerApi::class)
 private val composeCompilerPluginProviderForTest by lazy {
   object : KotlinCompilerPluginsProvider {
-    override fun <T : Any> getRegisteredExtensions(module: KaSourceModule,
+    override fun <T : Any> getRegisteredExtensions(module: KaModule,
                                                    extensionType: ProjectExtensionDescriptor<T>): List<T> {
       val registrars = composeExtensionStorage.registeredExtensions[extensionType] ?: return emptyList()
       @Suppress("UNCHECKED_CAST")
       return registrars as List<T>
     }
 
-    override fun isPluginOfTypeRegistered(module: KaSourceModule,
+    override fun isPluginOfTypeRegistered(module: KaModule,
                                           pluginType: KotlinCompilerPluginsProvider.CompilerPluginType): Boolean = false
   }
 }
