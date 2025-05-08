@@ -17,8 +17,6 @@
 package com.android.tools.idea.run.tasks;
 
 
-import static com.intellij.openapi.keymap.impl.ui.ActionsTreeUtil.addAction;
-
 import com.android.adblib.AdbSession;
 import com.android.ddmlib.AdbHelper;
 import com.android.ddmlib.IDevice;
@@ -46,7 +44,7 @@ import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
-import com.android.tools.idea.util.StudioPathManager;
+import com.android.tools.idea.util.LocalInstallerPathManager;
 import com.android.utils.ILogger;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
@@ -58,14 +56,12 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -139,7 +135,9 @@ public abstract class AbstractDeployTask {
     if (!StudioFlags.APPLY_CHANGES_KEEP_CONNECTION_ALIVE.get()) {
       adbInstallerMode = AdbInstaller.Mode.ONE_SHOT;
     }
-    Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger, adbInstallerMode);
+    Installer installer = new AdbInstaller(
+      LocalInstallerPathManager.getLocalInstaller(), adb, metrics.getDeployMetrics(), logger, adbInstallerMode
+    );
 
     DeploymentService service = DeploymentService.getInstance();
     IdeService ideService = new IdeService(myProject);
@@ -200,18 +198,6 @@ public abstract class AbstractDeployTask {
 
   abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo, @NotNull Canceller canceller)
     throws DeployerException;
-
-  private String getLocalInstaller() {
-    Path path;
-    if (StudioPathManager.isRunningFromSources()) {
-      // Development mode
-      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
-    }
-    else {
-      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
-    }
-    return path.toString();
-  }
 
   @NotNull
   protected Project getProject() {

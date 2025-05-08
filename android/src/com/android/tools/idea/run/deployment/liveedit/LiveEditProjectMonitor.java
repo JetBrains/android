@@ -23,6 +23,7 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.pr
 import static com.android.tools.idea.run.deployment.liveedit.PsiValidatorKt.getPsiValidationState;
 
 import com.android.annotations.Trace;
+import com.android.tools.idea.util.LocalInstallerPathManager;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -46,14 +47,12 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices;
 import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices;
-import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LiveEditEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.ActivityTracker;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -68,8 +67,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.concurrency.annotations.RequiresReadLock;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -774,7 +771,9 @@ public class LiveEditProjectMonitor implements Disposable {
   static Installer newInstaller(IDevice device) {
     MetricsRecorder metrics = new MetricsRecorder();
     AdbClient adb = new AdbClient(device, LOGGER);
-    return new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+    return new AdbInstaller(
+      LocalInstallerPathManager.getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON
+    );
   }
 
   private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(
@@ -828,17 +827,5 @@ public class LiveEditProjectMonitor implements Disposable {
 
   public static boolean supportLiveEdits(IDevice device) {
     return device.getVersion().isAtLeast(AndroidVersion.VersionCodes.R);
-  }
-
-  // TODO: Unify this part.
-  private static String getLocalInstaller() {
-    Path path;
-    if (StudioPathManager.isRunningFromSources()) {
-      // Development mode
-      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
-    } else {
-      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
-    }
-    return path.toString();
   }
 }
