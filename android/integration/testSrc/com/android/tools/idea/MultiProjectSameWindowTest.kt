@@ -58,12 +58,12 @@ class MultiProjectSameWindowTest {
       // Open file in second project
       val mainActivityPath2 =
         project2.targetProject.resolve("app/src/main/java/com/example/liveedittest/MainActivity.kt")
-      studio.openFile(project2.getTargetProject().getFileName().toString(), mainActivityPath2.toString())
+      studio.openFile("LiveEditTest", mainActivityPath2.toString())
       Thread.sleep(3000)
 
       // Edit file
       studio.editFile(
-        project2.getTargetProject().getFileName().toString(),
+        "LiveEditTest",
         mainActivityPath2.toString(),
         "Before editing",
         "After editing",
@@ -72,7 +72,7 @@ class MultiProjectSameWindowTest {
       // Verify edit - this is a verification since editing will fail if the search regex can't be
       // found.
       studio.editFile(
-        project2.getTargetProject().getFileName().toString(),
+        "LiveEditTest",
         mainActivityPath2.toString(),
         "After editing",
         "After second editing",
