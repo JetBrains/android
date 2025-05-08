@@ -1024,10 +1024,10 @@ MODULE                        : kotlinMultiPlatform
                         appleTestResolvableDependenciesMetadata : <empty>
                         appleTestRuntimeOnly          : <empty>
                         - archives                    : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
+                        - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iosx64-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iossimulatorarm64-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iosarm64-metadata.jar [-]
-                        - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
                         commonMainApi                 : <empty>
                         commonMainApiDependenciesMetadata       : <empty>
                         commonMainCompileOnly         : <empty>
@@ -5262,6 +5262,13 @@ MODULE                        : kotlinMultiPlatform.module2
                 platform                      : ANDROID
             disambiguationClassifier      : android
             platform                      : ANDROID
+            presetName                    : android
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testDebugUnitTest
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testReleaseUnitTest
         - targets                     : iosArm64 (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : iosMain (KotlinSourceSetImpl)
@@ -5527,6 +5534,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 targetPlatform                : ios_arm64
                 type                          : PROGRAM
             platform                      : NATIVE
+            presetName                    : iosArm64
         - targets                     : iosSimulatorArm64 (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : iosMain (KotlinSourceSetImpl) (*seen*)
@@ -5675,6 +5683,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 targetPlatform                : ios_simulator_arm64
                 type                          : PROGRAM
             platform                      : NATIVE
+            presetName                    : iosSimulatorArm64
         - targets                     : iosX64 (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : iosMain (KotlinSourceSetImpl) (*seen*)
@@ -5823,6 +5832,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 targetPlatform                : ios_x64
                 type                          : PROGRAM
             platform                      : NATIVE
+            presetName                    : iosX64
         sourceSets
             androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)

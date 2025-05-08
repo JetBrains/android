@@ -2493,6 +2493,7 @@ Required by:
                     archiveFile                   : <ROOT>/jsModule/build/libs/jsModule.klib [-]
                     - compilations                : main (KotlinCompilationImpl) (*seen*)
                 platform                      : JS
+                presetName                    : js
                 - testRunTasks                : KotlinTestRunTaskImpl
                     compilationName               : test
                     taskName                      : browserTest
@@ -3150,6 +3151,13 @@ Required by:
                     platform                      : ANDROID
                 disambiguationClassifier      : android
                 platform                      : ANDROID
+                presetName                    : android
+                - testRunTasks                : KotlinTestRunTaskImpl
+                    compilationName               : test
+                    taskName                      : testDebugUnitTest
+                - testRunTasks                : KotlinTestRunTaskImpl
+                    compilationName               : test
+                    taskName                      : testReleaseUnitTest
             sourceSets
                 androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
                 androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)

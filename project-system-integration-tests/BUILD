@@ -1,6 +1,7 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_VERSION_FOR_TESTS")
 
 common_data = [
     ":sdkindexapp",
@@ -153,10 +154,12 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:com.android.tools.build.gradle_8.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_" + KGP_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KGP_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_" + KGP_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + KGP_VERSION_FOR_TESTS,
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 

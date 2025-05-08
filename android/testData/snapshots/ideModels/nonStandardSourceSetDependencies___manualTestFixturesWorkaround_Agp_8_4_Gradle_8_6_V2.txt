@@ -3666,6 +3666,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                 archiveFile                   : <ROOT>/common/build/libs/common-jvm.jar [-]
                 - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
+            presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
                 taskName                      : jvmTest
@@ -5466,6 +5467,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 platform                      : ANDROID
             disambiguationClassifier      : android
             platform                      : ANDROID
+            presetName                    : android
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testDebugUnitTest
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testReleaseUnitTest
         sourceSets
             androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
@@ -5798,6 +5806,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 archiveFile                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                 - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
+            presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
                 taskName                      : jvmTest

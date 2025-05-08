@@ -108,9 +108,7 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
     val afterFile = File(testRoot, "${path}_after.$extension")
     assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile)) {
-      it.replace("\$VERSION$", rawVersion)
-        .replace("\$CORE_KTX_VERSION$", rawKtxCoreVersion)
-        .replace("\$KOTLIN_VERSION_FOR_TESTS", KOTLIN_VERSION_FOR_TESTS)
+      it.replace("\$VERSION$", rawVersion).replace("\$CORE_KTX_VERSION$", rawKtxCoreVersion)
     }
 
     // Clear JDK table

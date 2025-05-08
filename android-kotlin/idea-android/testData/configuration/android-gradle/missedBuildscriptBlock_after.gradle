@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.android' version '$KOTLIN_VERSION_FOR_TESTS'
+    id 'org.jetbrains.kotlin.android' version '2.2.0-Beta1'
 }
 apply plugin: 'android'
 
