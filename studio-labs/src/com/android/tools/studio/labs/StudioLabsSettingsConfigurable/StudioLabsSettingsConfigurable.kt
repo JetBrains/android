@@ -178,6 +178,18 @@ class StudioLabsSettingsConfigurable :
             imageSourceDark = "images/studio_labs/at-file_dark.png",
             imageDescription = "@file attaching menu",
           ),
+          StudioLabsFeaturePanelUi(
+            flag = StudioFlags.SUGGEST_A_FIX,
+            heading = "Generate suggested fix in AQI",
+            description =
+              """
+                Enables AQI to generate suggested fixes based on Gemini insight.
+              """
+                .trimIndent(),
+            imageSourceDefault = "images/studio_labs/suggested-fix.png",
+            imageSourceDark = "images/studio_labs/suggested-fix_dark.png",
+            imageDescription = "Suggested Fix in AQI",
+          ),
         )
 
       if (StudioFlags.STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED.get()) {
