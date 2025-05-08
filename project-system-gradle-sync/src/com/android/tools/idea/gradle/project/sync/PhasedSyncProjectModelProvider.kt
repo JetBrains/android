@@ -26,7 +26,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 
-class BasicAndroidProjectModelProvider : ProjectImportModelProvider {
+class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
    /**
     * This is just indicating which phase the provider will  on. To match the names it can technically run on
     * [GradleModelFetchPhase.PROJECT_MODEL_PHASE] but we populate source sets with this information, so it's kept in the source set phase.
